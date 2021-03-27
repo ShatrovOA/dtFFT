@@ -1,5 +1,10 @@
 # dtFFT -  DataTyped Fast Fourier Transform
 
+[![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
+[![Build Status](https://travis-ci.org/ShatrovOA/dtFFT.svg?branch=master)](https://travis-ci.com/ShatrovOA/dtFFT)
+[![Coverage Status](https://codecov.io/gh/ShatrovOA/dtFFT/branch/master/graph/badge.svg?token=QT9Y19KF8X)](https://codecov.io/gh/ShatrovOA/dtFFT)
+[![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
+
 This repository contains new library to perform FFT on a distibuted memory cluster. It is written in modern Fortran and uses MPI to handle communications between processes.  
 The main idea of this library is to implement zero-copy algoritms in 2d and 3d cases. It uses advance MPI to create send and recieve MPI datatypes in a such way that recieved memory will be aligned in memory and ready run 1d FFT.
 
