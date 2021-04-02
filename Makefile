@@ -42,3 +42,4 @@ clean:
 	@echo Deleting $(EXE_DIR) directory
 	@rm -fr $(EXE_DIR)
 	@rm -fr *.gcov
+	@cd src; $(MAKE) $@

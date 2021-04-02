@@ -29,8 +29,8 @@ use dtfft_parameters
 use dtfft_plan_base_m
 use dtfft_plan_c2c_m, only: dtfft_base_plan_c2c
 use dtfft_precisions
-use mpi_f08
 use iso_fortran_env, only: output_unit
+#include "dtfft_mpi.h"
 implicit none
 private
 public :: dtfft_plan_r2c_2d,    &
@@ -171,7 +171,7 @@ contains
 !< Creates plan for two-dimensional r2c transform, double precision
 !------------------------------------------------------------------------------------------------
     class(dtfft_plan_r2c_2d), intent(inout) :: self             !< R2C 2D Class
-    type(MPI_Comm),           intent(in)    :: comm             !< Communicator
+    TYPE_MPI_COMM,            intent(in)    :: comm             !< Communicator
     integer(IP),              intent(in)    :: nx               !< Number of points in X direction
     integer(IP),              intent(in)    :: ny               !< Number of points in Y direction
     integer(IP),  optional,   intent(in)    :: effort_flag      !< DTFFT planner effort flag
@@ -189,7 +189,7 @@ contains
 !< Creates plan for two-dimensional r2c transform, single precision
 !------------------------------------------------------------------------------------------------
     class(dtfft_plan_r2c_2d), intent(inout) :: self             !< R2C 2D Class
-    type(MPI_Comm),           intent(in)    :: comm             !< Communicator
+    TYPE_MPI_COMM,            intent(in)    :: comm             !< Communicator
     integer(IP),              intent(in)    :: nx               !< Number of points in X direction
     integer(IP),              intent(in)    :: ny               !< Number of points in Y direction
     integer(IP),  optional,   intent(in)    :: effort_flag      !< DTFFT planner effort flag
@@ -395,7 +395,7 @@ contains
 !< Creates plan for three-dimensional c2c transform, double precision
 !------------------------------------------------------------------------------------------------
     class(dtfft_plan_r2c_3d), intent(inout) :: self             !< R2C 3D Class
-    type(MPI_Comm),           intent(in)    :: comm             !< Communicator
+    TYPE_MPI_COMM,            intent(in)    :: comm             !< Communicator
     integer(IP),              intent(in)    :: nx               !< Number of points in X direction
     integer(IP),              intent(in)    :: ny               !< Number of points in Y direction
     integer(IP),              intent(in)    :: nz               !< Number of points in Z direction
@@ -414,7 +414,7 @@ contains
 !< Creates plan for three-dimensional c2c transform, double precision
 !------------------------------------------------------------------------------------------------
     class(dtfft_plan_r2c_3d), intent(inout) :: self             !< R2C 3D Class
-    type(MPI_Comm),           intent(in)    :: comm             !< Communicator
+    TYPE_MPI_COMM,            intent(in)    :: comm             !< Communicator
     integer(IP),              intent(in)    :: nx               !< Number of points in X direction
     integer(IP),              intent(in)    :: ny               !< Number of points in Y direction
     integer(IP),              intent(in)    :: nz               !< Number of points in Z direction

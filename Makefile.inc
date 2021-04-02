@@ -38,6 +38,13 @@ FFTW3_DIR = ${HOME}/fftw3
 # Set path to Nvidia Open-MPI bin directory
 # Make sure that pgfortran or nvfortran is in your PATH
 NVIDIA_MPI_BIN   = 
+
+# Choose fortran MPI interface
+# Only one option should be provided
+# Possible options are:
+# - mpi
+# - mpi_f08
+MPI_INTERFACE = mpi_f08
 #####################################################################################
 #  End of user-defined options
 #####################################################################################
@@ -64,6 +71,10 @@ ifeq ($(BUILD_MODE), debug)
   PREPROC += -D__DEBUG
 endif
 
+ifeq ($(MPI_INTERFACE), mpi)
+  PREPROC += -DDTFFT_USE_MPI
+endif
+
 ifeq ($(COMPILER), intel)
   FC      = mpiifort
   CC      = mpiicc
@@ -77,7 +88,11 @@ else ifeq ($(COMPILER), gnu)
   CC      = mpicc
   MOD     = -J
   FLIBS   = -lgfortran
-  MPI_LIB = -lmpi_usempif08
+  ifeq ($(MPI_INTERFACE), mpi)
+    MPI_LIB = -lmpi_mpifh
+  else ifeq ($(MPI_INTERFACE), mpi_f08)
+    MPI_LIB = -lmpi_usempif08
+  endif
   COMPILER_FLAGS += -m64 -ffree-line-length-none
   ifeq ($(BUILD_MODE), coverage)
     COMPILER_FLAGS += -fprofile-arcs -ftest-coverage
@@ -97,7 +112,11 @@ else ifeq ($(COMPILER), nvidia)
   ifeq ($(BUILD_MODE), release)
     OPTIMIZE += -fast
   endif
-  MPI_LIB = -lmpi_usempif08
+  ifeq ($(MPI_INTERFACE), mpi)
+    MPI_LIB = -lmpi_mpifh
+  else ifeq ($(MPI_INTERFACE), mpi_f08)
+    MPI_LIB = -lmpi_usempif08
+  endif
 endif
 
 

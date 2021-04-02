@@ -68,6 +68,7 @@ To build this library modern (2008+) Fortran compiler is required. This library 
 - doc - will build API doc with the help of [ford](https://github.com/Fortran-FOSS-Programmers/ford)
 - clean - will remove build and exe directories and gcov files.
 
+Both ```mpi``` and ```mpi_f08``` Fortran modules are supported. One have to choose preferable interface in ```Makefile.inc```.
 ## Notes for C users
 C interface of the library is available. Simply 
 ```c

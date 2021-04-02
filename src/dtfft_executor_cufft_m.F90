@@ -81,7 +81,6 @@ public :: cufft_c2c_executor,   &
     class(info_t),              intent(in)    :: info             !< Buffer info
     integer(IP),                intent(in)    :: sign             !< Sign of transform
     integer(IP),                intent(in)    :: precision        !< Precision of FFT
-    integer(IP)                               :: ierr             !< Error flag
     integer(IP)                               :: cufft_type       !< cuFFT Precision
 
     self%sign = sign
@@ -90,8 +89,8 @@ public :: cufft_c2c_executor,   &
     elseif(precision == C4P) then
       cufft_type = CUFFT_C2C
     endif
-    ierr = cufftPlan1d(self%plan, info%counts(1), cufft_type, info%how_many)
-    ierr = cufftSetStream(self%plan, acc_get_cuda_stream(acc_async_sync))
+    IERROR = cufftPlan1d(self%plan, info%counts(1), cufft_type, info%how_many)
+    IERROR = cufftSetStream(self%plan, acc_get_cuda_stream(acc_async_sync))
   end subroutine create_plan_c2c
 
 !------------------------------------------------------------------------------------------------
@@ -101,11 +100,10 @@ public :: cufft_c2c_executor,   &
 !------------------------------------------------------------------------------------------------
     class(cufft_c2c_executor),  intent(inout) :: self             !< cuFFT Executor
     complex(C8P),               intent(inout) :: inout(*)         !< Buffer
-    integer(IP)                               :: ierr             !< Error flag
 
 !$acc data present(inout)
 !$acc host_data use_device(inout)
-    ierr = cufftExecZ2Z(self%plan, inout, inout, self%sign)
+    IERROR = cufftExecZ2Z(self%plan, inout, inout, self%sign)
 !$acc end host_data
 !$acc end data
   end subroutine execute_c2c
@@ -117,11 +115,10 @@ public :: cufft_c2c_executor,   &
 !------------------------------------------------------------------------------------------------
     class(cufft_c2c_executor),  intent(inout) :: self             !< cuFFT Executor
     complex(C4P),               intent(inout) :: inout(*)         !< Buffer
-    integer(IP)                               :: ierr             !< Error flag
 
 !$acc data present(inout) 
 !$acc host_data use_device(inout)
-    ierr = cufftExecC2C(self%plan, inout, inout, self%sign)
+    IERROR = cufftExecC2C(self%plan, inout, inout, self%sign)
 !$acc end host_data
 !$acc end data
   end subroutine execute_f_c2c
@@ -132,9 +129,8 @@ public :: cufft_c2c_executor,   &
 !< Destroys cuFFT plan
 !------------------------------------------------------------------------------------------------
     class(cufft_c2c_executor),  intent(inout) :: self             !< cuFFT Executor
-    integer(IP)                               :: ierr             !< Error flag
 
-    ierr = cufftDestroy(self%plan)
+    IERROR = cufftDestroy(self%plan)
   end subroutine destroy_c2c
 
 !------------------------------------------------------------------------------------------------
@@ -146,7 +142,6 @@ public :: cufft_c2c_executor,   &
     class(info_t),              intent(in)    :: complex_info     !< Complex buffer info
     class(info_t),              intent(in)    :: real_info        !< Real buffer info
     integer(IP),                intent(in)    :: precision        !< Precision of executor
-    integer(IP)                               :: ierr             !< Error flag
     integer(IP)                               :: cufft_type       !< cuFFT Precision
 
     if(precision == C8P) then
@@ -154,8 +149,8 @@ public :: cufft_c2c_executor,   &
     elseif(precision == C4P) then
       cufft_type = CUFFT_C2R
     endif
-    ierr = cufftPlan1d(self%plan, real_info%counts(1), cufft_type, complex_info%how_many)
-    ierr = cufftSetStream(self%plan, acc_get_cuda_stream(acc_async_sync))
+    IERROR = cufftPlan1d(self%plan, real_info%counts(1), cufft_type, complex_info%how_many)
+    IERROR = cufftSetStream(self%plan, acc_get_cuda_stream(acc_async_sync))
   end subroutine create_plan_c2r
 
 !------------------------------------------------------------------------------------------------
@@ -166,11 +161,10 @@ public :: cufft_c2c_executor,   &
     class(cufft_c2r_executor),  intent(inout) :: self             !< C2R Executor
     complex(C8P),               intent(inout) :: in(*)            !< Complex buffer
     real(R8P),                  intent(inout) :: out(*)           !< Real buffer
-    integer(IP)                               :: ierr             !< Error flag
 
 !$acc data present(in, out) 
 !$acc host_data use_device(in, out)
-    ierr = cufftExecZ2D(self%plan, in, out)
+    IERROR = cufftExecZ2D(self%plan, in, out)
 !$acc end host_data
 !$acc end data
   end subroutine execute_c2r
@@ -183,11 +177,10 @@ public :: cufft_c2c_executor,   &
     class(cufft_c2r_executor),  intent(inout) :: self             !< C2R Executor
     complex(C4P),               intent(inout) :: in(*)            !< Complex buffer
     real(R4P),                  intent(inout) :: out(*)           !< Real buffer
-    integer(IP)                               :: ierr             !< Error flag
 
 !$acc data present(in, out) 
 !$acc host_data use_device(in, out)
-    ierr = cufftExecC2R(self%plan, in, out)
+    IERROR = cufftExecC2R(self%plan, in, out)
 !$acc end host_data
 !$acc end data
   end subroutine execute_f_c2r
@@ -198,9 +191,8 @@ public :: cufft_c2c_executor,   &
 !< Destroys cuFFT c2r plan
 !------------------------------------------------------------------------------------------------
     class(cufft_c2r_executor),   intent(inout) :: self            !< C2R Executor
-    integer(IP)                                :: ierr            !< Error flag
 
-    ierr = cufftDestroy(self%plan)
+    IERROR = cufftDestroy(self%plan)
   end subroutine destroy_c2r
 
 !------------------------------------------------------------------------------------------------
@@ -212,7 +204,6 @@ public :: cufft_c2c_executor,   &
     class(info_t),              intent(in)    :: real_info        !< Real buffer info
     class(info_t),              intent(in)    :: complex_info     !< Complex buffer info
     integer(IP),                intent(in)    :: precision        !< Precision of executor
-    integer(IP)                               :: ierr             !< Error flag
     integer(IP)                               :: cufft_type       !< cuFFT Precision
 
     if(precision == C8P) then
@@ -220,8 +211,8 @@ public :: cufft_c2c_executor,   &
     elseif(precision == C4P) then
       cufft_type = CUFFT_R2C
     endif
-    ierr = cufftPlan1d(self%plan, real_info%counts(1), cufft_type, real_info%how_many)
-    ierr = cufftSetStream(self%plan, acc_get_cuda_stream(acc_async_sync))
+    IERROR = cufftPlan1d(self%plan, real_info%counts(1), cufft_type, real_info%how_many)
+    IERROR = cufftSetStream(self%plan, acc_get_cuda_stream(acc_async_sync))
   end subroutine create_plan_r2c
 
 !------------------------------------------------------------------------------------------------
@@ -232,11 +223,10 @@ public :: cufft_c2c_executor,   &
     class(cufft_r2c_executor),  intent(inout) :: self             !< R2C Executor
     real(R8P),                  intent(inout) :: in(*)            !< Real buffer
     complex(C8P),               intent(inout) :: out(*)           !< Complex buffer
-    integer(IP)                               :: ierr             !< Error flag
 
 !$acc data present(in, out) 
 !$acc host_data use_device(in, out)
-    ierr = cufftExecD2Z(self%plan, in, out)
+    IERROR = cufftExecD2Z(self%plan, in, out)
 !$acc end host_data
 !$acc end data
   end subroutine execute_r2c
@@ -249,11 +239,10 @@ public :: cufft_c2c_executor,   &
     class(cufft_r2c_executor),  intent(inout) :: self             !< R2C Executor
     real(R4P),                  intent(inout) :: in(*)            !< Real buffer
     complex(C4P),               intent(inout) :: out(*)           !< Complex buffer
-    integer(IP)                               :: ierr             !< Error flag
 
 !$acc data present(in, out) 
 !$acc host_data use_device(in, out)
-    ierr = cufftExecR2C(self%plan, in, out)
+    IERROR = cufftExecR2C(self%plan, in, out)
 !$acc end host_data
 !$acc end data
   end subroutine execute_f_r2c
@@ -264,9 +253,8 @@ public :: cufft_c2c_executor,   &
 !< Destroys cuFFT r2c plan
 !------------------------------------------------------------------------------------------------
     class(cufft_r2c_executor),   intent(inout) :: self            !< R2C Executor
-    integer(IP)                                :: ierr            !< Error flag
 
-    ierr = cufftDestroy(self%plan)
+    IERROR = cufftDestroy(self%plan)
   end subroutine destroy_r2c
 #endif
 end module dtfft_executor_cufft_m

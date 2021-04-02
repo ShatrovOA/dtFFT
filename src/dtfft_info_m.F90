@@ -21,7 +21,7 @@ module dtfft_info_m
 !< This module describes [[info_t]] class
 !------------------------------------------------------------------------------------------------
 use dtfft_precisions
-use mpi_f08
+#include "dtfft_mpi.h"
 implicit none
 private
 public :: info_t
@@ -50,7 +50,7 @@ public :: info_t
     integer(IP),        intent(in)    :: rank             !< Rank of buffer
     integer(IP),        intent(in)    :: aligned_dim      !< Position of aligned dimension
     integer(IP),        intent(in)    :: counts(:)        !< Global counts
-    type(MPI_Comm),     intent(in)    :: comms(:)         !< Grid communicators
+    TYPE_MPI_COMM,      intent(in)    :: comms(:)         !< Grid communicators
     integer(IP),        intent(in)    :: comm_dims(:)     !< Grid dimensions
     integer(IP),        intent(in)    :: comm_coords(:)   !< Grid coordinates
     integer(IP)                       :: d                !< Counter
@@ -87,7 +87,7 @@ public :: info_t
 !< Computes local portions of data based on global count and position inside grid communicator
 !------------------------------------------------------------------------------------------------
     integer(IP),    intent(in)    :: n_global             !< Global number of points
-    type(MPI_Comm), intent(in)    :: comm                 !< Grid communicator
+    TYPE_MPI_COMM,  intent(in)    :: comm                 !< Grid communicator
     integer(IP),    intent(in)    :: comm_dim             !< Number of MPI processes along n_global
     integer(IP),    intent(in)    :: comm_coord           !< Coordinate of current MPI process
     integer(IP),    intent(out)   :: start                !< Local start
@@ -109,7 +109,7 @@ public :: info_t
     else
       count = int(n_global / comm_dim, IP)
     endif
-    call MPI_Allgather(count, 1, MPI_INTEGER, shift, 1, MPI_INTEGER, comm)
+    call MPI_Allgather(count, 1, MPI_INTEGER, shift, 1, MPI_INTEGER, comm, IERROR)
   
     do i = 0, comm_coord - 1
       start = start + shift(i + 1)

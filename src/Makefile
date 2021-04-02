@@ -131,3 +131,7 @@ $(DOBJ)dtfft_c_interface.o: dtfft_c_interface.F90 \
 coverage:
 	@gcov -o ../$(OBJ_DIR) *
 	@mv *.gcov ../
+
+.PHONY: clean
+clean:
+	@rm -fr *.mod

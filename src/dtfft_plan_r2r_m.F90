@@ -25,8 +25,8 @@ use dtfft_abstract_executor_m
 use dtfft_executor_fftw_m
 use dtfft_precisions
 use dtfft_parameters
-use mpi_f08
 use iso_fortran_env, only: output_unit
+#include "dtfft_mpi.h"
 implicit none
 private
 public :: dtfft_plan_r2r_2d, dtfft_plan_r2r_3d
@@ -156,7 +156,7 @@ contains
 !< Creates plan for two-dimensional r2r transform, double precision
 !------------------------------------------------------------------------------------------------
     class(dtfft_plan_r2r_2d), intent(inout) :: self             !< R2R 2D Plan
-    type(MPI_Comm),           intent(in)    :: comm             !< Communicator
+    TYPE_MPI_COMM,            intent(in)    :: comm             !< Communicator
     integer(IP),              intent(in)    :: nx               !< Number of points in X direction
     integer(IP),              intent(in)    :: ny               !< Number of points in Y direction
     integer(IP),              intent(in)    :: in_kinds(2)      !< Forward kinds
@@ -175,7 +175,7 @@ contains
 !< Creates plan for two-dimensional r2r transform, single precision
 !------------------------------------------------------------------------------------------------
     class(dtfft_plan_r2r_2d), intent(inout) :: self             !< R2R 2D Plan
-    type(MPI_Comm),           intent(in)    :: comm             !< Communicator
+    TYPE_MPI_COMM,            intent(in)    :: comm             !< Communicator
     integer(IP),              intent(in)    :: nx               !< Number of points in X direction
     integer(IP),              intent(in)    :: ny               !< Number of points in Y direction
     integer(IP),              intent(in)    :: in_kinds(2)      !< Forward kinds
@@ -279,7 +279,7 @@ contains
 !< Creates plan for three-dimensional r2r transform, double precision
 !------------------------------------------------------------------------------------------------
     class(dtfft_plan_r2r_3d), intent(inout) :: self             !< R2R 3D Plan
-    type(MPI_Comm),           intent(in)    :: comm             !< Communicator
+    TYPE_MPI_COMM,            intent(in)    :: comm             !< Communicator
     integer(IP),              intent(in)    :: nx               !< Number of points in X direction
     integer(IP),              intent(in)    :: ny               !< Number of points in Y direction
     integer(IP),              intent(in)    :: nz               !< Number of points in Z direction
@@ -299,7 +299,7 @@ contains
 !< Creates plan for three-dimensional r2r transform, double precision
 !------------------------------------------------------------------------------------------------
     class(dtfft_plan_r2r_3d), intent(inout) :: self             !< R2R 3D Plan
-    type(MPI_Comm),           intent(in)    :: comm             !< Communicator
+    TYPE_MPI_COMM,            intent(in)    :: comm             !< Communicator
     integer(IP),              intent(in)    :: nx               !< Number of points in X direction
     integer(IP),              intent(in)    :: ny               !< Number of points in Y direction
     integer(IP),              intent(in)    :: nz               !< Number of points in Z direction

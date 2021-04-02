@@ -25,7 +25,7 @@ use dtfft_precisions
 use dtfft_plan_c2c_m
 use dtfft_plan_r2r_m
 use dtfft_plan_r2c_m
-use mpi_f08, only: MPI_Comm
+#include "dtfft_mpi.h"
 implicit none
 
 contains
@@ -45,10 +45,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_r2r_3d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create(fcomm, nz, ny, nx, in_kinds, out_kinds, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_r2r_3d_c
@@ -68,10 +72,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_r2r_3d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create_f(fcomm, nz, ny, nx, in_kinds, out_kinds, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_f_r2r_3d_c
@@ -90,10 +98,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_r2r_2d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create(fcomm, ny, nx, in_kinds, out_kinds, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_r2r_2d_c
@@ -112,10 +124,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_r2r_2d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create_f(fcomm, ny, nx, in_kinds, out_kinds, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_f_r2r_2d_c
@@ -133,10 +149,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_c2c_3d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create(fcomm, nz, ny, nx, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_c2c_3d_c
@@ -154,10 +174,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_c2c_3d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create_f(fcomm, nz, ny, nx, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_f_c2c_3d_c
@@ -174,10 +198,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_c2c_2d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create(fcomm, ny, nx, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_c2c_2d_c
@@ -194,10 +222,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_c2c_2d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create_f(fcomm, ny, nx, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_f_c2c_2d_c
@@ -214,10 +246,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_r2c_2d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create(fcomm, ny, nx, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_r2c_2d_c
@@ -234,10 +270,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_r2c_2d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create_f(fcomm, ny, nx, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_f_r2c_2d_c
@@ -255,10 +295,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_r2c_3d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create(fcomm, nz, ny, nx, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_r2c_3d_c
@@ -276,10 +320,14 @@ contains
     integer(IP),  intent(in),   value     :: effort_flag      !< DTFFT planner effort flag
     integer(IP),  intent(in),   value     :: executor_type    !< Type of External FFT Executor
     type(dtfft_plan_r2c_3d),    pointer   :: plan             !< Fortran plan class
-    type(MPI_Comm)                        :: fcomm            !< Fortran communicator
+    TYPE_MPI_COMM                         :: fcomm            !< Fortran communicator
 
     allocate(plan)
+#ifdef DTFFT_USE_MPI
+    fcomm = comm
+#else
     fcomm%MPI_VAL = comm
+#endif
     call plan%create_f(fcomm, nz, ny, nx, effort_flag, executor_type)
     plan_ptr = c_loc(plan)
   end subroutine dtfft_create_plan_f_r2c_3d_c

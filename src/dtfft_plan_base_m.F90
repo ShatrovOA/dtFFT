@@ -24,7 +24,7 @@ use dtfft_info_m
 use dtfft_parameters
 use dtfft_precisions
 use dtfft_transpose_m
-use mpi_f08
+#include "dtfft_mpi.h"
 use iso_fortran_env, only: output_unit
 implicit none
 private
@@ -32,8 +32,8 @@ public :: dtfft_base_plan
 
   type :: dtfft_base_plan
   !< Base plan for all DTFFT plans
-    type(MPI_Comm)                    :: comm                       !< Grid communicator
-    type(MPI_Comm),     allocatable   :: comms(:)                   !< Local 1d communicators
+    TYPE_MPI_COMM                     :: comm                       !< Grid communicator
+    TYPE_MPI_COMM,      allocatable   :: comms(:)                   !< Local 1d communicators
     integer(IP),        allocatable   :: comm_dims(:)               !< Dimensions of grid comm
     integer(IP),        allocatable   :: comm_coords(:)             !< Coordinates of grod comm
     integer(IP)                       :: dims                       !< Number of global dimensions
@@ -98,13 +98,13 @@ public :: dtfft_base_plan
     endif
     if(allocated(self%comms)) then 
       do d = 1, self%dims
-        call MPI_Comm_free(self%comms(d))
+        call MPI_Comm_free(self%comms(d), IERROR)
       enddo
       deallocate(self%comms)
     endif
     if(allocated(self%comm_dims))   deallocate(self%comm_dims)
     if(allocated(self%comm_coords)) deallocate(self%comm_coords)
-    call MPI_Comm_free(self%comm)
+    call MPI_Comm_free(self%comm, IERROR)
     self%dims = -1
     self%is_created = .false.
   end subroutine destroy_base_plan
@@ -130,10 +130,10 @@ public :: dtfft_base_plan
 !< Creates base plan
 !------------------------------------------------------------------------------------------------
     class(dtfft_base_plan), intent(inout) :: self                 !< Base class
-    type(MPI_Comm),         intent(in)    :: comm                 !< User communicator
+    TYPE_MPI_COMM,          intent(in)    :: comm                 !< User communicator
     integer(IP),            intent(in)    :: precision            !< Precision of base plan
     integer(IP),            intent(in)    :: counts(:)            !< Counts of the transform requested
-    type(MPI_Datatype),     intent(in)    :: base_type            !< Base MPI_Datatype
+    TYPE_MPI_DATATYPE,      intent(in)    :: base_type            !< Base MPI_Datatype
     integer(IP),            intent(in)    :: base_storage         !< Number of bytes needed to store single element
     integer(IP),  optional, intent(in)    :: effort_flag          !< DTFFT planner effort flag
     integer(IP)                           :: planner_flag         !< DTFFT planner effort flag
@@ -169,9 +169,9 @@ public :: dtfft_base_plan
       tr_counts(3, 3) = counts(2) 
     endif
 
-    call MPI_Comm_size(comm, self%comm_size)
-    call MPI_Comm_rank(comm, self%comm_rank)
-    call MPI_Topo_test(comm, status)
+    call MPI_Comm_size(comm, self%comm_size, IERROR)
+    call MPI_Comm_rank(comm, self%comm_rank, IERROR)
+    call MPI_Topo_test(comm, status, IERROR)
 
     if(status == MPI_UNDEFINED) then
       planner_flag = DTFFT_MEASURE
@@ -180,14 +180,14 @@ public :: dtfft_base_plan
 !TODO Implement effort_flag algorithms
         self%comm_dims(:) = 0
         self%comm_dims(1) = 1
-        call MPI_Dims_create(self%comm_size, self%dims, self%comm_dims)
+        call MPI_Dims_create(self%comm_size, self%dims, self%comm_dims, IERROR)
  
     elseif(status == MPI_CART) then
-      call MPI_Cartdim_get(comm, ndims)
+      call MPI_Cartdim_get(comm, ndims, IERROR)
       if(ndims > self%dims) error stop "DTFFT: Number of cartesian dims > size of transpose"
       self%comm_dims(:) = 1
       allocate(temp_dims(ndims), temp_periods(ndims), temp_coords(ndims))
-      call MPI_Cart_get(comm, ndims, temp_dims, temp_periods, temp_coords)
+      call MPI_Cart_get(comm, ndims, temp_dims, temp_periods, temp_coords, IERROR)
       if(ndims == self%dims) then 
         self%comm_dims = temp_dims
       elseif(ndims == self%dims - 1) then
@@ -217,23 +217,23 @@ public :: dtfft_base_plan
 !------------------------------------------------------------------------------------------------
     class(dtfft_base_plan), intent(inout) :: self                 !< Base class
     integer(IP),            intent(in)    :: comm_dims(:)         !< Dims in cartesian communcator
-    type(MPI_Comm),         intent(out)   :: comm                 !< Cartesian communcator
+    TYPE_MPI_COMM,          intent(out)   :: comm                 !< Cartesian communcator
     integer(IP),            intent(out)   :: comm_coords(:)       !< Coordinates of current process in cartesian communcator
-    type(MPI_Comm),         intent(out)   :: local_comms(:)       !< 1d communicators in cartesian communcator
+    TYPE_MPI_COMM,          intent(out)   :: local_comms(:)       !< 1d communicators in cartesian communcator
     logical,                allocatable   :: periods(:)           !< Grid is not periodic
     logical,                allocatable   :: remain_dims(:)       !< Needed by MPI_Cart_sub
     integer(IP)                           :: d                    !< Counter
     integer(IP)                           :: comm_rank            !< Rank of current process in cartesian communcator
 
     allocate(periods(self%dims), source = .false.)
-    call MPI_Cart_create(MPI_COMM_WORLD, self%dims, comm_dims, periods, .true., comm)
-    call MPI_Comm_rank(comm, comm_rank)
-    call MPI_Cart_coords(comm, comm_rank, self%dims, comm_coords)
+    call MPI_Cart_create(MPI_COMM_WORLD, self%dims, comm_dims, periods, .true., comm, IERROR)
+    call MPI_Comm_rank(comm, comm_rank, IERROR)
+    call MPI_Cart_coords(comm, comm_rank, self%dims, comm_coords, IERROR)
 
     allocate(remain_dims(self%dims), source = .false.)
     do d = 1, self%dims
       remain_dims(d) = .true.
-      call MPI_Cart_sub(comm, remain_dims, local_comms(d))
+      call MPI_Cart_sub(comm, remain_dims, local_comms(d), IERROR)
       remain_dims(d) = .false.
     enddo
     deallocate(remain_dims, periods)
@@ -245,8 +245,8 @@ public :: dtfft_base_plan
 !< Creates transpose plans: XYZ -> YXZ -> ZXY -> YXZ -> XYZ
 !------------------------------------------------------------------------------------------------
     class(dtfft_base_plan), intent(inout) :: self                 !< Base class
-    type(MPI_Comm),         intent(in)    :: comms(:)             !< Array of 1d communicators
-    type(MPI_Datatype),     intent(in)    :: base_type            !< Base MPI_Datatype
+    TYPE_MPI_COMM,          intent(in)    :: comms(:)             !< Array of 1d communicators
+    TYPE_MPI_DATATYPE,      intent(in)    :: base_type            !< Base MPI_Datatype
     integer(IP),            intent(in)    :: base_storage         !< Number of bytes needed to store single element
 
     call self%transpose_out(1)%init(comms(2), self%info(1), self%info(2), base_type, base_storage)
@@ -321,7 +321,7 @@ public :: dtfft_base_plan
     call plan%transpose(in, out)
 #ifdef __DEBUG
     elapsed = elapsed + MPI_Wtime()
-    call MPI_Allreduce(elapsed, t_sum, 1, MPI_REAL8, MPI_SUM, self%comm)
+    call MPI_Allreduce(elapsed, t_sum, 1, MPI_REAL8, MPI_SUM, self%comm, IERROR)
     elapsed = t_sum / real(self%comm_size, R8P)
     if(self%comm_rank == 0) then 
       write(output_unit, '(a)') 'Transpose '//from//' --> '//to

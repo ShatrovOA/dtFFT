@@ -27,22 +27,26 @@ private
 !------------------------------------------------------------------------------------------------
 ! Integer types
 !------------------------------------------------------------------------------------------------
-  integer, public, parameter :: IP  = C_INT               
+  integer, public, parameter  :: IP  = C_INT
   !< Integer, 4 bytes
 
 !------------------------------------------------------------------------------------------------
 ! Real types
 !------------------------------------------------------------------------------------------------
-  integer, public, parameter :: R4P = C_FLOAT             
+  integer, public, parameter  :: R4P = C_FLOAT
   !< Float, 4 bytes
-  integer, public, parameter :: R8P = C_DOUBLE            
+  integer, public, parameter  :: R8P = C_DOUBLE
   !< Float, 8 bytes
   
 !------------------------------------------------------------------------------------------------
 ! Complex types
 !------------------------------------------------------------------------------------------------
-  integer, public, parameter :: C4P = C_FLOAT_COMPLEX     
+  integer, public, parameter  :: C4P = C_FLOAT_COMPLEX
   !< Complex, 2x4 bytes = 8 bytes
-  integer, public, parameter :: C8P = C_DOUBLE_COMPLEX    
+  integer, public, parameter  :: C8P = C_DOUBLE_COMPLEX
   !< Complex, 2x8 bytes = 16 bytes
+
+
+  integer, public             :: IERROR
+  !< Globally defined error flag
 end module dtfft_precisions

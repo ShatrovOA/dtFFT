@@ -22,7 +22,7 @@ module dtfft_transpose_m
 !------------------------------------------------------------------------------------------------
 use dtfft_info_m
 use dtfft_precisions
-use mpi_f08
+#include "dtfft_mpi.h"
 implicit none
 private
 public :: transpose_t
@@ -32,7 +32,7 @@ public :: transpose_t
 
   type :: handle_t
   !< Transposition handle class
-    type(MPI_Datatype), allocatable :: dtypes(:)              !< Datatypes buffer
+    TYPE_MPI_DATATYPE,  allocatable :: dtypes(:)              !< Datatypes buffer
     integer(IP),        allocatable :: counts(:)              !< Number of datatypes (always equals 1)
     integer(IP),        allocatable :: displs(:)              !< Displacements is bytes
   contains
@@ -43,7 +43,7 @@ public :: transpose_t
   type :: transpose_t
   !< Transposition class
   private
-    type(MPI_Comm)                  :: comm                   !< 1d communicator
+    TYPE_MPI_COMM                   :: comm                   !< 1d communicator
     logical                         :: is_even                !< Is decomposition even
     type(handle_t)                  :: send                   !< Handle to send data
     type(handle_t)                  :: recv                   !< Handle to recieve data
@@ -84,7 +84,7 @@ contains
 
     if(allocated(self%dtypes)) then
       do i = 1, size(self%dtypes)
-        call MPI_Type_free(self%dtypes(i))
+        call MPI_Type_free(self%dtypes(i), IERROR)
       enddo
       deallocate(self%dtypes)
     endif
@@ -98,10 +98,10 @@ contains
 !< Creates [[transpose_t]] class
 !------------------------------------------------------------------------------------------------
     class(transpose_t), intent(inout) :: self               !< Transposition class
-    type(MPI_Comm),     intent(in)    :: comm               !< 1d communicator
+    TYPE_MPI_COMM,      intent(in)    :: comm               !< 1d communicator
     class(info_t),      intent(in)    :: send               !< Information about send buffer
     class(info_t),      intent(in)    :: recv               !< Information about recv buffer
-    type(MPI_Datatype), intent(in)    :: base_type          !< Base MPI_Datatype
+    TYPE_MPI_DATATYPE,  intent(in)    :: base_type          !< Base MPI_Datatype
     integer(IP),        intent(in)    :: base_storage       !< Number of bytes needed to store single element
     integer(IP)                       :: comm_size          !< Size of 1d communicator
     integer(IP)                       :: loop_size          !< Number of datatypes to be created
@@ -109,8 +109,8 @@ contains
     integer(IP),        allocatable   :: send_counts(:,:)   !< Each processor should know how much data each processor sends
     integer(IP)                       :: i                  !< Counter
 
-    call MPI_Comm_dup(comm, self%comm)
-    call MPI_Comm_size(self%comm, comm_size)
+    call MPI_Comm_dup(comm, self%comm, IERROR)
+    call MPI_Comm_size(self%comm, comm_size, IERROR)
     if(send%is_even .and. recv%is_even) then
       self%is_even = .true.
       loop_size = 1
@@ -124,8 +124,8 @@ contains
 
     allocate(recv_counts(recv%rank, comm_size), source = 0_IP)
     allocate(send_counts, source = recv_counts)
-    call MPI_Allgather(recv%counts, recv%rank, MPI_INTEGER, recv_counts, recv%rank, MPI_INTEGER, self%comm)
-    call MPI_Allgather(send%counts, send%rank, MPI_INTEGER, send_counts, send%rank, MPI_INTEGER, self%comm)
+    call MPI_Allgather(recv%counts, recv%rank, MPI_INTEGER, recv_counts, recv%rank, MPI_INTEGER, self%comm, IERROR)
+    call MPI_Allgather(send%counts, send%rank, MPI_INTEGER, send_counts, send%rank, MPI_INTEGER, self%comm, IERROR)
     if(send%rank == 2) then 
       do i = 1, loop_size
         call self%create_transpose_2d(loop_size, i, send, send_counts(:,i), recv, recv_counts(:,i), 1, base_type, base_storage)
@@ -160,11 +160,11 @@ contains
 !$acc data present(send, recv)
 !$acc host_data use_device(send, recv)
     if(self%is_even) then 
-      call MPI_Alltoall(send, 1, self%send%dtypes(1), recv, 1, self%recv%dtypes(1), self%comm)
+      call MPI_Alltoall(send, 1, self%send%dtypes(1), recv, 1, self%recv%dtypes(1), self%comm, IERROR)
       ! call MPI_Alltoall(send, self%sendcount, MPI_DOUBLE_COMPLEX, recv, self%recvcount, MPI_DOUBLE_COMPLEX, self%comm)
     else
       call MPI_Alltoallw(send, self%send%counts, self%send%displs, self%send%dtypes,          &
-                         recv, self%recv%counts, self%recv%displs, self%recv%dtypes, self%comm)
+                         recv, self%recv%counts, self%recv%displs, self%recv%dtypes, self%comm, IERROR)
     endif
 !$acc end host_data
 !$acc end data
@@ -177,7 +177,7 @@ contains
 !------------------------------------------------------------------------------------------------
     class(transpose_t), intent(inout) :: self       !< Transposition class
 
-    call MPI_Comm_free(self%comm)
+    call MPI_Comm_free(self%comm, IERROR)
     call self%send%destroy()
     call self%recv%destroy()
   end subroutine destroy
@@ -195,24 +195,24 @@ contains
     class(info_t),      intent(in)    :: recv               !< Information about send buffer
     integer(IP),        intent(in)    :: recv_counts(:)     !< Rank i is recieving this counts
     integer(IP),        intent(in)    :: transpose_id       !< Id of transpose plan. Reserved for future effort flag development.
-    type(MPI_Datatype), intent(in)    :: base_type          !< Base MPI_Datatype
+    TYPE_MPI_DATATYPE,  intent(in)    :: base_type          !< Base MPI_Datatype
     integer(IP),        intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    type(MPI_Datatype)                :: temp1              !< Temporary datatype
-    type(MPI_Datatype)                :: temp2              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp1              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp2              !< Temporary datatype
     integer(IP)                       :: displ              !< Displacement in bytes
 
     if(transpose_id == 1) then
-      call MPI_Type_vector(send%counts(2), recv_counts(2), send%counts(1), base_type, temp1)
+      call MPI_Type_vector(send%counts(2), recv_counts(2), send%counts(1), base_type, temp1, IERROR)
       displ = recv_counts(2) * base_storage
-      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i))
-      call MPI_Type_commit(self%send%dtypes(i))
+      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), IERROR)
+      call MPI_Type_commit(self%send%dtypes(i), IERROR)
       if(i < loop_size) self%send%displs(i + 1) = self%send%displs(i) +  displ
       call free_datatypes(temp1)
 
-      call MPI_Type_vector(recv%counts(2), 1, recv%counts(1), base_type, temp1)
-      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2)
-      call MPI_Type_contiguous(send_counts(2), temp2, self%recv%dtypes(i))
-      call MPI_Type_commit(self%recv%dtypes(i))
+      call MPI_Type_vector(recv%counts(2), 1, recv%counts(1), base_type, temp1, IERROR)
+      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, IERROR)
+      call MPI_Type_contiguous(send_counts(2), temp2, self%recv%dtypes(i), IERROR)
+      call MPI_Type_commit(self%recv%dtypes(i), IERROR)
       if(i < loop_size) self%recv%displs(i + 1) = self%recv%displs(i) +  send_counts(2) * base_storage
       call free_datatypes(temp1, temp2)
     else
@@ -233,65 +233,65 @@ contains
     class(info_t),      intent(in)    :: recv               !< Information about send buffer
     integer(IP),        intent(in)    :: recv_counts(:)     !< Rank i is recieving this counts
     integer(IP),        intent(in)    :: transpose_id       !< Id of transpose plan. Reserved for future effort flag development.
-    type(MPI_Datatype), intent(in)    :: base_type          !< Base MPI_Datatype
+    TYPE_MPI_DATATYPE,  intent(in)    :: base_type          !< Base MPI_Datatype
     integer(IP),        intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    type(MPI_Datatype)                :: temp1              !< Temporary datatype
-    type(MPI_Datatype)                :: temp2              !< Temporary datatype
-    type(MPI_Datatype)                :: temp3              !< Temporary datatype
-    type(MPI_Datatype)                :: temp4              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp1              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp2              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp3              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp4              !< Temporary datatype
     integer(IP)                       :: displ              !< Rank i is sending / recieving with this displacement in bytes
 
     if(transpose_id == 1) then 
     ! This transpose_id has "contiguous" send and strided recieve datatype
-      call MPI_Type_vector(send%counts(2) * send%counts(3), recv_counts(2), send%counts(1), base_type, temp1)
+      call MPI_Type_vector(send%counts(2) * send%counts(3), recv_counts(2), send%counts(1), base_type, temp1, IERROR)
       displ = recv_counts(2) * base_storage
-      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i))
-      call MPI_Type_commit(self%send%dtypes(i))
+      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), IERROR)
+      call MPI_Type_commit(self%send%dtypes(i), IERROR)
       if(i < loop_size) self%send%displs(i + 1) = self%send%displs(i) +  displ
       call free_datatypes(temp1)
 
-      call MPI_Type_vector(recv%counts(2), 1, recv%counts(1), base_type, temp1)
-      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2)
-      call MPI_Type_contiguous(send_counts(2), temp2, temp3)
-      call MPI_Type_create_hvector(recv%counts(3), 1, int(recv%counts(1) * recv%counts(2) * base_storage, MPI_ADDRESS_KIND), temp3, temp4)
+      call MPI_Type_vector(recv%counts(2), 1, recv%counts(1), base_type, temp1, IERROR)
+      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, IERROR)
+      call MPI_Type_contiguous(send_counts(2), temp2, temp3, IERROR)
+      call MPI_Type_create_hvector(recv%counts(3), 1, int(recv%counts(1) * recv%counts(2) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, IERROR)
       displ = send_counts(2) * base_storage
-      call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i))
-      call MPI_Type_commit(self%recv%dtypes(i))
+      call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), IERROR)
+      call MPI_Type_commit(self%recv%dtypes(i), IERROR)
       if(i < loop_size) self%recv%displs(i + 1) = self%recv%displs(i) +  displ
       call free_datatypes(temp1, temp2, temp3, temp4)
     elseif(transpose_id == 2) then
     ! This transpose_id has strided send and "contiguous" recieve datatypes
-      call MPI_Type_vector(send%counts(2) * send%counts(3), 1, send%counts(1), base_type, temp1)
-      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2)
-      call MPI_Type_contiguous(recv_counts(2), temp2, self%send%dtypes(i))
-      call MPI_Type_commit(self%send%dtypes(i))
+      call MPI_Type_vector(send%counts(2) * send%counts(3), 1, send%counts(1), base_type, temp1, IERROR)
+      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, IERROR)
+      call MPI_Type_contiguous(recv_counts(2), temp2, self%send%dtypes(i), IERROR)
+      call MPI_Type_commit(self%send%dtypes(i), IERROR)
       if(i < loop_size) self%send%displs(i + 1) = self%send%displs(i) +  recv_counts(2) * base_storage
       call free_datatypes(temp1, temp2)
 
-      call MPI_Type_vector(recv%counts(3), send_counts(2), recv%counts(1) * recv%counts(2), base_type, temp1)
+      call MPI_Type_vector(recv%counts(3), send_counts(2), recv%counts(1) * recv%counts(2), base_type, temp1, IERROR)
       displ = send_counts(2) * base_storage
-      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), temp2)
-      call MPI_Type_create_hvector(recv%counts(2), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, temp3)
-      call MPI_Type_create_resized(temp3, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i))
-      call MPI_Type_commit(self%recv%dtypes(i))
+      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), temp2, IERROR)
+      call MPI_Type_create_hvector(recv%counts(2), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, temp3, IERROR)
+      call MPI_Type_create_resized(temp3, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), IERROR)
+      call MPI_Type_commit(self%recv%dtypes(i), IERROR)
       if(i < loop_size) self%recv%displs(i + 1) = self%recv%displs(i) +  displ
       call free_datatypes(temp1, temp2, temp3)
     elseif(transpose_id == 3) then
-      ! call MPI_Type_vector(send%counts(2), 1, send%counts(1), base_type, temp1)
-      ! call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2)
-      ! call MPI_Type_contiguous(recv_counts(2), temp2, temp3)
-      ! call MPI_Type_create_hvector(send%counts(3), 1, int(send%counts(1) * send%counts(2) * base_storage, MPI_ADDRESS_KIND), temp3, temp4)
-      ! call MPI_Type_create_resized(temp4, LB, int(recv_counts(2), MPI_ADDRESS_KIND), self%send%dtypes(i))
-      ! call MPI_Type_commit(self%send%dtypes(i))
+      ! call MPI_Type_vector(send%counts(2), 1, send%counts(1), base_type, temp1, IERROR)
+      ! call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, IERROR)
+      ! call MPI_Type_contiguous(recv_counts(2), temp2, temp3, IERROR)
+      ! call MPI_Type_create_hvector(send%counts(3), 1, int(send%counts(1) * send%counts(2) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, IERROR)
+      ! call MPI_Type_create_resized(temp4, LB, int(recv_counts(2), MPI_ADDRESS_KIND), self%send%dtypes(i), IERROR)
+      ! call MPI_Type_commit(self%send%dtypes(i), IERROR)
       ! if(i < loop_size) self%send%displs(i + 1) = self%send%displs(i) +  recv_counts(2) * base_storage
       ! call free_datatypes(temp1, temp2, temp3, temp4)
 
-      ! call MPI_Type_vector(recv%counts(3), send_counts(2), recv%counts(1) * recv%counts(2), base_type, temp1)
+      ! call MPI_Type_vector(recv%counts(3), send_counts(2), recv%counts(1) * recv%counts(2), base_type, temp1, IERROR)
       ! displ = send_counts(2) * base_storage
-      ! call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), temp2)
-      ! call MPI_Type_create_hvector(recv%counts(2), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, temp3)
-      ! call MPI_Type_create_resized(temp3, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i))
-      ! call MPI_Type_commit(self%recv%dtypes(i))
+      ! call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), temp2, IERROR)
+      ! call MPI_Type_create_hvector(recv%counts(2), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, temp3, IERROR)
+      ! call MPI_Type_create_resized(temp3, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), IERROR)
+      ! call MPI_Type_commit(self%recv%dtypes(i), IERROR)
       ! if(i < loop_size) self%recv%displs(i + 1) = self%recv%displs(i) +  displ
       ! call free_datatypes(temp1, temp2, temp3)      
     endif
@@ -310,30 +310,30 @@ contains
     class(info_t),      intent(in)    :: recv               !< Information about send buffer
     integer(IP),        intent(in)    :: recv_counts(:)     !< Rank i is recieving this counts
     integer(IP),        intent(in)    :: transpose_id       !< Id of transpose plan. Reserved for future effort flag development.
-    type(MPI_Datatype), intent(in)    :: base_type          !< Base MPI_Datatype
+    TYPE_MPI_DATATYPE,  intent(in)    :: base_type          !< Base MPI_Datatype
     integer(IP),        intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    type(MPI_Datatype)                :: temp1              !< Temporary datatype
-    type(MPI_Datatype)                :: temp2              !< Temporary datatype
-    type(MPI_Datatype)                :: temp3              !< Temporary datatype
-    type(MPI_Datatype)                :: temp4              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp1              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp2              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp3              !< Temporary datatype
+    TYPE_MPI_DATATYPE                 :: temp4              !< Temporary datatype
     integer(IP)                       :: displ              !< Rank i is sending / recieving with this displacement in bytes
 
     if(transpose_id == 1) then 
-      call MPI_Type_vector(send%counts(3), 1, send%counts(1) * send%counts(2), base_type, temp1)
-      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2)
-      call MPI_Type_contiguous(recv_counts(3), temp2, temp3)
-      call MPI_Type_create_hvector(send%counts(2), 1, int(send%counts(1) * base_storage, MPI_ADDRESS_KIND), temp3, temp4)
+      call MPI_Type_vector(send%counts(3), 1, send%counts(1) * send%counts(2), base_type, temp1, IERROR)
+      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, IERROR)
+      call MPI_Type_contiguous(recv_counts(3), temp2, temp3, IERROR)
+      call MPI_Type_create_hvector(send%counts(2), 1, int(send%counts(1) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, IERROR)
       displ = recv_counts(3) * base_storage
-      call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i))
-      call MPI_Type_commit(self%send%dtypes(i))
+      call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), IERROR)
+      call MPI_Type_commit(self%send%dtypes(i), IERROR)
       if(i < loop_size) self%send%displs(i + 1) = self%send%displs(i) +  displ
       call free_datatypes(temp1, temp2, temp3, temp4)
 
-      call MPI_Type_vector(recv%counts(3), send_counts(3), recv%counts(1) * recv%counts(2), base_type, temp1)
-      call MPI_Type_create_resized(temp1, LB, int(send_counts(3) * base_storage, MPI_ADDRESS_KIND), temp2)
-      call MPI_Type_create_hvector(send_counts(2), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, temp3)
-      call MPI_Type_create_resized(temp3, LB, int(send_counts(3) * base_storage, MPI_ADDRESS_KIND), self%recv%dtypes(i))
-      call MPI_Type_commit(self%recv%dtypes(i))
+      call MPI_Type_vector(recv%counts(3), send_counts(3), recv%counts(1) * recv%counts(2), base_type, temp1, IERROR)
+      call MPI_Type_create_resized(temp1, LB, int(send_counts(3) * base_storage, MPI_ADDRESS_KIND), temp2, IERROR)
+      call MPI_Type_create_hvector(send_counts(2), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, temp3, IERROR)
+      call MPI_Type_create_resized(temp3, LB, int(send_counts(3) * base_storage, MPI_ADDRESS_KIND), self%recv%dtypes(i), IERROR)
+      call MPI_Type_commit(self%recv%dtypes(i), IERROR)
       if(i < loop_size) self%recv%displs(i + 1) = self%recv%displs(i) +  send_counts(3) * base_storage
       call free_datatypes(temp1, temp2)
     else
@@ -346,14 +346,14 @@ contains
 !------------------------------------------------------------------------------------------------
 !< Frees temporary datatypes
 !------------------------------------------------------------------------------------------------
-    type(MPI_Datatype), intent(inout), optional :: t1      !< Temporary datatype
-    type(MPI_Datatype), intent(inout), optional :: t2      !< Temporary datatype
-    type(MPI_Datatype), intent(inout), optional :: t3      !< Temporary datatype
-    type(MPI_Datatype), intent(inout), optional :: t4      !< Temporary datatype
+    TYPE_MPI_DATATYPE,  intent(inout), optional :: t1      !< Temporary datatype
+    TYPE_MPI_DATATYPE,  intent(inout), optional :: t2      !< Temporary datatype
+    TYPE_MPI_DATATYPE,  intent(inout), optional :: t3      !< Temporary datatype
+    TYPE_MPI_DATATYPE,  intent(inout), optional :: t4      !< Temporary datatype
 
-    if(present(t1)) call MPI_Type_free(t1)
-    if(present(t2)) call MPI_Type_free(t2)
-    if(present(t3)) call MPI_Type_free(t3)
-    if(present(t4)) call MPI_Type_free(t4)
+    if(present(t1)) call MPI_Type_free(t1, IERROR)
+    if(present(t2)) call MPI_Type_free(t2, IERROR)
+    if(present(t3)) call MPI_Type_free(t3, IERROR)
+    if(present(t4)) call MPI_Type_free(t4, IERROR)
   end subroutine free_datatypes
 end module dtfft_transpose_m

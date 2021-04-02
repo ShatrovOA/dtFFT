@@ -94,12 +94,11 @@ contains
 !------------------------------------------------------------------------------------------------
     class(mkl_c2c_executor),  intent(inout) :: self           !< C2C Executor
     complex(C8P),             intent(inout) :: inout(*)       !< Buffer
-    integer(IP)                             :: ierr           !< Error flag
 
     if(self%sign == DTFFT_FORWARD) then 
-      ierr = DftiComputeForward(self%plan, inout)
+      IERROR = DftiComputeForward(self%plan, inout)
     else
-      ierr = DftiComputeBackward(self%plan, inout)
+      IERROR = DftiComputeBackward(self%plan, inout)
     endif
   end subroutine execute_c2c
 
@@ -110,12 +109,11 @@ contains
 !------------------------------------------------------------------------------------------------
     class(mkl_c2c_executor),  intent(inout) :: self           !< C2C Executor
     complex(C4P),             intent(inout) :: inout(*)       !< Buffer
-    integer(IP)                             :: ierr           !< Error flag
 
     if(self%sign == DTFFT_FORWARD) then 
-      ierr = DftiComputeForward(self%plan, inout)
+      IERROR = DftiComputeForward(self%plan, inout)
     else
-      ierr = DftiComputeBackward(self%plan, inout)
+      IERROR = DftiComputeBackward(self%plan, inout)
     endif
   end subroutine execute_f_c2c
 
@@ -151,9 +149,8 @@ contains
     class(mkl_r2c_executor),  intent(inout) :: self           !< R2C Executor
     real(R8P),                intent(inout) :: in(*)          !< Real buffer
     complex(C8P),             intent(inout) :: out(*)         !< Complex buffer
-    integer(IP)                             :: ierr           !< Error flag
 
-    ierr = DftiComputeForward(self%plan, in, out)
+    IERROR = DftiComputeForward(self%plan, in, out)
   end subroutine execute_r2c
 
 !------------------------------------------------------------------------------------------------
@@ -164,9 +161,8 @@ contains
     class(mkl_r2c_executor),  intent(inout) :: self           !< R2C Executor
     real(R4P),                intent(inout) :: in(*)          !< Real buffer
     complex(C4P),             intent(inout) :: out(*)         !< Complex buffer
-    integer(IP)                             :: ierr           !< Error flag
 
-    ierr = DftiComputeForward(self%plan, in, out)
+    IERROR = DftiComputeForward(self%plan, in, out)
   end subroutine execute_f_r2c
 
 !------------------------------------------------------------------------------------------------
@@ -201,9 +197,8 @@ contains
     class(mkl_c2r_executor),  intent(inout) :: self           !< C2R Executor
     complex(C8P),             intent(inout) :: in(*)          !< Complex buffer
     real(R8P),                intent(inout) :: out(*)         !< Real buffer
-    integer(IP)                             :: ierr           !< Error flag
 
-    ierr = DftiComputeBackward(self%plan, in, out)
+    IERROR = DftiComputeBackward(self%plan, in, out)
   end subroutine execute_c2r
 
 !------------------------------------------------------------------------------------------------
@@ -214,9 +209,8 @@ contains
     class(mkl_c2r_executor),  intent(inout) :: self           !< C2R Executor
     complex(C4P),             intent(inout) :: in(*)          !< Complex buffer
     real(C4P),                intent(inout) :: out(*)         !< Real buffer
-    integer(IP)                             :: ierr           !< Error flag
 
-    ierr = DftiComputeBackward(self%plan, in, out)
+    IERROR = DftiComputeBackward(self%plan, in, out)
   end subroutine execute_f_c2r
 
 !------------------------------------------------------------------------------------------------
@@ -242,7 +236,6 @@ contains
     integer(IP),            intent(in)  :: input              !< Sets DFTI_INPUT_DISTANCE 
     integer(IP),            intent(in)  :: output             !< Sets DFTI_OUTPUT_DISTANCE 
     type(DFTI_DESCRIPTOR),  pointer     :: plan               !< MKL Plan
-    integer(IP)                         :: ierr               !< Error flag
     integer(IP)                         :: mkl_precision      !< MKL Precision value
 
     if(precision == C8P) then
@@ -252,13 +245,13 @@ contains
     endif
 
     plan => null()
-    ierr = DftiCreateDescriptor(plan, mkl_precision, forward_domain, 1, n)
-    ierr = DftiSetValue(plan, DFTI_NUMBER_OF_TRANSFORMS, how_many)
-    ierr = DftiSetValue(plan, DFTI_PLACEMENT, placement)
-    ierr = DftiSetValue(plan, DFTI_INPUT_DISTANCE, input)
-    ierr = DftiSetValue(plan, DFTI_OUTPUT_DISTANCE, output)
-    ierr = DftiSetValue(plan, DFTI_CONJUGATE_EVEN_STORAGE, DFTI_COMPLEX_COMPLEX)
-    ierr = DftiCommitDescriptor(plan)
+    IERROR = DftiCreateDescriptor(plan, mkl_precision, forward_domain, 1, n)
+    IERROR = DftiSetValue(plan, DFTI_NUMBER_OF_TRANSFORMS, how_many)
+    IERROR = DftiSetValue(plan, DFTI_PLACEMENT, placement)
+    IERROR = DftiSetValue(plan, DFTI_INPUT_DISTANCE, input)
+    IERROR = DftiSetValue(plan, DFTI_OUTPUT_DISTANCE, output)
+    IERROR = DftiSetValue(plan, DFTI_CONJUGATE_EVEN_STORAGE, DFTI_COMPLEX_COMPLEX)
+    IERROR = DftiCommitDescriptor(plan)
   end function create_mkl_plan
 
 !------------------------------------------------------------------------------------------------
@@ -267,9 +260,8 @@ contains
 !< Destroys general MKL plan
 !------------------------------------------------------------------------------------------------
     type(DFTI_DESCRIPTOR),  pointer  :: plan                  !< MKL Plan
-    integer(IP)                      :: ierr                  !< Error flag
 
-    ierr = DftiFreeDescriptor(plan)
+    IERROR = DftiFreeDescriptor(plan)
   end subroutine destroy_mkl_plan
 #endif
 end module dtfft_executor_mkl_m
