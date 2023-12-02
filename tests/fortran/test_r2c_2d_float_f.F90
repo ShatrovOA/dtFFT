@@ -17,23 +17,24 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 program test_r2c_2d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, output_unit, error_unit
+use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, output_unit, error_unit
 use dtfft
-use mpi_f08
 use iso_c_binding
+#include "dtfft.i90"
 implicit none
   real(R4P),     allocatable :: in(:,:), check(:,:)
   complex(R4P),  allocatable :: out(:,:)
-  real(R4P) :: err, max_error, rnd
+  real(R4P) :: local_error, global_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 19
-  integer(I4P) :: comm_size, comm_rank, i, j
-  type(dtfft_plan_r2c_2d) :: plan
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
-  
-  call MPI_Init()
-  call MPI_Comm_size(MPI_COMM_WORLD, comm_size)
-  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank)
+  integer(I8P) :: alloc_size
+
+  call MPI_Init(ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
@@ -44,26 +45,25 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  call plan%create_f(MPI_COMM_WORLD, nx, ny, executor_type = DTFFT_EXECUTOR_FFTW3)
-  
-  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts)
+  call plan%create([nx, ny], precision=DTFFT_SINGLE)
+
+  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size)
+  print*,product(in_counts), product(out_counts), alloc_size
 
   allocate(in(in_counts(1),in_counts(2)), source = 0._R4P)
-
-  allocate(check, source = in)
-  
   allocate(out(out_counts(1), out_counts(2)), source = (0._R4P, 0._R4P))
 
   do j = 1, in_counts(2)
     do i = 1, in_counts(1)
       call random_number(rnd)
       in(i,j) = rnd
-      check(i,j) = in(i,j)
     enddo
   enddo
 
+  allocate(check, source = in)
+
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute_f_r2c(in, out)
+  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
 
   out(:,:) = out(:,:) / real(nx * ny, R4P)
@@ -71,34 +71,36 @@ implicit none
   in = -1._R4P
 
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute_f_c2r(out, in)
+  call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tb = t_sum / real(comm_size, R8P)
 
-  if(comm_rank == 0) then 
+  if(comm_rank == 0) then
     write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
     write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  err = maxval(abs(in - check))
+  local_error = maxval(abs(in - check))
 
-  call MPI_Allreduce(err, max_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD)
+  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
-    if(max_error < 1.e-4) then
+    if(global_error < 1.e-4) then
       write(output_unit, '(a)') "Test 'r2c_2d_float' PASSED!"
     else
-      write(error_unit, '(a, f16.10)') "Test 'r2c_2d_float' FAILED... error = ", max_error
+      write(error_unit, '(a, f16.10)') "Test 'r2c_2d_float' FAILED... error = ", global_error
+      error stop
     endif
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
   deallocate(in, out, check)
+  call MPI_Finalize(ierr)
 
+  !! Check that no error is raised when MPI is finalized
   call plan%destroy()
-  call MPI_Finalize()
 end program test_r2c_2d_float

@@ -18,21 +18,24 @@
 !------------------------------------------------------------------------------------------------
 program test_c2c_3d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, output_unit, error_unit
+use iso_c_binding, only: c_size_t
 use dtfft
-use mpi_f08
 use iso_c_binding
+#include "dtfft.i90"
 implicit none
-  complex(R4P),  allocatable :: in(:,:,:), out(:,:,:), check(:,:,:)
-  real(R4P) :: err, max_error, rnd1, rnd2 
-  integer(I4P), parameter :: nx = 21, ny = 37, nz = 41
+  complex(R4P),  allocatable :: in(:,:,:), out(:), check(:,:,:)
+  real(R4P) :: local_error, global_error, rnd1, rnd2
+  integer(I4P), parameter :: nx = 312, ny = 244, nz = 102
   integer(I4P) :: comm_size, comm_rank, i, j, k
-  type(dtfft_plan_c2c_3d) :: plan
+  type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_counts(3), out_counts(3)
+  integer(c_size_t) :: alloc_size
   real(R8P) :: tf, tb, t_sum
-  
-  call MPI_Init()
-  call MPI_Comm_size(MPI_COMM_WORLD, comm_size)
-  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank)
+  integer(I4P) :: executor_type, ierr
+
+  call MPI_Init(ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
@@ -43,14 +46,20 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  call plan%create_f(MPI_COMM_WORLD, nx, ny, nz, executor_type = DTFFT_EXECUTOR_FFTW3)
-  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts)
+#if defined (KFR_ENABLED)
+  executor_type = DTFFT_EXECUTOR_KFR
+#else
+  executor_type = DTFFT_EXECUTOR_FFTW3
+#endif
+
+  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type)
+  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size)
 
   allocate(in(in_counts(1),in_counts(2),in_counts(3)), source = (0._R4P, 0._R4P))
 
   allocate(check, source = in)
-  
-  allocate(out(out_counts(1), out_counts(2), out_counts(3)), source = (0._R4P, 0._R4P))
+
+  allocate(out(alloc_size), source = (0._R4P, 0._R4P))
 
   do k = 1, in_counts(3)
     do j = 1, in_counts(2)
@@ -64,37 +73,39 @@ implicit none
   enddo
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute_f(in, out, DTFFT_TRANSPOSE_OUT)
+  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
 
-  out(:,:,:) = out(:,:,:) / real(nx * ny * nz, R4P)
+  out(:) = out(:) / real(nx * ny * nz, R4P)
 
   ! Nullify recv buffer
   in = (-1._R4P, -1._R4P)
 
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute_f(out, in, DTFFT_TRANSPOSE_IN)
+  call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  ! call print_timers(tf, tb)
+  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tb = t_sum / real(comm_size, R8P)
 
-  if(comm_rank == 0) then 
+  if(comm_rank == 0) then
     write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
     write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  err = maxval(abs(in - check))
+  local_error = maxval(abs(in - check))
 
-  call MPI_Allreduce(err, max_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD)
+  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
-    if(max_error < 1.e-6) then
+    if(global_error < 1.e-5) then
       write(output_unit, '(a)') "Test 'c2c_3d_float' PASSED!"
     else
-      write(error_unit, '(a, f16.10)') "Test 'c2c_3d_float' FAILED... error = ", max_error
+      write(error_unit, '(a, f16.10)') "Test 'c2c_3d_float' FAILED... error = ", global_error
+      error stop
     endif
     write(output_unit, '(a)') "----------------------------------------"
   endif
@@ -102,5 +113,5 @@ implicit none
   deallocate(in, out, check)
 
   call plan%destroy()
-  call MPI_Finalize()
+  call MPI_Finalize(ierr)
 end program test_c2c_3d_float

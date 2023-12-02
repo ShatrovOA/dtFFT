@@ -19,21 +19,19 @@
 program test_r2r_2d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, output_unit, error_unit
 use dtfft
-use mpi_f08
-use iso_c_binding
+#include "dtfft.i90"
 implicit none
-include 'fftw3.f03'
   real(R4P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R4P) :: err, max_error, rnd
+  real(R4P) :: local_error, global_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 32
-  integer(I4P) :: comm_size, comm_rank, i, j
-  type(dtfft_plan_r2r_2d) :: plan
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  type(dtfft_plan_r2r) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
-  
-  call MPI_Init()
-  call MPI_Comm_size(MPI_COMM_WORLD, comm_size)
-  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank)
+
+  call MPI_Init(ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
@@ -44,8 +42,7 @@ include 'fftw3.f03'
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  call plan%create_f(MPI_COMM_WORLD, nx, ny, [FFTW_REDFT10, FFTW_REDFT10], [FFTW_REDFT01, FFTW_REDFT01])
-  
+  call plan%create([nx, ny], [DTFFT_DST_2, DTFFT_DST_3], [DTFFT_DST_3, DTFFT_DST_2], precision=DTFFT_SINGLE)
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,                     &
@@ -65,7 +62,7 @@ include 'fftw3.f03'
   enddo
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute_f(in, out, DTFFT_TRANSPOSE_OUT)
+  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
 
   out(:,:) = out(:,:) / real(4 * nx * ny, R4P)
@@ -74,28 +71,29 @@ include 'fftw3.f03'
   in = -1._R4P
 
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute_f(out, in, DTFFT_TRANSPOSE_IN)
+  call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tb = t_sum / real(comm_size, R8P)
 
-  if(comm_rank == 0) then 
+  if(comm_rank == 0) then
     write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
     write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  err = maxval(abs(in - check))
+  local_error = maxval(abs(in - check))
 
-  call MPI_Allreduce(err, max_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD)
+  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
-    if(max_error < 1.e-6) then
+    if(global_error < 1.e-5) then
       write(output_unit, '(a)') "Test 'r2r_2d_float' PASSED!"
     else
-      write(error_unit, '(a, d16.5)') "Test 'r2r_2d_float' FAILED... error = ", max_error
+      write(error_unit, '(a, d16.5)') "Test 'r2r_2d_float' FAILED... error = ", global_error
+      error stop
     endif
     write(output_unit, '(a)') "----------------------------------------"
   endif
@@ -103,5 +101,5 @@ include 'fftw3.f03'
   deallocate(in, out, check)
 
   call plan%destroy()
-  call MPI_Finalize()
+  call MPI_Finalize(ierr)
 end program test_r2r_2d_float

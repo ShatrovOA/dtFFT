@@ -17,22 +17,23 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 program test_c2c_3d
-use iso_fortran_env, only: R8P => real64, I4P => int32, output_unit, error_unit
+use iso_fortran_env, only: R8P => real64, I4P => int32, I8P => int64, output_unit, error_unit
 use dtfft
-use mpi_f08
 use iso_c_binding
+#include "dtfft.i90"
 implicit none
-  complex(R8P),  allocatable :: in(:,:,:), out(:,:,:), check(:,:,:), work(:,:,:)
-  real(R8P) :: err, max_error, rnd1, rnd2 
-  integer(I4P), parameter :: nx = 16, ny = 16, nz = 16
-  integer(I4P) :: comm_size, comm_rank, i, j, k
-  type(dtfft_plan_c2c_3d) :: plan
+  complex(R8P),  allocatable :: in(:,:,:), out(:,:,:), check(:,:,:), work(:)
+  real(R8P) :: local_error, global_error, rnd1, rnd2
+  integer(I4P), parameter :: nx = 512, ny = 128, nz = 64
+  integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
+  type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_counts(3), out_counts(3)
+  integer(I8P)  :: alloc_size
   real(R8P) :: tf, tb, t_sum
-  
-  call MPI_Init()
-  call MPI_Comm_size(MPI_COMM_WORLD, comm_size)
-  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank)
+
+  call MPI_Init(ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
@@ -43,13 +44,13 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  call plan%create(MPI_COMM_WORLD, nx, ny, nz)
+  call plan%create([nx, ny, nz])
   call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts)
 
   allocate(in(in_counts(1),in_counts(2),in_counts(3)), source = (0._R8P, 0._R8P))
 
   allocate(check, source = in)
-  
+
   allocate(out(out_counts(1), out_counts(2), out_counts(3)), source = (0._R8P, 0._R8P))
 
   do k = 1, in_counts(3)
@@ -63,15 +64,16 @@ implicit none
     enddo
   enddo
 
-  call plan%get_worker_size(counts = in_counts)
-  allocate(work(in_counts(1), in_counts(2), in_counts(3)), source = (-1._R8P, -1._R8P))
+  alloc_size = plan%get_aux_size()
+  allocate(work(alloc_size), source = (-1._R8P, -1._R8P))
 
 !$acc data copy(in) copyin(out, work)
 
   tf = 0.0_R8P - MPI_Wtime()
+
   call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, work)
   tf = tf + MPI_Wtime()
-  
+
   out(:,:,:) = out(:,:,:) / real(nx * ny * nz, R8P)
 
   ! Nullify recv buffer
@@ -83,24 +85,25 @@ implicit none
 
 !$acc end data
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tb = t_sum / real(comm_size, R8P)
 
-  if(comm_rank == 0) then 
+  if(comm_rank == 0) then
     write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
     write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
   endif
 
-  err = maxval(abs(in - check))
+  local_error = maxval(abs(in - check))
 
-  call MPI_Allreduce(err, max_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD)
+  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
-    if(max_error < 1.d-10) then
+    if(global_error < 1.d-10) then
       write(output_unit, '(a)') "Test 'c2c_3d' PASSED!"
     else
-      write(error_unit, '(a, f16.10)') "Test 'c2c_3d' FAILED... error = ", max_error
+      write(error_unit, '(a, f16.10)') "Test 'c2c_3d' FAILED... error = ", global_error
+      error stop
     endif
     write(output_unit, '(a)') "----------------------------------------"
   endif
@@ -108,5 +111,5 @@ implicit none
   deallocate(in, out, check)
 
   call plan%destroy()
-  call MPI_Finalize()
+  call MPI_Finalize(ierr)
 end program test_c2c_3d

@@ -19,20 +19,20 @@
 program test_c2c_2d
 use iso_fortran_env, only: R8P => real64, I4P => int32, output_unit, error_unit
 use dtfft
-use mpi_f08
 use iso_c_binding
+#include "dtfft.i90"
 implicit none
   complex(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R8P) :: err, max_error, rnd1, rnd2 
+  real(R8P) :: local_error, global_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 345, ny = 401
-  integer(I4P) :: comm_size, comm_rank, i, j
-  type(dtfft_plan_c2c_2d) :: plan
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
-  
-  call MPI_Init()
-  call MPI_Comm_size(MPI_COMM_WORLD, comm_size)
-  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank)
+
+  call MPI_Init(ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
@@ -43,7 +43,7 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  call plan%create(MPI_COMM_WORLD, nx, ny, executor_type=DTFFT_EXECUTOR_FFTW3)
+  call plan%create([nx, ny], executor_type=DTFFT_EXECUTOR_FFTW3)
 
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
@@ -80,25 +80,26 @@ implicit none
   call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tb = t_sum / real(comm_size, R8P)
 
-  if(comm_rank == 0) then 
+  if(comm_rank == 0) then
     write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
     write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  err = maxval(abs(in - check))
+  local_error = maxval(abs(in - check))
 
-  call MPI_Allreduce(err, max_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD)
+  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
-    if(max_error < 1.d-10) then
+    if(global_error < 1.d-10) then
       write(output_unit, '(a)') "Test 'c2c_2d' PASSED!"
     else
-      write(error_unit, '(a, f16.10)') "Test 'c2c_2d' FAILED... error = ", max_error
+      write(error_unit, '(a, f16.10)') "Test 'c2c_2d' FAILED... error = ", global_error
+      error stop
     endif
     write(output_unit, '(a)') "----------------------------------------"
   endif
@@ -106,5 +107,5 @@ implicit none
   deallocate(in, out, check)
 
   call plan%destroy()
-  call MPI_Finalize()
+  call MPI_Finalize(ierr)
 end program test_c2c_2d

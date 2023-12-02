@@ -21,7 +21,7 @@ module dtfft_info_m
 !< This module describes [[info_t]] class
 !------------------------------------------------------------------------------------------------
 use dtfft_precisions
-#include "dtfft_mpi.h"
+#include "dtfft.i90"
 implicit none
 private
 public :: info_t
@@ -34,6 +34,7 @@ public :: info_t
     integer(IP), allocatable  :: counts(:)        !< Local counts of data
     integer(IP)               :: how_many         !< How many transforms should be planned
     logical                   :: is_even          !< Is data evenly distributed across processes
+    integer(IP)               :: length(1)
   contains
     procedure, pass(self) :: init                 !< Creates class
     procedure, pass(self) :: destroy              !< Destroys class
@@ -67,6 +68,7 @@ public :: info_t
       call get_local_size(counts(d), comms(d), comm_dims(d), comm_coords(d), self%starts(d), self%counts(d), is_even)
       if(.not. is_even) self%is_even = is_even
     enddo
+    self%length(1) = self%counts(1)
     self%how_many = product(self%counts) / self%counts(1)
   end subroutine init
 
@@ -96,6 +98,7 @@ public :: info_t
     integer(IP)                   :: shift(comm_dim)      !< Work buffer
     integer(IP)                   :: res                  !< Residual from n_global / comm_dim
     integer(IP)                   :: i                    !< Counter
+    integer(IP)                   :: ierr
 
     res = mod(n_global, comm_dim)
     start = 0
@@ -109,8 +112,8 @@ public :: info_t
     else
       count = int(n_global / comm_dim, IP)
     endif
-    call MPI_Allgather(count, 1, MPI_INTEGER, shift, 1, MPI_INTEGER, comm, IERROR)
-  
+    call MPI_Allgather(count, 1, MPI_INTEGER, shift, 1, MPI_INTEGER, comm, ierr)
+
     do i = 0, comm_coord - 1
       start = start + shift(i + 1)
     end do

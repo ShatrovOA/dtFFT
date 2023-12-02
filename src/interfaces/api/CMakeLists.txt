@@ -1,0 +1,18 @@
+if(DTFFT_BUILD_JAVA_API OR DTFFT_BUILD_PYTHON_API)
+  SET(DTFFT_BUILD_C_CXX_API ON)
+  if(DTFFT_BUILD_JAVA_API)
+    add_subdirectory(java)
+  else()
+    add_subdirectory(python)
+  endif()
+endif()
+
+if(DTFFT_BUILD_C_CXX_API)
+  target_include_directories(dtfft PRIVATE "include")
+  target_sources(dtfft PRIVATE "c/dtfft_api_c.c")
+  file(GLOB C_HEADERS "${PROJECT_SOURCE_DIR}/include/*")
+  set(DTFFT_HEADERS "${DTFFT_HEADERS};${C_HEADERS}")
+  set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
+endif()
+
+target_sources(dtfft PRIVATE dtfft_api.F90)

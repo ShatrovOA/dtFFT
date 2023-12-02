@@ -18,30 +18,48 @@
 !------------------------------------------------------------------------------------------------
 module dtfft
 !------------------------------------------------------------------------------------------------
-!< Main DTFFT module. Should be included in Fortran program.
+!< Main DTFFT module. Should be included in a Fortran program.
 !------------------------------------------------------------------------------------------------
 use dtfft_parameters
-use dtfft_plan_c2c_m
-use dtfft_plan_r2r_m
-use dtfft_plan_r2c_m
+use dtfft_core_m
 private
 
 ! Plans
-public :: dtfft_plan_c2c_2d, dtfft_plan_c2c_3d,                   &
-          dtfft_plan_r2r_2d, dtfft_plan_r2r_3d,                   &
-          dtfft_plan_r2c_2d, dtfft_plan_r2c_3d
-          
+public :: dtfft_core,                                               &
+          dtfft_plan_c2c,                                           &
+          dtfft_plan_r2c,                                           &
+          dtfft_plan_r2r
+
 ! Transpose types
-public :: DTFFT_TRANSPOSE_OUT,                                    &
-          DTFFT_TRANSPOSE_IN
+public :: DTFFT_TRANSPOSE_OUT,                                      &
+          DTFFT_TRANSPOSE_IN,                                       &
+          DTFFT_TRANSPOSE_X_TO_Y,                                   &
+          DTFFT_TRANSPOSE_Y_TO_X,                                   &
+          DTFFT_TRANSPOSE_Y_TO_Z,                                   &
+          DTFFT_TRANSPOSE_Z_TO_Y
 
 ! 1d FFT External Executor types
-public :: DTFFT_EXECUTOR_FFTW3,                                   &
-          DTFFT_EXECUTOR_MKL,                                     &
-          DTFFT_EXECUTOR_CUFFT
+public :: DTFFT_EXECUTOR_NONE,                                      &
+          DTFFT_EXECUTOR_FFTW3,                                     &
+          DTFFT_EXECUTOR_MKL                                        !&
+          ! DTFFT_EXECUTOR_CUFFT,                                     &
+          ! DTFFT_EXECUTOR_KFR
 
 ! Effort flags, currently its value is ignored
-public :: DTFFT_ESTIMATE,                                         &
-          DTFFT_MEASURE,                                          &
+public :: DTFFT_ESTIMATE,                                           &
+          DTFFT_MEASURE,                                            &
           DTFFT_PATIENT
+
+! Precision flags
+public :: DTFFT_SINGLE,                                             &
+          DTFFT_DOUBLE
+
+public :: DTFFT_DCT_1,                                              &
+          DTFFT_DCT_2,                                              &
+          DTFFT_DCT_3,                                              &
+          DTFFT_DCT_4,                                              &
+          DTFFT_DST_1,                                              &
+          DTFFT_DST_2,                                              &
+          DTFFT_DST_3,                                              &
+          DTFFT_DST_4
 end module dtfft

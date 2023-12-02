@@ -22,15 +22,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "test_utils.h"
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
   dtfft_plan plan;
   int nx = 35, ny = 44;
   float *inout, *check;
   dtfftf_complex *work;
   int i, comm_rank, comm_size;
-  int in_counts[2], out_counts[2];
+  int in_counts[2], out_counts[2], n[2] = {ny, nx};
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -48,25 +49,26 @@ int main(int argc, char *argv[])
   }
 
   // Create plan
-  plan = dtfft_create_plan_f_r2c_2d(MPI_COMM_WORLD, ny, nx, DTFFT_ESTIMATE, DTFFT_EXECUTOR_FFTW3);
+  plan = dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_FFTW3);
 
   // Get local sizes
-  int alloc_size = dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
+  size_t alloc_size = dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
 
   // Allocate buffers
-  inout = (float*) malloc(2 * sizeof(float) * alloc_size);
+  inout = (float*) malloc(sizeof(float) * alloc_size);
   check = (float*) malloc(sizeof(float) * in_counts[0] * in_counts[1]);
+  printf("in_counts = %i, out_counts = %i, alloc_size = %ld\n", in_counts[0] * in_counts[1], out_counts[0] * out_counts[1], alloc_size);
 
   for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
-    inout[i] = check[i] =  1.0;
+    inout[i] = check[i] =  (float)i / (float)nx / (float)ny;
   }
 
-  int work_size = dtfft_get_worker_size(plan, NULL, NULL);
+  size_t work_size = dtfft_get_aux_size(plan);
   work = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * work_size);
 
-  // Forward (DTFFT_TRANSPOSE_OUT) transpose
+  // Forward transpose
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute_f_r2c(plan, inout, inout, work);
+  dtfft_execute(plan, inout, inout, DTFFT_TRANSPOSE_OUT, work);
   tf += MPI_Wtime();
 
   // Normalize
@@ -74,48 +76,51 @@ int main(int argc, char *argv[])
     inout[i] /= (float) (nx * ny);
   }
 
-  // Backward (DTFFT_TRANSPOSE_IN) transpose
+  // Backward transpose
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute_f_c2r(plan, inout, inout, work);
+  dtfft_execute(plan, inout, inout, DTFFT_TRANSPOSE_IN, work);
   tb += MPI_Wtime();
 
-  double t_sum;
-  // Aggregate execution time and find average per processor
-  MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tf = t_sum / (double) comm_size;
-  MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tb = t_sum / (double) comm_size;
+  report_execution_time(tf, tb);
+  // double t_sum;
+  // // Aggregate execution time and find average per processor
+  // MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  // tf = t_sum / (double) comm_size;
+  // MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  // tb = t_sum / (double) comm_size;
 
-  if(comm_rank == 0) {
-    printf("Forward execution time: %f\n", tf);
-    printf("Backward execution time: %f\n", tb);
-    printf("----------------------------------------\n");
-  }
+  // if(comm_rank == 0) {
+  //   printf("Forward execution time: %f\n", tf);
+  //   printf("Backward execution time: %f\n", tb);
+  //   printf("----------------------------------------\n");
+  // }
 
   // Check error
-  float err = -1.0, temp, max_error;
+  float local_error = -1.0;
   for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
-    temp = fabs(check[i] - inout[i]);
-    if (temp > err) err = temp;
+    float error = fabs(check[i] - inout[i]);
+    local_error = error > local_error ? error : local_error;
   }
+  float global_error;
   // Find maximum error
-  MPI_Allreduce(&err, &max_error, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
+  MPI_Allreduce(&local_error, &global_error, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
   if(comm_rank == 0) {
-    if(max_error < 1e-5) {
+    if(global_error < 1e-5) {
       printf("Test 'r2c_2d_float_c' PASSED!\n");
     } else {
-      printf("Test 'r2c_2d_float_c' FAILED, error = %E\n", max_error);
+      printf("Test 'r2c_2d_float_c' FAILED, error = %E\n", global_error);
+      return -1;
     }
     printf("----------------------------------------\n");
   }
-  
+
   // Destroy plan
   dtfft_destroy(plan);
 
   // Deallocate buffers
   free(inout);
   free(check);
-  
+
   MPI_Finalize();
   return 0;
 }

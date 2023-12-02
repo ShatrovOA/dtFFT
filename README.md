@@ -5,10 +5,10 @@
 [![Coverage Status](https://codecov.io/gh/ShatrovOA/dtFFT/branch/master/graph/badge.svg?token=QT9Y19KF8X)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
 
-This repository contains new library to perform FFT on a distibuted memory cluster. It is written in modern Fortran and uses MPI to handle communications between processes.  
+This repository contains new library to perform FFT on a distibuted memory cluster. It is written in modern Fortran and uses MPI to handle communications between processes.
 The main idea of this library is to implement zero-copy algoritms in 2d and 3d cases. It uses advance MPI to create send and recieve MPI datatypes in a such way that recieved memory will be aligned in memory and ready run 1d FFT.
 
-Following Fortran column-major order consider XYZ is a three-dimensional buffer: X index varies most quickly. dtFFT will create MPI derived datatypes which will produce 
+Following Fortran column-major order consider XYZ is a three-dimensional buffer: X index varies most quickly. dtFFT will create MPI derived datatypes which will produce
 - Forward transform: XYZ --> YXZ --> ZXY
 - Backward transform: ZXY --> YXZ --> XYZ
 
@@ -30,7 +30,7 @@ Following Fortran column-major order consider XYZ is a three-dimensional buffer:
 ## Features
 - R2C, C2C, R2R (FFTW3 only) transforms are supported
 - Single and double precision
-- Fortran and C interfaces
+- Fortran C and C++ interfaces
 - 2D and 3D transposition plans
 - Slab and Pencil decompositions
 - Can be linked with multiple FFT libraries simultaneously. Execution library can be specified during plan creation. Currenly supported libraries are:
@@ -42,20 +42,20 @@ Following Fortran column-major order consider XYZ is a three-dimensional buffer:
 Basic usage of dtFFT consists of 6 steps:
 - Create plan
 - Get local sizes in "real" and "Fourier" spaces
-- Get local sizes of work buffer (optional)
+- Get local sizes of auxilary buffer (optional)
 - Allocate memory
 - Execute plan as many times as you want
 - Destroy plan
 
 ### Plan creation
-Two subroutines are available to create plan: ```create``` and ```create_f```. First one will use double precision arithmetics. Second - single precision. User is free to provide two kinds of communicators. Without grid topology: ```MPI_COMM_WORLD``` and with created cartesian topology. dtFFT will handle both of such cases and create needed communicators. 
+Two subroutines are available to create plan: ```create``` and ```create_f```. First one will use double precision arithmetics. Second - single precision. User is free to provide two kinds of communicators. Without grid topology: ```MPI_COMM_WORLD``` and with created cartesian topology. dtFFT will handle both of such cases and create needed communicators.
 
 Plan creation subroutines have two optional arguments:
 - effort_flag - currently this argument is ignored. Main idea of this argument is to find best processor grid (in case user provided MPI_COMM_WORLD as comm argument) and fastest datatypes.
 - executor_type - this argument specifies which external library should be used to create and execute 1d FFT plans. Note that if you specify incorrect value then runtime error will occur.
 
 ### Execution
-When executing plan (except for R2C plans) user must provide ```transpose_type``` argument. Two options are available: ```DTFFT_TRANSPOSE_OUT``` and ```DTFFT_TRANSPOSE_IN```. First one assumes that incoming data is aligned in X direction (fastest) and return data aligned in Z direction. 
+When executing plan (except for R2C plans) user must provide ```transpose_type``` argument. Two options are available: ```DTFFT_TRANSPOSE_OUT``` and ```DTFFT_TRANSPOSE_IN```. First one assumes that incoming data is aligned in X direction (fastest) and return data aligned in Z direction.
 
 All three-dimensional plans and R2C two-dimensional plans have an option to provide ```work``` buffer. This buffer can be utilized by dtFFT to store intermediate data. If user do not provide such buffer during the first call to dtFFT, necessary memory will be allocated. This will likely make first execution quite slow. Internal work memory will be released when user calls ```destroy``` subroutine.
 
@@ -70,7 +70,7 @@ To build this library modern (2008+) Fortran compiler is required. This library 
 
 Both ```mpi``` and ```mpi_f08``` Fortran modules are supported. One have to choose preferable interface in ```Makefile.inc```.
 ## Notes for C users
-C interface of the library is available. Simply 
+C interface of the library is available. Simply
 ```c
 #include <dtfft.h>
 ```

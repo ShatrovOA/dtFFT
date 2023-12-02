@@ -1,0 +1,10 @@
+if(DTFFT_BUILD_C_CXX_API OR DTFFT_BUILD_JAVA_API OR DTFFT_BUILD_PYTHON_API)
+  add_subdirectory(api)
+endif()
+
+if(DTFFT_NO_FFTW AND NOT DTFFT_ENABLE_MKL AND NOT DTFFT_ENABLE_KFR)
+  target_compile_definitions(dtfft PRIVATE DTFFT_TRANSPOSE_ONLY)
+  target_compile_definitions(dtfft PRIVATE NO_FFTW3)
+else()
+  add_subdirectory(fft)
+endif()

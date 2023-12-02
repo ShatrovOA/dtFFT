@@ -23,14 +23,15 @@
 #include <stdio.h>
 #include <math.h>
 
-int main(int argc, char *argv[]) 
+
+int main(int argc, char *argv[])
 {
   dtfft_plan plan;
   int nx = 256, ny = 256, nz = 256;
   dtfft_complex *in, *out, *check;
-  double m_err, temp1, temp2, temp;
   int i,j,k, comm_rank, comm_size;
-  int in_counts[3], out_counts[3];
+  int in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
+  int executor_type;
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -47,8 +48,13 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
+#if defined MKL_ENABLED
+  executor_type = DTFFT_EXECUTOR_MKL;
+#else
+  executor_type = DTFFT_EXECUTOR_FFTW3;
+#endif
   // Create plan
-  plan = dtfft_create_plan_c2c_3d(MPI_COMM_WORLD, nz, ny, nx, DTFFT_ESTIMATE, DTFFT_EXECUTOR_FFTW3);
+  plan = dtfft_create_plan_c2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
 
   dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
 
@@ -62,7 +68,7 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute_c2c(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
+  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
   tf += MPI_Wtime();
 
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
@@ -76,7 +82,7 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute_c2c(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
+  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
   tb += MPI_Wtime();
 
   double t_sum;
@@ -91,28 +97,29 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  m_err = -1.0;
+  double local_error = -1.0;
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
-    temp1 = fabs(check[i][0] - in[i][0]);
-    temp2 = fabs(check[i][1] - in[i][1]);
-    temp = fabs(temp1 + temp2);
-    if (temp > m_err) m_err = temp;
+    double real_error = fabs(check[i][0] - in[i][0]);
+    double cmplx_error = fabs(check[i][1] - in[i][1]);
+    double error = fmax(real_error, cmplx_error);
+    local_error = error > local_error ? error : local_error;
   }
-  
-  MPI_Allreduce(&m_err, &m_err, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-  
+
+  double global_error;
+  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
   if(comm_rank == 0) {
-    if(m_err < 1e-10) {
+    if(global_error < 1e-10) {
       printf("Test 'c2c_3d_c' PASSED!\n");
     } else {
-      printf("Test 'c2c_3d_c' FAILED, error = %f\n", m_err);
+      printf("Test 'c2c_3d_c' FAILED, error = %f\n", global_error);
       return -1;
     }
     printf("----------------------------------------\n");
   }
-  
+
   dtfft_destroy(plan);
-  
+
   MPI_Finalize();
   return 0;
 }
