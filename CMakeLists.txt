@@ -47,7 +47,7 @@ else()
 endif()
 include_directories(${MPI_Fortran_MODULE_DIR})
 include_directories(${MPI_C_INCLUDE_DIRS})
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 
 if(DTFFT_BUILD_SHARED)
