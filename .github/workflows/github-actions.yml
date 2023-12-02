@@ -1,0 +1,17 @@
+name: dtfft test
+
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get -y install gfortran-7
+      - run: sudo apt-get install libopenmpi-dev openmpi-bin libhdf5-openmpi-dev
+      - run: export OMPI_FC=gfortran-7
+      - run: export OMPI_CC=gcc-7
+      - run: export OMPI_CXX=g++-7
+      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DDTFFT_ENABLE_COVERAGE=on -DDTFFT_BUILD_C_CXX_API=on .. 
+      - run: make && make install
+      - run: make test
+      - run: ls -lah /usr/local/lib | grep dtfft
+      - run: ls -lah /usr/local/include | grep dtfft
