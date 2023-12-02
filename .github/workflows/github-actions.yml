@@ -11,6 +11,7 @@ jobs:
           sudo apt-get -q update
           sudo apt-get -y install gfortran-10
           sudo apt-get install libopenmpi-dev openmpi-bin libhdf5-openmpi-dev
+          sudo apt-get install libfftw3-dev
           export OMPI_FC=gfortran-10
           export OMPI_CC=gcc-10
           export OMPI_CXX=g++-10
@@ -23,7 +24,12 @@ jobs:
       - name: Setup and run tests
         working-directory: ./build
         run: |
-          cmake -DCMAKE_BUILD_TYPE=Debug -DDTFFT_ENABLE_COVERAGE=on -DDTFFT_BUILD_C_CXX_API=on ..
+          cmake -DCMAKE_C_COMPILER=gcc-10 \
+            -DCMAKE_CXX_COMPILER=g++-10 \
+            -DCMAKE_Fortran_COMPILER=gfortran-10 \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_ENABLE_COVERAGE=on \
+            -DDTFFT_BUILD_C_CXX_API=on ..
           make && make test
           make install
           ls -lah /usr/local/lib | grep dtfft
