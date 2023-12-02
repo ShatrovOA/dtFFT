@@ -15,13 +15,10 @@ jobs:
           export OMPI_FC=gfortran-10
           export OMPI_CC=gcc-10
           export OMPI_CXX=g++-10
-          export FFTW3_ROOT="${{ github.workspace }}/fftw3" && mkdir $FFTW3_ROOT
-          mkdir $FFTW3_ROOT/include && cp /usr/include/fftw3* $FFTW3_ROOT/include
-          mkdir $FFTW3_ROOT/lib && cp /usr/lib/x86_64-linux-gnu/libfftw3* $FFTW3_ROOT/lib
       - name: Checkout
         uses: actions/checkout@v4
       - run: mkdir build
-      - run: cmake --version
+      - run: cat /usr/lib/x86_64-linux-gnu/pkgconfig/fftw3.pc
       - run: ls -lah src
       - run: which fftw-wisdom
       - name: Setup and run tests
