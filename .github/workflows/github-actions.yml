@@ -15,6 +15,7 @@ jobs:
           export OMPI_FC=gfortran-10
           export OMPI_CC=gcc-10
           export OMPI_CXX=g++-10
+          alias gcov="gcov-10"
       - name: Checkout
         uses: actions/checkout@v4
       - run: mkdir build
@@ -34,3 +35,7 @@ jobs:
           make install
           ls -lah /usr/local/lib | grep dtfft
           ls -lah /usr/local/include | grep dtfft
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
