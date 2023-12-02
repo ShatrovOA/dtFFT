@@ -12,8 +12,13 @@ jobs:
       - run: export OMPI_FC=gfortran-10
       - run: export OMPI_CC=gcc-10
       - run: export OMPI_CXX=g++-10
-      - run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DDTFFT_ENABLE_COVERAGE=on -DDTFFT_BUILD_C_CXX_API=on .. 
-      - run: make && make install
-      - run: make test
-      - run: ls -lah /usr/local/lib | grep dtfft
-      - run: ls -lah /usr/local/include | grep dtfft
+      - run: mkdir build
+      - name: Setup and run tests
+        working-directory: ./build
+        run: |
+          echo $pwd
+          cmake -DCMAKE_BUILD_TYPE=Debug -DDTFFT_ENABLE_COVERAGE=on -DDTFFT_BUILD_C_CXX_API=on .. 
+          make && make test
+          make install
+          ls -lah /usr/local/lib | grep dtfft
+          ls -lah /usr/local/include | grep dtfft
