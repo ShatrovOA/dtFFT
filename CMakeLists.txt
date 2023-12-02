@@ -48,6 +48,7 @@ endif()
 include_directories(${MPI_Fortran_MODULE_DIR})
 include_directories(${MPI_C_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 
 if(DTFFT_BUILD_SHARED)
@@ -59,7 +60,7 @@ set(DTFFT_HEADERS "")
 
 add_subdirectory(src)
 
-set(CMAKE_VERBOSE_MAKEFILE off)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 
 set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -D__DEBUG -g")
