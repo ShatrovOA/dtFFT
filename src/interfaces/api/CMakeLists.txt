@@ -13,6 +13,7 @@ if(DTFFT_BUILD_C_CXX_API)
   file(GLOB C_HEADERS "${PROJECT_SOURCE_DIR}/include/*")
   set(DTFFT_HEADERS "${DTFFT_HEADERS};${C_HEADERS}")
   set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
+  target_link_libraries(dtfft ${MPI_CXX_LIBRARIES})
 endif()
 
 target_sources(dtfft PRIVATE dtfft_api.F90)
