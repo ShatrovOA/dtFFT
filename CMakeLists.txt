@@ -34,6 +34,7 @@ if(DTFFT_ENABLE_MKL)
 endif()
 
 find_package(PkgConfig REQUIRED)
+set(MPI_CXX_SKIP_MPICXX TRUE)
 find_package(MPI REQUIRED)
 if(NOT MPI_Fortran_HAVE_F08_MODULE)
   if(NOT MPI_Fortran_HAVE_F90_MODULE)
