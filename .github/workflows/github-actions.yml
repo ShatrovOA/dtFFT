@@ -5,21 +5,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - run: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-      - run: sudo apt-get -q update
-      - run: sudo apt-get -y install gfortran-10
-      - run: sudo apt-get install libopenmpi-dev openmpi-bin libhdf5-openmpi-dev
-      - run: export OMPI_FC=gfortran-10
-      - run: export OMPI_CC=gcc-10
-      - run: export OMPI_CXX=g++-10
+      - name: Get Requirements
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get -q update
+          sudo apt-get -y install gfortran-10
+          sudo apt-get install libopenmpi-dev openmpi-bin libhdf5-openmpi-dev
+          export OMPI_FC=gfortran-10
+          export OMPI_CC=gcc-10
+          export OMPI_CXX=g++-10
+      - name: Checkout
+        uses: actions/checkout@v4
       - run: mkdir build
       - run: cmake --version
       - run: ls -lah
-      - run: echo $pwd
+      - run: pwd
       - name: Setup and run tests
         working-directory: ./build
         run: |
-          cmake -DCMAKE_BUILD_TYPE=Debug -DDTFFT_ENABLE_COVERAGE=on -DDTFFT_BUILD_C_CXX_API=on .. 
+          cmake -DCMAKE_BUILD_TYPE=Debug -DDTFFT_ENABLE_COVERAGE=on -DDTFFT_BUILD_C_CXX_API=on ..
           make && make test
           make install
           ls -lah /usr/local/lib | grep dtfft
