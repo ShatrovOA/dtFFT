@@ -60,7 +60,7 @@ set(DTFFT_HEADERS "")
 
 add_subdirectory(src)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 
 set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -D__DEBUG -g")
