@@ -1,7 +1,8 @@
 pkg_check_modules(FFTW REQUIRED fftw3 fftw3f)
 target_include_directories(dtfft PRIVATE ${FFTW_INCLUDE_DIRS})
 target_link_libraries(dtfft ${FFTW_LDFLAGS})
-message(STATUS "FFTW3 includes: ${FFTW_INCLUDE_DIRS}")
+message(STATUS "FFTW includes: ${FFTW_INCLUDE_DIRS}")
+message(STATUS "FFTW3 includes: ${FFTW3_INCLUDE_DIRS}")
 
 # file(GLOB FFTW_SOURCES ${FFT_INTERFACES_DIR}/fftw/*.F90)
 target_sources(dtfft PRIVATE
