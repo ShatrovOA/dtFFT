@@ -1,5 +1,9 @@
 pkg_check_modules(FFTW REQUIRED fftw3 fftw3f)
-target_include_directories(dtfft PRIVATE ${FFTW_INCLUDE_DIRS})
+if(${FFTW_INCLUDE_DIRS})
+  target_include_directories(dtfft PRIVATE ${FFTW_INCLUDE_DIRS})
+else()
+  target_include_directories(dtfft PRIVATE ${FFTW_fftw3_INCLUDEDIR})
+endif()
 target_link_libraries(dtfft ${FFTW_LDFLAGS})
 
 message(STATUS "FFTW_FOUND: ${FFTW_FOUND}")
