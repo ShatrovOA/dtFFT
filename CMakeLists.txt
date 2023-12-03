@@ -80,14 +80,17 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
     list(LENGTH GCOV_VERSION len)
     list(GET GCOV_VERSION 0 GCOV_VERSION_MAJOR)
     find_program( GCOV_PATH gcov-${GCOV_VERSION_MAJOR} )
+    if ( NOT GCOV_PATH )
+      message(FATAL_ERROR "Unable to find gcov utility")
+    endif()
     message(STATUS "Found gcov: ${GCOV_PATH}")
 
     add_custom_target(coverage
       COMMAND ${CMAKE_MAKE_PROGRAM} test
-      COMMAND ${GCOV_PATH} ${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/*.gcno
-      COMMAND ${GCOV_PATH} ${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/api/*.gcno
-      COMMAND ${GCOV_PATH} ${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/api/c/*.gcno
-      COMMAND ${GCOV_PATH} ${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/fft/fftw/*.gcno
+      COMMAND ${GCOV_PATH} "${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/*.gcno"
+        "${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/api/*.gcno"
+        "${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/api/c/*.gcno"
+        "${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/fft/fftw/*.gcno"
       COMMAND mv    ${CMAKE_BINARY_DIR}/*.gcov ${PROJECT_SOURCE_DIR}
     )
 
