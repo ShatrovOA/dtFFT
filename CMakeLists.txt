@@ -87,10 +87,10 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
 
     add_custom_target(coverage
       COMMAND ${CMAKE_MAKE_PROGRAM} test
-      COMMAND ${GCOV_PATH} "${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/*.gcno"
-        "${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/api/*.gcno"
-        "${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/api/c/*.gcno"
-        "${CMAKE_BINARY_DIR}/CmakeFiles/dtfft.dir/src/interfaces/fft/fftw/*.gcno"
+      COMMAND ${GCOV_PATH} "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/*.gcno"
+        "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/interfaces/api/*.gcno"
+        "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/interfaces/api/c/*.gcno"
+        "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/interfaces/fft/fftw/*.gcno"
       COMMAND mv    ${CMAKE_BINARY_DIR}/*.gcov ${PROJECT_SOURCE_DIR}
     )
 
