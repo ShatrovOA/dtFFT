@@ -18,10 +18,8 @@ jobs:
           alias gcov="gcov-10"
       - name: Checkout
         uses: actions/checkout@v4
-      - run: mkdir build
-      - run: cat /usr/lib/x86_64-linux-gnu/pkgconfig/fftw3.pc
-      - run: ls -lah src
-      - run: which fftw-wisdom
+      - name: Create Build Directory
+        run: mkdir build
       - name: Setup and run tests
         working-directory: ./build
         run: |
@@ -31,10 +29,12 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_ENABLE_COVERAGE=on \
             -DDTFFT_BUILD_C_CXX_API=on ..
-          make && make coverage
+          make
+          ls -lah /home/runner/work/dtFFT/dtFFT/build/CmakeFiles/dtfft.dir/src/
           make install
           ls -lah /usr/local/lib | grep dtfft
           ls -lah /usr/local/include | grep dtfft
+          make coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
