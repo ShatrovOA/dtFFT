@@ -1,7 +1,7 @@
 # dtFFT -  DataTyped Fast Fourier Transform
 
 [![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
-[![Build Status](https://travis-ci.org/ShatrovOA/dtFFT.svg?branch=master)](https://travis-ci.com/ShatrovOA/dtFFT)
+![Build Status](https://github.com/ShatrovOA/dtFFT/actions/workflows/main.yml/badge.svg)
 [![Coverage Status](https://codecov.io/gh/ShatrovOA/dtFFT/branch/master/graph/badge.svg?token=QT9Y19KF8X)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
 
@@ -30,7 +30,7 @@ Following Fortran column-major order consider XYZ is a three-dimensional buffer:
 ## Features
 - R2C, C2C, R2R (FFTW3 only) transforms are supported
 - Single and double precision
-- Fortran C and C++ interfaces
+- Fortran, C and C++ interfaces
 - 2D and 3D transposition plans
 - Slab and Pencil decompositions
 - Can be linked with multiple FFT libraries simultaneously. Execution library can be specified during plan creation. Currenly supported libraries are:

@@ -31,7 +31,6 @@ int main(int argc, char *argv[])
   dtfft_complex *in, *out, *check;
   int i,j,k, comm_rank, comm_size;
   int in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
-  int executor_type;
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -49,9 +48,9 @@ int main(int argc, char *argv[])
   }
 
 #if defined MKL_ENABLED
-  executor_type = DTFFT_EXECUTOR_MKL;
+  int executor_type = DTFFT_EXECUTOR_MKL;
 #else
-  executor_type = DTFFT_EXECUTOR_FFTW3;
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
 #endif
   // Create plan
   plan = dtfft_create_plan_c2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);

@@ -44,16 +44,9 @@ int main(int argc, char *argv[])
     cout << "Number of processors: " << comm_size      << endl;
     cout << "----------------------------------------" << endl;
   }
-
-#if defined(MKL_ENABLED)
-  int executor_type = DTFFT_EXECUTOR_MKL;
-#else
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
-#endif
-
   // Create plan
   const vector<int> dims = {ny, nx};
-  dtfft::PlanC2C plan(dims);
+  dtfft::PlanC2C plan(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, -1, DTFFT_EXECUTOR_NONE);
 
   int local_size[2];
   size_t alloc_size = plan.get_local_sizes(NULL, local_size);
@@ -74,20 +67,15 @@ int main(int argc, char *argv[])
   }
 
   double tf = -MPI_Wtime();
-  plan.execute(in, out, DTFFT_TRANSPOSE_OUT);
+  plan.transpose(in, out, DTFFT_TRANSPOSE_X_TO_Y);
   tf += MPI_Wtime();
 
   for ( auto & element: in) {
     element = complex<double>(-1., -1.);
   }
 
-  double scaler = 1. / (double) (nx * ny);
-  for ( auto & element: out) {
-    element *= scaler;
-  }
-
   double tb = -MPI_Wtime();
-  plan.execute(out, in, DTFFT_TRANSPOSE_IN);
+  plan.transpose(out, in, DTFFT_TRANSPOSE_Y_TO_X);
   tb += MPI_Wtime();
 
   double t_sum;

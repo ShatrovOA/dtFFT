@@ -79,7 +79,7 @@ dtfft_execute(dtfft_plan plan, void *in, void *out, const int transpose_type, vo
 }
 
 void
-dtfft_transpose(dtfft_plan plan, void *in, void *out, const int transpose_type)
+dtfft_transpose(dtfft_plan plan, const void *in, void *out, const int transpose_type)
 {
   dtfft_transpose_c(plan -> _plan_ptr, in, out, &transpose_type);
 }

@@ -199,14 +199,14 @@ dtfft_execute(dtfft_plan plan, void *in, void *out, const int transpose_type, vo
   * \attention `in` and `out` cannot be the same pointers
   *
   * \param[in]      plan            Plan handle
-  * \param[inout]   in              Incoming vector
+  * \param[in]      in              Incoming vector
   * \param[out]     out             Transposed vector
   * \param[in]      transpose_type  Type of transpose: `DTFFT_TRANSPOSE_X_TO_Y`, `DTFFT_TRANSPOSE_Y_TO_X`
   *                                 `DTFFT_TRANSPOSE_Y_TO_Z` or `DTFFT_TRANSPOSE_Z_TO_Y`
 */
 extern
 void
-dtfft_transpose(dtfft_plan plan, void *in, void *out, const int transpose_type);
+dtfft_transpose(dtfft_plan plan, const void *in, void *out, const int transpose_type);
 
 /** \brief Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize
  * 

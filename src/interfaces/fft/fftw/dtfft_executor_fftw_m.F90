@@ -57,6 +57,23 @@ public :: fftw_executor
       import
       type(c_ptr), value :: plan
     end subroutine free_interface
+
+    type(C_PTR) function create_c2c_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags)
+    import
+#include "complex_signature.i90"
+      integer(C_INT), value :: sign
+    end function create_c2c_plan
+
+    type(C_PTR) function create_r2c_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags)
+    import
+#include "complex_signature.i90"
+    end function create_r2c_plan
+
+    type(C_PTR) function create_r2r_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags)
+    import
+#include "complex_signature.i90"
+      integer(C_FFTW_R2R_KIND), intent(in) :: kind(*)
+    end function create_r2r_plan
   end interface
 
 contains
@@ -69,81 +86,107 @@ contains
     class(info_t), optional,  intent(in)    :: complex_info
     integer(IP),   optional,  intent(in)    :: sign_or_kind
     integer(IP)                             :: knd(1)
-
-    ! if(.not.any(fft_type == [FFT_C2R, FFT_R2C, FFT_C2C, FFT_R2R])) return
+    complex(C4P), allocatable, target :: cbuf(:)
+    real(R4P),    allocatable, target :: rbuf(:)
+    integer(IP)              :: n_elements
+    type(c_ptr) :: cb, rb
 
     if(present(real_info) .and. present(sign_or_kind)) knd(1) = sign_or_kind
+
+    if ( present( complex_info ) ) then
+      n_elements = product(complex_info%counts)
+      if ( precision == DTFFT_DOUBLE ) n_elements = 2 * n_elements
+      allocate( cbuf( n_elements ) )
+      cb = c_loc( cbuf )
+    endif
+
+    if ( present( real_info ) ) then
+      n_elements = product(real_info%counts)
+      if ( precision == DTFFT_DOUBLE ) n_elements = 2 * n_elements
+      allocate( rbuf( n_elements ) )
+      rb = c_loc( rbuf )
+    endif
 
     select case (precision)
     case (DTFFT_SINGLE)
       self%free => fftwf_destroy_plan
-      block
-        complex(C4P), allocatable :: cbuf(:)
-        real(R4P),    allocatable :: rbuf(:)
-
-        if(present(complex_info))   allocate(cbuf(product(complex_info%counts)))
-        if(present(real_info))      allocate(rbuf(product(real_info%counts)))
-
-        select case (fft_type)
-        case (FFT_C2C)
-          self%plan = fftwf_plan_many_dft(1, complex_info%length, complex_info%how_many,                                  &
-                                          cbuf, complex_info%length, 1, complex_info%counts(1),                           &
-                                          cbuf, complex_info%length, 1, complex_info%counts(1), sign_or_kind, FFTW3_FLAGS)
-          self%apply => fftwf_execute_dft
-        case (FFT_R2C)
-          self%plan = fftwf_plan_many_dft_r2c(1, real_info%length, real_info%how_many,                                    &
-                                              rbuf, real_info%length, 1, real_info%counts(1),                             &
-                                              cbuf, complex_info%length, 1, complex_info%counts(1), FFTW3_FLAGS)
-          self%apply => fftwf_execute_dft_r2c
-        case (FFT_C2R)
-          self%plan = fftwf_plan_many_dft_c2r(1, real_info%length, complex_info%how_many,                                 &
-                                              cbuf, complex_info%length, 1, complex_info%counts(1),                       &
-                                              rbuf, real_info%length, 1, real_info%counts(1), FFTW3_FLAGS)
-          self%apply => fftwf_execute_dft_c2r
-        case (FFT_R2R)
-          self%plan = fftwf_plan_many_r2r(1, real_info%length, real_info%how_many,                                        &
-                                          rbuf, real_info%length, 1, real_info%counts(1),                                 &
-                                          rbuf, real_info%length, 1, real_info%counts(1), knd, FFTW3_FLAGS)
-          self%apply => fftwf_execute_r2r
-        endselect
-        if(present(complex_info))   deallocate(cbuf)
-        if(present(real_info))      deallocate(rbuf)
-      endblock
     case (DTFFT_DOUBLE)
       self%free => fftw_destroy_plan
-      block
-        complex(C8P), allocatable :: cbuf(:)
-        real(R8P),    allocatable :: rbuf(:)
-
-        if(present(complex_info))   allocate(cbuf(product(complex_info%counts)))
-        if(present(real_info))      allocate(rbuf(product(real_info%counts)))
-
-        select case (fft_type)
-        case (FFT_C2C)
-          self%plan = fftw_plan_many_dft(1, complex_info%length, complex_info%how_many,                                   &
-                                         cbuf, complex_info%length, 1, complex_info%counts(1),                            &
-                                         cbuf, complex_info%length, 1, complex_info%counts(1), sign_or_kind, FFTW3_FLAGS)
-          self%apply => fftw_execute_dft
-        case (FFT_R2C)
-          self%plan = fftw_plan_many_dft_r2c(1, real_info%length, real_info%how_many,                                     &
-                                             rbuf, real_info%length, 1, real_info%counts(1),                              &
-                                             cbuf, complex_info%length, 1, complex_info%counts(1), FFTW3_FLAGS)
-          self%apply => fftw_execute_dft_r2c
-        case (FFT_C2R)
-          self%plan = fftw_plan_many_dft_c2r(1, real_info%length, complex_info%how_many,                                  &
-                                             cbuf, complex_info%length, 1, complex_info%counts(1),                        &
-                                             rbuf, real_info%length, 1, real_info%counts(1), FFTW3_FLAGS)
-          self%apply => fftw_execute_dft_c2r
-        case (FFT_R2R)
-          self%plan = fftw_plan_many_r2r(1, real_info%length, real_info%how_many,                                         &
-                                         rbuf, real_info%length, 1, real_info%counts(1),                                  &
-                                         rbuf, real_info%length, 1, real_info%counts(1), knd, FFTW3_FLAGS)
-          self%apply => fftw_execute_r2r
-        endselect
-        if(present(complex_info))   deallocate(cbuf)
-        if(present(real_info))      deallocate(rbuf)
-      endblock
     endselect
+
+    associate( ci => complex_info, ri => real_info )
+
+    select case (fft_type)
+    case (FFT_C2C)
+      block
+        procedure(create_c2c_plan), pointer  :: constructor
+
+        select case (precision)
+        case (DTFFT_SINGLE)
+          constructor => fftwf_plan_many_dft
+          self%apply => fftwf_execute_dft
+        case (DTFFT_DOUBLE)
+          constructor => fftw_plan_many_dft
+          self%apply => fftw_execute_dft
+        endselect
+
+        self%plan = constructor(1, ci%length, ci%how_many, cb, ci%length, 1, ci%counts(1), cb, ci%length, 1, ci%counts(1), sign_or_kind, FFTW3_FLAGS)
+        nullify(constructor)
+      endblock
+
+      case (FFT_R2C)
+        block
+          procedure(create_r2c_plan), pointer  :: constructor
+
+          select case (precision)
+          case (DTFFT_SINGLE)
+            constructor => fftwf_plan_many_dft_r2c
+            self%apply => fftwf_execute_dft_r2c
+          case (DTFFT_DOUBLE)
+            constructor => fftw_plan_many_dft_r2c
+            self%apply => fftw_execute_dft_r2c
+          endselect
+
+          self%plan = constructor(1, ri%length, ri%how_many, rb, ri%length, 1, ri%counts(1), cb, ci%length, 1, ci%counts(1), FFTW3_FLAGS)
+          nullify(constructor)
+        endblock
+      case (FFT_C2R)
+        block
+          procedure(create_r2c_plan), pointer  :: constructor
+
+          select case (precision)
+          case (DTFFT_SINGLE)
+            constructor => fftwf_plan_many_dft_c2r
+            self%apply => fftwf_execute_dft_c2r
+          case (DTFFT_DOUBLE)
+            constructor => fftw_plan_many_dft_c2r
+            self%apply => fftw_execute_dft_c2r
+          endselect
+
+          self%plan = constructor(1, ri%length, ci%how_many, cb, ci%length, 1, ci%counts(1), rb, ri%length, 1, ri%counts(1), FFTW3_FLAGS)
+          nullify(constructor)
+        endblock
+      case (FFT_R2R)
+        block
+          procedure(create_r2r_plan), pointer :: constructor
+
+          select case (precision)
+          case (DTFFT_SINGLE)
+            constructor => fftwf_plan_many_r2r
+            self%apply => fftwf_execute_r2r
+          case (DTFFT_DOUBLE)
+            constructor => fftw_plan_many_r2r
+            self%apply => fftw_execute_r2r
+          endselect
+
+          self%plan = constructor(1, ri%length, ri%how_many, rb, ri%length, 1, ri%counts(1), rb, ri%length, 1, ri%counts(1), knd, FFTW3_FLAGS)
+          nullify(constructor)
+        endblock
+    endselect
+
+    if ( present( complex_info ) )  deallocate( cbuf )
+    if ( present( real_info ) )     deallocate( rbuf )
+    endassociate
   end subroutine create
 
   subroutine execute(self, a, b)

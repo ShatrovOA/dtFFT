@@ -137,7 +137,7 @@ namespace dtfft
       */
         void
         transpose(
-          void *in,
+          const void *in,
           void *out,
           const int transpose_type
         )
