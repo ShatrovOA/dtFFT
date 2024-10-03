@@ -20,7 +20,6 @@
 program test_c2c_2d
 use iso_fortran_env, only: R8P => real64, I4P => int32, output_unit, error_unit
 use dtfft
-use iso_c_binding, only: c_ptr, c_null_ptr
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
@@ -32,9 +31,7 @@ implicit none
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
   integer(I4P) :: executor_type = DTFFT_EXECUTOR_NONE
-  type(c_ptr) :: ptr
 
-  ptr = c_null_ptr
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
