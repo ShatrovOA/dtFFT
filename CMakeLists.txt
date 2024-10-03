@@ -95,7 +95,7 @@ if(DTFFT_BUILD_C_CXX_API)
   # target_link_libraries(dtfft ${MPI_CXX_LIBRARIES})
 endif()
 set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
-target_include_directories(dtfft INTERFACE $<INSTALL_INTERFACE:include>;$<INSTALL_INTERFACE:${MPI_C_INCLUDE_DIRS}>)
+target_include_directories(dtfft  INTERFACE $<INSTALL_INTERFACE:include> )
 
 set(DTFFT_MEASURE_ITERS "2" CACHE STRING "Number of iterations to run in order to find best grid decomposition
                                           when passing DTFFT_MEASURE or DTFFT_PATIENT to effort_flag parameter
