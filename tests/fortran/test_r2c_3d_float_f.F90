@@ -16,18 +16,18 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_r2c_3d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, output_unit, error_unit
 use iso_c_binding, only: c_size_t
 use dtfft
-use iso_c_binding
-#include "dtfft.i90"
+#include "dtfft_mpi.h"
 implicit none
   real(R4P),     allocatable :: in(:,:,:), check(:,:,:)
   complex(R4P),  allocatable :: out(:)
   real(R4P) :: local_error, global_error, rnd
   integer(I4P), parameter :: nx = 16, ny = 8, nz = 4
-  integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
+  integer(I4P) :: comm_size, comm_rank, i, j, k, ierr, executor_type
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(3)
   integer(c_size_t) :: alloc_size
@@ -45,8 +45,23 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
     write(output_unit, '(a)') "----------------------------------------"
   endif
+#ifdef DTFFT_TRANSPOSE_ONLY
+  if ( comm_rank == 0 ) &
+    write(output_unit, '(a)') "R2C Transpose plan not supported, skipping it"
 
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE)
+  call MPI_Finalize(ierr)
+  stop
+#endif
+
+! #if defined(DTFFT_WITH_KFR)
+!   executor_type = DTFFT_EXECUTOR_KFR
+#if !defined(DTFFT_WITHOUT_FFTW)
+  executor_type = DTFFT_EXECUTOR_FFTW3
+#elif defined(DTFFT_WITH_MKL)
+  executor_type = DTFFT_EXECUTOR_MKL
+#endif
+
+  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type)
   call plan%get_local_sizes(in_counts = in_counts, alloc_size = alloc_size)
 
   allocate(in(in_counts(1),in_counts(2), in_counts(3)), source = -33._R4P)

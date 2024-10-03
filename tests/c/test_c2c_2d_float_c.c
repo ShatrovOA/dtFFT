@@ -17,6 +17,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <complex.h>
 #include <dtfft.h>
 #include <mpi.h>
 #include <stdio.h>
@@ -26,7 +27,7 @@
 int main(int argc, char *argv[])
 {
   int i;
-  int nx = 256, ny = 2048;
+  int nx = 11, ny = 39;
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -46,10 +47,18 @@ int main(int argc, char *argv[])
 
   // Create plan
   int n[2] = {ny, nx};
-  dtfft_plan plan = dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_MEASURE, DTFFT_EXECUTOR_FFTW3);
-  
+
+#ifndef DTFFT_WITHOUT_FFTW
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
+
+  dtfft_plan plan;
+  DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_MEASURE, executor_type, &plan) )
+
   int in_counts[2], out_counts[2];
-  dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, NULL) )
 
   dtfftf_complex *in, *out, *check;
   in = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * in_counts[0] * in_counts[1]);
@@ -58,26 +67,33 @@ int main(int argc, char *argv[])
 
   
   for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
-    in[i][0] = check[i][0] = (float)rand() / (float)(RAND_MAX);
-    in[i][1] = check[i][1] = (float)rand() / (float)(RAND_MAX);
+    in[i] = check[i] = (float)rand() / (float)(RAND_MAX) - (float)rand() / (float)(RAND_MAX) * I;
   }
 
   double tf = 0.0 - MPI_Wtime();
+#ifdef DTFFT_TRANSPOSE_ONLY
+  dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y);
+#else
   dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
+#endif
   tf += MPI_Wtime();
 
   for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
-    in[i][0] = -1.0;
-    in[i][1] = -1.0;
+    in[i] = -1.0 + 1.0 * I;
   }
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   for (i = 0; i < out_counts[0] * out_counts[1]; i++) {
-    out[i][0] /= (float) (nx * ny);
-    out[i][1] /= (float) (nx * ny);
+    out[i] /= (float) (nx * ny);
   }
+#endif
 
   double tb = 0.0 - MPI_Wtime();
+#ifdef DTFFT_TRANSPOSE_ONLY
+  dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_X);
+#else
   dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
+#endif
   tb += MPI_Wtime();
 
   double t_sum;
@@ -94,8 +110,8 @@ int main(int argc, char *argv[])
 
   float local_error = -1.0;
   for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
-    float real_error = fabs(check[i][0] - in[i][0]);
-    float cmplx_error = fabs(check[i][1] - in[i][1]);
+    float real_error = fabs(crealf(check[i]) - crealf(in[i]));
+    float cmplx_error = fabs(cimagf(check[i]) - cimagf(in[i]));
     float error = fmax(real_error, cmplx_error);
     local_error = error > local_error ? error : local_error;
   }
@@ -113,7 +129,7 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_destroy(plan);
+  dtfft_destroy(&plan);
 
   MPI_Finalize();
   return 0;

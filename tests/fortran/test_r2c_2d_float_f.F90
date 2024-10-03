@@ -16,21 +16,24 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_r2c_2d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, output_unit, error_unit
 use dtfft
 use iso_c_binding
-#include "dtfft.i90"
+#include "dtfft_mpi.h"
 implicit none
-  real(R4P),     allocatable :: in(:,:), check(:,:)
-  complex(R4P),  allocatable :: out(:,:)
+  real(R4P),     allocatable, target :: in(:), check(:,:)
+  real(R4P),      pointer     :: pin(:,:)
+  complex(R4P),  allocatable :: out(:)
   real(R4P) :: local_error, global_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 19
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr, executor_type
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
   integer(I8P) :: alloc_size
+  character(len=:), allocatable :: error_string
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -44,29 +47,46 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
     write(output_unit, '(a)') "----------------------------------------"
   endif
+#ifdef DTFFT_TRANSPOSE_ONLY
+  if ( comm_rank == 0 ) &
+    write(output_unit, '(a)') "R2C Transpose plan not supported, skipping it"
 
-  call plan%create([nx, ny], precision=DTFFT_SINGLE)
+  call MPI_Finalize(ierr)
+  stop
+#endif
+
+#if !defined(DTFFT_WITHOUT_FFTW)
+  executor_type = DTFFT_EXECUTOR_FFTW3
+#elif defined(DTFFT_WITH_MKL)
+  executor_type = DTFFT_EXECUTOR_MKL
+#endif
+! #elif defined(DTFFT_WITH_KFR)
+!   executor_type = DTFFT_EXECUTOR_KFR
+! #endif
+
+  call plan%create([nx, ny], precision=DTFFT_SINGLE, executor_type=executor_type)
 
   call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size)
-  print*,product(in_counts), product(out_counts), alloc_size
 
-  allocate(in(in_counts(1),in_counts(2)), source = 0._R4P)
-  allocate(out(out_counts(1), out_counts(2)), source = (0._R4P, 0._R4P))
+  allocate(in(alloc_size))
+  allocate(out(alloc_size / 2))
+  allocate(check(1:in_counts(1), 1:in_counts(2)))
+
+  pin(1:in_counts(1), 1:in_counts(2)) => in
 
   do j = 1, in_counts(2)
     do i = 1, in_counts(1)
       call random_number(rnd)
-      in(i,j) = rnd
+      pin(i,j) = rnd
+      check(i,j) = rnd
     enddo
   enddo
-
-  allocate(check, source = in)
 
   tf = 0.0_R8P - MPI_Wtime()
   call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
 
-  out(:,:) = out(:,:) / real(nx * ny, R4P)
+  out(:) = out(:) / real(nx * ny, R4P)
   ! Nullify recv buffer
   in = -1._R4P
 
@@ -85,7 +105,7 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  local_error = maxval(abs(in - check))
+  local_error = maxval(abs(pin - check))
 
   call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
@@ -98,9 +118,13 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  deallocate(in, out, check)
-  call MPI_Finalize(ierr)
 
+  deallocate(in, out, check)
+  nullify( pin )
+  call MPI_Finalize(ierr)
+  call dtfft_get_error_string(ierr, error_string)
   !! Check that no error is raised when MPI is finalized
-  call plan%destroy()
+  call plan%destroy(ierr)
+  call dtfft_get_error_string(ierr, error_string)
+  print*,error_string
 end program test_r2c_2d_float

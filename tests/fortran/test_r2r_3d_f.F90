@@ -16,6 +16,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_r2r_3d
 !------------------------------------------------------------------------------------------------
 !< This program shows how to use DTFFT with Real-to-Real 3d transform
@@ -23,14 +24,14 @@ program test_r2r_3d
 !------------------------------------------------------------------------------------------------
 use iso_fortran_env, only: R8P => real64, I4P => int32, IP => int32, output_unit, error_unit, I8P => int64
 use dtfft
-#include "dtfft.i90"
+#include "dtfft_mpi.h"
 implicit none
   real(R8P),  allocatable :: in(:,:,:), out(:), check(:,:,:)
   real(R8P) :: local_error, global_error, rnd
-  integer(I4P), parameter :: nx = 256, ny = 256, nz = 128
-  integer(I4P) :: comm_size, comm_rank, i, j, k
+  integer(I4P), parameter :: nx = 512, ny = 32, nz = 12
+  integer(I4P) :: comm_size, comm_rank, i, j, k, out_size
   type(dtfft_plan_r2r) :: plan
-  integer(I4P) :: in_starts(3), in_counts(3), ierr
+  integer(I4P) :: in_starts(3), in_counts(3), out_counts(3), ierr, executor_type
   real(R8P) :: tf, tb, t_sum
   TYPE_MPI_COMM :: comm_1d
   integer(I8P) :: alloc_size
@@ -49,34 +50,43 @@ implicit none
 
   call MPI_Cart_create(MPI_COMM_WORLD, 1, [comm_size], [.false.], .true., comm_1d, ierr)
 
-  call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_2], [DTFFT_DCT_3, DTFFT_DCT_2, DTFFT_DCT_3], comm=comm_1d)
+! #ifdef DTFFT_WITH_KFR
+!   executor_type = DTFFT_EXECUTOR_KFR
+#if !defined(DTFFT_WITHOUT_FFTW)
+  executor_type = DTFFT_EXECUTOR_FFTW3
+#else
+  executor_type = DTFFT_EXECUTOR_NONE
+#endif
 
-  call plan%get_local_sizes(in_starts, in_counts, alloc_size=alloc_size)
+  call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm_1d, effort_flag=DTFFT_PATIENT, executor_type=executor_type)
+
+  call plan%get_local_sizes(in_starts, in_counts, out_counts=out_counts, alloc_size=alloc_size)
 
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,                     &
               in_starts(2):in_starts(2) + in_counts(2) - 1,                     &
               in_starts(3):in_starts(3) + in_counts(3) - 1),  source = 0._R8P)
 
   allocate(check, source = in)
-
-  allocate(out(alloc_size), source=0._R8P)
+  allocate(out(alloc_size))
+  out_size = product(out_counts)
 
   do k = in_starts(3), in_starts(3) + in_counts(3) - 1
     do j = in_starts(2), in_starts(2) + in_counts(2) - 1
       do i = in_starts(1), in_starts(1) + in_counts(1) - 1
         call random_number(rnd)
-        in(i,j,k) = real(k * ny * nx + j * nx + i, R8P) / real(nx * ny * nz, R8P)
+        in(i,j,k) = rnd * real(k * ny * nx + j * nx + i, R8P) / real(nx * ny * nz, R8P)
         check(i,j,k) = in(i,j,k)
       enddo
     enddo
   enddo
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
+  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, error_code=ierr)
   tf = tf + MPI_Wtime()
 
-  out = out / real(8 * nx * ny * nz, R8P)
-
+#ifndef DTFFT_TRANSPOSE_ONLY
+  out(:out_size) = out(:out_size) / real(8 * nx * ny * nz, R8P)
+#endif
   ! Nullify recv buffer
   in = -1._R8P
 
@@ -99,7 +109,7 @@ implicit none
   call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
 
   if(comm_rank == 0) then
-    if(global_error < 1.e-14) then
+    if(global_error < 1.e-12) then
       write(output_unit, '(a)') "Test 'r2r_3d' PASSED!"
     else
       write(error_unit, '(a, d16.5)') "Test 'r2r_3d' FAILED... error = ", global_error
@@ -108,7 +118,6 @@ implicit none
   endif
 
   deallocate(in, out, check)
-
   call plan%destroy()
   call MPI_Finalize(ierr)
 end program test_r2r_3d

@@ -16,20 +16,21 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_c2c_3d
 use iso_fortran_env, only: R8P => real64, I4P => int32, I8P => int64, output_unit, error_unit
 use dtfft
 use iso_c_binding
-#include "dtfft.i90"
+#include "dtfft_mpi.h"
 implicit none
-  complex(R8P),  allocatable :: in(:,:,:), out(:,:,:), check(:,:,:), work(:)
-  real(R8P) :: local_error, global_error, rnd1, rnd2
-  integer(I4P), parameter :: nx = 512, ny = 128, nz = 64
-  integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
+  complex(R8P),  allocatable :: inout(:), check(:,:,:), aux(:)
+  real(R8P) :: err, local_error, global_error, rnd1, rnd2
+  integer(I4P), parameter :: nx = 129, ny = 123, nz = 33
+  integer(I4P) :: comm_size, comm_rank, i, j, k, ierr, ii, jj, kk, idx, executor_type
   type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_counts(3), out_counts(3)
   integer(I8P)  :: alloc_size
-  real(R8P) :: tf, tb, t_sum
+  real(R8P) :: tf, tb, t_sum, t_total
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -44,46 +45,49 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  call plan%create([nx, ny, nz])
-  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts)
+#if defined(DTFFT_WITH_MKL)
+  executor_type = DTFFT_EXECUTOR_MKL
+#elif !defined(DTFFT_WITHOUT_FFTW)
+  executor_type = DTFFT_EXECUTOR_FFTW3
+! #elif defined(DTFFT_WITH_KFR)
+!   executor_type = DTFFT_EXECUTOR_KFR
+#else
+  executor_type = DTFFT_EXECUTOR_NONE
+#endif
 
-  allocate(in(in_counts(1),in_counts(2),in_counts(3)), source = (0._R8P, 0._R8P))
+  call plan%create([nx, ny, nz], executor_type=executor_type, effort_flag=DTFFT_PATIENT)
+  call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size)
 
-  allocate(check, source = in)
-
-  allocate(out(out_counts(1), out_counts(2), out_counts(3)), source = (0._R8P, 0._R8P))
+  allocate(inout(alloc_size))
+  allocate(aux(alloc_size))
+  allocate(check(in_counts(1), in_counts(2), in_counts(3)))
 
   do k = 1, in_counts(3)
     do j = 1, in_counts(2)
       do i = 1, in_counts(1)
         call random_number(rnd1)
         call random_number(rnd2)
-        in(i,j,k) = cmplx(rnd1, rnd1, R8P)
-        check(i,j,k) = in(i,j,k)
+        ii = i - 1; jj = j - 1; kk = k - 1
+        idx = kk * in_counts(2) * in_counts(1) + jj * in_counts(1) + ii + 1
+        inout(idx) = cmplx(rnd1, rnd1, R8P)
+        check(i,j,k) = inout(idx)
       enddo
     enddo
   enddo
 
-  alloc_size = plan%get_aux_size()
-  allocate(work(alloc_size), source = (-1._R8P, -1._R8P))
-
-!$acc data copy(in) copyin(out, work)
+  t_total = -MPI_Wtime()
 
   tf = 0.0_R8P - MPI_Wtime()
-
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, work)
+  call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT, aux)
   tf = tf + MPI_Wtime()
-
-  out(:,:,:) = out(:,:,:) / real(nx * ny * nz, R8P)
-
-  ! Nullify recv buffer
-  in = (-1._R8P, -1._R8P)
-
+#ifndef DTFFT_TRANSPOSE_ONLY
+  inout(:) = inout(:) / real(nx * ny * nz, R8P)
+#endif
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN, work)
+  call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN, aux)
   tb = tb + MPI_Wtime()
 
-!$acc end data
+  t_total = t_total + MPI_Wtime()
 
   call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
@@ -95,7 +99,19 @@ implicit none
     write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
   endif
 
-  local_error = maxval(abs(in - check))
+  local_error = 0._R8P
+  do k = 1, in_counts(3)
+    do j = 1, in_counts(2)
+      do i = 1, in_counts(1)
+        call random_number(rnd1)
+        call random_number(rnd2)
+        ii = i - 1; jj = j - 1; kk = k - 1
+        idx = kk * in_counts(2) * in_counts(1) + jj * in_counts(1) + ii + 1
+        err = abs(inout(idx) - check(i,j,k))
+        if ( err > local_error ) local_error = err
+      enddo
+    enddo
+  enddo
 
   call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
@@ -108,7 +124,7 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  deallocate(in, out, check)
+  deallocate(inout, check)
 
   call plan%destroy()
   call MPI_Finalize(ierr)

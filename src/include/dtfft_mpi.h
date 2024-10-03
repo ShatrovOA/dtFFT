@@ -2,14 +2,10 @@
 use mpi
 #define TYPE_MPI_COMM integer(IP)
 #define TYPE_MPI_DATATYPE integer(IP)
+#define TYPE_MPI_REQUEST integer(IP)
 #else
 use mpi_f08
 #define TYPE_MPI_COMM type(MPI_Comm)
 #define TYPE_MPI_DATATYPE type(MPI_Datatype)
+#define TYPE_MPI_REQUEST type(MPI_Request)
 #endif
-
-#define FATAL_ERROR(msg) \
-  call DTFFT_FATAL_ERROR(msg, __FUNC__)
-
-#define DEBUG(msg) \
-  call DTFFT_DEBUG(msg, __FUNC__)

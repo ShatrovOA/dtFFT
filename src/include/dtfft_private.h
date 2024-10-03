@@ -24,39 +24,13 @@
 extern "C" {
 #endif
 
-#include <mpi.h>
+#define FFT_FORWARD (-1)
+#define FFT_BACKWARD (+1)
 
-extern
-void
-dtfft_create_plan_c2c_c(const int*, const int*, MPI_Comm, const int*, const int*, const int*, void**);
+#define CHECK_CALL( func, ierr ) \
+  ierr = func;  if ( ierr /= DTFFT_SUCCESS ) return
 
-extern
-void
-dtfft_create_plan_r2c_c(const int*, const int*, MPI_Comm, const int*, const int*, const int*, void**);
-
-extern
-void
-dtfft_create_plan_r2r_c(const int*, const int*, const int*, const int*, MPI_Comm, const int*, const int*, const int*, void**);
-
-extern
-void
-dtfft_execute_c(const void*, void*, void*, const int*, void*);
-
-extern
-void
-dtfft_transpose_c(const void*, const void*, void*, const int*);
-
-extern
-void
-dtfft_destroy_c(void**);
-
-extern
-void
-dtfft_get_local_sizes_c(const void*, int*, int*, int*, int*, size_t*);
-
-extern
-void
-dtfft_get_aux_size_c(const void*, size_t*);
+#define CHECK_INTERNAL_CALL( func ) CHECK_CALL(func, __FUNC__)
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,5 @@
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories($<$<COMPILE_LANGUAGE:Fortran>:${CMAKE_BINARY_DIR}/mod>)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 file(GLOB TEST_SOURCES "fortran/*_f.F90")
 
 
@@ -21,7 +22,10 @@ foreach(test ${TEST_SOURCES})
   target_link_libraries(${test_name} dtfft)
 
   foreach(nproc RANGE 1 8 1)
-    add_test( NAME "${test_name}_nproc_${nproc}"
-              COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${nproc} --oversubscribe ${test_name})
+    add_test(
+      NAME "${test_name}_nproc_${nproc}"
+      COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${nproc} ./${test_name}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
   endforeach()
 endforeach()

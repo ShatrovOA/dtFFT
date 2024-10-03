@@ -46,18 +46,19 @@ int main(int argc, char *argv[])
   }
   // Create plan
   const vector<int> dims = {ny, nx};
-  dtfft::PlanC2C plan(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, -1, DTFFT_EXECUTOR_NONE);
+  dtfft::PlanC2C plan(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_MEASURE, DTFFT_EXECUTOR_NONE);
 
   int local_size[2];
-  size_t alloc_size = plan.get_local_sizes(NULL, local_size);
+  size_t alloc_size;
+  plan.get_alloc_size(&alloc_size);
+  plan.get_local_sizes(NULL, local_size);
 
   size_t in_size = local_size[0] * local_size[1];
 
-  vector<complex<double> > in, out, check;
+  vector<complex<double>> in(alloc_size),
+                          out(alloc_size),
+                          check(alloc_size);
 
-  in.resize(alloc_size);
-  out.resize(alloc_size);
-  check.resize(alloc_size);
 
   for (size_t i = 0; i < in_size; i++) {
     double real = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -66,29 +67,13 @@ int main(int argc, char *argv[])
     check[i] = in[i];
   }
 
-  double tf = -MPI_Wtime();
   plan.transpose(in, out, DTFFT_TRANSPOSE_X_TO_Y);
-  tf += MPI_Wtime();
 
   for ( auto & element: in) {
     element = complex<double>(-1., -1.);
   }
 
-  double tb = -MPI_Wtime();
   plan.transpose(out, in, DTFFT_TRANSPOSE_Y_TO_X);
-  tb += MPI_Wtime();
-
-  double t_sum;
-  MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tf = t_sum / (double) comm_size;
-  MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tb = t_sum / (double) comm_size;
-
-  if(comm_rank == 0) {
-    cout << "Forward execution time: " << tf << endl;
-    cout << "Backward execution time: " << tb << endl;
-    cout << "----------------------------------------" << endl;
-  }
 
   double local_error = -1.;
   for (size_t i = 0; i < in_size; i++) {
@@ -108,8 +93,8 @@ int main(int argc, char *argv[])
     }
     cout << "----------------------------------------" << endl;
   }
-  plan.destroy();
 
+  plan.destroy();
   MPI_Finalize();
   return 0;
 }

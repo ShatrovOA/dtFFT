@@ -16,19 +16,20 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_r2r_2d
-use iso_fortran_env, only: R8P => real64, I4P => int32, output_unit, error_unit
+use iso_fortran_env, only: R4P => real32, R8P => real64, I4P => int32, output_unit, error_unit
 use dtfft
-#include "dtfft.i90"
+#include "dtfft_mpi.h"
 implicit none
   real(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R8P) :: local_error, global_error, rnd
-  integer(I4P), parameter :: nx = 2048, ny = 1024
+  real(R8P) :: local_error, global_error, scaler, rnd
+  integer(I4P), parameter :: nx = 8, ny = 12
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
   type(dtfft_plan_r2r) :: plan
-  integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
+  integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2), in_vals
   real(R8P) :: tf, tb, t_sum
-  integer(I4P) :: f_kinds(2), b_kinds(2)
+  integer(I4P) :: kinds(2), executor_type
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -43,19 +44,29 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  f_kinds = DTFFT_DCT_2
-  b_kinds = DTFFT_DCT_3
+  kinds = DTFFT_DCT_1
+! #ifdef DTFFT_WITH_KFR
+!   executor_type = DTFFT_EXECUTOR_KFR
+!   scaler = 4._R8P / real(nx * ny, R8P)
+#if !defined(DTFFT_WITHOUT_FFTW)
+  executor_type = DTFFT_EXECUTOR_FFTW3
+  scaler = 1._R8P / real(4 * (nx - 1) * (ny - 1), R8P)
+#else
+  executor_type = DTFFT_EXECUTOR_NONE
+  scaler = 1._R8P
+#endif
 
-  call plan%create([nx, ny], in_kinds=f_kinds, out_kinds=b_kinds)
+  call plan%create([nx, ny], kinds=kinds, effort_flag=DTFFT_PATIENT, executor_type=executor_type)
 
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
-  allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,                     &
-              in_starts(2):in_starts(2) + in_counts(2) - 1),  source = 0._R8P)
+  allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1, &
+              in_starts(2):in_starts(2) + in_counts(2) - 1) )
 
-  allocate(out(out_starts(1):out_starts(1) + out_counts(1) - 1,                 &
-                out_starts(2):out_starts(2) + out_counts(2) - 1), source = 0._R8P)
+  allocate(out(out_starts(1):out_starts(1) + out_counts(1) - 1,   &
+               out_starts(2):out_starts(2) + out_counts(2) - 1)   )
 
+  in_vals = product(in_counts)
   do j = in_starts(2), in_starts(2) + in_counts(2) - 1
     do i = in_starts(1), in_starts(1) + in_counts(1) - 1
       call random_number(rnd)
@@ -69,8 +80,8 @@ implicit none
   call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
 
-  out(:,:) = out(:,:) / real(4 * nx * ny, R8P)
 
+  out(:,:) = out(:,:) * scaler
   ! Nullify recv buffer
   in = -1._R8P
 
@@ -105,6 +116,3 @@ implicit none
   call plan%destroy()
   call MPI_Finalize(ierr)
 end program test_r2r_2d
-
-! CC=/opt/mpich-intel/bin/mpicc FC=/opt/mpich-intel/bin/mpifort CXX=/opt/mpich-intel/bin/mpicxx cmake -DCMAKE_BUILD_TYPE=Debug -DMPI_C_COMPILER=/opt/mpich-intel/bin/mpicc -DMPI_Fortran_COMPILER=/opt/mpich
-!-intel/bin/mpifort  -DDTFFT_BUILD_TESTS=on -DDTFFT_ENABLE_MKL=on ..

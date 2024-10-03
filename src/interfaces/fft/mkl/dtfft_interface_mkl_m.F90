@@ -20,74 +20,134 @@ module dtfft_interface_mkl_m
 !------------------------------------------------------------------------------------------------
 !< This module creates interface with MKL library
 !------------------------------------------------------------------------------------------------
-#if defined(_BUILD_DOCS)
-#define MKL_ENABLED
-#endif
-#if defined(MKL_ENABLED)
-use dtfft_precisions
-use iso_c_binding
+use iso_c_binding, only: c_long, c_int, c_ptr, c_f_pointer, c_null_char
 implicit none
-public
+private
 
-  integer(IP),  bind(C, name="C_DFTI_DOUBLE")                 :: DFTI_DOUBLE
-  !! DFTI Double precision
-  integer(IP),  bind(C, name="C_DFTI_SINGLE")                 :: DFTI_SINGLE
-  !! DFTI Single precision
-  integer(IP),  bind(C, name="C_DFTI_NUMBER_OF_TRANSFORMS")   :: DFTI_NUMBER_OF_TRANSFORMS
-  !! Number of data sets to be transformed
-  integer(IP),  bind(C, name="C_DFTI_PLACEMENT")              :: DFTI_PLACEMENT
-  !! Placement of result [DFTI_INPLACE]
-  integer(IP),  bind(C, name="C_DFTI_INPUT_DISTANCE")         :: DFTI_INPUT_DISTANCE
-  !! Distance between first input elements for multiple transforms
-  integer(IP),  bind(C, name="C_DFTI_OUTPUT_DISTANCE")        :: DFTI_OUTPUT_DISTANCE
-  !! Distance between first output elements for multiple transforms
-  integer(IP),  bind(C, name="C_DFTI_CONJUGATE_EVEN_STORAGE") :: DFTI_CONJUGATE_EVEN_STORAGE
-  !! Storage of finite complex-valued sequences in conjugate-even domain [DFTI_COMPLEX_REAL]
-  integer(IP),  bind(C, name="C_DFTI_COMPLEX_COMPLEX")        :: DFTI_COMPLEX_COMPLEX
-  !! Complex storage type
-  integer(IP),  bind(C, name="C_DFTI_COMPLEX")                :: DFTI_COMPLEX
-  !! DFTI_FORWARD_DOMAIN is Complex
-  integer(IP),  bind(C, name="C_DFTI_REAL")                   :: DFTI_REAL
-  !! DFTI_FORWARD_DOMAIN is Real
-  integer(IP),  bind(C, name="C_DFTI_INPLACE")                :: DFTI_INPLACE
-  !! Result overwrites input
-  integer(IP),  bind(C, name="C_DFTI_NOT_INPLACE")            :: DFTI_NOT_INPLACE
-  !! Have another place for result
+public :: mkl_dfti_create_desc,         &
+          mkl_dfti_set_value,           &
+          mkl_dfti_commit_desc,         &
+          mkl_dfti_execute,             &
+          mkl_dfti_free_desc, mkl_dfti_execute_forward, mkl_dfti_execute_backward, mkl_dfti_set_pointer
+
+! public :: DftiCreateDescriptor, DftiSetValue, DftiCommitDescriptor, DftiFreeDescriptor
+! public :: DftiComputeForward, DftiComputeBackward
+public :: DftiErrorMessage
 
   interface
-    subroutine mkl_dfti_create_desc(precision, domain, dim, length, desc) bind(C)
+    ! integer(c_long) function DftiCreateDescriptor(desc, precision, domain, dim, length) bind(C, name="dfti_create_descriptor_highd")
+    ! import
+    !   type(c_ptr)                       :: desc
+    !   integer(c_int), intent(in), value :: precision
+    !   integer(c_int), intent(in), value :: domain
+    !   integer(c_long),intent(in), value :: dim
+    !   integer(c_long),intent(in)        :: length(*)
+    ! end function DftiCreateDescriptor
+
+    ! integer(c_long) function DftiSetValue(desc, param, value) bind(C)
+    ! import
+    !   type(c_ptr),                value :: desc
+    !   integer(c_int), intent(in), value :: param
+    !   integer(c_int), intent(in), value :: value
+    ! end function DftiSetValue
+
+    ! integer(c_long) function DftiCommitDescriptor(desc) bind(C)
+    ! import
+    !   type(c_ptr),                value :: desc
+    ! end function DftiCommitDescriptor
+
+    ! integer(c_long) function DftiFreeDescriptor(desc) bind(C)
+    ! import
+    !   type(c_ptr)                       :: desc
+    ! end function DftiFreeDescriptor
+
+    ! integer(c_long) function DftiComputeForward(desc, in, out) bind(C)
+    ! import
+    !   type(c_ptr),  value :: desc
+    !   type(c_ptr),  value :: in
+    !   type(c_ptr),  value :: out
+    ! end function DftiComputeForward
+
+    ! integer(c_long) function DftiComputeBackward(desc, in, out) bind(C)
+    ! import
+    !   type(c_ptr),  value :: desc
+    !   type(c_ptr),  value :: in
+    !   type(c_ptr),  value :: out
+    ! end function DftiComputeBackward
+
+    type(c_ptr) function DftiErrorMessage_c(error_code) bind(C, name="DftiErrorMessage")
+    import
+      integer(c_long), intent(in),  value  :: error_code
+    end function DftiErrorMessage_c
+  end interface
+
+  interface
+    integer(c_long) function  mkl_dfti_create_desc(precision, domain, dim, length, desc) bind(C)
       import
       integer(c_int), intent(in), value :: precision
       integer(c_int), intent(in), value :: domain
-      integer(c_int), intent(in), value :: dim
-      integer(c_int), intent(in), value :: length
+      integer(c_long),intent(in), value :: dim
+      integer(c_long),intent(in)        :: length(*)
       type(c_ptr)                       :: desc
-    end subroutine mkl_dfti_create_desc
+    end function mkl_dfti_create_desc
 
-    subroutine mkl_dfti_set_value(desc, param, value) bind(C)
+    integer(c_long) function mkl_dfti_set_value(desc, param, value) bind(C)
       import
       type(c_ptr),                value :: desc
       integer(c_int), intent(in), value :: param
       integer(c_int), intent(in), value :: value
-    end subroutine mkl_dfti_set_value
+    end function mkl_dfti_set_value
 
-    subroutine mkl_dfti_commit_desc(desc) bind(C)
+    integer(c_long) function mkl_dfti_set_pointer(desc, param, value) bind(C)
       import
       type(c_ptr),                value :: desc
-    end subroutine mkl_dfti_commit_desc
+      integer(c_int), intent(in), value :: param
+      integer(c_long), intent(in)        :: value(*)
+    end function mkl_dfti_set_pointer
 
-    subroutine mkl_dfti_execute(desc, in, out, sign) bind(C)
+    integer(c_long) function mkl_dfti_commit_desc(desc) bind(C)
+      import
+      type(c_ptr),                value :: desc
+    end function mkl_dfti_commit_desc
+
+    integer(c_long) function mkl_dfti_execute(desc, in, out, sign) bind(C)
       import
       type(c_ptr),                value :: desc
       type(c_ptr),                value :: in
       type(c_ptr),                value :: out
       integer(c_int), intent(in), value :: sign
-    end subroutine mkl_dfti_execute
+    end function mkl_dfti_execute
 
-    subroutine mkl_dfti_free_desc(desc) bind(C)
+    integer(c_long) function mkl_dfti_execute_forward(desc, in, out) bind(C)
       import
-      type(c_ptr)                       :: desc
-    end subroutine mkl_dfti_free_desc
+      type(c_ptr),                value :: desc
+      type(c_ptr),                value :: in
+      type(c_ptr),                value :: out
+    end function mkl_dfti_execute_forward
+
+    integer(c_long) function mkl_dfti_execute_backward(desc, in, out) bind(C)
+      import
+      type(c_ptr),                value :: desc
+      type(c_ptr),                value :: in
+      type(c_ptr),                value :: out
+    end function mkl_dfti_execute_backward
+
+    integer(c_long) function mkl_dfti_free_desc(desc) bind(C)
+      import
+      type(c_ptr),                value :: desc
+    end function mkl_dfti_free_desc
   endinterface
-#endif
+
+contains
+
+  function DftiErrorMessage(error_code) result(string)
+    integer(c_long), intent(in)   :: error_code
+    character(len=:), allocatable :: string
+    type(c_ptr) :: c_string
+    character(len=256), pointer :: f_string
+
+    c_string = DftiErrorMessage_c(error_code)
+    call c_f_pointer(c_string, f_string)
+    allocate( string, source=f_string(1:index(f_string, c_null_char) - 1) )
+  end function DftiErrorMessage
 end module dtfft_interface_mkl_m

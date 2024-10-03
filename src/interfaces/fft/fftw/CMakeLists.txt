@@ -1,17 +1,9 @@
-pkg_check_modules(FFTW REQUIRED fftw3 fftw3f)
-if(${FFTW_INCLUDE_DIRS})
-  target_include_directories(dtfft PRIVATE ${FFTW_INCLUDE_DIRS})
-else()
-  target_include_directories(dtfft PRIVATE ${FFTW_fftw3_INCLUDEDIR})
-endif()
-target_link_libraries(dtfft ${FFTW_LDFLAGS})
+SET( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake" )
 
-message(STATUS "FFTW_FOUND: ${FFTW_FOUND}")
-message(STATUS "FFTW_INCLUDE_DIRS: ${FFTW_INCLUDE_DIRS}")
-message(STATUS "FFTW_CFLAGS: ${FFTW_CFLAGS}")
-message(STATUS "FFTW_LIBRARIES: ${FFTW_LIBRARIES}")
-message(STATUS "FFTW_LIBRARY_DIRS: ${FFTW_LIBRARY_DIRS}")
-message(STATUS "FFTW_LDFLAGS: ${FFTW_LDFLAGS}")
+find_package(FFTW REQUIRED COMPONENTS FLOAT_LIB DOUBLE_LIB)
+
+target_include_directories(dtfft PRIVATE ${FFTW_INCLUDE_DIRS})
+target_link_libraries(dtfft ${FFTW_DOUBLE_LIB} ${FFTW_FLOAT_LIB})
 
 target_sources(dtfft PRIVATE
   dtfft_executor_fftw_m.F90

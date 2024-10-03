@@ -48,23 +48,38 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
+#ifdef DTFFT_WITH_MKL
+  int executor_type = DTFFT_EXECUTOR_MKL;
+#elif defined(DTFFT_WITH_VKFFT)
+  int executor_type = DTFFT_EXECUTOR_VKFFT;
+#elif !defined(DTFFT_WITHOUT_FFTW)
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  if(comm_rank == 0) {
+    printf("No available executors found, skipping test...\n");
+  }
+  MPI_Finalize();
+  return 0;
+
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
+
   // Create plan
-  plan = dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_FFTW3);
+  DTFFT_CALL( dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type, &plan) )
 
   // Get local sizes
-  size_t alloc_size = dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
+  size_t alloc_size;
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
 
   // Allocate buffers
   inout = (float*) malloc(sizeof(float) * alloc_size);
   check = (float*) malloc(sizeof(float) * in_counts[0] * in_counts[1]);
-  printf("in_counts = %i, out_counts = %i, alloc_size = %ld\n", in_counts[0] * in_counts[1], out_counts[0] * out_counts[1], alloc_size);
 
   for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
     inout[i] = check[i] =  (float)i / (float)nx / (float)ny;
   }
 
-  size_t work_size = dtfft_get_aux_size(plan);
-  work = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * work_size);
+  work = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * alloc_size);
 
   // Forward transpose
   double tf = 0.0 - MPI_Wtime();
@@ -115,7 +130,7 @@ int main(int argc, char *argv[])
   }
 
   // Destroy plan
-  dtfft_destroy(plan);
+  dtfft_destroy(&plan);
 
   // Deallocate buffers
   free(inout);

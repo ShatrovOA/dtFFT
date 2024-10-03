@@ -16,15 +16,16 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_r2r_2d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, output_unit, error_unit
 use dtfft
-#include "dtfft.i90"
+#include "dtfft_mpi.h"
 implicit none
   real(R4P),  allocatable :: in(:,:), out(:,:), check(:,:)
   real(R4P) :: local_error, global_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 32
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr, executor_type
   type(dtfft_plan_r2r) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
@@ -41,8 +42,15 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
     write(output_unit, '(a)') "----------------------------------------"
   endif
+! #ifdef DTFFT_WITH_KFR
+!   executor_type = DTFFT_EXECUTOR_KFR
+#if !defined(DTFFT_WITHOUT_FFTW)
+  executor_type = DTFFT_EXECUTOR_FFTW3
+#else
+  executor_type = DTFFT_EXECUTOR_NONE
+#endif
 
-  call plan%create([nx, ny], [DTFFT_DST_2, DTFFT_DST_3], [DTFFT_DST_3, DTFFT_DST_2], precision=DTFFT_SINGLE)
+  call plan%create([nx, ny], [DTFFT_DST_2, DTFFT_DST_3], precision=DTFFT_SINGLE, executor_type=executor_type)
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,                     &
@@ -64,9 +72,9 @@ implicit none
   tf = 0.0_R8P - MPI_Wtime()
   call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
-
+#ifndef DTFFT_TRANSPOSE_ONLY
   out(:,:) = out(:,:) / real(4 * nx * ny, R4P)
-
+#endif
   ! Nullify recv buffer
   in = -1._R4P
 

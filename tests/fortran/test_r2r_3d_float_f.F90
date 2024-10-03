@@ -16,15 +16,17 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_r2r_3d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, output_unit, error_unit
 use dtfft
-#include "dtfft.i90"
+#include "dtfft_mpi.h"
 implicit none
-  real(R4P),  allocatable :: in(:), out(:), check(:)
+  real(R4P),  allocatable :: inout(:), check(:)
   real(R4P) :: local_error, global_error, rnd
-  integer(I4P), parameter :: nx = 128, ny = 128, nz = 128
-  integer(I4P) :: comm_size, comm_rank, ierr
+  real(R4P) :: scaler
+  integer(I4P), parameter :: nx = 32, ny = 64, nz = 16
+  integer(I4P) :: comm_size, comm_rank, ierr, executor_type, in_counts(3), in_product
   type(dtfft_plan_r2r) :: plan
   real(R8P) :: tf, tb, t_sum
   integer(I8P)  :: alloc_size, i
@@ -41,27 +43,37 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
   endif
 
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=DTFFT_EXECUTOR_NONE)
-  call plan%get_local_sizes(alloc_size=alloc_size)
+! #ifdef DTFFT_WITH_KFR
+!   executor_type = DTFFT_EXECUTOR_KFR
+!   scaler = 8._R4P / real(nx * ny * nz, R4P)
+#if !defined(DTFFT_WITHOUT_FFTW)
+  executor_type = DTFFT_EXECUTOR_FFTW3
+  scaler = 1._R4P / real(8 * (nx - 1) * ny * nz, R4P)
+#else
+  executor_type = DTFFT_EXECUTOR_NONE
+  scaler = 1._R4P
+#endif
+  call plan%create([nx, ny, nz], [DTFFT_DCT_1, DTFFT_DCT_2, DTFFT_DCT_3], precision=DTFFT_SINGLE, executor_type=executor_type)
+  call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size)
 
-  allocate(in(alloc_size),  source = 0._R4P)
-  allocate(out(alloc_size), source = -44._R4P)
+  in_product = product(in_counts)
+  allocate(inout(alloc_size))
+  allocate(check(in_product))
 
-  do i = 1, alloc_size
+  do i = 1, in_product
     call random_number(rnd)
-    in(i) = real(rnd, R4P)
+    inout(i) = rnd
+    check(i) = inout(i)
   enddo
 
-  allocate(check, source = in)
-
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%transpose(in, out, DTFFT_TRANSPOSE_X_TO_Y)
-  call plan%transpose(out, in, DTFFT_TRANSPOSE_Y_TO_Z)
+  call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
 
+  inout = inout * scaler
+
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%transpose(in, out, DTFFT_TRANSPOSE_Z_TO_Y)
-  call plan%transpose(out, in, DTFFT_TRANSPOSE_Y_TO_X)
+  call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
   call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
@@ -74,7 +86,7 @@ implicit none
     write(output_unit, '(a, f16.10)') "Backward transposition time: ", tb
   endif
 
-  local_error = maxval(abs(in - check))
+  local_error = maxval(abs(inout(:in_product) - check(:in_product)))
 
   call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
@@ -86,7 +98,7 @@ implicit none
     endif
   endif
 
-  deallocate(in, out, check)
+  deallocate(inout, check)
 
   call plan%destroy()
   call MPI_Finalize(ierr)

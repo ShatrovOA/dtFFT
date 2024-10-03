@@ -1,13 +1,15 @@
-if(DTFFT_NO_FFTW)
-  target_compile_definitions(dtfft PRIVATE NO_FFTW3)
-else()
+if(NOT DTFFT_WITHOUT_FFTW)
   add_subdirectory(fftw)
 endif()
 
-if(DTFFT_ENABLE_MKL)
+if(DTFFT_WITH_MKL)
   add_subdirectory(mkl)
 endif()
 
-# if(DTFFT_ENABLE_KFR)
+if(DTFFT_WITH_CUFFT)
+  add_subdirectory(cufft)
+endif()
+
+# if(DTFFT_WITH_KFR)
 #   add_subdirectory(kfr)
 # endif()

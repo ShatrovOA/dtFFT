@@ -46,39 +46,52 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------"          << endl;
   }
 
+#ifdef DTFFT_WITH_MKL
+  int executor_type = DTFFT_EXECUTOR_MKL;
+#elif defined(DTFFT_WITH_VKFFT)
+  int executor_type = DTFFT_EXECUTOR_VKFFT;
+#elif !defined(DTFFT_WITHOUT_FFTW)
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  if(comm_rank == 0) {
+    cout << "No available executors found, skipping test..." << endl;
+  }
+  MPI_Finalize();
+  return 0;
+
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
   // Create plan
   vector<int> dims = {nz, ny, nx};
-  dtfft::PlanR2C plan(dims, MPI_COMM_WORLD, DTFFT_SINGLE);
+  dtfft::PlanR2C plan(dims, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
 
   vector<int> in_counts(3);
-  size_t alloc_size = plan.get_local_sizes(NULL, in_counts.data());
+  plan.get_local_sizes(NULL, in_counts.data());
+  size_t alloc_size;
+  plan.get_alloc_size(&alloc_size);
+
   int in_size = in_counts[0] * in_counts[1] * in_counts[2];
 
-  vector<float> in(alloc_size), check(in_size);
-  vector<complex<float>> out(alloc_size), aux(plan.get_aux_size());
+  vector<float> in(alloc_size), check(in_size), aux(alloc_size);
 
   for (size_t i = 0; i < in_size; i++) {
     in[i] = (float)(i) / (float)(nx) / (float)(ny) / (float)(nz);
     check[i] = in[i];
-    // out.push_back(complex<float>(0., 0.));
   }
 
   double tf = 0.0 - MPI_Wtime();
-  plan.execute(in, out, DTFFT_TRANSPOSE_OUT, aux);
+  plan.execute(in, in, DTFFT_TRANSPOSE_OUT, aux);
   tf += MPI_Wtime();
 
-
-  for ( auto & element: in) {
-    element = -1.;
-  }
-
+#ifndef DTFFT_TRANSPOSE_ONLY
   float scaler = 1. / (float) (nx * ny * nz);
-  for ( auto & element: out) {
+  for ( auto & element: in) {
     element *= scaler;
   }
+#endif
 
   double tb = 0.0 - MPI_Wtime();
-  plan.execute(out, in, DTFFT_TRANSPOSE_IN, aux);
+  plan.execute(in, in, DTFFT_TRANSPOSE_IN, aux);
   tb += MPI_Wtime();
 
   double t_sum;

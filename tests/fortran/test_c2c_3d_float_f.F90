@@ -16,19 +16,19 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_c2c_3d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, output_unit, error_unit
 use iso_c_binding, only: c_size_t
 use dtfft
-use iso_c_binding
-#include "dtfft.i90"
+#include "dtfft_mpi.h"
 implicit none
   complex(R4P),  allocatable :: in(:,:,:), out(:), check(:,:,:)
   real(R4P) :: local_error, global_error, rnd1, rnd2
-  integer(I4P), parameter :: nx = 312, ny = 244, nz = 102
+  integer(I4P), parameter :: nx = 13, ny = 45, nz = 32
   integer(I4P) :: comm_size, comm_rank, i, j, k
   type(dtfft_plan_c2c) :: plan
-  integer(I4P) :: in_counts(3), out_counts(3)
+  integer(I4P) :: in_counts(3), out_counts(3), out_size
   integer(c_size_t) :: alloc_size
   real(R8P) :: tf, tb, t_sum
   integer(I4P) :: executor_type, ierr
@@ -46,20 +46,22 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-#if defined (KFR_ENABLED)
-  executor_type = DTFFT_EXECUTOR_KFR
-#else
+! #ifdef DTFFT_WITH_KFR
+!   executor_type = DTFFT_EXECUTOR_KFR
+#if !defined(DTFFT_WITHOUT_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
+#else
+  executor_type = DTFFT_EXECUTOR_NONE
 #endif
 
   call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type)
   call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size)
 
-  allocate(in(in_counts(1),in_counts(2),in_counts(3)), source = (0._R4P, 0._R4P))
+  allocate(in(in_counts(1),in_counts(2),in_counts(3)))
 
   allocate(check, source = in)
 
-  allocate(out(alloc_size), source = (0._R4P, 0._R4P))
+  allocate(out(alloc_size))
 
   do k = 1, in_counts(3)
     do j = 1, in_counts(2)
@@ -76,8 +78,10 @@ implicit none
   call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
 
-  out(:) = out(:) / real(nx * ny * nz, R4P)
-
+  out_size = product(out_counts)
+#ifndef DTFFT_TRANSPOSE_ONLY
+  out(:out_size) = out(:out_size) / real(nx * ny * nz, R4P)
+#endif
   ! Nullify recv buffer
   in = (-1._R4P, -1._R4P)
 
@@ -85,7 +89,6 @@ implicit none
   call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
-  ! call print_timers(tf, tb)
   call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
   call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)

@@ -23,6 +23,7 @@
 #include <iostream>
 #include <complex>
 #include <vector>
+#include <numeric>
 
 using namespace std;
 
@@ -35,7 +36,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-  int nx = 64, ny = 128, nz = 256;
+  int nx = 31, ny = 22, nz = 59;
 
   if(comm_rank == 0) {
     cout << "----------------------------------------"          << endl;
@@ -47,33 +48,41 @@ int main(int argc, char *argv[])
   }
 
   // Create plan
+  // Nz is fastest varying index
   vector<int> dims = {nz, ny, nx};
 
-  MPI_Comm comm;
-  // Data must not be distributed in fastest direction
-  int comm_dims[3] = {0, 0, 1};
-  const int comm_periods[3] = {0, 0, 0};
-  MPI_Dims_create(comm_size, 3, comm_dims);
-  MPI_Cart_create(MPI_COMM_WORLD, 3, comm_dims, comm_periods, 1, &comm);
+  MPI_Comm grid_comm;
+  // It is assumed that data is not distributed in Nz direction
+  // So 2d communicator is created here
+  int comm_dims[2] = {0, 0};
+  const int comm_periods[2] = {0, 0};
+  MPI_Dims_create(comm_size, 2, comm_dims);
+  MPI_Cart_create(MPI_COMM_WORLD, 2, comm_dims, comm_periods, 1, &grid_comm);
 
-  dtfft::PlanC2C plan(dims, comm, DTFFT_SINGLE);
+#ifdef DTFFT_WITH_VKFFT
+  int executor_type = DTFFT_EXECUTOR_VKFFT;
+#elif !defined(DTFFT_WITHOUT_FFTW)
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
+
+  dtfft::PlanC2C plan(dims, grid_comm, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
   vector<int> in_counts(3);
   plan.get_local_sizes(NULL, in_counts.data());
 
-  int multi = 1;
-  for (const auto& e: in_counts)
-    multi *= e;
+  size_t in_size = std::accumulate(in_counts.begin(), in_counts.end(), 1, multiplies<int>());
 
-  size_t alloc_size = plan.get_alloc_size();
+  size_t alloc_size;
+  plan.get_alloc_size(&alloc_size);
 
-  vector<complex<float>> in, out, check;
+  vector<complex<float>> in(alloc_size),
+                          out(alloc_size),
+                          check(alloc_size);
 
-  in.resize(alloc_size);
-  out.resize(alloc_size);
-  check.resize(alloc_size);
-
-  for (size_t i = 0; i < multi; i++) {
-    in[i] = complex<float> ((float)(i) / (float)(nx)  / (float)(ny) / (float)(nz), -(float)(i) / (float)(nx) / (float)(ny) / (float)(nz));
+  for (size_t i = 0; i < in_size; i++) {
+    in[i] = complex<float> ( (float)(i) / (float)(nx) / (float)(ny) / (float)(nz),
+                            -(float)(i) / (float)(nx) / (float)(ny) / (float)(nz));
     check[i] = in[i];
   }
 
@@ -84,12 +93,12 @@ int main(int argc, char *argv[])
   for ( auto & element: in) {
     element = complex<float>(-1., -1.);
   }
-
+#ifndef DTFFT_TRANSPOSE_ONLY
   float scaler = 1. / (float) (nx * ny * nz);
   for ( auto & element: out) {
     element *= scaler;
   }
-
+#endif
   double tb = 0.0 - MPI_Wtime();
   plan.execute(out, in, DTFFT_TRANSPOSE_IN);
   tb += MPI_Wtime();
@@ -107,7 +116,7 @@ int main(int argc, char *argv[])
   }
 
   float local_error = -1.0;
-  for (size_t i = 0; i < multi; i++) {
+  for (size_t i = 0; i < in_size; i++) {
     float error = abs(complex<float>(in[i] - check[i]));
     local_error = error > local_error ? error : local_error;
   }

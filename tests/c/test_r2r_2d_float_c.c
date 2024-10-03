@@ -26,12 +26,11 @@
 int main(int argc, char *argv[]) {
 
   dtfft_plan plan;
-  int nx = 256, ny = 256;
+  int nx = 32, ny = 32;
   float *in, *out, *check;
   int i,j, comm_rank, comm_size;
   int in_counts[2], out_counts[2], n[2] = {ny, nx};
-  int f_kinds[2] = {DTFFT_DCT_2, DTFFT_DCT_2};
-  int b_kinds[2] = {DTFFT_DCT_3, DTFFT_DCT_3};
+  int kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -48,10 +47,16 @@ int main(int argc, char *argv[]) {
     printf("----------------------------------------\n");
   }
 
-  // Create plan
-  plan = dtfft_create_plan_r2r(2, n, f_kinds, b_kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_FFTW3);
+#ifndef DTFFT_WITHOUT_FFTW
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
 
-  dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
+  // Create plan
+  DTFFT_CALL( dtfft_create_plan_r2r(2, n, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type, &plan) )
+
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, NULL) )
 
   in = (float*) malloc(sizeof(float) * in_counts[0] * in_counts[1]);
   out = (float*) malloc(sizeof(float) * out_counts[0] * out_counts[1]);
@@ -67,11 +72,14 @@ int main(int argc, char *argv[]) {
   dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
   tf += MPI_Wtime();
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   for (i = 0; i < out_counts[1]; i++) { // y direction
     for (j = 0; j < out_counts[0]; j++) { // x direction
-        out[i * out_counts[0] + j] /= (float) (4 * nx * ny);
+        out[i * out_counts[0] + j] /= (float) (4 * nx * (ny + 1));
     }
   }
+#endif
+
   double tb = 0.0 - MPI_Wtime();
   dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
   tb += MPI_Wtime();
@@ -102,13 +110,13 @@ int main(int argc, char *argv[]) {
     if(global_error < 1e-5) {
       printf("Test 'r2r_2d_float_c' PASSED!\n");
     } else {
-      printf("Test 'r2r_2d_float_c' FAILED, error = %f\n", global_error);
+      printf("Test 'r2r_2d_float_c' FAILED, error = %e\n", global_error);
       return -1;
     }
     printf("----------------------------------------\n");
   }
 
-  dtfft_destroy(plan);
+  dtfft_destroy(&plan);
 
   MPI_Finalize();
   return 0;

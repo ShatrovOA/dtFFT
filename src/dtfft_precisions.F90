@@ -20,7 +20,7 @@ module dtfft_precisions
 !------------------------------------------------------------------------------------------------
 !< This module defines DTFFT precisions
 !------------------------------------------------------------------------------------------------
-use iso_c_binding
+use iso_c_binding, only: c_int, c_size_t, c_float, c_double, c_float_complex, c_double_complex
 implicit none
 private
 

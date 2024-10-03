@@ -47,12 +47,30 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
+#ifdef DTFFT_WITH_MKL
+  int executor_type = DTFFT_EXECUTOR_MKL;
+#elif defined(DTFFT_WITH_VKFFT)
+  int executor_type = DTFFT_EXECUTOR_VKFFT;
+#elif !defined(DTFFT_WITHOUT_FFTW)
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  if(comm_rank == 0) {
+    cout << "No available executors found, skipping test..." << endl;
+  }
+  MPI_Finalize();
+  return 0;
+
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
+
   // Create plan
   vector<int> dims = {ny, nx};
-  dtfft::PlanR2C plan(dims);
+  dtfft::PlanR2C plan(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
 
   vector<int> in_counts(2);
-  size_t alloc_size = plan.get_local_sizes(NULL, in_counts.data());
+  size_t alloc_size;
+  plan.get_alloc_size(&alloc_size);
+  plan.get_local_sizes(NULL, in_counts.data());
   int in_size = in_counts[0] * in_counts[1];
 
   vector<double> in(alloc_size), check(in_size);

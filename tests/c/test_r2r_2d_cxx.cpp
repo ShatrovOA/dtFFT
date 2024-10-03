@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-  int nx = 1024, ny = 512;
+  int nx = 19, ny = 44;
 
   if(comm_rank == 0) {
     cout << "----------------------------------------" << endl;
@@ -46,32 +46,39 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
+#ifndef DTFFT_WITHOUT_FFTW
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#elif defined(DTFFT_WITH_VKFFT)
+  int executor_type = DTFFT_EXECUTOR_VKFFT;
+#else
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
+
   // Create plan
   vector<int> dims = {ny, nx};
-  vector<int> f_kinds = {DTFFT_DCT_2, DTFFT_DST_2};
-  vector<int> b_kinds = {DTFFT_DCT_3, DTFFT_DST_3};
-  dtfft::PlanR2R plan(dims, f_kinds, b_kinds);
-  size_t alloc_size = plan.get_alloc_size();
+  vector<int> kinds = {DTFFT_DCT_2, DTFFT_DST_2};
+  dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
+  size_t alloc_size;
+  plan.get_alloc_size(&alloc_size);
 
-  vector<double> in, out, check;
-
-  in.reserve(alloc_size);
-  out.reserve(alloc_size);
-  check.reserve(alloc_size);
+  vector<double> in(alloc_size),
+                 out(alloc_size),
+                 check(alloc_size);
 
   for (size_t i = 0; i < alloc_size; i++) {
-    in.push_back( (double)(i) / (double)(nx) / (double)(ny));
-    check.push_back(in.at(i));
-    out.push_back(0.0);
+    in[i] = ((double)(i) / (double)(nx) / (double)(ny));
+    check[i] = in[i];
   }
 
   double tf = 0.0 - MPI_Wtime();
-  plan.execute(in, out, DTFFT_TRANSPOSE_OUT);
+  DTFFT_CALL( plan.execute(in, out, DTFFT_TRANSPOSE_OUT) )
   tf += MPI_Wtime();
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   for (size_t i = 0; i < alloc_size; i++) {
-    out.at(i) /= (double) (4 * nx * ny);
+    out[i] /= (double) (4 * nx * ny);
   }
+#endif
 
   double tb = 0.0 - MPI_Wtime();
   plan.execute(out, in, DTFFT_TRANSPOSE_IN);
@@ -91,7 +98,7 @@ int main(int argc, char *argv[])
 
   double local_error = -1.0;
   for (size_t i = 0; i < alloc_size; i++) {
-    double error = fabs(in.at(i) - check.at(i));
+    double error = fabs(in[i] - check[i]);
     local_error = error > local_error ? error : local_error;
   }
 

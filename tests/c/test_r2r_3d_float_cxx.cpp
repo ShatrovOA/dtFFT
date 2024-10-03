@@ -23,6 +23,8 @@
 #include <iostream>
 #include <complex>
 #include <vector>
+#include <numeric>
+
 
 using namespace std;
 
@@ -36,7 +38,7 @@ int main(int argc, char *argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
 
-  int nx = 128, ny = 128, nz = 256;
+  int nx = 32, ny = 64, nz = 128;
 
   if(comm_rank == 0) {
     cout << "----------------------------------------"          << endl;
@@ -47,38 +49,45 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------"          << endl;
   }
 
+#ifndef DTFFT_WITHOUT_FFTW
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#elif defined(DTFFT_WITH_VKFFT)
+  int executor_type = DTFFT_EXECUTOR_VKFFT;
+#else
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
+
   const int ndims = 3;
   const int dims[] = {nz, ny, nx};
-  const int forw_kinds[] = {DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2};
-  const int back_kinds[] = {DTFFT_DCT_3, DTFFT_DCT_3, DTFFT_DCT_3};
-
-  dtfft::PlanR2R plan(ndims, dims, forw_kinds, back_kinds, MPI_COMM_WORLD, DTFFT_SINGLE);
-  size_t alloc_size = plan.get_alloc_size();
+  const int kinds[] = {DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2};
+  dtfft::PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type);
 
   int in_sizes[ndims];
   int out_sizes[ndims];
-  plan.get_local_sizes(NULL, in_sizes, NULL, out_sizes);
-  size_t aux_size = plan.get_aux_size();
+  size_t alloc_size;
 
-  float *aux = (float*) malloc(sizeof(float) * aux_size);
+  plan.get_local_sizes(NULL, in_sizes, NULL, out_sizes, &alloc_size);
 
-  size_t in_size = in_sizes[0] * in_sizes[1] * in_sizes[2];
-  size_t out_size = out_sizes[0] * out_sizes[1] * out_sizes[2];
+  size_t in_size = std::accumulate(in_sizes, in_sizes + 3, 1, multiplies<int>());
+  size_t out_size = std::accumulate(out_sizes, out_sizes + 3, 1, multiplies<int>());
   float *inout = new float[alloc_size];
   float *check = new float[alloc_size];
+  float *aux = new float[alloc_size];
 
   for (size_t i = 0; i < in_size; i++)
   {
     inout[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     check[i] = inout[i];
   }
-  
+
   plan.execute(inout, inout, DTFFT_TRANSPOSE_OUT, aux);
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   for (size_t i = 0; i < out_size; i++)
   {
     inout[i] /= (float) (8 * nx * ny * nz);
   }
+#endif
 
   plan.execute(inout, inout, DTFFT_TRANSPOSE_IN, aux);
 

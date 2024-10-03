@@ -17,6 +17,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <complex.h>
 #include <dtfft.h>
 #include <mpi.h>
 #include <stdio.h>
@@ -47,29 +48,38 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-#if defined MKL_ENABLED
+#ifdef DTFFT_WITH_MKL
   int executor_type = DTFFT_EXECUTOR_MKL;
-#else
+#elif defined(DTFFT_WITH_VKFFT)
+  int executor_type = DTFFT_EXECUTOR_VKFFT;
+#elif !defined(DTFFT_WITHOUT_FFTW)
   int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  if(comm_rank == 0) {
+    printf("No available executors found, skipping test...\n");
+  }
+  MPI_Finalize();
+  return 0;
+
+  int executor_type = DTFFT_EXECUTOR_NONE;
 #endif
   // Create plan
-  plan = dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
+  DTFFT_CALL( dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type, &plan) )
 
   // Get local sizes
-  size_t alloc_size = dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
+  size_t alloc_size;
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
 
   // Allocate buffers
-  in = (double*) malloc(sizeof(double) * in_counts[0] * in_counts[1] * in_counts[2]);
-  out = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size);
-  check = (double*) malloc(sizeof(double) * in_counts[0] * in_counts[1] * in_counts[2]);
+  in = (double*) malloc(sizeof(double) * alloc_size);
+  out = (dtfft_complex*) malloc(sizeof(double) * alloc_size);
+  check = (double*) malloc(sizeof(double) * alloc_size);
+  // Allocate work buffer
+  dtfft_complex *aux = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size);
 
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
     in[i] = check[i] =  1.0;
   }
-
-  // Allocate work buffer
-  size_t aux_size = dtfft_get_aux_size(plan);
-  dtfft_complex *aux = (dtfft_complex*) malloc(sizeof(dtfft_complex) * aux_size);
 
   // Forward transpose
   double tf = 0.0 - MPI_Wtime();
@@ -82,9 +92,8 @@ int main(int argc, char *argv[])
   }
 
   // Normalize
-  for (i = 0; i < alloc_size; i++) {
-    out[i][0] /= (double) (nx * ny * nz);
-    out[i][1] /= (double) (nx * ny * nz);
+  for (i = 0; i < out_counts[0] * out_counts[1] * out_counts[2]; i++) {
+    out[i] /= (double) (nx * ny * nz);
   }
 
   // Backward transpose
@@ -125,7 +134,7 @@ int main(int argc, char *argv[])
   }
 
   // Destroy plan
-  dtfft_destroy(plan);
+  dtfft_destroy(&plan);
 
   // Deallocate buffers
   free(in);

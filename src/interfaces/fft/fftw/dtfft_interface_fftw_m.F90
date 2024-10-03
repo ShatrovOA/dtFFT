@@ -20,110 +20,88 @@ module dtfft_interface_fftw_m
 !------------------------------------------------------------------------------------------------
 !< This module creates interface with fftw3 library
 !------------------------------------------------------------------------------------------------
-use iso_c_binding, only: C_PTR, C_INT
+use iso_c_binding, only: c_ptr, c_int
 use dtfft_interface_fftw_native_m, only: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
 use dtfft_interface_fftw_native_m, only: fftw_destroy_plan, fftwf_destroy_plan
 implicit none
-public
+private
+public :: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
+public :: fftw_destroy_plan, fftwf_destroy_plan
+public :: fftw_execute_dft, fftwf_execute_dft
+public :: fftw_execute_dft_r2c, fftwf_execute_dft_r2c
+public :: fftw_execute_dft_c2r, fftwf_execute_dft_c2r
+public :: fftw_execute_r2r, fftwf_execute_r2r
+public :: fftw_plan_many_dft, fftwf_plan_many_dft
+public :: fftw_plan_many_dft_r2c, fftwf_plan_many_dft_r2c
+public :: fftw_plan_many_dft_c2r, fftwf_plan_many_dft_c2r
+public :: fftw_plan_many_r2r, fftwf_plan_many_r2r
 
   interface
-    subroutine fftw_execute_dft(ptr, in, out) bind(C, name="fftw_execute_dft")
-    import
-      type(C_PTR), value :: ptr
-      type(C_PTR), value :: in
-      type(C_PTR), value :: out
+    subroutine fftw_execute_dft(plan, in, out) bind(C)
+#include "args_execute.i90"
     end subroutine fftw_execute_dft
 
-    subroutine fftwf_execute_dft(ptr, in, out) bind(C, name="fftwf_execute_dft")
-    import
-      type(C_PTR), value :: ptr
-      type(C_PTR), value :: in
-      type(C_PTR), value :: out
+    subroutine fftwf_execute_dft(plan, in, out) bind(C)
+#include "args_execute.i90"
     end subroutine fftwf_execute_dft
 
-    subroutine fftw_execute_dft_r2c(ptr, in, out) bind(C, name="fftw_execute_dft_r2c")
-    import
-      type(C_PTR), value :: ptr
-      type(C_PTR), value :: in
-      type(C_PTR), value :: out
+    subroutine fftw_execute_dft_r2c(plan, in, out) bind(C)
+#include "args_execute.i90"
     end subroutine fftw_execute_dft_r2c
 
-    subroutine fftwf_execute_dft_r2c(ptr, in, out) bind(C, name="fftwf_execute_dft_r2c")
-    import
-      type(C_PTR), value :: ptr
-      type(C_PTR), value :: in
-      type(C_PTR), value :: out
+    subroutine fftwf_execute_dft_r2c(plan, in, out) bind(C)
+#include "args_execute.i90"
     end subroutine fftwf_execute_dft_r2c
 
-    subroutine fftw_execute_dft_c2r(ptr, in, out) bind(C, name="fftw_execute_dft_c2r")
-    import
-      type(C_PTR), value :: ptr
-      type(C_PTR), value :: in
-      type(C_PTR), value :: out
+    subroutine fftw_execute_dft_c2r(plan, in, out) bind(C)
+#include "args_execute.i90"
     end subroutine fftw_execute_dft_c2r
 
-    subroutine fftwf_execute_dft_c2r(ptr, in, out) bind(C, name="fftwf_execute_dft_c2r")
-    import
-      type(C_PTR), value :: ptr
-      type(C_PTR), value :: in
-      type(C_PTR), value :: out
+    subroutine fftwf_execute_dft_c2r(plan, in, out) bind(C)
+#include "args_execute.i90"
     end subroutine fftwf_execute_dft_c2r
 
-    subroutine fftw_execute_r2r(ptr, in, out) bind(C, name="fftw_execute_r2r")
-    import
-      type(C_PTR), value :: ptr
-      type(C_PTR), value :: in
-      type(C_PTR), value :: out
+    subroutine fftw_execute_r2r(plan, in, out) bind(C)
+#include "args_execute.i90"
     end subroutine fftw_execute_r2r
 
-    subroutine fftwf_execute_r2r(ptr, in, out) bind(C, name="fftwf_execute_r2r")
-    import
-      type(C_PTR), value :: ptr
-      type(C_PTR), value :: in
-      type(C_PTR), value :: out
+    subroutine fftwf_execute_r2r(plan, in, out) bind(C)
+#include "args_execute.i90"
     end subroutine fftwf_execute_r2r
 
-    type(C_PTR) function fftw_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C, name='fftw_plan_many_dft')
-    import
-#include "complex_signature.i90"
+    type(C_PTR) function fftw_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
+#include "args_create.i90"
       integer(C_INT), value :: sign
     end function fftw_plan_many_dft
 
-    type(C_PTR) function fftwf_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C, name='fftwf_plan_many_dft')
-    import
-#include "complex_signature.i90"
+    type(C_PTR) function fftwf_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
+#include "args_create.i90"
       integer(C_INT), value :: sign
     end function fftwf_plan_many_dft
 
-    type(C_PTR) function fftw_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C, name='fftw_plan_many_dft_r2c')
-    import
-#include "complex_signature.i90"
+    type(C_PTR) function fftw_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+#include "args_create.i90"
     end function fftw_plan_many_dft_r2c
 
-    type(C_PTR) function fftwf_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C, name='fftwf_plan_many_dft_r2c')
-    import
-#include "complex_signature.i90"
+    type(C_PTR) function fftwf_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+#include "args_create.i90"
     end function fftwf_plan_many_dft_r2c
 
-    type(C_PTR) function fftw_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C, name='fftw_plan_many_dft_c2r')
-    import
-#include "complex_signature.i90"
+    type(C_PTR) function fftw_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+#include "args_create.i90"
     end function fftw_plan_many_dft_c2r
 
-    type(C_PTR) function fftwf_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C, name='fftwf_plan_many_dft_c2r')
-    import
-#include "complex_signature.i90"
+    type(C_PTR) function fftwf_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+#include "args_create.i90"
     end function fftwf_plan_many_dft_c2r
 
-    type(C_PTR) function fftw_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C, name='fftw_plan_many_r2r')
-    import
-#include "complex_signature.i90"
+    type(C_PTR) function fftw_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
+#include "args_create.i90"
       integer(C_FFTW_R2R_KIND), intent(in) :: kind(*)
     end function fftw_plan_many_r2r
 
-    type(C_PTR) function fftwf_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C, name='fftwf_plan_many_r2r')
-    import
-#include "complex_signature.i90"
+    type(C_PTR) function fftwf_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
+#include "args_create.i90"
       integer(C_FFTW_R2R_KIND), intent(in) :: kind(*)
     end function fftwf_plan_many_r2r
   end interface

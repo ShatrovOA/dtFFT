@@ -25,12 +25,11 @@
 
 int main(int argc, char *argv[]) 
 {
-  int nx = 128, ny = 64, nz = 256;
-  double *in, *out, *check;
-  int i,j,k, comm_rank, comm_size;
+  int nx = 16, ny = 64, nz = 19;
+  double *in, *out, *check, *aux;
+  int i, comm_rank, comm_size;
   int in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
-  int f_kinds[3] = {DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2};
-  int b_kinds[3] = {DTFFT_DCT_3, DTFFT_DCT_3, DTFFT_DCT_3};
+  int kinds[3] = {DTFFT_DCT_1, DTFFT_DCT_1, DTFFT_DCT_4};
 
 
   // MPI_Init must be called before calling dtFFT
@@ -47,30 +46,42 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
+#ifndef DTFFT_WITHOUT_FFTW
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
+
   // Create plan
-  dtfft_plan plan = dtfft_create_plan_r2r(3, n, f_kinds, b_kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_FFTW3);
+  dtfft_plan plan;
 
-  dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
+  DTFFT_CALL( dtfft_create_plan_r2r(3, n, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
 
-  in = (double*) malloc(sizeof(double) * in_counts[0] * in_counts[1] * in_counts[2]);
-  out = (double*) malloc(sizeof(double) * out_counts[0] * out_counts[1] * out_counts[2]);
-  check = (double*) malloc(sizeof(double) * in_counts[0] * in_counts[1] * in_counts[2]);
+  size_t alloc_size;
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+
+  in = (double*) malloc(sizeof(double) * alloc_size);
+  out = (double*) malloc(sizeof(double) * alloc_size);
+  check = (double*) malloc(sizeof(double) * alloc_size);
+  aux = (double*) malloc(sizeof(double) * alloc_size);
 
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++)
-    in[i] = check[i] = 44;
+    in[i] = check[i] = 44.0;
 
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
+  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux);
   tf += MPI_Wtime();
 
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++)
     in[i] = -2;
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   for (i = 0; i < out_counts[0] * out_counts[1] * out_counts[2]; i++)
-    out[i] /= (double) (8 * nx * ny * nz);
+    out[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
+#endif
 
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
+  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux);
   tb += MPI_Wtime();
 
   double t_sum;
@@ -105,7 +116,11 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_destroy(plan);
+  dtfft_destroy(&plan);
+  free(in);
+  free(check);
+  free(out);
+  free(aux);
 
   MPI_Finalize();
   return 0;
