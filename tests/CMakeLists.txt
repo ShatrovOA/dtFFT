@@ -21,7 +21,7 @@ foreach(test ${TEST_SOURCES})
   add_executable(${test_name} ${test})
   target_link_libraries(${test_name} dtfft)
 
-  foreach(nproc RANGE 1 8 1)
+  foreach(nproc RANGE 1 ${MPIEXEC_MAX_NUMPROCS} 1)
     add_test(
       NAME "${test_name}_nproc_${nproc}"
       COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${nproc} ./${test_name}
