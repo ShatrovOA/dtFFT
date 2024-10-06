@@ -267,25 +267,22 @@ contains
       if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(2) * base_storage
       call free_datatypes(temp1, temp2)
     else
-      block
-        use mpi_f08
-        call MPI_Type_vector(send%counts(2), 1, send%counts(1), base_type, temp1, ierr)
-        call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
-        call MPI_Type_contiguous(recv_counts(2), temp2, self%send%dtypes(i), ierr)
-        call MPI_Type_commit(self%send%dtypes(i), ierr)
-        displ = recv_counts(2) * base_storage
-        if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
-        call free_datatypes(temp1, temp2)
+      call MPI_Type_vector(send%counts(2), 1, send%counts(1), base_type, temp1, ierr)
+      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
+      call MPI_Type_contiguous(recv_counts(2), temp2, self%send%dtypes(i), ierr)
+      call MPI_Type_commit(self%send%dtypes(i), ierr)
+      displ = recv_counts(2) * base_storage
+      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
+      call free_datatypes(temp1, temp2)
 
-        call MPI_Type_vector(recv%counts(2), send_counts(2), recv%counts(1), base_type, temp1, ierr)
-        displ = send_counts(2) * base_storage
-        call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
+      call MPI_Type_vector(recv%counts(2), send_counts(2), recv%counts(1), base_type, temp1, ierr)
+      displ = send_counts(2) * base_storage
+      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
 
-        ! call MPI_Type_contiguous(recv_counts(2) * send_counts(2), base_type, self%recv%dtypes(i), ierr)
-        call MPI_Type_commit(self%recv%dtypes(i), ierr)
-        if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + displ
-        call free_datatypes(temp1)
-      endblock
+      ! call MPI_Type_contiguous(recv_counts(2) * send_counts(2), base_type, self%recv%dtypes(i), ierr)
+      call MPI_Type_commit(self%recv%dtypes(i), ierr)
+      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + displ
+      call free_datatypes(temp1)
     endif
   end subroutine create_transpose_2d
 

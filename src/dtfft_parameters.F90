@@ -157,29 +157,24 @@ public :: dtfft_get_error_string
 #endif
   ]
 
-  integer(IP),  parameter,  public :: DTFFT_SUCCESS = CONF_DTFFT_SUCCESS
-  integer(IP),  parameter,  public :: DTFFT_ERROR_MPI_FINALIZED = CONF_DTFFT_ERROR_MPI_FINALIZED
-  integer(IP),  parameter,  public :: DTFFT_ERROR_PLAN_NOT_CREATED = CONF_DTFFT_ERROR_PLAN_NOT_CREATED
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_TRANSPOSE_TYPE = CONF_DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_N_DIMENSIONS = CONF_DTFFT_ERROR_INVALID_N_DIMENSIONS
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_DIMENSION_SIZE = CONF_DTFFT_ERROR_INVALID_DIMENSION_SIZE
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_COMM_TYPE = CONF_DTFFT_ERROR_INVALID_COMM_TYPE
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_PRECISION = CONF_DTFFT_ERROR_INVALID_PRECISION
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_EFFORT_FLAG = CONF_DTFFT_ERROR_INVALID_EFFORT_FLAG
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_EXECUTOR_TYPE
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_COMM_DIMS = CONF_DTFFT_ERROR_INVALID_COMM_DIMS
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_COMM_FAST_DIM = CONF_DTFFT_ERROR_INVALID_COMM_FAST_DIM
-  integer(IP),  parameter,  public :: DTFFT_ERROR_MISSING_R2R_KINDS = CONF_DTFFT_ERROR_MISSING_R2R_KINDS
-  integer(IP),  parameter,  public :: DTFFT_ERROR_INVALID_R2R_KINDS = CONF_DTFFT_ERROR_INVALID_R2R_KINDS
-  integer(IP),  parameter,  public :: DTFFT_ERROR_R2C_TRANSPOSE_PLAN = CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN
-  integer(IP),  parameter,  public :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
-  integer(IP),  parameter,  public :: DTFFT_ERROR_CUFFTMP_2D_PLAN = CONF_DTFFT_ERROR_CUFFTMP_2D_PLAN
-  ! integer(IP),  parameter,  public :: DTFFT_ERROR_KFR_R2R_TYPE = 15
-  ! integer(IP),  parameter,  public :: DTFFT_ERROR_KFR_R2C_SIZE = 16
-  ! integer(IP),  parameter,  public :: 
-  ! integer(IP),  parameter,  public :: 
-  ! integer(IP),  parameter,  public :: 
-  ! integer(IP),  parameter,  public :: 
+  integer(IP),  parameter,  public  :: DTFFT_SUCCESS = CONF_DTFFT_SUCCESS
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_MPI_FINALIZED = CONF_DTFFT_ERROR_MPI_FINALIZED
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_PLAN_NOT_CREATED = CONF_DTFFT_ERROR_PLAN_NOT_CREATED
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_TRANSPOSE_TYPE = CONF_DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_N_DIMENSIONS = CONF_DTFFT_ERROR_INVALID_N_DIMENSIONS
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_DIMENSION_SIZE = CONF_DTFFT_ERROR_INVALID_DIMENSION_SIZE
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_COMM_TYPE = CONF_DTFFT_ERROR_INVALID_COMM_TYPE
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_PRECISION = CONF_DTFFT_ERROR_INVALID_PRECISION
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_EFFORT_FLAG = CONF_DTFFT_ERROR_INVALID_EFFORT_FLAG
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_EXECUTOR_TYPE
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_COMM_DIMS = CONF_DTFFT_ERROR_INVALID_COMM_DIMS
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_COMM_FAST_DIM = CONF_DTFFT_ERROR_INVALID_COMM_FAST_DIM
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_MISSING_R2R_KINDS = CONF_DTFFT_ERROR_MISSING_R2R_KINDS
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_R2R_KINDS = CONF_DTFFT_ERROR_INVALID_R2R_KINDS
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_PLAN = CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INPLACE_TRANSPOSE = CONF_DTFFT_ERROR_INPLACE_TRANSPOSE
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_CUFFTMP_2D_PLAN = CONF_DTFFT_ERROR_CUFFTMP_2D_PLAN
 
 #if (DTFFT_FORWARD_X_Y > 2) || (DTFFT_FORWARD_X_Y <= 0)
 #error "Invalid DTFFT_FORWARD_X_Y parameter"
@@ -215,23 +210,25 @@ contains
     case ( DTFFT_ERROR_INVALID_DIMENSION_SIZE)
       allocate(error_string, source="One or more provided dimension sizes <= 0")
     case ( DTFFT_ERROR_INVALID_COMM_TYPE)
-      allocate(error_string, source="Invalid communicator type")
+      allocate(error_string, source="Invalid communicator type provided")
     case ( DTFFT_ERROR_INVALID_PRECISION )
-      allocate(error_string, source="Invalid precision passed")
+      allocate(error_string, source="Invalid `precision` parameter provided")
     case ( DTFFT_ERROR_INVALID_EFFORT_FLAG )
-      allocate(error_string, source="Invalid effort_flag passed")
+      allocate(error_string, source="Invalid `effort_flag` parameter provided")
     case ( DTFFT_ERROR_INVALID_EXECUTOR_TYPE )
-      allocate(error_string, source="Invalid executor_type passed")
+      allocate(error_string, source="Invalid `executor_type` parameter provided")
     case ( DTFFT_ERROR_INVALID_COMM_DIMS )
-      allocate(error_string, source="Number of dimensions in passed cartesian comm > Number of dimension passed to create function")
+      allocate(error_string, source="Number of dimensions in provided Cartesian communicator > Number of dimension passed to `create` subroutine")
     case ( DTFFT_ERROR_INVALID_COMM_FAST_DIM )
-      allocate(error_string, source="Passed cartesian communicator with number of processes in 1st dimension > 1")
+      allocate(error_string, source="Passed Cartesian communicator with number of processes in 1st (fastest varying) dimension > 1")
     case ( DTFFT_ERROR_MISSING_R2R_KINDS )
       allocate(error_string, source="For R2R plan, `kinds` parameter must be passed if `executor_type` != `DTFFT_EXECUTOR_NONE`")
     case ( DTFFT_ERROR_INVALID_R2R_KINDS )
       allocate(error_string, source="Invalid values detected in `kinds` parameter")
     case ( DTFFT_ERROR_R2C_TRANSPOSE_PLAN )
       allocate(error_string, source="Transpose plan is not supported in R2C, use R2R or C2C plan instead")
+    case ( DTFFT_ERROR_INPLACE_TRANSPOSE )
+      allocate(error_string, source="Inplace transpose is not supported")
     case ( DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED )
       allocate(error_string, source="Selected `executor_type` do not support R2R FFTs")
     ! case ( DTFFT_ERROR_KFR_R2R_TYPE )

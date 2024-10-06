@@ -1,6 +1,6 @@
 module dtfft_utils
-use iso_c_binding
-use iso_fortran_env, only: output_unit, error_unit
+use iso_c_binding,    only: c_char, c_null_char
+use iso_fortran_env,  only: output_unit, error_unit
 use dtfft_parameters
 use dtfft_precisions
 #ifdef DTFFT_WITH_CUDA
@@ -66,7 +66,7 @@ contains
       end if
     end do
 
-    cstring(j) = C_NULL_CHAR
+    cstring(j) = c_null_char
   end subroutine dtfft_string_f2c
 
   subroutine dtfft_astring_f2c(fstring, cstring)

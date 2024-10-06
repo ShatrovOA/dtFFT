@@ -36,14 +36,10 @@ private
 
 contains
 
-  TYPE_MPI_COMM function get_comm(c_comm)
+  pure TYPE_MPI_COMM function get_comm(c_comm)
     integer(IP),  intent(in) :: c_comm
 
-#if defined(DTFFT_USE_MPI)
-    get_comm = c_comm
-#else
-    get_comm%MPI_VAL = c_comm
-#endif
+    DTFFT_GET_MPI_VALUE(get_comm) = c_comm
   end function get_comm
 
 !------------------------------------------------------------------------------------------------

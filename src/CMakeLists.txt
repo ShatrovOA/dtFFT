@@ -3,6 +3,7 @@ set(MODULE_DIR ${LIB_DIR}/mod)
 
 file(GLOB COMMON_SOURCES *.F90)
 target_sources(dtfft PRIVATE ${COMMON_SOURCES})
+target_sources(dtfft PRIVATE "dtfft_helpers.c")
 
 set_target_properties(dtfft PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIR})
 

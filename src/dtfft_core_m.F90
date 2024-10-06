@@ -23,6 +23,7 @@ module dtfft_core_m
 !------------------------------------------------------------------------------------------------
 !< This module describes `dtfft_core`, `dtfft_plan_c2c`, `dtfft_plan_r2c` and `dtfft_plan_r2r` types
 !------------------------------------------------------------------------------------------------
+use iso_c_binding, only: c_loc
 use dtfft_info_m
 use dtfft_parameters
 use dtfft_precisions
@@ -69,6 +70,18 @@ public :: dtfft_core, dtfft_plan_c2c, dtfft_plan_r2c, dtfft_plan_r2r
   ierr = func;                                      \
   CHECK_ERROR_AND_RETURN
 
+  interface
+    function is_same_ptr(ptr1, ptr2) result(bool) bind(C)
+#ifdef DTFFT_WITH_CUDA
+      use cudafor
+#else
+      use iso_c_binding, only: c_ptr
+#endif
+      use iso_c_binding, only: c_bool
+      type(C_ADDR), value :: ptr1, ptr2
+      logical(c_bool)     :: bool
+    end function is_same_ptr
+  end interface
 
   type :: fft_executor
   !< FFT handle
@@ -198,12 +211,12 @@ contains
 #ifdef DTFFT_WITH_CUDA
       , device                            &
 #endif
-                                          :: in(..)                 !< Incoming buffer of any rank and kind
+      , target                            :: in(..)                 !< Incoming buffer of any rank and kind
     type(*),                intent(inout) &
 #ifdef DTFFT_WITH_CUDA
       , device                            &
 #endif
-                                          :: out(..)                !< Resulting buffer of any rank and kind
+      , target                            :: out(..)                !< Resulting buffer of any rank and kind
     integer(IP),            intent(in)    :: transpose_type         !< Type of transposition. One of the:
                                                                     !< - `DTFFT_TRANSPOSE_X_TO_Y`
                                                                     !< - `DTFFT_TRANSPOSE_Y_TO_X`
@@ -217,11 +230,14 @@ contains
     integer(IP) :: ierr
 
     ierr = DTFFT_SUCCESS
-    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    if ( .not. self%is_created )                                  &
+      ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     if ( .not.any(transpose_type == VALID_TRANSPOSES)             &
          .or. ( self%ndims == 2 .and. abs(transpose_type) > 1 )   &
          .or. abs(transpose_type) == 3 .and..not.self%is_z_slab)  &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
+    if ( is_same_ptr(LOC_FUN(in), LOC_FUN(out)) )                 &
+      ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     if ( present( error_code ) ) error_code = ierr; if ( ierr /= DTFFT_SUCCESS ) return
 
     REGION_BEGIN("dtfft_transpose")
@@ -1042,7 +1058,7 @@ contains
 
     allocate(periods(self%ndims), source = .false.)
     call MPI_Cart_create(old_comm, self%ndims, comm_dims, periods, .true., comm, ierr)
-    if ( comm == MPI_COMM_NULL ) error stop "comm == MPI_COMM_NULL"
+    if ( DTFFT_GET_MPI_VALUE(comm) == DTFFT_GET_MPI_VALUE(MPI_COMM_NULL) ) error stop "comm == MPI_COMM_NULL"
     call MPI_Comm_rank(comm, comm_rank, ierr)
     call MPI_Cart_coords(comm, comm_rank, self%ndims, comm_coords, ierr)
 

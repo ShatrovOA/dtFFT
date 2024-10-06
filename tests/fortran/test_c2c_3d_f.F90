@@ -28,9 +28,9 @@ implicit none
   integer(I4P), parameter :: nx = 129, ny = 123, nz = 33
   integer(I4P) :: comm_size, comm_rank, i, j, k, ierr, ii, jj, kk, idx, executor_type
   type(dtfft_plan_c2c) :: plan
-  integer(I4P) :: in_counts(3), out_counts(3)
+  integer(I4P) :: in_counts(3), out_counts(3), iter
   integer(I8P)  :: alloc_size
-  real(R8P) :: tf, tb, t_sum, t_total
+  real(R8P) :: ts, tf, tb, t_sum
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -75,19 +75,19 @@ implicit none
     enddo
   enddo
 
-  t_total = -MPI_Wtime()
-
-  tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT, aux)
-  tf = tf + MPI_Wtime()
+  tf = 0.0_R8P
+  tb = 0.0_R8P
+  do iter = 1, 3
+    ts = - MPI_Wtime()
+    call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT, aux)
+    tf = tf + ts + MPI_Wtime()
 #ifndef DTFFT_TRANSPOSE_ONLY
-  inout(:) = inout(:) / real(nx * ny * nz, R8P)
+    inout(:) = inout(:) / real(nx * ny * nz, R8P)
 #endif
-  tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN, aux)
-  tb = tb + MPI_Wtime()
-
-  t_total = t_total + MPI_Wtime()
+    ts = 0.0_R8P - MPI_Wtime()
+    call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN, aux)
+    tb = tb + ts + MPI_Wtime()
+  enddo
 
   call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
