@@ -33,7 +33,6 @@ implicit none
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
   integer(I8P) :: alloc_size
-  character(len=:), allocatable :: error_string
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -122,9 +121,8 @@ implicit none
   deallocate(in, out, check)
   nullify( pin )
   call MPI_Finalize(ierr)
-  call dtfft_get_error_string(ierr, error_string)
+  print*,ierr, dtfft_get_error_string(ierr)
   !! Check that no error is raised when MPI is finalized
   call plan%destroy(ierr)
-  call dtfft_get_error_string(ierr, error_string)
-  print*,error_string
+  print*,ierr, dtfft_get_error_string(ierr)
 end program test_r2c_2d_float

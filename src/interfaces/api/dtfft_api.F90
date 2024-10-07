@@ -64,7 +64,6 @@ contains
 
     call c_f_pointer(dims, fdims, [ndims])
     call c_f_pointer(kinds, fkinds, [ndims])
-    ! call c_f_pointer(out_kinds, fout_kinds, [ndims])
 
     select type( p => plan%p )
     type is ( dtfft_plan_r2r )
@@ -203,12 +202,11 @@ contains
     integer(SP),  intent(out)               :: alloc_size       !< Maximum data needs to be allocated in case of in-place transform
     type(dtfft_plan_c),           pointer   :: plan
 
-    dtfft_get_local_sizes_c = DTFFT_SUCCESS
-    if ( .not. c_associated(plan_ptr) .or. c_associated(plan_ptr, c_null_ptr) ) dtfft_get_local_sizes_c = DTFFT_ERROR_PLAN_NOT_CREATED
-    if ( dtfft_get_local_sizes_c /= DTFFT_SUCCESS ) return
+    if(.not.c_associated(plan_ptr)) then
+      dtfft_get_local_sizes_c = DTFFT_ERROR_PLAN_NOT_CREATED
+      return
+    endif
     call c_f_pointer(plan_ptr, plan)
-    if ( .not. allocated(plan%p) ) dtfft_get_local_sizes_c = DTFFT_ERROR_PLAN_NOT_CREATED
-    if ( dtfft_get_local_sizes_c /= DTFFT_SUCCESS ) return
     call plan%p%get_local_sizes(in_starts, in_counts, out_starts, out_counts, alloc_size, dtfft_get_local_sizes_c)
   end function dtfft_get_local_sizes_c
 
@@ -216,11 +214,7 @@ contains
     integer(c_int),     intent(in)  :: error_code
     character(c_char),  intent(out) :: error_string(*)
     integer(SP),        intent(out) :: error_string_size
-    character(len=:),   allocatable :: error_string_
 
-    call dtfft_get_error_string(error_code, error_string_)
-    call dtfft_string_f2c(error_string_, error_string)
-    error_string_size = len(error_string_) + 1
-    deallocate(error_string_)
+    call dtfft_string_f2c(dtfft_get_error_string(error_code), error_string, error_string_size)
   end subroutine dtfft_get_error_string_c
 end module dtfft_api

@@ -192,9 +192,9 @@ public :: dtfft_get_error_string
 
 contains
 
-  pure subroutine dtfft_get_error_string(error_code, error_string)
-    integer(IP),                   intent(in)  :: error_code
-    character(len=:), allocatable, intent(out) :: error_string
+  pure function dtfft_get_error_string(error_code) result(error_string)
+    integer(IP),                   intent(in)   :: error_code
+    character(len=:), allocatable               :: error_string
 
     select case (error_code)
     case ( DTFFT_SUCCESS )
@@ -240,5 +240,5 @@ contains
     case default
       allocate(error_string, source="Unknown error")
     endselect
-  end subroutine dtfft_get_error_string
+  end function dtfft_get_error_string
 end module dtfft_parameters

@@ -25,7 +25,7 @@
 
 int main(int argc, char *argv[]) 
 {
-  int nx = 16, ny = 64, nz = 19;
+  int nx = 16, ny = 64, nz = 4;
   double *in, *out, *check, *aux;
   int i, comm_rank, comm_size;
   int in_counts[3], out_counts[3], n[3] = {nz, ny, nx};

@@ -28,7 +28,7 @@ use dtfft
 implicit none
   real(R8P),  allocatable :: in(:,:,:), out(:), check(:,:,:)
   real(R8P) :: local_error, global_error, rnd
-  integer(I4P), parameter :: nx = 512, ny = 32, nz = 12
+  integer(I4P), parameter :: nx = 512, ny = 32, nz = 8
   integer(I4P) :: comm_size, comm_rank, i, j, k, out_size
   type(dtfft_plan_r2r) :: plan
   integer(I4P) :: in_starts(3), in_counts(3), out_counts(3), ierr, executor_type

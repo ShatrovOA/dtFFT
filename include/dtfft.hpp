@@ -32,7 +32,6 @@
 #include <dtfft.h>
 #include <stdexcept>
 
-
 namespace dtfft
 {
   namespace core
@@ -51,6 +50,8 @@ namespace dtfft
   * \param[in]      transpose_type  Type of transform:
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
+  *
+  * \return Status code of method execution
 */
         template<typename T1, typename T2>
         int
@@ -67,6 +68,8 @@ namespace dtfft
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
   * \param[inout]   aux             Optional auxiliary vector
+  *
+  * \return Status code of method execution
 */
         template<typename T1, typename T2, typename T3>
         int
@@ -82,6 +85,8 @@ namespace dtfft
   * \param[in]      transpose_type  Type of transform:
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
+  *
+  * \return Status code of method execution
 */
         int
         execute(void *in, void *out, const int transpose_type)
@@ -97,6 +102,8 @@ namespace dtfft
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
   * \param[inout]   aux             Optional auxiliary buffer
+  *
+  * \return Status code of method execution
 */
         int
         execute(void *in, void *out, const int transpose_type, void *aux)
@@ -114,6 +121,8 @@ namespace dtfft
   *                                   - `DTFFT_TRANSPOSE_Y_TO_X`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_Z`
   *                                   - `DTFFT_TRANSPOSE_Z_TO_Y`
+  *
+  * \return Status code of method execution
 */
         template<typename T1, typename T2>
         int
@@ -132,6 +141,8 @@ namespace dtfft
   *                                   - `DTFFT_TRANSPOSE_Y_TO_X`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_Z`
   *                                   - `DTFFT_TRANSPOSE_Z_TO_Y`
+  *
+  * \return Status code of method execution
 */
         int
         transpose(const void *in, void *out, const int transpose_type)
@@ -141,10 +152,15 @@ namespace dtfft
 
 /** \brief Wrapper around `get_local_sizes`
   *
-  * \param[out]   alloc_size            Minimum number of elements needs to be allocated
-  *                                       - C2C plan: 2 * alloc_size * sizeof(double/float) or alloc_size * sizeof(dtfft_complex/dtfftf_complex)
-  *                                       - R2R plan: alloc_size * sizeof(double/float)
-  *                                       - R2C plan: alloc_size * sizeof(double/float)
+  * \param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
+  *
+  *                                   - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
+  *
+  *                                   - R2R plan: `alloc_size` * sizeof(double/float)
+  *
+  *                                   - R2C plan: `alloc_size` * sizeof(double/float)
+  *
+  * \return Status code of method execution
 */
         int
         get_alloc_size(size_t *alloc_size)
@@ -158,10 +174,15 @@ namespace dtfft
   * \param[out]   in_counts             Sizes  of local portion of data in 'real' space in reversed order
   * \param[out]   out_starts            Starts of local portion of data in 'fourier' space in reversed order
   * \param[out]   out_counts            Sizes  of local portion of data in 'fourier' space in reversed order
-  * \param[out]   alloc_size            Minimum number of elements needs to be allocated
-  *                                       - C2C plan: 2 * alloc_size * sizeof(double/float) or alloc_size * sizeof(dtfft_complex/dtfftf_complex)
-  *                                       - R2R plan: alloc_size * sizeof(double/float)
-  *                                       - R2C plan: alloc_size * sizeof(double/float)
+  * \param[out]   alloc_size            Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
+  *
+  *                                       - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
+  *
+  *                                       - R2R plan: `alloc_size` * sizeof(double/float)
+  *
+  *                                       - R2C plan: `alloc_size` * sizeof(double/float)
+  *
+  * \return Status code of method execution
 */
         int
         get_local_sizes(std::vector<int>&in_starts, std::vector<int>&in_counts, std::vector<int>&out_starts, std::vector<int>&out_counts, size_t *alloc_size)
@@ -175,11 +196,15 @@ namespace dtfft
   * \param[out]   in_counts             Sizes  of local portion of data in 'real' space in reversed order
   * \param[out]   out_starts            Starts of local portion of data in 'fourier' space in reversed order
   * \param[out]   out_counts            Sizes  of local portion of data in 'fourier' space in reversed order
-  * \param[out]   alloc_size            Minimum number of elements needs to be allocated
-  *                                       - C2C plan: 2 * alloc_size * sizeof(double/float) or alloc_size * sizeof(dtfft_complex/dtfftf_complex)
-  *                                       - R2R plan: alloc_size * sizeof(double/float)
-  *                                       - R2C plan: alloc_size * sizeof(double/float)
+  * \param[out]   alloc_size            Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
   *
+  *                                       - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
+  *
+  *                                       - R2R plan: `alloc_size` * sizeof(double/float)
+  *
+  *                                       - R2C plan: `alloc_size` * sizeof(double/float)
+  *
+  * \return Status code of method execution
 */
         int
         get_local_sizes(int *in_starts=NULL, int *in_counts=NULL, int *out_starts=NULL, int *out_counts=NULL, size_t *alloc_size=NULL)
@@ -214,7 +239,6 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
-  *                                     - `DTFFT_EXECUTOR_KFR`
 */
       PlanC2C(
         const std::vector<int> &dims,
@@ -235,7 +259,6 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
-  *                                     - `DTFFT_EXECUTOR_KFR`
 */
       PlanC2C(
         const std::vector<int> &dims,
@@ -256,7 +279,6 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
-  *                                     - `DTFFT_EXECUTOR_KFR`
 */
       PlanC2C(
         const int ndims,
@@ -285,9 +307,10 @@ namespace dtfft
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
-  *                                     - `DTFFT_EXECUTOR_KFR`
   *
   * \note Parameter `executor_type` cannot be `DTFFT_EXECUTOR_NONE`. Use C2C or R2R plans instead
+  *
+  * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2C(
         const std::vector<int> &dims,
@@ -307,9 +330,10 @@ namespace dtfft
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
-  *                                     - `DTFFT_EXECUTOR_KFR`
   *
   * \note Parameter `executor_type` cannot be `DTFFT_EXECUTOR_NONE`. Use C2C or R2R plans instead
+  *
+  * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2C(
         const int ndims,
@@ -344,7 +368,8 @@ namespace dtfft
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
-  *                                     - `DTFFT_EXECUTOR_KFR`
+  *
+  * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2R(
         const std::vector<int> &dims,
@@ -362,6 +387,8 @@ namespace dtfft
   * \param[in]    dims                  Vector with global dimensions in reversed order.
   *                                     `dims.size()` must be 2 or 3
   * \param[in]    precision             Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
+  *
+  * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2R(
         const std::vector<int> &dims,
@@ -380,7 +407,8 @@ namespace dtfft
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
-  *                                     - `DTFFT_EXECUTOR_KFR`
+  *
+  * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2R(
         const int ndims,

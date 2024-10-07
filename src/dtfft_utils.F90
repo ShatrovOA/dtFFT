@@ -47,9 +47,10 @@ contains
     is_init_called = .true.
   end function dtfft_init
 
-  subroutine dtfft_string_f2c(fstring, cstring)
-    character(len=*),       intent(in)  :: fstring
+  subroutine dtfft_string_f2c(fstring, cstring, string_size)
+    character(len=*),       intent(in)    :: fstring
     character(kind=c_char), intent(inout) :: cstring(*)
+    integer(SP),  optional, intent(out)   :: string_size
     integer :: i, j
     logical :: met_non_blank
 
@@ -67,14 +68,16 @@ contains
     end do
 
     cstring(j) = c_null_char
+    if(present( string_size )) string_size = j
   end subroutine dtfft_string_f2c
 
-  subroutine dtfft_astring_f2c(fstring, cstring)
+  subroutine dtfft_astring_f2c(fstring, cstring, string_size)
     character(len=*),                     intent(in)  :: fstring
     character(kind=c_char), allocatable,  intent(out) :: cstring(:)
+    integer(SP),            optional,     intent(out) :: string_size
 
     allocate(cstring( len_trim(fstring) + 1 ))
-    call dtfft_string_f2c(fstring, cstring)
+    call dtfft_string_f2c(fstring, cstring, string_size)
   end subroutine dtfft_astring_f2c
 
   function int_to_str(n) result(string)

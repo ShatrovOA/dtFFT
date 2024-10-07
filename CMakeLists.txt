@@ -18,6 +18,7 @@ option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
 option(DTFFT_BUILD_C_CXX_API "Create C API" ON)
 option(DTFFT_ENABLE_PERSISTENT_COMM "Enable MPI persistent collective calls" OFF)
 option(DTFFT_WITH_CALIPER "Build dtFFT with Caliper tool" OFF)
+option(DTFFT_RUNNING_CICD "Running tests in GitHub actions" OFF)
 # option(DTFFT_BUILD_JAVA_API "Create Java API" OFF)
 # option(DTFFT_BUILD_PYTHON_API "Create python API" OFF)
 
@@ -163,6 +164,9 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
   -ftree-vectorize -Wimplicit-interface -Wunused-parameter -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow -ffpe-summary=none \
   -Warray-bounds -Wimplicit-procedure -Wunderflow -Wuninitialized -fimplicit-none -fdump-core -finit-real=nan")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpedantic -Wall -Werror")
+  if(DTFFT_RUNNING_CICD)
+    set(DTFFT_ENABLE_COVERAGE ON)
+  endif()
   if(DTFFT_ENABLE_COVERAGE)
     set(DTFFT_BUILD_TESTS ON)
 
@@ -181,7 +185,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
         "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/interfaces/api/*.gcno"
         "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/interfaces/api/c/*.gcno"
         "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/interfaces/fft/fftw/*.gcno"
-      COMMAND mv    ${CMAKE_BINARY_DIR}/*.gcov ${PROJECT_SOURCE_DIR}
+      COMMAND mv "${CMAKE_BINARY_DIR}/*.gcov" "${PROJECT_SOURCE_DIR}/"
     )
 
     target_link_libraries(dtfft gcov)

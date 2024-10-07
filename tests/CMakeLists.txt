@@ -16,15 +16,22 @@ endif()
 #   add_subdirectory(python)
 # endif()
 
+if(DTFFT_RUNNING_CICD)
+  set(FLAG_OVERSUBSCRIBE "--oversubscribe")
+  set(TESTS_MAX_PROC 8)
+else()
+  set(TESTS_MAX_PROC ${MPIEXEC_MAX_NUMPROCS})
+endif()
+
 foreach(test ${TEST_SOURCES})
   get_filename_component(test_name ${test} NAME_WLE)
   add_executable(${test_name} ${test})
   target_link_libraries(${test_name} dtfft)
 
-  foreach(nproc RANGE 1 ${MPIEXEC_MAX_NUMPROCS} 1)
+  foreach(nproc RANGE 1 ${TESTS_MAX_PROC} 1)
     add_test(
       NAME "${test_name}_nproc_${nproc}"
-      COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${nproc} ./${test_name}
+      COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${nproc} ${FLAG_OVERSUBSCRIBE} ./${test_name}
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
   endforeach()

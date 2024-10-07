@@ -308,11 +308,14 @@ dtfft_destroy(dtfft_plan *plan);
   * \param[out]     in_counts       Sizes  of local portion of data in 'real' space in reversed order
   * \param[out]     out_starts      Starts of local portion of data in 'fourier' space in reversed order
   * \param[out]     out_counts      Sizes  of local portion of data in 'fourier' space in reversed order
-  * \param[out]     alloc_size      Minimum number of elements needs to be allocated
-  *                                   - C2C plan: 2 * alloc_size * sizeof(double/float) or alloc_size * sizeof(dtfft_complex/dtfftf_complex)
-  *                                   - R2R plan: alloc_size * sizeof(double/float)
-  *                                   - R2C plan: alloc_size * sizeof(double/float)
+  * \param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
   *
+  *                                   - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
+  *
+  *                                   - R2R plan: `alloc_size` * sizeof(double/float)
+  *
+  *                                   - R2C plan: `alloc_size` * sizeof(double/float)
+  * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
 extern
 int
@@ -324,22 +327,29 @@ dtfft_get_local_sizes(dtfft_plan plan, int *in_starts, int *in_counts, int *out_
   * \return Execution error code
   *
   * \param[in]      plan            Plan handle
-  * \param[out]     alloc_size      Minimum number of elements needs to be allocated
-  *                                   - C2C plan: 2 * alloc_size * sizeof(double/float) or alloc_size * sizeof(dtfft_complex/dtfftf_complex)
-  *                                   - R2R plan: alloc_size * sizeof(double/float)
-  *                                   - R2C plan: alloc_size * sizeof(double/float)
+  * \param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
+  *
+  *                                   - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
+  *
+  *                                   - R2R plan: `alloc_size` * sizeof(double/float)
+  *
+  *                                   - R2C plan: `alloc_size` * sizeof(double/float)
+  * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
 extern
 int
 dtfft_get_alloc_size(dtfft_plan plan, size_t *alloc_size);
 
 
+/**
+ * @brief Gets the string description of an error code
+ *
+ * @param[in]       error_code      Error code to convert to string
+ * @return Error string explaining error.
+ */
 extern
 const char *
 dtfft_get_error_string(const int error_code);
-
-extern
-void dtfft_profile_report();
 
 
 #ifdef __cplusplus

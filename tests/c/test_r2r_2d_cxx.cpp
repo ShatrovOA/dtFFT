@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
   // Create plan
   vector<int> dims = {ny, nx};
   vector<int> kinds = {DTFFT_DCT_2, DTFFT_DST_2};
-  dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
+  dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type);
   size_t alloc_size;
   plan.get_alloc_size(&alloc_size);
 

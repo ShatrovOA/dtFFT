@@ -25,7 +25,7 @@ use dtfft
 implicit none
   complex(R4P),  allocatable :: in(:,:,:), out(:), check(:,:,:)
   real(R4P) :: local_error, global_error, rnd1, rnd2
-  integer(I4P), parameter :: nx = 13, ny = 45, nz = 32
+  integer(I4P), parameter :: nx = 13, ny = 45, nz = 2
   integer(I4P) :: comm_size, comm_rank, i, j, k
   type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_counts(3), out_counts(3), out_size

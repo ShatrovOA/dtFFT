@@ -19,7 +19,7 @@
 #include "dtfft_config.h"
 module dtfft
 !------------------------------------------------------------------------------------------------
-!< Main DTFFT module. Should be included in a Fortran program.
+!< Main DTFFT module. Should be used in a Fortran program.
 !------------------------------------------------------------------------------------------------
 use dtfft_parameters
 use dtfft_core_m

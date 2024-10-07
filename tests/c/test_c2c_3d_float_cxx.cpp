@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-  int nx = 31, ny = 22, nz = 59;
+  int nx = 6, ny = 22, nz = 59;
 
   if(comm_rank == 0) {
     cout << "----------------------------------------"          << endl;
