@@ -28,7 +28,7 @@ implicit none
   complex(R4P),  allocatable :: out(:)
   real(R4P) :: local_error, global_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 19
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr, executor_type
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr, executor_type, outsize
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
@@ -85,7 +85,8 @@ implicit none
   call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
 
-  out(:) = out(:) / real(nx * ny, R4P)
+  outsize = product(out_counts)
+  out(:outsize) = out(:outsize) / real(nx * ny, R4P)
   ! Nullify recv buffer
   in = -1._R4P
 
