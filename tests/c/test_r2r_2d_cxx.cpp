@@ -46,17 +46,17 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
-#ifdef DTFFT_WITH_FFTW
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
-#elif defined(DTFFT_WITH_VKFFT)
-  int executor_type = DTFFT_EXECUTOR_VKFFT;
-#else
+// #ifdef DTFFT_WITH_FFTW
+//   int executor_type = DTFFT_EXECUTOR_FFTW3;
+// #elif defined(DTFFT_WITH_VKFFT)
+//   int executor_type = DTFFT_EXECUTOR_VKFFT;
+// #else
   int executor_type = DTFFT_EXECUTOR_NONE;
-#endif
+// #endif
 
   // Create plan
   vector<int> dims = {ny, nx};
-  vector<int> kinds = {DTFFT_DCT_2, DTFFT_DST_2};
+  vector<int> kinds = {};
   dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type);
   size_t alloc_size;
   plan.get_alloc_size(&alloc_size);
@@ -74,11 +74,11 @@ int main(int argc, char *argv[])
   DTFFT_CALL( plan.execute(in, out, DTFFT_TRANSPOSE_OUT) )
   tf += MPI_Wtime();
 
-#ifndef DTFFT_TRANSPOSE_ONLY
-  for (size_t i = 0; i < alloc_size; i++) {
-    out[i] /= (double) (4 * nx * ny);
+  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+    for (size_t i = 0; i < alloc_size; i++) {
+      out[i] /= (double) (4 * nx * ny);
+    }
   }
-#endif
 
   double tb = 0.0 - MPI_Wtime();
   plan.execute(out, in, DTFFT_TRANSPOSE_IN);

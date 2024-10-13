@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
   int executor_type = DTFFT_EXECUTOR_NONE;
 #endif
 
-  dtfft::PlanC2C plan(dims, grid_comm, DTFFT_SINGLE, DTFFT_PATIENT, executor_type);
+  dtfft::PlanC2C plan(dims, grid_comm, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
   vector<int> in_counts(3);
   plan.get_local_sizes(NULL, in_counts.data());
 

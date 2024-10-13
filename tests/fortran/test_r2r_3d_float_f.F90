@@ -46,14 +46,14 @@ implicit none
 ! #ifdef DTFFT_WITH_KFR
 !   executor_type = DTFFT_EXECUTOR_KFR
 !   scaler = 8._R4P / real(nx * ny * nz, R4P)
-#if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
-  scaler = 1._R4P / real(8 * (nx - 1) * ny * nz, R4P)
-#else
+! #if defined (DTFFT_WITH_FFTW)
+!   executor_type = DTFFT_EXECUTOR_FFTW3
+!   scaler = 1._R4P / real(8 * (nx - 1) * ny * nz, R4P)
+! #else
   executor_type = DTFFT_EXECUTOR_NONE
   scaler = 1._R4P
-#endif
-  call plan%create([nx, ny, nz], [DTFFT_DCT_1, DTFFT_DCT_2, DTFFT_DCT_3], precision=DTFFT_SINGLE, executor_type=executor_type)
+! #endif
+  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type)
   call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size)
 
   in_product = product(in_counts)

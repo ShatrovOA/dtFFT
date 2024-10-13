@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
   const int ndims = 3;
   const int dims[] = {nz, ny, nx};
   const int kinds[] = {DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2};
-  dtfft::PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type);
+  dtfft::PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
 
   int in_sizes[ndims];
   int out_sizes[ndims];

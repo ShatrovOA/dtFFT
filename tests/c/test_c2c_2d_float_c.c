@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 #endif
 
   dtfft_plan plan;
-  DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_MEASURE, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor_type, &plan) )
 
   int in_counts[2], out_counts[2];
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, NULL) )

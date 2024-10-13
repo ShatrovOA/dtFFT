@@ -53,7 +53,7 @@ implicit none
   executor_type = DTFFT_EXECUTOR_FFTW3
 #endif
 
-  call plan%create([nx, ny], effort_flag=DTFFT_MEASURE, executor_type=executor_type, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%create([nx, ny], effort_flag=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
 
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,       &

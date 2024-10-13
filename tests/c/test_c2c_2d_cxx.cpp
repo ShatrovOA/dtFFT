@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
   // Create plan
   const vector<int> dims = {ny, nx};
 
-  dtfft::PlanC2C plan = dtfft::PlanC2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_MEASURE, DTFFT_EXECUTOR_NONE);
+  dtfft::PlanC2C plan = dtfft::PlanC2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE);
 
   int local_size[2];
   size_t alloc_size;

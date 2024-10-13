@@ -62,7 +62,7 @@ implicit none
   executor_type = DTFFT_EXECUTOR_FFTW3
 #endif
 
-  call plan%create([nx, ny, nz], executor_type=executor_type, effort_flag=DTFFT_PATIENT)
+  call plan%create([nx, ny, nz], executor_type=executor_type, effort_flag=DTFFT_MEASURE)
 
   call plan%get_local_sizes(in_counts = in_counts, alloc_size=alloc_size)
 
