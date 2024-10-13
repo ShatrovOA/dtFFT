@@ -80,7 +80,7 @@ dtfft_create_plan_r2r(const int ndims, const int *dims,
 static inline
 void *
 get_plan_handle(dtfft_plan plan) {
-  return (plan -> is_allocated == PLAN_ALLOCATED) ? plan -> _plan_ptr : NULL;
+  return plan ? ((plan -> is_allocated == PLAN_ALLOCATED) ? plan -> _plan_ptr : NULL) : NULL;
 }
 
 int
@@ -95,15 +95,16 @@ dtfft_transpose(dtfft_plan plan, const void *in, void *out, const int transpose_
   return dtfft_transpose_c(get_plan_handle(plan), in, out, &transpose_type);
 }
 
-void
+int
 dtfft_destroy(dtfft_plan *plan)
 {
-  if (!*plan) return;
+  if (!*plan) return DTFFT_ERROR_PLAN_NOT_CREATED;
   void *_plan = get_plan_handle(*plan);
-  dtfft_destroy_c(&_plan);
+  int error_code = dtfft_destroy_c(&_plan);
   (*plan) -> is_allocated = 0;
   (*plan) -> _plan_ptr = NULL;
   *plan = NULL;
+  return error_code;
 }
 
 int

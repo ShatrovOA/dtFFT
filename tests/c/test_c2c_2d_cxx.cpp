@@ -46,7 +46,6 @@ int main(int argc, char *argv[])
   }
   // Create plan
   const vector<int> dims = {ny, nx};
-
   dtfft::PlanC2C plan = dtfft::PlanC2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE);
 
   int local_size[2];
@@ -95,7 +94,13 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
-  plan.destroy();
+  int error_code;
+  error_code = plan.destroy();
+  std::cout << dtfft_get_error_string(error_code) << std::endl;
+  // Should not catch any signal
+  // Simply returning `DTFFT_ERROR_PLAN_NOT_CREATED`
+  error_code = plan.execute(NULL, NULL, -1);
+  std::cout << dtfft_get_error_string(error_code) << std::endl;
   MPI_Finalize();
   return 0;
 }

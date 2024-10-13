@@ -209,8 +209,8 @@ namespace dtfft
 
 /** \brief Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize
 */
-        void destroy()
-        {dtfft_destroy(&_plan);}
+        int destroy()
+        {return dtfft_destroy(&_plan);}
 
 
 

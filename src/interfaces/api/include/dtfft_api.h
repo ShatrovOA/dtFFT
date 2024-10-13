@@ -47,7 +47,7 @@ int
 dtfft_transpose_c(const void*, const void*, void*, const int*);
 
 extern
-void
+int
 dtfft_destroy_c(void**);
 
 extern

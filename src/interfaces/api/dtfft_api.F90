@@ -168,7 +168,7 @@ contains
   end function dtfft_transpose_c
 
 !------------------------------------------------------------------------------------------------
-  subroutine dtfft_destroy_c(plan_ptr) bind(C)
+  integer(c_int) function dtfft_destroy_c(plan_ptr) bind(C)
 !------------------------------------------------------------------------------------------------
 !< Destroys dtFFT Plan, C/C++ interface
 !------------------------------------------------------------------------------------------------
@@ -176,13 +176,16 @@ contains
     type(dtfft_plan_c),           pointer   :: plan
 
     ! Do not raise if plan already destroyed
-    if ( .not. c_associated(plan_ptr) ) return
+    if ( .not. c_associated(plan_ptr) ) then
+      dtfft_destroy_c = DTFFT_ERROR_PLAN_NOT_CREATED
+      return
+    endif
     call c_f_pointer(plan_ptr, plan)
-    call plan%p%destroy()
+    call plan%p%destroy(dtfft_destroy_c)
     deallocate( plan%p )
     nullify( plan )
     plan_ptr = c_null_ptr
-  end subroutine dtfft_destroy_c
+  end function dtfft_destroy_c
 
 !------------------------------------------------------------------------------------------------
   integer(c_int) function dtfft_get_local_sizes_c(plan_ptr, in_starts, in_counts, out_starts, out_counts, alloc_size) bind(C)

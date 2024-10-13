@@ -296,7 +296,7 @@ dtfft_transpose(dtfft_plan plan, const void *in, void *out, const int transpose_
  * \param[inout]    plan            Plan handle
 */
 extern
-void
+int
 dtfft_destroy(dtfft_plan *plan);
 
 
