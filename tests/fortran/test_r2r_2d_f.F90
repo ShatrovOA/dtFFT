@@ -48,7 +48,7 @@ implicit none
 ! #ifdef DTFFT_WITH_KFR
 !   executor_type = DTFFT_EXECUTOR_KFR
 !   scaler = 4._R8P / real(nx * ny, R8P)
-#if !defined(DTFFT_WITHOUT_FFTW)
+#if defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
   scaler = 1._R8P / real(4 * (nx - 1) * (ny - 1), R8P)
 #else

@@ -28,7 +28,7 @@ use dtfft_interface_mkl_m
 use dtfft_interface_mkl_native_m
 use dtfft_precisions,          only: IP
 use dtfft_parameters,          only: DTFFT_SUCCESS, DTFFT_FORWARD, DTFFT_BACKWARD, DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED, DTFFT_DOUBLE
-use dtfft_utils,               only: suppress_unused, int_to_str
+use dtfft_utils,               only: int_to_str
 #include "dtfft_mpi.h"
 implicit none
 private

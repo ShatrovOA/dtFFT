@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
   }
   // Create plan
   const vector<int> dims = {ny, nx};
-  dtfft::PlanC2C plan(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_MEASURE, DTFFT_EXECUTOR_NONE);
+
+  dtfft::PlanC2C plan = dtfft::PlanC2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_MEASURE, DTFFT_EXECUTOR_NONE);
 
   int local_size[2];
   size_t alloc_size;
@@ -67,7 +68,7 @@ int main(int argc, char *argv[])
     check[i] = in[i];
   }
 
-  plan.transpose(in, out, DTFFT_TRANSPOSE_X_TO_Y);
+  DTFFT_CALL( plan.transpose(in, out, DTFFT_TRANSPOSE_X_TO_Y) )
 
   for ( auto & element: in) {
     element = complex<double>(-1., -1.);

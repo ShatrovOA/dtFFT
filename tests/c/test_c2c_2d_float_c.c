@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   // Create plan
   int n[2] = {ny, nx};
 
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
   int executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
   int executor_type = DTFFT_EXECUTOR_NONE;
@@ -72,9 +72,9 @@ int main(int argc, char *argv[])
 
   double tf = 0.0 - MPI_Wtime();
 #ifdef DTFFT_TRANSPOSE_ONLY
-  dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y);
+  DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y) )
 #else
-  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
+  DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL) )
 #endif
   tf += MPI_Wtime();
 
@@ -90,9 +90,9 @@ int main(int argc, char *argv[])
 
   double tb = 0.0 - MPI_Wtime();
 #ifdef DTFFT_TRANSPOSE_ONLY
-  dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_X);
+  DTFFT_CALL( dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_X) )
 #else
-  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
+  DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL) )
 #endif
   tb += MPI_Wtime();
 

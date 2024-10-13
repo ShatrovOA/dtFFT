@@ -53,7 +53,7 @@ public :: dtfft_get_error_string
   integer(IP),  parameter,  public :: DTFFT_EXECUTOR_NONE          = CONF_DTFFT_EXECUTOR_NONE
   !< Do not setup any executor. If this type is provided, then execute method cannot be called.
   !< Use transpose method instead
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
   integer(IP),  parameter,  public :: DTFFT_EXECUTOR_FFTW3         = CONF_DTFFT_EXECUTOR_FFTW3
   !< FFTW3 executor
 #endif
@@ -140,7 +140,7 @@ public :: dtfft_get_error_string
   integer(IP),  parameter,  public :: VALID_R2R_FFTS(*) = [DTFFT_DCT_1, DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_4, DTFFT_DST_1, DTFFT_DST_2, DTFFT_DST_3, DTFFT_DST_4]
   integer(IP),  parameter,  public :: VALID_EXECUTORS(*) = [   &
     DTFFT_EXECUTOR_NONE                               &
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
     ,DTFFT_EXECUTOR_FFTW3                             &
 #endif
 #ifdef DTFFT_WITH_MKL
@@ -173,6 +173,7 @@ public :: dtfft_get_error_string
   integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_R2R_KINDS = CONF_DTFFT_ERROR_INVALID_R2R_KINDS
   integer(IP),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_PLAN = CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN
   integer(IP),  parameter,  public  :: DTFFT_ERROR_INPLACE_TRANSPOSE = CONF_DTFFT_ERROR_INPLACE_TRANSPOSE
+  integer(IP),  parameter,  public  :: DTFFT_ERROR_INVALID_AUX = CONF_DTFFT_ERROR_INVALID_AUX
   integer(IP),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
   integer(IP),  parameter,  public  :: DTFFT_ERROR_CUFFTMP_2D_PLAN = CONF_DTFFT_ERROR_CUFFTMP_2D_PLAN
 
@@ -227,6 +228,8 @@ contains
       allocate(error_string, source="Invalid values detected in `kinds` parameter")
     case ( DTFFT_ERROR_R2C_TRANSPOSE_PLAN )
       allocate(error_string, source="Transpose plan is not supported in R2C, use R2R or C2C plan instead")
+    case ( DTFFT_ERROR_INVALID_AUX )
+      allocate(error_string, source="Invalid `aux` buffer provided")
     case ( DTFFT_ERROR_INPLACE_TRANSPOSE )
       allocate(error_string, source="Inplace transpose is not supported")
     case ( DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED )

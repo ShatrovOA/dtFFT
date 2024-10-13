@@ -29,7 +29,7 @@ use dtfft_parameters
 use dtfft_precisions
 use dtfft_transpose_m
 use dtfft_abstract_executor_m
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
 use dtfft_executor_fftw_m
 #endif
 #ifdef DTFFT_WITH_MKL
@@ -232,17 +232,20 @@ contains
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created )                                  &
       ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
     if ( .not.any(transpose_type == VALID_TRANSPOSES)             &
          .or. ( self%ndims == 2 .and. abs(transpose_type) > 1 )   &
          .or. abs(transpose_type) == 3 .and..not.self%is_z_slab)  &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
+    CHECK_ERROR_AND_RETURN
     if ( is_same_ptr(LOC_FUN(in), LOC_FUN(out)) )                 &
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
-    if ( present( error_code ) ) error_code = ierr; if ( ierr /= DTFFT_SUCCESS ) return
+    CHECK_ERROR_AND_RETURN
 
     REGION_BEGIN("dtfft_transpose")
     call self%transpose_private(in, out, transpose_type)
     REGION_END("dtfft_transpose")
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine transpose
 
   subroutine execute(self, in, out, transpose_type, aux, error_code)
@@ -252,12 +255,12 @@ contains
 #ifdef DTFFT_WITH_CUDA
       , device                            &
 #endif
-                                          :: in(..)                 !< Incoming buffer of any rank and kind
+      , target                            :: in(..)                 !< Incoming buffer of any rank and kind
     type(*),                intent(inout) &
 #ifdef DTFFT_WITH_CUDA
       , device                            &
 #endif
-                                          :: out(..)                !< Resulting buffer of any rank and kind
+      , target                            :: out(..)                !< Resulting buffer of any rank and kind
     integer(IP),            intent(in)    :: transpose_type         !< Type of transposition. One of the:
                                                                     !< - `DTFFT_TRANSPOSE_OUT`
                                                                     !< - `DTFFT_TRANSPOSE_IN`
@@ -267,28 +270,42 @@ contains
 #ifdef DTFFT_WITH_CUDA
       , device                            &
 #endif
-                                          :: aux(..)                !< Optional auxiliary buffer.
+      , target                            :: aux(..)                !< Optional auxiliary buffer.
                                                                     !< Size of buffer must be greater than value 
                                                                     !< returned by `alloc_size` parameter of `get_local_sizes` subroutine
     integer(IP),  optional, intent(out)   :: error_code             !< Optional error code returned to user
     integer(IP) :: ierr
+    logical     :: inplace
 
+    inplace = is_same_ptr(LOC_FUN(in), LOC_FUN(out))
     ierr = DTFFT_SUCCESS
-    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
-    if ( .not.any(transpose_type == VALID_FULL_TRANSPOSES) ) ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
-    if ( present( error_code ) ) error_code = ierr; if ( ierr /= DTFFT_SUCCESS ) return
+    if ( .not. self%is_created )                                                                      &
+      ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    if ( .not.any(transpose_type == VALID_FULL_TRANSPOSES) )                                          &
+      ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
+    CHECK_ERROR_AND_RETURN
+    if ( self%is_transpose_plan .and. self%ndims == 2 .and. inplace )                                 &
+      ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
+    CHECK_ERROR_AND_RETURN
+    if ( present( aux ) ) then
+      if ( is_same_ptr(LOC_FUN(in), LOC_FUN(aux)) .or. is_same_ptr(LOC_FUN(out), LOC_FUN(aux)) )      &
+        ierr = DTFFT_ERROR_INVALID_AUX
+      CHECK_ERROR_AND_RETURN
+    endif
 
     REGION_BEGIN("dtfft_execute")
     call self%check_aux(aux=aux)
     if ( present( aux ) ) then
-      call self%execute_private( in, out, transpose_type, aux )
+      call self%execute_private( in, out, transpose_type, aux, inplace )
     else
-      call self%execute_private( in, out, transpose_type, self%aux )
+      call self%execute_private( in, out, transpose_type, self%aux, inplace )
     endif
     REGION_END("dtfft_execute")
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine execute
 
-  subroutine execute_private(self, in, out, transpose_type, aux)
+  subroutine execute_private(self, in, out, transpose_type, aux, inplace)
     class(dtfft_core),      intent(inout) :: self                   !< Abstract plan
     type(*),                intent(inout) &
 #ifdef DTFFT_WITH_CUDA
@@ -312,6 +329,8 @@ contains
                                           :: aux(..)                !< Auxiliary buffer.
                                                                     !< Size of buffer must be greater than value
                                                                     !< returned by `alloc_size` parameter of `get_local_sizes` subroutine
+    logical,                intent(in)    :: inplace
+
     if ( self%is_transpose_plan ) then
       select case ( self%ndims )
       case (2)
@@ -324,68 +343,69 @@ contains
       case (3)
         select case( transpose_type )
         case ( DTFFT_TRANSPOSE_OUT )
-          if ( self%is_z_slab ) then
-            call self%transpose_private(in, out, DTFFT_TRANSPOSE_X_TO_Z)
-          else
+          if ( inplace .or. .not. self%is_z_slab ) then
             call self%transpose_private(in, aux, DTFFT_TRANSPOSE_X_TO_Y)
             call self%transpose_private(aux, out, DTFFT_TRANSPOSE_Y_TO_Z)
+            return
           endif
+          call self%transpose_private(in, out, DTFFT_TRANSPOSE_X_TO_Z)
         case ( DTFFT_TRANSPOSE_IN )
-          if ( self%is_z_slab ) then
-            call self%transpose_private(in, out, DTFFT_TRANSPOSE_Z_TO_X)
-          else
+          if ( inplace .or. .not. self%is_z_slab ) then
             call self%transpose_private(in, aux, DTFFT_TRANSPOSE_Z_TO_Y)
             call self%transpose_private(aux, out, DTFFT_TRANSPOSE_Y_TO_X)
+            return
           endif
+          call self%transpose_private(in, out, DTFFT_TRANSPOSE_Z_TO_X)
         endselect
       endselect
-    else ! self%is_transpose_plan
-      select case ( transpose_type )
-      case ( DTFFT_TRANSPOSE_OUT )
-        ! 1d direct FFT X direction || 2d X-Y FFT
-        call self%fft(1)%fft%execute(in, aux, DTFFT_FORWARD)
-        if ( self%is_z_slab ) then
-          ! Transpose X -> Z
-          call self%transpose_private(aux, out, DTFFT_TRANSPOSE_X_TO_Z)
-          ! 1d direct FFT Z direction
-          call self%fft(3)%fft%execute(out, out, DTFFT_FORWARD)
-          return
-        endif
-        ! Transpose X -> Y
-        call self%transpose_private(aux, out, DTFFT_TRANSPOSE_X_TO_Y)
-        ! 1d FFT Y direction
-        call self%fft(self%fft_mapping(2))%fft%execute(out, out, DTFFT_FORWARD)
-        if ( self%ndims == 2 ) then
-          return
-        endif
-        ! Transpose Y -> Z
-        call self%transpose_private(out, aux, DTFFT_TRANSPOSE_Y_TO_Z)
+      return
+    endif ! self%is_transpose_plan
+
+    select case ( transpose_type )
+    case ( DTFFT_TRANSPOSE_OUT )
+      ! 1d direct FFT X direction || 2d X-Y FFT
+      call self%fft(1)%fft%execute(in, aux, DTFFT_FORWARD)
+      if ( self%is_z_slab ) then
+        ! Transpose X -> Z
+        call self%transpose_private(aux, out, DTFFT_TRANSPOSE_X_TO_Z)
         ! 1d direct FFT Z direction
-        call self%fft(self%fft_mapping(3))%fft%execute(aux, out, DTFFT_FORWARD)
-      case ( DTFFT_TRANSPOSE_IN )
-        if ( self%is_z_slab ) then
-          ! 1d inverse FFT Z direction
-          call self%fft(3)%fft%execute(in, in, DTFFT_BACKWARD)
-          ! Transpose Z -> X
-          call self%transpose_private(in, aux, DTFFT_TRANSPOSE_Z_TO_X)
-          ! 2d inverse FFT X-Y direction
-          call self%fft(1)%fft%execute(aux, out, DTFFT_BACKWARD)
-          return
-        endif
-        if ( self%ndims == 3 ) then
-          ! 1d inverse FFT Z direction
-          call self%fft(self%fft_mapping(3))%fft%execute(in, aux, DTFFT_BACKWARD)
-          ! Transpose Z -> Y
-          call self%transpose_private(aux, in, DTFFT_TRANSPOSE_Z_TO_Y)
-        endif
-        ! 1d inverse FFT Y direction
-        call self%fft(self%fft_mapping(2))%fft%execute(in, in, DTFFT_BACKWARD)
-        ! Transpose Y -> X
-        call self%transpose_private(in, aux, DTFFT_TRANSPOSE_Y_TO_X)
-        ! 1d inverse FFT X direction
+        call self%fft(3)%fft%execute(out, out, DTFFT_FORWARD)
+        return
+      endif
+      ! Transpose X -> Y
+      call self%transpose_private(aux, out, DTFFT_TRANSPOSE_X_TO_Y)
+      ! 1d FFT Y direction
+      call self%fft(self%fft_mapping(2))%fft%execute(out, out, DTFFT_FORWARD)
+      if ( self%ndims == 2 ) then
+        return
+      endif
+      ! Transpose Y -> Z
+      call self%transpose_private(out, aux, DTFFT_TRANSPOSE_Y_TO_Z)
+      ! 1d direct FFT Z direction
+      call self%fft(self%fft_mapping(3))%fft%execute(aux, out, DTFFT_FORWARD)
+    case ( DTFFT_TRANSPOSE_IN )
+      if ( self%is_z_slab ) then
+        ! 1d inverse FFT Z direction
+        call self%fft(3)%fft%execute(in, in, DTFFT_BACKWARD)
+        ! Transpose Z -> X
+        call self%transpose_private(in, aux, DTFFT_TRANSPOSE_Z_TO_X)
+        ! 2d inverse FFT X-Y direction
         call self%fft(1)%fft%execute(aux, out, DTFFT_BACKWARD)
-      endselect
-    endif
+        return
+      endif
+      if ( self%ndims == 3 ) then
+        ! 1d inverse FFT Z direction
+        call self%fft(self%fft_mapping(3))%fft%execute(in, aux, DTFFT_BACKWARD)
+        ! Transpose Z -> Y
+        call self%transpose_private(aux, in, DTFFT_TRANSPOSE_Z_TO_Y)
+      endif
+      ! 1d inverse FFT Y direction
+      call self%fft(self%fft_mapping(2))%fft%execute(in, in, DTFFT_BACKWARD)
+      ! Transpose Y -> X
+      call self%transpose_private(in, aux, DTFFT_TRANSPOSE_Y_TO_X)
+      ! 1d inverse FFT X direction
+      call self%fft(1)%fft%execute(aux, out, DTFFT_BACKWARD)
+    endselect
   end subroutine execute_private
 
   subroutine destroy(self, error_code)
@@ -473,7 +493,8 @@ contains
 
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
-    if ( present( error_code ) ) error_code = ierr; if ( ierr /= DTFFT_SUCCESS ) return
+    if ( present( error_code ) ) error_code = ierr
+    if ( ierr /= DTFFT_SUCCESS ) return
 
     select type ( self )
     class is (dtfft_plan_r2c)
@@ -829,8 +850,8 @@ contains
     endif
     decomps(1, latest_timer_id) = ny
     decomps(2, latest_timer_id) = nz
-    DEBUG(repeat("=", 50))
-    DEBUG("    Average execution time: "//double_to_str(timers(latest_timer_id)))
+    ! DEBUG(repeat("=", 50))
+    ! DEBUG("    Average execution time: "//double_to_str(timers(latest_timer_id)))
     latest_timer_id = latest_timer_id + 1
 
     deallocate(a, b)
@@ -1089,7 +1110,7 @@ contains
       self%fft_mapping(dim) = dim
 
       select case(self%executor_type)
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
       case (DTFFT_EXECUTOR_FFTW3)
         if ( dim == 1 ) then
           DEBUG("Using FFTW3 executor")

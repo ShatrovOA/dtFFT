@@ -119,8 +119,10 @@ namespace dtfft
   * \param[in]      transpose_type  Type of transpose:
   *                                   - `DTFFT_TRANSPOSE_X_TO_Y`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_X`
-  *                                   - `DTFFT_TRANSPOSE_Y_TO_Z`
-  *                                   - `DTFFT_TRANSPOSE_Z_TO_Y`
+  *                                   - `DTFFT_TRANSPOSE_Y_TO_Z` (3d plan only)
+  *                                   - `DTFFT_TRANSPOSE_Z_TO_Y` (3d plan only)
+  *                                   - `DTFFT_TRANSPOSE_X_TO_Z` (3d plan only)
+  *                                   - `DTFFT_TRANSPOSE_Z_TO_X` (3d plan only)
   *
   * \return Status code of method execution
 */
@@ -139,8 +141,10 @@ namespace dtfft
   * \param[in]      transpose_type  Type of transpose:
   *                                   - `DTFFT_TRANSPOSE_X_TO_Y`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_X`
-  *                                   - `DTFFT_TRANSPOSE_Y_TO_Z`
-  *                                   - `DTFFT_TRANSPOSE_Z_TO_Y`
+  *                                   - `DTFFT_TRANSPOSE_Y_TO_Z` (3d plan only)
+  *                                   - `DTFFT_TRANSPOSE_Z_TO_Y` (3d plan only)
+  *                                   - `DTFFT_TRANSPOSE_X_TO_Z` (3d plan only)
+  *                                   - `DTFFT_TRANSPOSE_Z_TO_X` (3d plan only)
   *
   * \return Status code of method execution
 */
@@ -153,11 +157,8 @@ namespace dtfft
 /** \brief Wrapper around `get_local_sizes`
   *
   * \param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
-  *
   *                                   - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
-  *
   *                                   - R2R plan: `alloc_size` * sizeof(double/float)
-  *
   *                                   - R2C plan: `alloc_size` * sizeof(double/float)
   *
   * \return Status code of method execution
@@ -175,11 +176,8 @@ namespace dtfft
   * \param[out]   out_starts            Starts of local portion of data in 'fourier' space in reversed order
   * \param[out]   out_counts            Sizes  of local portion of data in 'fourier' space in reversed order
   * \param[out]   alloc_size            Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
-  *
   *                                       - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
-  *
   *                                       - R2R plan: `alloc_size` * sizeof(double/float)
-  *
   *                                       - R2C plan: `alloc_size` * sizeof(double/float)
   *
   * \return Status code of method execution
@@ -197,11 +195,8 @@ namespace dtfft
   * \param[out]   out_starts            Starts of local portion of data in 'fourier' space in reversed order
   * \param[out]   out_counts            Sizes  of local portion of data in 'fourier' space in reversed order
   * \param[out]   alloc_size            Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
-  *
   *                                       - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
-  *
   *                                       - R2R plan: `alloc_size` * sizeof(double/float)
-  *
   *                                       - R2C plan: `alloc_size` * sizeof(double/float)
   *
   * \return Status code of method execution

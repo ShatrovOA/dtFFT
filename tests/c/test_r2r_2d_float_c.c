@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     printf("----------------------------------------\n");
   }
 
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
   int executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
   int executor_type = DTFFT_EXECUTOR_NONE;

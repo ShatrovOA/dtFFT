@@ -4,7 +4,7 @@ project(dtFFT VERSION 0.2.0
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
 
-option(DTFFT_WITHOUT_FFTW "Build dtFFT without FFTW support" OFF)
+option(DTFFT_WITH_FFTW "Build dtFFT with FFTW support" OFF)
 option(DTFFT_WITH_MKL "Build dtFFT with MKL DFTI support" OFF)
 option(DTFFT_WITH_CUFFT "Build dtFFT with cufft support" OFF)
 # option(DTFFT_WITH_KFR "Build dtFFT with KFR support" OFF)
@@ -64,11 +64,11 @@ end program"
 HAVE_BLOCK_STATEMENT
 SRC_EXT .F90)
 
-if( DTFFT_WITHOUT_FFTW
+if( NOT DTFFT_WITH_FFTW
     AND NOT DTFFT_WITH_MKL
     # AND NOT DTFFT_WITH_KFR
-    AND NOT DTFFT_WITH_CUFFT
-    AND NOT DTFFT_WITH_VKFFT
+    # AND NOT DTFFT_WITH_CUFFT
+    # AND NOT DTFFT_WITH_VKFFT
 )
   set ( DTFFT_TRANSPOSE_ONLY ON )
 endif()

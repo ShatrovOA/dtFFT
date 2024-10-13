@@ -47,7 +47,7 @@ public :: DTFFT_TRANSPOSE_OUT,                                      &
 
 ! 1d FFT External Executor types
 public :: DTFFT_EXECUTOR_NONE
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
 public  :: DTFFT_EXECUTOR_FFTW3
 #endif
 #ifdef DTFFT_WITH_MKL

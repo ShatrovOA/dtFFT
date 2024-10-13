@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
   int executor_type = DTFFT_EXECUTOR_FFTW3;
 #elif defined(DTFFT_WITH_VKFFT)
   int executor_type = DTFFT_EXECUTOR_VKFFT;

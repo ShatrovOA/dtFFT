@@ -30,10 +30,9 @@ implicit none
   real(R8P) :: local_error, global_error, rnd
   integer(I4P), parameter :: nx = 512, ny = 32, nz = 8
   integer(I4P) :: comm_size, comm_rank, i, j, k, out_size
-  type(dtfft_plan_r2r) :: plan
+  class(dtfft_core), allocatable :: plan
   integer(I4P) :: in_starts(3), in_counts(3), out_counts(3), ierr, executor_type
   real(R8P) :: tf, tb, t_sum
-  TYPE_MPI_COMM :: comm_1d
   integer(I8P) :: alloc_size
 
   call MPI_Init(ierr)
@@ -48,17 +47,19 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
   endif
 
-  call MPI_Cart_create(MPI_COMM_WORLD, 1, [comm_size], [.false.], .true., comm_1d, ierr)
-
 ! #ifdef DTFFT_WITH_KFR
 !   executor_type = DTFFT_EXECUTOR_KFR
-#if !defined(DTFFT_WITHOUT_FFTW)
+#if defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
 #else
   executor_type = DTFFT_EXECUTOR_NONE
 #endif
 
-  call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm_1d, effort_flag=DTFFT_PATIENT, executor_type=executor_type)
+  allocate( dtfft_plan_r2r :: plan )
+  select type (plan)
+  class is ( dtfft_plan_r2r )
+    call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DST_4], effort_flag=DTFFT_MEASURE, executor_type=executor_type)
+  endselect
 
   call plan%get_local_sizes(in_starts, in_counts, out_counts=out_counts, alloc_size=alloc_size)
 
@@ -119,5 +120,6 @@ implicit none
 
   deallocate(in, out, check)
   call plan%destroy()
+  deallocate( plan )
   call MPI_Finalize(ierr)
 end program test_r2r_3d

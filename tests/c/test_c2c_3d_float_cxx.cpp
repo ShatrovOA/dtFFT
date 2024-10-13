@@ -61,13 +61,13 @@ int main(int argc, char *argv[])
 
 #ifdef DTFFT_WITH_VKFFT
   int executor_type = DTFFT_EXECUTOR_VKFFT;
-#elif !defined(DTFFT_WITHOUT_FFTW)
+#elif defined (DTFFT_WITH_FFTW)
   int executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
   int executor_type = DTFFT_EXECUTOR_NONE;
 #endif
 
-  dtfft::PlanC2C plan(dims, grid_comm, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
+  dtfft::PlanC2C plan(dims, grid_comm, DTFFT_SINGLE, DTFFT_PATIENT, executor_type);
   vector<int> in_counts(3);
   plan.get_local_sizes(NULL, in_counts.data());
 
@@ -90,9 +90,7 @@ int main(int argc, char *argv[])
   plan.execute(in, out, DTFFT_TRANSPOSE_OUT);
   tf += MPI_Wtime();
 
-  for ( auto & element: in) {
-    element = complex<float>(-1., -1.);
-  }
+  std::fill(in.begin(), in.end(), complex<float>(-1., -1.));
 #ifndef DTFFT_TRANSPOSE_ONLY
   float scaler = 1. / (float) (nx * ny * nz);
   for ( auto & element: out) {

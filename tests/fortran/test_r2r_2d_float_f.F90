@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_2d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, output_unit, error_unit
+use iso_fortran_env, only: R8P => real64, R4P => real32, IP => int32, I4P => int32, output_unit, error_unit
 use dtfft
 #include "dtfft_mpi.h"
 implicit none
@@ -29,6 +29,7 @@ implicit none
   type(dtfft_plan_r2r) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
+  TYPE_MPI_COMM :: comm_1d
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -44,13 +45,15 @@ implicit none
   endif
 ! #ifdef DTFFT_WITH_KFR
 !   executor_type = DTFFT_EXECUTOR_KFR
-#if !defined(DTFFT_WITHOUT_FFTW)
+#if defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
 #else
   executor_type = DTFFT_EXECUTOR_NONE
 #endif
 
-  call plan%create([nx, ny], [DTFFT_DST_2, DTFFT_DST_3], precision=DTFFT_SINGLE, executor_type=executor_type)
+  call MPI_Cart_create(MPI_COMM_WORLD, 1, [comm_size], [.false.], .true., comm_1d, ierr)
+
+  call plan%create([nx, ny], [DTFFT_DST_2, DTFFT_DST_3], comm=comm_1d, precision=DTFFT_SINGLE, executor_type=executor_type)
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,                     &

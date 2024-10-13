@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
   int executor_type = DTFFT_EXECUTOR_MKL;
 #elif defined(DTFFT_WITH_VKFFT)
   int executor_type = DTFFT_EXECUTOR_VKFFT;
-#elif !defined(DTFFT_WITHOUT_FFTW)
+#elif defined (DTFFT_WITH_FFTW)
   int executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
   if(comm_rank == 0) {

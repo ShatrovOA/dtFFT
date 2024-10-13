@@ -53,7 +53,7 @@ implicit none
   stop
 #endif
 
-#if !defined(DTFFT_WITHOUT_FFTW)
+#if defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
 #elif defined(DTFFT_WITH_MKL)
   executor_type = DTFFT_EXECUTOR_MKL

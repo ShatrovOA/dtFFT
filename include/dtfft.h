@@ -65,6 +65,7 @@ typedef struct dtfft_plan_t *dtfft_plan;
 #define DTFFT_ERROR_INVALID_R2R_KINDS CONF_DTFFT_ERROR_INVALID_R2R_KINDS
 #define DTFFT_ERROR_R2C_TRANSPOSE_PLAN CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN
 #define DTFFT_ERROR_INPLACE_TRANSPOSE CONF_DTFFT_ERROR_INPLACE_TRANSPOSE
+#define DTFFT_ERROR_INVALID_AUX CONF_DTFFT_ERROR_INVALID_AUX
 #define DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 #define DTFFT_ERROR_CUFFTMP_2D_PLAN CONF_DTFFT_ERROR_CUFFTMP_2D_PLAN
 
@@ -82,9 +83,9 @@ do {                                                                          \
 
 // dtFFT transpose_type flags
 
-// Perform XYZ --> YXZ --> ZXY transposition
+// Perform XYZ --> YXZ --> ZXY plan execution
 #define DTFFT_TRANSPOSE_OUT CONF_DTFFT_TRANSPOSE_OUT
-// Perform ZXY --> YXZ --> XYZ transposition
+// Perform ZXY --> YXZ --> XYZ plan execution
 #define DTFFT_TRANSPOSE_IN CONF_DTFFT_TRANSPOSE_IN
 
 // Flags for transpose only plans
@@ -128,7 +129,7 @@ do {                                                                          \
 */
 // Create transpose only plan, no executor needed
 #define DTFFT_EXECUTOR_NONE CONF_DTFFT_EXECUTOR_NONE
-#ifndef DTFFT_WITHOUT_FFTW
+#ifdef DTFFT_WITH_FFTW
 // Use FFTW3
 #define DTFFT_EXECUTOR_FFTW3 CONF_DTFFT_EXECUTOR_FFTW3
 #endif
@@ -279,6 +280,8 @@ dtfft_execute(dtfft_plan plan, void *in, void *out, const int transpose_type, vo
   *                                   - `DTFFT_TRANSPOSE_Y_TO_X`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_Z` (3d plan only)
   *                                   - `DTFFT_TRANSPOSE_Z_TO_Y` (3d plan only)
+  *                                   - `DTFFT_TRANSPOSE_X_TO_Z` (3d plan only)
+  *                                   - `DTFFT_TRANSPOSE_Z_TO_X` (3d plan only)
   *
   * \return `DTFFT_SUCCESS` if plan was executed, error code otherwise
 */
@@ -309,11 +312,8 @@ dtfft_destroy(dtfft_plan *plan);
   * \param[out]     out_starts      Starts of local portion of data in 'fourier' space in reversed order
   * \param[out]     out_counts      Sizes  of local portion of data in 'fourier' space in reversed order
   * \param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
-  *
   *                                   - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
-  *
   *                                   - R2R plan: `alloc_size` * sizeof(double/float)
-  *
   *                                   - R2C plan: `alloc_size` * sizeof(double/float)
   * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
@@ -328,11 +328,8 @@ dtfft_get_local_sizes(dtfft_plan plan, int *in_starts, int *in_counts, int *out_
   *
   * \param[in]      plan            Plan handle
   * \param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers:
-  *
   *                                   - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
-  *
   *                                   - R2R plan: `alloc_size` * sizeof(double/float)
-  *
   *                                   - R2C plan: `alloc_size` * sizeof(double/float)
   * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */

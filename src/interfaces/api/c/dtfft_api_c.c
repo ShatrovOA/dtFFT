@@ -19,7 +19,6 @@
 
 #include <mpi.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #include <dtfft.h>
 #include <dtfft_api.h>

@@ -1,7 +1,7 @@
 # dtFFT -  DataTyped Fast Fourier Transform
 
 [![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
-![Build Status](https://github.com/ShatrovOA/dtFFT/actions/workflows/main.yml/badge.svg)
+[![dtfft workflow](https://github.com/ShatrovOA/dtFFT/actions/workflows/main.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/ShatrovOA/dtFFT/graph/badge.svg?token=6BI4AQVH7Z)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
 
@@ -60,7 +60,7 @@ To build this library modern (2008+) Fortran compiler is required. This library 
 
 | Option   | Possible values | Default value | Description |
 | -------- | ------- | -------- | ------- |
-| DTFFT_WITHOUT_FFTW | on / off | off | Build dtFFT without FFTW support. When `OFF` user need to set `FFTWDIR` environmental variable in order to find FFTW3. Both single and double precision versions are required |
+| DTFFT_WITH_FFTW | on / off | off | Build dtFFT with FFTW support. When enabled user need to set `FFTWDIR` environmental variable in order to find FFTW3 located in custom directory. Both single and double precision versions of library are required |
 | DTFFT_WITH_MKL | on / off | off | Build dtFFT with MKL DFTI support |
 | DTFFT_BUILD_TESTS | on / off | off | Build tests |
 | DTFFT_ENABLE_COVERAGE | on / off | off | Build coverage of library. Only possible with gfortran |
@@ -68,7 +68,7 @@ To build this library modern (2008+) Fortran compiler is required. This library 
 | DTFFT_USE_MPI | on / off | on | Use Fortran `mpi` module instead of `mpi_f08` |
 | DTFFT_BUILD_C_CXX_API | on / off | on | Build C/C++ API |
 | DTFFT_ENABLE_PERSISTENT_COMM | on / off | off | In case you are planning to execute plan multiple times then it can be very beneficial to use persistent communications. But user must aware that such communications are created at first call to `execute` or `transpose` subroutines and pointers are saved internally inside MPI. All other plan executions will use those pointers. Take care not to free them. |
-| DTFFT_WITH_CALIPER | on / off | off | Enable library profiler via Caliper. Additional parameter is required to find caliper: `Dcaliper_DIR` |
+| DTFFT_WITH_CALIPER | on / off | off | Enable library profiler via Caliper. Additional parameter is required to find caliper: `caliper_DIR` |
 | DTFFT_MEASURE_ITERS | positive integer | 2 | Number of iterations to run in order to find best plan when passing `DTFFT_MEASURE` or `DTFFT_PATIENT` to effort_flag parameter during plan creation |
 | DTFFT_FORWARD_X_Y | 1 / 2 | 2 | Default id of transposition plan for X -> Y transpose which will be used if plan created with `DTFFT_ESTIMATE` and `DTFFT_MEASURE` effort_flags |
 | DTFFT_BACKWARD_X_Y | 1 / 2 | 2 | Default id of transposition plan for Y -> X transpose which will be used if plan created with `DTFFT_ESTIMATE` and `DTFFT_MEASURE` effort_flags |

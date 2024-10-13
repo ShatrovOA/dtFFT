@@ -48,7 +48,7 @@ implicit none
 
 ! #ifdef DTFFT_WITH_KFR
 !   executor_type = DTFFT_EXECUTOR_KFR
-#if !defined(DTFFT_WITHOUT_FFTW)
+#if defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
 #else
   executor_type = DTFFT_EXECUTOR_NONE

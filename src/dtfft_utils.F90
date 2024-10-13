@@ -15,9 +15,9 @@ private
 public :: dtfft_string_f2c, dtfft_astring_f2c
 public :: int_to_str, double_to_str
 public :: write_debug, dtfft_init
-public :: suppress_unused
 public :: get_inverse_kind
 #ifdef DTFFT_WITH_CUDA
+public :: suppress_unused
 public :: cufftGetErrorString
 public :: CUFFT_SUCCESS
 public :: dtfft_get_stream, dtfft_set_stream
@@ -98,13 +98,6 @@ contains
     allocate( string, source= trim(adjustl(temp)))
   end function double_to_str
 
-  ! Suppress warnings from linter
-  subroutine suppress_unused(x)
-    type(*)   :: x(..)
-    integer   :: i_size(1)
-    i_size = shape(x)
-  end subroutine suppress_unused
-
   subroutine write_debug(msg)
     character(len=*), intent(in)  :: msg
     integer(IP) :: comm_rank, ierr
@@ -138,6 +131,13 @@ contains
   end function get_inverse_kind
 
 #ifdef DTFFT_WITH_CUDA
+  ! Suppress warnings from linter
+  subroutine suppress_unused(x)
+    type(*)   :: x(..)
+    integer   :: i_size(1)
+    i_size = shape(x)
+  end subroutine suppress_unused
+
   integer(cuda_stream_kind) function dtfft_get_stream()
     integer :: ierr
     if (.not.is_stream_created) then
