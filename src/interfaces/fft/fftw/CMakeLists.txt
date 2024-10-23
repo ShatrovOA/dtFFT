@@ -3,7 +3,7 @@ SET( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake" )
 find_package(FFTW REQUIRED COMPONENTS FLOAT_LIB DOUBLE_LIB)
 
 target_include_directories(dtfft PRIVATE ${FFTW_INCLUDE_DIRS})
-target_link_libraries(dtfft ${FFTW_DOUBLE_LIB} ${FFTW_FLOAT_LIB})
+target_link_libraries(dtfft PRIVATE ${FFTW_DOUBLE_LIB} ${FFTW_FLOAT_LIB})
 
 target_sources(dtfft PRIVATE
   dtfft_executor_fftw_m.F90

@@ -12,7 +12,7 @@ message(STATUS "Imported oneMKL targets: ${MKL_IMPORTED_TARGETS}")
 
 target_compile_options(dtfft PRIVATE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
 target_include_directories(dtfft PRIVATE $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_libraries(dtfft $<LINK_ONLY:MKL::MKL>)
+target_link_libraries(dtfft PRIVATE $<LINK_ONLY:MKL::MKL>)
 
 
 target_sources(dtfft PRIVATE

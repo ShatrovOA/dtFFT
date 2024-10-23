@@ -40,8 +40,6 @@ else()
   endif()
   add_compile_definitions(DTFFT_USE_MPI)
 endif()
-include_directories($<$<COMPILE_LANGUAGE:Fortran>:${MPI_Fortran_MODULE_DIR}>)
-include_directories($<$<COMPILE_LANGUAGE:C,CXX>:${MPI_C_INCLUDE_DIRS}>)
 
 include(CheckFortranSourceCompiles)
 check_fortran_source_compiles("program test
@@ -75,10 +73,6 @@ endif()
 set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
 configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HEADER}" )
 
-include_directories($<$<COMPILE_LANGUAGE:Fortran>:${PROJECT_SOURCE_DIR}/src/include>)
-# include_directories($<$<COMPILE_LANGUAGE:C,CXX,Fortran>:${PROJECT_SOURCE_DIR}/include>)
-# include_directories(${PROJECT_SOURCE_DIR}/include>)
-include_directories(${PROJECT_BINARY_DIR})
 
 # if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
 #   target_compile_definitions(dtfft PRIVATE DTFFT_WITH_CUDA)
@@ -88,15 +82,22 @@ if(DTFFT_BUILD_SHARED)
 else()
   add_library(dtfft STATIC)
 endif()
+target_include_directories(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:${PROJECT_SOURCE_DIR}/src/include>)
+target_include_directories(dtfft PRIVATE ${PROJECT_BINARY_DIR})
+
+set(DTFFT_MODULE_DIR ${PROJECT_BINARY_DIR}/mod)
+set_target_properties(dtfft PROPERTIES Fortran_MODULE_DIRECTORY ${DTFFT_MODULE_DIR})
 set_target_properties(dtfft PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
 set(DTFFT_HEADER_DIR "${PROJECT_SOURCE_DIR}/include")
-SET(DTFFT_HEADERS "${PROJECT_BINARY_DIR}/mod/dtfft.mod;${DTFFT_HEADER_DIR}/dtfft.f03")
+SET(DTFFT_MODULE "${DTFFT_MODULE_DIR}/dtfft.mod")
+SET(DTFFT_HEADERS "${DTFFT_MODULE};${DTFFT_HEADER_DIR}/dtfft.f03")
+target_link_libraries(dtfft PRIVATE MPI::MPI_Fortran)
 if(DTFFT_BUILD_C_CXX_API)
   set(DTFFT_HEADERS "${DTFFT_HEADERS};${DTFFT_HEADER_DIR}/dtfft.h;${DTFFT_HEADER_DIR}/dtfft.hpp;${DTFFT_CONF_HEADER}")
-  target_link_libraries(dtfft ${MPI_CXX_LIBRARIES})
+  target_link_libraries(dtfft PRIVATE MPI::MPI_CXX)
 endif()
 set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
-target_include_directories(dtfft  INTERFACE $<INSTALL_INTERFACE:include> )
+target_include_directories(dtfft INTERFACE $<INSTALL_INTERFACE:include>)
 
 set(DTFFT_MEASURE_ITERS "2" CACHE STRING "Number of iterations to run in order to find best grid decomposition
                                           when passing DTFFT_MEASURE or DTFFT_PATIENT to effort_flag parameter
@@ -145,7 +146,7 @@ if ( DTFFT_WITH_CALIPER )
   find_package( caliper REQUIRED )
   message(STATUS "Found caliper: ${caliper_DIR}")
   target_compile_definitions(dtfft PRIVATE DTFFT_WITH_CALIPER)
-  target_link_libraries(dtfft caliper)
+  target_link_libraries(dtfft PRIVATE caliper)
 endif()
 
 
@@ -188,7 +189,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
       COMMAND mv "${CMAKE_BINARY_DIR}/*.gcov" "${PROJECT_SOURCE_DIR}/"
     )
 
-    target_link_libraries(dtfft gcov)
+    target_link_libraries(dtfft PRIVATE gcov)
     set_target_properties(dtfft
       PROPERTIES
       COMPILE_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage"
