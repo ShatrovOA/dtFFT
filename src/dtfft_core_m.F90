@@ -1023,7 +1023,7 @@ contains
     endif
     if ( self%executor_type == DTFFT_EXECUTOR_NONE ) self%is_transpose_plan = .true.
 
-    if ( present(kinds) ) then
+    if ( present(kinds) .and. .not. self%is_transpose_plan ) then
       do dim = 1, self%ndims
         if ( .not.any([(kinds(dim) == VALID_R2R_FFTS)]) ) then
           check_create_args = DTFFT_ERROR_INVALID_R2R_KINDS
