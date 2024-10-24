@@ -17,20 +17,21 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <complex.h>
 #include <dtfft.h>
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
   dtfft_plan plan;
-  int nx = 35, ny = 41, nz = 55;
+  int nx = 16, ny = 32, nz = 70;
   double *in, *check;
-  dtfft_complex *out, *work;
+  dtfft_complex *out;
   int i, comm_rank, comm_size;
-  int in_counts[3], out_counts[3];
+  int in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -47,28 +48,42 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
+#ifdef DTFFT_WITH_MKL
+  int executor_type = DTFFT_EXECUTOR_MKL;
+#elif defined(DTFFT_WITH_VKFFT)
+  int executor_type = DTFFT_EXECUTOR_VKFFT;
+#elif defined (DTFFT_WITH_FFTW)
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  if(comm_rank == 0) {
+    printf("No available executors found, skipping test...\n");
+  }
+  MPI_Finalize();
+  return 0;
+
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
   // Create plan
-  plan = dtfft_create_plan_r2c_3d(MPI_COMM_WORLD, nz, ny, nx, DTFFT_ESTIMATE, DTFFT_EXECUTOR_FFTW3);
+  DTFFT_CALL( dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type, &plan) )
 
   // Get local sizes
-  int alloc_size = dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
+  size_t alloc_size;
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
 
   // Allocate buffers
-  in = (double*) malloc(sizeof(double) * in_counts[0] * in_counts[1] * in_counts[2]);
-  out = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size);
-  check = (double*) malloc(sizeof(double) * in_counts[0] * in_counts[1] * in_counts[2]);
+  in = (double*) malloc(sizeof(double) * alloc_size);
+  out = (dtfft_complex*) malloc(sizeof(double) * alloc_size);
+  check = (double*) malloc(sizeof(double) * alloc_size);
+  // Allocate work buffer
+  dtfft_complex *aux = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size);
 
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
     in[i] = check[i] =  1.0;
   }
 
-  // Allocate work buffer
-  int work_size = dtfft_get_worker_size(plan, NULL, NULL);
-  work = (dtfft_complex*) malloc(sizeof(dtfft_complex) * work_size);
-
-  // Forward (DTFFT_TRANSPOSE_OUT) transpose
+  // Forward transpose
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute_r2c(plan, in, out, work);
+  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux);
   tf += MPI_Wtime();
 
   // Clean input buffer for possible error check
@@ -77,14 +92,13 @@ int main(int argc, char *argv[])
   }
 
   // Normalize
-  for (i = 0; i < alloc_size; i++) {
-    out[i][0] /= (double) (nx * ny * nz);
-    out[i][1] /= (double) (nx * ny * nz);
+  for (i = 0; i < out_counts[0] * out_counts[1] * out_counts[2]; i++) {
+    out[i] /= (double) (nx * ny * nz);
   }
 
-  // Backward (DTFFT_TRANSPOSE_IN) transpose
+  // Backward transpose
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute_c2r(plan, out, in, work);
+  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux);
   tb += MPI_Wtime();
 
   double t_sum;
@@ -101,31 +115,33 @@ int main(int argc, char *argv[])
   }
 
   // Check error
-  double err = -1.0, temp, max_error;
+  double local_error = -1.0;
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
-    temp = fabs(check[i] - in[i]);
-    if (temp > err) err = temp;
+    double error = fabs(check[i] - in[i]);
+    local_error = error > local_error ? error : local_error;
   }
+  double global_error;
   // Find maximum error
-  MPI_Allreduce(&err, &max_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
   if(comm_rank == 0) {
-    if(max_error < 1e-10) {
+    if(global_error < 1e-10) {
       printf("Test 'r2c_3d_c' PASSED!\n");
     } else {
-      printf("Test 'r2c_3d_c' FAILED, error = %E\n", max_error);
+      printf("Test 'r2c_3d_c' FAILED, error = %E\n", global_error);
+      return -1;
     }
     printf("----------------------------------------\n");
   }
-  
+
   // Destroy plan
-  dtfft_destroy(plan);
+  dtfft_destroy(&plan);
 
   // Deallocate buffers
   free(in);
   free(out);
-  free(work);
+  free(aux);
   free(check);
-  
+
   MPI_Finalize();
   return 0;
 }

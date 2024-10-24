@@ -16,23 +16,25 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 program test_c2c_2d
 use iso_fortran_env, only: R8P => real64, I4P => int32, output_unit, error_unit
 use dtfft
-use mpi_f08
-use iso_c_binding
+#include "dtfft_mpi.h"
+#include "dtfft.f03"
 implicit none
   complex(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R8P) :: err, max_error, rnd1, rnd2 
-  integer(I4P), parameter :: nx = 345, ny = 401
-  integer(I4P) :: comm_size, comm_rank, i, j
-  type(dtfft_plan_c2c_2d) :: plan
+  real(R8P) :: local_error, global_error, rnd1, rnd2
+  integer(I4P), parameter :: nx = 12, ny = 12
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
-  
-  call MPI_Init()
-  call MPI_Comm_size(MPI_COMM_WORLD, comm_size)
-  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank)
+  integer(I4P) :: executor_type = DTFFT_EXECUTOR_NONE
+
+  call MPI_Init(ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+  call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
@@ -43,68 +45,74 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  call plan%create(MPI_COMM_WORLD, nx, ny, executor_type=DTFFT_EXECUTOR_FFTW3)
+#if defined(DTFFT_WITH_MKL)
+  executor_type = DTFFT_EXECUTOR_MKL
+! #elif defined(DTFFT_WITH_KFR)
+!   executor_type = DTFFT_EXECUTOR_KFR
+#elif defined (DTFFT_WITH_FFTW)
+  executor_type = DTFFT_EXECUTOR_FFTW3
+#endif
 
-  call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
+  call plan%create([nx, ny], effort_flag=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
 
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,       &
-              in_starts(2):in_starts(2) + in_counts(2) - 1),      &
-              source = (0._R8P, 0._R8P))
+              in_starts(2):in_starts(2) + in_counts(2) - 1))
 
   allocate(check, source = in)
 
   allocate(out(out_starts(1):out_starts(1) + out_counts(1) - 1,    &
-                out_starts(2):out_starts(2) + out_counts(2) - 1),  &
-                source = (-1._R8P, -1._R8P))
+                out_starts(2):out_starts(2) + out_counts(2) - 1))
 
   do j = in_starts(2), in_starts(2) + in_counts(2) - 1
     do i = in_starts(1), in_starts(1) + in_counts(1) - 1
       call random_number(rnd1)
       call random_number(rnd2)
-      in(i,j) = cmplx(comm_rank, comm_rank)
+      in(i,j) = cmplx(rnd1, rnd2, kind=R8P)
       check(i,j) = in(i,j)
     enddo
   enddo
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
+  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, error_code=ierr); DTFFT_CHECK(ierr)
   tf = tf + MPI_Wtime()
-
+#ifndef DTFFT_TRANSPOSE_ONLY
   out(:,:) = out(:,:) / real(nx * ny, R8P)
-
-  ! Nullify recv buffer
+#endif
+  ! Clear recv buffer
   in = (-1._R8P, -1._R8P)
 
 
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
+  call plan%execute(out, in, DTFFT_TRANSPOSE_IN, error_code=ierr); DTFFT_CHECK(ierr)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD)
+  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tb = t_sum / real(comm_size, R8P)
 
-  if(comm_rank == 0) then 
+  if(comm_rank == 0) then
     write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
     write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-  err = maxval(abs(in - check))
+  local_error = maxval(abs(in - check))
 
-  call MPI_Allreduce(err, max_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD)
+  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
   if(comm_rank == 0) then
-    if(max_error < 1.d-10) then
+    if(global_error < 1.d-10) then
       write(output_unit, '(a)') "Test 'c2c_2d' PASSED!"
     else
-      write(error_unit, '(a, f16.10)') "Test 'c2c_2d' FAILED... error = ", max_error
+      write(error_unit, '(a, f16.10)') "Test 'c2c_2d' FAILED... error = ", global_error
+      error stop
     endif
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
   deallocate(in, out, check)
 
-  call plan%destroy()
-  call MPI_Finalize()
+  call plan%destroy(error_code=ierr); DTFFT_CHECK(ierr)
+  call MPI_Finalize(ierr)
 end program test_c2c_2d

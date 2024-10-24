@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_info_m
 !------------------------------------------------------------------------------------------------
-!< This module describes [[info_t]] class
+!< This module describes `info_t` class
 !------------------------------------------------------------------------------------------------
 use dtfft_precisions
 #include "dtfft_mpi.h"
@@ -32,15 +32,13 @@ public :: info_t
     integer(IP)               :: rank             !< Rank of buffer: 2 or 3
     integer(IP), allocatable  :: starts(:)        !< Local starts, starting from 0 for both C and Fortran
     integer(IP), allocatable  :: counts(:)        !< Local counts of data
-    integer(IP)               :: how_many         !< How many transforms should be planned
     logical                   :: is_even          !< Is data evenly distributed across processes
   contains
     procedure, pass(self) :: init                 !< Creates class
     procedure, pass(self) :: destroy              !< Destroys class
   end type info_t
 
-  contains
-
+contains
 !------------------------------------------------------------------------------------------------
   subroutine init(self, rank, aligned_dim, counts, comms, comm_dims, comm_coords)
 !------------------------------------------------------------------------------------------------
@@ -54,20 +52,19 @@ public :: info_t
     integer(IP),        intent(in)    :: comm_dims(:)     !< Grid dimensions
     integer(IP),        intent(in)    :: comm_coords(:)   !< Grid coordinates
     integer(IP)                       :: d                !< Counter
-    logical                           :: is_even          !< Even distribution flag
+    logical, allocatable              :: is_even(:)       !< Even distribution flag
 
     call self%destroy()
-    allocate(self%counts(rank), source=0_IP)
-    allocate(self%starts(rank), source=0_IP)
-
+    allocate(self%counts(rank))
+    allocate(self%starts(rank))
+    allocate(is_even(rank))
     self%aligned_dim = aligned_dim
     self%rank = rank
-    self%is_even = .true.
     do d = 1, rank
-      call get_local_size(counts(d), comms(d), comm_dims(d), comm_coords(d), self%starts(d), self%counts(d), is_even)
-      if(.not. is_even) self%is_even = is_even
+      call get_local_size(counts(d), comms(d), comm_dims(d), comm_coords(d), self%starts(d), self%counts(d), is_even(d))
     enddo
-    self%how_many = product(self%counts) / self%counts(1)
+    self%is_even = all(is_even)
+    deallocate(is_even)
   end subroutine init
 
 !------------------------------------------------------------------------------------------------
@@ -77,8 +74,8 @@ public :: info_t
 !------------------------------------------------------------------------------------------------
     class(info_t),  intent(inout) :: self                 !< Info class
 
-    if(allocated(self%counts)) deallocate(self%counts)
-    if(allocated(self%starts)) deallocate(self%starts)
+    if ( allocated(self%counts) ) deallocate(self%counts)
+    if ( allocated(self%starts) ) deallocate(self%starts)
   end subroutine destroy
 
 !------------------------------------------------------------------------------------------------
@@ -96,21 +93,22 @@ public :: info_t
     integer(IP)                   :: shift(comm_dim)      !< Work buffer
     integer(IP)                   :: res                  !< Residual from n_global / comm_dim
     integer(IP)                   :: i                    !< Counter
+    integer(IP)                   :: ierr
 
     res = mod(n_global, comm_dim)
     start = 0
 
-    if(comm_dim == 1) then
+    if ( comm_dim == 1 ) then
       count = n_global
       is_even = .true.
       return
-    elseif(comm_coord >= comm_dim - res) then
+    elseif ( comm_coord >= comm_dim - res ) then
       count = int(n_global / comm_dim, IP) + 1
     else
       count = int(n_global / comm_dim, IP)
     endif
-    call MPI_Allgather(count, 1, MPI_INTEGER, shift, 1, MPI_INTEGER, comm, IERROR)
-  
+    call MPI_Allgather(count, 1, MPI_INTEGER, shift, 1, MPI_INTEGER, comm, ierr)
+
     do i = 0, comm_coord - 1
       start = start + shift(i + 1)
     end do

@@ -20,15 +20,17 @@ module dtfft_precisions
 !------------------------------------------------------------------------------------------------
 !< This module defines DTFFT precisions
 !------------------------------------------------------------------------------------------------
-use iso_c_binding
+use iso_c_binding, only: c_int, c_size_t, c_float, c_double, c_float_complex, c_double_complex
 implicit none
-private  
+private
 
 !------------------------------------------------------------------------------------------------
 ! Integer types
 !------------------------------------------------------------------------------------------------
   integer, public, parameter  :: IP  = C_INT
   !< Integer, 4 bytes
+  integer, public, parameter  :: SP  = C_SIZE_T
+  !< Integer, 4 bytes on 32 bit machine, 8 bytes on 64 bit machine
 
 !------------------------------------------------------------------------------------------------
 ! Real types
@@ -37,7 +39,7 @@ private
   !< Float, 4 bytes
   integer, public, parameter  :: R8P = C_DOUBLE
   !< Float, 8 bytes
-  
+
 !------------------------------------------------------------------------------------------------
 ! Complex types
 !------------------------------------------------------------------------------------------------
@@ -45,8 +47,4 @@ private
   !< Complex, 2x4 bytes = 8 bytes
   integer, public, parameter  :: C8P = C_DOUBLE_COMPLEX
   !< Complex, 2x8 bytes = 16 bytes
-
-
-  integer, public             :: IERROR
-  !< Globally defined error flag
 end module dtfft_precisions

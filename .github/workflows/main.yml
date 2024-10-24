@@ -1,0 +1,67 @@
+name: dtfft workflow
+
+on: [push]
+jobs:
+  open_mpi:
+    name: Open MPI with Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Requirements
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get -q update
+          sudo apt-get -y install gfortran-10
+          sudo apt-get install libopenmpi-dev openmpi-bin
+          sudo apt-get install libfftw3-dev
+          export CTEST_OUTPUT_ON_FAILURE=1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create Build Directory
+        run: mkdir build
+      - name: Setup and run tests
+        working-directory: ./build
+        run: |
+          cmake -DCMAKE_C_COMPILER=gcc-10 \
+            -DCMAKE_CXX_COMPILER=g++-10 \
+            -DCMAKE_Fortran_COMPILER=gfortran-10 \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_WITH_FFTW=on \
+            -DDTFFT_MPI_VENDOR=openmpi \
+            -DDTFFT_BUILD_C_CXX_API=on ..
+          make
+          make coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  mpich_persistent:
+    name: MPICH with persistent communications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Requirements
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get -q update
+          sudo apt-get -y install gfortran-12
+          sudo apt-get install mpich libmpich-dev
+          sudo apt-get install libfftw3-dev
+          export CTEST_OUTPUT_ON_FAILURE=1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create Build Directory
+        run: mkdir build
+      - name: Setup and run tests
+        working-directory: ./build
+        run: |
+          cmake -DCMAKE_C_COMPILER=gcc-12 \
+            -DCMAKE_CXX_COMPILER=g++-12 \
+            -DCMAKE_Fortran_COMPILER=gfortran-12 \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_WITH_FFTW=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_C_CXX_API=on ..
+          make
+          make coverage

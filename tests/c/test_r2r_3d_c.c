@@ -19,20 +19,17 @@
 
 #include <dtfft.h>
 #include <mpi.h>
-#include <fftw3.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
-int main(int argc, char *argv[]) {
-
-  dtfft_plan plan;
-  int nx = 128, ny = 64, nz = 256;
-  double *in, *out, *check, m_err, temp;
-  int i,j,k, comm_rank, comm_size;
-  int in_counts[3], out_counts[3];
-  int f_kinds[3] = {FFTW_REDFT10, FFTW_REDFT10, FFTW_REDFT10};
-  int b_kinds[3] = {FFTW_REDFT01, FFTW_REDFT01, FFTW_REDFT01}; 
+int main(int argc, char *argv[]) 
+{
+  int nx = 16, ny = 64, nz = 4;
+  double *in, *out, *check, *aux;
+  int i, comm_rank, comm_size;
+  int in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
+  int kinds[3] = {DTFFT_DCT_1, DTFFT_DCT_1, DTFFT_DCT_4};
 
 
   // MPI_Init must be called before calling dtFFT
@@ -49,30 +46,42 @@ int main(int argc, char *argv[]) {
     printf("----------------------------------------\n");
   }
 
+#ifdef DTFFT_WITH_FFTW
+  int executor_type = DTFFT_EXECUTOR_FFTW3;
+#else
+  int executor_type = DTFFT_EXECUTOR_NONE;
+#endif
+
   // Create plan
-  plan = dtfft_create_plan_r2r_3d(MPI_COMM_WORLD, nz, ny, nx, f_kinds, b_kinds, DTFFT_PATIENT, DTFFT_EXECUTOR_FFTW3);
+  dtfft_plan plan;
 
-  dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts);
+  DTFFT_CALL( dtfft_create_plan_r2r(3, n, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
 
-  in = (double*) malloc(sizeof(double) * in_counts[0] * in_counts[1] * in_counts[2]);
-  out = (double*) malloc(sizeof(double) * out_counts[0] * out_counts[1] * out_counts[2]);
-  check = (double*) malloc(sizeof(double) * in_counts[0] * in_counts[1] * in_counts[2]);
+  size_t alloc_size;
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+
+  in = (double*) malloc(sizeof(double) * alloc_size);
+  out = (double*) malloc(sizeof(double) * alloc_size);
+  check = (double*) malloc(sizeof(double) * alloc_size);
+  aux = (double*) malloc(sizeof(double) * alloc_size);
 
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++)
-    in[i] = check[i] = 44; 
+    in[i] = check[i] = 44.0;
 
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute_r2r(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
+  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux);
   tf += MPI_Wtime();
 
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++)
     in[i] = -2;
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   for (i = 0; i < out_counts[0] * out_counts[1] * out_counts[2]; i++)
-    out[i] /= (double) (8 * nx * ny * nz);
+    out[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
+#endif
 
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute_r2r(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
+  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux);
   tb += MPI_Wtime();
 
   double t_sum;
@@ -87,27 +96,32 @@ int main(int argc, char *argv[]) {
     printf("----------------------------------------\n");
   }
 
-  m_err = -1.0;
+  double local_error = -1.0;
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
-    temp = fabs(check[i] - in[i]);
-    if (temp > m_err) m_err = temp;
+    double error = fabs(check[i] - in[i]);
+    local_error = error > local_error ? error : local_error;
   }
 
-  MPI_Allreduce(&m_err, &m_err, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  double global_error;
+  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
-  
+
   if(comm_rank == 0) {
-    if(m_err < 1e-10) {
+    if(global_error < 1e-10) {
       printf("Test 'r2r_3d_c' PASSED!\n");
     } else {
-      printf("Test 'r2r_3d_c' FAILED, error = %f\n", m_err);
+      printf("Test 'r2r_3d_c' FAILED, error = %f\n", global_error);
       return -1;
     }
     printf("----------------------------------------\n");
   }
-  
-  dtfft_destroy(plan);
-  
+
+  dtfft_destroy(&plan);
+  free(in);
+  free(check);
+  free(out);
+  free(aux);
+
   MPI_Finalize();
   return 0;
 }
