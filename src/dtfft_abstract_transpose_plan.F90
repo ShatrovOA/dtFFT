@@ -152,7 +152,9 @@ contains
         deallocate(temp_dims, temp_periods, temp_coords)
 
         do d = 2, ndims
-          if ( comm_dims(d) > dims(d) ) WRITE_WARN("Number of MPI processes in direction "//int_to_str(d)//" greater then number of physical points: "//int_to_str(comm_dims(d))//" > "//int_to_str(dims(d)))
+          if ( comm_dims(d) > dims(d) ) then
+            WRITE_WARN("Number of MPI processes in direction "//int_to_str(d)//" greater then number of physical points: "//int_to_str(comm_dims(d))//" > "//int_to_str(dims(d)))
+          endif
         enddo
         if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab_enabled() ) then
           self%is_z_slab = .true.
