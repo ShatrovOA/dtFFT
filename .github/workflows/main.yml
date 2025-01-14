@@ -13,7 +13,6 @@ jobs:
           sudo apt-get -y install gfortran-14
           sudo apt-get install libopenmpi-dev openmpi-bin
           sudo apt-get install libfftw3-dev
-          export CTEST_OUTPUT_ON_FAILURE=1
       - name: Checkout
         uses: actions/checkout@v4
       - name: Create Build Directory
@@ -30,7 +29,7 @@ jobs:
             -DDTFFT_MPI_VENDOR=openmpi \
             -DDTFFT_BUILD_C_CXX_API=on ..
           make
-          make coverage
+          CTEST_OUTPUT_ON_FAILURE=1 make coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -47,7 +46,6 @@ jobs:
           sudo apt-get -y install gfortran-12
           sudo apt-get install mpich libmpich-dev
           sudo apt-get install libfftw3-dev
-          export CTEST_OUTPUT_ON_FAILURE=1
       - name: Checkout
         uses: actions/checkout@v4
       - name: Create Build Directory
@@ -64,4 +62,4 @@ jobs:
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_C_CXX_API=on ..
           make
-          make coverage
+          CTEST_OUTPUT_ON_FAILURE=1 make coverage
