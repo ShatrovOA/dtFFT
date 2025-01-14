@@ -10,7 +10,7 @@ jobs:
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get -q update
-          sudo apt-get -y install gfortran-10
+          sudo apt-get -y install gfortran-14
           sudo apt-get install libopenmpi-dev openmpi-bin
           sudo apt-get install libfftw3-dev
           export CTEST_OUTPUT_ON_FAILURE=1
@@ -21,9 +21,9 @@ jobs:
       - name: Setup and run tests
         working-directory: ./build
         run: |
-          cmake -DCMAKE_C_COMPILER=gcc-10 \
-            -DCMAKE_CXX_COMPILER=g++-10 \
-            -DCMAKE_Fortran_COMPILER=gfortran-10 \
+          cmake -DCMAKE_C_COMPILER=gcc-14 \
+            -DCMAKE_CXX_COMPILER=g++-14 \
+            -DCMAKE_Fortran_COMPILER=gfortran-14 \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_RUNNING_CICD=on \
             -DDTFFT_WITH_FFTW=on \
