@@ -18,22 +18,21 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft
-!------------------------------------------------------------------------------------------------
-!< Main DTFFT module. Should be used in a Fortran program.
-!------------------------------------------------------------------------------------------------
+!! Main DTFFT module. Should be used in a Fortran program.
 use dtfft_parameters
-use dtfft_core_m
+use dtfft_plan
 use dtfft_utils
 implicit none
 private
 
 ! Plans
-public :: dtfft_core,                                               &
+public :: dtfft_abstract_plan,                                      &
           dtfft_plan_c2c,                                           &
           dtfft_plan_r2c,                                           &
           dtfft_plan_r2r
 
 public :: dtfft_get_error_string
+public :: dtfft_enable_z_slab, dtfft_disable_z_slab
 
 ! Transpose types
 public :: DTFFT_TRANSPOSE_OUT,                                      &
@@ -48,19 +47,16 @@ public :: DTFFT_TRANSPOSE_OUT,                                      &
 ! 1d FFT External Executor types
 public :: DTFFT_EXECUTOR_NONE
 #ifdef DTFFT_WITH_FFTW
-public  :: DTFFT_EXECUTOR_FFTW3
+public :: DTFFT_EXECUTOR_FFTW3
 #endif
 #ifdef DTFFT_WITH_MKL
-public  :: DTFFT_EXECUTOR_MKL
+public :: DTFFT_EXECUTOR_MKL
 #endif
 #ifdef DTFFT_WITH_CUFFT
-public  :: DTFFT_EXECUTOR_CUFFT
+public :: DTFFT_EXECUTOR_CUFFT
 #endif
-! #ifdef DTFFT_WITH_KFR
-! public  :: DTFFT_EXECUTOR_KFR
-! #endif
 #ifdef DTFFT_WITH_VKFFT
-public  :: DTFFT_EXECUTOR_VKFFT
+public :: DTFFT_EXECUTOR_VKFFT
 #endif
 
 ! Effort flags
@@ -83,4 +79,21 @@ public :: DTFFT_DCT_1,                                              &
           DTFFT_DST_4
 
 public :: DTFFT_SUCCESS
+
+#ifdef DTFFT_WITH_CUDA
+
+public :: DTFFT_GPU_BACKEND_MPI_DATATYPE
+public :: DTFFT_GPU_BACKEND_MPI_P2P
+public :: DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED
+public :: DTFFT_GPU_BACKEND_MPI_A2A
+public :: DTFFT_GPU_BACKEND_NCCL
+public :: DTFFT_GPU_BACKEND_NCCL_PIPELINED
+! public :: DTFFT_GPU_BACKEND_CUFFTMP
+
+public :: dtfft_get_gpu_backend_string
+public :: dtfft_set_stream
+public :: dtfft_set_gpu_backend
+public :: dtfft_enable_pipelined_backends, dtfft_disable_pipelined_backends
+public :: dtfft_enable_mpi_backends, dtfft_disable_mpi_backends
+#endif
 end module dtfft

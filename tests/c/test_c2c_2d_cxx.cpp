@@ -22,7 +22,7 @@
 #include <math.h>
 #include <iostream>
 #include <complex>
-#include <vector>
+#include "test_utils.h"
 
 using namespace std;
 
@@ -34,7 +34,11 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-  int nx = 313, ny = 44;
+#ifdef DTFFT_WITH_CUDA
+  int32_t nx = 31334, ny = 44;
+#else
+  int32_t nx = 313, ny = 44;
+#endif
 
   if(comm_rank == 0) {
     cout << "----------------------------------------" << endl;
@@ -44,36 +48,57 @@ int main(int argc, char *argv[])
     cout << "Number of processors: " << comm_size      << endl;
     cout << "----------------------------------------" << endl;
   }
+
+  assign_device_to_process();
+
   // Create plan
-  const vector<int> dims = {ny, nx};
+  const vector<int32_t> dims = {ny, nx};
   dtfft::PlanC2C plan = dtfft::PlanC2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE);
 
-  int local_size[2];
-  size_t alloc_size;
-  plan.get_alloc_size(&alloc_size);
-  plan.get_local_sizes(NULL, local_size);
+  int32_t in_sizes[2], out_sizes[2];
+  int64_t alloc_size;
+  plan.get_local_sizes(NULL, in_sizes, NULL, out_sizes, &alloc_size);
 
-  size_t in_size = local_size[0] * local_size[1];
+  size_t in_size = in_sizes[0] * in_sizes[1];
+  size_t out_size = out_sizes[0] * out_sizes[1];
 
-  vector<complex<double>> in(alloc_size),
-                          out(alloc_size),
-                          check(alloc_size);
+  complex<double> *in = new complex<double>[alloc_size];
+  complex<double> *out = new complex<double>[alloc_size];
+  complex<double> *check = new complex<double>[in_size];
 
-
-  for (size_t i = 0; i < in_size; i++) {
+  for (size_t j = 0; j < in_size; j++) {
     double real = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
     double cmplx = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-    in[i] = (complex<double>) (real, cmplx);
-    check[i] = in[i];
+    in[j] = std::complex<double>{real, cmplx};
+    check[j] = in[j];
   }
 
+#pragma acc enter data copyin(in[0:alloc_size - 1]) create(out[0:alloc_size - 1])
+
+  double tf = 0.0 - MPI_Wtime();
+#pragma acc host_data use_device(in, out)
   DTFFT_CALL( plan.transpose(in, out, DTFFT_TRANSPOSE_X_TO_Y) )
 
-  for ( auto & element: in) {
-    element = complex<double>(-1., -1.);
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+#endif
+  tf += MPI_Wtime();
+
+#pragma acc parallel loop present(in)
+  for ( size_t i = 0; i < out_size; i++) {
+    in[i] = complex<double>{-1., -1.};
   }
 
-  plan.transpose(out, in, DTFFT_TRANSPOSE_Y_TO_X);
+  double tb = 0.0 - MPI_Wtime();
+#pragma acc host_data use_device(in, out)
+  DTFFT_CALL( plan.transpose(out, in, DTFFT_TRANSPOSE_Y_TO_X) )
+
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+#endif
+  tb += MPI_Wtime();
+
+#pragma acc update self(in[0:in_size-1])
 
   double local_error = -1.;
   for (size_t i = 0; i < in_size; i++) {
@@ -81,25 +106,20 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
-  double global_error;
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+#pragma acc exit data delete(in, out)
 
-  if(comm_rank == 0) {
-    if(global_error < 1e-10) {
-      cout << "Test 'c2c_2d_cxx' PASSED!" << endl;
-    } else {
-      cout << "Test 'c2c_2d_cxx' FAILED, error = " << global_error << endl;
-      return -1;
-    }
-    cout << "----------------------------------------" << endl;
-  }
+  delete[] in;
+  delete[] out;
+  delete[] check;
 
-  int error_code;
+  report_double(&nx, &ny, nullptr, local_error, tf, tb);
+
+  dtfft_error_code_t error_code;
   error_code = plan.destroy();
   std::cout << dtfft_get_error_string(error_code) << std::endl;
   // Should not catch any signal
   // Simply returning `DTFFT_ERROR_PLAN_NOT_CREATED`
-  error_code = plan.execute(NULL, NULL, -1);
+  error_code = plan.execute(NULL, NULL, (dtfft_execute_type_t)-1);
   std::cout << dtfft_get_error_string(error_code) << std::endl;
   MPI_Finalize();
   return 0;

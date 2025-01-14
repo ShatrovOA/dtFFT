@@ -26,11 +26,11 @@
 int main(int argc, char *argv[]) {
 
   dtfft_plan plan;
-  int nx = 32, ny = 32;
+  int32_t nx = 32, ny = 32;
   float *in, *out, *check;
   int i,j, comm_rank, comm_size;
-  int in_counts[2], out_counts[2], n[2] = {ny, nx};
-  int kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
+  int32_t in_counts[2], out_counts[2], n[2] = {ny, nx};
+  dtfft_r2r_kinds_t kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -48,9 +48,9 @@ int main(int argc, char *argv[]) {
   }
 
 #ifdef DTFFT_WITH_FFTW
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
-  int executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
 #endif
 
   // Create plan

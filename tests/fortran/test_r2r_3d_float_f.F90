@@ -18,18 +18,32 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_3d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, output_unit, error_unit
+use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit, int32
 use dtfft
+use dtfft_utils
+use test_utils
+#ifdef DTFFT_WITH_CUDA
+use cudafor
+#endif
 #include "dtfft_mpi.h"
+#include "dtfft_cuda.h"
+#include "dtfft.f03"
 implicit none
   real(R4P),  allocatable :: inout(:), check(:)
-  real(R4P) :: local_error, global_error, rnd
-  real(R4P) :: scaler
-  integer(I4P), parameter :: nx = 32, ny = 64, nz = 16
-  integer(I4P) :: comm_size, comm_rank, ierr, executor_type, in_counts(3), in_product
+#ifdef DTFFT_WITH_CUDA
+  real(R4P), managed, allocatable :: d_inout(:)
+#endif
+  real(R4P) :: local_error, rnd
+  integer(I4P), parameter :: nx = 512, ny = 64, nz = 16
+  integer(I4P) :: comm_size, comm_rank, ierr, in_counts(3), in_product
+  integer(I1P) :: executor_type
   type(dtfft_plan_r2r) :: plan
-  real(R8P) :: tf, tb, t_sum
+  real(R8P) :: tf, tb
   integer(I8P)  :: alloc_size, i
+#ifdef DTFFT_WITH_CUDA
+  integer(cuda_stream_kind) :: stream
+  integer(I4P) :: host_rank, host_size, num_devices
+#endif
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -43,18 +57,26 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
   endif
 
-! #ifdef DTFFT_WITH_KFR
-!   executor_type = DTFFT_EXECUTOR_KFR
-!   scaler = 8._R4P / real(nx * ny * nz, R4P)
-! #if defined (DTFFT_WITH_FFTW)
-!   executor_type = DTFFT_EXECUTOR_FFTW3
-!   scaler = 1._R4P / real(8 * (nx - 1) * ny * nz, R4P)
-! #else
   executor_type = DTFFT_EXECUTOR_NONE
-  scaler = 1._R4P
-! #endif
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type)
-  call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size)
+
+  call attach_gpu_to_process()
+
+#ifdef DTFFT_WITH_CUDA
+  call dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_NCCL_PIPELINED, error_code=ierr)
+  DTFFT_CHECK(ierr)
+  if(comm_rank == 0) then
+    write(output_unit, '(a)') "Using backend: "//dtfft_get_gpu_backend_string(DTFFT_GPU_BACKEND_NCCL_PIPELINED)
+  endif
+
+  CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(stream) )
+  call dtfft_set_stream(stream, error_code=ierr)
+  DTFFT_CHECK(ierr)
+#endif
+
+  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type, error_code=ierr)
+  DTFFT_CHECK(ierr)
+  call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size, error_code=ierr)
+  DTFFT_CHECK(ierr)
 
   in_product = product(in_counts)
   allocate(inout(alloc_size))
@@ -66,39 +88,41 @@ implicit none
     check(i) = inout(i)
   enddo
 
+#ifdef DTFFT_WITH_CUDA
+  allocate(d_inout(alloc_size))
+  d_inout(:) = inout(:)
+#endif
+
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT)
+#ifdef DTFFT_WITH_CUDA
+  call plan%execute(d_inout, d_inout, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+  CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+#else
+  call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+#endif
+  DTFFT_CHECK(ierr)
   tf = tf + MPI_Wtime()
 
-  inout = inout * scaler
-
   tb = 0.0_R8P - MPI_Wtime()
+#ifdef DTFFT_WITH_CUDA
+  call plan%execute(d_inout, d_inout, DTFFT_TRANSPOSE_IN, error_code=ierr)
+  CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+  inout(:) = d_inout(:)
+#else
   call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN)
+#endif
+  DTFFT_CHECK(ierr)
   tb = tb + MPI_Wtime()
-
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward transposition time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward transposition time: ", tb
-  endif
 
   local_error = maxval(abs(inout(:in_product) - check(:in_product)))
 
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
-  if(comm_rank == 0) then
-    if(global_error < 1.e-5) then
-      write(output_unit, '(a)') "Test 'r2r_3d_float' PASSED!"
-    else
-      write(error_unit, '(a, d16.5)') "Test 'r2r_3d_float' FAILED... error = ", global_error
-      error stop
-    endif
-  endif
+  call report("r2r_3d_float", tf, tb, local_error)
 
   deallocate(inout, check)
+#ifdef DTFFT_WITH_CUDA
+  deallocate(d_inout)
+  CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(stream) )
+#endif
 
   call plan%destroy()
   call MPI_Finalize(ierr)

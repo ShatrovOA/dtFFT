@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_2d
-use iso_fortran_env, only: R4P => real32, R8P => real64, I4P => int32, output_unit, error_unit
+use iso_fortran_env, only: R4P => real32, R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit
 use dtfft
 #include "dtfft_mpi.h"
 implicit none
@@ -29,7 +29,7 @@ implicit none
   type(dtfft_plan_r2r) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2), in_vals
   real(R8P) :: tf, tb, t_sum
-  integer(I4P) :: kinds(2), executor_type
+  integer(I1P) :: kinds(2), executor_type
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -45,9 +45,6 @@ implicit none
   endif
 
   kinds = DTFFT_DCT_1
-! #ifdef DTFFT_WITH_KFR
-!   executor_type = DTFFT_EXECUTOR_KFR
-!   scaler = 4._R8P / real(nx * ny, R8P)
 #if defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
   scaler = 1._R8P / real(4 * (nx - 1) * (ny - 1), R8P)

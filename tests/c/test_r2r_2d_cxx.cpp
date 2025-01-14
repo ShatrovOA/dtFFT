@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-  int nx = 19, ny = 44;
+  int32_t nx = 19, ny = 44;
 
   if(comm_rank == 0) {
     cout << "----------------------------------------" << endl;
@@ -47,18 +47,18 @@ int main(int argc, char *argv[])
   }
 
 // #ifdef DTFFT_WITH_FFTW
-//   int executor_type = DTFFT_EXECUTOR_FFTW3;
+//   dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
 // #elif defined(DTFFT_WITH_VKFFT)
-//   int executor_type = DTFFT_EXECUTOR_VKFFT;
+//   dtfft_executor_t executor_type = DTFFT_EXECUTOR_VKFFT;
 // #else
-  int executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
 // #endif
 
   // Create plan
-  vector<int> dims = {ny, nx};
-  vector<int> kinds = {};
+  vector<int32_t> dims = {ny, nx};
+  vector<dtfft_r2r_kinds_t> kinds = {};
   dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type);
-  size_t alloc_size;
+  int64_t alloc_size;
   plan.get_alloc_size(&alloc_size);
 
   vector<double> in(alloc_size),

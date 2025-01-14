@@ -15,7 +15,7 @@ MKL_LONG mkl_dfti_create_desc(int precision, int domain, long int dim, long int 
   return ierr;
 }
 
-MKL_LONG mkl_dfti_set_value(void *desc, int param, int value)
+MKL_LONG mkl_dfti_set_integer(void *desc, int param, int value)
 {
   return DftiSetValue(desc, param, value);
 }
@@ -37,16 +37,6 @@ MKL_LONG mkl_dfti_execute(void *desc, void *in, void *out, int sign)
   } else {
     return DftiComputeBackward(desc, in, out);
   }
-}
-
-MKL_LONG mkl_dfti_execute_forward(void *desc, void *in, void *out)
-{
-  return DftiComputeForward(desc, in, out);
-}
-
-MKL_LONG mkl_dfti_execute_backward(void *desc, void *in, void *out)
-{
-  return DftiComputeBackward(desc, in, out);
 }
 
 MKL_LONG mkl_dfti_free_desc(DFTI_DESCRIPTOR_HANDLE desc)

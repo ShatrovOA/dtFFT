@@ -25,11 +25,11 @@
 
 int main(int argc, char *argv[]) 
 {
-  int nx = 16, ny = 64, nz = 4;
+  int32_t nx = 4, ny = 64, nz = 16;
   double *in, *out, *check, *aux;
   int i, comm_rank, comm_size;
-  int in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
-  int kinds[3] = {DTFFT_DCT_1, DTFFT_DCT_1, DTFFT_DCT_4};
+  int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
+  dtfft_r2r_kinds_t kinds[3] = {DTFFT_DCT_1, DTFFT_DCT_1, DTFFT_DCT_4};
 
 
   // MPI_Init must be called before calling dtFFT
@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
   }
 
 #ifdef DTFFT_WITH_FFTW
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
-  int executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
 #endif
 
   // Create plan
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
   DTFFT_CALL( dtfft_create_plan_r2r(3, n, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
 
-  size_t alloc_size;
+  int64_t alloc_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
 
   in = (double*) malloc(sizeof(double) * alloc_size);
@@ -75,10 +75,10 @@ int main(int argc, char *argv[])
   for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++)
     in[i] = -2;
 
-#ifndef DTFFT_TRANSPOSE_ONLY
-  for (i = 0; i < out_counts[0] * out_counts[1] * out_counts[2]; i++)
-    out[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
-#endif
+  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+    for (i = 0; i < out_counts[0] * out_counts[1] * out_counts[2]; i++)
+      out[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
+  }
 
   double tb = 0.0 - MPI_Wtime();
   dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux);

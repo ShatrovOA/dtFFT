@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_c2c_2d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, output_unit, error_unit
+use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit
 use dtfft
 use iso_c_binding
 #include "dtfft_mpi.h"
@@ -27,7 +27,8 @@ implicit none
   complex(R4P),  pointer :: pin(:,:), pout(:,:)
   real(R4P) :: local_error, global_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 64, ny = 32
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr, executor_type
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  integer(I1P) :: executor_type
   integer(I8P) :: alloc_size
   type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
@@ -50,8 +51,6 @@ implicit none
   executor_type = DTFFT_EXECUTOR_FFTW3
 #elif defined(DTFFT_WITH_MKL)
   executor_type = DTFFT_EXECUTOR_MKL
-! #elif defined(DTFFT_WITH_KFR)
-!   executor_type = DTFFT_EXECUTOR_KFR
 #else
   executor_type = DTFFT_EXECUTOR_NONE
 #endif

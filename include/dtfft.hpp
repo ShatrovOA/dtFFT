@@ -43,6 +43,19 @@ namespace dtfft
 
       public:
 
+
+/** \brief Checks if plan is using Z-slab optimization.
+  * If ``true`` then flags ``DTFFT_TRANSPOSE_X_TO_Z`` and ``DTFFT_TRANSPOSE_Z_TO_X`` will be valid to pass to ``transpose`` method.
+  *
+  * \param[out]     is_z_slab       Boolean value if Z-slab is used.
+  *
+  * \return `DTFFT_SUCCESS` if call was without error, error code otherwise
+*/
+        dtfft_error_code_t
+        get_z_slab(bool *is_z_slab)
+        {return dtfft_get_z_slab(_plan, is_z_slab);}
+
+
 /** \brief Plan execution without optional auxiliary vector
   *
   * \param[inout]   in              Incoming vector
@@ -54,8 +67,8 @@ namespace dtfft
   * \return Status code of method execution
 */
         template<typename T1, typename T2>
-        int
-        execute(std::vector<T1> &in, std::vector<T2> &out, const int transpose_type)
+        dtfft_error_code_t
+        execute(std::vector<T1> &in, std::vector<T2> &out, const dtfft_execute_type_t transpose_type)
         {return execute(in.data(), out.data(), transpose_type, NULL);}
 
 
@@ -72,8 +85,8 @@ namespace dtfft
   * \return Status code of method execution
 */
         template<typename T1, typename T2, typename T3>
-        int
-        execute(std::vector<T1> &in, std::vector<T2> &out, const int transpose_type, std::vector<T3> &aux)
+        dtfft_error_code_t
+        execute(std::vector<T1> &in, std::vector<T2> &out, const dtfft_execute_type_t transpose_type, std::vector<T3> &aux)
         {return execute(in.data(), out.data(), transpose_type, aux.data());}
 
 
@@ -88,8 +101,8 @@ namespace dtfft
   *
   * \return Status code of method execution
 */
-        int
-        execute(void *in, void *out, const int transpose_type)
+        dtfft_error_code_t
+        execute(void *in, void *out, const dtfft_execute_type_t transpose_type)
         {return execute(in, out, transpose_type, NULL);}
 
 
@@ -105,8 +118,8 @@ namespace dtfft
   *
   * \return Status code of method execution
 */
-        int
-        execute(void *in, void *out, const int transpose_type, void *aux)
+        dtfft_error_code_t
+        execute(void *in, void *out, const dtfft_execute_type_t transpose_type, void *aux)
         {return dtfft_execute(_plan, in, out, transpose_type, aux);}
 
 
@@ -127,8 +140,8 @@ namespace dtfft
   * \return Status code of method execution
 */
         template<typename T1, typename T2>
-        int
-        transpose(std::vector<T1>const &in, std::vector<T2> &out, const int transpose_type)
+        dtfft_error_code_t
+        transpose(std::vector<T1> &in, std::vector<T2> &out, const dtfft_transpose_type_t transpose_type)
         {return transpose(in.data(), out.data(), transpose_type);}
 
 
@@ -148,8 +161,8 @@ namespace dtfft
   *
   * \return Status code of method execution
 */
-        int
-        transpose(const void *in, void *out, const int transpose_type)
+        dtfft_error_code_t
+        transpose(void *in, void *out, const dtfft_transpose_type_t transpose_type)
         {return dtfft_transpose(_plan, in, out, transpose_type);}
 
 
@@ -163,8 +176,8 @@ namespace dtfft
   *
   * \return Status code of method execution
 */
-        int
-        get_alloc_size(size_t *alloc_size)
+        dtfft_error_code_t
+        get_alloc_size(int64_t *alloc_size)
         {return dtfft_get_alloc_size(_plan, alloc_size);}
 
 
@@ -182,8 +195,8 @@ namespace dtfft
   *
   * \return Status code of method execution
 */
-        int
-        get_local_sizes(std::vector<int>&in_starts, std::vector<int>&in_counts, std::vector<int>&out_starts, std::vector<int>&out_counts, size_t *alloc_size)
+        dtfft_error_code_t
+        get_local_sizes(std::vector<int32_t>&in_starts, std::vector<int32_t>&in_counts, std::vector<int32_t>&out_starts, std::vector<int32_t>&out_counts, int64_t *alloc_size)
         {return get_local_sizes(in_starts.data(), in_counts.data(), out_starts.data(), out_counts.data(), alloc_size);}
 
 
@@ -201,16 +214,43 @@ namespace dtfft
   *
   * \return Status code of method execution
 */
-        int
-        get_local_sizes(int *in_starts=NULL, int *in_counts=NULL, int *out_starts=NULL, int *out_counts=NULL, size_t *alloc_size=NULL)
+        dtfft_error_code_t
+        get_local_sizes(int32_t *in_starts=NULL, int32_t *in_counts=NULL, int32_t *out_starts=NULL, int32_t *out_counts=NULL, int64_t *alloc_size=NULL)
         {return dtfft_get_local_sizes(_plan, in_starts, in_counts, out_starts, out_counts, alloc_size);}
 
 
 
 /** \brief Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize
 */
-        int destroy()
+        dtfft_error_code_t destroy()
         {return dtfft_destroy(&_plan);}
+
+
+#ifdef DTFFT_WITH_CUDA
+/**
+ * @brief Returns stream assosiated with dtfft plan.
+ * This can either be steam passed by user to ``dtfft_set_stream`` or stream created internally.
+ *
+ * @param[out]     stream         CUDA stream associated with plan
+ *
+ * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ */
+        dtfft_error_code_t
+        get_stream(cudaStream_t *stream)
+        {return dtfft_get_stream(_plan, stream);}
+
+/**
+ * @brief Returns selected GPU backend during autotune if ``effort_flag`` is ``DTFFT_PATIENT``.
+ *
+ * If ``effort_flag`` passed to any create function is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``
+ * returns value set by ``dtfft_set_gpu_backend`` or default value, which is ``DTFFT_GPU_BACKEND_NCCL``.
+ *
+ * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ */
+        dtfft_error_code_t
+        get_gpu_backend(dtfft_gpu_backend_t *backend_id)
+        {return dtfft_get_gpu_backend(_plan, backend_id);}
+#endif
 
 
 
@@ -236,11 +276,11 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_MKL`
 */
       PlanC2C(
-        const std::vector<int> &dims,
+        const std::vector<int32_t> &dims,
         MPI_Comm comm=MPI_COMM_WORLD,
-        const int precision=DTFFT_DOUBLE,
-        const int effort_flag=DTFFT_ESTIMATE,
-        const int executor_type=DTFFT_EXECUTOR_NONE
+        const dtfft_precision_t precision=DTFFT_DOUBLE,
+        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ):PlanC2C(dims.size(), dims.data(), comm, precision, effort_flag, executor_type) {}
 
 
@@ -256,9 +296,9 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_MKL`
 */
       PlanC2C(
-        const std::vector<int> &dims,
-        const int precision,
-        const int executor_type
+        const std::vector<int32_t> &dims,
+        const dtfft_precision_t precision,
+        const dtfft_executor_t executor_type
       ): PlanC2C(dims.size(), dims.data(), MPI_COMM_WORLD, precision, DTFFT_ESTIMATE, executor_type) {}
 
 
@@ -276,14 +316,14 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_MKL`
 */
       PlanC2C(
-        const int ndims,
-        const int *dims,
+        const int8_t ndims,
+        const int32_t *dims,
         MPI_Comm comm=MPI_COMM_WORLD,
-        const int precision=DTFFT_DOUBLE,
-        const int effort_flag=DTFFT_ESTIMATE,
-        const int executor_type=DTFFT_EXECUTOR_NONE
+        const dtfft_precision_t precision=DTFFT_DOUBLE,
+        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ){
-        int error_code = dtfft_create_plan_c2c(ndims, dims, comm, precision, effort_flag, executor_type, &_plan);
+        dtfft_error_code_t error_code = dtfft_create_plan_c2c(ndims, dims, comm, precision, effort_flag, executor_type, &_plan);
         if ( error_code != DTFFT_SUCCESS)
           throw std::runtime_error(dtfft_get_error_string(error_code));
       }
@@ -308,11 +348,11 @@ namespace dtfft
   * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2C(
-        const std::vector<int> &dims,
+        const std::vector<int32_t> &dims,
         MPI_Comm comm=MPI_COMM_WORLD,
-        const int precision=DTFFT_DOUBLE,
-        const int effort_flag=DTFFT_ESTIMATE,
-        const int executor_type=DTFFT_EXECUTOR_NONE
+        const dtfft_precision_t precision=DTFFT_DOUBLE,
+        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ):PlanR2C(dims.size(), dims.data(), comm, precision, effort_flag, executor_type) {}
 
 /** \brief Real-to-Complex Plan constructor using C-style arguments. Must be called after MPI_Init
@@ -331,14 +371,14 @@ namespace dtfft
   * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2C(
-        const int ndims,
-        const int *dims,
+        const int8_t ndims,
+        const int32_t *dims,
         MPI_Comm comm=MPI_COMM_WORLD,
-        const int precision=DTFFT_DOUBLE,
-        const int effort_flag=DTFFT_ESTIMATE,
-        const int executor_type=DTFFT_EXECUTOR_NONE
+        const dtfft_precision_t precision=DTFFT_DOUBLE,
+        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ){
-        int error_code = dtfft_create_plan_r2c(ndims, dims, comm, precision, effort_flag, executor_type, &_plan);
+        dtfft_error_code_t error_code = dtfft_create_plan_r2c(ndims, dims, comm, precision, effort_flag, executor_type, &_plan);
         if ( error_code != DTFFT_SUCCESS)
           throw std::runtime_error(dtfft_get_error_string(error_code));
       }
@@ -367,12 +407,12 @@ namespace dtfft
   * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2R(
-        const std::vector<int> &dims,
-        const std::vector<int> &kinds=std::vector<int>(),
+        const std::vector<int32_t> &dims,
+        const std::vector<dtfft_r2r_kinds_t> &kinds=std::vector<dtfft_r2r_kinds_t>(),
         MPI_Comm comm=MPI_COMM_WORLD,
-        const int precision=DTFFT_DOUBLE,
-        const int effort_flag=DTFFT_ESTIMATE,
-        const int executor_type=DTFFT_EXECUTOR_NONE
+        const dtfft_precision_t precision=DTFFT_DOUBLE,
+        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ):PlanR2R(dims.size(), dims.data(), kinds.data(), comm, precision, effort_flag, executor_type) {}
 
 
@@ -386,8 +426,8 @@ namespace dtfft
   * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2R(
-        const std::vector<int> &dims,
-        const int precision
+        const std::vector<int32_t> &dims,
+        const dtfft_precision_t precision
       ):PlanR2R(dims.size(), dims.data(), NULL, MPI_COMM_WORLD, precision, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE) {}
 
 /** \brief Real-to-Real Plan constructor using C-style arguments. Must be called after MPI_Init
@@ -406,15 +446,15 @@ namespace dtfft
   * \throws std::runtime_error In case error occurs during plan creation
 */
       PlanR2R(
-        const int ndims,
-        const int *dims,
-        const int *kinds=NULL,
+        const int8_t ndims,
+        const int32_t *dims,
+        const dtfft_r2r_kinds_t *kinds=NULL,
         MPI_Comm comm=MPI_COMM_WORLD,
-        const int precision=DTFFT_DOUBLE,
-        const int effort_flag=DTFFT_ESTIMATE,
-        const int executor_type=DTFFT_EXECUTOR_NONE
+        const dtfft_precision_t precision=DTFFT_DOUBLE,
+        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ) {
-        int error_code = dtfft_create_plan_r2r(ndims, dims, kinds, comm, precision, effort_flag, executor_type, &_plan);
+        dtfft_error_code_t error_code = dtfft_create_plan_r2r(ndims, dims, kinds, comm, precision, effort_flag, executor_type, &_plan);
         if ( error_code != DTFFT_SUCCESS)
           throw std::runtime_error(dtfft_get_error_string(error_code));
       }

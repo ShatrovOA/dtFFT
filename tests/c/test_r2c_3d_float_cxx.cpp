@@ -47,11 +47,11 @@ int main(int argc, char *argv[])
   }
 
 #ifdef DTFFT_WITH_MKL
-  int executor_type = DTFFT_EXECUTOR_MKL;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_MKL;
 #elif defined(DTFFT_WITH_VKFFT)
-  int executor_type = DTFFT_EXECUTOR_VKFFT;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_VKFFT;
 #elif defined (DTFFT_WITH_FFTW)
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
   if(comm_rank == 0) {
     cout << "No available executors found, skipping test..." << endl;
@@ -59,18 +59,18 @@ int main(int argc, char *argv[])
   MPI_Finalize();
   return 0;
 
-  int executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
 #endif
   // Create plan
-  vector<int> dims = {nz, ny, nx};
+  vector<int32_t> dims = {nz, ny, nx};
   dtfft::PlanR2C plan(dims, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
 
-  vector<int> in_counts(3);
+  vector<int32_t> in_counts(3);
   plan.get_local_sizes(NULL, in_counts.data());
-  size_t alloc_size;
+  int64_t alloc_size;
   plan.get_alloc_size(&alloc_size);
 
-  int in_size = in_counts[0] * in_counts[1] * in_counts[2];
+  size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
 
   vector<float> in(alloc_size), check(in_size), aux(alloc_size);
 

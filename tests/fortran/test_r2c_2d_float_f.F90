@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_2d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, output_unit, error_unit
+use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit
 use dtfft
 use iso_c_binding
 #include "dtfft_mpi.h"
@@ -28,7 +28,8 @@ implicit none
   complex(R4P),  allocatable :: out(:)
   real(R4P) :: local_error, global_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 19
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr, executor_type, outsize
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr, outsize
+  integer(I1P) :: executor_type
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
@@ -59,9 +60,6 @@ implicit none
 #elif defined(DTFFT_WITH_MKL)
   executor_type = DTFFT_EXECUTOR_MKL
 #endif
-! #elif defined(DTFFT_WITH_KFR)
-!   executor_type = DTFFT_EXECUTOR_KFR
-! #endif
 
   call plan%create([nx, ny], precision=DTFFT_SINGLE, executor_type=executor_type)
 

@@ -27,11 +27,10 @@
 int main(int argc, char *argv[])
 {
   dtfft_plan plan;
-  int nx = 35, ny = 44;
-  float *inout, *check;
-  dtfftf_complex *work;
+  int32_t nx = 35, ny = 44;
+  float *inout, *check, *work;
   int i, comm_rank, comm_size;
-  int in_counts[2], out_counts[2], n[2] = {ny, nx};
+  int32_t in_counts[2], out_counts[2], n[2] = {ny, nx};
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -48,86 +47,81 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
+  dtfft_executor_t executor_type;
 #ifdef DTFFT_WITH_MKL
-  int executor_type = DTFFT_EXECUTOR_MKL;
+  executor_type = DTFFT_EXECUTOR_MKL;
+#elif defined(DTFFT_WITH_CUFFT)
+  executor_type = DTFFT_EXECUTOR_CUFFT;
 #elif defined(DTFFT_WITH_VKFFT)
-  int executor_type = DTFFT_EXECUTOR_VKFFT;
+  executor_type = DTFFT_EXECUTOR_VKFFT;
 #elif defined (DTFFT_WITH_FFTW)
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
+  executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
   if(comm_rank == 0) {
     printf("No available executors found, skipping test...\n");
   }
   MPI_Finalize();
   return 0;
-
-  int executor_type = DTFFT_EXECUTOR_NONE;
 #endif
+
+  assign_device_to_process();
 
   // Create plan
   DTFFT_CALL( dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type, &plan) )
 
   // Get local sizes
-  size_t alloc_size;
+  int64_t alloc_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
 
+  size_t in_size = in_counts[0] * in_counts[1];
+  size_t out_size = out_counts[0] * out_counts[1];
   // Allocate buffers
   inout = (float*) malloc(sizeof(float) * alloc_size);
-  check = (float*) malloc(sizeof(float) * in_counts[0] * in_counts[1]);
+  check = (float*) malloc(sizeof(float) * in_size);
+  work =  (float*) malloc(sizeof(float) * alloc_size);
 
-  for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
-    inout[i] = check[i] =  (float)i / (float)nx / (float)ny;
+#pragma acc enter data create(inout[0:alloc_size-1], check[0:in_size-1], work[0:alloc_size-1])
+
+#pragma acc parallel loop present(inout, check)
+  for (i = 0; i < in_size; i++) {
+    inout[i] = check[i] = (float)i / (float)nx / (float)ny;
   }
-
-  work = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * alloc_size);
 
   // Forward transpose
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, inout, inout, DTFFT_TRANSPOSE_OUT, work);
+#pragma acc host_data use_device(inout, work)
+  DTFFT_CALL( dtfft_execute(plan, inout, inout, DTFFT_TRANSPOSE_OUT, work) );
+
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+#endif
   tf += MPI_Wtime();
 
   // Normalize
-  for (i = 0; i < 2 * out_counts[0] * out_counts[1]; i++) {
+#pragma acc parallel loop present(inout)
+  for (i = 0; i < 2 * out_size; i++) {
     inout[i] /= (float) (nx * ny);
   }
 
   // Backward transpose
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, inout, inout, DTFFT_TRANSPOSE_IN, work);
+#pragma acc host_data use_device(inout, work)
+  DTFFT_CALL( dtfft_execute(plan, inout, inout, DTFFT_TRANSPOSE_IN, work) );
+
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+#endif
   tb += MPI_Wtime();
 
-  report_execution_time(tf, tb);
-  // double t_sum;
-  // // Aggregate execution time and find average per processor
-  // MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  // tf = t_sum / (double) comm_size;
-  // MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  // tb = t_sum / (double) comm_size;
 
-  // if(comm_rank == 0) {
-  //   printf("Forward execution time: %f\n", tf);
-  //   printf("Backward execution time: %f\n", tb);
-  //   printf("----------------------------------------\n");
-  // }
-
-  // Check error
   float local_error = -1.0;
-  for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
+#pragma acc parallel loop present(inout, check) reduction(max:local_error)
+  for (i = 0; i < in_size; i++) {
     float error = fabs(check[i] - inout[i]);
     local_error = error > local_error ? error : local_error;
   }
-  float global_error;
-  // Find maximum error
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
-  if(comm_rank == 0) {
-    if(global_error < 1e-5) {
-      printf("Test 'r2c_2d_float_c' PASSED!\n");
-    } else {
-      printf("Test 'r2c_2d_float_c' FAILED, error = %E\n", global_error);
-      return -1;
-    }
-    printf("----------------------------------------\n");
-  }
+
+  report_float(&nx, &ny, NULL, local_error, tf, tb);
 
   // Destroy plan
   dtfft_destroy(&plan);

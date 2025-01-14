@@ -17,21 +17,26 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+
 #include <complex.h>
 #include <dtfft.h>
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "test_utils.h"
 
 int main(int argc, char *argv[])
 {
   dtfft_plan plan;
-  int nx = 16, ny = 32, nz = 70;
+  int32_t nx = 16, ny = 32, nz = 70;
   double *in, *check;
-  dtfft_complex *out;
-  int i, comm_rank, comm_size;
-  int in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
+  dtfft_complex *out, *aux;
+  int comm_rank, comm_size;
+  int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
+#ifdef DTFFT_WITH_CUDA
+  double *d_in, *d_out;
+#endif
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -49,98 +54,109 @@ int main(int argc, char *argv[])
   }
 
 #ifdef DTFFT_WITH_MKL
-  int executor_type = DTFFT_EXECUTOR_MKL;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_MKL;
 #elif defined(DTFFT_WITH_VKFFT)
-  int executor_type = DTFFT_EXECUTOR_VKFFT;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_VKFFT;
 #elif defined (DTFFT_WITH_FFTW)
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
   if(comm_rank == 0) {
     printf("No available executors found, skipping test...\n");
   }
   MPI_Finalize();
   return 0;
-
-  int executor_type = DTFFT_EXECUTOR_NONE;
 #endif
+
+  assign_device_to_process();
   // Create plan
   DTFFT_CALL( dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type, &plan) )
 
   // Get local sizes
-  size_t alloc_size;
+  int64_t alloc_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+  size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
+  size_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
 
   // Allocate buffers
+  check = (double*) malloc(sizeof(double) * in_size);
   in = (double*) malloc(sizeof(double) * alloc_size);
-  out = (dtfft_complex*) malloc(sizeof(double) * alloc_size);
-  check = (double*) malloc(sizeof(double) * alloc_size);
-  // Allocate work buffer
-  dtfft_complex *aux = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size);
+  out = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size / 2);
+  // `alloc_size / 2` is used here, since `dtfft_get_local_sizes` for R2C plan returns number of elements for real values
+  // and `out` is defined as complex buffer
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaMalloc((void**)&d_in,  sizeof(double) * alloc_size) )
+  CUDA_SAFE_CALL( cudaMalloc((void**)&d_out, sizeof(dtfft_complex) * alloc_size / 2) )
+  CUDA_SAFE_CALL( cudaMalloc((void**)&aux, sizeof(dtfft_complex) * alloc_size / 2) )
+#else
+  aux = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size / 2);
+#endif
 
-  for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
-    in[i] = check[i] =  1.0;
+  for (size_t i = 0; i < in_size; i++) {
+    in[i] = check[i] = (double)(i) / (double)(in_size);
   }
-
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaMemcpy( d_in, in, sizeof(double) * in_size, cudaMemcpyHostToDevice) )
+  cudaStream_t stream;
+  DTFFT_CALL( dtfft_get_stream(plan, &stream) )
+#endif
   // Forward transpose
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux);
+#ifdef DTFFT_WITH_CUDA
+  DTFFT_CALL( dtfft_execute(plan, d_in, d_out, DTFFT_TRANSPOSE_OUT, aux) )
+  CUDA_SAFE_CALL( cudaMemcpyAsync(out, d_out, sizeof(dtfft_complex) * out_size, cudaMemcpyDeviceToHost, stream) )
+  CUDA_SAFE_CALL( cudaMemcpyAsync(in, d_in, sizeof(double) * in_size, cudaMemcpyDeviceToHost, stream) )
+  CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
+#else
+  DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux) );
+#endif
   tf += MPI_Wtime();
 
   // Clean input buffer for possible error check
-  for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
+  for (size_t i = 0; i < in_size; i++) {
     in[i] = -1.0;
   }
 
   // Normalize
-  for (i = 0; i < out_counts[0] * out_counts[1] * out_counts[2]; i++) {
+  for (size_t i = 0; i < out_size; i++) {
     out[i] /= (double) (nx * ny * nz);
   }
 
   // Backward transpose
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux);
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaMemcpyAsync(d_out, out, sizeof(dtfft_complex) * out_size, cudaMemcpyHostToDevice, stream) )
+  CUDA_SAFE_CALL( cudaMemcpyAsync(d_in, in, sizeof(double) * in_size, cudaMemcpyHostToDevice, stream) )
+  DTFFT_CALL( dtfft_execute(plan, d_out, d_in, DTFFT_TRANSPOSE_IN, aux) );
+  CUDA_SAFE_CALL( cudaMemcpyAsync(in, d_in, sizeof(double) * in_size, cudaMemcpyDeviceToHost, stream) )
+  CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
+#else
+  DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux) );
+#endif
   tb += MPI_Wtime();
-
-  double t_sum;
-  // Aggregate execution time and find average per processor
-  MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tf = t_sum / (double) comm_size;
-  MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tb = t_sum / (double) comm_size;
-
-  if(comm_rank == 0) {
-    printf("Forward execution time: %f\n", tf);
-    printf("Backward execution time: %f\n", tb);
-    printf("----------------------------------------\n");
-  }
 
   // Check error
   double local_error = -1.0;
-  for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
+  for (size_t i = 0; i < in_size; i++) {
     double error = fabs(check[i] - in[i]);
     local_error = error > local_error ? error : local_error;
   }
-  double global_error;
-  // Find maximum error
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-  if(comm_rank == 0) {
-    if(global_error < 1e-10) {
-      printf("Test 'r2c_3d_c' PASSED!\n");
-    } else {
-      printf("Test 'r2c_3d_c' FAILED, error = %E\n", global_error);
-      return -1;
-    }
-    printf("----------------------------------------\n");
-  }
 
-  // Destroy plan
-  dtfft_destroy(&plan);
+  report_double(&nx, &ny, &nz, local_error, tf, tb);
 
   // Deallocate buffers
   free(in);
   free(out);
-  free(aux);
   free(check);
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaFree(d_in) )
+  CUDA_SAFE_CALL( cudaFree(d_out) )
+  CUDA_SAFE_CALL( cudaFree(aux) )
+#else
+  free(aux);
+#endif
+
+  // Destroy plan
+  DTFFT_CALL( dtfft_destroy(&plan) );
 
   MPI_Finalize();
   return 0;

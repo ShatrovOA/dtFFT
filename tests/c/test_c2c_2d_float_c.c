@@ -23,11 +23,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "test_utils.h"
 
 int main(int argc, char *argv[])
 {
-  int i;
-  int nx = 11, ny = 39;
+#ifdef DTFFT_WITH_CUDA
+  int32_t nx = 3333, ny = 4444;
+#else
+  int32_t nx = 11, ny = 39;
+#endif
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -46,88 +50,85 @@ int main(int argc, char *argv[])
   }
 
   // Create plan
-  int n[2] = {ny, nx};
+  int32_t n[2] = {ny, nx};
 
 #ifdef DTFFT_WITH_FFTW
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
+#elif defined( DTFFT_WITH_CUFFT )
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_CUFFT;
 #else
-  int executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
 #endif
+
+  assign_device_to_process();
 
   dtfft_plan plan;
   DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor_type, &plan) )
 
-  int in_counts[2], out_counts[2];
-  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, NULL) )
+  int32_t in_counts[2], out_counts[2];
+  int64_t alloc_size;
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+  size_t in_size = in_counts[0] * in_counts[1];
+  size_t out_size = out_counts[0] * out_counts[1];
+
+#ifdef DTFFT_WITH_CUDA
+  cudaStream_t stream;
+  DTFFT_CALL( dtfft_get_stream(plan, &stream) )
+#endif
 
   dtfftf_complex *in, *out, *check;
-  in = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * in_counts[0] * in_counts[1]);
-  out = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * out_counts[0] * out_counts[1]);
-  check = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * in_counts[0] * in_counts[1]);
+  in = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * alloc_size);
+  out = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * alloc_size);
+  check = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * in_size);
 
-  
-  for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
+  for (size_t i = 0; i < in_size; i++) {
     in[i] = check[i] = (float)rand() / (float)(RAND_MAX) - (float)rand() / (float)(RAND_MAX) * I;
   }
 
+#pragma acc enter data create(out[0:alloc_size - 1]) copyin(in[0:alloc_size - 1])
+
   double tf = 0.0 - MPI_Wtime();
-#ifdef DTFFT_TRANSPOSE_ONLY
-  DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y) )
-#else
+#pragma acc host_data use_device(in, out)
   DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL) )
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
 #endif
   tf += MPI_Wtime();
 
-  for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
+
+#pragma acc parallel loop present(in)
+  for (size_t i = 0; i < alloc_size; i++) {
     in[i] = -1.0 + 1.0 * I;
   }
 
-#ifndef DTFFT_TRANSPOSE_ONLY
-  for (i = 0; i < out_counts[0] * out_counts[1]; i++) {
-    out[i] /= (float) (nx * ny);
+  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+#pragma acc parallel loop present(out)
+    for (size_t i = 0; i < out_size; i++) {
+      out[i] /= (float) (nx * ny);
+    }
   }
-#endif
 
   double tb = 0.0 - MPI_Wtime();
-#ifdef DTFFT_TRANSPOSE_ONLY
-  DTFFT_CALL( dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_X) )
-#else
+#pragma acc host_data use_device(in, out)
   DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL) )
+#ifdef DTFFT_WITH_CUDA
+  CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
 #endif
   tb += MPI_Wtime();
 
-  double t_sum;
-  MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tf = t_sum / (double) comm_size;
-  MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tb = t_sum / (double) comm_size;
-
-  if(comm_rank == 0) {
-    printf("Forward execution time: %f\n", tf);
-    printf("Backward execution time: %f\n", tb);
-    printf("----------------------------------------\n");
-  }
+#pragma acc update self(in[0:in_size - 1])
 
   float local_error = -1.0;
-  for (i = 0; i < in_counts[0] * in_counts[1]; i++) {
+  for (size_t i = 0; i < in_size; i++) {
     float real_error = fabs(crealf(check[i]) - crealf(in[i]));
     float cmplx_error = fabs(cimagf(check[i]) - cimagf(in[i]));
     float error = fmax(real_error, cmplx_error);
     local_error = error > local_error ? error : local_error;
   }
 
-  float global_error;
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
+  report_float(&nx, &ny, NULL, local_error, tf, tb);
 
-  if(comm_rank == 0) {
-    if(global_error < 1e-5) {
-      printf("Test 'c2c_2d_float_c' PASSED!\n");
-    } else {
-      printf("Test 'c2c_2d_float_c' FAILED, error = %f\n", global_error);
-      return -1;
-    }
-    printf("----------------------------------------\n");
-  }
+#pragma acc exit data delete(in, out)
 
   dtfft_destroy(&plan);
 

@@ -18,14 +18,15 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_2d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, IP => int32, I4P => int32, output_unit, error_unit
+use iso_fortran_env, only: R8P => real64, R4P => real32, int32, I4P => int32, I1P => int8, output_unit, error_unit
 use dtfft
 #include "dtfft_mpi.h"
 implicit none
   real(R4P),  allocatable :: in(:,:), out(:,:), check(:,:)
   real(R4P) :: local_error, global_error, rnd
-  integer(I4P), parameter :: nx = 17, ny = 32
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr, executor_type
+  integer(I4P), parameter :: nx = 17, ny = 4
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  integer(I1P) :: executor_type
   type(dtfft_plan_r2r) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
@@ -43,8 +44,7 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
     write(output_unit, '(a)') "----------------------------------------"
   endif
-! #ifdef DTFFT_WITH_KFR
-!   executor_type = DTFFT_EXECUTOR_KFR
+
 #if defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
 #else

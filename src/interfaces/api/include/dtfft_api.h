@@ -25,38 +25,71 @@ extern "C" {
 #endif
 
 #include <mpi.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 extern
-int
-dtfft_create_plan_c2c_c(const int*, const int*, MPI_Fint, const int*, const int*, const int*, void**);
+int32_t
+dtfft_create_plan_c2c_c(const int8_t*, const int32_t*, MPI_Fint, const int8_t*, const int8_t*, const int8_t*, void**);
 
 extern
-int
-dtfft_create_plan_r2c_c(const int*, const int*, MPI_Fint, const int*, const int*, const int*, void**);
+int32_t
+dtfft_create_plan_r2c_c(const int8_t*, const int32_t*, MPI_Fint, const int8_t*, const int8_t*, const int8_t*, void**);
 
 extern
-int
-dtfft_create_plan_r2r_c(const int*, const int*, const int*, MPI_Fint, const int*, const int*, const int*, void**);
+int32_t
+dtfft_create_plan_r2r_c(const int8_t*, const int32_t*, const int8_t*, MPI_Fint, const int8_t*, const int8_t*, const int8_t*, void**);
 
 extern
-int
-dtfft_execute_c(const void*, void*, void*, const int*, void*);
+int32_t
+dtfft_get_z_slab_c(const void*, bool*);
 
 extern
-int
-dtfft_transpose_c(const void*, const void*, void*, const int*);
+int32_t
+dtfft_execute_c(const void*, void*, void*, const int8_t*, void*);
 
 extern
-int
+int32_t
+dtfft_transpose_c(const void*, void*, void*, const int8_t*);
+
+extern
+int32_t
 dtfft_destroy_c(void**);
 
 extern
-int
-dtfft_get_local_sizes_c(const void*, int*, int*, int*, int*, size_t*);
+int32_t
+dtfft_get_local_sizes_c(const void*, int32_t*, int32_t*, int32_t*, int32_t*, int64_t*);
 
 extern
 void
-dtfft_get_error_string_c(const int*, char*, size_t*);
+dtfft_get_error_string_c(const int32_t*, char*, int64_t*);
+
+
+#ifdef DTFFT_WITH_CUDA
+
+#include <cuda_runtime.h> // cudaStream_t
+
+extern
+int32_t
+dtfft_set_stream_c(const cudaStream_t*);
+
+extern
+int32_t
+dtfft_set_gpu_backend_c(const int8_t*);
+
+extern
+int32_t
+dtfft_get_stream_c(const void*, cudaStream_t*);
+
+extern
+int32_t
+dtfft_get_gpu_backend_c(const void*, int8_t*);
+
+extern
+void
+dtfft_get_gpu_backend_string_c(const int8_t*, char*, int64_t*);
+
+#endif
 
 #ifdef __cplusplus
 }
