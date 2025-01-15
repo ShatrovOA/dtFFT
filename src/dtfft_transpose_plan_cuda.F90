@@ -414,20 +414,20 @@ contains
 
       PHASE_BEGIN("Testing, "//int_to_str(DTFFT_MEASURE_ITERS)//" iterations", COLOR_EXECUTE)
       total_time = 0.0
-    do i = 1, 2_int8 * n_transpose_plans
+    ! do i = 1, 2_int8 * n_transpose_plans
       CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_start, stream) )
       do iter = 1, DTFFT_MEASURE_ITERS
-        ! do i = 1, 2_int8 * n_transpose_plans
+        do i = 1, 2_int8 * n_transpose_plans
           call plans(i)%execute(in, out, stream)
-        ! enddo
+        enddo
       enddo
       CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_stop, stream) )
       CUDA_CALL( "cudaEventSynchronize", cudaEventSynchronize(timer_stop) )
       CUDA_CALL( "cudaEventElapsedTime", cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
       execution_time = execution_time / real(DTFFT_MEASURE_ITERS, real32)
       total_time = total_time + execution_time
-      WRITE_INFO( TRANSPOSE_NAMES(plans(i)%get_tranpose_id())//" : "//double_to_str(real(execution_time, real64))//" [ms]")
-    enddo
+      ! WRITE_INFO( TRANSPOSE_NAMES(plans(i)%get_tranpose_id())//" : "//double_to_str(real(execution_time, real64))//" [ms]")
+    ! enddo
 
       PHASE_END("Testing, "//int_to_str(DTFFT_MEASURE_ITERS)//" iterations")
 

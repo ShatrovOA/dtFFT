@@ -54,11 +54,11 @@ int main(int argc, char *argv[])
   MPI_Finalize();
   return 0;
 #endif
-
+  dtfft_executor_t executor_type;
 #ifdef DTFFT_WITH_MKL
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_MKL;
+  executor_type = DTFFT_EXECUTOR_MKL;
 #elif defined (DTFFT_WITH_FFTW)
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
+  executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
   if(comm_rank == 0) {
     cout << "No available executors found, skipping test..." << endl;

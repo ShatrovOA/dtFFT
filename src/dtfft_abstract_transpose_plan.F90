@@ -242,7 +242,6 @@ contains
     integer(int8)                       :: dim                  !< Counter
     integer(int32)                      :: ierr                 !< Error code
     integer(int8)                       :: ndims
-    
 
     ndims = size(comm_dims, kind=int8)
 
@@ -263,7 +262,6 @@ contains
     integer(int32) :: comm_rank, comm_size, host_size, host_rank, proc_name_size, n_ranks_processed, n_names_processed, processing_id, n_total_ranks_processed
     integer(int32) :: min_val, max_val, i, j, k, min_dim, max_dim
     TYPE_MPI_COMM  :: host_comm
-    ! TYPE_MPI_COMM  :: comms(3)
     integer(int32) :: top_type
     character(len=MPI_MAX_PROCESSOR_NAME) :: proc_name, processing_name
     character(len=MPI_MAX_PROCESSOR_NAME), allocatable :: all_names(:), processed_names(:)
@@ -284,27 +282,19 @@ contains
     endif
 
     do dim = 2, ndims
-      ! call MPI_Comm_dup(local_comms(dim), comms(dim), ierr)
       call MPI_Comm_free(local_comms(dim), ierr)
     enddo
-    if ( comm_rank == 0 ) then
-      print*,'MPI_Comm_free local_comms'
-    endif
 
     call MPI_Comm_group(comm, base_group, ierr)
     call MPI_Group_rank(base_group, comm_rank, ierr)
 
     allocate( all_names(comm_size), processed_names(comm_size), all_sizes(comm_size), processed_ranks(comm_size) )
-    
+
     call MPI_Get_processor_name(proc_name, proc_name_size, ierr)
     ! Obtaining mapping of which process sits on which node
     call MPI_Allgather(proc_name, MPI_MAX_PROCESSOR_NAME, MPI_CHARACTER, all_names, MPI_MAX_PROCESSOR_NAME, MPI_CHARACTER, comm, ierr)
     call MPI_Allgather(host_size, 1, MPI_INTEGER4, all_sizes, 1, MPI_INTEGER4, comm, ierr)
 
-    ! if ( comm_rank == 0 ) then
-    !   print*,'MPI_Allgather proc_name: ',all_names
-    !   print*,'MPI_Allgather host_size: ',all_sizes
-    ! endif
     if ( comm_dims(2) >= comm_dims(3) ) then
       min_val = comm_dims(3)
       max_val = comm_dims(2)
@@ -316,15 +306,8 @@ contains
       min_dim = 2
       max_dim = 3
     endif
-    ! min_val = min(comm_dims(2), comm_dims(3))
-    ! max_val = max(comm_dims(2), comm_dims(3))
 
     allocate( groups(min_val, max_val) )
-
-    ! if ( comm_rank == 0 ) then
-    !   print*,'min_val: ',min_val, 'min_dim = ',min_dim
-    !   print*,'max_val: ',max_val, 'max_dim = ',max_dim
-    ! endif
 
     processed_ranks(:) = -1
 
@@ -335,9 +318,6 @@ contains
     n_total_ranks_processed = 0
     do j = 0, max_val - 1
       do i = 0, min_val - 1
-        ! if ( comm_rank == 0 ) then
-        !   print*,'i = ',i,'processing_id = ',processing_id,'n_ranks_processed = ',n_ranks_processed
-        ! endif
         if ( n_ranks_processed == all_sizes(processing_id) ) then
           n_names_processed = n_names_processed + 1
           processed_names(n_names_processed) = processing_name
@@ -351,32 +331,15 @@ contains
           enddo
         endif
         do k = 1, comm_size
-          ! if ( comm_rank == 0 ) then
-          !   print*,'k = ', k, 'processing_name = ',trim(processing_name), '  all_names(k) = ',trim(all_names(k))
-          ! endif
           if ( processing_name == all_names(k) .and. .not.any(k - 1 == processed_ranks)) exit
         enddo
-        ! if ( comm_rank == 0 ) then
-        !   print*,'exited'
-        ! endif
-        ! 
-        ! print*,'k = ',k
-        ! processing_id = k + 1
         n_ranks_processed = n_ranks_processed + 1
         groups(i + 1, j + 1) = k - 1
         n_total_ranks_processed = n_total_ranks_processed + 1
         processed_ranks(n_total_ranks_processed) = k - 1
       enddo
-      ! if ( comm_rank == 0 ) then
-      !   'group'
-      ! endif
-
-      ! print*,'group = ',group
     enddo
-    
-    ! if ( comm_rank == 0 ) then
-    !   print*,'groups = ',groups
-    ! endif
+
     do j = 0, max_val - 1
       do i = 0, min_val - 1
         if ( any(comm_rank == groups(:, j + 1)) ) then
@@ -398,8 +361,6 @@ contains
     enddo
 
     deallocate(all_names, processed_names, all_sizes, processed_ranks, groups)
-    ! call MPI_Cart_coords(comm, comm_rank, 3, coords, ierr)
-    
 
   endblock
 #endif
