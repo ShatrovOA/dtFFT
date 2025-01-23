@@ -76,9 +76,11 @@ int main(int argc, char *argv[])
   executor_type = DTFFT_EXECUTOR_NONE;
 #endif
 
+  dtfft_disable_z_slab();
   dtfft::PlanC2C plan(dims, grid_comm, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
   vector<int> in_counts(3);
   plan.get_local_sizes(NULL, in_counts.data());
+  dtfft_enable_z_slab();
 
   size_t in_size = std::accumulate(in_counts.begin(), in_counts.end(), 1, multiplies<int>());
 
