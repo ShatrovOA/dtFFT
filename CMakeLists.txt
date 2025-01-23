@@ -293,7 +293,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
       LINK_FLAGS "-lgcov --coverage"
     )
   endif()
-elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel or CMAKE_Fortran_COMPILER_ID MATCHES IntelLLVM)
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATCHES IntelLLVM)
 
   set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -free -stand f08 -warn all -traceback -ipo")
   set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG}  -check all -ftrapuv -fpe3 -assume ieee_fpe_flags -debug extended -assume realloc_lhs  -fstack-protector -assume protect_parens -implicitnone")
