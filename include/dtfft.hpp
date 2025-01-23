@@ -39,7 +39,7 @@ namespace dtfft
     class dtfft_core
     {
       protected:
-        dtfft_plan _plan;
+        dtfft_plan_t _plan;
 
       public:
 
@@ -408,7 +408,7 @@ namespace dtfft
 */
       PlanR2R(
         const std::vector<int32_t> &dims,
-        const std::vector<dtfft_r2r_kinds_t> &kinds=std::vector<dtfft_r2r_kinds_t>(),
+        const std::vector<dtfft_r2r_kind_t> &kinds=std::vector<dtfft_r2r_kind_t>(),
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
         const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
@@ -448,7 +448,7 @@ namespace dtfft
       PlanR2R(
         const int8_t ndims,
         const int32_t *dims,
-        const dtfft_r2r_kinds_t *kinds=NULL,
+        const dtfft_r2r_kind_t *kinds=NULL,
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
         const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,

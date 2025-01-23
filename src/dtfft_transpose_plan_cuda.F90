@@ -21,8 +21,8 @@ module dtfft_transpose_plan_cuda
 use iso_fortran_env
 use cudafor
 use dtfft_abstract_transpose_plan,        only: abstract_transpose_plan, create_cart_comm
-use dtfft_abstract_gpu_backend,           only: abstract_gpu_backend
-use dtfft_abstract_gpu_backend_selfcopy,  only: abstract_gpu_backend_pipelined
+use dtfft_abstract_backend,               only: abstract_backend, backend_helper
+use dtfft_abstract_backend_selfcopy,      only: abstract_backend_pipelined
 use dtfft_nvrtc_kernel,                   only: clean_unused_cache
 use dtfft_parameters
 use dtfft_pencil,                         only: pencil, get_local_sizes
@@ -44,6 +44,7 @@ public :: transpose_plan_cuda
     integer(cuda_stream_kind)                 :: stream
     type(c_devptr)                            :: aux
     logical                                   :: is_aux_alloc
+    type(backend_helper)                      :: helper
     type(transpose_handle_cuda), allocatable  :: in_plans(:)
     type(transpose_handle_cuda), allocatable  :: out_plans(:)
   contains
@@ -146,13 +147,15 @@ contains
     n_transpose_plans = ndims - 1_int8; if( self%is_z_slab ) n_transpose_plans = n_transpose_plans + 1_int8
     allocate( self%out_plans(n_transpose_plans), self%in_plans(n_transpose_plans) )
 
+    call self%helper%create(cart_comm, comms, is_backend_nccl(self%backend_id))
+
     do d = 1_int8, ndims - 1_int8
-      call self%out_plans(d)%create(comms(d + 1), pencils(d), pencils(d + 1), base_storage, self%backend_id)
-      call self%in_plans (d)%create(comms(d + 1), pencils(d + 1), pencils(d), base_storage, self%backend_id)
+      call self%out_plans(d)%create(self%helper, pencils(d), pencils(d + 1), base_storage, self%backend_id)
+      call self%in_plans (d)%create(self%helper, pencils(d + 1), pencils(d), base_storage, self%backend_id)
     enddo
     if ( self%is_z_slab ) then
-      call self%out_plans(3)%create(cart_comm, pencils(1), pencils(3), base_storage, self%backend_id)
-      call self%in_plans (3)%create(cart_comm, pencils(3), pencils(1), base_storage, self%backend_id)
+      call self%out_plans(3)%create(self%helper, pencils(1), pencils(3), base_storage, self%backend_id)
+      call self%in_plans (3)%create(self%helper, pencils(3), pencils(1), base_storage, self%backend_id)
     endif
     self%is_aux_alloc = alloc_and_set_aux(cart_comm, self%backend_id, self%aux, self%in_plans, self%out_plans)
 
@@ -189,6 +192,8 @@ contains
       call self%out_plans(i)%destroy()
       call self% in_plans(i)%destroy()
     enddo
+
+    call self%helper%destroy()
     deallocate(self%out_plans)
     deallocate(self% in_plans)
   end subroutine destroy_cuda
@@ -334,6 +339,7 @@ contains
     integer(int64)         :: alloc_size
     type(cudaEvent) :: timer_start, timer_stop
     character(len=:), allocatable :: testing_phase
+    type(backend_helper)                      :: helper
     ! integer(cuda_count_kind) :: free, total
 
     if ( present(backend_id) ) then
@@ -374,6 +380,8 @@ contains
 
     call MPI_Comm_size(cart_comm, comm_size, mpi_ierr)
 
+    call helper%create(cart_comm, comms, any(is_backend_nccl(backends_to_run)))
+
     best_time_ = MaxR4P
 
     do b = 1, size(backends_to_run)
@@ -384,12 +392,12 @@ contains
             .and. .not.is_udb) cycle
 
       if ( is_z_slab ) then
-        call plans(1)%create(cart_comm, pencils(1), pencils(3), base_storage, current_backend_id)
-        call plans(2)%create(cart_comm, pencils(3), pencils(1), base_storage, current_backend_id)
+        call plans(1)%create(helper, pencils(1), pencils(3), base_storage, current_backend_id)
+        call plans(2)%create(helper, pencils(3), pencils(1), base_storage, current_backend_id)
       else
         do i = 1, n_transpose_plans
-          call plans(i)%create(comms(i + 1), pencils(i), pencils(i + 1), base_storage, current_backend_id)
-          call plans(i + n_transpose_plans)%create(comms(i + 1), pencils(i + 1), pencils(i), base_storage, current_backend_id)
+          call plans(i)%create(helper, pencils(i), pencils(i + 1), base_storage, current_backend_id)
+          call plans(i + n_transpose_plans)%create(helper, pencils(i + 1), pencils(i), base_storage, current_backend_id)
         enddo
       endif
 
@@ -462,6 +470,8 @@ contains
     deallocate( plans )
     CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(timer_start) )
     CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(timer_stop) )
+
+    call helper%destroy()
 
     if ( present(best_time)) best_time = best_time_
     if ( present(best_backend_id) ) best_backend_id = best_backend_id_

@@ -25,12 +25,12 @@
 
 int main(int argc, char *argv[]) {
 
-  dtfft_plan plan;
+  dtfft_plan_t plan;
   int32_t nx = 32, ny = 32;
   float *in, *out, *check;
   int i,j, comm_rank, comm_size;
   int32_t in_counts[2], out_counts[2], n[2] = {ny, nx};
-  dtfft_r2r_kinds_t kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
+  dtfft_r2r_kind_t kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);

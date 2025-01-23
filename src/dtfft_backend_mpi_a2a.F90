@@ -21,6 +21,7 @@ module dtfft_backend_mpi_a2a
 !! This module defines MPI GPU backend that uses MPI_Ialltoallv: `backend_mpi_a2a`
 use iso_fortran_env
 use cudafor
+use dtfft_abstract_backend,     only: backend_helper
 use dtfft_backend_mpi,          only: backend_mpi
 use dtfft_parameters
 use dtfft_pencil,               only: pencil
@@ -40,12 +41,12 @@ public :: backend_mpi_a2a
 
 contains
 
-  subroutine create(self, comm)
+  subroutine create(self, helper)
   !! Creates MPI GPU backend that uses MPI_Ialltoallv
     class(backend_mpi_a2a),   intent(inout) :: self  !< Self object of type backend_mpi_a2a
-    TYPE_MPI_COMM,            intent(in)    :: comm  !< MPI communicator
+    type(backend_helper),     intent(in)    :: helper           !< MPI communicator
     self%n_requests = 1
-    call self%create_mpi(comm, self%n_requests)
+    call self%create_requests(self%n_requests)
     self%send_displs = self%send_displs - 1
     self%recv_displs = self%recv_displs - 1
   end subroutine create

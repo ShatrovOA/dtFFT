@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 
   const int8_t ndims = 3;
   const int32_t dims[] = {nz, ny, nx};
-  const dtfft_r2r_kinds_t kinds[] = {DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_2};
+  const dtfft_r2r_kind_t kinds[] = {DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_2};
   dtfft::PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor_type);
 
   int32_t in_sizes[ndims];

@@ -13,8 +13,8 @@ target_sources(dtfft PRIVATE
 
 if (DTFFT_WITH_CUDA)
   target_sources(dtfft PRIVATE
-    dtfft_abstract_gpu_backend.F90
-    dtfft_abstract_gpu_backend_selfcopy.F90
+    dtfft_abstract_backend.F90
+    dtfft_abstract_backend_selfcopy.F90
     # dtfft_backend_cufftmp.F90
     dtfft_backend_mpi.F90
     dtfft_backend_mpi_a2a.F90

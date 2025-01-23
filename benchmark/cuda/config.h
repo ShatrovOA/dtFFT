@@ -5,7 +5,7 @@
 #define WARMUP_ITERATIONS 5
 #define TEST_ITERATIONS 50
 
-#include <cuda_runtime.h>
+#include <cuda_runtime_api.h>
 #include <mpi.h>
 
 #define CUDA_CALL(call)                                           \

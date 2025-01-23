@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   double *in, *out, *check, *aux;
   int i, comm_rank, comm_size;
   int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
-  dtfft_r2r_kinds_t kinds[3] = {DTFFT_DCT_1, DTFFT_DCT_1, DTFFT_DCT_4};
+  dtfft_r2r_kind_t kinds[3] = {DTFFT_DCT_1, DTFFT_DCT_1, DTFFT_DCT_4};
 
 
   // MPI_Init must be called before calling dtFFT
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 #endif
 
   // Create plan
-  dtfft_plan plan;
+  dtfft_plan_t plan;
 
   DTFFT_CALL( dtfft_create_plan_r2r(3, n, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
 

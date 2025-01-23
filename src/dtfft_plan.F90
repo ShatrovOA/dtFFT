@@ -252,12 +252,12 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine transpose
 
-  subroutine execute(self, in, out, transpose_type, aux, error_code)
+  subroutine execute(self, in, out, execute_type, aux, error_code)
   !! Executes plan
     class(dtfft_abstract_plan),     intent(inout)           :: self             !< Abstract plan
     type(*),  DEVICE_PTR            intent(inout),  target  :: in(..)           !< Incoming buffer of any rank and kind
     type(*),  DEVICE_PTR            intent(inout),  target  :: out(..)          !< Resulting buffer of any rank and kind
-    integer(int8),                  intent(in)              :: transpose_type   !< Type of transposition. One of the:
+    integer(int8),                  intent(in)              :: execute_type     !< Type of transposition. One of the:
                                                                                 !< - `DTFFT_TRANSPOSE_OUT`
                                                                                 !< - `DTFFT_TRANSPOSE_IN`
                                                                                 !<
@@ -274,7 +274,7 @@ contains
     if ( .not. self%is_created )                                                                      &
       ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
-    if ( .not.any(transpose_type == VALID_FULL_TRANSPOSES) )                                          &
+    if ( .not.any(execute_type == VALID_FULL_TRANSPOSES) )                                          &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
     CHECK_ERROR_AND_RETURN
     if ( self%is_transpose_plan .and. self%ndims == 2 .and. inplace )                                 &
@@ -293,20 +293,20 @@ contains
     REGION_BEGIN("dtfft_execute", COLOR_EXECUTE)
     call self%check_aux(aux=aux)
     if ( present( aux ) ) then
-      call self%execute_private( in, out, transpose_type, aux, inplace )
+      call self%execute_private( in, out, execute_type, aux, inplace )
     else
-      call self%execute_private( in, out, transpose_type, self%aux, inplace )
+      call self%execute_private( in, out, execute_type, self%aux, inplace )
     endif
     REGION_END("dtfft_execute")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine execute
 
-  subroutine execute_private(self, in, out, transpose_type, aux, inplace)
+  subroutine execute_private(self, in, out, execute_type, aux, inplace)
   !! Executes plan with specified auxiliary buffer
     class(dtfft_abstract_plan), intent(inout) :: self                 !< Abstract plan
     type(*),  DEVICE_PTR        intent(inout) :: in(..)               !< Incoming buffer of any rank and kind
     type(*),  DEVICE_PTR        intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
-    integer(int8),              intent(in)    :: transpose_type       !< Type of transposition. One of the:
+    integer(int8),              intent(in)    :: execute_type         !< Type of transposition. One of the:
                                                                       !< - `DTFFT_TRANSPOSE_OUT`
                                                                       !< - `DTFFT_TRANSPOSE_IN`
                                                                       !<
@@ -317,14 +317,14 @@ contains
     if ( self%is_transpose_plan ) then
       select case ( self%ndims )
       case (2)
-        select case( transpose_type )
+        select case( execute_type )
         case ( DTFFT_TRANSPOSE_OUT )
           call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y)
         case ( DTFFT_TRANSPOSE_IN )
           call self%plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_X)
         endselect
       case (3)
-        select case( transpose_type )
+        select case( execute_type )
         case ( DTFFT_TRANSPOSE_OUT )
           if ( inplace .or. .not. self%is_z_slab ) then
             call self%plan%execute(in, aux, DTFFT_TRANSPOSE_X_TO_Y)
@@ -344,7 +344,7 @@ contains
       return
     endif ! self%is_transpose_plan
 
-    select case ( transpose_type )
+    select case ( execute_type )
     case ( DTFFT_TRANSPOSE_OUT )
       ! 1d direct FFT X direction || 2d X-Y FFT
       call self%fft(1)%fft%execute(in, aux, DTFFT_FORWARD)

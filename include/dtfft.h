@@ -53,7 +53,7 @@ extern "C" {
 #endif
 
 // Structure to hold plan data
-typedef struct dtfft_plan_t *dtfft_plan;
+typedef struct dtfft_plan_private_t *dtfft_plan_t;
 
 /**
  * @brief This enum lists the different error codes that dtfft can return.
@@ -206,7 +206,7 @@ typedef enum {
   DTFFT_DST_2 = CONF_DTFFT_DST_2,
   DTFFT_DST_3 = CONF_DTFFT_DST_3,
   DTFFT_DST_4 = CONF_DTFFT_DST_4
-} dtfft_r2r_kinds_t;
+} dtfft_r2r_kind_t;
 
 
 #define DTFFT_CALL(call)                                                      \
@@ -247,12 +247,12 @@ dtfft_error_code_t
 dtfft_create_plan_r2r(
   const int8_t ndims,
   const int32_t *dims,
-  const dtfft_r2r_kinds_t *kinds,
+  const dtfft_r2r_kind_t *kinds,
   MPI_Comm comm,
   const dtfft_precision_t precision,
   const dtfft_effort_t effort_flag,
   const dtfft_executor_t executor_type,
-  dtfft_plan *plan);
+  dtfft_plan_t *plan);
 
 
 /** \brief Complex-to-Complex Plan constructor. Must be called after MPI_Init
@@ -285,7 +285,7 @@ dtfft_create_plan_c2c(
   const dtfft_precision_t precision,
   const dtfft_effort_t effort_flag,
   const dtfft_executor_t executor_type,
-  dtfft_plan *plan);
+  dtfft_plan_t *plan);
 
 
 /** \brief Real-to-Complex Plan constructor. Must be called after MPI_Init
@@ -319,7 +319,7 @@ dtfft_create_plan_r2c(
   const dtfft_precision_t precision,
   const dtfft_effort_t effort_flag,
   const dtfft_executor_t executor_type,
-  dtfft_plan *plan);
+  dtfft_plan_t *plan);
 
 
 /** \brief Checks if plan is using Z-slab optimization.
@@ -331,7 +331,7 @@ dtfft_create_plan_r2c(
   * \return `DTFFT_SUCCESS` if call was without error, error code otherwise
 */
 dtfft_error_code_t
-dtfft_get_z_slab(dtfft_plan plan, bool *is_z_slab);
+dtfft_get_z_slab(dtfft_plan_t plan, bool *is_z_slab);
 
 
 /** \brief Plan execution. Neither `in` nor `out` are allowed to be `NULL`. It is safe to pass same pointer to both `in` and `out`.
@@ -339,7 +339,7 @@ dtfft_get_z_slab(dtfft_plan plan, bool *is_z_slab);
   * \param[in]      plan            Plan handle
   * \param[inout]   in              Incoming buffer
   * \param[out]     out             Result buffer
-  * \param[in]      transpose_type  Type of transform:
+  * \param[in]      execute_type    Type of transform:
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
   * \param[inout]   aux             Optional auxiliary buffer. Can be `NULL`.
@@ -349,7 +349,7 @@ dtfft_get_z_slab(dtfft_plan plan, bool *is_z_slab);
   * \return `DTFFT_SUCCESS` if plan was executed, error code otherwise
 */
 dtfft_error_code_t
-dtfft_execute(dtfft_plan plan, void *in, void *out, const dtfft_execute_type_t transpose_type, void *aux);
+dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_type_t execute_type, void *aux);
 
 
 /** \brief Transpose data in single dimension, e.g. X align -> Y align
@@ -369,7 +369,7 @@ dtfft_execute(dtfft_plan plan, void *in, void *out, const dtfft_execute_type_t t
   * \return `DTFFT_SUCCESS` if plan was executed, error code otherwise
 */
 dtfft_error_code_t
-dtfft_transpose(dtfft_plan plan, void *in, void *out, const dtfft_transpose_type_t transpose_type);
+dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_type_t transpose_type);
 
 
 /** \brief Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize
@@ -377,7 +377,7 @@ dtfft_transpose(dtfft_plan plan, void *in, void *out, const dtfft_transpose_type
  * \param[inout]    plan            Plan handle
 */
 dtfft_error_code_t
-dtfft_destroy(dtfft_plan *plan);
+dtfft_destroy(dtfft_plan_t *plan);
 
 
 /** \brief Get grid decomposition information. Results may differ on different MPI processes
@@ -397,7 +397,7 @@ dtfft_destroy(dtfft_plan *plan);
   * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
 dtfft_error_code_t
-dtfft_get_local_sizes(dtfft_plan plan, int32_t *in_starts, int32_t *in_counts, int32_t *out_starts, int32_t *out_counts, int64_t *alloc_size);
+dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts, int32_t *out_starts, int32_t *out_counts, int64_t *alloc_size);
 
 
 /** \brief Wrapper around `dtfft_get_local_sizes` to obtain number of elements only
@@ -411,7 +411,7 @@ dtfft_get_local_sizes(dtfft_plan plan, int32_t *in_starts, int32_t *in_counts, i
   * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
 dtfft_error_code_t
-dtfft_get_alloc_size(dtfft_plan plan, int64_t *alloc_size);
+dtfft_get_alloc_size(dtfft_plan_t plan, int64_t *alloc_size);
 
 
 /**
@@ -473,7 +473,7 @@ typedef enum {
  *
  * @note User is responsible in destroying this stream.
  *
- * @note Stream must not be destroyed before ``dtfft_plan``.
+ * @note Stream must not be destroyed before ``dtfft_plan_t``.
  * 
  * @note In order to take effect should be called before plan creation.
  *
@@ -495,7 +495,7 @@ dtfft_set_stream(const cudaStream_t stream);
  * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
  */
 dtfft_error_code_t
-dtfft_get_stream(dtfft_plan plan, cudaStream_t *stream);
+dtfft_get_stream(dtfft_plan_t plan, cudaStream_t *stream);
 
 
 /**
@@ -520,7 +520,7 @@ dtfft_set_gpu_backend(const dtfft_gpu_backend_t backend_id);
  * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
  */
 dtfft_error_code_t
-dtfft_get_gpu_backend(dtfft_plan plan, dtfft_gpu_backend_t *backend_id);
+dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *backend_id);
 
 /**
  * @brief Returns null terminated string with name of backend provided as argument.

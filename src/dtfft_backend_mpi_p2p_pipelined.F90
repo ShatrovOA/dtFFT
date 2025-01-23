@@ -21,7 +21,8 @@ module dtfft_backend_mpi_p2p_pipelined
 !! This module defines MPI P2P Pipelined backend: `backend_mpi_p2p_pipelined`
 use iso_fortran_env
 use cudafor
-use dtfft_abstract_gpu_backend_selfcopy,  only: abstract_gpu_backend_pipelined
+use dtfft_abstract_backend,           only: backend_helper
+use dtfft_abstract_backend_selfcopy,  only: abstract_backend_pipelined
 use dtfft_parameters
 use dtfft_utils
 #include "dtfft_mpi.h"
@@ -31,13 +32,13 @@ private
 public :: backend_mpi_p2p_pipelined
 
 
-  type, extends(abstract_gpu_backend_pipelined) :: backend_mpi_p2p_pipelined
+  type, extends(abstract_backend_pipelined) :: backend_mpi_p2p_pipelined
   !! MPI P2P Pipelined backend
   private
     TYPE_MPI_REQUEST, allocatable :: send_requests(:)
     TYPE_MPI_REQUEST, allocatable :: recv_requests(:)
     integer(int32)                :: n_send_requests, n_recv_requests
-    TYPE_MPI_COMM                 :: comm
+    ! TYPE_MPI_COMM                 :: comm
 #ifdef DTFFT_ENABLE_PERSISTENT_COMM
     logical                       :: is_request_created
 #endif
@@ -49,13 +50,13 @@ public :: backend_mpi_p2p_pipelined
 
 contains
 
-  subroutine create(self, comm)
+  subroutine create(self, helper)
   !! Creates MPI Pipelined backend
-    class(backend_mpi_p2p_pipelined),   intent(inout) :: self
-    TYPE_MPI_COMM,            intent(in)    :: comm
-    integer(int32) :: mpi_ierr
+    class(backend_mpi_p2p_pipelined), intent(inout) :: self
+    type(backend_helper),             intent(in)    :: helper           !< MPI communicator
+    ! integer(int32) :: mpi_ierr
 
-    call MPI_Comm_dup(comm, self%comm, mpi_ierr)
+    ! call MPI_Comm_dup(comm, self%comm, mpi_ierr)
     allocate( self%send_requests(self%comm_size - 1) )
     allocate( self%recv_requests(self%comm_size - 1) )
 

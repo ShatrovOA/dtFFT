@@ -27,7 +27,7 @@ private
 public :: dtfft_get_error_string
 #ifdef DTFFT_WITH_CUDA
 public :: dtfft_get_gpu_backend_string
-public :: is_backend_pipelined, is_backend_mpi
+public :: is_backend_pipelined, is_backend_mpi, is_backend_nccl
 #endif
 
 
@@ -229,6 +229,7 @@ public :: is_backend_pipelined, is_backend_mpi
   integer(int8),  parameter,  public  :: BACKEND_NOT_SET = -1_int8
   integer(int8),  parameter           :: PIPELINED_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED, DTFFT_GPU_BACKEND_NCCL_PIPELINED]
   integer(int8),  parameter           :: MPI_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_P2P, DTFFT_GPU_BACKEND_MPI_A2A, DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED]
+  integer(int8),  parameter           :: NCCL_BACKENDS(*) = [DTFFT_GPU_BACKEND_NCCL, DTFFT_GPU_BACKEND_NCCL_PIPELINED]
   integer(int8),  parameter,  public  :: VALID_GPU_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_DATATYPE    &
   , DTFFT_GPU_BACKEND_MPI_P2P                                                                       &
   , DTFFT_GPU_BACKEND_MPI_A2A                                                                       &
@@ -337,5 +338,10 @@ contains
     integer(int8),  intent(in)  :: backend_id
     is_backend_mpi = any(backend_id == MPI_BACKENDS)
   end function is_backend_mpi
+
+  elemental logical function is_backend_nccl(backend_id)
+    integer(int8),  intent(in)  :: backend_id
+    is_backend_nccl = any(backend_id == NCCL_BACKENDS)
+  end function is_backend_nccl
 #endif
 end module dtfft_parameters

@@ -156,14 +156,14 @@ contains
     is_zlab = plan%p%get_z_slab(error_code)
   end function dtfft_get_z_slab_c
 
-  function dtfft_execute_c(plan_ptr, in, out, transpose_type, aux)                                                  &
+  function dtfft_execute_c(plan_ptr, in, out, execute_type, aux)                                                  &
     result(error_code)                                                                                              &
     bind(C)
   !! Executes dtFFT Plan, C/C++/Python interface. `Aux` can be NULL. If `in` or `out` are NULL, bad things will happen.
     type(c_ptr),        intent(in),     value     :: plan_ptr             !< C pointer to Fortran plan
     real(c_float),  DEVICE_PTR    intent(inout)   :: in(*)                !< Incomming buffer, not NULL
     real(c_float),  DEVICE_PTR    intent(inout)   :: out(*)               !< Outgoing buffer
-    integer(c_int8_t),  intent(in)                :: transpose_type       !< Type of execution,
+    integer(c_int8_t),  intent(in)                :: execute_type       !< Type of execution,
                                                                           !< one of ``DTFFT_TRANSPOSE_OUT``, ``DTFFT_TRANSPOSE_IN``
     real(c_float),      intent(inout),  optional  :: aux(*)               !< Aux buffer, can be NULL
     integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
@@ -172,7 +172,7 @@ contains
 
     CHECK_PLAN_CREATED(plan_ptr)
     call c_f_pointer(plan_ptr, plan)
-    call plan%p%execute(in, out, transpose_type, aux, error_code)
+    call plan%p%execute(in, out, execute_type, aux, error_code)
   end function dtfft_execute_c
 
   function dtfft_transpose_c(plan_ptr, in, out, transpose_type)                                                     &

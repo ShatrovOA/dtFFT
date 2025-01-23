@@ -28,7 +28,7 @@
 
 int main(int argc, char *argv[])
 {
-  dtfft_plan plan;
+  dtfft_plan_t plan;
   int32_t nx = 16, ny = 32, nz = 70;
   double *in, *check;
   dtfft_complex *out, *aux;

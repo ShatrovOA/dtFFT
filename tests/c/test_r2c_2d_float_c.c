@@ -26,7 +26,7 @@
 
 int main(int argc, char *argv[])
 {
-  dtfft_plan plan;
+  dtfft_plan_t plan;
   int32_t nx = 35, ny = 44;
   float *inout, *check, *work;
   int i, comm_rank, comm_size;

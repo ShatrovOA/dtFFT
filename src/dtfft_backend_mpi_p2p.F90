@@ -21,8 +21,9 @@ module dtfft_backend_mpi_p2p
 !! This module defines MPI P2P backend: `backend_mpi_p2p`
 use iso_fortran_env
 use cudafor
-use dtfft_backend_mpi,  only: backend_mpi
-use dtfft_parameters,   only: DTFFT_GPU_BACKEND_MPI_P2P
+use dtfft_abstract_backend, only: backend_helper
+use dtfft_backend_mpi,      only: backend_mpi
+use dtfft_parameters,       only: DTFFT_GPU_BACKEND_MPI_P2P
 use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
@@ -40,11 +41,11 @@ public :: backend_mpi_p2p
 
 contains
 
-  subroutine create(self, comm)
+  subroutine create(self, helper)
   !! Creates MPI P2P Backend
     class(backend_mpi_p2p),   intent(inout) :: self           !< MPI P2P Backend
-    TYPE_MPI_COMM,            intent(in)    :: comm           !< MPI communicator
-    call self%create_mpi(comm, 2 * (self%comm_size - 1))
+    type(backend_helper),     intent(in)    :: helper           !< MPI communicator
+    call self%create_requests(2 * (self%comm_size - 1))
   end subroutine create
 
   subroutine execute(self, in, out)

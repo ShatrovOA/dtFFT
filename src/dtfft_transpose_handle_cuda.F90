@@ -20,8 +20,8 @@
 module dtfft_transpose_handle_cuda
 use iso_fortran_env
 use cudafor
-use dtfft_abstract_gpu_backend,           only: abstract_gpu_backend
-use dtfft_abstract_gpu_backend_selfcopy,  only: abstract_gpu_backend_pipelined
+use dtfft_abstract_backend,               only: abstract_backend, backend_helper
+use dtfft_abstract_backend_selfcopy,      only: abstract_backend_pipelined
 use dtfft_backend_nccl,                   only: backend_nccl
 use dtfft_backend_mpi_p2p,                only: backend_mpi_p2p
 use dtfft_backend_mpi_a2a,                only: backend_mpi_a2a
@@ -64,7 +64,7 @@ public :: transpose_handle_cuda
     type(c_devptr)                            :: aux                      !< Auxiliary buffer used in pipelined algorithm
     type(nvrtc_kernel)                        :: pack_kernel              !< Transposes data
     type(nvrtc_kernel)                        :: unpack_kernel            !< Unpacks data
-    class(abstract_gpu_backend),  allocatable :: comm_handle              !< Communication handle
+    class(abstract_backend),  allocatable :: comm_handle              !< Communication handle
   contains
     procedure, pass(self) :: create           !< Creates CUDA Transpose Handle
     procedure, pass(self) :: execute          !< Executes transpose - exchange - unpack
@@ -107,10 +107,11 @@ contains
     if(allocated(self%counts))    deallocate(self%counts)
   end subroutine destroy_data_handle
 
-  subroutine create(self, comm, send, recv, base_storage, backend_id)
+  subroutine create(self, helper, send, recv, base_storage, backend_id)
   !! Creates CUDA Transpose Handle
     class(transpose_handle_cuda),   intent(inout) :: self               !< CUDA Transpose Handle
-    TYPE_MPI_COMM,                  intent(in)    :: comm               !< 1d communicator
+    type(backend_helper),           intent(in)    :: helper
+    ! TYPE_MPI_COMM,                  intent(in)    :: comm               !< 1d communicator
     type(pencil),                   intent(in)    :: send               !< Send pencil
     type(pencil),                   intent(in)    :: recv               !< Recv pencil
     integer(int8),                  intent(in)    :: base_storage       !< Number of bytes needed to store single element
@@ -133,12 +134,26 @@ contains
     integer(int32),                   allocatable :: k2(:,:)            !< Unpack kernel arguments
     type(data_handle)                             :: in                 !< Send helper
     type(data_handle)                             :: out                !< Recv helper
+    integer(int8)                                 :: comm_id
+    TYPE_MPI_COMM :: comm
+
+    transpose_id = get_transpose_id(send, recv)
+
+    select case ( abs(transpose_id) )
+    case ( DTFFT_TRANSPOSE_X_TO_Y )
+      comm_id = 2
+    case ( DTFFT_TRANSPOSE_Y_TO_Z )
+      comm_id = 3
+    case ( DTFFT_TRANSPOSE_X_TO_Z )
+      comm_id = 1
+    endselect
+
+    comm = helper%comms(comm_id)
 
     call MPI_Comm_size(comm, comm_size, ierr)
     call MPI_Comm_rank(comm, comm_rank, ierr)
     self%has_exchange = comm_size > 1
 
-    transpose_id = get_transpose_id(send, recv)
     self%transpose_id = transpose_id
     ndims = send%rank
 
@@ -302,10 +317,10 @@ contains
       error stop "Unknown backend_id"
     endselect
 
-    call self%comm_handle%create(comm, in%displs, in%counts, out%displs, out%counts, base_storage)
+    call self%comm_handle%create(helper, comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
 
     select type ( comm_handle => self%comm_handle )
-    class is ( abstract_gpu_backend_pipelined )
+    class is ( abstract_backend_pipelined )
       call comm_handle%set_unpack_kernel(self%unpack_kernel)
     endselect
 

@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 
   assign_device_to_process();
 
-  dtfft_plan plan;
+  dtfft_plan_t plan;
   DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor_type, &plan) )
 
   int32_t in_counts[2], out_counts[2];

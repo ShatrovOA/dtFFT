@@ -21,7 +21,8 @@ module dtfft_backend_nccl_pipelined
 use iso_fortran_env
 use cudafor
 use nccl
-use dtfft_abstract_gpu_backend_selfcopy,  only: abstract_gpu_backend_pipelined
+use dtfft_abstract_backend,           only: backend_helper
+use dtfft_abstract_backend_selfcopy,  only: abstract_backend_pipelined
 use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
@@ -29,13 +30,13 @@ implicit none
 private
 public :: backend_nccl_pipelined
 
-  type, extends(abstract_gpu_backend_pipelined) :: backend_nccl_pipelined
+  type, extends(abstract_backend_pipelined) :: backend_nccl_pipelined
   !! DTFFT_GPU_BACKEND_NCCL_PIPELINED
   private
     integer(cuda_stream_kind)     :: nccl_stream        !< Separate stream for NCCL operations
                                                         !< This allows to overlap NCCL kernels with
                                                         !< lightweiht partial unpacking kernels
-    type(ncclComm)                :: comm               !< Local NCCL communicator
+    type(ncclComm)                :: nccl_comm          !< Local NCCL communicator
     type(cudaEvent), allocatable  :: nccl_events(:)     !< Events that allow to wait for completion of NCCL operations before unpacking
     type(cudaEvent)               :: main_event         !< Event used to wait for completion of main stream operations
   contains
@@ -46,17 +47,19 @@ public :: backend_nccl_pipelined
 
 contains
 
-  subroutine create(self, comm)
-    class(backend_nccl_pipelined),  intent(inout) :: self
-    TYPE_MPI_COMM,                  intent(in)    :: comm
-    integer(int32)                                :: mpi_ierr, i
-    type(ncclUniqueId)                            :: id
+  subroutine create(self, helper)
+    class(backend_nccl_pipelined),  intent(inout) :: self               !< 
+    type(backend_helper),           intent(in)    :: helper             !< Backend helper
+    ! integer(int32)                                :: mpi_ierr
+    integer(int32)                                :: i
+    ! type(ncclUniqueId)                            :: id
 
-    if (self%comm_rank == 0) then
-      NCCL_CALL( "ncclGetUniqueId", ncclGetUniqueId(id) )
-    end if
-    call MPI_Bcast(id, int(sizeof(id)), MPI_BYTE, 0, comm, mpi_ierr)
-    NCCL_CALL( "ncclCommInitRank", ncclCommInitRank(self%comm, self%comm_size, id, self%comm_rank) )
+    ! if (self%comm_rank == 0) then
+    !   NCCL_CALL( "ncclGetUniqueId", ncclGetUniqueId(id) )
+    ! end if
+    ! call MPI_Bcast(id, int(sizeof(id)), MPI_BYTE, 0, comm, mpi_ierr)
+    ! NCCL_CALL( "ncclCommInitRank", ncclCommInitRank(self%comm, self%comm_size, id, self%comm_rank) )
+    self%nccl_comm = helper%nccl_comm
     allocate( self%nccl_events( 0:self%comm_size - 1 ) )
     do i = 0, self%comm_size - 1
       CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%nccl_events(i), cudaEventDisableTiming) )
@@ -73,6 +76,7 @@ contains
     integer(int32)                                :: i
     real(real32), DEVICE_PTR pointer, contiguous  :: pin(:)
     real(real32), DEVICE_PTR pointer, contiguous  :: paux(:)
+    integer(int32)                                :: rnk        !< Rank to send-recv
 
     CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%main_event, stream) )
     ! Waiting for transpose kernel to finish execution on stream `stream` before running on `nccl_stream`
@@ -83,13 +87,14 @@ contains
 
     do i = 0, self%comm_size - 1
       if ( i == self%comm_rank ) cycle
+      rnk = self%comm_mapping(i)
       NCCL_CALL( "ncclGroupStart", ncclGroupStart() )
       ! Sending from `aux` buffer to `in`
       if ( self%send_floats(i) > 0 ) then
-        NCCL_CALL( "ncclSend", ncclSend(paux( self%send_displs(i) ), self%send_floats(i), ncclFloat, i, self%comm, self%nccl_stream) )
+        NCCL_CALL( "ncclSend", ncclSend(paux( self%send_displs(i) ), self%send_floats(i), ncclFloat, rnk, self%nccl_comm, self%nccl_stream) )
       endif
       if ( self%recv_floats(i) > 0) then
-        NCCL_CALL( "ncclRecv", ncclRecv(pin( self%recv_displs(i) ), self%recv_floats(i), ncclFloat, i, self%comm, self%nccl_stream) )
+        NCCL_CALL( "ncclRecv", ncclRecv(pin( self%recv_displs(i) ), self%recv_floats(i), ncclFloat, rnk, self%nccl_comm, self%nccl_stream) )
       endif
 
       NCCL_CALL( "ncclGroupEnd", ncclGroupEnd() )
@@ -108,7 +113,7 @@ contains
     class(backend_nccl_pipelined),  intent(inout) :: self
     integer(int32) :: i
 
-    NCCL_CALL( "ncclCommDestroy", ncclCommDestroy(self%comm) )
+    ! NCCL_CALL( "ncclCommDestroy", ncclCommDestroy(self%comm) )
     do i = 0, self%comm_size - 1
       CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(self%nccl_events(i)) )
     enddo

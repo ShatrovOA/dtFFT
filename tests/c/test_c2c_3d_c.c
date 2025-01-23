@@ -29,7 +29,7 @@
 
 int main(int argc, char *argv[])
 {
-  dtfft_plan plan;
+  dtfft_plan_t plan;
   int32_t nx = 512, ny = 64, nz = 32;
   dtfft_complex *in, *out, *check, *aux;
   int comm_rank, comm_size;

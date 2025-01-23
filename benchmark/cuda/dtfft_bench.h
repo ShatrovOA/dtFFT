@@ -2,34 +2,28 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include <complex.h>
 #include <stdio.h>
-#define DTFFT_WITH_CUDA
+
 #include <dtfft.h>
-#include <cuda_runtime.h>
 
 
 
-void run_dtfft(bool enable_z_slab) {
-  dtfft_plan plan;
+void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
+  dtfft_plan_t plan;
   int comm_rank, comm_size;
-  size_t i;
-  int32_t in_counts[3], out_counts[3], n[3] = {NX, NY, NZ};
-
+  int32_t n[3] = {NX, NY, NZ};
 
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-
   if(comm_rank == 0) {
-    size_t free, total;
-    cudaMemGetInfo(&free, &total);
-    printf("Free memory available before: %li\n", free);
+    // size_t free, total;
+    // cudaMemGetInfo(&free, &total);
+    // printf("Free memory available before: %li\n", free);
     printf("----------------------------------------\n");
-    printf(" dtFFT benchmark: c2c_3d, DTFFT_DOUBLE  \n");
-    printf("----------------------------------------\n");
-    printf("Nx = %d, Ny = %d, Nz = %d\n", NX, NY, NZ);
-    printf("Number of processors: %d\n", comm_size);
+    printf("dtFFT benchmark\n");
+    printf("Plan type is %s\n", c2c ? "C2C" : "R2R");
+    printf("Precision is %s\n", precision == DTFFT_DOUBLE ? "DOUBLE" : "SINGLE");
     if ( enable_z_slab ) {
       printf("Using Z-slab optimization\n");
     }
@@ -49,7 +43,25 @@ void run_dtfft(bool enable_z_slab) {
 
   double create_time = -MPI_Wtime();
   // Create plan
-  DTFFT_CALL( dtfft_create_plan_c2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_MEASURE, executor_type, &plan) );
+  if ( c2c ) {
+    DTFFT_CALL( dtfft_create_plan_c2c(3, n, MPI_COMM_WORLD, precision, DTFFT_MEASURE, executor_type, &plan) );
+  } else {
+    DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, precision, DTFFT_MEASURE, executor_type, &plan) );
+  }
+
+  if ( enable_z_slab ) {
+    bool is_z_slab;
+    dtfft_get_z_slab(plan, &is_z_slab);
+
+    if ( !is_z_slab ) {
+      dtfft_destroy(&plan);
+      if(comm_rank == 0) {
+        printf("Plan is not using Z slab, skipping benchmark\n");
+      }
+      return;
+    }
+  }
+
   int64_t alloc_size;
   DTFFT_CALL( dtfft_get_alloc_size(plan, &alloc_size) );
   create_time +=MPI_Wtime();
@@ -60,8 +72,16 @@ void run_dtfft(bool enable_z_slab) {
   cudaStream_t stream;
   DTFFT_CALL( dtfft_get_stream(plan, &stream) );
 
-  double2 *in, *out, *aux;
-  alloc_size *= sizeof(double2);
+  float *in, *out, *aux;
+  int64_t scaler;
+  if ( c2c && precision == DTFFT_DOUBLE) {
+    scaler = 4;
+  } else if ( (c2c && precision == DTFFT_SINGLE) || (!c2c && precision == DTFFT_DOUBLE) ) {
+    scaler = 2;
+  } else {
+    scaler = 1;
+  }
+  alloc_size *= (scaler * sizeof(float)) ;
 
   CUDA_CALL( cudaMalloc((void**)&in,  alloc_size) );
   CUDA_CALL( cudaMalloc((void**)&out, alloc_size) );
@@ -121,9 +141,9 @@ void run_dtfft(bool enable_z_slab) {
   CUDA_CALL( cudaEventDestroy(stopEvent) );
 
   DTFFT_CALL( dtfft_destroy(&plan) );
-  if ( comm_rank == 0 ) {
-    size_t free, total;
-    cudaMemGetInfo(&free, &total);
-    printf("Free memory available after: %li\n", free);
-  }
+  // if ( comm_rank == 0 ) {
+  //   size_t free, total;
+  //   cudaMemGetInfo(&free, &total);
+  //   printf("Free memory available after: %li\n", free);
+  // }
 }

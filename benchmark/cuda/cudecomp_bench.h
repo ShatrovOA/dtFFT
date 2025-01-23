@@ -16,9 +16,27 @@
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-void run_cudecomp() {
+void run_cudecomp(cudecompDataType_t dtype) {
   cudecompHandle_t handle;
   CHECK_CUDECOMP_EXIT(cudecompInit(&handle, MPI_COMM_WORLD));
+
+  int comm_rank, comm_size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+
+  if(comm_rank == 0) {
+    printf("----------------------------------------\n");
+    printf("cuDECOMP benchmark\n");
+    printf("Plan type is ");
+    switch (dtype) {
+    case CUDECOMP_FLOAT: printf("CUDECOMP_FLOAT"); break;
+    case CUDECOMP_DOUBLE: printf("CUDECOMP_DOUBLE"); break;
+    case CUDECOMP_FLOAT_COMPLEX: printf("CUDECOMP_FLOAT_COMPLEX"); break;
+    case CUDECOMP_DOUBLE_COMPLEX: printf("CUDECOMP_DOUBLE_COMPLEX"); break;
+    }
+    printf("\n");
+    printf("----------------------------------------\n");
+  }
 
 
   // Create cuDecomp grid descriptor (with autotuning enabled)
@@ -45,7 +63,7 @@ void run_cudecomp() {
     // General options
   options.n_warmup_trials = 3;
   options.n_trials = 5;
-  options.dtype = CUDECOMP_DOUBLE_COMPLEX;
+  options.dtype = dtype;
   options.disable_nccl_backends = false;
   options.disable_nvshmem_backends = true;
   options.skip_threshold = 0.0;
@@ -63,10 +81,6 @@ void run_cudecomp() {
 
   cudecompGridDesc_t grid_desc;
   CHECK_CUDECOMP_EXIT(cudecompGridDescCreate(handle, &grid_desc, &config, &options));
-
-  int comm_rank, comm_size;
-  MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
   // Print information on configuration (updated by autotuner)
   if (comm_rank == 0) {
@@ -92,63 +106,55 @@ void run_cudecomp() {
   // Allocate pencil memory
   int64_t data_num_elements = MAX(MAX(pinfo_x.size, pinfo_y.size), pinfo_z.size);
 
-
-
-
-
     // Get workspace sizes
-  int64_t transpose_work_num_elements;
-  CHECK_CUDECOMP_EXIT(cudecompGetTransposeWorkspaceSize(handle, grid_desc, &transpose_work_num_elements));
+  int64_t work_size;
+  CHECK_CUDECOMP_EXIT(cudecompGetTransposeWorkspaceSize(handle, grid_desc, &work_size));
 
   // Allocate using cudecompMalloc
   int64_t dtype_size;
-  CHECK_CUDECOMP_EXIT(cudecompGetDataTypeSize(CUDECOMP_DOUBLE_COMPLEX, &dtype_size));
+  CHECK_CUDECOMP_EXIT(cudecompGetDataTypeSize(dtype, &dtype_size));
 
   // Allocate device buffer
   // Using inplace, since out-of-place resulted in autotune.cc:248 CUDA error. (out of memory)
   // Running on a single GPU Tesla V100, 32Gb
-  double2 *inout;
+  float *inout;
   CUDA_CALL(cudecompMalloc(handle, grid_desc, (void**)&inout, data_num_elements * dtype_size));
   CUDA_CALL(cudaMemset(inout, 0, data_num_elements * dtype_size));
 
-  double2* transpose_work_d;
-  CHECK_CUDECOMP_EXIT(cudecompMalloc(handle, grid_desc, (void**)(&transpose_work_d),
-                                     transpose_work_num_elements * dtype_size));
+  float* work;
+  CHECK_CUDECOMP_EXIT(cudecompMalloc(handle, grid_desc, (void**)(&work),
+                                     work_size * dtype_size));
 
   cudaStream_t stream;
   CUDA_CALL( cudaStreamCreate(&stream) );
-  
+
   if(comm_rank == 0) {
     printf("Started warmup\n");
   }
   for ( int iter = 0; iter < WARMUP_ITERATIONS; iter++ ) {
     // Transpose from X-pencils to Y-pencils.
     CHECK_CUDECOMP_EXIT(
-      cudecompTransposeXToY(handle, grid_desc, inout, inout, 
-                            transpose_work_d, CUDECOMP_DOUBLE_COMPLEX,
+      cudecompTransposeXToY(handle, grid_desc, inout, inout,
+                            work, dtype,
                             NULL, NULL, stream));
- 
 
     // Transpose from Y-pencils to Z-pencils.
     CHECK_CUDECOMP_EXIT(
-      cudecompTransposeYToZ(handle, grid_desc, inout, inout, 
-                            transpose_work_d, CUDECOMP_DOUBLE_COMPLEX, 
+      cudecompTransposeYToZ(handle, grid_desc, inout, inout,
+                            work, dtype,
                             NULL, NULL, stream));
-
 
     // Transpose from Z-pencils to Y-pencils.
     CHECK_CUDECOMP_EXIT(
-      cudecompTransposeZToY(handle, grid_desc, inout, inout, 
-                            transpose_work_d, CUDECOMP_DOUBLE_COMPLEX, 
+      cudecompTransposeZToY(handle, grid_desc, inout, inout,
+                            work, dtype,
                             NULL, NULL, stream));
-
 
     // Transpose from Y-pencils to X-pencils.
     CHECK_CUDECOMP_EXIT(
-      cudecompTransposeYToX(handle, grid_desc, inout, inout, 
-                            transpose_work_d, CUDECOMP_DOUBLE_COMPLEX,
+      cudecompTransposeYToX(handle, grid_desc, inout, inout,
+                            work, dtype,
                             NULL, NULL, stream));
-   
   }
   CUDA_CALL( cudaStreamSynchronize(stream) );
 
@@ -166,26 +172,26 @@ void run_cudecomp() {
   for ( int iter = 0; iter < TEST_ITERATIONS; iter++ ) {
     // Transpose from X-pencils to Y-pencils.
     CHECK_CUDECOMP_EXIT(
-      cudecompTransposeXToY(handle, grid_desc, inout, inout, 
-                            transpose_work_d, CUDECOMP_DOUBLE_COMPLEX,
+      cudecompTransposeXToY(handle, grid_desc, inout, inout,
+                            work, dtype,
                             NULL, NULL, stream));
 
     // Transpose from Y-pencils to Z-pencils.
     CHECK_CUDECOMP_EXIT(
-      cudecompTransposeYToZ(handle, grid_desc, inout, inout, 
-                            transpose_work_d, CUDECOMP_DOUBLE_COMPLEX, 
+      cudecompTransposeYToZ(handle, grid_desc, inout, inout,
+                            work, dtype,
                             NULL, NULL, stream));
 
     // Transpose from Z-pencils to Y-pencils.
     CHECK_CUDECOMP_EXIT(
-      cudecompTransposeZToY(handle, grid_desc, inout, inout, 
-                            transpose_work_d, CUDECOMP_DOUBLE_COMPLEX, 
+      cudecompTransposeZToY(handle, grid_desc, inout, inout,
+                            work, dtype,
                             NULL, NULL, stream));
 
     // Transpose from Y-pencils to X-pencils.
     CHECK_CUDECOMP_EXIT(
-      cudecompTransposeYToX(handle, grid_desc, inout, inout, 
-                            transpose_work_d, CUDECOMP_DOUBLE_COMPLEX,
+      cudecompTransposeYToX(handle, grid_desc, inout, inout,
+                            work, dtype,
                             NULL, NULL, stream));
   }
 
@@ -206,14 +212,11 @@ void run_cudecomp() {
     printf("----------------------------------------\n");
   }
 
-
-
-
   CUDA_CALL(cudaEventDestroy(startEvent) );
   CUDA_CALL(cudaEventDestroy(stopEvent) );
   CUDA_CALL(cudaStreamDestroy(stream));
   CHECK_CUDECOMP_EXIT(cudecompFree(handle, grid_desc, inout));
-  CHECK_CUDECOMP_EXIT(cudecompFree(handle, grid_desc, transpose_work_d));
+  CHECK_CUDECOMP_EXIT(cudecompFree(handle, grid_desc, work));
   CHECK_CUDECOMP_EXIT(cudecompGridDescDestroy(handle, grid_desc));
   CHECK_CUDECOMP_EXIT(cudecompFinalize(handle));
 }
