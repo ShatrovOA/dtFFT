@@ -29,7 +29,7 @@ jobs:
             -DDTFFT_MPI_VENDOR=openmpi \
             -DDTFFT_BUILD_C_CXX_API=on ..
           make
-          CTEST_OUTPUT_ON_FAILURE=1 make coverage
+          DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -43,7 +43,7 @@ jobs:
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get -q update
-          sudo apt-get -y install gfortran-12
+          sudo apt-get -y install gfortran-13
           sudo apt-get install mpich libmpich-dev
           sudo apt-get install libfftw3-dev
       - name: Checkout
@@ -53,13 +53,14 @@ jobs:
       - name: Setup and run tests
         working-directory: ./build
         run: |
-          cmake -DCMAKE_C_COMPILER=gcc-12 \
-            -DCMAKE_CXX_COMPILER=g++-12 \
-            -DCMAKE_Fortran_COMPILER=gfortran-12 \
+          cmake -DCMAKE_C_COMPILER=gcc-13 \
+            -DCMAKE_CXX_COMPILER=g++-13 \
+            -DCMAKE_Fortran_COMPILER=gfortran-13 \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_RUNNING_CICD=on \
             -DDTFFT_WITH_FFTW=on \
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=off \
             -DDTFFT_BUILD_C_CXX_API=on ..
           make
-          CTEST_OUTPUT_ON_FAILURE=1 make coverage
+          DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make coverage
