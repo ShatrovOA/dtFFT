@@ -28,7 +28,7 @@ jobs:
             -DDTFFT_WITH_FFTW=on \
             -DDTFFT_MPI_VENDOR=openmpi \
             -DDTFFT_BUILD_C_CXX_API=on ..
-          make -j
+          make
       - name: Test
         working-directory: ./build
         run: DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make coverage
@@ -65,7 +65,7 @@ jobs:
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_SHARED=off \
             -DDTFFT_BUILD_C_CXX_API=on ..
-          make -j
+          make
       - name: Test
         working-directory: ./build
         run: DTFFT_ENABLE_LOG=1 make test
@@ -92,7 +92,7 @@ jobs:
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_SHARED=on \
             -DDTFFT_BUILD_C_CXX_API=on ..
-          make -j
+          make
       - name: Test
         working-directory: ./build
         run: DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make test
@@ -130,7 +130,7 @@ jobs:
             -DDTFFT_WITH_PROFILER=on \
             -DDTFFT_WITH_CUDA=on \
             -DDTFFT_WITH_CUFFT=on ..
-          make -j
+          make
       - name: Build static
         working-directory: ./build_static
         run: |
@@ -149,7 +149,7 @@ jobs:
             -DDTFFT_WITH_PROFILER=on \
             -DDTFFT_WITH_CUDA=on \
             -DDTFFT_WITH_CUFFT=on ..
-          make -j
+          make
   intel:
     name: Intel OneAPI build
     runs-on: ubuntu-latest
@@ -176,8 +176,9 @@ jobs:
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_SHARED=on \
             -DDTFFT_WITH_MKL=on \
+            -DDTFFT_USE_MPI=on \
             -DDTFFT_BUILD_C_CXX_API=on ..
-          make -j
+          make
       - name: Test
         working-directory: ./build
         run: DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make test

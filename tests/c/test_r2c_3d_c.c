@@ -53,12 +53,15 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
+  dtfft_executor_t executor_type;
 #ifdef DTFFT_WITH_MKL
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_MKL;
+  executor_type = DTFFT_EXECUTOR_MKL;
 #elif defined(DTFFT_WITH_VKFFT)
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_VKFFT;
+  executor_type = DTFFT_EXECUTOR_VKFFT;
 #elif defined (DTFFT_WITH_FFTW)
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
+  executor_type = DTFFT_EXECUTOR_FFTW3;
+#elif defined (DTFFT_WITH_CUFFT)
+  executor_type = DTFFT_EXECUTOR_CUFFT;
 #else
   if(comm_rank == 0) {
     printf("No available executors found, skipping test...\n");
