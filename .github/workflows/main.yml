@@ -48,7 +48,6 @@ jobs:
           sudo apt-get -y install gfortran-13
           sudo apt-get install mpich libmpich-dev
           sudo apt-get install libfftw3-dev
-          ls -lah /usr/include | grep mpi
       - name: Checkout
         uses: actions/checkout@v4
       - name: Create Build Directory
@@ -56,6 +55,7 @@ jobs:
       - name: Building
         working-directory: ./build
         run: |
+          ls -lah /usr/include | grep mpi
           cmake -DCMAKE_C_COMPILER=gcc-13 \
             -DCMAKE_CXX_COMPILER=g++-13 \
             -DCMAKE_Fortran_COMPILER=gfortran-13 \
@@ -117,7 +117,6 @@ jobs:
           PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/compilers/bin:${PATH}
           PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/cuda/bin:${PATH}
           export PATH
-          ls -lah /opt/nvidia/hpc_sdk/Linux_x86_64/24.11/cuda/targets/x86_64-linux/include
           ls -lah /opt/nvidia/hpc_sdk/Linux_x86_64/24.11/cuda/include
           ls -lah /opt/nvidia/hpc_sdk/Linux_x86_64/24.11/cuda/lib64
           cmake -DCMAKE_C_COMPILER=nvc \
