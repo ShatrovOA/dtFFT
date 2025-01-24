@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Create Build Directory
         run: mkdir build
-      - name: Building
+      - name: Build
         working-directory: ./build
         run: |
           cmake -DCMAKE_C_COMPILER=gcc-14 \
@@ -28,8 +28,8 @@ jobs:
             -DDTFFT_WITH_FFTW=on \
             -DDTFFT_MPI_VENDOR=openmpi \
             -DDTFFT_BUILD_C_CXX_API=on ..
-          make VERBOSE=1
-      - name: Testing
+          make -j
+      - name: Test
         working-directory: ./build
         run: DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make coverage
       - name: Upload coverage to Codecov
@@ -37,36 +37,36 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  mpich_persistent:
+  mpich:
     name: MPICH with persistent communications
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Get Requirements
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get -q update
-          sudo apt-get -y install gfortran-13
+          sudo apt-get -y install gfortran-12
           sudo apt-get install mpich libmpich-dev
           sudo apt-get install libfftw3-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Create Build Directory
         run: mkdir build
-      - name: Building
+      - name: Build
         working-directory: ./build
         run: |
           ls -lah /usr/lib/x86_64-linux-gnu/
-          cmake -DCMAKE_C_COMPILER=gcc-13 \
-            -DCMAKE_CXX_COMPILER=g++-13 \
-            -DCMAKE_Fortran_COMPILER=gfortran-13 \
+          cmake -DCMAKE_C_COMPILER=gcc-12 \
+            -DCMAKE_CXX_COMPILER=g++-12 \
+            -DCMAKE_Fortran_COMPILER=gfortran-12 \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_RUNNING_CICD=on \
             -DDTFFT_WITH_FFTW=on \
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_SHARED=off \
             -DDTFFT_BUILD_C_CXX_API=on ..
-          make VERBOSE=1
-      - name: Testing
+          make -j
+      - name: Test
         working-directory: ./build
         run: DTFFT_ENABLE_LOG=1 make test
 
@@ -81,7 +81,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Create Build Directory
         run: mkdir build
-      - name: Building
+      - name: Build
         working-directory: ./build
         run: |
           cmake -DCMAKE_C_COMPILER=gcc-12 \
@@ -91,13 +91,13 @@ jobs:
             -DDTFFT_RUNNING_CICD=on \
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_SHARED=on \
-            -DDTFFT_BUILD_C_CXX_API=off ..
-          make
-      - name: Testing
+            -DDTFFT_BUILD_C_CXX_API=on ..
+          make -j
+      - name: Test
         working-directory: ./build
         run: DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make test
-    
-  cuda_shared:
+
+  nvidia:
     name: CUDA build with HPC-SDK
     runs-on: ubuntu-latest
     steps:
@@ -108,10 +108,12 @@ jobs:
           sudo apt-get install nvhpc-24-11
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Create Build Directory
-        run: mkdir build
-      - name: Building
-        working-directory: ./build
+      - name: Create Build Directories
+        run: |
+          mkdir build_shared
+          mkdir build_static
+      - name: Build shared
+        working-directory: ./build_shared
         run: |
           PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/comm_libs/mpi/bin:${PATH}
           PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/compilers/bin:${PATH}
@@ -121,11 +123,61 @@ jobs:
             -DCMAKE_CXX_COMPILER=nvc++ \
             -DCMAKE_Fortran_COMPILER=nvfortran \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_BUILD_TESTS=on \
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_SHARED=on \
             -DDTFFT_BUILD_C_CXX_API=on \
             -DDTFFT_WITH_PROFILER=on \
             -DDTFFT_WITH_CUDA=on \
             -DDTFFT_WITH_CUFFT=on ..
-          make VERBOSE=1
+          make -j
+      - name: Build static
+        working-directory: ./build_static
+        run: |
+          PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/comm_libs/mpi/bin:${PATH}
+          PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/compilers/bin:${PATH}
+          PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/cuda/12.6/bin:${PATH}
+          export PATH
+          cmake -DCMAKE_C_COMPILER=nvc \
+            -DCMAKE_CXX_COMPILER=nvc++ \
+            -DCMAKE_Fortran_COMPILER=nvfortran \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDTFFT_BUILD_TESTS=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=off \
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_WITH_PROFILER=on \
+            -DDTFFT_WITH_CUDA=on \
+            -DDTFFT_WITH_CUFFT=on ..
+          make -j
+  intel:
+    name: Intel OneAPI build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Requirements
+        run: |
+          sudo echo "deb [trusted=yes] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update -y
+          sudo apt install intel-oneapi-base-toolkit intel-oneapi-hpc-toolkit
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create Build Directory
+        run: |
+          mkdir build
+      - name: Build
+        working-directory: ./build
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          cmake -DCMAKE_C_COMPILER=icx \
+            -DCMAKE_CXX_COMPILER=icx \
+            -DCMAKE_Fortran_COMPILER=ifx \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_BUILD_TESTS=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=on \
+            -DDTFFT_WITH_MKL=on \
+            -DDTFFT_BUILD_C_CXX_API=on ..
+          make -j
+      - name: Test
+        working-directory: ./build
+        run: DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make test
