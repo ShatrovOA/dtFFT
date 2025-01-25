@@ -122,7 +122,7 @@ jobs:
           cmake -DCMAKE_C_COMPILER=nvc \
             -DCMAKE_CXX_COMPILER=nvc++ \
             -DCMAKE_Fortran_COMPILER=nvfortran \
-            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_BUILD_TYPE=Release \
             -DDTFFT_BUILD_TESTS=on \
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_SHARED=on \
@@ -181,4 +181,6 @@ jobs:
           make
       - name: Test
         working-directory: ./build
-        run: DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make test
+        run: |
+          source /opt/intel/oneapi/setvars.sh
+          DTFFT_ENABLE_LOG=1 CTEST_OUTPUT_ON_FAILURE=1 make test

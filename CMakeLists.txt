@@ -312,7 +312,7 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
 
     set(COMMON_NVHPC_FLAGS          "${COMMON_NVHPC_FLAGS} -cuda -cudalib=nccl -gpu=${CUF_GPU_ARG}")
     set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} ${COMMON_NVHPC_FLAGS} -Mbackslash")
-    set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr -Mnobounds")
     set(CMAKE_C_FLAGS               "${CMAKE_C_FLAGS} ${COMMON_NVHPC_FLAGS}")
     set(CMAKE_CXX_FLAGS             "${CMAKE_CXX_FLAGS} ${COMMON_NVHPC_FLAGS}")
   endif()

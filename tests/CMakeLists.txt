@@ -1,6 +1,10 @@
 file(GLOB TEST_SOURCES "fortran/*_f.F90")
 
-add_library(test_utils fortran/test_utils.F90)
+if(DTFFT_BUILD_SHARED)
+  add_library(test_utils SHARED fortran/test_utils.F90)
+else()
+  add_library(test_utils STATIC fortran/test_utils.F90)
+endif()
 add_dependencies(test_utils dtfft)
 target_include_directories(test_utils PRIVATE ${PROJECT_BINARY_DIR})
 target_include_directories(test_utils PRIVATE ${PROJECT_SOURCE_DIR}/include)
