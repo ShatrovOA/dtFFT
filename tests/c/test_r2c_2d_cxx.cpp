@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
   dtfft_executor_t executor_type;
 #ifdef DTFFT_WITH_MKL
   executor_type = DTFFT_EXECUTOR_MKL;
-#else
+#elif defined(DTFFT_WITH_FFTW )
   executor_type = DTFFT_EXECUTOR_FFTW3;
 #endif
 
