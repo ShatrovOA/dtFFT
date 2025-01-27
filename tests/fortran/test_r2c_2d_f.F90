@@ -73,7 +73,7 @@ implicit none
 #elif defined(DTFFT_WITH_VKFFT)
   executor_type = DTFFT_EXECUTOR_VKFFT
 #elif defined(DTFFT_WITH_CUFFT)
-  executor_type = DTTFT_EXECUTOR_CUFFT
+  executor_type = DTFFT_EXECUTOR_CUFFT
 #endif
 
   call attach_gpu_to_process()
