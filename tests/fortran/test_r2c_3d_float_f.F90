@@ -94,8 +94,8 @@ implicit none
   executor_type = DTFFT_EXECUTOR_FFTW3
 #elif defined(DTFFT_WITH_MKL)
   executor_type = DTFFT_EXECUTOR_MKL
-! #elif defined(DTFFT_WITH_CUFFT)
-!   executor_type = DTFFT_EXECUTOR_CUFFT
+#elif defined(DTFFT_WITH_CUFFT)
+  executor_type = DTFFT_EXECUTOR_CUFFT
 #elif defined(DTFFT_WITH_VKFFT)
   executor_type = DTFFT_EXECUTOR_VKFFT
   call dtfft_disable_z_slab()
