@@ -315,7 +315,7 @@ contains
 #ifdef DTFFT_WITH_CUDA
   function dtfft_get_gpu_backend_string(backend_id) result(string)
   !! Gets the string description of a GPU backend
-    integer(int8),    intent(in)  :: backend    !< GPU backend
+    integer(int8),    intent(in)  :: backend_id !< GPU backend
     character(len=:), allocatable :: string     !< Backend string
 
     select case ( backend_id )
