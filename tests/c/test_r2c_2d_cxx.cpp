@@ -29,6 +29,9 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+#ifdef DTFFT_TRANSPOSE_ONLY
+  return 0;
+#else
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
 
@@ -54,17 +57,12 @@ int main(int argc, char *argv[])
   MPI_Finalize();
   return 0;
 #endif
+
   dtfft_executor_t executor_type;
 #ifdef DTFFT_WITH_MKL
   executor_type = DTFFT_EXECUTOR_MKL;
-#elif defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
-  if(comm_rank == 0) {
-    cout << "No available executors found, skipping test..." << endl;
-  }
-  MPI_Finalize();
-  return 0;
+  executor_type = DTFFT_EXECUTOR_FFTW3;
 #endif
 
   // Create plan
@@ -79,7 +77,7 @@ int main(int argc, char *argv[])
   }
 
   vector<int32_t> in_counts(2);
-  int64_t alloc_size;
+  size_t alloc_size;
   DTFFT_CALL( plan->get_alloc_size(&alloc_size) );
   DTFFT_CALL( plan->get_local_sizes(NULL, in_counts.data()) );
   size_t in_size = in_counts[0] * in_counts[1];
@@ -118,9 +116,10 @@ int main(int argc, char *argv[])
   report_double(&nx, &ny, NULL, local_error, tf, tb);
 
   DTFFT_CALL( plan->destroy() );
-  
+
   delete plan;
 
   MPI_Finalize();
   return 0;
+#endif // DTFFT_TRANSPOSE_ONLY
 }

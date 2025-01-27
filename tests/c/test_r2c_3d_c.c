@@ -28,6 +28,9 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef DTFFT_TRANSPOSE_ONLY
+  return 0;
+#else
   dtfft_plan_t plan;
   int32_t nx = 16, ny = 32, nz = 70;
   double *in, *check;
@@ -62,12 +65,6 @@ int main(int argc, char *argv[])
   executor_type = DTFFT_EXECUTOR_FFTW3;
 #elif defined (DTFFT_WITH_CUFFT)
   executor_type = DTFFT_EXECUTOR_CUFFT;
-#else
-  if(comm_rank == 0) {
-    printf("No available executors found, skipping test...\n");
-  }
-  MPI_Finalize();
-  return 0;
 #endif
 
   assign_device_to_process();
@@ -75,7 +72,7 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type, &plan) )
 
   // Get local sizes
-  int64_t alloc_size;
+  size_t alloc_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
   size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
   size_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
@@ -163,4 +160,5 @@ int main(int argc, char *argv[])
 
   MPI_Finalize();
   return 0;
+#endif
 }

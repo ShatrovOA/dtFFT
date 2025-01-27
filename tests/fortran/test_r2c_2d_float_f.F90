@@ -21,18 +21,20 @@ program test_r2c_2d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit
 use dtfft
 use iso_c_binding
+use test_utils
 #include "dtfft_mpi.h"
 implicit none
+#ifndef DTFFT_TRANSPOSE_ONLY
   real(R4P),     allocatable, target :: in(:), check(:,:)
   real(R4P),      pointer     :: pin(:,:)
   complex(R4P),  allocatable :: out(:)
-  real(R4P) :: local_error, global_error, rnd
+  real(R4P) :: local_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 19
   integer(I4P) :: comm_size, comm_rank, i, j, ierr, outsize
   integer(I1P) :: executor_type
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
-  real(R8P) :: tf, tb, t_sum
+  real(R8P) :: tf, tb
   integer(I8P) :: alloc_size
 
   call MPI_Init(ierr)
@@ -92,30 +94,8 @@ implicit none
   call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
-
   local_error = maxval(abs(pin - check))
-
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
-  if(comm_rank == 0) then
-    if(global_error < 1.e-4) then
-      write(output_unit, '(a)') "Test 'r2c_2d_float' PASSED!"
-    else
-      write(error_unit, '(a, f16.10)') "Test 'r2c_2d_float' FAILED... error = ", global_error
-      error stop
-    endif
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
-
+  call report(tf, tb, local_error, nx, ny)
 
   deallocate(in, out, check)
   nullify( pin )
@@ -124,4 +104,5 @@ implicit none
   !! Check that no error is raised when MPI is finalized
   call plan%destroy(ierr)
   print*,ierr, dtfft_get_error_string(ierr)
+#endif
 end program test_r2c_2d_float

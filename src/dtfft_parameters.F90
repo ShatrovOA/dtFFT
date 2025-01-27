@@ -106,13 +106,21 @@ public :: is_backend_pipelined, is_backend_mpi, is_backend_nccl
 ! This parameters matches FFTW definitions. Hope they will never change there.
 !------------------------------------------------------------------------------------------------
   integer(int8),  parameter,  public :: DTFFT_DCT_1                  = CONF_DTFFT_DCT_1
+  !< DCT-I (Logical N=2*(n-1), inverse is `DTFFT_DCT_1` )
   integer(int8),  parameter,  public :: DTFFT_DCT_2                  = CONF_DTFFT_DCT_2
+  !< DCT-II (Logical N=2*n, inverse is `DTFFT_DCT_3` )
   integer(int8),  parameter,  public :: DTFFT_DCT_3                  = CONF_DTFFT_DCT_3
+  !< DCT-III (Logical N=2*n, inverse is `DTFFT_DCT_2` )
   integer(int8),  parameter,  public :: DTFFT_DCT_4                  = CONF_DTFFT_DCT_4
+  !< DCT-IV (Logical N=2*n, inverse is `DTFFT_DCT_4` )
   integer(int8),  parameter,  public :: DTFFT_DST_1                  = CONF_DTFFT_DST_1
+  !< DST-I (Logical N=2*(n+1), inverse is `DTFFT_DST_1` )
   integer(int8),  parameter,  public :: DTFFT_DST_2                  = CONF_DTFFT_DST_2
+  !< DST-II (Logical N=2*n, inverse is `DTFFT_DST_3` )
   integer(int8),  parameter,  public :: DTFFT_DST_3                  = CONF_DTFFT_DST_3
+  !< DST-III (Logical N=2*n, inverse is `DTFFT_DST_2` )
   integer(int8),  parameter,  public :: DTFFT_DST_4                  = CONF_DTFFT_DST_4
+  !< DST-IV (Logical N=2*n, inverse is `DTFFT_DST_4` )
 
 !------------------------------------------------------------------------------------------------
 ! Storage sizes
@@ -183,6 +191,7 @@ public :: is_backend_pipelined, is_backend_mpi, is_backend_nccl
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_PLAN = CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INPLACE_TRANSPOSE = CONF_DTFFT_ERROR_INPLACE_TRANSPOSE
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_AUX = CONF_DTFFT_ERROR_INVALID_AUX
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_DIM = CONF_DTFFT_ERROR_INVALID_DIM
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
   ! integer(int32),  parameter,  public  :: DTFFT_ERROR_CUFFTMP_2D_PLAN = CONF_DTFFT_ERROR_CUFFTMP_2D_PLAN
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
@@ -284,6 +293,8 @@ contains
       allocate(error_string, source="Inplace transpose is not supported")
     case ( DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED )
       allocate(error_string, source="Selected `executor_type` does not support R2R FFTs")
+    case ( DTFFT_ERROR_INVALID_DIM )
+      allocate(error_string, source="Invalid `dim` passed to `dtfft_get_pencil`")
     ! case ( DTFFT_ERROR_CUFFTMP_2D_PLAN )
     !   allocate(error_string, source="cufftMp backends support only 3d plan")
     case ( DTFFT_ERROR_GPU_INVALID_STREAM )
@@ -302,12 +313,12 @@ contains
   end function dtfft_get_error_string
 
 #ifdef DTFFT_WITH_CUDA
-  function dtfft_get_gpu_backend_string(backend) result(string)
+  function dtfft_get_gpu_backend_string(backend_id) result(string)
   !! Gets the string description of a GPU backend
     integer(int8),    intent(in)  :: backend    !< GPU backend
     character(len=:), allocatable :: string     !< Backend string
 
-    select case ( backend )
+    select case ( backend_id )
     case ( DTFFT_GPU_BACKEND_MPI_DATATYPE )
       allocate(string, source="DTFFT_GPU_BACKEND_MPI_DATATYPE")
     case ( DTFFT_GPU_BACKEND_MPI_P2P )

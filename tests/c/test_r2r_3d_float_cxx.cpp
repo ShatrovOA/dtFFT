@@ -25,6 +25,8 @@
 #include <vector>
 #include <numeric>
 
+#include "test_utils.h"
+
 #ifdef DTFFT_WITH_CUDA
 #include <cuda_runtime.h>
 #endif
@@ -101,7 +103,7 @@ int main(int argc, char *argv[])
 
   int32_t in_sizes[ndims];
   int32_t out_sizes[ndims];
-  int64_t alloc_size;
+  size_t alloc_size;
 
   plan.get_local_sizes(NULL, in_sizes, NULL, out_sizes, &alloc_size);
 
@@ -124,6 +126,7 @@ int main(int argc, char *argv[])
     check[i] = inout[i];
   }
 
+  double tf = 0.0 - MPI_Wtime();
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaMemcpyAsync(d_inout, inout, alloc_size * sizeof(float), cudaMemcpyHostToDevice, stream) );
   plan.execute(d_inout, d_inout, DTFFT_TRANSPOSE_OUT, d_aux);
@@ -131,6 +134,7 @@ int main(int argc, char *argv[])
 #else
   plan.execute(inout, inout, DTFFT_TRANSPOSE_OUT, aux);
 #endif
+  tf += MPI_Wtime();
 
   if ( executor_type != DTFFT_EXECUTOR_NONE ) {
 #ifdef DTFFT_WITH_CUDA
@@ -153,6 +157,7 @@ int main(int argc, char *argv[])
 #endif
   }
 
+  double tb = 0.0 - MPI_Wtime();
 #ifdef DTFFT_WITH_CUDA
   plan.execute(d_inout, d_inout, DTFFT_TRANSPOSE_IN, d_aux);
   CUDA_SAFE_CALL( cudaMemcpyAsync(inout, d_inout, alloc_size * sizeof(float), cudaMemcpyDeviceToHost, stream) );
@@ -160,6 +165,7 @@ int main(int argc, char *argv[])
 #else
   plan.execute(inout, inout, DTFFT_TRANSPOSE_IN, aux);
 #endif
+  tb += MPI_Wtime();
 
   float local_error = -1.0;
   for (size_t i = 0; i < in_size; i++) {
@@ -167,18 +173,7 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
-  float global_error;
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
-
-  if(comm_rank == 0) {
-    if(global_error < 1e-5) {
-      cout << "Test 'r2r_3d_float_cxx' PASSED!" << endl;
-    } else {
-      cout << "Test 'r2r_3d_float_cxx' FAILED, error = " << global_error << endl;
-      return -1;
-    }
-    cout << "----------------------------------------" << endl;
-  }
+  report_float(&nx, &ny, &nz, local_error, tf, tb);
 
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaFree(d_inout) );

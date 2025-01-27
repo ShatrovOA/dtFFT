@@ -18,8 +18,9 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_pencil
-!! This module describes `pencil` class
-use iso_fortran_env, only: int8, int32, int64, real64, output_unit
+!! This module describes private `pencil` and public `dtfft_pencil` classes
+use iso_c_binding,    only: c_int8_t, c_int32_t
+use iso_fortran_env,  only: int8, int32, int64, real64, output_unit
 #ifdef DTFFT_WITH_CUDA
 use cudafor
 #endif
@@ -30,8 +31,15 @@ use dtfft_utils
 implicit none
 private
 public :: pencil
+public :: dtfft_pencil_t
 public :: get_local_sizes
 public :: get_transpose_id
+
+  type, bind(C) :: dtfft_pencil_t
+    integer(c_int8_t)   :: dim        !< Aligned dimension id
+    integer(c_int32_t)  :: starts(3)  !< Local starts, starting from 0 for both C and Fortran
+    integer(c_int32_t)  :: counts(3)  !< Local counts of data, in elements
+  end type dtfft_pencil_t
 
   type :: pencil
   !! Class that describes information about data layout
@@ -46,6 +54,7 @@ public :: get_transpose_id
     procedure, pass(self),  public  :: destroy        !< Destroys pencil
     procedure, pass(self),  public  :: output         !< Writes pencil data to stdout
                                                       !< Used only for debugging purposes
+    procedure, pass(self),  public  :: make_public    !< Creates public object that users can use to create own FFT backends
   end type pencil
 
 contains
@@ -169,6 +178,14 @@ contains
     deallocate(buf)
 #endif
   end subroutine output
+
+  type(dtfft_pencil_t) function make_public(self)
+    class(pencil),  intent(in)  :: self                 !< Pencil
+
+    make_public%dim = self%aligned_dim
+    make_public%counts(1:self%rank) = self%counts
+    make_public%starts(1:self%rank) = self%starts
+  end function make_public
 
   subroutine get_local_sizes(pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
   !! Obtain local starts and counts in `real` and `fourier` spaces

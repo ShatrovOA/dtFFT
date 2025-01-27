@@ -39,7 +39,7 @@ extern "C" {
 #endif
 #include <stdint.h>
 #include <stdbool.h> // bool
-#include <stdio.h>   // fprintf, stderr
+#include <stdio.h>   // fprintf, stderr, size_t
 
 
 /* If <complex.h> is included, use the C99 complex type.  Otherwise
@@ -93,6 +93,8 @@ typedef enum {
   DTFFT_ERROR_INPLACE_TRANSPOSE = CONF_DTFFT_ERROR_INPLACE_TRANSPOSE,
   // Invalid `aux` buffer provided
   DTFFT_ERROR_INVALID_AUX = CONF_DTFFT_ERROR_INVALID_AUX,
+  // Invalid `dim` passed to `dtfft_get_pencil`
+  DTFFT_ERROR_INVALID_DIM = CONF_DTFFT_ERROR_INVALID_DIM,
   // Selected `executor_type` do not support R2R FFTs
   DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED,
   // // cufftMp backends support only 3d plan
@@ -198,13 +200,21 @@ typedef enum {
  * @brief This enum lists the different R2R FFT kinds.
  */
 typedef enum {
+  // DCT-I (Logical N=2*(n-1), inverse is `DTFFT_DCT_1` )
   DTFFT_DCT_1 = CONF_DTFFT_DCT_1,
+  // DCT-II (Logical N=2*n, inverse is `DTFFT_DCT_3` )
   DTFFT_DCT_2 = CONF_DTFFT_DCT_2,
+  // DCT-III (Logical N=2*n, inverse is `DTFFT_DCT_2` )
   DTFFT_DCT_3 = CONF_DTFFT_DCT_3,
+  // DCT-IV (Logical N=2*n, inverse is `DTFFT_DCT_4` )
   DTFFT_DCT_4 = CONF_DTFFT_DCT_4,
+  // DST-I (Logical N=2*(n+1), inverse is `DTFFT_DST_1` )
   DTFFT_DST_1 = CONF_DTFFT_DST_1,
+  // DST-II (Logical N=2*n, inverse is `DTFFT_DST_3` )
   DTFFT_DST_2 = CONF_DTFFT_DST_2,
+  // DST-III (Logical N=2*n, inverse is `DTFFT_DST_2` )
   DTFFT_DST_3 = CONF_DTFFT_DST_3,
+  // DST-IV (Logical N=2*n, inverse is `DTFFT_DST_4` )
   DTFFT_DST_4 = CONF_DTFFT_DST_4
 } dtfft_r2r_kind_t;
 
@@ -238,7 +248,7 @@ do {                                                                          \
   * \param[in]      executor_type         Type of external FFT executor. One of the
   *                                         - `DTFFT_EXECUTOR_NONE`
   *                                         - `DTFFT_EXECUTOR_FFTW3`
-  *                                         - `DTFFT_EXECUTOR_VKFFT`
+  *                                         - `DTFFT_EXECUTOR_VKFFT` - only GPU
   * \param[out]     plan                  Plan handle ready to be executed
   *
   * \return `DTFFT_SUCCESS` if plan was created, error code otherwise
@@ -271,8 +281,8 @@ dtfft_create_plan_r2r(
   *                                         - `DTFFT_EXECUTOR_NONE`
   *                                         - `DTFFT_EXECUTOR_FFTW3`
   *                                         - `DTFFT_EXECUTOR_MKL`
-  *                                         - `DTFFT_EXECUTOR_CUFFT`
-  *                                         - `DTFFT_EXECUTOR_VKFFT`
+  *                                         - `DTFFT_EXECUTOR_CUFFT` - only GPU
+  *                                         - `DTFFT_EXECUTOR_VKFFT` - only GPU
   * \param[out]     plan                  Plan handle ready to be executed
   *
   * \return `DTFFT_SUCCESS` if plan was created, error code otherwise
@@ -288,6 +298,7 @@ dtfft_create_plan_c2c(
   dtfft_plan_t *plan);
 
 
+#ifndef DTFFT_TRANSPOSE_ONLY
 /** \brief Real-to-Complex Plan constructor. Must be called after MPI_Init
   *
   * \param[in]      ndims                 Number of dimensions: 2 or 3
@@ -303,8 +314,8 @@ dtfft_create_plan_c2c(
   * \param[in]      executor_type         Type of external FFT executor. One of the
   *                                         - `DTFFT_EXECUTOR_FFTW3`
   *                                         - `DTFFT_EXECUTOR_MKL`
-  *                                         - `DTFFT_EXECUTOR_CUFFT`
-  *                                         - `DTFFT_EXECUTOR_VKFFT`
+  *                                         - `DTFFT_EXECUTOR_CUFFT` - only GPU
+  *                                         - `DTFFT_EXECUTOR_VKFFT` - only GPU
   * \param[out]     plan                  Plan handle ready to be executed
   *
   * \return `DTFFT_SUCCESS` if plan was created, error code otherwise
@@ -320,7 +331,7 @@ dtfft_create_plan_r2c(
   const dtfft_effort_t effort_flag,
   const dtfft_executor_t executor_type,
   dtfft_plan_t *plan);
-
+#endif
 
 /** \brief Checks if plan is using Z-slab optimization.
   * If ``true`` then flags ``DTFFT_TRANSPOSE_X_TO_Z`` and ``DTFFT_TRANSPOSE_Z_TO_X`` will be valid to pass to ``dtfft_transpose``.
@@ -397,7 +408,7 @@ dtfft_destroy(dtfft_plan_t *plan);
   * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
 dtfft_error_code_t
-dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts, int32_t *out_starts, int32_t *out_counts, int64_t *alloc_size);
+dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts, int32_t *out_starts, int32_t *out_counts, size_t *alloc_size);
 
 
 /** \brief Wrapper around `dtfft_get_local_sizes` to obtain number of elements only
@@ -411,7 +422,7 @@ dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts,
   * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
 dtfft_error_code_t
-dtfft_get_alloc_size(dtfft_plan_t plan, int64_t *alloc_size);
+dtfft_get_alloc_size(dtfft_plan_t plan, size_t *alloc_size);
 
 
 /**
@@ -442,6 +453,29 @@ void dtfft_enable_z_slab();
  * @note This option is only valid for 3d plans
  */
 void dtfft_disable_z_slab();
+
+// Structure to hold pencil decomposition info
+typedef struct {
+  int8_t dim;
+  int32_t starts[3];
+  int32_t counts[3];
+} dtfft_pencil_t;
+
+/**
+ * @brief Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation, 
+ * that is unavailable in dtFFT.
+ * 
+ * \param[in]     plan            Plan handle
+ * \param[in]     dim             Required dimension:
+ *                                  - 1 for XYZ layout
+ *                                  - 2 for YXZ layout
+ *                                  - 3 for ZXY layout
+ * \param[out]    pencil          Pencil data
+ * 
+ * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ */
+dtfft_error_code_t
+dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil);
 
 
 #ifdef DTFFT_WITH_CUDA

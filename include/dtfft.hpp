@@ -56,6 +56,24 @@ namespace dtfft
         {return dtfft_get_z_slab(_plan, is_z_slab);}
 
 
+/**
+ * \brief Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation, 
+ * that is unavailable in dtFFT.
+ * 
+ * \param[in]     plan            Plan handle
+ * \param[in]     dim             Required dimension:
+ *                                  - 1 for XYZ layout
+ *                                  - 2 for YXZ layout
+ *                                  - 3 for ZXY layout
+ * \param[out]    pencil          Pencil data
+ * 
+ * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ */
+        dtfft_error_code_t
+        get_pencil(int8_t dim, dtfft_pencil_t *pencil)
+        {return dtfft_get_pencil(_plan, dim, pencil);}
+
+
 /** \brief Plan execution without optional auxiliary vector
   *
   * \param[inout]   in              Incoming vector
@@ -177,7 +195,7 @@ namespace dtfft
   * \return Status code of method execution
 */
         dtfft_error_code_t
-        get_alloc_size(int64_t *alloc_size)
+        get_alloc_size(size_t *alloc_size)
         {return dtfft_get_alloc_size(_plan, alloc_size);}
 
 
@@ -196,7 +214,7 @@ namespace dtfft
   * \return Status code of method execution
 */
         dtfft_error_code_t
-        get_local_sizes(std::vector<int32_t>&in_starts, std::vector<int32_t>&in_counts, std::vector<int32_t>&out_starts, std::vector<int32_t>&out_counts, int64_t *alloc_size)
+        get_local_sizes(std::vector<int32_t>&in_starts, std::vector<int32_t>&in_counts, std::vector<int32_t>&out_starts, std::vector<int32_t>&out_counts, size_t *alloc_size)
         {return get_local_sizes(in_starts.data(), in_counts.data(), out_starts.data(), out_counts.data(), alloc_size);}
 
 
@@ -215,7 +233,7 @@ namespace dtfft
   * \return Status code of method execution
 */
         dtfft_error_code_t
-        get_local_sizes(int32_t *in_starts=NULL, int32_t *in_counts=NULL, int32_t *out_starts=NULL, int32_t *out_counts=NULL, int64_t *alloc_size=NULL)
+        get_local_sizes(int32_t *in_starts=NULL, int32_t *in_counts=NULL, int32_t *out_starts=NULL, int32_t *out_counts=NULL, size_t *alloc_size=NULL)
         {return dtfft_get_local_sizes(_plan, in_starts, in_counts, out_starts, out_counts, alloc_size);}
 
 
@@ -274,6 +292,8 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
+  *                                     - `DTFFT_EXECUTOR_CUFFT` - only GPU
+  *                                     - `DTFFT_EXECUTOR_VKFFT` - only GPU
 */
       PlanC2C(
         const std::vector<int32_t> &dims,
@@ -294,6 +314,8 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
+  *                                     - `DTFFT_EXECUTOR_CUFFT` - only GPU
+  *                                     - `DTFFT_EXECUTOR_VKFFT` - only GPU
 */
       PlanC2C(
         const std::vector<int32_t> &dims,
@@ -314,6 +336,8 @@ namespace dtfft
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
+  *                                     - `DTFFT_EXECUTOR_CUFFT` - only GPU
+  *                                     - `DTFFT_EXECUTOR_VKFFT` - only GPU
 */
       PlanC2C(
         const int8_t ndims,
@@ -329,6 +353,7 @@ namespace dtfft
       }
   };
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   class PlanR2C final: public core::dtfft_core
   {
     public:
@@ -342,6 +367,8 @@ namespace dtfft
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
+  *                                     - `DTFFT_EXECUTOR_CUFFT` - only GPU
+  *                                     - `DTFFT_EXECUTOR_VKFFT` - only GPU
   *
   * \note Parameter `executor_type` cannot be `DTFFT_EXECUTOR_NONE`. Use C2C or R2R plans instead
   *
@@ -365,6 +392,8 @@ namespace dtfft
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
+  *                                     - `DTFFT_EXECUTOR_CUFFT` - only GPU
+  *                                     - `DTFFT_EXECUTOR_VKFFT` - only GPU
   *
   * \note Parameter `executor_type` cannot be `DTFFT_EXECUTOR_NONE`. Use C2C or R2R plans instead
   *
@@ -383,6 +412,7 @@ namespace dtfft
           throw std::runtime_error(dtfft_get_error_string(error_code));
       }
   };
+#endif
 
   class PlanR2R final: public core::dtfft_core
   {
@@ -403,6 +433,7 @@ namespace dtfft
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
+  *                                     - `DTFFT_EXECUTOR_VKFFT` - only GPU
   *
   * \throws std::runtime_error In case error occurs during plan creation
 */
@@ -442,6 +473,7 @@ namespace dtfft
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
+  *                                     - `DTFFT_EXECUTOR_VKFFT` - only GPU
   *
   * \throws std::runtime_error In case error occurs during plan creation
 */

@@ -24,6 +24,8 @@
 #include <complex>
 #include <vector>
 
+#include "test_utils.h"
+
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -58,7 +60,7 @@ int main(int argc, char *argv[])
   vector<int32_t> dims = {ny, nx};
   vector<dtfft_r2r_kind_t> kinds = {};
   dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type);
-  int64_t alloc_size;
+  size_t alloc_size;
   plan.get_alloc_size(&alloc_size);
 
   vector<double> in(alloc_size),
@@ -84,36 +86,14 @@ int main(int argc, char *argv[])
   plan.execute(out, in, DTFFT_TRANSPOSE_IN);
   tb += MPI_Wtime();
 
-  double t_sum;
-  MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tf = t_sum / (double) comm_size;
-  MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tb = t_sum / (double) comm_size;
-
-  if(comm_rank == 0) {
-    cout << "Forward execution time: " << tf << endl;
-    cout << "Backward execution time: " << tb << endl;
-    cout << "----------------------------------------" << endl;
-  }
-
   double local_error = -1.0;
   for (size_t i = 0; i < alloc_size; i++) {
     double error = fabs(in[i] - check[i]);
     local_error = error > local_error ? error : local_error;
   }
 
-  double global_error;
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  report_double(&nx, &ny, NULL, local_error, tf, tb);
 
-  if(comm_rank == 0) {
-    if(global_error < 1e-10) {
-      cout << "Test 'r2r_2d_cxx' PASSED!" << endl;
-    } else {
-      cout << "Test 'r2r_2d_cxx' FAILED, error = " << global_error << endl;
-      return -1;
-    }
-    cout << "----------------------------------------" << endl;
-  }
   plan.destroy();
 
   MPI_Finalize();

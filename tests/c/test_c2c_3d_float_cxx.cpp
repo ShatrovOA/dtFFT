@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 
   size_t in_size = std::accumulate(in_counts.begin(), in_counts.end(), 1, multiplies<int>());
 
-  int64_t alloc_size;
+  size_t alloc_size;
   plan.get_alloc_size(&alloc_size);
 
   vector<complex<float>> in(alloc_size),

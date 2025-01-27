@@ -20,10 +20,11 @@
 program test_r2r_2d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, int32, I4P => int32, I1P => int8, output_unit, error_unit
 use dtfft
+use test_utils
 #include "dtfft_mpi.h"
 implicit none
   real(R4P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R4P) :: local_error, global_error, rnd
+  real(R4P) :: local_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 4
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
   integer(I1P) :: executor_type
@@ -75,9 +76,10 @@ implicit none
   tf = 0.0_R8P - MPI_Wtime()
   call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
-#ifndef DTFFT_TRANSPOSE_ONLY
-  out(:,:) = out(:,:) / real(4 * nx * ny, R4P)
-#endif
+
+  if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+    out(:,:) = out(:,:) / real(4 * nx * ny, R4P)
+  endif
   ! Nullify recv buffer
   in = -1._R4P
 
@@ -85,29 +87,13 @@ implicit none
   call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
+  local_error = maxval(abs(in - check))
+  call report(tf, tb, local_error, nx, ny)
+
   call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tf = t_sum / real(comm_size, R8P)
   call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
   tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
-
-  local_error = maxval(abs(in - check))
-
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
-  if(comm_rank == 0) then
-    if(global_error < 1.e-5) then
-      write(output_unit, '(a)') "Test 'r2r_2d_float' PASSED!"
-    else
-      write(error_unit, '(a, d16.5)') "Test 'r2r_2d_float' FAILED... error = ", global_error
-      error stop
-    endif
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
 
   deallocate(in, out, check)
 

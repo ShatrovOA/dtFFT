@@ -26,10 +26,13 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef DTFFT_TRANSPOSE_ONLY
+  return 0;
+#else
   dtfft_plan_t plan;
   int32_t nx = 35, ny = 44;
   float *inout, *check, *work;
-  int i, comm_rank, comm_size;
+  int comm_rank, comm_size;
   int32_t in_counts[2], out_counts[2], n[2] = {ny, nx};
 
   // MPI_Init must be called before calling dtFFT
@@ -56,12 +59,6 @@ int main(int argc, char *argv[])
   executor_type = DTFFT_EXECUTOR_VKFFT;
 #elif defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3;
-#else
-  if(comm_rank == 0) {
-    printf("No available executors found, skipping test...\n");
-  }
-  MPI_Finalize();
-  return 0;
 #endif
 
   assign_device_to_process();
@@ -70,7 +67,7 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type, &plan) )
 
   // Get local sizes
-  int64_t alloc_size;
+  size_t alloc_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
 
   size_t in_size = in_counts[0] * in_counts[1];
@@ -83,7 +80,7 @@ int main(int argc, char *argv[])
 #pragma acc enter data create(inout[0:alloc_size-1], check[0:in_size-1], work[0:alloc_size-1])
 
 #pragma acc parallel loop present(inout, check)
-  for (i = 0; i < in_size; i++) {
+  for (size_t i = 0; i < in_size; i++) {
     inout[i] = check[i] = (float)i / (float)nx / (float)ny;
   }
 
@@ -99,7 +96,7 @@ int main(int argc, char *argv[])
 
   // Normalize
 #pragma acc parallel loop present(inout)
-  for (i = 0; i < 2 * out_size; i++) {
+  for (size_t i = 0; i < 2 * out_size; i++) {
     inout[i] /= (float) (nx * ny);
   }
 
@@ -116,7 +113,7 @@ int main(int argc, char *argv[])
 
   float local_error = -1.0;
 #pragma acc parallel loop present(inout, check) reduction(max:local_error)
-  for (i = 0; i < in_size; i++) {
+  for (size_t i = 0; i < in_size; i++) {
     float error = fabs(check[i] - inout[i]);
     local_error = error > local_error ? error : local_error;
   }
@@ -132,4 +129,5 @@ int main(int argc, char *argv[])
 
   MPI_Finalize();
   return 0;
+#endif
 }

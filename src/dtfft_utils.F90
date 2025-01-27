@@ -49,12 +49,18 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
   !< Should we use MPI backends or not
   integer(int8),              save  :: dtfft_gpu_backend = DTFFT_GPU_BACKEND_NCCL
   !< Default GPU backend
-# if defined(DTFFT_WITH_PROFILER)
-  type(nvtxDomainHandle),     save  :: dtfft_domain
+#endif
+
+#ifdef DTFFT_WITH_PROFILER
+#if defined (DTFFT_WITH_CUDA)
+  type(nvtxDomainHandle),     save  :: domain_nvtx
   !< NVTX domain handle
   logical,                    save  :: domain_created = .false.
   !< Is the NVTX domain created?
-# endif
+#else
+  ! type(ConfigManager),        save  :: mgr
+  !< Caliper Config Manager
+#endif
 #endif
 
   interface int_to_str
@@ -367,7 +373,7 @@ contains
 # if defined(DTFFT_WITH_PROFILER)
   subroutine create_nvtx_domain
   !! Creates a new NVTX domain
-    dtfft_domain = nvtxDomainCreate("dtFFT")
+    domain_nvtx = nvtxDomainCreate("dtFFT")
     domain_created = .true.
   end subroutine create_nvtx_domain
 
@@ -380,14 +386,14 @@ contains
 
     if ( .not. domain_created ) call create_nvtx_domain()
     range = nvtxEventAttributes(message, color)
-    status = nvtxDomainRangePushEx(dtfft_domain, range)
+    status = nvtxDomainRangePushEx(domain_nvtx, range)
   end subroutine push_nvtx_domain_range
 
   subroutine pop_nvtx_domain_range()
   !! Pops a range from the NVTX domain
     integer(c_int)                :: status     !< Status of the pop
 
-    status = nvtxDomainRangePop(dtfft_domain)
+    status = nvtxDomainRangePop(domain_nvtx)
   end subroutine pop_nvtx_domain_range
 # endif
 #endif

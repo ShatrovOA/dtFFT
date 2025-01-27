@@ -19,12 +19,13 @@
 #include "dtfft_config.h"
 module dtfft_api
 !! This module is a Fortran part of C/C++ interface
-use iso_c_binding,    only: c_int8_t, c_int32_t, c_int64_t, &
+use iso_c_binding,    only: c_int8_t, c_int32_t, c_size_t, &
                             c_float, c_bool, c_char,        &
                             c_null_ptr, c_ptr, c_loc,       &
                             c_f_pointer, c_associated
 use iso_fortran_env,  only: int8, int32
 use dtfft_parameters
+use dtfft_pencil,     only: dtfft_pencil_t
 use dtfft_plan
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
@@ -113,6 +114,7 @@ contains
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_c2c_c
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   function dtfft_create_plan_r2c_c(ndims, dims, comm, precision, effort_flag, executor_type, plan_ptr)              &
     result(error_code)                                                                                              &
     bind(C)
@@ -140,6 +142,7 @@ contains
     endselect
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_r2c_c
+#endif
 
   function dtfft_get_z_slab_c(plan_ptr, is_zlab)                                                                    &
     result(error_code)                                                                                              &
@@ -231,7 +234,7 @@ contains
     integer(c_int32_t),  intent(out),    optional :: in_counts(3)         !< Counts of local portion of data in 'real' space
     integer(c_int32_t),  intent(out),    optional :: out_starts(3)        !< Starts of local portion of data in 'fourier' space
     integer(c_int32_t),  intent(out),    optional :: out_counts(3)        !< Counts of local portion of data in 'fourier' space
-    integer(c_int64_t),  intent(out),    optional :: alloc_size           !< Minimum data needs to be allocated
+    integer(c_size_t),   intent(out),    optional :: alloc_size           !< Minimum data needs to be allocated
     integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
                                                                           !< defines API call result codes.
     type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
@@ -246,10 +249,25 @@ contains
     integer(c_int32_t),  intent(in)               :: error_code           !< The enumerated type dtfft_error_code_t
                                                                           !< defines API call result codes.
     character(c_char),   intent(out)              :: error_string(*)      !< Explanation of error
-    integer(c_int64_t),  intent(out)              :: error_string_size    !< Size of ``error_string``
+    integer(c_size_t),   intent(out)              :: error_string_size    !< Size of ``error_string``
 
     call string_f2c(dtfft_get_error_string(error_code), error_string, error_string_size)
   end subroutine dtfft_get_error_string_c
+
+  function dtfft_get_pencil_c(plan_ptr, dim, pencil)                                                                &
+    result(error_code)                                                                                              &
+    bind(C)
+    type(c_ptr),                         value    :: plan_ptr             !< C pointer to Fortran plan
+    integer(c_int8_t),  intent(in)                :: dim                  !< Dimension requested
+    type(dtfft_pencil_t)                          :: pencil               !< Pencil pointer
+    integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
+                                                                          !< defines API call result codes.
+    type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr)
+    call c_f_pointer(plan_ptr, plan)
+    pencil = plan%p%get_pencil(dim, error_code)
+  end function dtfft_get_pencil_c
 
 #ifdef DTFFT_WITH_CUDA
   function dtfft_set_stream_c(stream)                                                                               &
@@ -310,7 +328,7 @@ contains
   !! Returns string representation of ``dtfft_gpu_backend_t``
     integer(c_int8_t),   intent(in)               :: backend_id           !< The enumerated type dtfft_gpu_backend_t
     character(c_char),   intent(out)              :: backend_string(*)    !< Resulting string
-    integer(c_int64_t),  intent(out)              :: backend_string_size  !< Size of string
+    integer(c_size_t),   intent(out)              :: backend_string_size  !< Size of string
 
     call string_f2c(dtfft_get_gpu_backend_string(backend_id), backend_string, backend_string_size)
   end subroutine dtfft_get_gpu_backend_string_c

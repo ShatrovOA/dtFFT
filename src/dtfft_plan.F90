@@ -35,7 +35,7 @@ use dtfft_executor_cufft_m,           only: cufft_executor
 #ifdef DTFFT_WITH_VKFFT
 use dtfft_executor_vkfft_m,           only: vkfft_executor
 #endif
-use dtfft_pencil,                     only: pencil, get_local_sizes_private => get_local_sizes
+use dtfft_pencil,                     only: pencil, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
 use dtfft_parameters
 use dtfft_transpose_plan_host,        only: transpose_plan_host
 use dtfft_utils
@@ -50,7 +50,12 @@ use dtfft_transpose_plan_cuda,        only: transpose_plan_cuda
 #include "dtfft_profile.h"
 implicit none
 private
-public :: dtfft_abstract_plan, dtfft_plan_c2c, dtfft_plan_r2c, dtfft_plan_r2r
+public :: dtfft_abstract_plan
+public :: dtfft_plan_c2c
+#ifndef DTFFT_TRANSPOSE_ONLY
+public :: dtfft_plan_r2c
+#endif
+public :: dtfft_plan_r2r
 
 
 #define CHECK_INPUT_PARAMETER(param, valid_values, code)          \
@@ -161,6 +166,7 @@ public :: dtfft_abstract_plan, dtfft_plan_c2c, dtfft_plan_r2c, dtfft_plan_r2r
     procedure,  pass(self), non_overridable, public :: destroy            !< Destroys plan
     procedure,  pass(self), non_overridable, public :: get_local_sizes    !< Returns local starts and counts in `real` and `fourier` spaces
     procedure,  pass(self), non_overridable, public :: get_z_slab         !< Returns logical value is Z-slab optimization is enabled
+    procedure,  pass(self), non_overridable, public :: get_pencil         !< Returns pencil decomposition
 #ifdef DTFFT_WITH_CUDA
     procedure,  pass(self), non_overridable, public :: get_gpu_backend    !< Returns selected GPU backend during autotuning
     procedure,  pass(self), non_overridable, public :: get_stream         !< Returns CUDA stream associated with plan
@@ -189,6 +195,7 @@ public :: dtfft_abstract_plan, dtfft_plan_c2c, dtfft_plan_r2c, dtfft_plan_r2r
     procedure, pass(self), non_overridable, public  :: create => create_c2c !< C2C Plan Constructor
   end type dtfft_plan_c2c
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   type, extends(dtfft_core_c2c) :: dtfft_plan_r2c
   !< R2C Plan
   private
@@ -198,6 +205,7 @@ public :: dtfft_abstract_plan, dtfft_plan_c2c, dtfft_plan_r2c, dtfft_plan_r2r
   private
     procedure,  pass(self), non_overridable, public :: create => create_r2c !< R2C Plan Constructor
   end type dtfft_plan_r2c
+#endif
 
   type, extends(dtfft_abstract_plan) :: dtfft_plan_r2r
   !< R2R Plan
@@ -402,10 +410,12 @@ contains
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
 
+#ifndef DTFFT_TRANSPOSE_ONLY
     select type ( self )
     class is ( dtfft_plan_r2c )
       call self%real_pencil%destroy()
     endselect
+#endif
 
     if ( allocated(self%pencils) ) then
       do d = 1, self%ndims
@@ -481,6 +491,24 @@ contains
     get_z_slab = self%is_z_slab
   end function get_z_slab
 
+  type(dtfft_pencil_t) function get_pencil(self, dim, error_code)
+  !! Returns pencil decomposition
+    class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
+    integer(int8),              intent(in)  :: dim
+    integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
+    integer(int32)                          :: ierr                   !< Error code
+
+    ierr = DTFFT_SUCCESS
+    get_pencil = dtfft_pencil_t(-1,-1,-1)
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    if ( dim < 1 .or. dim > self%ndims ) ierr = DTFFT_ERROR_INVALID_DIM
+    CHECK_ERROR_AND_RETURN
+
+    get_pencil = self%pencils(dim)%make_public()
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_pencil
+
 #ifdef DTFFT_WITH_CUDA
   integer(int8) function get_gpu_backend(self, error_code)
   !! Returns selected GPU backend during autotuning
@@ -489,6 +517,7 @@ contains
     integer(int32)                          :: ierr                   !< Error code
 
     ierr = DTFFT_SUCCESS
+    get_gpu_backend = 0
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     if ( present( error_code ) ) error_code = ierr
     if ( ierr /= DTFFT_SUCCESS ) return
@@ -541,11 +570,13 @@ contains
     if ( ierr /= DTFFT_SUCCESS ) return
 
     select type ( self )
+#ifndef DTFFT_TRANSPOSE_ONLY
     class is (dtfft_plan_r2c)
       if (present( in_starts ) )    in_starts(1:self%ndims)   = self%real_pencil%starts(1:self%ndims)
       if (present( in_counts ) )    in_counts(1:self%ndims)   = self%real_pencil%counts(1:self%ndims)
       call get_local_sizes_private(self%pencils, out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size)
       if ( present( alloc_size ) ) alloc_size = max(int(product(self%real_pencil%counts), int64), 2 * alloc_size)
+#endif
     class default
       call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
     endselect
@@ -750,10 +781,12 @@ contains
     do dim = 1_int8, self%ndims
       do dim2 = 1_int8, dim - 1_int8
         if ( dim == dim2 ) cycle
+#ifndef DTFFT_TRANSPOSE_ONLY
         select type ( self )
         class is ( dtfft_plan_r2c )
           if ( dim == 1 ) cycle
         endselect
+#endif
         if ( self%pencils(dim)%counts(1) == self%pencils(dim2)%counts(1)                    &
              .and. product(self%pencils(dim)%counts) == product(self%pencils(dim2)%counts)  &
              .and. kinds_(dim) == kinds_(dim2) ) then
@@ -859,8 +892,10 @@ contains
     CHECK_INTERNAL_CALL( self%create_private(dims, MPI_COMPLEX, COMPLEX_STORAGE_SIZE, MPI_DOUBLE_COMPLEX, DOUBLE_COMPLEX_STORAGE_SIZE, comm, precision, effort_flag, executor_type) )
     if ( self%is_transpose_plan ) return
     select type ( self )
+#ifndef DTFFT_TRANSPOSE_ONLY
     class is (dtfft_plan_r2c)
       fft_start = 2
+#endif
     class default
       fft_start = 1
     endselect
@@ -872,6 +907,7 @@ contains
 #undef __FUNC__
   end function create_c2c_internal
 
+#ifndef DTFFT_TRANSPOSE_ONLY
   subroutine create_r2c(self, dims, comm, precision, effort_flag, executor_type, error_code)
   !! R2C Plan Constructor
     class(dtfft_plan_r2c),      intent(inout) :: self               !< R2C Plan
@@ -902,4 +938,5 @@ contains
     self%is_created = .true.
     REGION_END("dtfft_create_r2c")
   end subroutine create_r2c
+#endif
 end module dtfft_plan

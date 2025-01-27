@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor_type, &plan) )
 
   int32_t in_counts[2], out_counts[2];
-  int64_t alloc_size;
+  size_t alloc_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
   size_t in_size = in_counts[0] * in_counts[1];
   size_t out_size = out_counts[0] * out_counts[1];

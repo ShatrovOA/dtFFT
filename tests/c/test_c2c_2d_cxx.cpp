@@ -55,12 +55,16 @@ int main(int argc, char *argv[])
   const vector<int32_t> dims = {ny, nx};
   dtfft::PlanC2C plan = dtfft::PlanC2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE);
 
-  int32_t in_sizes[2], out_sizes[2];
-  int64_t alloc_size;
-  plan.get_local_sizes(NULL, in_sizes, NULL, out_sizes, &alloc_size);
+  size_t alloc_size;
+  plan.get_alloc_size(&alloc_size);
 
-  size_t in_size = in_sizes[0] * in_sizes[1];
-  size_t out_size = out_sizes[0] * out_sizes[1];
+  dtfft_pencil_t pencils[2];
+  for (int i = 0; i < 2; i++) {
+    plan.get_pencil(i + 1, &pencils[i]);
+  }
+
+  size_t in_size = pencils[0].counts[0] * pencils[0].counts[1];
+  size_t out_size = pencils[1].counts[0] * pencils[1].counts[1];
 
   complex<double> *in = new complex<double>[alloc_size];
   complex<double> *out = new complex<double>[alloc_size];

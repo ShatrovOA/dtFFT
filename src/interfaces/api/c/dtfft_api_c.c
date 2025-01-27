@@ -49,7 +49,7 @@ dtfft_create_plan_c2c(const int8_t ndims, const int32_t *dims,
   return (dtfft_error_code_t)error_code;
 }
 
-
+#ifndef DTFFT_TRANSPOSE_ONLY
 dtfft_error_code_t
 dtfft_create_plan_r2c(const int8_t ndims, const int32_t *dims,
                       MPI_Comm comm,
@@ -64,6 +64,7 @@ dtfft_create_plan_r2c(const int8_t ndims, const int32_t *dims,
   *plan = plan_;
   return (dtfft_error_code_t)error_code;
 }
+#endif
 
 dtfft_error_code_t
 dtfft_create_plan_r2r(const int8_t ndims, const int32_t *dims,
@@ -131,12 +132,12 @@ dtfft_destroy(dtfft_plan_t *plan)
 }
 
 dtfft_error_code_t
-dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts, int32_t *out_starts, int32_t *out_counts, int64_t *alloc_size) {
+dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts, int32_t *out_starts, int32_t *out_counts, size_t *alloc_size) {
   return (dtfft_error_code_t)dtfft_get_local_sizes_c(get_plan_handle(plan), in_starts, in_counts, out_starts, out_counts, alloc_size);
 }
 
 dtfft_error_code_t
-dtfft_get_alloc_size(dtfft_plan_t plan, int64_t *alloc_size) {
+dtfft_get_alloc_size(dtfft_plan_t plan, size_t *alloc_size) {
   return dtfft_get_local_sizes(plan, NULL, NULL, NULL, NULL, alloc_size);
 }
 
@@ -144,9 +145,14 @@ const char *
 dtfft_get_error_string(const dtfft_error_code_t error_code)
 {
   char *error_string = malloc(250 * sizeof(char));
-  int64_t error_string_size;
+  size_t error_string_size;
   dtfft_get_error_string_c(&error_code, error_string, &error_string_size);
   return realloc(error_string, sizeof(char) * error_string_size);
+}
+
+dtfft_error_code_t
+dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil) {
+  return dtfft_get_pencil_c(get_plan_handle(plan), &dim, (void*)pencil);
 }
 
 #ifdef DTFFT_WITH_CUDA
@@ -174,7 +180,7 @@ dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *backend_id) {
 const char *
 dtfft_get_gpu_backend_string(const dtfft_gpu_backend_t backend_id) {
   char *backend_string = malloc(250 * sizeof(char));
-  int64_t backend_string_size;
+  size_t backend_string_size;
   dtfft_get_gpu_backend_string_c((int8_t*)&backend_id, backend_string, &backend_string_size);
   return realloc(backend_string, sizeof(char) * backend_string_size);
 }

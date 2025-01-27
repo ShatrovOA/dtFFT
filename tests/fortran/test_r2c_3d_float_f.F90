@@ -21,6 +21,7 @@ program test_r2c_3d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I1P => int8, output_unit, error_unit, int32
 use iso_c_binding, only: c_size_t
 use dtfft
+use test_utils
 #include "dtfft_mpi.h"
 #ifdef DTFFT_WITH_CUDA
 use cudafor
@@ -29,9 +30,10 @@ use dtfft_utils
 #endif
 #include "dtfft.f03"
 implicit none
+#ifndef DTFFT_TRANSPOSE_ONLY
   real(R4P),     allocatable :: in(:,:,:), check(:,:,:)
   complex(R4P),  allocatable :: out(:)
-  real(R4P) :: local_error, global_error, rnd
+  real(R4P) :: local_error, rnd
 #ifdef DTFFT_WITH_CUDA
   integer(I4P), parameter :: nx = 513, ny = 711, nz = 33
 #else
@@ -42,7 +44,7 @@ implicit none
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(3)
   integer(c_size_t) :: alloc_size
-  real(R8P) :: tf, tb, t_sum
+  real(R8P) :: tf, tb
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
 #endif
@@ -160,32 +162,11 @@ implicit none
 #endif
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
 !$acc kernels present(in, check)
   local_error = maxval(abs(in - check))
 !$acc end kernels
 
-!$acc exit data delete(in, out, check)
-
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
-  if(comm_rank == 0) then
-    if(global_error < 1.e-5) then
-      write(output_unit, '(a)') "Test 'r2c_3d_float' PASSED!"
-    else
-      write(error_unit, '(a, f16.10)') "Test 'r2c_3d_float' FAILED... error = ", global_error
-      error stop
-    endif
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
+  call report(tf, tb, local_error, nx, ny, nz)
 
   deallocate(in)
   deallocate(out)
@@ -193,4 +174,5 @@ implicit none
 
   call plan%destroy()
   call MPI_Finalize(ierr)
+#endif
 end program test_r2c_3d_float

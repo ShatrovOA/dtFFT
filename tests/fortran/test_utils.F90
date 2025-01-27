@@ -17,61 +17,67 @@ public :: attach_gpu_to_process
     module procedure :: report_double
   end interface report
 
+  real(real32),  parameter :: FLT_EPSILON = nearest(1._real32, 1._real32) - &
+                                            nearest(1._real32,-1._real32)
+
+  real(real64),  parameter :: DBL_EPSILON = nearest(1._real64, 1._real64) - &
+                                            nearest(1._real64,-1._real64)
+
 contains
 
-  subroutine report_single(test_name, tf, tb, local_error)
-    character(len=*),   intent(in)  :: test_name
-    real(real64),       intent(in)  :: tf
-    real(real64),       intent(in)  :: tb
-    real(real32),       intent(in)  :: local_error
+  subroutine report_single(tf, tb, local_error, nx, ny, nz)
+    real(real64),       intent(in)            :: tf
+    real(real64),       intent(in)            :: tb
+    real(real32),       intent(in)            :: local_error
+    integer(int32),     intent(in)            :: nx
+    integer(int32),     intent(in)            :: ny
+    integer(int32),     intent(in), optional  :: nz
+    integer(int32) :: temp
+    real(real32)   :: errthr
 
-    call report_internal(test_name, tf, tb, local_error, real(1e-5, real64))
+    temp = nx * ny; if( present(nz) ) temp = temp * nz
+    errthr = 5.0_real32 * log( real(temp, real32) ) / log(real(2.0, real32)) * FLT_EPSILON
+    call report_internal(tf, tb, real(local_error, real64), real(errthr, real64))
   end subroutine report_single
 
+  subroutine report_double(tf, tb, local_error, nx, ny, nz)
+    real(real64),       intent(in)            :: tf
+    real(real64),       intent(in)            :: tb
+    real(real64),       intent(in)            :: local_error
+    integer(int32),     intent(in)            :: nx
+    integer(int32),     intent(in)            :: ny
+    integer(int32),     intent(in), optional  :: nz
+    integer(int32) :: temp
+    real(real64)   :: errthr
 
-  subroutine report_double(test_name, tf, tb, local_error)
-    character(len=*),   intent(in)  :: test_name
+    temp = nx * ny; if( present(nz) ) temp = temp * nz
+    errthr = 5.0_real64 * log( real(temp, real64) ) / log(real(2.0, real64)) * DBL_EPSILON
+    call report_internal(tf, tb, local_error, errthr)
+  end subroutine report_double
+
+  subroutine report_internal(tf, tb, local_error, error_threshold)
     real(real64),       intent(in)  :: tf
     real(real64),       intent(in)  :: tb
     real(real64),       intent(in)  :: local_error
-
-    call report_internal(test_name, tf, tb, local_error, real(1e-12, real64))
-  end subroutine report_double
-
-  subroutine report_internal(test_name, tf, tb, local_error, error_threshold)
-    character(len=*),   intent(in)  :: test_name
-    real(real64),       intent(in)  :: tf
-    real(real64),       intent(in)  :: tb
-    class(*),           intent(in)  :: local_error
     real(real64),       intent(in)  :: error_threshold
     integer(int32)                  :: comm_rank, comm_size, ierr
-    real(real64) :: local_error_, global_error
+    real(real64) :: global_error
 
 
     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
-    call write_timers("Forward", tf, comm_rank, comm_size)
-    call write_timers("Backward", tb, comm_rank, comm_size)
-
-    select type ( local_error )
-    type is ( real(real32) )
-      local_error_ = real(local_error, real64)
-    type is ( real(real64) )
-      local_error_ = local_error
-    class default
-      error stop
-    endselect
-
-    call MPI_Allreduce(local_error_, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
+    call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
     if(comm_rank == 0) then
-      if(global_error < error_threshold) then
-        write(output_unit, '(a)') "Test '"//test_name//"' PASSED!"
+      if(global_error < error_threshold .and. global_error >= 0._real64) then
+        write(output_unit, '(a)') "Test PASSED!"
       else
-        write(error_unit, '(a, d16.5)') "Test '"//test_name//"' FAILED... error = ", global_error
+        write(error_unit, '(a, d16.5, a, d16.5)') "Test FAILED... error = ", global_error, ' threshold = ', error_threshold
         call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
       endif
     endif
+    call write_timers("Forward", tf, comm_rank, comm_size)
+    call write_timers("Backward", tb, comm_rank, comm_size)
   end subroutine report_internal
 
   subroutine write_timers(direction, execution_time, comm_rank, comm_size)

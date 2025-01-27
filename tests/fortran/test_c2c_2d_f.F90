@@ -18,8 +18,9 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_c2c_2d
-use iso_fortran_env, only: R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit, int32
+use iso_fortran_env, only: R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit, int32, R4P => real32
 use dtfft
+use test_utils
 #ifdef DTFFT_WITH_CUDA
 use cudafor
 #endif
@@ -27,12 +28,12 @@ use cudafor
 #include "dtfft.f03"
 implicit none
   complex(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R8P) :: local_error, global_error, rnd1, rnd2
+  real(R8P) :: local_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 12, ny = 12
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
   type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
-  real(R8P) :: tf, tb, t_sum
+  real(R8P) :: tf, tb
   integer(I1P) :: executor_type = DTFFT_EXECUTOR_NONE
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
@@ -114,9 +115,9 @@ call dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_NCCL)
 !$acc end host_data
   DTFFT_CHECK(ierr)
   tf = tf + MPI_Wtime()
-#ifndef DTFFT_TRANSPOSE_ONLY
-  out(:,:) = out(:,:) / real(nx * ny, R8P)
-#endif
+  if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+    out(:,:) = out(:,:) / real(nx * ny, R8P)
+  endif
   ! Clear recv buffer
   in = (-1._R8P, -1._R8P)
 
@@ -128,29 +129,9 @@ call dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_NCCL)
   DTFFT_CHECK(ierr)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
-
   local_error = maxval(abs(in - check))
 
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
-  if(comm_rank == 0) then
-    if(global_error < 1.d-10) then
-      write(output_unit, '(a)') "Test 'c2c_2d' PASSED!"
-    else
-      write(error_unit, '(a, f16.10)') "Test 'c2c_2d' FAILED... error = ", global_error
-      error stop
-    endif
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
+  call report(tf, tb, local_error, nx, ny)
 
   deallocate(in, out, check)
 

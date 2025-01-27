@@ -34,7 +34,7 @@ use dtfft_utils
 #include "dtfft.f03"
 implicit none
   real(R8P), allocatable :: in(:), out(:), check(:)
-  real(R8P) :: local_error, global_error, rnd
+  real(R8P) :: local_error, rnd
 #ifdef DTFFT_WITH_CUDA
   integer(I4P), parameter :: nx = 1024, ny = 1024, nz = 16
 #else
@@ -45,7 +45,7 @@ implicit none
   integer(I4P) :: in_starts(3), in_counts(3), out_counts(3), ierr, ijk
   integer(I4P) :: iter
   integer(I1P) :: executor_type
-  real(R8P) :: tf, tb, t_sum, temp
+  real(R8P) :: tf, tb, temp
   integer(I8P) :: alloc_size
   TYPE_MPI_COMM :: comm
 #ifdef DTFFT_WITH_CUDA
@@ -152,33 +152,11 @@ implicit none
     tb = tb + temp + MPI_Wtime()
   enddo
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-  endif
-
-
 !$acc kernels present(in, check)
   local_error = maxval(abs(in(:in_size) - check(:in_size)))
 !$acc end kernels
 
-!$acc exit data delete(in, out, check)
-
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
-
-  if(comm_rank == 0) then
-    if(global_error < 1.e-12) then
-      write(output_unit, '(a)') "Test 'r2r_3d' PASSED!"
-    else
-      write(output_unit, '(a, d16.5)') "Test 'r2r_3d' FAILED... error = ", global_error
-      error stop
-    endif
-  endif
+  call report(tf, tb, local_error, nx, ny, nz)
 
   deallocate(in, out, check)
   call plan%destroy(error_code=ierr)

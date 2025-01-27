@@ -21,6 +21,7 @@ program test_c2c_3d
 use iso_fortran_env, only: R8P => real64, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit, int32
 use dtfft
 use iso_c_binding
+use test_utils
 #ifdef DTFFT_WITH_CUDA
 use cudafor
 use dtfft_utils
@@ -30,7 +31,7 @@ use dtfft_utils
 #include "dtfft.f03"
 implicit none
   complex(R8P),  allocatable :: inout(:), check(:,:,:), aux(:)
-  real(R8P) :: err, local_error, global_error, rnd1, rnd2
+  real(R8P) :: err, local_error, rnd1, rnd2
 #ifdef DTFFT_WITH_CUDA
   integer(I4P), parameter :: nx = 2011, ny = 111, nz = 755
 #else
@@ -41,7 +42,7 @@ implicit none
   type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_counts(3), out_counts(3), iter
   integer(I8P)  :: alloc_size
-  real(R8P) :: ts, tf, tb, t_sum
+  real(R8P) :: ts, tf, tb
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
   integer(I1P) :: selected_backend
@@ -93,7 +94,7 @@ implicit none
     DTFFT_CHECK(ierr)
   endblock
 #endif
-  
+
   ! Setting effort_flag=DTFFT_PATIENT will override call to `dtfft_set_gpu_backend`
   ! Fastest backend will be selected
   call plan%create([nx, ny, nz], executor_type=executor_type, effort_flag=DTFFT_PATIENT, error_code=ierr)
@@ -142,31 +143,22 @@ implicit none
 #endif
 
     tf = tf + ts + MPI_Wtime()
-#ifndef DTFFT_TRANSPOSE_ONLY
-!$acc kernels present(inout)
-    inout(:) = inout(:) / real(nx * ny * nz, R8P)
-!$acc end kernels
-#endif
+
+    if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+    !$acc kernels present(inout)
+      inout(:) = inout(:) / real(nx * ny * nz, R8P)
+    !$acc end kernels
+    endif
     ts = 0.0_R8P - MPI_Wtime()
-!$acc host_data use_device(inout, aux)
+  !$acc host_data use_device(inout, aux)
     call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN, aux, error_code=ierr)
-!$acc end host_data
+  !$acc end host_data
     DTFFT_CHECK(ierr)
 #ifdef DTFFT_WITH_CUDA
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
     tb = tb + ts + MPI_Wtime()
   enddo
-
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-  endif
 
   local_error = 0._R8P
 !$acc parallel loop collapse(3) present(inout, check) copyin(in_counts) reduction(max:local_error)
@@ -181,18 +173,9 @@ implicit none
     enddo
   enddo
 
-!$acc exit data delete(inout, aux)
+  call report(tf, tb, local_error, nx, ny, nz)
 
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
-  if(comm_rank == 0) then
-    if(global_error < 1.d-10) then
-      write(output_unit, '(a)') "Test 'c2c_3d' PASSED!"
-    else
-      write(error_unit, '(a, f16.10)') "Test 'c2c_3d' FAILED... error = ", global_error
-      error stop
-    endif
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
+!$acc exit data delete(inout, aux)
 
   deallocate(inout, check)
 

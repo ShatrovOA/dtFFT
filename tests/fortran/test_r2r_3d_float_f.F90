@@ -116,7 +116,7 @@ implicit none
 
   local_error = maxval(abs(inout(:in_product) - check(:in_product)))
 
-  call report("r2r_3d_float", tf, tb, local_error)
+  call report(tf, tb, local_error, nx, ny, nz)
 
   deallocate(inout, check)
 #ifdef DTFFT_WITH_CUDA

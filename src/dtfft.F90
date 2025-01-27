@@ -20,17 +20,21 @@
 module dtfft
 !! Main DTFFT module. Should be used in a Fortran program.
 use dtfft_parameters
+use dtfft_pencil
 use dtfft_plan
 use dtfft_utils
 implicit none
 private
 
 ! Plans
-public :: dtfft_abstract_plan,                                      &
-          dtfft_plan_c2c,                                           &
-          dtfft_plan_r2c,                                           &
-          dtfft_plan_r2r
+public :: dtfft_abstract_plan
+public :: dtfft_plan_c2c
+#ifndef DTFFT_TRANSPOSE_ONLY
+public :: dtfft_plan_r2c
+#endif
+public :: dtfft_plan_r2r
 
+public :: dtfft_pencil_t
 public :: dtfft_get_error_string
 public :: dtfft_enable_z_slab, dtfft_disable_z_slab
 

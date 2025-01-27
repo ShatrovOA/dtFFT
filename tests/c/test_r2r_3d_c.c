@@ -21,15 +21,18 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
+
+#include "test_utils.h"
 
 int main(int argc, char *argv[]) 
 {
   int32_t nx = 4, ny = 64, nz = 16;
-  double *in, *out, *check, *aux;
-  int i, comm_rank, comm_size;
+  double *inout, *check, *aux;
+  int comm_rank, comm_size;
   int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
-  dtfft_r2r_kind_t kinds[3] = {DTFFT_DCT_1, DTFFT_DCT_1, DTFFT_DCT_4};
+  dtfft_pencil_t pencils[3];
 
 
   // MPI_Init must be called before calling dtFFT
@@ -46,80 +49,79 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-#ifdef DTFFT_WITH_FFTW
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
-#else
   dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
-#endif
 
   // Create plan
   dtfft_plan_t plan;
 
-  DTFFT_CALL( dtfft_create_plan_r2r(3, n, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
 
-  int64_t alloc_size;
-  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+  size_t alloc_size;
+  DTFFT_CALL( dtfft_get_alloc_size(plan, &alloc_size) )
 
-  in = (double*) malloc(sizeof(double) * alloc_size);
-  out = (double*) malloc(sizeof(double) * alloc_size);
+  inout = (double*) malloc(sizeof(double) * alloc_size);
   check = (double*) malloc(sizeof(double) * alloc_size);
   aux = (double*) malloc(sizeof(double) * alloc_size);
 
-  for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++)
-    in[i] = check[i] = 44.0;
+  // Obtain pencil information (optional)
+  for ( int i = 0; i < 3; i++ ) {
+    dtfft_get_pencil(plan, i + 1, &pencils[i]);
+  }
+
+  memcpy(in_counts, pencils[0].counts, 3 * sizeof(int32_t));
+  memcpy(out_counts, pencils[2].counts, 3 * sizeof(int32_t));
+
+  int64_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
+  int64_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
+
+  for (int i = 0; i < in_size; i++)
+    inout[i] = check[i] = (double)(i) / (double)(in_size);
 
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux);
+  /*
+    Run custom Forward FFT X direction using pencils[0] information
+  */
+  DTFFT_CALL( dtfft_transpose(plan, inout, aux, DTFFT_TRANSPOSE_X_TO_Y) )
+  /*
+    Run custom Forward FFT Y direction using pencils[1] information
+  */
+  DTFFT_CALL( dtfft_transpose(plan, aux, inout, DTFFT_TRANSPOSE_Y_TO_Z) )
+  /*
+    Run custom Forward FFT Z direction using pencils[2] information
+  */
   tf += MPI_Wtime();
 
-  for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++)
-    in[i] = -2;
-
   if ( executor_type != DTFFT_EXECUTOR_NONE ) {
-    for (i = 0; i < out_counts[0] * out_counts[1] * out_counts[2]; i++)
-      out[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
+    // Perform scaling. Scaling value may very depending on FFT type
+    for (int i = 0; i < out_size; i++)
+      inout[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
   }
 
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux);
+  /*
+    Run custom Backward FFT Z direction using pencils[2] information
+  */
+  DTFFT_CALL( dtfft_transpose(plan, inout, aux, DTFFT_TRANSPOSE_Z_TO_Y) )
+  /*
+    Run custom Backward FFT Y direction using pencils[1] information
+  */
+  DTFFT_CALL( dtfft_transpose(plan, aux, inout, DTFFT_TRANSPOSE_Y_TO_X) )
+  /*
+    Run custom Backward FFT X direction using pencils[0] information
+  */
   tb += MPI_Wtime();
 
-  double t_sum;
-  MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tf = t_sum / (double) comm_size;
-  MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tb = t_sum / (double) comm_size;
-
-  if(comm_rank == 0) {
-    printf("Forward execution time: %f\n", tf);
-    printf("Backward execution time: %f\n", tb);
-    printf("----------------------------------------\n");
-  }
-
   double local_error = -1.0;
-  for (i = 0; i < in_counts[0] * in_counts[1] * in_counts[2]; i++) {
-    double error = fabs(check[i] - in[i]);
+  for (int i = 0; i < in_size; i++) {
+    double error = fabs(check[i] - inout[i]);
     local_error = error > local_error ? error : local_error;
   }
 
-  double global_error;
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-
-  if(comm_rank == 0) {
-    if(global_error < 1e-10) {
-      printf("Test 'r2r_3d_c' PASSED!\n");
-    } else {
-      printf("Test 'r2r_3d_c' FAILED, error = %f\n", global_error);
-      return -1;
-    }
-    printf("----------------------------------------\n");
-  }
+  report_double(&nx, &ny, &nz, local_error, tf, tb);
 
   dtfft_destroy(&plan);
-  free(in);
+  free(inout);
   free(check);
-  free(out);
   free(aux);
 
   MPI_Finalize();

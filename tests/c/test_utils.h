@@ -60,7 +60,7 @@ void report_private(double local_error, double errthr, double time_forward, doub
   MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
   if(comm_rank == 0) {
-    if(global_error < errthr) {
+    if(global_error < errthr && global_error >= 0.) {
       printf("Test PASSED!\n");
     } else {
       fprintf(stderr, "Test FAILED, error = %e, threshold = %e\n", global_error, errthr);
@@ -70,15 +70,15 @@ void report_private(double local_error, double errthr, double time_forward, doub
   report_execution_time(time_forward, time_backward);
 }
 
-void report_float(int *nx, int *ny, int *nz, float local_error, double time_forward, double time_backward) {
-  int temp = (*nx) * (*ny);
+void report_float(const int32_t *nx, const int32_t *ny, const int32_t *nz, float local_error, double time_forward, double time_backward) {
+  int32_t temp = (*nx) * (*ny);
   if (nz) temp *= (*nz);
   float errthr = 5.0f * logf((float) temp) / logf(2.0f) * FLT_EPSILON;
   report_private((double)local_error, (double)errthr, time_forward, time_backward);
 }
 
-void report_double(int *nx, int *ny, int *nz, double local_error, double time_forward, double time_backward) {
-  int temp = (*nx) * (*ny);
+void report_double(const int32_t *nx, const int32_t *ny, const int32_t *nz, double local_error, double time_forward, double time_backward) {
+  int32_t temp = (*nx) * (*ny);
   if (nz) temp *= (*nz);
   double errthr = 5.0 * log((double) temp) / log(2.0) * DBL_EPSILON;
   report_private(local_error, errthr, time_forward, time_backward);
@@ -88,10 +88,10 @@ void report_double(int *nx, int *ny, int *nz, double local_error, double time_fo
 #include <cuda_runtime_api.h>
 
 
-#define CUDA_SAFE_CALL(call) do {                                \
-  cudaError_t err = call;                                                   \
+#define CUDA_SAFE_CALL(call) do {                                         \
+  cudaError_t err = call;                                                 \
   if( cudaSuccess != err) {                                               \
-      fprintf(stderr, "Cuda error in file '%s' in line %i : %s.\n",       \
+      fprintf(stderr, "Cuda error in '%s:%i : %s.\n",                     \
               __FILE__, __LINE__, cudaGetErrorString(err) );              \
       MPI_Abort(MPI_COMM_WORLD, err);                                     \
   } } while (0);

@@ -30,6 +30,7 @@ use dtfft_utils
 #include "dtfft_cuda.h"
 #include "dtfft.f03"
 implicit none
+#ifndef DTFFT_TRANSPOSE_ONLY
   ! real(R8P),     allocatable :: in(:,:), check(:,:)
   real(R8P),     allocatable :: inout(:), check(:)
   real(R8P) :: local_error, rnd
@@ -71,6 +72,8 @@ implicit none
   executor_type = DTFFT_EXECUTOR_MKL
 #elif defined(DTFFT_WITH_VKFFT)
   executor_type = DTFFT_EXECUTOR_VKFFT
+#elif defined(DTFFT_WITH_CUFFT)
+  executor_type = DTTFT_EXECUTOR_CUDA
 #endif
 
   call attach_gpu_to_process()
@@ -137,34 +140,12 @@ implicit none
 
   local_error = maxval(abs(inout(:upper_bound) - check(:upper_bound)))
 
-  call report("r2c_2d", tf, tb, local_error)
-
-  ! call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  ! tf = t_sum / real(comm_size, R8P)
-  ! call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  ! tb = t_sum / real(comm_size, R8P)
-
-  ! if(comm_rank == 0) then
-  !   write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-  !   write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-  !   write(output_unit, '(a)') "----------------------------------------"
-  ! endif
-
-  
-  ! call MPI_Allreduce(local_error, global_error, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, ierr)
-  ! if(comm_rank == 0) then
-  !   if(global_error < 1.e-6) then
-  !     write(output_unit, '(a)') "Test 'r2c_2d' PASSED!"
-  !   else
-  !     write(error_unit, '(a, f16.10)') "Test 'r2c_2d' FAILED... error = ", global_error
-  !     error stop
-  !   endif
-  !   write(output_unit, '(a)') "----------------------------------------"
-  ! endif
+  call report(tf, tb, local_error, nx, ny)
 
   deallocate(inout)
   deallocate(check)
 
   call plan%destroy()
   call MPI_Finalize(ierr)
+#endif
 end program test_r2c_2d

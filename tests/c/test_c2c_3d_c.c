@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
   // Create plan
   DTFFT_CALL( dtfft_create_plan_c2c(3, n, grid_comm, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
 
-  int64_t alloc_size;
+  size_t alloc_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
 
   size_t in_size, out_size;

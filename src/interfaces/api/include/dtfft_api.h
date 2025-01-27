@@ -27,6 +27,7 @@ extern "C" {
 #include <mpi.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 extern
 int32_t
@@ -58,12 +59,15 @@ dtfft_destroy_c(void**);
 
 extern
 int32_t
-dtfft_get_local_sizes_c(const void*, int32_t*, int32_t*, int32_t*, int32_t*, int64_t*);
+dtfft_get_local_sizes_c(const void*, int32_t*, int32_t*, int32_t*, int32_t*, size_t*);
 
 extern
 void
-dtfft_get_error_string_c(const int32_t*, char*, int64_t*);
+dtfft_get_error_string_c(const int32_t*, char*, size_t*);
 
+extern
+int32_t
+dtfft_get_pencil_c(const void*, int8_t*, void **);
 
 #ifdef DTFFT_WITH_CUDA
 
@@ -87,7 +91,7 @@ dtfft_get_gpu_backend_c(const void*, int8_t*);
 
 extern
 void
-dtfft_get_gpu_backend_string_c(const int8_t*, char*, int64_t*);
+dtfft_get_gpu_backend_string_c(const int8_t*, char*, size_t*);
 
 #endif
 
