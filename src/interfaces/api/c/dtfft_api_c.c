@@ -152,7 +152,7 @@ dtfft_get_error_string(const dtfft_error_code_t error_code)
 
 dtfft_error_code_t
 dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil) {
-  return dtfft_get_pencil_c(get_plan_handle(plan), &dim, (void*)pencil);
+  return (dtfft_error_code_t)dtfft_get_pencil_c(get_plan_handle(plan), &dim, (void*)pencil);
 }
 
 #ifdef DTFFT_WITH_CUDA
