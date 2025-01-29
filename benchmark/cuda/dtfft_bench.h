@@ -62,7 +62,7 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
     }
   }
 
-  int64_t alloc_size;
+  size_t alloc_size;
   DTFFT_CALL( dtfft_get_alloc_size(plan, &alloc_size) );
   create_time +=MPI_Wtime();
   if(comm_rank == 0) {

@@ -172,6 +172,7 @@ public :: is_backend_pipelined, is_backend_mpi, is_backend_nccl
   integer(int32), parameter,  public :: COLOR_FFT           = int(Z'00FCD05D')
   integer(int32), parameter,  public :: COLOR_AUTOTUNE      = int(Z'006075FF')
   integer(int32), parameter,  public :: COLOR_AUTOTUNE2     = int(Z'0056E874')
+  integer(int32), parameter,  public :: COLOR_DESTROY       = int(Z'00000000')
   integer(int32), parameter,  public :: COLOR_TRANSPOSE_PALLETTE(-3:3) = [COLOR_TRANSPOSE_ZX, COLOR_TRANSPOSE_ZY, COLOR_TRANSPOSE_YX, 0, COLOR_TRANSPOSE_XY, COLOR_TRANSPOSE_YZ, COLOR_TRANSPOSE_XZ]
 
   integer(int32),  parameter,  public  :: DTFFT_SUCCESS = CONF_DTFFT_SUCCESS
@@ -199,26 +200,7 @@ public :: is_backend_pipelined, is_backend_mpi, is_backend_nccl
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_NOT_SET = CONF_DTFFT_ERROR_GPU_NOT_SET
   integer(int32),  parameter,  public  :: DTFFT_ERROR_VKFFT_R2R_2D_PLAN = CONF_DTFFT_ERROR_VKFFT_R2R_2D_PLAN
   integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR
- 
 
-#if (DTFFT_FORWARD_X_Y > 2) || (DTFFT_FORWARD_X_Y <= 0)
-#error "Invalid DTFFT_FORWARD_X_Y parameter"
-#endif
-#if (DTFFT_BACKWARD_X_Y > 2) || (DTFFT_BACKWARD_X_Y <= 0)
-#error "Invalid DTFFT_BACKWARD_X_Y parameter"
-#endif
-#if (DTFFT_FORWARD_Y_Z > 2) || (DTFFT_FORWARD_Y_Z <= 0)
-#error "Invalid DTFFT_FORWARD_Y_Z parameter"
-#endif
-#if (DTFFT_BACKWARD_Y_Z > 2) || (DTFFT_BACKWARD_Y_Z <= 0)
-#error "Invalid DTFFT_BACKWARD_Y_Z parameter"
-#endif
-#if (DTFFT_FORWARD_X_Z > 2) || (DTFFT_FORWARD_X_Z <= 0)
-#error "Invalid DTFFT_FORWARD_X_Z parameter"
-#endif
-#if (DTFFT_BACKWARD_X_Z > 2) || (DTFFT_BACKWARD_X_Z <= 0)
-#error "Invalid DTFFT_BACKWARD_X_Z parameter"
-#endif
 
 #ifdef DTFFT_WITH_CUDA
   integer(int8),  parameter,  public  :: DTFFT_GPU_BACKEND_MPI_DATATYPE = CONF_DTFFT_GPU_BACKEND_MPI_DATATYPE

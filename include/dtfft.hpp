@@ -86,8 +86,8 @@ namespace dtfft
 */
         template<typename T1, typename T2>
         dtfft_error_code_t
-        execute(std::vector<T1> &in, std::vector<T2> &out, const dtfft_execute_type_t transpose_type)
-        {return execute(in.data(), out.data(), transpose_type, NULL);}
+        execute(std::vector<T1> &in, std::vector<T2> &out, const dtfft_execute_type_t execute_type)
+        {return execute(in.data(), out.data(), execute_type, NULL);}
 
 
 
@@ -95,7 +95,7 @@ namespace dtfft
   *
   * \param[inout]   in              Incoming vector
   * \param[out]     out             Result vector
-  * \param[in]      transpose_type  Type of transform:
+  * \param[in]      execute_type    Type of transform:
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
   * \param[inout]   aux             Optional auxiliary vector
@@ -104,8 +104,8 @@ namespace dtfft
 */
         template<typename T1, typename T2, typename T3>
         dtfft_error_code_t
-        execute(std::vector<T1> &in, std::vector<T2> &out, const dtfft_execute_type_t transpose_type, std::vector<T3> &aux)
-        {return execute(in.data(), out.data(), transpose_type, aux.data());}
+        execute(std::vector<T1> &in, std::vector<T2> &out, const dtfft_execute_type_t execute_type, std::vector<T3> &aux)
+        {return execute(in.data(), out.data(), execute_type, aux.data());}
 
 
 
@@ -113,15 +113,15 @@ namespace dtfft
   *
   * \param[inout]   in              Incoming buffer
   * \param[out]     out             Result buffer
-  * \param[in]      transpose_type  Type of transform:
+  * \param[in]      execute_type    Type of transform:
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
   *
   * \return Status code of method execution
 */
         dtfft_error_code_t
-        execute(void *in, void *out, const dtfft_execute_type_t transpose_type)
-        {return execute(in, out, transpose_type, NULL);}
+        execute(void *in, void *out, const dtfft_execute_type_t execute_type)
+        {return execute(in, out, execute_type, NULL);}
 
 
 
@@ -129,7 +129,7 @@ namespace dtfft
   *
   * \param[inout]   in              Incoming buffer
   * \param[out]     out             Result buffer
-  * \param[in]      transpose_type  Type of transform:
+  * \param[in]      execute_type    Type of transform:
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
   * \param[inout]   aux             Optional auxiliary buffer
@@ -137,8 +137,8 @@ namespace dtfft
   * \return Status code of method execution
 */
         dtfft_error_code_t
-        execute(void *in, void *out, const dtfft_execute_type_t transpose_type, void *aux)
-        {return dtfft_execute(_plan, in, out, transpose_type, aux);}
+        execute(void *in, void *out, const dtfft_execute_type_t execute_type, void *aux)
+        {return dtfft_execute(_plan, in, out, execute_type, aux);}
 
 
 
@@ -147,7 +147,7 @@ namespace dtfft
   *
   * \param[inout]   in              Incoming vector
   * \param[out]     out             Transposed vector
-  * \param[in]      transpose_type  Type of transpose:
+  * \param[in]      execute_type    Type of transpose:
   *                                   - `DTFFT_TRANSPOSE_X_TO_Y`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_X`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_Z` (3d plan only)

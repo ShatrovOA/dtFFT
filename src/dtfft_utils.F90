@@ -11,11 +11,13 @@ use nvtx
 #endif
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: string_f2c, astring_f2c
 public :: int_to_str, double_to_str
-public :: write_message, dtfft_init, get_log_enabled
+public :: write_message, init_internal, get_log_enabled
+public :: get_env, get_iters_from_env, get_datatype_from_env
 public :: get_inverse_kind
 public :: dtfft_enable_z_slab, dtfft_disable_z_slab, get_z_slab_enabled
 #ifdef DTFFT_WITH_CUDA
@@ -69,30 +71,119 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
     module procedure int_to_str_int32
   end interface int_to_str
 
+  interface get_env
+  !! Obtain dtFFT environment variable
+    module procedure get_env_int32
+    module procedure get_env_int8
+    module procedure get_env_logical
+  end interface get_env
+
 contains
 
-  integer(int32) function dtfft_init()
+  integer(int32) function init_internal()
   !! Checks if MPI is initialized and reads the environment variable to enable logging
     integer(int32)    :: ierr             !< Error code
     logical           :: is_mpi_init      !< Is MPI initialized?
-    character(len=1)  :: log_enabled_str  !< Log enabled string
-    integer(int32)    :: value_len        !< Length of the environment variable
-    integer(int32)    :: val              !< Value of the environment variable
 
-    dtfft_init = DTFFT_SUCCESS
+    init_internal = DTFFT_SUCCESS
 
     call MPI_Initialized(is_mpi_init, ierr)
     if( .not. is_mpi_init ) then
-      dtfft_init = DTFFT_ERROR_MPI_FINALIZED
+      init_internal = DTFFT_ERROR_MPI_FINALIZED
       return
     endif
+    is_log_enabled = get_env("ENABLE_LOG", .false.)
+  end function init_internal
 
-    call get_environment_variable("DTFFT_ENABLE_LOG", log_enabled_str, length=value_len)
-    if ( value_len > 0 ) then
-      read(log_enabled_str, *) val
-      is_log_enabled = abs(val) > 0
+  integer(int32) function get_env_int32(name, default, valid_values, min_valid_value) result(env)
+  !! Base function of obtaining dtFFT environment variable
+    character(len=*), intent(in)            :: name               !< Name of environment variable without prefix
+    integer(int32),   intent(in)            :: default            !< Default value in case env is not set or it has wrong value
+    integer(int32),   intent(in), optional  :: valid_values(:)    !< List of valid values
+    integer(int32),   intent(in), optional  :: min_valid_value    !< Mininum valid value. Usually 0 or 1
+    character(len=:), allocatable           :: full_name          !< Prefixed environment variable name
+    character(len=:), allocatable           :: env_val_str        !< String value of the environment variable
+    integer(int32)                          :: env_val_len        !< Length of the environment variable
+    logical                                 :: is_correct         !< Is env value is correct
+    integer(int32)                          :: env_val_passed     !< Value of the environment variable
+
+    if ( ( present(valid_values).and.present(min_valid_value) )           &
+      .or.(.not.present(valid_values).and..not.present(min_valid_value))  &
+    ) then
+      error stop "dtFFT Internal error `get_env_int32`"
     endif
-  end function dtfft_init
+
+    allocate( full_name, source="DTFFT_"//name )
+
+    call get_environment_variable(full_name, length=env_val_len)
+    if ( env_val_len == 0 ) then
+      env = default
+      deallocate(full_name)
+      return
+    endif
+    allocate( env_val_str, source=repeat(" ", env_val_len) )
+    call get_environment_variable(full_name, env_val_str)
+    read(env_val_str, *) env_val_passed
+    is_correct = .false.
+    if ( present( valid_values ) ) then
+      is_correct = any(env_val_passed == valid_values)
+    endif
+    if ( present( min_valid_value ) ) then
+      is_correct = env_val_passed >= min_valid_value
+    endif
+    if ( is_correct ) then
+      env = env_val_passed
+      deallocate(env_val_str, full_name)
+      return
+    endif
+    WRITE_WARN("Invalid environment variable: "//full_name//", it has been ignored")
+    env = default
+    deallocate(env_val_str, full_name)
+  end function get_env_int32
+
+  integer(int8) function get_env_int8(name, default, valid_values) result(env)
+  !! Obtains int8 environment variable
+    character(len=*), intent(in)  :: name               !< Name of environment variable without prefix
+    integer(int8),    intent(in)  :: default            !< Default value in case env is not set or it has wrong value
+    integer(int32),   intent(in)  :: valid_values(:)    !< List of valid values
+    integer(int32)                :: val                !< Value of the environment variable
+
+    val = get_env(name, int(default, int32), valid_values)
+    env = int(val, int8)
+  end function get_env_int8
+
+  logical function get_env_logical(name, default) result(env)
+  !! Obtains logical environment variable
+    character(len=*), intent(in) :: name                !< Name of environment variable without prefix
+    logical,          intent(in) :: default             !< Default value in case env is not set or it has wrong value
+    integer(int32) :: def, val
+
+    if ( default ) then
+      def = 1
+    else
+      def = 0
+    endif
+
+    val = get_env(name, def, [0, 1])
+    env = val == 1
+  end function get_env_logical
+
+  integer(int32) function get_iters_from_env(is_warmup) result(n_iters)
+  !! Obtains number of iterations from environment variable
+    logical,  intent(in) :: is_warmup                   !< Warmup variable flag
+
+    if ( is_warmup ) then
+      n_iters = get_env("MEASURE_WARMUP_ITERS", 2, min_valid_value=0)
+    else
+      n_iters = get_env("MEASURE_ITERS", 5, min_valid_value=1)
+    endif
+  end function get_iters_from_env
+
+  integer(int8) function get_datatype_from_env(name) result(env)
+  !! Obtains datatype id from environment variable
+    character(len=*), intent(in)  :: name               !< Name of environment variable without prefix
+    env = get_env(name, 2_int8, [1, 2])
+  end function get_datatype_from_env
 
   pure function get_log_enabled() result(log)
   !! Returns the value of the log_enabled variable

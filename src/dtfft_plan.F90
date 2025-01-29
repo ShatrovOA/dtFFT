@@ -410,6 +410,8 @@ contains
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
 
+    REGION_BEGIN("dtfft_destroy", COLOR_DESTROY)
+
 #ifndef DTFFT_TRANSPOSE_ONLY
     select type ( self )
     class is ( dtfft_plan_r2c )
@@ -474,6 +476,7 @@ contains
     end block
     self%ndims = -1
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+    REGION_END("dtfft_destroy")
   end subroutine destroy
 
   logical function get_z_slab(self, error_code)
@@ -678,7 +681,7 @@ contains
     integer(int32)                            :: top_type         !< MPI Comm topology type
     integer(int32)                            :: dim              !< Counter
 
-    CHECK_INTERNAL_CALL( dtfft_init() )
+    CHECK_INTERNAL_CALL( init_internal() )
 
     self%ndims = size(dims, kind=int8)
     CHECK_INPUT_PARAMETER(self%ndims, VALID_DIMENSIONS, DTFFT_ERROR_INVALID_N_DIMENSIONS)

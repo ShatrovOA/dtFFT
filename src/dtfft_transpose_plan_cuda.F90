@@ -340,6 +340,7 @@ contains
     type(cudaEvent) :: timer_start, timer_stop
     character(len=:), allocatable :: testing_phase
     type(backend_helper)                      :: helper
+    integer(int32) :: n_warmup_iters, n_iters
     ! integer(cuda_count_kind) :: free, total
 
     if ( present(backend_id) ) then
@@ -411,20 +412,26 @@ contains
       PHASE_BEGIN(testing_phase, COLOR_AUTOTUNE)
       WRITE_INFO(testing_phase)
 
-      PHASE_BEGIN("Warmup, "//int_to_str(DTFFT_MEASURE_WARMUP_ITERS)//" iterations", COLOR_TRANSPOSE)
-      do iter = 1, DTFFT_MEASURE_WARMUP_ITERS
+      n_warmup_iters = get_iters_from_env(.true.)
+
+      PHASE_BEGIN("Warmup, "//int_to_str(n_warmup_iters)//" iterations", COLOR_TRANSPOSE)
+      do iter = 1, n_warmup_iters
         do i = 1, 2_int8 * n_transpose_plans
           call plans(i)%execute(in, out, stream)
         enddo
       enddo
       CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-      PHASE_END("Warmup, "//int_to_str(DTFFT_MEASURE_WARMUP_ITERS)//" iterations")
+      PHASE_END("Warmup, "//int_to_str(n_warmup_iters)//" iterations")
 
-      PHASE_BEGIN("Testing, "//int_to_str(DTFFT_MEASURE_ITERS)//" iterations", COLOR_EXECUTE)
+      call MPI_Barrier(cart_comm, mpi_ierr)
+
+      n_iters = get_iters_from_env(.false.)
+
+      PHASE_BEGIN("Testing, "//int_to_str(n_iters)//" iterations", COLOR_EXECUTE)
       total_time = 0.0
     ! do i = 1, 2_int8 * n_transpose_plans
       CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_start, stream) )
-      do iter = 1, DTFFT_MEASURE_ITERS
+      do iter = 1, n_iters
         do i = 1, 2_int8 * n_transpose_plans
           call plans(i)%execute(in, out, stream)
         enddo
@@ -432,12 +439,12 @@ contains
       CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_stop, stream) )
       CUDA_CALL( "cudaEventSynchronize", cudaEventSynchronize(timer_stop) )
       CUDA_CALL( "cudaEventElapsedTime", cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
-      execution_time = execution_time / real(DTFFT_MEASURE_ITERS, real32)
+      execution_time = execution_time / real(n_iters, real32)
       total_time = total_time + execution_time
       ! WRITE_INFO( TRANSPOSE_NAMES(plans(i)%get_tranpose_id())//" : "//double_to_str(real(execution_time, real64))//" [ms]")
     ! enddo
 
-      PHASE_END("Testing, "//int_to_str(DTFFT_MEASURE_ITERS)//" iterations")
+      PHASE_END("Testing, "//int_to_str(n_iters)//" iterations")
 
       call MPI_Allreduce(total_time, min_execution_time, 1, MPI_REAL4, MPI_MIN, cart_comm, mpi_ierr)
       call MPI_Allreduce(total_time, max_execution_time, 1, MPI_REAL4, MPI_MAX, cart_comm, mpi_ierr)

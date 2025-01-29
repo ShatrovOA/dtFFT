@@ -31,20 +31,7 @@
 #include <cuda_runtime.h>
 #endif
 
-#define CUDA_SAFE_CALL(x)                                         \
-  do {                                                            \
-    cudaError_t result = x;                                       \
-    if (result != cudaSuccess) {                                  \
-      const char *msg;                                            \
-      msg = cudaGetErrorString(result);                           \
-      std::cerr << "\nCUDA: " #x " failed with error "            \
-                << msg << '\n';                                   \
-      MPI_Abort(MPI_COMM_WORLD, result);                          \
-    }                                                             \
-} while(0)
-
 using namespace std;
-
 
 int main(int argc, char *argv[])
 {

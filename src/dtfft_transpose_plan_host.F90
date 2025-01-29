@@ -32,8 +32,8 @@ implicit none
 private
 public :: transpose_plan_host
 
-  integer(int8), parameter :: FORWARD_PLAN_IDS(3) = [int(DTFFT_FORWARD_X_Y, int8), int(DTFFT_FORWARD_Y_Z, int8), int(DTFFT_FORWARD_X_Z, int8)]
-  integer(int8), parameter :: BACKWARD_PLAN_IDS(3) = [int(DTFFT_BACKWARD_X_Y, int8), int(DTFFT_BACKWARD_Y_Z, int8), int(DTFFT_BACKWARD_X_Z, int8)]
+  integer(int8), save :: FORWARD_PLAN_IDS(3)
+  integer(int8), save :: BACKWARD_PLAN_IDS(3)
 
 
   type, extends(abstract_transpose_plan) :: transpose_plan_host
@@ -85,6 +85,10 @@ contains
     integer(int8) :: d, ndims, n_transpose_plans
     integer(int8), allocatable :: best_forward_ids(:), best_backward_ids(:)
     integer(int32) :: comm_size, ierr
+
+    FORWARD_PLAN_IDS(1) = get_datatype_from_env("FORWARD_X_Y"); BACKWARD_PLAN_IDS(1) = get_datatype_from_env("BACKWARD_X_Y")
+    FORWARD_PLAN_IDS(2) = get_datatype_from_env("FORWARD_Y_Z"); BACKWARD_PLAN_IDS(2) = get_datatype_from_env("BACKWARD_Y_Z")
+    FORWARD_PLAN_IDS(3) = get_datatype_from_env("FORWARD_X_Z"); BACKWARD_PLAN_IDS(3) = get_datatype_from_env("BACKWARD_X_Z")
 
     ndims = size(dims, kind=int8)
 
@@ -447,18 +451,23 @@ contains
     integer(int32)                              :: iter                 !< Counter
     integer(int32)                              :: ierr                 !< Error code
     integer(int32)                              :: comm_size            !< Size of ``cart_comm``
+    integer(int32)                              :: n_warmup_iters
+    integer(int32)                              :: n_iters
 
     allocate( phase_name, source="    Testing plan "//TRANSPOSE_NAMES(transpose_name_id)//", datatype_id = "//int_to_str(datatype_id) )
     PHASE_BEGIN(phase_name, 0)
     WRITE_INFO(phase_name)
     call plan%create(comm, from, to, base_dtype, base_storage, datatype_id)
 
-    do iter = 1, DTFFT_MEASURE_WARMUP_ITERS
+    n_warmup_iters = get_iters_from_env(.true.)
+    n_iters = get_iters_from_env(.false.)
+
+    do iter = 1, n_warmup_iters
       call plan%transpose(a, b)
     enddo
 
     ts = MPI_Wtime()
-    do iter = 1, DTFFT_MEASURE_ITERS
+    do iter = 1, n_iters
       call plan%transpose(a, b)
     enddo
     te = MPI_Wtime()
