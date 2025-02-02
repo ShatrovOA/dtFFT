@@ -216,7 +216,7 @@ contains
     call c_f_pointer(plan_ptr, plan)
     call plan%p%destroy(error_code)
     deallocate( plan%p )
-    nullify( plan )
+    deallocate( plan )
     plan_ptr = c_null_ptr
   end function dtfft_destroy_c
 
