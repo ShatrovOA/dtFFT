@@ -149,13 +149,8 @@ contains
         WRITE_INFO("    "//TRANSPOSE_NAMES( d)//": "//int_to_str( best_forward_ids(d) ))
         WRITE_INFO("    "//TRANSPOSE_NAMES(-d)//": "//int_to_str( best_backward_ids(d) ))
       enddo
-      if ( self%is_z_slab ) then
-        WRITE_INFO("    "//TRANSPOSE_NAMES(+3)//": "//int_to_str( best_forward_ids(3) ))
-        WRITE_INFO("    "//TRANSPOSE_NAMES(-3)//": "//int_to_str( best_backward_ids(3) ))
-      endif
       WRITE_INFO(repeat("*", 50))
     endif
-
 
     call create_cart_comm(base_comm, best_comm_dims, cart_comm, comms)
     do d = 1, ndims
