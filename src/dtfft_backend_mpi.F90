@@ -31,7 +31,6 @@ private
 public :: backend_mpi
 
   type, abstract, extends(abstract_backend_selfcopy) :: backend_mpi
-    ! TYPE_MPI_COMM                 :: comm
     integer(int32)                :: n_requests
     TYPE_MPI_REQUEST, allocatable :: requests(:)
 #ifdef DTFFT_ENABLE_PERSISTENT_COMM
@@ -59,11 +58,8 @@ contains
 
   subroutine create_requests(self, max_requests)
     class(backend_mpi),   intent(inout) :: self
-    ! TYPE_MPI_COMM,        intent(in)    :: comm
     integer(int32),       intent(in)    :: max_requests
-    ! integer(int32) :: mpi_ierr
 
-    ! call MPI_Comm_dup(comm, self%comm, mpi_ierr)
     allocate( self%requests(max_requests) )
 
 #ifdef DTFFT_ENABLE_PERSISTENT_COMM
@@ -88,11 +84,12 @@ contains
     class(backend_mpi),  intent(inout) :: self
     integer(int32) :: i, mpi_ierr
 
-    ! call MPI_Comm_free(self%comm, mpi_ierr)
 #ifdef DTFFT_ENABLE_PERSISTENT_COMM
-    do i = 1, self%n_requests
-      call MPI_Request_free(self%requests(i), mpi_ierr)
-    enddo
+    if ( self%is_request_created ) then
+      do i = 1, self%n_requests
+        call MPI_Request_free(self%requests(i), mpi_ierr)
+      enddo
+    endif
     self%is_request_created = .false.
 #endif
     self%n_requests = 0

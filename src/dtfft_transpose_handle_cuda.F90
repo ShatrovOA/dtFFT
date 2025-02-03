@@ -64,7 +64,7 @@ public :: transpose_handle_cuda
     type(c_devptr)                            :: aux                      !< Auxiliary buffer used in pipelined algorithm
     type(nvrtc_kernel)                        :: pack_kernel              !< Transposes data
     type(nvrtc_kernel)                        :: unpack_kernel            !< Unpacks data
-    class(abstract_backend),  allocatable :: comm_handle              !< Communication handle
+    class(abstract_backend),  allocatable     :: comm_handle              !< Communication handle
   contains
     procedure, pass(self) :: create           !< Creates CUDA Transpose Handle
     procedure, pass(self) :: execute          !< Executes transpose - exchange - unpack
@@ -370,6 +370,7 @@ contains
     call self%pack_kernel%destroy()
     if ( .not. self%has_exchange ) return
     call self%comm_handle%destroy()
+    deallocate( self%comm_handle )
     call self%unpack_kernel%destroy()
   end subroutine destroy
 

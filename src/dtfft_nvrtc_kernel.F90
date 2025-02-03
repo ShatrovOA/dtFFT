@@ -290,10 +290,13 @@ contains
       if ( .not. present(pointers) ) error stop "Pointer required"
 
       if (kernel_type == KERNEL_TRANSPOSE_PACKED .or. kernel_type == KERNEL_UNPACK) then
-        self%args%n_ptrs = size(pointers, dim=2, kind=int32)
-        if ( self%args%n_ptrs >= 1 ) call create_device_pointer(self%args%ptrs(1), pointers(:, 1))
-        if ( self%args%n_ptrs >= 2 ) call create_device_pointer(self%args%ptrs(2), pointers(:, 2))
-        if ( self%args%n_ptrs >= 3 ) call create_device_pointer(self%args%ptrs(3), pointers(:, 3))
+        block
+          integer(int32) :: i
+          self%args%n_ptrs = size(self%args%ptrs)
+          do i = 1, self%args%n_ptrs
+            call create_device_pointer(self%args%ptrs(i), pointers(:, i))
+          enddo
+        endblock
       else
         allocate( self%pointers, source=pointers )
       endif

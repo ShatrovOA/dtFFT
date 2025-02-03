@@ -54,9 +54,7 @@ contains
   !! Creates MPI Pipelined backend
     class(backend_mpi_p2p_pipelined), intent(inout) :: self
     type(backend_helper),             intent(in)    :: helper           !< MPI communicator
-    ! integer(int32) :: mpi_ierr
 
-    ! call MPI_Comm_dup(comm, self%comm, mpi_ierr)
     allocate( self%send_requests(self%comm_size - 1) )
     allocate( self%recv_requests(self%comm_size - 1) )
 
@@ -160,7 +158,6 @@ contains
     class(backend_mpi_p2p_pipelined),   intent(inout) :: self
     integer(int32) :: i, mpi_ierr
 
-    call MPI_Comm_free(self%comm, mpi_ierr)
 #ifdef DTFFT_ENABLE_PERSISTENT_COMM
     do i = 1, self%n_recv_requests
       call MPI_Request_free(self%recv_requests(i), mpi_ierr)
