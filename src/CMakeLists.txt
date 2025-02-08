@@ -14,19 +14,17 @@ target_sources(dtfft PRIVATE
 if (DTFFT_WITH_CUDA)
   target_sources(dtfft PRIVATE
     dtfft_abstract_backend.F90
-    dtfft_abstract_backend_selfcopy.F90
-    # dtfft_backend_cufftmp.F90
     dtfft_backend_mpi.F90
-    dtfft_backend_mpi_a2a.F90
-    dtfft_backend_mpi_p2p.F90
-    dtfft_backend_mpi_p2p_pipelined.F90
     dtfft_backend_nccl.F90
-    dtfft_backend_nccl_pipelined.F90
     dtfft_nvrtc_interfaces.F90
     dtfft_nvrtc_kernel.F90
     dtfft_transpose_handle_cuda.F90
     dtfft_transpose_plan_cuda.F90
   )
+  if ( DTFFT_WITH_CUSTOM_NCCL )
+    target_sources(dtfft PRIVATE
+      dtfft_nccl_interfaces.F90)
+  endif()
 endif()
 
 add_subdirectory(interfaces)

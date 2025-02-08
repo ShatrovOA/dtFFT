@@ -19,7 +19,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_plan
 !! This module describes ``dtfft_abstract_plan``, ``dtfft_plan_c2c``, ``dtfft_plan_r2c`` and ``dtfft_plan_r2r`` types
-use iso_c_binding,                    only: c_loc, c_f_pointer
+use iso_c_binding,                    only: c_loc, c_f_pointer, c_ptr, c_bool
 use iso_fortran_env,                  only: int8, int32, int64, real32, real64, output_unit
 use dtfft_abstract_executor,          only: abstract_executor, FFT_1D, FFT_2D, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_abstract_transpose_plan,    only: abstract_transpose_plan
@@ -76,16 +76,11 @@ public :: dtfft_plan_r2r
 
   interface
     function is_same_ptr(ptr1, ptr2) result(bool) bind(C)
+    import
     !! Checks if two pointers are the same
     !! Both Host and Device pointers are supported
-#ifdef DTFFT_WITH_CUDA
-      use cudafor
-#else
-      use iso_c_binding, only: c_ptr
-#endif
-      use iso_c_binding, only: c_bool
-      type(C_ADDR), value :: ptr1   !< First pointer
-      type(C_ADDR), value :: ptr2   !< Second pointer
+      type(c_ptr), value  :: ptr1   !< First pointer
+      type(c_ptr), value  :: ptr2   !< Second pointer
       logical(c_bool)     :: bool   !< Result
     end function is_same_ptr
 
@@ -145,14 +140,9 @@ public :: dtfft_plan_r2r
 #ifdef DTFFT_WITH_CUDA
     integer(cuda_stream_kind)                     :: stream
     !< CUDA Stream associated with current plan
-    real(real32), DEVICE_PTR pointer, contiguous  :: aux(:)
-    !< Auxiliary buffer
-    type(c_devptr)                                :: aux_ptr
-    !< Device pointer to auxiliary buffer
-#else
-    real(real32),                     allocatable :: aux(:)
-    !< Auxiliary buffer
 #endif
+    real(real32), DEVICE_PTR          allocatable :: aux(:)
+    !< Auxiliary buffer
     type(fft_executor),               allocatable :: fft(:)
     !< Internal fft runners
     integer(int32),                   allocatable :: fft_mapping(:)
@@ -246,7 +236,7 @@ contains
          .or. abs(transpose_type) == DTFFT_TRANSPOSE_X_TO_Z .and..not.self%is_z_slab)   &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
     CHECK_ERROR_AND_RETURN
-    if ( is_same_ptr(LOC_FUN(in), LOC_FUN(out)) )                                       &
+    if ( is_same_ptr(c_loc(in), c_loc(out)) )                                       &
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
 #ifdef DTFFT_WITH_CUDA
@@ -277,7 +267,7 @@ contains
     integer(int32)                                          :: ierr             !< Error code
     logical                                                 :: inplace          !< Inplace execution flag
 
-    inplace = is_same_ptr(LOC_FUN(in), LOC_FUN(out))
+    inplace = is_same_ptr(c_loc(in), c_loc(out))
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created )                                                                      &
       ierr = DTFFT_ERROR_PLAN_NOT_CREATED
@@ -289,7 +279,7 @@ contains
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
     if ( present( aux ) ) then
-      if ( is_same_ptr(LOC_FUN(in), LOC_FUN(aux)) .or. is_same_ptr(LOC_FUN(out), LOC_FUN(aux)) )      &
+      if ( is_same_ptr(c_loc(in), c_loc(aux)) .or. is_same_ptr(c_loc(out), c_loc(aux)) )      &
         ierr = DTFFT_ERROR_INVALID_AUX
       CHECK_ERROR_AND_RETURN
     endif
@@ -435,12 +425,7 @@ contains
     endif
 
     if ( self%is_aux_alloc ) then
-#ifdef DTFFT_WITH_CUDA
-      CUDA_CALL( "cudaFree", cudaFree(self%aux_ptr) )
-      nullify( self%aux )
-#else
       deallocate(self%aux)
-#endif
     endif
 
     self%is_created = .false.
@@ -813,12 +798,12 @@ contains
     alloc_size = alloc_size * self%storage_size / FLOAT_STORAGE_SIZE
     write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size * FLOAT_STORAGE_SIZE, " bytes"
     WRITE_DEBUG(debug_msg)
-#ifdef DTFFT_WITH_CUDA
-    CUDA_CALL( "cudaMalloc", cudaMalloc(self%aux_ptr, alloc_size * int(FLOAT_STORAGE_SIZE, int64)) )
-    call c_f_pointer(self%aux_ptr, self%aux, [alloc_size])
-#else
+! #ifdef DTFFT_WITH_CUDA
+!     CUDA_CALL( "cudaMalloc", cudaMalloc(self%aux_ptr, alloc_size * int(FLOAT_STORAGE_SIZE, int64)) )
+!     call c_f_pointer(self%aux_ptr, self%aux, [alloc_size])
+! #else
     allocate( self%aux(alloc_size) )
-#endif
+! #endif
     self%is_aux_alloc = .true.
   end subroutine check_aux
 

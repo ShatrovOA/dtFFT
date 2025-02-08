@@ -76,13 +76,10 @@ To build this library modern (2008+) Fortran compiler is required. This library 
 | DTFFT_BUILD_C_CXX_API | on / off | on | Build C/C++ API |
 | DTFFT_ENABLE_PERSISTENT_COMM | on / off | off | In case you are planning to execute plan multiple times then it can be very beneficial to use persistent communications. But user must aware that such communications are created at first call to `execute` or `transpose` subroutines and pointers are saved internally inside MPI. All other plan executions will use those pointers. Take care not to free them. |
 | DTFFT_WITH_PROFILER | on / off | off | Enable library profiler. If `DTFFT_WITH_CUDA` is enabled then library will use nvtx3 library, otherwise caliper will be used and additional option may be required: `caliper_DIR` |
+| DTFFT_WITH_CUSTOM_NCCL | on/off | off | Use custom NCCL build instead of provided with HPC-SDK. Where enabled user need to set `NCCL_ROOT` environment variable in order to find NCCL located in custom directory. |
 
 During configuration one should set `CMAKE_INSTALL_PREFIX` with desired installation prefix. dtFFT can later be used in cmake configuration with following commands:
 ```cmake
-# CUDAToolkit is required only for CUDA build and
-# must be found before dtfft
-find_package(CUDAToolkit REQUIRED)
-
 find_package(dtfft)
 add_executable(my_prog my_prog.c)
 target_link_libraries(my_prog PRIVATE dtfft)
@@ -91,6 +88,10 @@ Provided cmake target will add include directories and link all libraries. Make 
 ```bash
 cmake -Ddtfft_DIR=<dtfft-installation-dir>/lib[64]/cmake/dtfft ..
 ```
+Besides target `dtfft` cmake installation provides additional variables:
+- DTFFT_WITH_CUDA
+- DTFFT_WITH_C_CXX_API
+- DTFFT_WITH_MPI_MODULE
 
 ## Useful runtime environment variables
 | Name | Possible values | Default value | Description |
@@ -118,9 +119,11 @@ Since C arrays are stored in row-major order which is opposite to Fortran column
 Examples are provided in ```tests/c``` folder.
 ## Next Steps
 
+- ~~GPU Support~~
 - Optimize CUDA NVRTC kernels
 - Add support for nvshmem
-- Add support for custom NCCL installation
+- ~~Add support for custom NCCL installation~~
+- Create documentation
 ## Contribution
 
 You can help this project by reporting problems, suggestions, localizing it or contributing to the code. Go to issue tracker and check if your problem/suggestion is already reported. If not, create a new issue with a descriptive title and detail your suggestion or steps to reproduce the problem.

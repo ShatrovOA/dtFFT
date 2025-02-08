@@ -21,9 +21,8 @@ module dtfft_executor_vkfft_m
 !! This module describes vkFFT Wrappers to dtFFT: ``vkfft_executor``
 !!
 !! https://github.com/DTolm/VkFFT/tree/master
-use iso_c_binding,                  only: c_int, c_int8_t
+use iso_c_binding,                  only: c_ptr, c_int, c_int8_t
 use iso_fortran_env,                only: int8, int32
-use cudafor,                        only: c_devptr
 use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_interface_vkfft_m
@@ -112,8 +111,8 @@ contains
   subroutine execute(self, a, b, sign)
   !! Executes vkFFT plan
     class(vkfft_executor),  intent(in)      :: self           !< vkFFT FFT Executor
-    type(c_devptr),         intent(in)      :: a              !< Source pointer
-    type(c_devptr),         intent(in)      :: b              !< Target pointer
+    type(c_ptr),            intent(in)      :: a              !< Source pointer
+    type(c_ptr),            intent(in)      :: b              !< Target pointer
     integer(int8),          intent(in)      :: sign           !< Sign of transform
 
     if ( self%is_inverse_required .and. sign == DTFFT_BACKWARD ) then

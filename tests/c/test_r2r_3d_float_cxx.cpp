@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
 #ifdef DTFFT_WITH_CUDA
-  const int32_t nx = 333, ny = 711, nz = 512;
+  const int32_t nx = 256, ny = 512, nz = 1024;
 #else
   const int32_t nx = 32, ny = 64, nz = 128;
 #endif

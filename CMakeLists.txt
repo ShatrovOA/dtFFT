@@ -24,11 +24,14 @@ option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
 option(DTFFT_BUILD_C_CXX_API "Create C API" ON)
 option(DTFFT_ENABLE_PERSISTENT_COMM "Enable MPI persistent calls" OFF)
 option(DTFFT_WITH_PROFILER "Build dtFFT with profiler support" OFF)
+option(DTFFT_WITH_CUSTOM_NCCL "Build dtFFT with custom NCCL Library" OFF)
 
 set(DTFFT_CUDA_CC_LIST "70;80;90" CACHE STRING "List of CUDA compute capabilities to build for")
 
 set(DTFFT_RUNNING_CICD OFF CACHE STRING "Running tests in GitHub actions")
 
+
+SET( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake" )
 
 find_package(MPI REQUIRED)
 if(MPI_Fortran_HAVE_F08_MODULE)
@@ -120,10 +123,17 @@ if(DTFFT_WITH_CUDA)
     message(FATAL_ERROR "CUDA build requires that Fortran, C and C++ compilers are NVHPC")
   endif()
   find_package(CUDAToolkit 9.0 REQUIRED)
-  target_include_directories(dtfft PUBLIC $<$<COMPILE_LANGUAGE:C,CXX>:${CUDAToolkit_INCLUDE_DIRS}>)
-  target_link_libraries(dtfft PUBLIC CUDA::cuda_driver)
-  target_link_libraries(dtfft PUBLIC CUDA::nvrtc)
+  target_link_libraries(dtfft PRIVATE CUDA::cuda_driver)
+  target_link_libraries(dtfft PRIVATE CUDA::nvrtc)
   target_link_libraries(dtfft PUBLIC CUDA::cudart)
+
+  if ( DTFFT_WITH_CUSTOM_NCCL )
+    find_package(NCCL REQUIRED)
+    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_WITH_CUSTOM_NCCL>)
+    target_link_libraries(dtfft PRIVATE ${NCCL_LIBRARIES})
+  else()
+    set(COMMON_NVHPC_FLAGS "${COMMON_NVHPC_FLAGS} -cudalib=nccl")
+  endif()
 
   set(CMAKE_REQUIRED_INCLUDES ${MPI_Fortran_MODULE_DIR})
   set(CMAKE_REQUIRED_LIBRARIES ${MPI_Fortran_LIBRARIES})
@@ -195,25 +205,17 @@ if(DTFFT_WITH_CUDA)
 endif()
 
 
-# target_include_directories(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:${PROJECT_SOURCE_DIR}/src/include>)
-# target_include_directories(dtfft PRIVATE ${PROJECT_BINARY_DIR})
-
-target_include_directories(dtfft PUBLIC $<$<COMPILE_LANGUAGE:Fortran>:${MPI_Fortran_MODULE_DIR}>)
-target_link_libraries(dtfft PUBLIC ${MPI_Fortran_LIBRARIES})
-
+target_link_libraries(dtfft PUBLIC MPI::MPI_Fortran)
 
 set(DTFFT_MODULE_DIR ${PROJECT_BINARY_DIR}/modules)
 set_target_properties(dtfft PROPERTIES Fortran_MODULE_DIRECTORY ${DTFFT_MODULE_DIR})
 set_target_properties(dtfft PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
-# target_include_directories(dtfft PUBLIC )
 set(DTFFT_HEADER_DIR "${PROJECT_SOURCE_DIR}/include")
-# SET(DTFFT_MODULE "${DTFFT_MODULE_DIR}/dtfft.mod")
 SET(DTFFT_HEADERS "${DTFFT_HEADER_DIR}/dtfft.f03")
 
 if(DTFFT_BUILD_C_CXX_API)
   set(DTFFT_HEADERS "${DTFFT_HEADERS};${DTFFT_HEADER_DIR}/dtfft.h;${DTFFT_HEADER_DIR}/dtfft.hpp;${DTFFT_CONF_HEADER}")
-  target_link_libraries(dtfft PUBLIC ${MPI_CXX_LIBRARIES})
-  target_include_directories(dtfft PUBLIC $<$<COMPILE_LANGUAGE:C,CXX>:${MPI_C_INCLUDE_DIRS}>)
+  target_link_libraries(dtfft PUBLIC MPI::MPI_CXX)
 endif()
 set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
 target_include_directories(dtfft PUBLIC 
@@ -228,10 +230,12 @@ target_include_directories(dtfft PUBLIC
 
 if ( DTFFT_WITH_PROFILER )
   target_compile_definitions(dtfft PRIVATE DTFFT_WITH_PROFILER)
-  if ( NOT DTFFT_WITH_CUDA )
+  if ( DTFFT_WITH_CUDA )
+    set(COMMON_NVHPC_FLAGS        "${COMMON_NVHPC_FLAGS} -cudalib=nvtx3")
+  else()
     find_package( caliper REQUIRED )
     message(STATUS "Found caliper: ${caliper_DIR}")
-    target_link_libraries(dtfft PUBLIC caliper)
+    target_link_libraries(dtfft PRIVATE caliper)
   endif()
 endif()
 
@@ -280,24 +284,30 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATC
   set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG}  -check all -ftrapuv -fpe3 -assume ieee_fpe_flags -debug extended -assume realloc_lhs  -fstack-protector -assume protect_parens -implicitnone")
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -march=native")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
-  set(COMMON_NVHPC_FLAGS "-traceback")
-  if ( DTFFT_WITH_CUDA )
-    foreach(CUDA_CC ${DTFFT_CUDA_CC_LIST})
-      list(APPEND CUF_GPU_ARG "cc${CUDA_CC}")
-    endforeach()
-    list(APPEND CUF_GPU_ARG "cuda${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
-    list(JOIN CUF_GPU_ARG "," CUF_GPU_ARG)
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr")
+  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast")
+endif()
 
-    if ( DTFFT_WITH_PROFILER )
-      set(COMMON_NVHPC_FLAGS        "${COMMON_NVHPC_FLAGS} -cudalib=nvtx3")
-    endif()
+if ( DTFFT_WITH_CUDA )
+  foreach(CUDA_CC ${DTFFT_CUDA_CC_LIST})
+    list(APPEND CUF_GPU_ARG "cc${CUDA_CC}")
+  endforeach()
+  list(APPEND CUF_GPU_ARG "cuda${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
+  list(JOIN CUF_GPU_ARG "," CUF_GPU_ARG)
 
-    set(COMMON_NVHPC_FLAGS          "${COMMON_NVHPC_FLAGS} -cuda -cudalib=nccl -gpu=${CUF_GPU_ARG}")
-    set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} ${COMMON_NVHPC_FLAGS} -Mbackslash")
-    set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr -Mnobounds")
-    set(CMAKE_C_FLAGS               "${CMAKE_C_FLAGS} ${COMMON_NVHPC_FLAGS}")
-    set(CMAKE_CXX_FLAGS             "${CMAKE_CXX_FLAGS} ${COMMON_NVHPC_FLAGS}")
-  endif()
+  target_compile_options(dtfft
+    PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-gpu=${CUF_GPU_ARG}>
+    PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-cuda>)
+  target_link_options(dtfft
+    PUBLIC $<$<LINK_LANGUAGE:Fortran>:-gpu=${CUF_GPU_ARG}>
+    PUBLIC $<$<LINK_LANGUAGE:Fortran>:-cuda>
+    PUBLIC $<$<LINK_LANGUAGE:C,CXX>:-cudaforlibs>)
+
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} ${COMMON_NVHPC_FLAGS} -cuda -gpu=${CUF_GPU_ARG}")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -Mnobounds")
+  set(CMAKE_C_FLAGS               "${CMAKE_C_FLAGS} -cuda -gpu=${CUF_GPU_ARG}")
+  set(CMAKE_CXX_FLAGS             "${CMAKE_CXX_FLAGS} -cuda -gpu=${CUF_GPU_ARG}")
 endif()
 
 if( CMAKE_C_COMPILER_ID MATCHES GNU )
@@ -311,32 +321,39 @@ endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-configure_package_config_file(
-    ${PROJECT_SOURCE_DIR}/cmake/dtfftConfig.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfig.cmake"
-    INSTALL_DESTINATION "lib/cmake/dtfft"
-    NO_SET_AND_CHECK_MACRO NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 set(DTFFT_INSTALL_CMAKEDIR
     "${CMAKE_INSTALL_LIBDIR}/cmake/dtfft"
     CACHE STRING "Path to dtFFT CMake files")
 
 
-install(TARGETS dtfft EXPORT dtfft_export)
+install(TARGETS dtfft 
+  EXPORT dtfftTargets)
 
 install(
-    EXPORT dtfft_export
+    EXPORT dtfftTargets
     DESTINATION "${DTFFT_INSTALL_CMAKEDIR}"
     CONFIGURATIONS Debug Release
-    FILE dtfftConfig.cmake)
+    FILE dtfftTargets.cmake)
 
 write_basic_package_version_file(dtfftConfigVersion.cmake
-    VERSION ${CMAKE_PROJECT_VERSION} 
-    COMPATIBILITY SameMinorVersion)
+    VERSION ${CMAKE_PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfigVersion.cmake"
     DESTINATION
     "${DTFFT_INSTALL_CMAKEDIR}" )
+
+configure_package_config_file(
+  ${PROJECT_SOURCE_DIR}/cmake/dtfftConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfig.cmake"
+  INSTALL_DESTINATION "${DTFFT_INSTALL_CMAKEDIR}"
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfig.cmake"
+    DESTINATION "${DTFFT_INSTALL_CMAKEDIR}"
+)
 
 install(DIRECTORY ${DTFFT_MODULE_DIR}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -360,6 +377,10 @@ message(STATUS "Build tests               : ${DTFFT_BUILD_TESTS}")
 message(STATUS "Coverage                  : ${DTFFT_ENABLE_COVERAGE}")
 message(STATUS "Profiler                  : ${DTFFT_WITH_PROFILER}")
 message(STATUS "CUDA enabled              : ${DTFFT_WITH_CUDA}")
+if ( DTFFT_WITH_CUDA )
+message(STATUS "Custom NCCL enabled       : ${DTFFT_WITH_CUSTOM_NCCL}")
+
+endif()
 if ( DTFFT_TRANSPOSE_ONLY )
   message(STATUS "Building transpose only interface")
 else()

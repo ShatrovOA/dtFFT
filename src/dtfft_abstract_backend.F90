@@ -16,14 +16,19 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
-#include "dtfft_config.h"
 module dtfft_abstract_backend
 !! This module defines most Abstract GPU Backend: `abstract_backend`
+use iso_c_binding
 use iso_fortran_env
 use cudafor
+#ifdef DTFFT_WITH_CUSTOM_NCCL
+use dtfft_nccl_interfaces
+#else
 use nccl
-use dtfft_parameters, only: FLOAT_STORAGE_SIZE
-use dtfft_utils,      only: int_to_str
+#endif
+use dtfft_nvrtc_kernel,   only: nvrtc_kernel
+use dtfft_parameters,     only: FLOAT_STORAGE_SIZE, is_backend_pipelined, is_backend_mpi
+use dtfft_utils,          only: int_to_str
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 implicit none
@@ -42,7 +47,10 @@ public :: abstract_backend, backend_helper
 
   type, abstract :: abstract_backend
   !! The most Abstract GPU Backend
-    type(c_devptr)              :: aux                    !< Auxiliary buffer used in pipelined algorithm
+    integer(int8)               :: backend_id
+    logical                     :: is_selfcopy
+    logical                     :: is_pipelined
+    real(real32),   pointer     :: aux(:)                    !< Auxiliary buffer used in pipelined algorithm
     integer(int64)              :: aux_size               !< Number of bytes required by aux buffer
     integer(int64)              :: send_recv_buffer_size  !< Number of float elements used in ``c_f_pointer``
     TYPE_MPI_COMM               :: comm                   !< MPI Communicator
@@ -53,56 +61,68 @@ public :: abstract_backend, backend_helper
     integer(int64), allocatable :: send_floats(:)         !< Send data elements, in float elements
     integer(int64), allocatable :: recv_displs(:)         !< Recv data displacements, in float elements
     integer(int64), allocatable :: recv_floats(:)         !< Recv data elements, in float elements
+    ! Self copy params
+    type(cudaEvent)             :: execution_event        !< Event for main execution stream
+    type(cudaEvent)             :: copy_event             !< Event for copy stream
+    integer(cuda_stream_kind)   :: copy_stream            !< Stream for copy operations
+    integer(int64)              :: self_copy_elements     !< Number of elements to copy
+    integer(int64)              :: self_send_displ        !< Displacement for send buffer
+    integer(int64)              :: self_recv_displ        !< Displacement for recv buffer
+    ! Pipelined params
+    type(nvrtc_kernel), pointer :: unpack_kernel          !< Kernel for unpacking data
   contains
     procedure,                                    pass(self)  :: create           !< Creates Abstract GPU Backend
+    procedure,                                    pass(self)  :: execute          !< Executes GPU Backend
     procedure,                                    pass(self)  :: destroy          !< Destroys Abstract GPU Backend
     procedure,                                    pass(self)  :: get_aux_size     !< Returns number of bytes required by aux buffer
     procedure,                                    pass(self)  :: set_aux          !< Sets Auxiliary buffer
+    procedure,                                    pass(self)  :: set_unpack_kernel
     procedure(createInterface),       deferred,   pass(self)  :: create_private   !< Creates overring class
-    procedure(executeInterface),      deferred,   pass(self)  :: execute          !< Executes GPU Backend
+    procedure(executeInterface),      deferred,   pass(self)  :: execute_private  !< Executes GPU Backend
     procedure(destroyInterface),      deferred,   pass(self)  :: destroy_private  !< Destroys overring class
   end type abstract_backend
 
   interface
-    subroutine createInterface(self, helper)
-    !! Creates overring class
-    import
-      class(abstract_backend),  intent(inout) :: self       !< Abstract GPU Backend
-      type(backend_helper),         intent(in)    :: helper     !< Backend helper
-    end subroutine createInterface
+  subroutine createInterface(self, helper)
+  !! Creates overring class
+  import
+    class(abstract_backend),    intent(inout) :: self       !< Abstract GPU Backend
+    type(backend_helper),       intent(in)    :: helper     !< Backend helper
+  end subroutine createInterface
 
-    subroutine executeInterface(self, in, out, stream)
-    !! Executes GPU Backend
-    import
-      class(abstract_backend),  intent(inout) :: self       !< Abstract GPU Backend
-      type(c_devptr),               intent(in)    :: in         !< Send pointer
-      type(c_devptr),               intent(in)    :: out        !< Recv pointer
-      integer(cuda_stream_kind),    intent(in)    :: stream     !< Main execution CUDA stream
-    end subroutine executeInterface
+  subroutine executeInterface(self, in, out, stream)
+  !! Executes GPU Backend
+  import
+    class(abstract_backend),    intent(inout) :: self       !< Abstract GPU Backend
+    real(real32),               intent(inout) :: in(:)      !< Send pointer
+    real(real32),               intent(inout) :: out(:)     !< Recv pointer
+    integer(cuda_stream_kind),  intent(in)    :: stream     !< Main execution CUDA stream
+  end subroutine executeInterface
 
-    subroutine destroyInterface(self)
-    !! Destroys overring class
-    import
-      class(abstract_backend),  intent(inout) :: self       !< Abstract GPU Backend
-    end subroutine destroyInterface
-  end interface
+  subroutine destroyInterface(self)
+  !! Destroys overring class
+  import
+    class(abstract_backend),    intent(inout) :: self       !< Abstract GPU Backend
+  end subroutine destroyInterface
+end interface
 
 contains
 
-  subroutine create(self, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
+  subroutine create(self, backend_id, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
   !! Creates Abstract GPU Backend
-    class(abstract_backend),        intent(inout) :: self           !< Abstract GPU Backend
-    type(backend_helper),           intent(in)    :: helper         !< Backend helper
-    integer(int8),                  intent(in)    :: comm_id        !< Id of communicator to use
-    integer(int32),                 intent(in)    :: send_displs(:) !< Send data displacements, in original elements
-    integer(int32),                 intent(in)    :: send_counts(:) !< Send data elements, in float elements
-    integer(int32),                 intent(in)    :: recv_displs(:) !< Recv data displacements, in float elements
-    integer(int32),                 intent(in)    :: recv_counts(:) !< Recv data elements, in float elements
-    integer(int8),                  intent(in)    :: base_storage   !< Number of bytes to store single element
-    integer(int64)                                :: send_size      !< Total number of floats to send
-    integer(int64)                                :: recv_size      !< Total number of floats to recv
-    integer(int32)                                :: ierr           !< MPI Error code
-    integer(int64)                                :: scaler         !< Scaling data amount to float size
+    class(abstract_backend),    intent(inout) :: self           !< Abstract GPU Backend
+    integer(int8),              intent(in)    :: backend_id
+    type(backend_helper),       intent(in)    :: helper         !< Backend helper
+    integer(int8),              intent(in)    :: comm_id        !< Id of communicator to use
+    integer(int32),             intent(in)    :: send_displs(:) !< Send data displacements, in original elements
+    integer(int32),             intent(in)    :: send_counts(:) !< Send data elements, in float elements
+    integer(int32),             intent(in)    :: recv_displs(:) !< Recv data displacements, in float elements
+    integer(int32),             intent(in)    :: recv_counts(:) !< Recv data elements, in float elements
+    integer(int8),              intent(in)    :: base_storage   !< Number of bytes to store single element
+    integer(int64)                            :: send_size      !< Total number of floats to send
+    integer(int64)                            :: recv_size      !< Total number of floats to recv
+    integer(int32)                            :: ierr           !< MPI Error code
+    integer(int64)                            :: scaler         !< Scaling data amount to float size
 
     scaler = int(base_storage, int64) / int(FLOAT_STORAGE_SIZE, int64)
 
@@ -125,16 +145,81 @@ contains
     self%send_displs = self%send_displs + 1
     self%send_floats = int(send_counts, int64) * scaler
 
-    self%aux_size = 0_int64
-
     allocate( self%recv_displs(0:self%comm_size - 1) )
     allocate( self%recv_floats(0:self%comm_size - 1) )
     self%recv_displs = int(recv_displs, int64) * scaler
     self%recv_displs = self%recv_displs + 1
     self%recv_floats = int(recv_counts, int64) * scaler
 
+    self%backend_id = backend_id
+    self%is_pipelined = is_backend_pipelined(backend_id)
+    self%is_selfcopy = self%is_pipelined .or. is_backend_mpi(backend_id)
+
+    self%aux_size = 0_int64
+    if ( self%is_pipelined ) then
+      self%aux_size = self%send_recv_buffer_size * int(FLOAT_STORAGE_SIZE, int64)
+    endif
+
+    if ( self%is_selfcopy ) then
+      self%self_send_displ = self%send_displs(self%comm_rank)
+      self%self_recv_displ = self%recv_displs(self%comm_rank)
+      self%self_copy_elements = self%send_floats(self%comm_rank)
+      self%send_floats(self%comm_rank) = 0
+      self%recv_floats(self%comm_rank) = 0
+
+      CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%execution_event, cudaEventDisableTiming) )
+      CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%copy_event, cudaEventDisableTiming) )
+      CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(self%copy_stream) )
+    endif
+
     call self%create_private(helper)
   end subroutine create
+
+  subroutine execute(self, in, out, stream)
+  !! Executes self-copying backend
+    class(abstract_backend),    intent(inout) :: self     !< Self-copying backend
+    real(real32),               intent(inout) :: in(:)    !< Send pointer
+    real(real32),               intent(inout) :: out(:)   !< Recv pointer
+    integer(cuda_stream_kind),  intent(in)    :: stream   !< CUDA stream
+
+    if ( .not. self%is_selfcopy ) then
+      call self%execute_private(in, out, stream)
+      return
+    endif
+
+    CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%execution_event, stream) )
+    ! Waiting for transpose kernel to finish execution on stream `stream`
+    CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(self%copy_stream, self%execution_event, 0) )
+
+    if( self%self_copy_elements > 0 ) then
+      if ( self%is_pipelined ) then
+    ! Tranposed data is actually located in aux buffer for pipelined algorithm
+        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(in( self%self_recv_displ ),
+                                                      self%aux( self%self_send_displ ),
+                                                      self%self_copy_elements,
+                                                      cudaMemcpyDeviceToDevice, self%copy_stream) )
+#ifdef __DEBUG
+        CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+#endif
+        ! Data can be unpacked in same stream as `cudaMemcpyAsync`
+        call self%unpack_kernel%execute(in, out, self%copy_stream, self%comm_rank + 1)
+      else
+        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out( self%self_recv_displ ),
+                                                      in( self%self_send_displ ),
+                                                      self%self_copy_elements,
+                                                      cudaMemcpyDeviceToDevice, self%copy_stream) )
+      endif
+    endif
+#ifdef __DEBUG
+    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(self%copy_stream) )
+#endif
+    call self%execute_private(in, out, stream)
+#ifndef __DEBUG
+    ! Making `stream` wait for finish of `cudaMemcpyAsync`
+    CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%copy_event, self%copy_stream) )
+    CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(stream, self%copy_event, 0) )
+#endif
+  end subroutine execute
 
   subroutine destroy(self)
   !! Destroys Abstract GPU Backend
@@ -146,6 +231,16 @@ contains
     if ( allocated( self%recv_floats ) ) deallocate( self%recv_floats )
     if ( allocated( self%comm_mapping) ) deallocate( self%comm_mapping)
     self%comm = MPI_COMM_NULL
+    if ( self%is_selfcopy ) then
+      CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(self%execution_event) )
+      CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(self%copy_event) )
+      CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(self%copy_stream) )
+    endif
+    if ( self%is_pipelined ) then
+      nullify( self%unpack_kernel )
+    endif
+    self%is_pipelined = .false.
+    self%is_selfcopy = .false.
     call self%destroy_private()
   end subroutine destroy
 
@@ -158,9 +253,17 @@ contains
   subroutine set_aux(self, aux)
   !! Sets aux buffer that can be used by various implementations
     class(abstract_backend),    intent(inout) :: self     !< Abstract GPU backend
-    type(c_devptr),             intent(in)    :: aux      !< Aux pointer
-    self%aux = aux
+    real(real32),   target,     intent(in)    :: aux(:)   !< Aux pointer
+    self%aux => aux
   end subroutine set_aux
+
+  subroutine set_unpack_kernel(self, unpack_kernel)
+  !! Sets unpack kernel for pipelined backend
+    class(abstract_backend),    intent(inout)   :: self           !< Pipelined backend
+    type(nvrtc_kernel), target, intent(in)      :: unpack_kernel  !< Kernel for unpacking data
+
+    self%unpack_kernel => unpack_kernel
+  end subroutine set_unpack_kernel
 
   subroutine create_helper(self, base_comm, comms, is_nccl_needed)
     class(backend_helper),  intent(inout) :: self                 !< Backend helper
@@ -212,4 +315,5 @@ contains
     endif
     self%is_nccl_created = .false.
   end subroutine destroy_helper
+
 end module dtfft_abstract_backend

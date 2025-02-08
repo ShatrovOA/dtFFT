@@ -176,8 +176,8 @@ contains
   subroutine execute_private(self, in, out, transpose_id)
   !! Executes single transposition
     class(transpose_plan_host),     intent(inout) :: self         !< Transposition class
-    type(*),    DEVICE_PTR          intent(in)    :: in(..)       !< Incoming buffer of any rank and kind
-    type(*),    DEVICE_PTR          intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
+    type(*),  DEVICE_PTR  target,   intent(inout) :: in(..)       !< Incoming buffer of any rank and kind
+    type(*),  DEVICE_PTR  target,   intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
     integer(int8),                  intent(in)    :: transpose_id !< Type of transpose
 
     if ( transpose_id > 0 ) then

@@ -1,6 +1,6 @@
 module dtfft_interface_vkfft_m
 use iso_c_binding, only: c_ptr, c_int, c_int8_t
-use cudafor, only: c_devptr, cuda_stream_kind
+use cudafor, only: cuda_stream_kind
 implicit none
 private
 public :: vkfft_create
@@ -27,8 +27,8 @@ public :: vkfft_destroy
     !! Executes vkFFT plan
     import
       type(c_ptr),        value :: app_handle           !< vkFFT application handle
-      type(c_devptr),     value :: in                   !< Input data
-      type(c_devptr),     value :: out                  !< Output data
+      type(c_ptr),        value :: in                   !< Input data
+      type(c_ptr),        value :: out                  !< Output data
       integer(c_int8_t),  value :: sign                 !< Sign of FFT
     end subroutine vkfft_execute
 

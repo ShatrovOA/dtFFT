@@ -20,9 +20,9 @@ module dtfft_executor_cufft_m
 !! This module describes cuFFT Wrappers to dtFFT: ``cufft_executor``
 !!
 !! https://docs.nvidia.com/cuda/cufft/index.html
-use iso_c_binding,                  only: c_int, c_null_ptr, c_loc
+use iso_c_binding,                  only: c_ptr, c_int, c_null_ptr, c_loc
 use iso_fortran_env,                only: int8, int32
-use cudafor,                        only: c_devptr, cudaSuccess
+use cudafor,                        only: cudaSuccess
 use dtfft_parameters,               only: DTFFT_SINGLE, DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED, DTFFT_FORWARD
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C
 use dtfft_interface_cufft_m
@@ -101,8 +101,8 @@ contains
   subroutine execute(self, a, b, sign)
   !! Executes cuFFT plan
     class(cufft_executor),  intent(in)      :: self           !< cuFFT FFT Executor
-    type(c_devptr),         intent(in)      :: a              !< Source pointer
-    type(c_devptr),         intent(in)      :: b              !< Target pointer
+    type(c_ptr),            intent(in)      :: a              !< Source pointer
+    type(c_ptr),            intent(in)      :: b              !< Target pointer
     integer(int8),          intent(in)      :: sign           !< Sign of transform
     integer(c_int) :: sign_
 

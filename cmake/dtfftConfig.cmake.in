@@ -1,1 +1,14 @@
 @PACKAGE_INIT@
+
+set(DTFFT_WITH_CUDA @DTFFT_WITH_CUDA@)
+set(DTFFT_WITH_C_CXX_API @DTFFT_BUILD_C_CXX_API@)
+set(DTFFT_WITH_MPI_MODULE @DTFFT_USE_MPI@)
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(MPI @MPI_Fortran_VERSION@ EXACT REQUIRED)
+if ( DTFFT_WITH_CUDA )
+  find_dependency(CUDAToolkit @CUDAToolkit_VERSION_MAJOR@ REQUIRED)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/dtfftTargets.cmake")

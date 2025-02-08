@@ -52,7 +52,7 @@ public :: clean_unused_cache
   !! Should be used only in X-Y 3D plans.
   integer(int8), parameter, public  :: KERNEL_UNPACK              = 3
   !! Unpacks contiguous buffer.
-  integer(int8), parameter, public  :: KERNEL_UNPACK_SIMPLE_COPY  = 4
+  ! integer(int8), parameter, public  :: KERNEL_UNPACK_SIMPLE_COPY  = 4
   !! Doesn't actually unpacks anything. Performs ``cudaMemcpyAsync`` call.
   !! Should be used only when backend is ``DTFFT_GPU_BACKEND_CUFFTMP``.
   integer(int8), parameter, public  :: KERNEL_UNPACK_PIPELINED    = 5
@@ -209,11 +209,11 @@ contains
     self%is_dummy = .false.
     self%kernel_type = kernel_type
 
-    if ( kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
-      self%is_created = .true.
-      self%args%ints(1) = product(dims) * base_storage
-      return
-    endif
+    ! if ( kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
+    !   self%is_created = .true.
+    !   self%args%ints(1) = product(dims) * base_storage
+    !   return
+    ! endif
 
     call MPI_Comm_size(comm, comm_size, mpi_ierr)
 
@@ -309,8 +309,8 @@ contains
   subroutine execute(self, in, out, stream, source)
   !! Executes kernel on stream
     class(nvrtc_kernel),          intent(inout) :: self               !< nvRTC Compiled kernel class
-    type(c_devptr),               intent(in)    :: in                 !< Source pointer
-    type(c_devptr),               intent(in)    :: out                !< Target pointer
+    real(real32),    target,      intent(in)    :: in(:)              !< Source pointer
+    real(real32),    target,      intent(in)    :: out(:)             !< Target pointer
     integer(cuda_stream_kind),    intent(in)    :: stream             !< CUDA Stream
     integer(int32),   optional,   intent(in)    :: source             !< Source rank for pipelined unpacking
     integer(int32)    :: n_align_sent !< Number of aligned elements sent
@@ -320,10 +320,10 @@ contains
     if ( self%is_dummy ) return
     if ( .not. self%is_created ) error stop "dtFFT Internal Error: `execute` called while plan not created"
 
-    if ( self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
-      CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out, in, self%args%ints(1), cudaMemcpyDeviceToDevice, stream) )
-      return
-    endif
+    ! if ( self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
+    !   CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out, in, self%args%ints(1), cudaMemcpyDeviceToDevice, stream) )
+    !   return
+    ! endif
 
     if ( self%kernel_type == KERNEL_UNPACK_PIPELINED ) then
       if ( .not. present(source) ) error stop "Source is not passed"
@@ -338,7 +338,7 @@ contains
       call get_contiguous_execution_blocks(self%pointers(source, 4), self%num_blocks, self%block_size)
     endif
 
-    CUDA_CALL( "cuLaunchKernel", run_cuda_kernel(self%cuda_kernel, in, out, self%num_blocks, self%block_size, stream, self%args) )
+    CUDA_CALL( "cuLaunchKernel", run_cuda_kernel(self%cuda_kernel, c_loc(in), c_loc(out), self%num_blocks, self%block_size, stream, self%args) )
     ! CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
   end subroutine execute
 
@@ -348,7 +348,8 @@ contains
     integer(int32)  :: i  !< Counter
 
     if ( .not. self%is_created ) return
-    if ( self%is_dummy .or. self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) return
+    if ( self%is_dummy ) return
+    !  .or. self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) return
 
     call mark_unused(self%cuda_kernel)
 

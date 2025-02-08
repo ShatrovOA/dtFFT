@@ -18,16 +18,12 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_transpose_handle_cuda
+use iso_c_binding,  only: c_ptr
 use iso_fortran_env
 use cudafor
 use dtfft_abstract_backend,               only: abstract_backend, backend_helper
-use dtfft_abstract_backend_selfcopy,      only: abstract_backend_pipelined
 use dtfft_backend_nccl,                   only: backend_nccl
-use dtfft_backend_mpi_p2p,                only: backend_mpi_p2p
-use dtfft_backend_mpi_a2a,                only: backend_mpi_a2a
-! use dtfft_backend_cufftmp,                only: backend_cufftmp
-use dtfft_backend_mpi_p2p_pipelined,      only: backend_mpi_p2p_pipelined
-use dtfft_backend_nccl_pipelined,         only: backend_nccl_pipelined
+use dtfft_backend_mpi,                    only: backend_mpi
 use dtfft_nvrtc_kernel
 use dtfft_pencil,                         only: pencil, get_transpose_id
 use dtfft_parameters
@@ -61,7 +57,7 @@ public :: transpose_handle_cuda
     integer(int8)                             :: transpose_id
     logical                                   :: has_exchange = .false.   !< If current handle has exchanges between GPUs
     logical                                   :: is_pipelined = .false.   !< If underlying exchanges are pipelined
-    type(c_devptr)                            :: aux                      !< Auxiliary buffer used in pipelined algorithm
+    real(real32),             pointer         :: aux(:)                   !< Auxiliary buffer used in pipelined algorithm
     type(nvrtc_kernel)                        :: pack_kernel              !< Transposes data
     type(nvrtc_kernel)                        :: unpack_kernel            !< Unpacks data
     class(abstract_backend),  allocatable     :: comm_handle              !< Communication handle
@@ -300,29 +296,19 @@ contains
     if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
     call self%unpack_kernel%create(comm, recv%counts, base_storage, transpose_id, kernel_type, k2)
 
-    select case ( backend_id )
-    case ( DTFFT_GPU_BACKEND_NCCL )
+    if ( is_backend_mpi(backend_id) ) then
+      allocate( backend_mpi :: self%comm_handle )
+    else if ( is_backend_nccl(backend_id) ) then
       allocate( backend_nccl :: self%comm_handle )
-    case ( DTFFT_GPU_BACKEND_MPI_P2P )
-      allocate( backend_mpi_p2p :: self%comm_handle )
-    case ( DTFFT_GPU_BACKEND_MPI_A2A )
-      allocate( backend_mpi_a2a :: self%comm_handle )
-    ! case ( DTFFT_GPU_BACKEND_CUFFTMP )
-    !   allocate( backend_cufftmp :: self%comm_handle )
-    case ( DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED )
-      allocate( backend_mpi_p2p_pipelined :: self%comm_handle )
-    case ( DTFFT_GPU_BACKEND_NCCL_PIPELINED )
-      allocate( backend_nccl_pipelined :: self%comm_handle )
-    case default
+    else
       error stop "Unknown backend_id"
-    endselect
+    endif
 
-    call self%comm_handle%create(helper, comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
+    call self%comm_handle%create(backend_id, helper, comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
 
-    select type ( comm_handle => self%comm_handle )
-    class is ( abstract_backend_pipelined )
-      call comm_handle%set_unpack_kernel(self%unpack_kernel)
-    endselect
+    if ( self%comm_handle%is_pipelined ) then
+      call self%comm_handle%set_unpack_kernel(self%unpack_kernel)
+    endif
 
     call in%destroy()
     call out%destroy()
@@ -332,8 +318,8 @@ contains
   subroutine execute(self, in, out, stream)
   !! Executes transpose - exchange - unpack
     class(transpose_handle_cuda),   intent(inout) :: self       !< CUDA Transpose Handle
-    type(c_devptr),                 intent(in)    :: in         !< Send pointer
-    type(c_devptr),                 intent(in)    :: out        !< Recv pointer
+    real(real32),                   intent(inout) :: in(:)      !< Send pointer
+    real(real32),                   intent(inout) :: out(:)     !< Recv pointer
     integer(cuda_stream_kind),      intent(in)    :: stream     !< Main execution CUDA stream
 
     if ( self%is_pipelined ) then
@@ -394,10 +380,10 @@ contains
   subroutine set_aux(self, aux)
   !! Sets aux buffer to underlying communication handle
     class(transpose_handle_cuda),   intent(inout) :: self       !< CUDA Transpose Handle
-    type(c_devptr),                 intent(in)    :: aux        !< Aux pointer
+    real(real32),    target,        intent(in)    :: aux(:)        !< Aux pointer
 
     if ( .not. self%has_exchange ) return
-    self%aux = aux
+    self%aux => aux
     call self%comm_handle%set_aux(aux)
   end subroutine set_aux
 end module dtfft_transpose_handle_cuda

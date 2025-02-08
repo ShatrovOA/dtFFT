@@ -34,7 +34,6 @@ foreach(test ${TEST_SOURCES})
   if ( DTFFT_WITH_CUDA )
     target_compile_options(${test_name} PRIVATE -acc -Minfo=acc)
     target_link_options(${test_name} PRIVATE "-acc")
-    target_link_options(${test_name} PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-cudaforlibs>)
   endif()
 
   foreach(nproc RANGE 1 ${TESTS_MAX_PROC} 1)

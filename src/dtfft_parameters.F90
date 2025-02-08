@@ -288,7 +288,7 @@ contains
     case ( DTFFT_ERROR_VKFFT_R2R_2D_PLAN )
       allocate(error_string, source="When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions")
     case ( DTFFT_ERROR_NOT_DEVICE_PTR )
-      allocate(error_string, source="Pointer passed to `dtfft_execute` or `dtfft_transpose` is not device nor managed" )
+      allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` cannot be accessed from device" )
     case default
       allocate(error_string, source="Unknown error")
     endselect

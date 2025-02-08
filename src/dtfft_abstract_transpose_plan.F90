@@ -73,8 +73,8 @@ public :: create_cart_comm
     !! Executes single transposition
     import
       class(abstract_transpose_plan), intent(inout) :: self         !< Transposition class
-      type(*),    DEVICE_PTR          intent(in)    :: in(..)       !< Incoming buffer of any rank and kind
-      type(*),    DEVICE_PTR          intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
+      type(*),  DEVICE_PTR  target,   intent(inout) :: in(..)       !< Incoming buffer of any rank and kind
+      type(*),  DEVICE_PTR  target,   intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
       integer(int8),                  intent(in)    :: transpose_id !< Type of transpose
     end subroutine execute_interface
 
@@ -222,8 +222,8 @@ contains
   subroutine execute(self, in, out, transpose_id)
   !! Executes single transposition
     class(abstract_transpose_plan), intent(inout) :: self         !< Transposition class
-    type(*),    DEVICE_PTR          intent(in)    :: in(..)       !< Incoming buffer of any rank and kind
-    type(*),    DEVICE_PTR          intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
+    type(*),  DEVICE_PTR            intent(inout) :: in(..)       !< Incoming buffer of any rank and kind
+    type(*),  DEVICE_PTR            intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
     integer(int8),                  intent(in)    :: transpose_id !< Type of transpose
 
     PHASE_BEGIN('Transpose '//TRANSPOSE_NAMES(transpose_id), COLOR_TRANSPOSE_PALLETTE(transpose_id))

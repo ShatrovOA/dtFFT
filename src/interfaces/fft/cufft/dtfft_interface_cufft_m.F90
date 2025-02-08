@@ -1,6 +1,6 @@
 module dtfft_interface_cufft_m
 use iso_c_binding, only: c_int, c_ptr
-use cudafor, only: c_devptr, cuda_stream_kind
+use cudafor, only: cuda_stream_kind
 implicit none
 private
 public :: cufftPlanMany, cufftXtExec, cufftDestroy, cufftSetStream
@@ -40,8 +40,8 @@ public :: cufftPlanMany, cufftXtExec, cufftDestroy, cufftSetStream
     !! In case of complex-to-real and real-to-complex transforms direction parameter is ignored.
     import
       type(c_ptr),                value :: plan         !< cufftHandle returned by cufftCreate
-      type(c_devptr),             value :: input        !< Pointer to the input data (in GPU memory) to transform.
-      type(c_devptr),             value :: output       !< Pointer to the output data (in GPU memory).
+      type(c_ptr),                value :: input        !< Pointer to the input data (in GPU memory) to transform.
+      type(c_ptr),                value :: output       !< Pointer to the output data (in GPU memory).
       integer(c_int),             value :: direction    !< The transform direction: CUFFT_FORWARD or CUFFT_INVERSE. 
                                                         !< Ignored for complex-to-real and real-to-complex transforms.
       integer(c_int)                    :: cufftResult  !< The enumerated type cufftResult defines API call result codes.

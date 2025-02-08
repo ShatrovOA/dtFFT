@@ -19,12 +19,7 @@
 #include "dtfft_config.h"
 module dtfft_abstract_executor
 !! This module describes `abstract_executor`: Abstract FFT wrapper class
-#ifdef DTFFT_WITH_CUDA
-use cudafor,          only: c_devloc, c_devptr
-#else
-use iso_c_binding,    only: c_loc
-#endif
-use iso_c_binding,    only: c_ptr, c_int, c_null_ptr, c_associated
+use iso_c_binding,    only: c_loc, c_ptr, c_int, c_null_ptr, c_associated
 use iso_fortran_env,  only: int8, int32
 use dtfft_pencil,     only: pencil
 use dtfft_parameters, only: DTFFT_SUCCESS, DTFFT_FORWARD, DTFFT_BACKWARD, COLOR_FFT
@@ -80,8 +75,8 @@ public :: abstract_executor
     !! Executes plan
     import
       class(abstract_executor), intent(in)  :: self             !< FFT Executor
-      type(C_ADDR),             intent(in)  :: a                !< Source pointer
-      type(C_ADDR),             intent(in)  :: b                !< Target pointer
+      type(c_ptr),              intent(in)  :: a                !< Source pointer
+      type(c_ptr),              intent(in)  :: b                !< Target pointer
       integer(int8),            intent(in)  :: sign             !< Sign of transform
     end subroutine execute_interface
 
@@ -188,7 +183,7 @@ contains
     integer(int8),                intent(in)    :: sign             !< Sign of transform
     if ( .not.self%is_created ) return
     PHASE_BEGIN("Executing FFT", COLOR_FFT)
-    call self%execute_private(LOC_FUN(a), LOC_FUN(b), sign)
+    call self%execute_private(c_loc(a), c_loc(b), sign)
     PHASE_END("Executing FFT")
   end subroutine execute
 

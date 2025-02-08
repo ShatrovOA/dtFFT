@@ -31,7 +31,7 @@
 #include <mpi.h>
 
 #ifdef DTFFT_WITH_CUDA
-#include <cuda_runtime.h> // cudaStream_t
+#include <cuda_runtime_api.h> // cudaStream_t
 #endif
 
 #ifdef __cplusplus
@@ -108,7 +108,7 @@ typedef enum {
   // When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform
   // are same in X and Y directions
   DTFFT_ERROR_VKFFT_R2R_2D_PLAN = CONF_DTFFT_ERROR_VKFFT_R2R_2D_PLAN,
-  // Pointer passed to `dtfft_execute` or `dtfft_transpose` is not device nor managed
+  // One of pointers passed to `dtfft_execute` or `dtfft_transpose` cannot be accessed from device
   DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR
 } dtfft_error_code_t;
 

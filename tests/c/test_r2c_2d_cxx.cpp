@@ -29,7 +29,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-#ifdef DTFFT_TRANSPOSE_ONLY
+#if defined(DTFFT_TRANSPOSE_ONLY) || defined(DTFFT_WITH_CUDA)
   return 0;
 #else
   // MPI_Init must be called before calling dtFFT
@@ -48,15 +48,7 @@ int main(int argc, char *argv[])
     cout << "Nx = " << nx << ", Ny = " << ny           << endl;
     cout << "Number of processors: " << comm_size      << endl;
     cout << "----------------------------------------" << endl;
-#ifdef DTFFT_WITH_CUDA
-    cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
-#endif
   }
-
-#ifdef DTFFT_WITH_CUDA
-  MPI_Finalize();
-  return 0;
-#endif
 
   dtfft_executor_t executor_type;
 #ifdef DTFFT_WITH_MKL
