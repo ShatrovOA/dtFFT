@@ -76,8 +76,8 @@ contains
   subroutine execute_nccl(self, in, out, stream)
   !! Executes NCCL backend
     class(backend_nccl),          intent(inout) :: self       !< NCCL backend
-    real(real32),                 intent(inout) :: in(:)      !< Send pointer
-    real(real32),                 intent(inout) :: out(:)     !< Recv pointer
+    real(real32),   DEVICE_PTR    intent(inout) :: in(:)      !< Send pointer
+    real(real32),   DEVICE_PTR    intent(inout) :: out(:)     !< Recv pointer
     integer(cuda_stream_kind),    intent(in)    :: stream     !< Main execution CUDA stream
     integer(int32)                                :: i        !< Counter
     integer(int32)                                :: rnk      !< Rank to send-recv

@@ -171,8 +171,8 @@ contains
     type(*),  DEVICE_PTR  target,  intent(inout) :: in(..)        !< Incoming buffer of any rank and kind
     type(*),  DEVICE_PTR  target,  intent(inout) :: out(..)       !< Resulting buffer of any rank and kind
     integer(int8),                 intent(in)    :: transpose_id
-    real(real32), pointer :: pin(:)
-    real(real32), pointer :: pout(:)
+    real(real32), DEVICE_PTR pointer :: pin(:)
+    real(real32), DEVICE_PTR pointer :: pout(:)
 
     pin => convert_pointer(c_devloc(in), 1_int64)
     pout => convert_pointer(c_devloc(out), 1_int64)
@@ -339,7 +339,7 @@ contains
     type(transpose_handle_cuda),  allocatable   :: plans(:)
     integer(int8) :: i, n_transpose_plans
     type(c_devptr) :: in, out, aux
-    real(real32), pointer :: pin(:), pout(:), paux(:)
+    real(real32), DEVICE_PTR pointer :: pin(:), pout(:), paux(:)
     logical :: is_aux_alloc
     ! , need_aux
     integer(int64)         :: alloc_size
@@ -504,7 +504,7 @@ contains
     integer(int64), allocatable :: worksizes(:)
     integer(int64) :: max_work_size_local, max_work_size_global
     integer(int32)  :: mpi_ierr, n_transpose_plans, i, n_in_plans, n_out_plans
-    real(real32), pointer :: paux(:)
+    real(real32), DEVICE_PTR pointer :: paux(:)
 
     n_in_plans = size(plans)
     n_out_plans = 0;  if ( present(out_plans) ) n_out_plans = size(out_plans)
@@ -541,15 +541,11 @@ contains
   function convert_pointer(in, size) result(out)
     type(c_devptr),         intent(in)  :: in
     integer(int64),         intent(in)  :: size
-    real(real32),               pointer :: out(:)
-    real(real32), DEVICE_PTR    pointer :: pin(:)
-    type(c_ptr) :: ptr
+    real(real32), DEVICE_PTR    pointer :: out(:)
 
     ! Development workaround for linter
 #ifndef __GFORTRAN__
-    call c_f_pointer(in, pin, [size])
+    call c_f_pointer(in, out, [size])
 #endif
-    ptr = c_loc(pin)
-    call c_f_pointer(ptr, out, [size])
   end function convert_pointer
 end module dtfft_transpose_plan_cuda

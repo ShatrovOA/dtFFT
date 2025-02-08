@@ -57,7 +57,7 @@ public :: transpose_handle_cuda
     integer(int8)                             :: transpose_id
     logical                                   :: has_exchange = .false.   !< If current handle has exchanges between GPUs
     logical                                   :: is_pipelined = .false.   !< If underlying exchanges are pipelined
-    real(real32),             pointer         :: aux(:)                   !< Auxiliary buffer used in pipelined algorithm
+    real(real32),  DEVICE_PTR pointer         :: aux(:)                   !< Auxiliary buffer used in pipelined algorithm
     type(nvrtc_kernel)                        :: pack_kernel              !< Transposes data
     type(nvrtc_kernel)                        :: unpack_kernel            !< Unpacks data
     class(abstract_backend),  allocatable     :: comm_handle              !< Communication handle
@@ -318,8 +318,8 @@ contains
   subroutine execute(self, in, out, stream)
   !! Executes transpose - exchange - unpack
     class(transpose_handle_cuda),   intent(inout) :: self       !< CUDA Transpose Handle
-    real(real32),                   intent(inout) :: in(:)      !< Send pointer
-    real(real32),                   intent(inout) :: out(:)     !< Recv pointer
+    real(real32),    DEVICE_PTR     intent(inout) :: in(:)      !< Send pointer
+    real(real32),    DEVICE_PTR     intent(inout) :: out(:)     !< Recv pointer
     integer(cuda_stream_kind),      intent(in)    :: stream     !< Main execution CUDA stream
 
     if ( self%is_pipelined ) then
@@ -379,8 +379,8 @@ contains
 
   subroutine set_aux(self, aux)
   !! Sets aux buffer to underlying communication handle
-    class(transpose_handle_cuda),   intent(inout) :: self       !< CUDA Transpose Handle
-    real(real32),    target,        intent(in)    :: aux(:)        !< Aux pointer
+    class(transpose_handle_cuda),     intent(inout) :: self       !< CUDA Transpose Handle
+    real(real32), DEVICE_PTR  target, intent(in)    :: aux(:)        !< Aux pointer
 
     if ( .not. self%has_exchange ) return
     self%aux => aux

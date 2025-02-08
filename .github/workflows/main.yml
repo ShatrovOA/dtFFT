@@ -72,7 +72,7 @@ jobs:
             -DDTFFT_BUILD_C_CXX_API=on
           cmake --build build
       - name: Test
-        run: cmake --build build --target coverage
+        run: ctest --test-dir build --output-on-failure
       - name: Install
         run: sudo cmake --install build
       - name: Test install
@@ -103,11 +103,12 @@ jobs:
             -DDTFFT_RUNNING_CICD=on \
             -DDTFFT_WITH_FFTW=on \
             -DDTFFT_BUILD_SHARED=on \
+            -DDTFFT_MPI_VENDOR=openmpi \
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_C_CXX_API=off
           cmake --build build
       - name: Test
-        run: cmake --build build --target coverage
+        run: ctest --test-dir build --output-on-failure
       - name: Install
         run: sudo cmake --install build
       - name: Test install
@@ -141,7 +142,7 @@ jobs:
             -DDTFFT_BUILD_C_CXX_API=on
           cmake --build build
       - name: Test
-        run: cmake --build build --target coverage
+        run: ctest --test-dir build --output-on-failure
       - name: Install
         run: sudo cmake --install build
       - name: Test install
@@ -223,7 +224,7 @@ jobs:
       - name: Test
         run: |
           source /opt/intel/oneapi/setvars.sh
-          cmake --build build --target test
+          ctest --test-dir build --output-on-failure
       - name: Install
         run: sudo cmake --install build
       - name: Test install

@@ -119,8 +119,8 @@ contains
 
   subroutine execute_mpi(self, in, out, stream)
     class(backend_mpi),           intent(inout) :: self
-    real(real32),                 intent(inout) :: in(:)      !< Send pointer
-    real(real32),                 intent(inout) :: out(:)     !< Recv pointer
+    real(real32),   DEVICE_PTR    intent(inout) :: in(:)      !< Send pointer
+    real(real32),   DEVICE_PTR    intent(inout) :: out(:)     !< Recv pointer
     integer(cuda_stream_kind),    intent(in)    :: stream     !< Main execution CUDA stream
     integer(int32)                              :: mpi_ierr
     logical,                      allocatable   :: is_complete_comm(:)  !< Testing for request completion
@@ -163,8 +163,8 @@ contains
     TYPE_MPI_COMM,            intent(in)    :: comm
     type(mpi_backend_helper), intent(inout) :: send
     type(mpi_backend_helper), intent(inout) :: recv
-    real(real32),             intent(in)    :: in(:)
-    real(real32),             intent(inout) :: out(:)
+    real(real32), DEVICE_PTR  intent(in)    :: in(:)
+    real(real32), DEVICE_PTR  intent(inout) :: out(:)
     integer(int32) :: send_request_counter, recv_request_counter
     integer(int32) :: i, comm_size, mpi_ierr
 
@@ -220,8 +220,8 @@ contains
     TYPE_MPI_COMM,            intent(in)    :: comm
     type(mpi_backend_helper), intent(inout) :: send
     type(mpi_backend_helper), intent(inout) :: recv
-    real(real32),             intent(in)    :: in(:)
-    real(real32),             intent(inout) :: out(:)
+    real(real32), DEVICE_PTR  intent(in)    :: in(:)
+    real(real32), DEVICE_PTR  intent(inout) :: out(:)
     integer(int32) :: mpi_ierr
 
 #if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)

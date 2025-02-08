@@ -98,7 +98,7 @@ implicit none
     !! This operation is blocking for the GPU.
     !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
     !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
-      real(c_float),            intent(in)  :: sendbuff(*)    !< Buffer to send data from
+      real(c_float),  DEVICE_PTR intent(in) :: sendbuff(*)    !< Buffer to send data from
       integer(c_size_t),             value  :: count          !< Number of elements to send
       type(ncclDataType),            value  :: datatype       !< Datatype to send
       integer(c_int),                value  :: peer           !< Target GPU
@@ -118,7 +118,7 @@ implicit none
     !! This operation is blocking for the GPU.
     !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
     !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
-      real(c_float),            intent(in)  :: recvbuff(*)    !< Buffer to recv data into
+      real(c_float), DEVICE_PTR intent(in)  :: recvbuff(*)    !< Buffer to recv data into
       integer(c_size_t),             value  :: count          !< Number of elements to recv
       type(ncclDataType),            value  :: datatype       !< Datatype to recv
       integer(c_int),                value  :: peer           !< Source GPU

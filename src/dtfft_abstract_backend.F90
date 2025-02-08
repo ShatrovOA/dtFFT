@@ -16,6 +16,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 module dtfft_abstract_backend
 !! This module defines most Abstract GPU Backend: `abstract_backend`
 use iso_c_binding
@@ -47,29 +48,29 @@ public :: abstract_backend, backend_helper
 
   type, abstract :: abstract_backend
   !! The most Abstract GPU Backend
-    integer(int8)               :: backend_id
-    logical                     :: is_selfcopy
-    logical                     :: is_pipelined
-    real(real32),   pointer     :: aux(:)                    !< Auxiliary buffer used in pipelined algorithm
-    integer(int64)              :: aux_size               !< Number of bytes required by aux buffer
-    integer(int64)              :: send_recv_buffer_size  !< Number of float elements used in ``c_f_pointer``
-    TYPE_MPI_COMM               :: comm                   !< MPI Communicator
-    integer(int32), allocatable :: comm_mapping(:)        !< Mapping of 1d comm ranks to global comm
-    integer(int32)              :: comm_size              !< Size of MPI Comm
-    integer(int32)              :: comm_rank              !< Rank in MPI Comm
-    integer(int64), allocatable :: send_displs(:)         !< Send data displacements, in float elements
-    integer(int64), allocatable :: send_floats(:)         !< Send data elements, in float elements
-    integer(int64), allocatable :: recv_displs(:)         !< Recv data displacements, in float elements
-    integer(int64), allocatable :: recv_floats(:)         !< Recv data elements, in float elements
+    integer(int8)                     :: backend_id
+    logical                           :: is_selfcopy
+    logical                           :: is_pipelined
+    real(real32), DEVICE_PTR  pointer :: aux(:)                 !< Auxiliary buffer used in pipelined algorithm
+    integer(int64)                    :: aux_size               !< Number of bytes required by aux buffer
+    integer(int64)                    :: send_recv_buffer_size  !< Number of float elements used in ``c_f_pointer``
+    TYPE_MPI_COMM                     :: comm                   !< MPI Communicator
+    integer(int32),       allocatable :: comm_mapping(:)        !< Mapping of 1d comm ranks to global comm
+    integer(int32)                    :: comm_size              !< Size of MPI Comm
+    integer(int32)                    :: comm_rank              !< Rank in MPI Comm
+    integer(int64),       allocatable :: send_displs(:)         !< Send data displacements, in float elements
+    integer(int64),       allocatable :: send_floats(:)         !< Send data elements, in float elements
+    integer(int64),       allocatable :: recv_displs(:)         !< Recv data displacements, in float elements
+    integer(int64),       allocatable :: recv_floats(:)         !< Recv data elements, in float elements
     ! Self copy params
-    type(cudaEvent)             :: execution_event        !< Event for main execution stream
-    type(cudaEvent)             :: copy_event             !< Event for copy stream
-    integer(cuda_stream_kind)   :: copy_stream            !< Stream for copy operations
-    integer(int64)              :: self_copy_elements     !< Number of elements to copy
-    integer(int64)              :: self_send_displ        !< Displacement for send buffer
-    integer(int64)              :: self_recv_displ        !< Displacement for recv buffer
+    type(cudaEvent)                   :: execution_event        !< Event for main execution stream
+    type(cudaEvent)                   :: copy_event             !< Event for copy stream
+    integer(cuda_stream_kind)         :: copy_stream            !< Stream for copy operations
+    integer(int64)                    :: self_copy_elements     !< Number of elements to copy
+    integer(int64)                    :: self_send_displ        !< Displacement for send buffer
+    integer(int64)                    :: self_recv_displ        !< Displacement for recv buffer
     ! Pipelined params
-    type(nvrtc_kernel), pointer :: unpack_kernel          !< Kernel for unpacking data
+    type(nvrtc_kernel),       pointer :: unpack_kernel          !< Kernel for unpacking data
   contains
     procedure,                                    pass(self)  :: create           !< Creates Abstract GPU Backend
     procedure,                                    pass(self)  :: execute          !< Executes GPU Backend
@@ -94,8 +95,8 @@ public :: abstract_backend, backend_helper
   !! Executes GPU Backend
   import
     class(abstract_backend),    intent(inout) :: self       !< Abstract GPU Backend
-    real(real32),               intent(inout) :: in(:)      !< Send pointer
-    real(real32),               intent(inout) :: out(:)     !< Recv pointer
+    real(real32),   DEVICE_PTR  intent(inout) :: in(:)      !< Send pointer
+    real(real32),   DEVICE_PTR  intent(inout) :: out(:)     !< Recv pointer
     integer(cuda_stream_kind),  intent(in)    :: stream     !< Main execution CUDA stream
   end subroutine executeInterface
 
@@ -178,8 +179,8 @@ contains
   subroutine execute(self, in, out, stream)
   !! Executes self-copying backend
     class(abstract_backend),    intent(inout) :: self     !< Self-copying backend
-    real(real32),               intent(inout) :: in(:)    !< Send pointer
-    real(real32),               intent(inout) :: out(:)   !< Recv pointer
+    real(real32),   DEVICE_PTR  intent(inout) :: in(:)    !< Send pointer
+    real(real32),   DEVICE_PTR  intent(inout) :: out(:)   !< Recv pointer
     integer(cuda_stream_kind),  intent(in)    :: stream   !< CUDA stream
 
     if ( .not. self%is_selfcopy ) then
@@ -252,8 +253,8 @@ contains
 
   subroutine set_aux(self, aux)
   !! Sets aux buffer that can be used by various implementations
-    class(abstract_backend),    intent(inout) :: self     !< Abstract GPU backend
-    real(real32),   target,     intent(in)    :: aux(:)   !< Aux pointer
+    class(abstract_backend),          intent(inout) :: self     !< Abstract GPU backend
+    real(real32), DEVICE_PTR  target, intent(in)    :: aux(:)   !< Aux pointer
     self%aux => aux
   end subroutine set_aux
 

@@ -309,8 +309,8 @@ contains
   subroutine execute(self, in, out, stream, source)
   !! Executes kernel on stream
     class(nvrtc_kernel),          intent(inout) :: self               !< nvRTC Compiled kernel class
-    real(real32),    target,      intent(in)    :: in(:)              !< Source pointer
-    real(real32),    target,      intent(in)    :: out(:)             !< Target pointer
+    real(real32),  DEVICE_PTR     intent(in)    :: in(:)              !< Source pointer
+    real(real32),  DEVICE_PTR     intent(in)    :: out(:)             !< Target pointer
     integer(cuda_stream_kind),    intent(in)    :: stream             !< CUDA Stream
     integer(int32),   optional,   intent(in)    :: source             !< Source rank for pipelined unpacking
     integer(int32)    :: n_align_sent !< Number of aligned elements sent
