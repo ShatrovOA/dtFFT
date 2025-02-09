@@ -139,7 +139,8 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DDTFFT_RUNNING_CICD=on \
             -DDTFFT_BUILD_SHARED=on \
-            -DDTFFT_BUILD_C_CXX_API=on
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_USE_MPI=on
           cmake --build build
       - name: Test
         run: ctest --test-dir build --output-on-failure
@@ -220,7 +221,7 @@ jobs:
             -DDTFFT_BUILD_SHARED=on \
             -DDTFFT_WITH_MKL=on \
             -DDTFFT_USE_MPI=on \
-            -DDTFFT_BUILD_C_CXX_API=on ..
+            -DDTFFT_BUILD_C_CXX_API=on
           cmake --build build
       - name: Test
         run: |
