@@ -36,14 +36,16 @@ implicit none
   real(R4P) :: local_error, rnd
   integer(I4P), parameter :: nx = 512, ny = 64, nz = 16
   integer(I4P) :: comm_size, comm_rank, ierr, in_counts(3), in_product
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   type(dtfft_plan_r2r) :: plan
   real(R8P) :: tf, tb
   integer(I8P)  :: alloc_size, i
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
   integer(I4P) :: host_rank, host_size, num_devices
+  type(dtfft_gpu_backend_t) :: backend_to_use, actual_backend_used
 #endif
+  type(dtfft_config_t) :: conf
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -61,22 +63,32 @@ implicit none
 
   call attach_gpu_to_process()
 
+  call dtfft_create_config(conf)
+
 #ifdef DTFFT_WITH_CUDA
-  call dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_NCCL_PIPELINED, error_code=ierr)
-  DTFFT_CHECK(ierr)
-  if(comm_rank == 0) then
-    write(output_unit, '(a)') "Using backend: "//dtfft_get_gpu_backend_string(DTFFT_GPU_BACKEND_NCCL_PIPELINED)
-  endif
+  backend_to_use = DTFFT_GPU_BACKEND_NCCL_PIPELINED
+  conf%gpu_backend = backend_to_use
 
   CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(stream) )
-  call dtfft_set_stream(stream, error_code=ierr)
-  DTFFT_CHECK(ierr)
+  conf%stream = stream
 #endif
+
+  call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
   call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
+
+#ifdef DTFFT_WITH_CUDA
+  actual_backend_used = plan%get_gpu_backend(error_code=ierr);  DTFFT_CHECK(ierr)
+  if(comm_rank == 0) then
+    write(output_unit, '(a)') "Using backend: "//dtfft_get_gpu_backend_string(actual_backend_used)
+  endif
+  if ( comm_size > 1 .and. actual_backend_used /= backend_to_use ) then
+    error stop "Invalid backend: actual_backend_used /= backend_to_use"
+  endif
+#endif
 
   in_product = product(in_counts)
   allocate(inout(alloc_size))

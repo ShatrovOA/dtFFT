@@ -33,7 +33,7 @@ implicit none
   integer(I4P) :: in_counts(3), out_counts(3), out_size
   integer(c_size_t) :: alloc_size
   real(R8P) :: tf, tb
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   integer(I4P) :: ierr
 
   call MPI_Init(ierr)

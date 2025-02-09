@@ -1,5 +1,5 @@
 module dtfft_interface_vkfft_m
-use iso_c_binding, only: c_ptr, c_int, c_int8_t
+use iso_c_binding, only: c_ptr, c_int, c_int8_t, c_int32_t
 use cudafor, only: cuda_stream_kind
 implicit none
 private
@@ -13,7 +13,7 @@ public :: vkfft_destroy
     import
       integer(c_int8_t),          value :: rank         !< Rank of fft: 1 or 2
       integer(c_int)                    :: dims(*)      !< Dimensions of transform
-      integer(c_int8_t),          value :: precision    !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
+      integer(c_int32_t),         value :: precision    !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
       integer(c_int),             value :: how_many     !< Number of transforms to create
       integer(c_int8_t),          value :: r2c          !< Is R2C transform required
       integer(c_int8_t),          value :: c2r          !< Is C2R transform required

@@ -42,6 +42,14 @@ extern "C" {
 #include <stdio.h>   // fprintf, stderr, size_t
 
 
+#define DTFFT_VERSION_MAJOR CONF_DTFFT_VERSION_MAJOR
+#define DTFFT_VERSION_MINOR CONF_DTFFT_VERSION_MINOR
+#define DTFFT_VERSION_PATCH CONF_DTFFT_VERSION_PATCH
+
+#define DTFFT_VERSION_CODE CONF_DTFFT_VERSION_CODE
+#define DTFFT_VERSION(X,Y,Z) (X) * 100000 + (Y) * 1000 + (Z)
+
+
 /* If <complex.h> is included, use the C99 complex type.  Otherwise
    define a type bit-compatible with C99 complex */
 #if defined(_Complex_I) && defined(complex) && defined(I)
@@ -75,7 +83,7 @@ typedef enum {
   DTFFT_ERROR_INVALID_COMM_TYPE = CONF_DTFFT_ERROR_INVALID_COMM_TYPE,
   // Invalid `precision` parameter provided
   DTFFT_ERROR_INVALID_PRECISION = CONF_DTFFT_ERROR_INVALID_PRECISION,
-  // Invalid `effort_flag` parameter provided
+  // Invalid `effort_type` parameter provided
   DTFFT_ERROR_INVALID_EFFORT_FLAG = CONF_DTFFT_ERROR_INVALID_EFFORT_FLAG,
   // Invalid `executor_type` parameter provided
   DTFFT_ERROR_INVALID_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_EXECUTOR_TYPE,
@@ -95,6 +103,8 @@ typedef enum {
   DTFFT_ERROR_INVALID_AUX = CONF_DTFFT_ERROR_INVALID_AUX,
   // Invalid `dim` passed to `dtfft_get_pencil`
   DTFFT_ERROR_INVALID_DIM = CONF_DTFFT_ERROR_INVALID_DIM,
+  // NULL pointer passed
+  DTFFT_ERROR_INVALID_USAGE = CONF_DTFFT_ERROR_INVALID_USAGE,
   // Selected `executor_type` do not support R2R FFTs
   DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED,
   // // cufftMp backends support only 3d plan
@@ -114,7 +124,7 @@ typedef enum {
 
 
 /**
- * @brief This enum lists the different execution flags that can be passed to ``dtfft_execute``.
+ * @brief This enum lists the different execution flags that can be passed to `dtfft_execute`.
  */
 typedef enum {
 // Perform XYZ --> YXZ --> ZXY plan execution
@@ -125,7 +135,7 @@ typedef enum {
 
 
 /**
- * @brief This enum lists the different execution flags that can be passed to ``dtfft_transpose``.
+ * @brief This enum lists the different execution flags that can be passed to `dtfft_transpose`.
  */
 typedef enum {
 // Transpose from Fortran X aligned to Fortran Y aligned
@@ -163,7 +173,7 @@ typedef enum {
 // Create plan as fast as possible
   DTFFT_ESTIMATE = CONF_DTFFT_ESTIMATE,
 // Will attempt to find best MPI Grid decompostion
-// Passing this flag and MPI Communicator with cartesian topology to `dtfft_create_plan_*` is same as ``DTFFT_ESTIMATE``.
+// Passing this flag and MPI Communicator with cartesian topology to `dtfft_create_plan_*` is same as `DTFFT_ESTIMATE`.
   DTFFT_MEASURE = CONF_DTFFT_MEASURE,
 // Same as `DTFFT_MEASURE` plus cycle through various send and recieve MPI_Datatypes
 // For GPU Build this flag will run autotune procedure to find best backend
@@ -176,23 +186,15 @@ typedef enum {
  */
 typedef enum {
 // Create transpose only plan, no executor needed
-  DTFFT_EXECUTOR_NONE = CONF_DTFFT_EXECUTOR_NONE
-#ifdef DTFFT_WITH_FFTW
+  DTFFT_EXECUTOR_NONE = CONF_DTFFT_EXECUTOR_NONE,
 // Use FFTW3
-  , DTFFT_EXECUTOR_FFTW3 = CONF_DTFFT_EXECUTOR_FFTW3
-#endif
-#ifdef DTFFT_WITH_MKL
+  DTFFT_EXECUTOR_FFTW3 = CONF_DTFFT_EXECUTOR_FFTW3,
 // Use MKL DFTI
-  , DTFFT_EXECUTOR_MKL = CONF_DTFFT_EXECUTOR_MKL
-#endif
-#ifdef DTFFT_WITH_CUFFT
+  DTFFT_EXECUTOR_MKL = CONF_DTFFT_EXECUTOR_MKL,
 // Use GPU Executor cuFFT
-  , DTFFT_EXECUTOR_CUFFT = CONF_DTFFT_EXECUTOR_CUFFT
-#endif
-#ifdef DTFFT_WITH_VKFFT
+  DTFFT_EXECUTOR_CUFFT = CONF_DTFFT_EXECUTOR_CUFFT,
 // Use GPU Executor VkFFT
-  , DTFFT_EXECUTOR_VKFFT = CONF_DTFFT_EXECUTOR_VKFFT
-#endif
+  DTFFT_EXECUTOR_VKFFT = CONF_DTFFT_EXECUTOR_VKFFT
 } dtfft_executor_t;
 
 
@@ -230,28 +232,37 @@ do {                                                                          \
 } while (0);
 
 
-/** \brief Real-to-Real Plan constructor. Must be called after MPI_Init
+/**
+ * @brief Obtains current dtFFT version
+ *
+ * @return Version
+ */
+int32_t
+dtfft_get_version();
+
+
+/** @brief Real-to-Real Plan constructor. Must be called after MPI_Init
   *
-  * \param[in]      ndims                 Number of dimensions: 2 or 3
-  * \param[in]      dims                  Buffer of size `ndims` with global dimensions in reversed order.
+  * @param[in]      ndims                 Number of dimensions: 2 or 3
+  * @param[in]      dims                  Buffer of size `ndims` with global dimensions in reversed order.
   *                                         dims[0] must be fastest varying
-  * \param[in]      kinds                 Buffer of size `ndims` with Real FFT kinds in reversed order
+  * @param[in]      kinds                 Buffer of size `ndims` with Real FFT kinds in reversed order
   *                                         Can be NULL if `executor_type` == `DTFFT_EXECUTOR_NONE`
-  * \param[in]      comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
-  * \param[in]      precision             Precision of transform. One of the
+  * @param[in]      comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+  * @param[in]      precision             Precision of transform. One of the
   *                                         - `DTFFT_SINGLE`
   *                                         - `DTFFT_DOUBLE`
-  * \param[in]      effort_flag           How hard DTFFT should look for best plan. One of the
+  * @param[in]      effort_type           How hard DTFFT should look for best plan. One of the
   *                                         - `DTFFT_ESTIMATE`
   *                                         - `DTFFT_MEASURE`
   *                                         - `DTFFT_PATIENT`
-  * \param[in]      executor_type         Type of external FFT executor. One of the
+  * @param[in]      executor_type         Type of external FFT executor. One of the
   *                                         - `DTFFT_EXECUTOR_NONE`
   *                                         - `DTFFT_EXECUTOR_FFTW3`
   *                                         - `DTFFT_EXECUTOR_VKFFT` - only GPU
-  * \param[out]     plan                  Plan handle ready to be executed
+  * @param[out]     plan                  Plan handle ready to be executed
   *
-  * \return `DTFFT_SUCCESS` if plan was created, error code otherwise
+  * @return `DTFFT_SUCCESS` if plan was created, error code otherwise
 */
 dtfft_error_code_t
 dtfft_create_plan_r2r(
@@ -260,32 +271,32 @@ dtfft_create_plan_r2r(
   const dtfft_r2r_kind_t *kinds,
   MPI_Comm comm,
   const dtfft_precision_t precision,
-  const dtfft_effort_t effort_flag,
+  const dtfft_effort_t effort_type,
   const dtfft_executor_t executor_type,
   dtfft_plan_t *plan);
 
 
-/** \brief Complex-to-Complex Plan constructor. Must be called after MPI_Init
+/** @brief Complex-to-Complex Plan constructor. Must be called after MPI_Init
   *
-  * \param[in]      ndims                 Number of dimensions: 2 or 3
-  * \param[in]      dims                  Buffer of size `ndims` with global dimensions in reversed order.
-  * \param[in]      comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
-  * \param[in]      precision             Precision of transform. One of the
+  * @param[in]      ndims                 Number of dimensions: 2 or 3
+  * @param[in]      dims                  Buffer of size `ndims` with global dimensions in reversed order.
+  * @param[in]      comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+  * @param[in]      precision             Precision of transform. One of the
   *                                         - `DTFFT_SINGLE`
   *                                         - `DTFFT_DOUBLE`
-  * \param[in]      effort_flag           How hard DTFFT should look for best plan. One of the
+  * @param[in]      effort_type           How hard DTFFT should look for best plan. One of the
   *                                         - `DTFFT_ESTIMATE`
   *                                         - `DTFFT_MEASURE`
   *                                         - `DTFFT_PATIENT`
-  * \param[in]      executor_type         Type of external FFT executor. One of the
+  * @param[in]      executor_type         Type of external FFT executor. One of the
   *                                         - `DTFFT_EXECUTOR_NONE`
   *                                         - `DTFFT_EXECUTOR_FFTW3`
   *                                         - `DTFFT_EXECUTOR_MKL`
   *                                         - `DTFFT_EXECUTOR_CUFFT` - only GPU
   *                                         - `DTFFT_EXECUTOR_VKFFT` - only GPU
-  * \param[out]     plan                  Plan handle ready to be executed
+  * @param[out]     plan                  Plan handle ready to be executed
   *
-  * \return `DTFFT_SUCCESS` if plan was created, error code otherwise
+  * @return `DTFFT_SUCCESS` if plan was created, error code otherwise
 */
 dtfft_error_code_t
 dtfft_create_plan_c2c(
@@ -293,32 +304,32 @@ dtfft_create_plan_c2c(
   const int32_t *dims,
   MPI_Comm comm,
   const dtfft_precision_t precision,
-  const dtfft_effort_t effort_flag,
+  const dtfft_effort_t effort_type,
   const dtfft_executor_t executor_type,
   dtfft_plan_t *plan);
 
 
 #ifndef DTFFT_TRANSPOSE_ONLY
-/** \brief Real-to-Complex Plan constructor. Must be called after MPI_Init
+/** @brief Real-to-Complex Plan constructor. Must be called after MPI_Init
   *
-  * \param[in]      ndims                 Number of dimensions: 2 or 3
-  * \param[in]      dims                  Buffer of size `ndims` with global dimensions in reversed order.
-  * \param[in]      comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
-  * \param[in]      precision             Precision of transform. One of the
+  * @param[in]      ndims                 Number of dimensions: 2 or 3
+  * @param[in]      dims                  Buffer of size `ndims` with global dimensions in reversed order.
+  * @param[in]      comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+  * @param[in]      precision             Precision of transform. One of the
   *                                         - `DTFFT_SINGLE`
   *                                         - `DTFFT_DOUBLE`
-  * \param[in]      effort_flag           How hard DTFFT should look for best plan. One of the
+  * @param[in]      effort_type           How hard DTFFT should look for best plan. One of the
   *                                         - `DTFFT_ESTIMATE`
   *                                         - `DTFFT_MEASURE`
   *                                         - `DTFFT_PATIENT`
-  * \param[in]      executor_type         Type of external FFT executor. One of the
+  * @param[in]      executor_type         Type of external FFT executor. One of the
   *                                         - `DTFFT_EXECUTOR_FFTW3`
   *                                         - `DTFFT_EXECUTOR_MKL`
   *                                         - `DTFFT_EXECUTOR_CUFFT` - only GPU
   *                                         - `DTFFT_EXECUTOR_VKFFT` - only GPU
-  * \param[out]     plan                  Plan handle ready to be executed
+  * @param[out]     plan                  Plan handle ready to be executed
   *
-  * \return `DTFFT_SUCCESS` if plan was created, error code otherwise
+  * @return `DTFFT_SUCCESS` if plan was created, error code otherwise
   *
   * \note Parameter `executor_type` cannot be `DTFFT_EXECUTOR_NONE`. Use C2C plan instead
 */
@@ -328,48 +339,48 @@ dtfft_create_plan_r2c(
   const int32_t *dims,
   MPI_Comm comm,
   const dtfft_precision_t precision,
-  const dtfft_effort_t effort_flag,
+  const dtfft_effort_t effort_type,
   const dtfft_executor_t executor_type,
   dtfft_plan_t *plan);
 #endif
 
-/** \brief Checks if plan is using Z-slab optimization.
-  * If ``true`` then flags ``DTFFT_TRANSPOSE_X_TO_Z`` and ``DTFFT_TRANSPOSE_Z_TO_X`` will be valid to pass to ``dtfft_transpose``.
+/** @brief Checks if plan is using Z-slab optimization.
+  * If `true` then flags `DTFFT_TRANSPOSE_X_TO_Z` and `DTFFT_TRANSPOSE_Z_TO_X` will be valid to pass to `dtfft_transpose`.
   *
-  * \param[in]      plan            Plan handle
-  * \param[out]     is_z_slab       Boolean value if Z-slab is used.
+  * @param[in]      plan              Plan handle
+  * @param[out]     is_z_slab_enabled Boolean value if Z-slab is used.
   *
-  * \return `DTFFT_SUCCESS` if call was without error, error code otherwise
+  * @return `DTFFT_SUCCESS` if call was without error, error code otherwise
 */
 dtfft_error_code_t
-dtfft_get_z_slab(dtfft_plan_t plan, bool *is_z_slab);
+dtfft_get_z_slab_enabled(dtfft_plan_t plan, bool *is_z_slab_enabled);
 
 
-/** \brief Plan execution. Neither `in` nor `out` are allowed to be `NULL`. It is safe to pass same pointer to both `in` and `out`.
+/** @brief Plan execution. Neither `in` nor `out` are allowed to be `NULL`. It is safe to pass same pointer to both `in` and `out`.
   *
-  * \param[in]      plan            Plan handle
-  * \param[inout]   in              Incoming buffer
-  * \param[out]     out             Result buffer
-  * \param[in]      execute_type    Type of transform:
+  * @param[in]      plan            Plan handle
+  * @param[inout]   in              Incoming buffer
+  * @param[out]     out             Result buffer
+  * @param[in]      execute_type    Type of transform:
   *                                   - `DTFFT_TRANSPOSE_OUT`
   *                                   - `DTFFT_TRANSPOSE_IN`
-  * \param[inout]   aux             Optional auxiliary buffer. Can be `NULL`.
+  * @param[inout]   aux             Optional auxiliary buffer. Can be `NULL`.
   *                                 If `NULL` during first call to this function, then auxiliary will be allocated
   *                                 internally and freed after call to `dtfft_destroy`
   *
-  * \return `DTFFT_SUCCESS` if plan was executed, error code otherwise
+  * @return `DTFFT_SUCCESS` if plan was executed, error code otherwise
 */
 dtfft_error_code_t
 dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_type_t execute_type, void *aux);
 
 
-/** \brief Transpose data in single dimension, e.g. X align -> Y align
+/** @brief Transpose data in single dimension, e.g. X align -> Y align
   * \attention `in` and `out` cannot be the same pointers
   *
-  * \param[in]      plan            Plan handle
-  * \param[in]      in              Incoming buffer
-  * \param[out]     out             Transposed buffer
-  * \param[in]      transpose_type  Type of transpose:
+  * @param[in]      plan            Plan handle
+  * @param[in]      in              Incoming buffer
+  * @param[out]     out             Transposed buffer
+  * @param[in]      transpose_type  Type of transpose:
   *                                   - `DTFFT_TRANSPOSE_X_TO_Y`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_X`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_Z` (3d plan only)
@@ -377,49 +388,49 @@ dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_type_t
   *                                   - `DTFFT_TRANSPOSE_X_TO_Z` (3d plan and Z-slab only)
   *                                   - `DTFFT_TRANSPOSE_Z_TO_X` (3d plan and Z-slab only)
   *
-  * \return `DTFFT_SUCCESS` if plan was executed, error code otherwise
+  * @return `DTFFT_SUCCESS` if plan was executed, error code otherwise
 */
 dtfft_error_code_t
 dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_type_t transpose_type);
 
 
-/** \brief Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize
+/** @brief Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize
  *
- * \param[inout]    plan            Plan handle
+ * @param[inout]    plan            Plan handle
 */
 dtfft_error_code_t
 dtfft_destroy(dtfft_plan_t *plan);
 
 
-/** \brief Get grid decomposition information. Results may differ on different MPI processes
+/** @brief Get grid decomposition information. Results may differ on different MPI processes
   *
   * Minimum number of bytes that needs allocation:
   *
-  * \param[in]      plan            Plan handle
-  * \param[out]     in_starts       Starts of local portion of data in 'real' space in reversed order
-  * \param[out]     in_counts       Sizes  of local portion of data in 'real' space in reversed order
-  * \param[out]     out_starts      Starts of local portion of data in 'fourier' space in reversed order
-  * \param[out]     out_counts      Sizes  of local portion of data in 'fourier' space in reversed order
-  * \param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
+  * @param[in]      plan            Plan handle
+  * @param[out]     in_starts       Starts of local portion of data in 'real' space in reversed order
+  * @param[out]     in_counts       Sizes  of local portion of data in 'real' space in reversed order
+  * @param[out]     out_starts      Starts of local portion of data in 'fourier' space in reversed order
+  * @param[out]     out_counts      Sizes  of local portion of data in 'fourier' space in reversed order
+  * @param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
   *                                 Number of bytes to be allocated:
   *                                   - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
   *                                   - R2R plan: `alloc_size` * sizeof(double/float)
   *                                   - R2C plan: `alloc_size` * sizeof(double/float)
-  * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+  * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
 dtfft_error_code_t
 dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts, int32_t *out_starts, int32_t *out_counts, size_t *alloc_size);
 
 
-/** \brief Wrapper around `dtfft_get_local_sizes` to obtain number of elements only
+/** @brief Wrapper around `dtfft_get_local_sizes` to obtain number of elements only
   *
-  * \param[in]      plan            Plan handle
-  * \param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
+  * @param[in]      plan            Plan handle
+  * @param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
   *                                 Number of bytes to be allocated:
   *                                   - C2C plan: 2 * `alloc_size` * sizeof(double/float) or `alloc_size` * sizeof(dtfft_complex/dtfftf_complex)
   *                                   - R2R plan: `alloc_size` * sizeof(double/float)
   *                                   - R2C plan: `alloc_size` * sizeof(double/float)
-  * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+  * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
 */
 dtfft_error_code_t
 dtfft_get_alloc_size(dtfft_plan_t plan, size_t *alloc_size);
@@ -435,25 +446,6 @@ const char *
 dtfft_get_error_string(const dtfft_error_code_t error_code);
 
 
-/**
- * @brief Enables previously disabled Z-slab optimization
- *
- * @note In order to take effect should be called before plan creation.
- */
-void dtfft_enable_z_slab();
-
-
-/**
- * @brief Disables Z-slab optimization.
- * One should consider disabling Z-slab optimization in order to resolve ``DTFFT_ERROR_VKFFT_R2R_2D_PLAN`` error 
- * OR when underlying FFT implementation of 2D plan is too slow.
- * In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
- *
- * @note In order to take effect should be called before plan creation.
- * @note This option is only valid for 3d plans
- */
-void dtfft_disable_z_slab();
-
 // Structure to hold pencil decomposition info
 typedef struct {
   int8_t dim;
@@ -465,17 +457,28 @@ typedef struct {
  * @brief Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation, 
  * that is unavailable in dtFFT.
  * 
- * \param[in]     plan            Plan handle
- * \param[in]     dim             Required dimension:
+ * @param[in]     plan            Plan handle
+ * @param[in]     dim             Required dimension:
  *                                  - 1 for XYZ layout
  *                                  - 2 for YXZ layout
  *                                  - 3 for ZXY layout
- * \param[out]    pencil          Pencil data
+ * @param[out]    pencil          Pencil data
  * 
- * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
  */
 dtfft_error_code_t
 dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil);
+
+
+/**
+ * @brief Prints plan-related information to stdout
+ *
+ * @param[in]     plan            Plan handle
+ *
+ * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ **/
+dtfft_error_code_t
+dtfft_report(dtfft_plan_t plan);
 
 
 #ifdef DTFFT_WITH_CUDA
@@ -498,32 +501,14 @@ typedef enum {
   DTFFT_GPU_BACKEND_NCCL = CONF_DTFFT_GPU_BACKEND_NCCL,
   // NCCL backend with overlapping data copying and unpacking
   DTFFT_GPU_BACKEND_NCCL_PIPELINED = CONF_DTFFT_GPU_BACKEND_NCCL_PIPELINED,
-  // cufftMp backend
-  // DTFFT_GPU_BACKEND_CUFFTMP = CONF_DTFFT_GPU_BACKEND_CUFFTMP
 } dtfft_gpu_backend_t;
-
-/**
- * @brief Sets stream that will be used in dtfft. This call is optional.
- *
- * @note User is responsible in destroying this stream.
- *
- * @note Stream must not be destroyed before ``dtfft_plan_t``.
- * 
- * @note In order to take effect should be called before plan creation.
- *
- * \param[in]       stream    Cuda stream
- *
- * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
- */
-dtfft_error_code_t
-dtfft_set_stream(const cudaStream_t stream);
 
 
 /**
  * @brief Returns stream assosiated with dtfft plan.
- * This can either be steam passed by user to ``dtfft_set_stream`` or stream created internally.
+ * This can either be steam passed by user to `dtfft_set_config` or stream created internally.
  *
- * \param[in]      plan           Plan handle
+ * @param[in]      plan           Plan handle
  * @param[out]     stream         CUDA stream associated with plan
  *
  * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
@@ -533,25 +518,12 @@ dtfft_get_stream(dtfft_plan_t plan, cudaStream_t *stream);
 
 
 /**
- * @brief Sets backend that will be used by dtfft when ``effort_flag`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
+ * @brief Returns selected GPU backend during autotune if `effort_type` is `DTFFT_PATIENT`.
  *
- * This call is optional. Default backend is ``DTFFT_GPU_BACKEND_NCCL``.
+ * If `effort_type` passed to any create function is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`
+ * returns value set by `dtfft_set_gpu_backend` or default value, which is `DTFFT_GPU_BACKEND_NCCL`.
  *
- * @note In order to take effect should be called before plan creation.
- *
- * @param[in]       backend_id   dtfft_gpu_backend_t
- * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
- */
-dtfft_error_code_t
-dtfft_set_gpu_backend(const dtfft_gpu_backend_t backend_id);
-
-/**
- * @brief Returns selected GPU backend during autotune if ``effort_flag`` is ``DTFFT_PATIENT``.
- *
- * If ``effort_flag`` passed to any create function is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``
- * returns value set by ``dtfft_set_gpu_backend`` or default value, which is ``DTFFT_GPU_BACKEND_NCCL``.
- *
- * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
  */
 dtfft_error_code_t
 dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *backend_id);
@@ -565,51 +537,88 @@ dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *backend_id);
  */
 const char *
 dtfft_get_gpu_backend_string(const dtfft_gpu_backend_t backend_id);
-
-
-/**
- * @brief Enables MPI GPU Backends for autotuning.
- * MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849
- *
- * It was noticed that during plan autotuning GPU memory not being freed completely.
- * For example:
- * 1024x1024x512 C2C, double precision, single GPU, using Z-slab optimization, with MPI backends enabled, plan autotuning will leak 8Gb GPU memory.
- * Without Z-slab optimization, running on 4 GPUs, will leak 24Gb on each of the GPUs.
- *
- * One of the workarounds is to disable MPI Backends by default, which is done here.
- *
- * Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to `mpiexec`,
- * but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
- *
- * @note In order to take effect should be called before plan creation.
- */
-void dtfft_enable_mpi_backends();
-
-
-/**
- * @brief Disables previously enabled MPI GPU Backends for during plan autotuning.
- *
- * @note In order to take effect should be called before plan creation.
- */
-void dtfft_disable_mpi_backends();
-
-
-/**
- * @brief Enables previously disabled pipelined GPU backends during plan autotuning.
- *
- * @note In order to take effect should be called before plan creation.
- */
-void dtfft_enable_pipelined_backends();
-
-
-/**
- * @brief Disables pipelined GPU backends during plan autotuning.
- *
- * @note In order to take effect should be called before plan creation.
- */
-void dtfft_disable_pipelined_backends();
-
 #endif
+
+typedef struct {
+  /*
+  Should dtFFT use Z-slab optimization or not.
+  Default is true.
+  One should consider disabling Z-slab optimization in order to resolve `DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error 
+  OR when underlying FFT implementation of 2D plan is too slow.
+  In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
+  */
+  bool enable_z_slab;
+
+#ifdef DTFFT_WITH_CUDA
+  /*
+  Main CUDA stream that will be used in dtFFT.
+  This parameter is a placeholder for user to set custom stream.
+  Stream that is actually used by dtFFT plan is returned by `dtfft_get_stream` function.
+  When user sets stream he is responsible of destroying it.
+  Stream must not be destroyed before call to `dtfft_destroy`.
+  */
+  cudaStream_t stream;
+  /*
+  Backend that will be used by dtFFT when `effort_type` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+  Default is `DTFFT_GPU_BACKEND_NCCL`
+  */
+  dtfft_gpu_backend_t gpu_backend;
+  /*
+  Should MPI GPU Backends be enabled when `effort_type` is `DTFFT_PATIENT` or not.
+  Default is false.
+
+  MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849
+  It was noticed that during plan autotuning GPU memory not being freed completely.
+  For example:
+  1024x1024x512 C2C, double precision, single GPU, using Z-slab optimization, with MPI backends enabled, plan autotuning will leak 8Gb GPU memory.
+  Without Z-slab optimization, running on 4 GPUs, will leak 24Gb on each of the GPUs.
+
+  One of the workarounds is to disable MPI Backends by default, which is done here.
+
+  Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to `mpiexec`,
+  but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
+  */
+  bool enable_mpi_backends;
+  /*
+  Should pipelined GPU backends be enabled when `effort_type` is `DTFFT_PATIENT` or not.
+  Default is true.
+
+  Pipelined backends require additional buffer that user has no control over.
+  */
+  bool enable_pipelined_backends;
+  /*
+  Should NCCL Backends be enabled when `effort_type` is `DTFFT_PATIENT` or not.
+  Default is true.
+  */
+  bool enable_nccl_backends;
+  /*
+  Should NCCL Backends be enabled when `effort_type` is `DTFFT_PATIENT` or not.
+  Default is true.
+
+  Unused. Reserved for future.
+  */
+  bool enable_nvshmem_backends;
+#endif
+} dtfft_config_t;
+
+/**
+ * @brief Sets default values to config
+ * 
+ *
+ * @param[out]  config  Config to set default values into
+ * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ */
+dtfft_error_code_t
+dtfft_create_config(dtfft_config_t *config);
+
+/**
+ * @brief Set configuration values to dtFFT. In order to take effect should be called before plan creation
+ * 
+ * @param[in]   config  Config to set
+ * @return `DTFFT_SUCCESS` if call was successfull, error code otherwise
+ */
+dtfft_error_code_t
+dtfft_set_config(dtfft_config_t config);
 
 
 #ifdef __cplusplus

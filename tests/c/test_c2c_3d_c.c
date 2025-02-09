@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 
   if ( executor_type == DTFFT_EXECUTOR_NONE ) {
     bool is_z_slab;
-    DTFFT_CALL( dtfft_get_z_slab(plan, &is_z_slab) )
+    DTFFT_CALL( dtfft_get_z_slab_enabled(plan, &is_z_slab) )
     if ( is_z_slab ) {
       DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Z) )
     } else {

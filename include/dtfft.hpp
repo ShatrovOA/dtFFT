@@ -47,13 +47,18 @@ namespace dtfft
 /** \brief Checks if plan is using Z-slab optimization.
   * If ``true`` then flags ``DTFFT_TRANSPOSE_X_TO_Z`` and ``DTFFT_TRANSPOSE_Z_TO_X`` will be valid to pass to ``transpose`` method.
   *
-  * \param[out]     is_z_slab       Boolean value if Z-slab is used.
+  * \param[out]     is_z_slab_enabled       Boolean value if Z-slab is used.
   *
   * \return `DTFFT_SUCCESS` if call was without error, error code otherwise
 */
         dtfft_error_code_t
-        get_z_slab(bool *is_z_slab)
-        {return dtfft_get_z_slab(_plan, is_z_slab);}
+        get_z_slab_enabled(bool *is_z_slab_enabled)
+        {return dtfft_get_z_slab_enabled(_plan, is_z_slab_enabled);}
+
+
+        dtfft_error_code_t
+        report()
+        {return dtfft_report(_plan);}
 
 
 /**
@@ -258,9 +263,9 @@ namespace dtfft
         {return dtfft_get_stream(_plan, stream);}
 
 /**
- * @brief Returns selected GPU backend during autotune if ``effort_flag`` is ``DTFFT_PATIENT``.
+ * @brief Returns selected GPU backend during autotune if ``effort_type`` is ``DTFFT_PATIENT``.
  *
- * If ``effort_flag`` passed to any create function is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``
+ * If ``effort_type`` passed to any create function is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``
  * returns value set by ``dtfft_set_gpu_backend`` or default value, which is ``DTFFT_GPU_BACKEND_NCCL``.
  *
  * \return `DTFFT_SUCCESS` if call was successfull, error code otherwise
@@ -287,7 +292,7 @@ namespace dtfft
   *                                     `dims.size()` must be 2 or 3
   * \param[in]    comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
   * \param[in]    precision             Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-  * \param[in]    effort_flag           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
+  * \param[in]    effort_type           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
@@ -299,9 +304,9 @@ namespace dtfft
         const std::vector<int32_t> &dims,
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
-        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_effort_t effort_type=DTFFT_ESTIMATE,
         const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
-      ):PlanC2C(dims.size(), dims.data(), comm, precision, effort_flag, executor_type) {}
+      ):PlanC2C(dims.size(), dims.data(), comm, precision, effort_type, executor_type) {}
 
 
 
@@ -331,7 +336,7 @@ namespace dtfft
   * \param[in]    dims                  Buffer of size `ndims` with global dimensions in reversed order.
   * \param[in]    comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
   * \param[in]    precision             Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-  * \param[in]    effort_flag           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
+  * \param[in]    effort_type           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
@@ -344,10 +349,10 @@ namespace dtfft
         const int32_t *dims,
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
-        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_effort_t effort_type=DTFFT_ESTIMATE,
         const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ){
-        dtfft_error_code_t error_code = dtfft_create_plan_c2c(ndims, dims, comm, precision, effort_flag, executor_type, &_plan);
+        dtfft_error_code_t error_code = dtfft_create_plan_c2c(ndims, dims, comm, precision, effort_type, executor_type, &_plan);
         if ( error_code != DTFFT_SUCCESS)
           throw std::runtime_error(dtfft_get_error_string(error_code));
       }
@@ -363,7 +368,7 @@ namespace dtfft
   *                                     `dims.size()` must be 2 or 3
   * \param[in]    comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
   * \param[in]    precision             Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-  * \param[in]    effort_flag           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
+  * \param[in]    effort_type           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
@@ -378,9 +383,9 @@ namespace dtfft
         const std::vector<int32_t> &dims,
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
-        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_effort_t effort_type=DTFFT_ESTIMATE,
         const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
-      ):PlanR2C(dims.size(), dims.data(), comm, precision, effort_flag, executor_type) {}
+      ):PlanR2C(dims.size(), dims.data(), comm, precision, effort_type, executor_type) {}
 
 /** \brief Real-to-Complex Plan constructor using C-style arguments. Must be called after MPI_Init
   *
@@ -388,7 +393,7 @@ namespace dtfft
   * \param[in]    dims                  Buffer of size `ndims` with global dimensions in reversed order.
   * \param[in]    comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
   * \param[in]    precision             Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-  * \param[in]    effort_flag           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
+  * \param[in]    effort_type           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_FFTW3`
   *                                     - `DTFFT_EXECUTOR_MKL`
@@ -404,10 +409,10 @@ namespace dtfft
         const int32_t *dims,
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
-        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_effort_t effort_type=DTFFT_ESTIMATE,
         const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ){
-        dtfft_error_code_t error_code = dtfft_create_plan_r2c(ndims, dims, comm, precision, effort_flag, executor_type, &_plan);
+        dtfft_error_code_t error_code = dtfft_create_plan_r2c(ndims, dims, comm, precision, effort_type, executor_type, &_plan);
         if ( error_code != DTFFT_SUCCESS)
           throw std::runtime_error(dtfft_get_error_string(error_code));
       }
@@ -429,7 +434,7 @@ namespace dtfft
   *                                     Can be empty vector if `executor_type` == `DTFFT_EXECUTOR_NONE`
   * \param[in]    comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
   * \param[in]    precision             Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-  * \param[in]    effort_flag           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
+  * \param[in]    effort_type           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
@@ -442,9 +447,9 @@ namespace dtfft
         const std::vector<dtfft_r2r_kind_t> &kinds=std::vector<dtfft_r2r_kind_t>(),
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
-        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_effort_t effort_type=DTFFT_ESTIMATE,
         const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
-      ):PlanR2R(dims.size(), dims.data(), kinds.data(), comm, precision, effort_flag, executor_type) {}
+      ):PlanR2R(dims.size(), dims.data(), kinds.data(), comm, precision, effort_type, executor_type) {}
 
 
 
@@ -469,7 +474,7 @@ namespace dtfft
   *                                     Can be NULL if `executor_type` == `DTFFT_EXECUTOR_NONE`
   * \param[in]    comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
   * \param[in]    precision             Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-  * \param[in]    effort_flag           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
+  * \param[in]    effort_type           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
   * \param[in]    executor_type         Type of external FFT executor. One of the
   *                                     - `DTFFT_EXECUTOR_NONE`
   *                                     - `DTFFT_EXECUTOR_FFTW3`
@@ -483,10 +488,10 @@ namespace dtfft
         const dtfft_r2r_kind_t *kinds=NULL,
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
-        const dtfft_effort_t effort_flag=DTFFT_ESTIMATE,
+        const dtfft_effort_t effort_type=DTFFT_ESTIMATE,
         const dtfft_executor_t executor_type=DTFFT_EXECUTOR_NONE
       ) {
-        dtfft_error_code_t error_code = dtfft_create_plan_r2r(ndims, dims, kinds, comm, precision, effort_flag, executor_type, &_plan);
+        dtfft_error_code_t error_code = dtfft_create_plan_r2r(ndims, dims, kinds, comm, precision, effort_type, executor_type, &_plan);
         if ( error_code != DTFFT_SUCCESS)
           throw std::runtime_error(dtfft_get_error_string(error_code));
       }

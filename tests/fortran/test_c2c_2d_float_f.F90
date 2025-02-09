@@ -29,7 +29,7 @@ implicit none
   real(R4P) :: local_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 64, ny = 32
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   integer(I8P) :: alloc_size
   type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)

@@ -31,27 +31,27 @@ extern "C" {
 
 extern
 int32_t
-dtfft_create_plan_c2c_c(const int8_t*, const int32_t*, MPI_Fint, const int8_t*, const int8_t*, const int8_t*, void**);
+dtfft_create_plan_c2c_c(const int8_t*, const int32_t*, MPI_Fint, const int32_t*, const int32_t*, const int32_t*, void**);
 
 extern
 int32_t
-dtfft_create_plan_r2c_c(const int8_t*, const int32_t*, MPI_Fint, const int8_t*, const int8_t*, const int8_t*, void**);
+dtfft_create_plan_r2c_c(const int8_t*, const int32_t*, MPI_Fint, const int32_t*, const int32_t*, const int32_t*, void**);
 
 extern
 int32_t
-dtfft_create_plan_r2r_c(const int8_t*, const int32_t*, const int8_t*, MPI_Fint, const int8_t*, const int8_t*, const int8_t*, void**);
+dtfft_create_plan_r2r_c(const int8_t*, const int32_t*, const int32_t*, MPI_Fint, const int32_t*, const int32_t*, const int32_t*, void**);
 
 extern
 int32_t
-dtfft_get_z_slab_c(const void*, bool*);
+dtfft_get_z_slab_enabled_c(const void*, bool*);
 
 extern
 int32_t
-dtfft_execute_c(const void*, void*, void*, const int8_t*, void*);
+dtfft_execute_c(const void*, void*, void*, const int32_t*, void*);
 
 extern
 int32_t
-dtfft_transpose_c(const void*, void*, void*, const int8_t*);
+dtfft_transpose_c(const void*, void*, void*, const int32_t*);
 
 extern
 int32_t
@@ -69,6 +69,18 @@ extern
 int32_t
 dtfft_get_pencil_c(const void*, int8_t*, void *);
 
+extern
+int32_t
+dtfft_create_config_c(void *);
+
+extern
+int32_t
+dtfft_set_config_c(const void*);
+
+extern
+int32_t
+dtfft_report_c(const void*);
+
 #ifdef DTFFT_WITH_CUDA
 
 #include <cuda_runtime.h> // cudaStream_t
@@ -79,7 +91,7 @@ dtfft_set_stream_c(const cudaStream_t*);
 
 extern
 int32_t
-dtfft_set_gpu_backend_c(const int8_t*);
+dtfft_set_gpu_backend_c(const int32_t*);
 
 extern
 int32_t
@@ -87,11 +99,11 @@ dtfft_get_stream_c(const void*, cudaStream_t*);
 
 extern
 int32_t
-dtfft_get_gpu_backend_c(const void*, int8_t*);
+dtfft_get_gpu_backend_c(const void*, int32_t*);
 
 extern
 void
-dtfft_get_gpu_backend_string_c(const int8_t*, char*, size_t*);
+dtfft_get_gpu_backend_string_c(const int32_t*, char*, size_t*);
 
 #endif
 

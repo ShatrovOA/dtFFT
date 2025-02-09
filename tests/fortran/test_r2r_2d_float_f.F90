@@ -27,7 +27,7 @@ implicit none
   real(R4P) :: local_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 4
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   type(dtfft_plan_r2r) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum

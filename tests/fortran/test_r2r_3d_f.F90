@@ -44,13 +44,14 @@ implicit none
   class(dtfft_abstract_plan), allocatable :: plan
   integer(I4P) :: in_starts(3), in_counts(3), out_counts(3), ierr, ijk
   integer(I4P) :: iter
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   real(R8P) :: tf, tb, temp
   integer(I8P) :: alloc_size
   TYPE_MPI_COMM :: comm
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
 #endif
+  type(dtfft_config_t) :: conf
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -76,15 +77,18 @@ implicit none
   executor_type = DTFFT_EXECUTOR_NONE
 #endif
 
+  call dtfft_create_config(conf)
+
 #ifdef DTFFT_WITH_CUDA
-  call dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_MPI_P2P, error_code=ierr)
-  DTFFT_CHECK(ierr)
+  conf%gpu_backend = DTFFT_GPU_BACKEND_MPI_P2P
 #endif
+
+  call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
   allocate( dtfft_plan_r2r :: plan )
   select type (plan)
   class is ( dtfft_plan_r2r )
-    call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm, effort_flag=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr)
+    call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm, effort_type=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr)
   endselect
   DTFFT_CHECK(ierr)
 

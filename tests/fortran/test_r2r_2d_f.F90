@@ -30,7 +30,8 @@ implicit none
   type(dtfft_plan_r2r) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2), in_vals
   real(R8P) :: tf, tb
-  integer(I1P) :: kinds(2), executor_type
+  type(dtfft_r2r_kind_t) :: kinds(2)
+  type(dtfft_executor_t) :: executor_type
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -54,7 +55,7 @@ implicit none
   scaler = 1._R8P
 #endif
 
-  call plan%create([nx, ny], kinds=kinds, effort_flag=DTFFT_PATIENT, executor_type=executor_type)
+  call plan%create([nx, ny], kinds=kinds, effort_type=DTFFT_PATIENT, executor_type=executor_type)
 
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 

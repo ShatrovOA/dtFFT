@@ -129,13 +129,13 @@ contains
     ! Need to sync stream since there is no way pass current stream to MPI
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 
-    select case ( self%backend_id )
-    case ( DTFFT_GPU_BACKEND_MPI_A2A )
+    select case ( self%backend_id%val )
+    case ( DTFFT_GPU_BACKEND_MPI_A2A%val )
       call run_mpi_a2a(self%comm, self%send, self%recv, in, out)
-    case ( DTFFT_GPU_BACKEND_MPI_P2P )
+    case ( DTFFT_GPU_BACKEND_MPI_P2P%val )
       call run_mpi_p2p(self%comm, self%send, self%recv, in, out)
       call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, mpi_ierr)
-    case ( DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED )
+    case ( DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED%val )
       call run_mpi_p2p(self%comm, self%send, self%recv, self%aux, in)
 
       allocate( is_complete_comm(self%recv%n_requests), source=.false. )

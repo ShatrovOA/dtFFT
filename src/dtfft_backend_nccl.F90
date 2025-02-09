@@ -28,7 +28,7 @@ use dtfft_nccl_interfaces
 use nccl
 #endif
 use dtfft_abstract_backend,         only: abstract_backend, backend_helper
-use dtfft_parameters,               only: is_backend_nccl, is_backend_pipelined
+use dtfft_parameters,               only: is_backend_nccl
 use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"

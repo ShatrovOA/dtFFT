@@ -38,13 +38,13 @@ dtfft_error_code_t
 dtfft_create_plan_c2c(const int8_t ndims, const int32_t *dims,
                       MPI_Comm comm,
                       const dtfft_precision_t precision,
-                      const dtfft_effort_t effort_flag,
+                      const dtfft_effort_t effort_type,
                       const dtfft_executor_t executor_type,
                       dtfft_plan_t *plan)
 {
   dtfft_plan_t plan_ = malloc(sizeof(*plan_));
   plan_ -> _is_allocated = _DTFFT_PLAN_ALLOCATED;
-  int32_t error_code = dtfft_create_plan_c2c_c(&ndims, dims, MPI_Comm_c2f(comm), (int8_t*)&precision, (int8_t*)&effort_flag, (int8_t*)&executor_type, &plan_ -> _plan_ptr);
+  int32_t error_code = dtfft_create_plan_c2c_c(&ndims, dims, MPI_Comm_c2f(comm), (int32_t*)&precision, (int32_t*)&effort_type, (int32_t*)&executor_type, &plan_ -> _plan_ptr);
   *plan = plan_;
   return (dtfft_error_code_t)error_code;
 }
@@ -54,13 +54,13 @@ dtfft_error_code_t
 dtfft_create_plan_r2c(const int8_t ndims, const int32_t *dims,
                       MPI_Comm comm,
                       const dtfft_precision_t precision,
-                      const dtfft_effort_t effort_flag,
+                      const dtfft_effort_t effort_type,
                       const dtfft_executor_t executor_type,
                       dtfft_plan_t *plan)
 {
   dtfft_plan_t plan_ = malloc(sizeof(*plan_));
   plan_ -> _is_allocated = _DTFFT_PLAN_ALLOCATED;
-  int32_t error_code = dtfft_create_plan_r2c_c(&ndims, dims, MPI_Comm_c2f(comm), (int8_t*)&precision, (int8_t*)&effort_flag, (int8_t*)&executor_type, &plan_ -> _plan_ptr);
+  int32_t error_code = dtfft_create_plan_r2c_c(&ndims, dims, MPI_Comm_c2f(comm), (int32_t*)&precision, (int32_t*)&effort_type, (int32_t*)&executor_type, &plan_ -> _plan_ptr);
   *plan = plan_;
   return (dtfft_error_code_t)error_code;
 }
@@ -71,26 +71,14 @@ dtfft_create_plan_r2r(const int8_t ndims, const int32_t *dims,
                       const dtfft_r2r_kind_t *kinds,
                       MPI_Comm comm,
                       const dtfft_precision_t precision,
-                      const dtfft_effort_t effort_flag,
+                      const dtfft_effort_t effort_type,
                       const dtfft_executor_t executor_type,
                       dtfft_plan_t *plan)
 {
   dtfft_plan_t plan_ = malloc(sizeof(*plan_));
-  int8_t* kinds_ = NULL;
-  if ( kinds ) {
-    kinds_ = (int8_t*)malloc(ndims * sizeof(int8_t));
-    int8_t d;
-    for (d = 0; d < ndims; d++)
-    {
-      kinds_[d] = (int8_t)kinds[d];
-    }
-  }
   plan_ -> _is_allocated = _DTFFT_PLAN_ALLOCATED;
-  int32_t error_code = dtfft_create_plan_r2r_c(&ndims, dims, kinds_, MPI_Comm_c2f(comm), (int8_t*)&precision, (int8_t*)&effort_flag, (int8_t*)&executor_type, &plan_ -> _plan_ptr);
+  int32_t error_code = dtfft_create_plan_r2r_c(&ndims, dims, (int32_t*)kinds, MPI_Comm_c2f(comm), (int32_t*)&precision, (int32_t*)&effort_type, (int32_t*)&executor_type, &plan_ -> _plan_ptr);
   *plan = plan_;
-  if ( kinds ) {
-    free(kinds_);
-  }
   return (dtfft_error_code_t)error_code;
 }
 
@@ -101,21 +89,21 @@ get_plan_handle(dtfft_plan_t plan) {
 }
 
 dtfft_error_code_t
-dtfft_get_z_slab(dtfft_plan_t plan, bool *is_z_slab)
+dtfft_get_z_slab_enabled(dtfft_plan_t plan, bool *is_z_slab_enabled)
 {
-  return (dtfft_error_code_t)dtfft_get_z_slab_c(get_plan_handle(plan), is_z_slab);
+  return (dtfft_error_code_t)dtfft_get_z_slab_enabled_c(get_plan_handle(plan), is_z_slab_enabled);
 }
 
 dtfft_error_code_t
 dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_type_t execute_type, void *aux)
 {
-  return (dtfft_error_code_t)dtfft_execute_c(get_plan_handle(plan), in, out, (int8_t*)&execute_type, aux);
+  return (dtfft_error_code_t)dtfft_execute_c(get_plan_handle(plan), in, out, (int32_t*)&execute_type, aux);
 }
 
 dtfft_error_code_t
 dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_type_t transpose_type)
 {
-  return (dtfft_error_code_t)dtfft_transpose_c(get_plan_handle(plan), in, out, (int8_t*)&transpose_type);
+  return (dtfft_error_code_t)dtfft_transpose_c(get_plan_handle(plan), in, out, (int32_t*)&transpose_type);
 }
 
 dtfft_error_code_t
@@ -155,17 +143,23 @@ dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil) {
   return (dtfft_error_code_t)dtfft_get_pencil_c(get_plan_handle(plan), &dim, (void*)pencil);
 }
 
+dtfft_error_code_t
+dtfft_set_config(dtfft_config_t config) {
+  return (dtfft_error_code_t)dtfft_set_config_c((void*)&config);
+}
+
+dtfft_error_code_t
+dtfft_report(dtfft_plan_t plan) {
+  return (dtfft_error_code_t)dtfft_report_c(get_plan_handle(plan));
+}
+
+dtfft_error_code_t
+dtfft_create_config(dtfft_config_t *config) {
+  if ( config == NULL ) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_code_t)dtfft_create_config_c((void *)config);
+}
+
 #ifdef DTFFT_WITH_CUDA
-
-dtfft_error_code_t
-dtfft_set_stream(const cudaStream_t stream) {
-  return (dtfft_error_code_t)dtfft_set_stream_c(&stream);
-}
-
-dtfft_error_code_t
-dtfft_set_gpu_backend(const dtfft_gpu_backend_t backend_id) {
-  return (dtfft_error_code_t)dtfft_set_gpu_backend_c((int8_t*)&backend_id);
-}
 
 dtfft_error_code_t
 dtfft_get_stream(dtfft_plan_t plan, cudaStream_t *stream) {
@@ -174,14 +168,14 @@ dtfft_get_stream(dtfft_plan_t plan, cudaStream_t *stream) {
 
 dtfft_error_code_t
 dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *backend_id) {
-  return (dtfft_error_code_t)dtfft_get_gpu_backend_c(get_plan_handle(plan), (int8_t*)backend_id);
+  return (dtfft_error_code_t)dtfft_get_gpu_backend_c(get_plan_handle(plan), (int32_t*)backend_id);
 }
 
 const char *
 dtfft_get_gpu_backend_string(const dtfft_gpu_backend_t backend_id) {
   char *backend_string = malloc(250 * sizeof(char));
   size_t backend_string_size;
-  dtfft_get_gpu_backend_string_c((int8_t*)&backend_id, backend_string, &backend_string_size);
+  dtfft_get_gpu_backend_string_c((int32_t*)&backend_id, backend_string, &backend_string_size);
   return realloc(backend_string, sizeof(char) * backend_string_size);
 }
 

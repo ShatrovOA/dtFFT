@@ -57,11 +57,14 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------"          << endl;
   }
 
+  dtfft_config_t conf;
+  dtfft_create_config(&conf);
+
 #ifdef DTFFT_WITH_FFTW
   dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
 #elif defined(DTFFT_WITH_VKFFT)
   dtfft_executor_t executor_type = DTFFT_EXECUTOR_VKFFT;
-  dtfft_disable_z_slab();
+  conf.enable_z_slab = false;
 #else
   dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
 #endif
@@ -75,13 +78,10 @@ int main(int argc, char *argv[])
 
   cudaStream_t stream;
   CUDA_SAFE_CALL( cudaStreamCreate(&stream) );
-  dtfft_set_stream(stream);
-
-  dtfft_enable_mpi_backends();
-  // dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_NCCL_PIPELINED);
-  // dtfft_disable_pipelined_backends();
+  conf.stream = stream;
+  conf.enable_mpi_backends = true;
 #endif
-
+  DTFFT_CALL( dtfft_set_config(conf) )
 
   const int8_t ndims = 3;
   const int32_t dims[] = {nz, ny, nx};
@@ -92,7 +92,8 @@ int main(int argc, char *argv[])
   int32_t out_sizes[ndims];
   size_t alloc_size;
 
-  plan.get_local_sizes(NULL, in_sizes, NULL, out_sizes, &alloc_size);
+  DTFFT_CALL( plan.report() )
+  DTFFT_CALL( plan.get_local_sizes(NULL, in_sizes, NULL, out_sizes, &alloc_size) )
 
   size_t in_size = std::accumulate(in_sizes, in_sizes + 3, 1, multiplies<int>());
   size_t out_size = std::accumulate(out_sizes, out_sizes + 3, 1, multiplies<int>());

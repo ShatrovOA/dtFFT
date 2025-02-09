@@ -32,7 +32,7 @@ MKL_LONG mkl_dfti_commit_desc(void * desc)
 
 MKL_LONG mkl_dfti_execute(void *desc, void *in, void *out, int sign)
 {
-  if (sign == FFT_FORWARD) {
+  if (sign == CONF_FFT_FORWARD) {
     return DftiComputeForward(desc, in, out);
   } else {
     return DftiComputeBackward(desc, in, out);

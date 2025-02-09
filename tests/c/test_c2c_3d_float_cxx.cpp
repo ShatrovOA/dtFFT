@@ -76,11 +76,15 @@ int main(int argc, char *argv[])
   executor_type = DTFFT_EXECUTOR_NONE;
 #endif
 
-  dtfft_disable_z_slab();
+  dtfft_config_t conf;
+  dtfft_create_config(&conf);
+
+  conf.enable_z_slab = true;
+  dtfft_set_config(conf);
+
   dtfft::PlanC2C plan(dims, grid_comm, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
   vector<int> in_counts(3);
   plan.get_local_sizes(NULL, in_counts.data());
-  dtfft_enable_z_slab();
 
   size_t in_size = std::accumulate(in_counts.begin(), in_counts.end(), 1, multiplies<int>());
 
@@ -99,7 +103,7 @@ int main(int argc, char *argv[])
   }
 
   bool is_z_slab;
-  plan.get_z_slab(&is_z_slab);
+  plan.get_z_slab_enabled(&is_z_slab);
   double tf = 0.0 - MPI_Wtime();
 
   if ( executor_type == DTFFT_EXECUTOR_NONE ) {

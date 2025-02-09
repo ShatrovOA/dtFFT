@@ -26,6 +26,10 @@ use dtfft_utils
 implicit none
 private
 
+public :: dtfft_get_version
+public :: DTFFT_VERSION_MAJOR
+public :: DTFFT_VERSION_MINOR
+public :: DTFFT_VERSION_PATCH
 ! Plans
 public :: dtfft_abstract_plan
 public :: dtfft_plan_c2c
@@ -36,7 +40,13 @@ public :: dtfft_plan_r2r
 
 public :: dtfft_pencil_t
 public :: dtfft_get_error_string
-public :: dtfft_enable_z_slab, dtfft_disable_z_slab
+
+public :: dtfft_execute_type_t, dtfft_transpose_type_t
+public :: dtfft_executor_t, dtfft_effort_t
+public :: dtfft_precision_t, dtfft_r2r_kind_t
+
+public :: operator(==)
+public :: operator(/=)
 
 ! Transpose types
 public :: DTFFT_TRANSPOSE_OUT,                                      &
@@ -50,18 +60,10 @@ public :: DTFFT_TRANSPOSE_OUT,                                      &
 
 ! 1d FFT External Executor types
 public :: DTFFT_EXECUTOR_NONE
-#ifdef DTFFT_WITH_FFTW
 public :: DTFFT_EXECUTOR_FFTW3
-#endif
-#ifdef DTFFT_WITH_MKL
 public :: DTFFT_EXECUTOR_MKL
-#endif
-#ifdef DTFFT_WITH_CUFFT
 public :: DTFFT_EXECUTOR_CUFFT
-#endif
-#ifdef DTFFT_WITH_VKFFT
 public :: DTFFT_EXECUTOR_VKFFT
-#endif
 
 ! Effort flags
 public :: DTFFT_ESTIMATE,                                           &
@@ -84,6 +86,9 @@ public :: DTFFT_DCT_1,                                              &
 
 public :: DTFFT_SUCCESS
 
+public :: dtfft_config_t
+public :: dtfft_create_config, dtfft_set_config
+
 #ifdef DTFFT_WITH_CUDA
 
 public :: DTFFT_GPU_BACKEND_MPI_DATATYPE
@@ -92,12 +97,9 @@ public :: DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED
 public :: DTFFT_GPU_BACKEND_MPI_A2A
 public :: DTFFT_GPU_BACKEND_NCCL
 public :: DTFFT_GPU_BACKEND_NCCL_PIPELINED
-! public :: DTFFT_GPU_BACKEND_CUFFTMP
 
+public :: dtfft_gpu_backend_t
 public :: dtfft_get_gpu_backend_string
-public :: dtfft_set_stream
-public :: dtfft_set_gpu_backend
-public :: dtfft_enable_pipelined_backends, dtfft_disable_pipelined_backends
-public :: dtfft_enable_mpi_backends, dtfft_disable_mpi_backends
+
 #endif
 end module dtfft

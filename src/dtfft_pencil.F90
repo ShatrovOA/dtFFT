@@ -208,11 +208,11 @@ contains
 
   pure function get_transpose_id(send, recv) result(transpose_id)
   !! Determines transpose ID based on pencils
-    type(pencil), intent(in)  :: send           !< Send pencil
-    type(pencil), intent(in)  :: recv           !< Receive pencil
-    integer(int8)             :: transpose_id   !< Transpose ID
+    type(pencil),     intent(in)  :: send           !< Send pencil
+    type(pencil),     intent(in)  :: recv           !< Receive pencil
+    type(dtfft_transpose_type_t)  :: transpose_id   !< Transpose ID
 
-    transpose_id = 0_int8
+    transpose_id = dtfft_transpose_type_t(0)
     if (send%aligned_dim == 1 .and. recv%aligned_dim == 2) then
       transpose_id = DTFFT_TRANSPOSE_X_TO_Y
     else if (recv%aligned_dim == 1 .and. send%aligned_dim == 2) then

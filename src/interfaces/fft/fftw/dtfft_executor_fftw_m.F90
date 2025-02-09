@@ -25,7 +25,7 @@ use iso_fortran_env,            only: int8, int32, real32
 use dtfft_abstract_executor,    only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_pencil,               only: pencil
 use dtfft_interface_fftw_m
-use dtfft_parameters,           only: DTFFT_SUCCESS, DTFFT_DOUBLE, DTFFT_SINGLE, DTFFT_FORWARD, DTFFT_BACKWARD
+use dtfft_parameters
 use dtfft_utils,                only: get_inverse_kind
 implicit none
 private
@@ -78,21 +78,21 @@ public :: fftw_executor
 contains
   subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)
   !! Creates FFT plan via FFTW3 Interface
-    class(fftw_executor),       intent(inout) :: self           !< FFTW FFT Executor
-    integer(int8),              intent(in)    :: fft_rank       !< Rank of fft: 1 or 2
-    integer(int8),              intent(in)    :: fft_type       !< Type of fft: r2r, r2c, c2c
-    integer(int8),              intent(in)    :: precision      !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
-    integer(int32),             intent(in)    :: idist          !< Distance between the first element of two consecutive signals in a batch of the input data.
-    integer(int32),             intent(in)    :: odist          !< Distance between the first element of two consecutive signals in a batch of the output data.
-    integer(int32),             intent(in)    :: how_many       !< Number of transforms to create
-    integer(int32),             intent(in)    :: fft_sizes(:)   !< Dimensions of transform
-    integer(int32),             intent(in)    :: inembed(:)     !< Storage dimensions of the input data in memory.
-    integer(int32),             intent(in)    :: onembed(:)     !< Storage dimensions of the output data in memory.
-    integer(int32),             intent(inout) :: error_code     !< Error code to be returned to user
-    integer(int8),   optional,  intent(in)    :: r2r_kinds(:)   !< Kinds of r2r transform
-    real(real32),    allocatable, target      :: buf(:)         !< Buffer needed to create plan
-    integer(int32)                            :: n_elements     !< Number of elements in `buf`
-    type(c_ptr)                               :: ptr            !< C pointer to `buf`
+    class(fftw_executor),             intent(inout) :: self           !< FFTW FFT Executor
+    integer(int8),                    intent(in)    :: fft_rank       !< Rank of fft: 1 or 2
+    integer(int8),                    intent(in)    :: fft_type       !< Type of fft: r2r, r2c, c2c
+    type(dtfft_precision_t),          intent(in)    :: precision      !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
+    integer(int32),                   intent(in)    :: idist          !< Distance between the first element of two consecutive signals in a batch of the input data.
+    integer(int32),                   intent(in)    :: odist          !< Distance between the first element of two consecutive signals in a batch of the output data.
+    integer(int32),                   intent(in)    :: how_many       !< Number of transforms to create
+    integer(int32),                   intent(in)    :: fft_sizes(:)   !< Dimensions of transform
+    integer(int32),                   intent(in)    :: inembed(:)     !< Storage dimensions of the input data in memory.
+    integer(int32),                   intent(in)    :: onembed(:)     !< Storage dimensions of the output data in memory.
+    integer(int32),                   intent(inout) :: error_code     !< Error code to be returned to user
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !< Kinds of r2r transform
+    real(real32),           target,   allocatable   :: buf(:)         !< Buffer needed to create plan
+    integer(int32)                                  :: n_elements     !< Number of elements in `buf`
+    type(c_ptr)                                     :: ptr            !< C pointer to `buf`
 
     error_code = DTFFT_SUCCESS
 
@@ -125,8 +125,8 @@ contains
           self%apply => fftw_execute_dft
         endif
         self%apply_inverse => NULL()
-        self%plan_forward = constructor(int(fft_rank, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(DTFFT_FORWARD, int32), FFTW3_FLAGS)
-        self%plan_backward = constructor(int(fft_rank, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(DTFFT_BACKWARD, int32), FFTW3_FLAGS)
+        self%plan_forward = constructor(int(fft_rank, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(FFT_FORWARD, int32), FFTW3_FLAGS)
+        self%plan_backward = constructor(int(fft_rank, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(FFT_BACKWARD, int32), FFTW3_FLAGS)
 
         nullify(constructor)
       endblock
@@ -153,7 +153,7 @@ contains
     case (FFT_R2R)
       block
         procedure(create_r2r_plan), pointer :: constructor
-        integer(int8), allocatable :: inverse_kinds(:)
+        type(dtfft_r2r_kind_t),   allocatable :: inverse_kinds(:)
         integer(C_FFTW_R2R_KIND), allocatable :: knds(:)
 
         if ( precision == DTFFT_SINGLE ) then
@@ -166,7 +166,7 @@ contains
         self%apply_inverse => NULL()
 
         allocate( knds(size(r2r_kinds)) )
-        knds(:) = int(r2r_kinds, C_FFTW_R2R_KIND)
+        knds(:) = int(r2r_kinds(:)%val, C_FFTW_R2R_KIND)
 
         self%plan_forward = constructor(int(fft_rank, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, knds, FFTW3_FLAGS)
 
@@ -176,7 +176,7 @@ contains
           self%plan_backward = self%plan_forward
           self%is_inverse_copied = .true.
         else
-          knds(:) = int(inverse_kinds(:), C_FFTW_R2R_KIND)
+          knds(:) = int(inverse_kinds(:)%val, C_FFTW_R2R_KIND)
           self%plan_backward = constructor(int(fft_rank, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, knds, FFTW3_FLAGS)
         endif
         deallocate( inverse_kinds, knds )
@@ -195,7 +195,7 @@ contains
     type(c_ptr),          intent(in)  :: b                    !< Target pointer
     integer(int8),        intent(in)  :: sign                 !< Sign of transform
 
-    if ( sign == DTFFT_FORWARD ) then
+    if ( sign == FFT_FORWARD ) then
       call self%apply(self%plan_forward, a, b)
     else
       if ( associated( self%apply_inverse ) ) then

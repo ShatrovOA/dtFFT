@@ -58,8 +58,8 @@ public :: dtfft_plan_r2c
 public :: dtfft_plan_r2r
 
 
-#define CHECK_INPUT_PARAMETER(param, valid_values, code)          \
-  if (.not.any(param == valid_values)) then;                      \
+#define CHECK_INPUT_PARAMETER(param, check_func, code)            \
+  if ( .not.check_func(param)) then;                              \
     __FUNC__ = code;                                              \
     return;                                                       \
   endif
@@ -104,7 +104,9 @@ public :: dtfft_plan_r2r
   private
     integer(int8)                                 :: ndims
     !< Number of global dimensions
-    integer(int8)                                 :: precision
+    integer(int32),                   allocatable :: dims(:)
+    !< Global dimensions
+    type(dtfft_precision_t)                       :: precision
     !< Precision of transform
     logical                                       :: is_created = .false.
     !< Plan creation flag
@@ -123,11 +125,11 @@ public :: dtfft_plan_r2r
     !< - Single call to MPI_Alltoall is required to transpose data from X-align to Z align
     !< 
     !< For CUDA build this optimization means single CUDA kernel that tranposes data directly from X to Z
-    integer(int8)                                 :: effort_flag
+    type(dtfft_effort_t)                          :: effort_type
     !< User defined effort flag
     integer(int8)                                 :: storage_size
     !< Single element size in bytes
-    integer(int8)                                 :: executor_type
+    type(dtfft_executor_t)                        :: executor_type
     !< FFT executor type
     TYPE_MPI_COMM                                 :: comm
     !< Grid communicator
@@ -155,8 +157,9 @@ public :: dtfft_plan_r2r
     procedure,  pass(self), non_overridable, public :: execute            !< Executes plan
     procedure,  pass(self), non_overridable, public :: destroy            !< Destroys plan
     procedure,  pass(self), non_overridable, public :: get_local_sizes    !< Returns local starts and counts in `real` and `fourier` spaces
-    procedure,  pass(self), non_overridable, public :: get_z_slab         !< Returns logical value is Z-slab optimization is enabled
+    procedure,  pass(self), non_overridable, public :: get_z_slab_enabled !< Returns logical value is Z-slab optimization is enabled
     procedure,  pass(self), non_overridable, public :: get_pencil         !< Returns pencil decomposition
+    procedure,  pass(self), non_overridable, public :: report             !< Print plan details
 #ifdef DTFFT_WITH_CUDA
     procedure,  pass(self), non_overridable, public :: get_gpu_backend    !< Returns selected GPU backend during autotuning
     procedure,  pass(self), non_overridable, public :: get_stream         !< Returns CUDA stream associated with plan
@@ -211,32 +214,32 @@ contains
   !! Performs single transposition
   !!
   !! Note, that `in` and `out` cannot be the same, otherwise call to MPI will fail
-    class(dtfft_abstract_plan), intent(inout)           :: self                 !< Abstract plan
-    type(*),  DEVICE_PTR        intent(inout),  target  :: in(..)               !< Incoming buffer of any rank and kind. Note that this buffer 
+    class(dtfft_abstract_plan),   intent(inout) :: self                 !< Abstract plan
+    type(*),  DEVICE_PTR  target, intent(inout) :: in(..)               !< Incoming buffer of any rank and kind. Note that this buffer 
                                                                                 !< will be modified in GPU build
-    type(*),  DEVICE_PTR        intent(inout),  target  :: out(..)              !< Resulting buffer of any rank and kind
-    integer(int8),              intent(in)              :: transpose_type       !< Type of transposition. One of the:
-                                                                                !< - `DTFFT_TRANSPOSE_X_TO_Y`
-                                                                                !< - `DTFFT_TRANSPOSE_Y_TO_X`
-                                                                                !< - `DTFFT_TRANSPOSE_Y_TO_Z` (only for 3d plan)
-                                                                                !< - `DTFFT_TRANSPOSE_Z_TO_Y` (only for 3d plan)
-                                                                                !< - `DTFFT_TRANSPOSE_X_TO_Z` (only 3D and slab decomposition in Z direction)
-                                                                                !< - `DTFFT_TRANSPOSE_Z_TO_X` (only 3D and slab decomposition in Z direction)
-                                                                                !<
-                                                                                !< [//]: # (ListBreak)
-    integer(int32),   optional, intent(out)             :: error_code           !< Optional error code returned to user
+    type(*),  DEVICE_PTR  target, intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type       !< Type of transposition. One of the:
+                                                                        !< - `DTFFT_TRANSPOSE_X_TO_Y`
+                                                                        !< - `DTFFT_TRANSPOSE_Y_TO_X`
+                                                                        !< - `DTFFT_TRANSPOSE_Y_TO_Z` (only for 3d plan)
+                                                                        !< - `DTFFT_TRANSPOSE_Z_TO_Y` (only for 3d plan)
+                                                                        !< - `DTFFT_TRANSPOSE_X_TO_Z` (only 3D and slab decomposition in Z direction)
+                                                                        !< - `DTFFT_TRANSPOSE_Z_TO_X` (only 3D and slab decomposition in Z direction)
+                                                                        !<
+                                                                        !< [//]: # (ListBreak)
+    integer(int32),   optional, intent(out)     :: error_code           !< Optional error code returned to user
     integer(int32) :: ierr  !< Error code
 
     ierr = DTFFT_SUCCESS
-    if ( .not. self%is_created )                                                        &
+    if ( .not. self%is_created )                                                                &
       ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
-    if ( .not.any(transpose_type == VALID_TRANSPOSES)                                   &
-         .or. ( self%ndims == 2 .and. abs(transpose_type) > 1 )                         &
-         .or. abs(transpose_type) == DTFFT_TRANSPOSE_X_TO_Z .and..not.self%is_z_slab)   &
+    if ( .not.is_valid_transpose_type(transpose_type)                                           &
+         .or. ( self%ndims == 2 .and. abs(transpose_type%val) > 1 )                             &
+         .or. abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Z%val .and..not.self%is_z_slab)   &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
     CHECK_ERROR_AND_RETURN
-    if ( is_same_ptr(c_loc(in), c_loc(out)) )                                       &
+    if ( is_same_ptr(c_loc(in), c_loc(out)) )                                                   &
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
 #ifdef DTFFT_WITH_CUDA
@@ -255,7 +258,7 @@ contains
     class(dtfft_abstract_plan),     intent(inout)           :: self             !< Abstract plan
     type(*),  DEVICE_PTR            intent(inout),  target  :: in(..)           !< Incoming buffer of any rank and kind
     type(*),  DEVICE_PTR            intent(inout),  target  :: out(..)          !< Resulting buffer of any rank and kind
-    integer(int8),                  intent(in)              :: execute_type     !< Type of transposition. One of the:
+    type(dtfft_execute_type_t),     intent(in)              :: execute_type     !< Type of transposition. One of the:
                                                                                 !< - `DTFFT_TRANSPOSE_OUT`
                                                                                 !< - `DTFFT_TRANSPOSE_IN`
                                                                                 !<
@@ -272,7 +275,7 @@ contains
     if ( .not. self%is_created )                                                                      &
       ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
-    if ( .not.any(execute_type == VALID_FULL_TRANSPOSES) )                                          &
+    if ( .not.is_valid_execute_type(execute_type) )                                                   &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
     CHECK_ERROR_AND_RETURN
     if ( self%is_transpose_plan .and. self%ndims == 2 .and. inplace )                                 &
@@ -304,7 +307,7 @@ contains
     class(dtfft_abstract_plan), intent(inout) :: self                 !< Abstract plan
     type(*),  DEVICE_PTR        intent(inout) :: in(..)               !< Incoming buffer of any rank and kind
     type(*),  DEVICE_PTR        intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
-    integer(int8),              intent(in)    :: execute_type         !< Type of transposition. One of the:
+    type(dtfft_execute_type_t), intent(in)    :: execute_type         !< Type of transposition. One of the:
                                                                       !< - `DTFFT_TRANSPOSE_OUT`
                                                                       !< - `DTFFT_TRANSPOSE_IN`
                                                                       !<
@@ -315,22 +318,22 @@ contains
     if ( self%is_transpose_plan ) then
       select case ( self%ndims )
       case (2)
-        select case( execute_type )
-        case ( DTFFT_TRANSPOSE_OUT )
+        select case( execute_type%val )
+        case ( DTFFT_TRANSPOSE_OUT%val )
           call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y)
-        case ( DTFFT_TRANSPOSE_IN )
+        case ( DTFFT_TRANSPOSE_IN%val )
           call self%plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_X)
         endselect
       case (3)
-        select case( execute_type )
-        case ( DTFFT_TRANSPOSE_OUT )
+        select case( execute_type%val )
+        case ( DTFFT_TRANSPOSE_OUT%val )
           if ( inplace .or. .not. self%is_z_slab ) then
             call self%plan%execute(in, aux, DTFFT_TRANSPOSE_X_TO_Y)
             call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_Z)
             return
           endif
           call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Z)
-        case ( DTFFT_TRANSPOSE_IN )
+        case ( DTFFT_TRANSPOSE_IN%val )
           if ( inplace .or. .not. self%is_z_slab ) then
             call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_Y)
             call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_X)
@@ -342,50 +345,50 @@ contains
       return
     endif ! self%is_transpose_plan
 
-    select case ( execute_type )
-    case ( DTFFT_TRANSPOSE_OUT )
+    select case ( execute_type%val )
+    case ( DTFFT_TRANSPOSE_OUT%val )
       ! 1d direct FFT X direction || 2d X-Y FFT
-      call self%fft(1)%fft%execute(in, aux, DTFFT_FORWARD)
+      call self%fft(1)%fft%execute(in, aux, FFT_FORWARD)
       if ( self%is_z_slab ) then
         ! Transpose X -> Z
         call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Z)
         ! 1d direct FFT Z direction
-        call self%fft(3)%fft%execute(out, out, DTFFT_FORWARD)
+        call self%fft(3)%fft%execute(out, out, FFT_FORWARD)
         return
       endif
       ! Transpose X -> Y
       call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y)
       ! 1d FFT Y direction
-      call self%fft(self%fft_mapping(2))%fft%execute(out, out, DTFFT_FORWARD)
+      call self%fft(self%fft_mapping(2))%fft%execute(out, out, FFT_FORWARD)
       if ( self%ndims == 2 ) then
         return
       endif
       ! Transpose Y -> Z
       call self%plan%execute(out, aux, DTFFT_TRANSPOSE_Y_TO_Z)
       ! 1d direct FFT Z direction
-      call self%fft(self%fft_mapping(3))%fft%execute(aux, out, DTFFT_FORWARD)
-    case ( DTFFT_TRANSPOSE_IN )
+      call self%fft(self%fft_mapping(3))%fft%execute(aux, out, FFT_FORWARD)
+    case ( DTFFT_TRANSPOSE_IN%val )
       if ( self%is_z_slab ) then
         ! 1d inverse FFT Z direction
-        call self%fft(3)%fft%execute(in, in, DTFFT_BACKWARD)
+        call self%fft(3)%fft%execute(in, in, FFT_BACKWARD)
         ! Transpose Z -> X
         call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_X)
         ! 2d inverse FFT X-Y direction
-        call self%fft(1)%fft%execute(aux, out, DTFFT_BACKWARD)
+        call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
         return
       endif
       if ( self%ndims == 3 ) then
         ! 1d inverse FFT Z direction
-        call self%fft(self%fft_mapping(3))%fft%execute(in, aux, DTFFT_BACKWARD)
+        call self%fft(self%fft_mapping(3))%fft%execute(in, aux, FFT_BACKWARD)
         ! Transpose Z -> Y
         call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Z_TO_Y)
       endif
       ! 1d inverse FFT Y direction
-      call self%fft(self%fft_mapping(2))%fft%execute(in, in, DTFFT_BACKWARD)
+      call self%fft(self%fft_mapping(2))%fft%execute(in, in, FFT_BACKWARD)
       ! Transpose Y -> X
       call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X)
       ! 1d inverse FFT X direction
-      call self%fft(1)%fft%execute(aux, out, DTFFT_BACKWARD)
+      call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
     endselect
   end subroutine execute_private
 
@@ -401,6 +404,8 @@ contains
     CHECK_ERROR_AND_RETURN
 
     REGION_BEGIN("dtfft_destroy", COLOR_DESTROY)
+
+    if ( allocated(self%dims) ) deallocate(self%dims)
 
 #ifndef DTFFT_TRANSPOSE_ONLY
     select type ( self )
@@ -464,20 +469,20 @@ contains
     REGION_END("dtfft_destroy")
   end subroutine destroy
 
-  logical function get_z_slab(self, error_code)
+  logical function get_z_slab_enabled(self, error_code)
   !! Returns logical value is Z-slab optimization
     class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
 
     ierr = DTFFT_SUCCESS
-    get_z_slab = .false.
+    get_z_slab_enabled = .false.
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     if ( present( error_code ) ) error_code = ierr
     if ( ierr /= DTFFT_SUCCESS ) return
 
-    get_z_slab = self%is_z_slab
-  end function get_z_slab
+    get_z_slab_enabled = self%is_z_slab
+  end function get_z_slab_enabled
 
   type(dtfft_pencil_t) function get_pencil(self, dim, error_code)
   !! Returns pencil decomposition
@@ -497,15 +502,73 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_pencil
 
+  subroutine report(self, error_code)
+  !! Returns pencil decomposition
+    class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
+    integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
+    integer(int32)                          :: ierr                   !< Error code
+
+    ierr = DTFFT_SUCCESS
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    WRITE_REPORT("**Plan report**")
+      WRITE_REPORT("  dtFFT Version        :  "//int_to_str(dtfft_get_version()))
+      WRITE_REPORT("  Number of dimensions :  "//int_to_str(self%ndims))
+    if ( self%ndims == 2 ) then
+      WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2)))
+    else
+      WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2))//"x"//int_to_str(self%dims(3)))
+    endif
+    select type( self )
+    class is ( dtfft_plan_c2c )
+      WRITE_REPORT("  Plan type            :  Complex2Complex")
+    class is ( dtfft_plan_r2r )
+      WRITE_REPORT("  Plan type            :  Real2Real")
+#ifndef DTFFT_TRANSPOSE_ONLY
+    class is ( dtfft_plan_r2c )
+      WRITE_REPORT("  Plan type            :  Real2Complex")
+#endif
+    endselect
+    if ( self%precision == DTFFT_SINGLE ) then
+      WRITE_REPORT("  Plan precision       :  Single")
+    else
+      WRITE_REPORT("  Plan precision       :  Double")
+    endif
+    if ( self%is_transpose_plan ) then
+      WRITE_REPORT("  FFT Executor type    :  None")
+    else
+      select case ( self%executor_type%val )
+      case ( DTFFT_EXECUTOR_FFTW3%val )
+        WRITE_REPORT("  FFT Executor type    :  FFTW3")
+      case ( DTFFT_EXECUTOR_MKL%val )
+        WRITE_REPORT("  FFT Executor type    :  MKL")
+      case ( DTFFT_EXECUTOR_CUFFT%val )
+        WRITE_REPORT("  FFT Executor type    :  CUFFT")
+      case ( DTFFT_EXECUTOR_VKFFT%val )
+        WRITE_REPORT("  FFT Executor type    :  VkFFT")
+      endselect
+    endif
+    if ( self%is_z_slab ) then
+      WRITE_REPORT("  Z-slab enabled       :  True")
+    else
+      WRITE_REPORT("  Z-slab enabled       :  False")
+    endif
 #ifdef DTFFT_WITH_CUDA
-  integer(int8) function get_gpu_backend(self, error_code)
+    WRITE_REPORT("  GPU Backend          :  "//dtfft_get_gpu_backend_string(self%plan%get_backend_id()))
+#endif
+    WRITE_REPORT("**End of report**")
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine report
+
+#ifdef DTFFT_WITH_CUDA
+  type(dtfft_gpu_backend_t) function get_gpu_backend(self, error_code)
   !! Returns selected GPU backend during autotuning
     class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
 
     ierr = DTFFT_SUCCESS
-    get_gpu_backend = 0
+    get_gpu_backend = dtfft_gpu_backend_t(0)
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     if ( present( error_code ) ) error_code = ierr
     if ( ierr /= DTFFT_SUCCESS ) return
@@ -570,32 +633,32 @@ contains
     endselect
   end subroutine get_local_sizes
 
-  integer(int32) function create_private(self, dims, sngl_type, sngl_storage_size, dbl_type, dbl_storage_size, comm, precision, effort_flag, executor_type, kinds)
+  integer(int32) function create_private(self, dims, sngl_type, sngl_storage_size, dbl_type, dbl_storage_size, comm, precision, effort_type, executor_type, kinds)
 #define __FUNC__ create_private
   !! Creates core
-    class(dtfft_abstract_plan), intent(inout) :: self                 !< Abstract plan
-    integer(int32),             intent(in)    :: dims(:)              !< Counts of the transform requested
-    TYPE_MPI_DATATYPE,          intent(in)    :: sngl_type            !< MPI_Datatype for single precision plan
-    integer(int8),              intent(in)    :: sngl_storage_size    !< Number of bytes needed to store single element (single precision)
-    TYPE_MPI_DATATYPE,          intent(in)    :: dbl_type             !< MPI_Datatype for double precision plan
-    integer(int8),              intent(in)    :: dbl_storage_size     !< Number of bytes needed to store single element (double precision)
-    TYPE_MPI_COMM,    optional, intent(in)    :: comm                 !< User-defined communicator
-    integer(int8),    optional, intent(in)    :: precision            !< Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-    integer(int8),    optional, intent(in)    :: effort_flag          !< DTFFT planner effort flag
-    integer(int8),    optional, intent(in)    :: executor_type        !< Type of External FFT Executor
-    integer(int8),    optional, intent(in)    :: kinds(:)             !< Kinds of R2R transform
-    TYPE_MPI_DATATYPE                         :: base_dtype           !< MPI_Datatype for current precision
-    integer(int8)                             :: base_storage         !< Number of bytes needed to store single element
-    TYPE_MPI_COMM                             :: comm_                !< MPI Communicator
+    class(dtfft_abstract_plan),       intent(inout) :: self                 !< Abstract plan
+    integer(int32),                   intent(in)    :: dims(:)              !< Counts of the transform requested
+    TYPE_MPI_DATATYPE,                intent(in)    :: sngl_type            !< MPI_Datatype for single precision plan
+    integer(int8),                    intent(in)    :: sngl_storage_size    !< Number of bytes needed to store single element (single precision)
+    TYPE_MPI_DATATYPE,                intent(in)    :: dbl_type             !< MPI_Datatype for double precision plan
+    integer(int8),                    intent(in)    :: dbl_storage_size     !< Number of bytes needed to store single element (double precision)
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm                 !< User-defined communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision            !< Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
+    type(dtfft_effort_t),   optional, intent(in)    :: effort_type          !< DTFFT planner effort flag
+    type(dtfft_executor_t), optional, intent(in)    :: executor_type        !< Type of External FFT Executor
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)             !< Kinds of R2R transform
+    TYPE_MPI_DATATYPE       :: base_dtype           !< MPI_Datatype for current precision
+    integer(int8)           :: base_storage         !< Number of bytes needed to store single element
+    TYPE_MPI_COMM           :: comm_                !< MPI Communicator
 
     create_private = DTFFT_SUCCESS
-    CHECK_INTERNAL_CALL( self%check_create_args(dims, comm, precision, effort_flag, executor_type, kinds) )
+    CHECK_INTERNAL_CALL( self%check_create_args(dims, comm, precision, effort_type, executor_type, kinds) )
 
-    select case ( self%precision )
-    case ( DTFFT_SINGLE )
+    select case ( self%precision%val )
+    case ( DTFFT_SINGLE%val )
       base_storage = sngl_storage_size
       base_dtype = sngl_type
-    case ( DTFFT_DOUBLE )
+    case ( DTFFT_DOUBLE%val )
       base_storage = dbl_storage_size
       base_dtype = dbl_type
     case default
@@ -632,19 +695,18 @@ contains
       deallocate( local_devices )
     endblock
 
-    select case ( get_user_gpu_backend() )
-    case ( DTFFT_GPU_BACKEND_MPI_DATATYPE )
+    if ( get_user_gpu_backend() == DTFFT_GPU_BACKEND_MPI_DATATYPE ) then
       allocate( transpose_plan_host :: self%plan )
-    case default
+    else
       allocate( transpose_plan_cuda :: self%plan )
-    endselect
+    endif
 
     self%stream = get_user_stream()
 #else
     allocate( transpose_plan_host :: self%plan )
 #endif
 
-    CHECK_INTERNAL_CALL( self%plan%create(dims, comm_, self%effort_flag, base_dtype, base_storage, self%comm, self%comms, self%pencils) )
+    CHECK_INTERNAL_CALL( self%plan%create(dims, comm_, self%effort_type, base_dtype, base_storage, self%comm, self%comms, self%pencils) )
     self%is_z_slab = self%plan%is_z_slab
     call self%alloc_fft_plans(kinds)
 
@@ -652,60 +714,58 @@ contains
 #undef __FUNC__
   end function create_private
 
-  integer(int32) function check_create_args(self, dims, comm, precision, effort_flag, executor_type, kinds)
+  integer(int32) function check_create_args(self, dims, comm, precision, effort_type, executor_type, kinds)
 #define __FUNC__ check_create_args
   !! Check arguments provided by user and sets private variables
-    class(dtfft_abstract_plan), intent(inout) :: self             !< Abstract plan
-    integer(int32),             intent(in)    :: dims(:)          !< Global dimensions of transform
-    TYPE_MPI_COMM,  optional,   intent(in)    :: comm             !< Optional MPI Communicator
-    integer(int8),  optional,   intent(in)    :: precision        !< Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-    integer(int8),  optional,   intent(in)    :: effort_flag      !< DTFFT planner effort flag
-    integer(int8),  optional,   intent(in)    :: executor_type    !< Type of External FFT Executor
-    integer(int8),  optional,   intent(in)    :: kinds(:)         !< Kinds of R2R transform
-    integer(int32)                            :: ierr             !< Error code
-    integer(int32)                            :: top_type         !< MPI Comm topology type
-    integer(int32)                            :: dim              !< Counter
+    class(dtfft_abstract_plan),         intent(inout) :: self             !< Abstract plan
+    integer(int32),                     intent(in)    :: dims(:)          !< Global dimensions of transform
+    TYPE_MPI_COMM,          optional,   intent(in)    :: comm             !< Optional MPI Communicator
+    type(dtfft_precision_t),optional,   intent(in)    :: precision        !< Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
+    type(dtfft_effort_t),   optional,   intent(in)    :: effort_type      !< DTFFT planner effort flag
+    type(dtfft_executor_t), optional,   intent(in)    :: executor_type    !< Type of External FFT Executor
+    type(dtfft_r2r_kind_t), optional,   intent(in)    :: kinds(:)         !< Kinds of R2R transform
+    integer(int32)          :: ierr             !< Error code
+    integer(int32)          :: top_type         !< MPI Comm topology type
+    integer(int32)          :: dim              !< Counter
 
     CHECK_INTERNAL_CALL( init_internal() )
 
     self%ndims = size(dims, kind=int8)
-    CHECK_INPUT_PARAMETER(self%ndims, VALID_DIMENSIONS, DTFFT_ERROR_INVALID_N_DIMENSIONS)
+    CHECK_INPUT_PARAMETER(self%ndims, is_valid_dimension, DTFFT_ERROR_INVALID_N_DIMENSIONS)
     if ( any([(dims(dim) <= 0, dim=1,self%ndims)]) ) then
       check_create_args = DTFFT_ERROR_INVALID_DIMENSION_SIZE
       return
     endif
+    allocate( self%dims, source=dims )
 
     if ( present(comm) ) then
       call MPI_Topo_test(comm, top_type, ierr)
-      CHECK_INPUT_PARAMETER(top_type, VALID_COMMUNICATORS, DTFFT_ERROR_INVALID_COMM_TYPE)
+      CHECK_INPUT_PARAMETER(top_type, is_valid_comm_type, DTFFT_ERROR_INVALID_COMM_TYPE)
     endif
 
     self%precision = DTFFT_DOUBLE
     if ( present(precision) ) then
-      CHECK_INPUT_PARAMETER(precision, VALID_PRECISIONS, DTFFT_ERROR_INVALID_PRECISION)
+      CHECK_INPUT_PARAMETER(precision, is_valid_precision, DTFFT_ERROR_INVALID_PRECISION)
       self%precision = precision
     endif
 
-    self%effort_flag = DTFFT_ESTIMATE
-    if ( present(effort_flag) ) then
-      CHECK_INPUT_PARAMETER(effort_flag, VALID_EFFORTS, DTFFT_ERROR_INVALID_EFFORT_FLAG)
-      self%effort_flag = effort_flag
+    self%effort_type = DTFFT_ESTIMATE
+    if ( present(effort_type) ) then
+      CHECK_INPUT_PARAMETER(effort_type, is_valid_effort, DTFFT_ERROR_INVALID_EFFORT_FLAG)
+      self%effort_type = effort_type
     endif
 
     self%is_transpose_plan = .false.
     self%executor_type = DTFFT_EXECUTOR_NONE
     if ( present(executor_type) ) then
-      CHECK_INPUT_PARAMETER(executor_type, VALID_EXECUTORS, DTFFT_ERROR_INVALID_EXECUTOR_TYPE)
+      CHECK_INPUT_PARAMETER(executor_type, is_valid_executor, DTFFT_ERROR_INVALID_EXECUTOR_TYPE)
       self%executor_type = executor_type
     endif
     if ( self%executor_type == DTFFT_EXECUTOR_NONE ) self%is_transpose_plan = .true.
 
     if ( present(kinds) .and. .not. self%is_transpose_plan ) then
       do dim = 1, self%ndims
-        if ( .not.any([(kinds(dim) == VALID_R2R_FFTS)]) ) then
-          check_create_args = DTFFT_ERROR_INVALID_R2R_KINDS
-          return
-        endif
+        CHECK_INPUT_PARAMETER(kinds(dim), is_valid_r2r_kind, DTFFT_ERROR_INVALID_R2R_KINDS)
       enddo
     endif
 #undef __FUNC__
@@ -713,10 +773,10 @@ contains
 
   subroutine alloc_fft_plans(self, kinds)
   !! Allocates `fft_executor` with required FFT class
-    class(dtfft_abstract_plan), intent(inout) :: self                 !< Abstract plan
-    integer(int8),    optional, intent(in)    :: kinds(:)             !< Kinds of R2R transform
-    integer(int8)                             :: dim, dim2            !< Counters
-    integer(int8),              allocatable   :: kinds_(:)            !< Dummy kinds
+    class(dtfft_abstract_plan),       intent(inout) :: self       !< Abstract plan
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)   !< Kinds of R2R transform
+    integer(int8)                                   :: dim, dim2  !< Counters
+    type(dtfft_r2r_kind_t),           allocatable   :: kinds_(:)  !< Dummy kinds
 
     if ( self%is_transpose_plan ) return
 
@@ -726,30 +786,30 @@ contains
     do dim = 1, self%ndims
       self%fft_mapping(dim) = dim
 
-      select case(self%executor_type)
+      select case(self%executor_type%val)
 #ifdef DTFFT_WITH_FFTW
-      case (DTFFT_EXECUTOR_FFTW3)
+      case (DTFFT_EXECUTOR_FFTW3%val)
         if ( dim == 1 ) then
           WRITE_DEBUG("Using FFTW3 executor")
         endif
         allocate(fftw_executor :: self%fft(dim)%fft)
 #endif
 #ifdef DTFFT_WITH_MKL
-      case (DTFFT_EXECUTOR_MKL)
+      case (DTFFT_EXECUTOR_MKL%val)
         if ( dim == 1 ) then
           WRITE_DEBUG("Using MKL executor")
         endif
         allocate(mkl_executor :: self%fft(dim)%fft)
 #endif
 #ifdef DTFFT_WITH_CUFFT
-      case (DTFFT_EXECUTOR_CUFFT)
+      case (DTFFT_EXECUTOR_CUFFT%val)
         if ( dim == 1 ) then
           WRITE_DEBUG("Using CUFFT executor")
         endif
         allocate(cufft_executor :: self%fft(dim)%fft)
 #endif
 #ifdef DTFFT_WITH_VKFFT
-      case (DTFFT_EXECUTOR_VKFFT)
+      case (DTFFT_EXECUTOR_VKFFT%val)
         if ( dim == 1 ) then
            WRITE_DEBUG("Using VkFFT executor")
         endif
@@ -762,7 +822,7 @@ contains
     if( self%is_z_slab ) return
 
     allocate(kinds_(self%ndims))
-    kinds_(:) = -1; if ( present(kinds) ) kinds_(:) = kinds(:)
+    kinds_(:) = dtfft_r2r_kind_t(-1); if ( present(kinds) ) kinds_(:) = kinds(:)
     ! Searching for similar FFT transforms in order to reduce time of plan creation
     ! and reduce memory usage
     ! Most profitable in GPU build
@@ -807,23 +867,23 @@ contains
     self%is_aux_alloc = .true.
   end subroutine check_aux
 
-  subroutine create_r2r(self, dims, kinds, comm, precision, effort_flag, executor_type, error_code)
+  subroutine create_r2r(self, dims, kinds, comm, precision, effort_type, executor_type, error_code)
   !! R2R Plan Constructor
-    class(dtfft_plan_r2r),    intent(inout) :: self               !< R2R Plan
-    integer(int32),           intent(in)    :: dims(:)            !< Global dimensions of transform
-    integer(int8),  optional, intent(in)    :: kinds(:)           !< Kinds of R2R transform
-    TYPE_MPI_COMM,  optional, intent(in)    :: comm               !< Communicator
-    integer(int8),  optional, intent(in)    :: precision          !< Presicion of Transform
-    integer(int8),  optional, intent(in)    :: effort_flag        !< DTFFT planner effort flag
-    integer(int8),  optional, intent(in)    :: executor_type      !< Type of External FFT Executor
-    integer(int32), optional, intent(out)   :: error_code         !< Optional Error Code returned to user
+    class(dtfft_plan_r2r),            intent(inout) :: self               !< R2R Plan
+    integer(int32),                   intent(in)    :: dims(:)            !< Global dimensions of transform
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)           !< Kinds of R2R transform
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm               !< Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision          !< Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort_type        !< DTFFT planner effort flag
+    type(dtfft_executor_t), optional, intent(in)    :: executor_type      !< Type of External FFT Executor
+    integer(int32),         optional, intent(out)   :: error_code         !< Optional Error Code returned to user
     integer(int32)                          :: ierr               !< Error code
     integer(int8)                           :: fft_rank           !< Rank of FFT transform
     integer(int32)                          :: dim                !< Counter
-    integer(int8)                           :: r2r_kinds(2)       !< Transposed Kinds of R2R transform
+    type(dtfft_r2r_kind_t)                  :: r2r_kinds(2)       !< Transposed Kinds of R2R transform
 
     REGION_BEGIN("dtfft_create_r2r", COLOR_CREATE)
-    CHECK_OPTIONAL_CALL( self%create_private(dims, MPI_REAL, FLOAT_STORAGE_SIZE, MPI_REAL8, DOUBLE_STORAGE_SIZE, comm, precision, effort_flag, executor_type, kinds) )
+    CHECK_OPTIONAL_CALL( self%create_private(dims, MPI_REAL, FLOAT_STORAGE_SIZE, MPI_REAL8, DOUBLE_STORAGE_SIZE, comm, precision, effort_type, executor_type, kinds) )
 
     if ( .not. self%is_transpose_plan ) then
       if ( .not. present( kinds ) ) ierr = DTFFT_ERROR_MISSING_R2R_KINDS
@@ -846,38 +906,38 @@ contains
     REGION_END("dtfft_create_r2r")
   end subroutine create_r2r
 
-  subroutine create_c2c(self, dims, comm, precision, effort_flag, executor_type, error_code)
+  subroutine create_c2c(self, dims, comm, precision, effort_type, executor_type, error_code)
   !! C2C Plan Constructor
-    class(dtfft_plan_c2c),      intent(inout) :: self               !< C2C Plan
-    integer(int32),             intent(in)    :: dims(:)            !< Global dimensions of transform
-    TYPE_MPI_COMM,    optional, intent(in)    :: comm               !< Communicator
-    integer(int8),    optional, intent(in)    :: precision          !< Presicion of Transform
-    integer(int8),    optional, intent(in)    :: effort_flag        !< DTFFT planner effort flag
-    integer(int8),    optional, intent(in)    :: executor_type      !< Type of External FFT Executor
-    integer(int32),   optional, intent(out)   :: error_code         !< Optional Error Code returned to user
-    integer(int32)                            :: ierr               !< Error code
+    class(dtfft_plan_c2c),            intent(inout) :: self               !< C2C Plan
+    integer(int32),                   intent(in)    :: dims(:)            !< Global dimensions of transform
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm               !< Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision          !< Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort_type        !< DTFFT planner effort flag
+    type(dtfft_executor_t), optional, intent(in)    :: executor_type      !< Type of External FFT Executor
+    integer(int32),         optional, intent(out)   :: error_code         !< Optional Error Code returned to user
+    integer(int32)                                  :: ierr               !< Error code
 
     REGION_BEGIN("dtfft_create_c2c", COLOR_CREATE)
-    CHECK_OPTIONAL_CALL( self%create_c2c_internal(dims, comm, precision, effort_flag, executor_type) )
+    CHECK_OPTIONAL_CALL( self%create_c2c_internal(dims, comm, precision, effort_type, executor_type) )
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
     self%is_created = .true.
     REGION_END("dtfft_create_c2c")
   end subroutine create_c2c
 
-  integer(int32) function create_c2c_internal(self, dims, comm, precision, effort_flag, executor_type)
+  integer(int32) function create_c2c_internal(self, dims, comm, precision, effort_type, executor_type)
 #define __FUNC__ create_c2c_internal
   !! Creates plan for both C2C and R2C
-    class(dtfft_core_c2c),      intent(inout) :: self               !< C2C Plan
-    integer(int32),             intent(in)    :: dims(:)            !< Global dimensions of transform
-    TYPE_MPI_COMM,    optional, intent(in)    :: comm               !< Communicator
-    integer(int8),    optional, intent(in)    :: precision          !< Presicion of Transform
-    integer(int8),    optional, intent(in)    :: effort_flag        !< DTFFT planner effort flag
-    integer(int8),    optional, intent(in)    :: executor_type      !< Type of External FFT Executor
-    integer(int8)                             :: dim                !< Counter
-    integer(int8)                             :: fft_start          !< 1 for c2c, 2 for r2c
-    integer(int8)                             :: fft_rank           !< Rank of FFT transform
+    class(dtfft_core_c2c),            intent(inout) :: self               !< C2C Plan
+    integer(int32),                   intent(in)    :: dims(:)            !< Global dimensions of transform
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm               !< Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision          !< Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort_type        !< DTFFT planner effort flag
+    type(dtfft_executor_t), optional, intent(in)    :: executor_type      !< Type of External FFT Executor
+    integer(int8)           :: dim                  !< Counter
+    integer(int8)           :: fft_start            !< 1 for c2c, 2 for r2c
+    integer(int8)           :: fft_rank             !< Rank of FFT transform
 
-    CHECK_INTERNAL_CALL( self%create_private(dims, MPI_COMPLEX, COMPLEX_STORAGE_SIZE, MPI_DOUBLE_COMPLEX, DOUBLE_COMPLEX_STORAGE_SIZE, comm, precision, effort_flag, executor_type) )
+    CHECK_INTERNAL_CALL( self%create_private(dims, MPI_COMPLEX, COMPLEX_STORAGE_SIZE, MPI_DOUBLE_COMPLEX, DOUBLE_COMPLEX_STORAGE_SIZE, comm, precision, effort_type, executor_type) )
     if ( self%is_transpose_plan ) return
     select type ( self )
 #ifndef DTFFT_TRANSPOSE_ONLY
@@ -896,15 +956,15 @@ contains
   end function create_c2c_internal
 
 #ifndef DTFFT_TRANSPOSE_ONLY
-  subroutine create_r2c(self, dims, comm, precision, effort_flag, executor_type, error_code)
+  subroutine create_r2c(self, dims, comm, precision, effort_type, executor_type, error_code)
   !! R2C Plan Constructor
-    class(dtfft_plan_r2c),      intent(inout) :: self               !< R2C Plan
-    integer(int32),             intent(in)    :: dims(:)            !< Global dimensions of transform
-    TYPE_MPI_COMM,    optional, intent(in)    :: comm               !< Communicator
-    integer(int8),    optional, intent(in)    :: precision          !< Presicion of Transform
-    integer(int8),    optional, intent(in)    :: effort_flag        !< DTFFT planner effort flag
-    integer(int8),    optional, intent(in)    :: executor_type      !< Type of External FFT Executor
-    integer(int32),   optional, intent(out)   :: error_code         !< Optional Error Code returned to user
+    class(dtfft_plan_r2c),            intent(inout) :: self               !< R2C Plan
+    integer(int32),                   intent(in)    :: dims(:)            !< Global dimensions of transform
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm               !< Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision          !< Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort_type        !< DTFFT planner effort flag
+    type(dtfft_executor_t), optional, intent(in)    :: executor_type      !< Type of External FFT Executor
+    integer(int32),         optional, intent(out)   :: error_code         !< Optional Error Code returned to user
     integer(int32)                            :: ierr               !< Error code
     integer(int8)                             :: fft_rank           !< Rank of FFT transform
     integer(int32),   allocatable             :: fixed_dims(:)      !< Fixed dimensions for R2C
@@ -912,7 +972,7 @@ contains
     REGION_BEGIN("dtfft_create_r2c", COLOR_CREATE)
     allocate(fixed_dims, source=dims)
     fixed_dims(1) = int(dims(1) / 2, int32) + 1
-    CHECK_OPTIONAL_CALL( self%create_c2c_internal(fixed_dims, comm, precision, effort_flag, executor_type) )
+    CHECK_OPTIONAL_CALL( self%create_c2c_internal(fixed_dims, comm, precision, effort_type, executor_type) )
     deallocate(fixed_dims)
 
     if ( self%is_transpose_plan ) ierr = DTFFT_ERROR_R2C_TRANSPOSE_PLAN

@@ -51,7 +51,7 @@ public :: create_cart_comm
 
 
   interface
-    function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort_flag, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
+    function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort_type, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
     !! Creates transposition plans
     import
       class(abstract_transpose_plan), intent(inout) :: self                 !< Transposition class
@@ -59,7 +59,7 @@ public :: create_cart_comm
       integer(int32),                 intent(in)    :: transposed_dims(:,:) !< Transposed sizes of the transform requested
       TYPE_MPI_COMM,                  intent(in)    :: base_comm            !< Base MPI communicator
       integer(int32),                 intent(in)    :: comm_dims(:)         !< Dims in cartesian communicator
-      integer(int8),                  intent(in)    :: effort_flag          !< DTFFT planner effort flag
+      type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort flag
       TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
       integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
       logical,                        intent(in)    :: is_custom_cart_comm  !< Custom cartesian communicator provided by user
@@ -69,13 +69,13 @@ public :: create_cart_comm
       integer(int32)                                :: error_code           !< Error code
     end function create_interface
 
-    subroutine execute_interface(self, in, out, transpose_id)
+    subroutine execute_interface(self, in, out, transpose_type)
     !! Executes single transposition
     import
-      class(abstract_transpose_plan), intent(inout) :: self         !< Transposition class
-      type(*),  DEVICE_PTR  target,   intent(inout) :: in(..)       !< Incoming buffer of any rank and kind
-      type(*),  DEVICE_PTR  target,   intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
-      integer(int8),                  intent(in)    :: transpose_id !< Type of transpose
+      class(abstract_transpose_plan), intent(inout) :: self           !< Transposition class
+      type(*),  DEVICE_PTR  target,   intent(inout) :: in(..)         !< Incoming buffer of any rank and kind
+      type(*),  DEVICE_PTR  target,   intent(inout) :: out(..)        !< Resulting buffer of any rank and kind
+      type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !< Type of transpose
     end subroutine execute_interface
 
     subroutine destroy_interface(self)
@@ -85,7 +85,7 @@ public :: create_cart_comm
     end subroutine destroy_interface
 
 #ifdef DTFFT_WITH_CUDA
-    integer(int8) function get_backend_id_interface(self)
+    type(dtfft_gpu_backend_t) function get_backend_id_interface(self)
     import
       class(abstract_transpose_plan), intent(in) :: self            !< Transposition class
     end function get_backend_id_interface
@@ -94,12 +94,12 @@ public :: create_cart_comm
 
 contains
 
-  function create(self, dims, base_comm_, effort_flag, base_dtype, base_storage, cart_comm, comms, pencils) result(error_code)
+  function create(self, dims, base_comm_, effort_type, base_dtype, base_storage, cart_comm, comms, pencils) result(error_code)
   !! Creates transposition plans
     class(abstract_transpose_plan), intent(inout) :: self                 !< Transposition class
     integer(int32),                 intent(in)    :: dims(:)              !< Global sizes of the transform requested
     TYPE_MPI_COMM,                  intent(in)    :: base_comm_           !< Base communicator
-    integer(int8),                  intent(in)    :: effort_flag          !< DTFFT planner effort flag
+    type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort flag
     TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
     integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
     TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !< Cartesian communicator
@@ -156,7 +156,7 @@ contains
             WRITE_WARN("Number of MPI processes in direction "//int_to_str(d)//" greater then number of physical points: "//int_to_str(comm_dims(d))//" > "//int_to_str(dims(d)))
           endif
         enddo
-        if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab_enabled() ) then
+        if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab_flag() ) then
           self%is_z_slab = .true.
         endif
       endblock
@@ -173,7 +173,7 @@ contains
         comm_dims(2) = 1
         comm_dims(3) = comm_size
 
-        self%is_z_slab = get_z_slab_enabled()
+        self%is_z_slab = get_z_slab_flag()
       else if (ndims == 3 .and.                                                         &
 #ifdef DTFFT_WITH_CUDA
         DEF_TILE_SIZE <= dims(1) / comm_size .and. DEF_TILE_SIZE <= dims(2) / comm_size &
@@ -212,23 +212,23 @@ contains
       transposed_dims(3, 3) = dims(2)
     endif
 
-    error_code = self%create_private(dims, transposed_dims, base_comm_, comm_dims, effort_flag, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
+    error_code = self%create_private(dims, transposed_dims, base_comm_, comm_dims, effort_type, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
     if ( error_code /= DTFFT_SUCCESS ) return
 
     deallocate( transposed_dims )
     deallocate( comm_dims )
   end function create
 
-  subroutine execute(self, in, out, transpose_id)
+  subroutine execute(self, in, out, transpose_type)
   !! Executes single transposition
     class(abstract_transpose_plan), intent(inout) :: self         !< Transposition class
     type(*),  DEVICE_PTR            intent(inout) :: in(..)       !< Incoming buffer of any rank and kind
     type(*),  DEVICE_PTR            intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
-    integer(int8),                  intent(in)    :: transpose_id !< Type of transpose
+    type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !< Type of transpose
 
-    PHASE_BEGIN('Transpose '//TRANSPOSE_NAMES(transpose_id), COLOR_TRANSPOSE_PALLETTE(transpose_id))
-    call self%execute_private(in, out, transpose_id)
-    PHASE_END('Transpose '//TRANSPOSE_NAMES(transpose_id))
+    PHASE_BEGIN('Transpose '//TRANSPOSE_NAMES(transpose_type%val), COLOR_TRANSPOSE_PALLETTE(transpose_type%val))
+    call self%execute_private(in, out, transpose_type)
+    PHASE_END('Transpose '//TRANSPOSE_NAMES(transpose_type%val))
   end subroutine execute
 
   subroutine create_cart_comm(old_comm, comm_dims, comm, local_comms)

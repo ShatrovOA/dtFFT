@@ -54,7 +54,7 @@ public :: transpose_handle_cuda
   type :: transpose_handle_cuda
   !! CUDA Transpose Handle
   private
-    integer(int8)                             :: transpose_id
+    type(dtfft_transpose_type_t)              :: transpose_type
     logical                                   :: has_exchange = .false.   !< If current handle has exchanges between GPUs
     logical                                   :: is_pipelined = .false.   !< If underlying exchanges are pipelined
     real(real32),  DEVICE_PTR pointer         :: aux(:)                   !< Auxiliary buffer used in pipelined algorithm
@@ -66,7 +66,7 @@ public :: transpose_handle_cuda
     procedure, pass(self) :: execute          !< Executes transpose - exchange - unpack
     procedure, pass(self) :: destroy          !< Destroys CUDA Transpose Handle
     procedure, pass(self) :: get_aux_size     !< Returns number of bytes required by aux buffer
-    procedure, pass(self) :: get_tranpose_id  !< Returns transpose_id, associated with handle
+    procedure, pass(self) :: get_tranpose_type!< Returns transpose_type, associated with handle
     procedure, pass(self) :: set_aux          !< Sets aux buffer to underlying communication handle
   end type transpose_handle_cuda
 
@@ -111,9 +111,9 @@ contains
     type(pencil),                   intent(in)    :: send               !< Send pencil
     type(pencil),                   intent(in)    :: recv               !< Recv pencil
     integer(int8),                  intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    integer(int8),                  intent(in)    :: backend_id         !< Backend type
+    type(dtfft_gpu_backend_t),      intent(in)    :: backend_id         !< Backend type
     integer(int8)                                 :: ndims              !< Number of dimensions
-    integer(int8)                                 :: transpose_id       !< Type of transpose based on ``send`` and ``recv``
+    type(dtfft_transpose_type_t)                  :: transpose_type     !< Type of transpose based on ``send`` and ``recv``
     integer(int32)                                :: comm_size          !< Size of ``comm``
     integer(int32)                                :: comm_rank          !< Rank in ``comm``
     integer(int32)                                :: ierr               !< MPI error flag
@@ -133,14 +133,14 @@ contains
     integer(int8)                                 :: comm_id
     TYPE_MPI_COMM :: comm
 
-    transpose_id = get_transpose_id(send, recv)
+    transpose_type = get_transpose_id(send, recv)
 
-    select case ( abs(transpose_id) )
-    case ( DTFFT_TRANSPOSE_X_TO_Y )
+    select case ( abs(transpose_type%val) )
+    case ( DTFFT_TRANSPOSE_X_TO_Y%val )
       comm_id = 2
-    case ( DTFFT_TRANSPOSE_Y_TO_Z )
+    case ( DTFFT_TRANSPOSE_Y_TO_Z%val )
       comm_id = 3
-    case ( DTFFT_TRANSPOSE_X_TO_Z )
+    case ( DTFFT_TRANSPOSE_X_TO_Z%val )
       comm_id = 1
     endselect
 
@@ -150,17 +150,17 @@ contains
     call MPI_Comm_rank(comm, comm_rank, ierr)
     self%has_exchange = comm_size > 1
 
-    self%transpose_id = transpose_id
+    self%transpose_type = transpose_type
     ndims = send%rank
 
-    packing_required = (abs(transpose_id) == DTFFT_TRANSPOSE_X_TO_Y) .and. self%has_exchange .and. ndims == 3
+    packing_required = (abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val) .and. self%has_exchange .and. ndims == 3
     !  .and. (.not. backend_id==DTFFT_GPU_BACKEND_CUFFTMP)
 
     kernel_type = KERNEL_TRANSPOSE
     if ( packing_required ) kernel_type = KERNEL_TRANSPOSE_PACKED
 
     if ( .not. self%has_exchange ) then
-      call self%pack_kernel%create(comm, send%counts, base_storage, transpose_id, kernel_type)
+      call self%pack_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type)
       return
     endif
 
@@ -172,8 +172,8 @@ contains
 
     sdispl = 0
     do i = 0, comm_size - 1
-      select case ( transpose_id )
-      case ( DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_X )
+      select case ( transpose_type%val )
+      case ( DTFFT_TRANSPOSE_X_TO_Y%val, DTFFT_TRANSPOSE_Y_TO_X%val )
         in%ln(1, i) = out%sizes(2, i)
         in%ln(2, i) = in%sizes(2, comm_rank)
 
@@ -184,7 +184,7 @@ contains
 
           in%ls(3, i) = in%starts(3, comm_rank)
         endif
-      case ( DTFFT_TRANSPOSE_Y_TO_Z, DTFFT_TRANSPOSE_Z_TO_Y )
+      case ( DTFFT_TRANSPOSE_Y_TO_Z%val, DTFFT_TRANSPOSE_Z_TO_Y%val )
         in%ln(1, i) = out%sizes(3, i)
         in%ln(2, i) = in%sizes(2, comm_rank)
         in%ln(3, i) = in%sizes(3, comm_rank)
@@ -192,7 +192,7 @@ contains
         in%ls(1, i) = out%starts(3, i)
         in%ls(2, i) = in%starts(2, comm_rank)
         in%ls(3, i) = in%starts(3, comm_rank)
-      case ( DTFFT_TRANSPOSE_X_TO_Z )
+      case ( DTFFT_TRANSPOSE_X_TO_Z%val )
         in%ln(1, i) = in%sizes(1, comm_rank)
         in%ln(2, i) = out%sizes(3, i)
         in%ln(3, i) = in%sizes(3, comm_rank)
@@ -200,7 +200,7 @@ contains
         in%ls(1, i) = in%starts(1, comm_rank)
         in%ls(2, i) = out%starts(3, i)
         in%ls(3, i) = in%starts(3, comm_rank)
-      case ( DTFFT_TRANSPOSE_Z_TO_X )
+      case ( DTFFT_TRANSPOSE_Z_TO_X%val )
         in%ln(1, i) = out%sizes(3, i)
         in%ln(2, i) = in%sizes(2, comm_rank)
         in%ln(3, i) = in%sizes(3, comm_rank)
@@ -235,8 +235,8 @@ contains
       call MPI_Irecv(recvsize, 1, MPI_INTEGER4, i, i, comm, rr, ierr)
       call MPI_Wait(rr, MPI_STATUS_IGNORE, ierr)
       if ( recvsize > 0 ) then
-        select case ( transpose_id )
-        case ( DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_X )
+        select case ( transpose_type%val )
+        case ( DTFFT_TRANSPOSE_X_TO_Y%val, DTFFT_TRANSPOSE_Y_TO_X%val )
           out%ln(1, i) = in%sizes(2, i)
           out%ln(2, i) = out%sizes(2, comm_rank)
 
@@ -247,7 +247,7 @@ contains
 
             out%ls(3, i) = in%starts(3, comm_rank)
           endif
-        case ( DTFFT_TRANSPOSE_Y_TO_Z, DTFFT_TRANSPOSE_Z_TO_Y )
+        case ( DTFFT_TRANSPOSE_Y_TO_Z%val, DTFFT_TRANSPOSE_Z_TO_Y%val )
           out%ln(1, i) = in%sizes(3, i)
           out%ln(2, i) = out%sizes(2, comm_rank)
           out%ln(3, i) = in%sizes(3, comm_rank)
@@ -255,7 +255,7 @@ contains
           out%ls(1, i) = in%starts(3, i)
           out%ls(2, i) = out%starts(2, comm_rank)
           out%ls(3, i) = in%starts(3, comm_rank)
-        case ( DTFFT_TRANSPOSE_X_TO_Z )
+        case ( DTFFT_TRANSPOSE_X_TO_Z%val )
           out%ln(1, i) = in%sizes(3, i)
           out%ln(2, i) = out%sizes(2, comm_rank)
           out%ln(3, i) = out%sizes(3, comm_rank)
@@ -263,7 +263,7 @@ contains
           out%ls(1, i) = in%starts(3, i)
           out%ls(2, i) = out%starts(2, comm_rank)
           out%ls(3, i) = out%starts(3, comm_rank)
-        case ( DTFFT_TRANSPOSE_Z_TO_X )
+        case ( DTFFT_TRANSPOSE_Z_TO_X%val )
           out%ln(1, i) = out%sizes(1, comm_rank)
           out%ln(2, i) = in%sizes(3, i)
           out%ln(3, i) = out%sizes(3, comm_rank)
@@ -275,7 +275,7 @@ contains
       endif
 
       k2(i, 1) = rdispl
-      if ( transpose_id == DTFFT_TRANSPOSE_Z_TO_X ) then
+      if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
         k2(i, 2) = out%ln(1, i) * out%ls(2, i)
         k2(i, 3) = out%ln(1, i) * out%ln(2, i)
       else
@@ -289,12 +289,12 @@ contains
       rdispl = rdispl + recvsize
     enddo
 
-    call self%pack_kernel%create(comm, send%counts, base_storage, transpose_id, kernel_type, k1)
+    call self%pack_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type, k1)
 
     self%is_pipelined = is_backend_pipelined(backend_id)
     kernel_type = KERNEL_UNPACK
     if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
-    call self%unpack_kernel%create(comm, recv%counts, base_storage, transpose_id, kernel_type, k2)
+    call self%unpack_kernel%create(comm, recv%counts, base_storage, transpose_type, kernel_type, k2)
 
     if ( is_backend_mpi(backend_id) ) then
       allocate( backend_mpi :: self%comm_handle )
@@ -371,11 +371,12 @@ contains
     get_aux_size = self%comm_handle%get_aux_size()
   end function get_aux_size
 
-  integer(int8) function get_tranpose_id(self)
-  !! Returns transpose_id, associated with handle
-  class(transpose_handle_cuda),   intent(in)    :: self       !< CUDA Transpose Handle
-    get_tranpose_id = self%transpose_id
-  end function get_tranpose_id
+  function get_tranpose_type(self) result(tranpose_type)
+  !! Returns transpose_type, associated with handle
+    class(transpose_handle_cuda),   intent(in)    :: self       !< CUDA Transpose Handle
+    type(dtfft_transpose_type_t)    :: tranpose_type
+    tranpose_type = self%transpose_type
+  end function get_tranpose_type
 
   subroutine set_aux(self, aux)
   !! Sets aux buffer to underlying communication handle

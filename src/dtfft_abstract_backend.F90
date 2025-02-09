@@ -28,7 +28,7 @@ use dtfft_nccl_interfaces
 use nccl
 #endif
 use dtfft_nvrtc_kernel,   only: nvrtc_kernel
-use dtfft_parameters,     only: FLOAT_STORAGE_SIZE, is_backend_pipelined, is_backend_mpi
+use dtfft_parameters
 use dtfft_utils,          only: int_to_str
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
@@ -48,7 +48,7 @@ public :: abstract_backend, backend_helper
 
   type, abstract :: abstract_backend
   !! The most Abstract GPU Backend
-    integer(int8)                     :: backend_id
+    type(dtfft_gpu_backend_t)         :: backend_id
     logical                           :: is_selfcopy
     logical                           :: is_pipelined
     real(real32), DEVICE_PTR  pointer :: aux(:)                 !< Auxiliary buffer used in pipelined algorithm
@@ -112,7 +112,7 @@ contains
   subroutine create(self, backend_id, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
   !! Creates Abstract GPU Backend
     class(abstract_backend),    intent(inout) :: self           !< Abstract GPU Backend
-    integer(int8),              intent(in)    :: backend_id
+    type(dtfft_gpu_backend_t),  intent(in)    :: backend_id
     type(backend_helper),       intent(in)    :: helper         !< Backend helper
     integer(int8),              intent(in)    :: comm_id        !< Id of communicator to use
     integer(int32),             intent(in)    :: send_displs(:) !< Send data displacements, in original elements

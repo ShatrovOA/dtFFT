@@ -101,7 +101,7 @@ public :: clean_unused_cache
     type(c_ptr)                   :: cuda_module = c_null_ptr !< Pointer to CUDA Module.
     type(c_ptr)                   :: cuda_kernel = c_null_ptr !< Pointer to CUDA kernel.
     integer(int8)                 :: kernel_type              !< Type of kernel to execute.
-    integer(int8)                 :: transpose_id             !< Type of transpose
+    type(dtfft_transpose_type_t)  :: transpose_type             !< Type of transpose
     integer(int32)                :: tile_size                !< Tile size of transpose kernel
     integer(int8)                 :: base_storage             !< Number of bytes needed to store single element
     logical                       :: has_inner_loop           !< If kernel has inner loop
@@ -182,22 +182,22 @@ contains
     num_blocks%z = 1
   end subroutine get_contiguous_execution_blocks
 
-  subroutine create(self, comm, dims, base_storage, transpose_id, kernel_type, pointers)
+  subroutine create(self, comm, dims, base_storage, transpose_type, kernel_type, pointers)
   !! Creates kernel
-    class(nvrtc_kernel),      intent(inout) :: self               !< nvRTC Compiled kernel class
-    TYPE_MPI_COMM,            intent(in)    :: comm               !< MPI Communicator
-    integer(int32), target,   intent(in)    :: dims(0:)           !< Global dimensions to process
-    integer(int8),            intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    integer(int8),            intent(in)    :: transpose_id       !< Type of transposition to perform
-    integer(int8),            intent(in)    :: kernel_type        !< Type of kernel to build
-    integer(int32), optional, intent(in)    :: pointers(:,:)      !< Optional pointers to unpack kernels
-    integer(int32)                          :: comm_size          !< Number of processes in current MPI communicator
-    integer(int32)                          :: mpi_ierr           !< Error code
-    integer(int32)                          :: tile_dim           !< Dimension to tile
-    integer(int32)                          :: other_dim          !< Dimension not used to tile
-    integer(int32)                          :: tile_size          !< Tile size
-    integer(int32)                          :: scaler             !< Scaler to adjust number of blocks
-    logical                                 :: has_inner_loop     !< If kernel has inner loop
+    class(nvrtc_kernel),          intent(inout) :: self               !< nvRTC Compiled kernel class
+    TYPE_MPI_COMM,                intent(in)    :: comm               !< MPI Communicator
+    integer(int32), target,       intent(in)    :: dims(0:)           !< Global dimensions to process
+    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type     !< Type of transposition to perform
+    integer(int8),                intent(in)    :: kernel_type        !< Type of kernel to build
+    integer(int32), optional,     intent(in)    :: pointers(:,:)      !< Optional pointers to unpack kernels
+    integer(int32)  :: comm_size          !< Number of processes in current MPI communicator
+    integer(int32)  :: mpi_ierr           !< Error code
+    integer(int32)  :: tile_dim           !< Dimension to tile
+    integer(int32)  :: other_dim          !< Dimension not used to tile
+    integer(int32)  :: tile_size          !< Tile size
+    integer(int32)  :: scaler             !< Scaler to adjust number of blocks
+    logical         :: has_inner_loop     !< If kernel has inner loop
 
     call self%destroy()
 
@@ -222,7 +222,7 @@ contains
     if ( kernel_type == KERNEL_UNPACK ) then
       call get_contiguous_execution_blocks(product(dims), self%num_blocks, self%block_size)
     else if ( (kernel_type == KERNEL_TRANSPOSE) .or. (kernel_type == KERNEL_TRANSPOSE_PACKED) ) then
-      if ( abs(transpose_id) == DTFFT_TRANSPOSE_X_TO_Y .or. transpose_id == DTFFT_TRANSPOSE_Z_TO_X ) then
+      if ( abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val .or. transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
         tile_dim = 1
         other_dim = 2
       else
@@ -261,7 +261,7 @@ contains
     if ( kernel_type == KERNEL_UNPACK ) then
       self%args%n_ints = 3
       self%args%ints(1) = product(dims)
-      if ( transpose_id == DTFFT_TRANSPOSE_Z_TO_X ) then
+      if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
         self%args%ints(2) = dims(0) * dims(1)
       else
         self%args%ints(2) = dims(0)
@@ -302,7 +302,7 @@ contains
       endif
     endif
 
-    self%cuda_kernel = compile_and_cache(comm, dims, transpose_id, kernel_type, base_storage, tile_size, has_inner_loop)
+    self%cuda_kernel = compile_and_cache(comm, dims, transpose_type, kernel_type, base_storage, tile_size, has_inner_loop)
     self%is_created = .true.
   end subroutine create
 
@@ -338,7 +338,7 @@ contains
       call get_contiguous_execution_blocks(self%pointers(source, 4), self%num_blocks, self%block_size)
     endif
 
-    CUDA_CALL( "cuLaunchKernel", run_cuda_kernel(self%cuda_kernel, c_loc(in), c_loc(out), self%num_blocks, self%block_size, stream, self%args) )
+    CUDA_CALL( "cuLaunchKernel", run_cuda_kernel(self%cuda_kernel, c_devloc(in), c_devloc(out), self%num_blocks, self%block_size, stream, self%args) )
     ! CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
   end subroutine execute
 
@@ -364,23 +364,23 @@ contains
     self%is_created = .false.
   end subroutine destroy
 
-  function get_cached_kernel(transpose_id, kernel_type, base_storage, tile_size, has_inner_loop) result(kernel)
+  function get_cached_kernel(transpose_type, kernel_type, base_storage, tile_size, has_inner_loop) result(kernel)
   !! Returns cached kernel if it exists.
   !! If not returns null pointer.
-    integer(int8),            intent(in)    :: transpose_id       !< Type of transposition to perform
-    integer(int8),            intent(in)    :: kernel_type        !< Type of kernel to build
-    integer(int8),            intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    integer(int32),           intent(in)    :: tile_size          !< Tile size
-    logical,                  intent(in)    :: has_inner_loop     !< If kernel has inner loop
-    type(c_ptr)                             :: kernel             !< Cached kernel
-    integer(int8)   :: transpose_id_    !< Fixed id of transposition
-    integer(int32)  :: i                !< Counter
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type       !< Type of transposition to perform
+    integer(int8),                intent(in)    :: kernel_type        !< Type of kernel to build
+    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
+    integer(int32),               intent(in)    :: tile_size          !< Tile size
+    logical,                      intent(in)    :: has_inner_loop     !< If kernel has inner loop
+    type(c_ptr)                   :: kernel             !< Cached kernel
+    type(dtfft_transpose_type_t)  :: transpose_type_    !< Fixed id of transposition
+    integer(int32)                :: i                !< Counter
 
     kernel = c_null_ptr
-    transpose_id_ = get_true_transpose_id(transpose_id)
+    transpose_type_ = get_true_transpose_type(transpose_type)
     if ( .not. allocated(cache) ) return
     do i = 1, cache_size
-      if ( cache(i)%transpose_id == transpose_id_         &
+      if ( cache(i)%transpose_type == transpose_type_         &
      .and. cache(i)%kernel_type == kernel_type            &
      .and. cache(i)%base_storage == base_storage          &
      .and. cache(i)%tile_size == tile_size                &
@@ -394,29 +394,29 @@ contains
     end do
   end function get_cached_kernel
 
-  function get_true_transpose_id(transpose_id) result(transpose_id_)
+  function get_true_transpose_type(transpose_type) result(transpose_type_)
   !! Returns generic transpose id.
   !! Since X-Y and Y-Z transpositions are symmectric, it returns only one of them.
   !! X-Z and Z-X are not symmetric
-    integer(int8),            intent(in)    :: transpose_id       !< Type of transposition to perform
-    integer(int8)                           :: transpose_id_      !< Fixed id of transposition
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type       !< Type of transposition to perform
+    type(dtfft_transpose_type_t)                :: transpose_type_      !< Fixed id of transposition
 
-    if ( transpose_id == DTFFT_TRANSPOSE_X_TO_Z .or. transpose_id == DTFFT_TRANSPOSE_Z_TO_X ) then
-      transpose_id_ = transpose_id
+    if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z .or. transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
+      transpose_type_ = transpose_type
     else
-      transpose_id_ = abs(transpose_id)
+      transpose_type_%val = abs(transpose_type%val)
     endif
-  end function get_true_transpose_id
+  end function get_true_transpose_type
 
-  function compile_and_cache(comm, dims, transpose_id, kernel_type, base_storage, tile_size, has_inner_loop) result(kernel)
+  function compile_and_cache(comm, dims, transpose_type, kernel_type, base_storage, tile_size, has_inner_loop) result(kernel)
   !! Compiles kernel and caches it. Returns compiled kernel.
-    TYPE_MPI_COMM,            intent(in)    :: comm               !< MPI Communicator
-    integer(int32), target,   intent(in)    :: dims(:)            !< Global dimensions to process
-    integer(int8),            intent(in)    :: transpose_id       !< Type of transposition to perform
-    integer(int8),            intent(in)    :: kernel_type        !< Type of kernel to build
-    integer(int8),            intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    integer(int32),           intent(in)    :: tile_size          !< Tile size
-    logical,                  intent(in)    :: has_inner_loop     !< If kernel has inner loop
+    TYPE_MPI_COMM,                intent(in)    :: comm               !< MPI Communicator
+    integer(int32), target,       intent(in)    :: dims(:)            !< Global dimensions to process
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type     !< Type of transposition to perform
+    integer(int8),                intent(in)    :: kernel_type        !< Type of kernel to build
+    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
+    integer(int32),               intent(in)    :: tile_size          !< Tile size
+    logical,                      intent(in)    :: has_inner_loop     !< If kernel has inner loop
     type(c_ptr)                             :: kernel             !< Compiled kernel to return
     type(nvrtc_cache),        allocatable   :: temp(:)            !< Temporary cache
     integer(int32)                          :: i                  !< Counter
@@ -426,7 +426,7 @@ contains
     type(string),   target,   allocatable   :: options(:)         !< Compilation options
     type(c_ptr),              allocatable   :: c_options(:)       !< C style, null-string terminated options
     integer(int32)                          :: num_options        !< Number of compilation options
-    integer(int8)                           :: transpose_id_      !< Fixed id of transposition
+    type(dtfft_transpose_type_t)            :: transpose_type_      !< Fixed id of transposition
     integer(int32)                          :: device_id          !< Current device number
     type(cudaDeviceProp)                    :: prop               !< Current device properties
     integer(int32)                          :: ierr               !< Error code
@@ -436,7 +436,7 @@ contains
     character(c_char),        allocatable   :: cubin(:)           !< Compiled binary
 
     ! Check if kernel already been compiled
-    kernel = get_cached_kernel(transpose_id, kernel_type, base_storage, tile_size, has_inner_loop)
+    kernel = get_cached_kernel(transpose_type, kernel_type, base_storage, tile_size, has_inner_loop)
     if ( c_associated(kernel) ) return
 
     PHASE_BEGIN("Building nvRTC kernel", COLOR_EXECUTE)
@@ -458,18 +458,18 @@ contains
       deallocate( temp )
     endif
 
-    transpose_id_ = get_true_transpose_id(transpose_id)
+    transpose_type_ = get_true_transpose_type(transpose_type)
 
     kernel_name = DEFAULT_KERNEL_NAME // "_"
     if ( kernel_type == KERNEL_TRANSPOSE .or. kernel_type == KERNEL_TRANSPOSE_PACKED ) then
-      select case ( transpose_id_ )
-      case ( DTFFT_TRANSPOSE_X_TO_Y )
+      select case ( transpose_type_%val )
+      case ( DTFFT_TRANSPOSE_X_TO_Y%val )
         kernel_name = kernel_name // "xy"
-      case ( DTFFT_TRANSPOSE_X_TO_Z )
+      case ( DTFFT_TRANSPOSE_X_TO_Z%val )
         kernel_name = kernel_name // "xz"
-      case ( DTFFT_TRANSPOSE_Z_TO_X )
+      case ( DTFFT_TRANSPOSE_Z_TO_X%val )
         kernel_name = kernel_name // "zx"
-      case ( DTFFT_TRANSPOSE_Y_TO_Z )
+      case ( DTFFT_TRANSPOSE_Y_TO_Z%val )
         kernel_name = kernel_name // "yz"
       endselect
     else
@@ -481,7 +481,7 @@ contains
     else if ( kernel_type == KERNEL_UNPACK_PIPELINED ) then
       code = get_unpack_pipelined_kernel_code(kernel_name, base_storage)
     else
-      code = get_transpose_kernel_code(kernel_name, size(dims, kind=int8), base_storage, transpose_id, kernel_type == KERNEL_TRANSPOSE_PACKED, has_inner_loop)
+      code = get_transpose_kernel_code(kernel_name, size(dims, kind=int8), base_storage, transpose_type, kernel_type == KERNEL_TRANSPOSE_PACKED, has_inner_loop)
     endif
     call code%to_cstr(c_code)
 
@@ -542,7 +542,7 @@ contains
     cache(cache_size)%base_storage = base_storage
     cache(cache_size)%kernel_type = kernel_type
     cache(cache_size)%tile_size = tile_size
-    cache(cache_size)%transpose_id = transpose_id_
+    cache(cache_size)%transpose_type = transpose_type_
     cache(cache_size)%has_inner_loop = has_inner_loop
     cache(cache_size)%ref_count = 1
 
@@ -592,7 +592,7 @@ contains
         cache(i)%base_storage = 0
         cache(i)%kernel_type = 0
         cache(i)%tile_size = -1
-        cache(i)%transpose_id = 0
+        cache(i)%transpose_type%val = 0
       endif
     enddo
     if ( all( cache(:)%ref_count == 0 ) ) then
@@ -658,14 +658,14 @@ contains
     deallocate(buffer_type_)
   end subroutine get_code_init
 
-  function get_transpose_kernel_code(kernel_name, ndims, base_storage, transpose_id, enable_packing, enable_multiprocess) result(code)
+  function get_transpose_kernel_code(kernel_name, ndims, base_storage, transpose_type, enable_packing, enable_multiprocess) result(code)
   !! Generates code that will be used to locally tranpose data and prepares to send it to other processes
-    character(len=*),   intent(in)  :: kernel_name              !< Name of CUDA kernel
-    integer(int8),      intent(in)  :: ndims                    !< Number of dimensions
-    integer(int8),      intent(in)  :: base_storage             !< Number of bytes needed to store single element
-    integer(int8),      intent(in)  :: transpose_id             !< Transpose id
-    logical,            intent(in)  :: enable_packing           !< If data should be manually packed or not
-    logical,            intent(in)  :: enable_multiprocess      !< If thread should process more then one element
+    character(len=*),               intent(in)  :: kernel_name              !< Name of CUDA kernel
+    integer(int8),                  intent(in)  :: ndims                    !< Number of dimensions
+    integer(int8),                  intent(in)  :: base_storage             !< Number of bytes needed to store single element
+    type(dtfft_transpose_type_t),   intent(in)  :: transpose_type           !< Transpose id
+    logical,                        intent(in)  :: enable_packing           !< If data should be manually packed or not
+    logical,                        intent(in)  :: enable_multiprocess      !< If thread should process more then one element
     type(kernel_code)               :: code                     !< Resulting code
     character(len=:),   allocatable :: buffer_type              !< Type of buffer that should be used
     character(len=2) :: temp                                    !< Temporary string
@@ -712,13 +712,13 @@ contains
         call code%add_line("int target_count = local_counts[neighbor_idx];")
       endif
       if ( enable_multiprocess ) then
-        if ( abs(transpose_id) == DTFFT_TRANSPOSE_X_TO_Y .or. transpose_id == DTFFT_TRANSPOSE_Z_TO_X ) then
+        if ( abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val .or. transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
           call code%add_line(" for (int z = blockIdx.z; z < nz; z += gridDim.z) { ")
         else
           call code%add_line(" for (int z = blockIdx.z; z < ny; z += gridDim.z) { ")
         endif
       endif
-      if ( abs(transpose_id) == DTFFT_TRANSPOSE_X_TO_Y .or. transpose_id == DTFFT_TRANSPOSE_Z_TO_X ) then
+      if ( abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val .or. transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
         call code%add_line("ind_in = x_in + (y_in + z * ny) * nx;")
       else
         call code%add_line("ind_in = x_in + (z + y_in * ny) * nx;")
@@ -726,14 +726,14 @@ contains
       if ( enable_packing ) then
         call code%add_line("ind_out = shift_out + (z * ny * target_count) + x_out * ny + y_out;")
       else
-        select case ( transpose_id )
-        case ( DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_X )
+        select case ( transpose_type%val )
+        case ( DTFFT_TRANSPOSE_X_TO_Y%val, DTFFT_TRANSPOSE_Y_TO_X%val )
           call code%add_line("ind_out = y_out + (x_out + z * nx) * ny;")
-        case ( DTFFT_TRANSPOSE_X_TO_Z )
+        case ( DTFFT_TRANSPOSE_X_TO_Z%val )
           call code%add_line("ind_out = y_out + (x_out + z * nx) * nz;")
-        case ( DTFFT_TRANSPOSE_Z_TO_X )
+        case ( DTFFT_TRANSPOSE_Z_TO_X%val )
           call code%add_line("ind_out = y_out + (z + x_out * nz) * ny;")
-        case ( DTFFT_TRANSPOSE_Y_TO_Z, DTFFT_TRANSPOSE_Z_TO_Y )
+        case ( DTFFT_TRANSPOSE_Y_TO_Z%val, DTFFT_TRANSPOSE_Z_TO_Y%val )
           call code%add_line("ind_out = y_out + (z + x_out * ny) * nz;")
         endselect
       endif
@@ -741,7 +741,7 @@ contains
       call code%add_line("ind_in = x_in + y_in * nx;")
       call code%add_line("ind_out = y_out + x_out * ny;")
     endif
-    if ( abs(transpose_id) == DTFFT_TRANSPOSE_X_TO_Y .or. transpose_id == DTFFT_TRANSPOSE_Z_TO_X ) then
+    if ( abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val .or. transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
       temp = "ny"
     else
       temp = "nz"

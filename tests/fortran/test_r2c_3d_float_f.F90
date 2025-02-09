@@ -40,11 +40,12 @@ implicit none
   integer(I4P), parameter :: nx = 16, ny = 8, nz = 4
 #endif
   integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(3)
   integer(c_size_t) :: alloc_size
   real(R8P) :: tf, tb
+  type(dtfft_config_t) :: conf
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
 #endif
@@ -68,6 +69,8 @@ implicit none
   call MPI_Finalize(ierr)
   stop
 #endif
+
+  call dtfft_create_config(conf)
 
 #ifdef _OPENACC
   block
@@ -98,14 +101,14 @@ implicit none
   executor_type = DTFFT_EXECUTOR_CUFFT
 #elif defined(DTFFT_WITH_VKFFT)
   executor_type = DTFFT_EXECUTOR_VKFFT
-  call dtfft_disable_z_slab()
+  conf%enable_z_slab = .false.
 #endif
 
 #ifdef DTFFT_WITH_CUDA
-  ! call dtfft_disable_z_slab()
-  call dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_NCCL, error_code=ierr)
-  DTFFT_CHECK(ierr)
+  conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
 #endif
+
+  call dtfft_set_config(conf)
 
   call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type, error_code=ierr)
   DTFFT_CHECK(ierr)

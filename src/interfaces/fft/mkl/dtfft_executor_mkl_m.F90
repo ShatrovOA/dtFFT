@@ -25,7 +25,7 @@ use iso_c_binding,                only: c_int, c_long, c_ptr
 use dtfft_abstract_executor,      only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_interface_mkl_m
 use dtfft_interface_mkl_native_m
-use dtfft_parameters,             only: DTFFT_SUCCESS, DTFFT_FORWARD, DTFFT_BACKWARD, DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED, DTFFT_DOUBLE
+use dtfft_parameters
 use dtfft_utils,                  only: int_to_str
 #include "dtfft_mpi.h"
 implicit none
@@ -81,18 +81,18 @@ contains
 
   subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)
   !! Creates FFT plan via MKL DFTI Interface
-    class(mkl_executor),        intent(inout) :: self           !< MKL FFT Executor
-    integer(int8),              intent(in)    :: fft_rank       !< Rank of fft: 1 or 2
-    integer(int8),              intent(in)    :: fft_type       !< Type of fft: r2r, r2c, c2r, c2c
-    integer(int8),              intent(in)    :: precision      !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
-    integer(int32),             intent(in)    :: idist          !< Distance between the first element of two consecutive signals in a batch of the input data.
-    integer(int32),             intent(in)    :: odist          !< Distance between the first element of two consecutive signals in a batch of the output data.
-    integer(int32),             intent(in)    :: how_many       !< Number of transforms to create
-    integer(int32),             intent(in)    :: fft_sizes(:)   !< Dimensions of transform
-    integer(int32),             intent(in)    :: inembed(:)     !< Storage dimensions of the input data in memory.
-    integer(int32),             intent(in)    :: onembed(:)     !< Storage dimensions of the output data in memory.
-    integer(int32),             intent(inout) :: error_code     !< Error code to be returned to user
-    integer(int8),   optional,  intent(in)    :: r2r_kinds(:)   !< Kinds of r2r transform
+    class(mkl_executor),              intent(inout) :: self           !< MKL FFT Executor
+    integer(int8),                    intent(in)    :: fft_rank       !< Rank of fft: 1 or 2
+    integer(int8),                    intent(in)    :: fft_type       !< Type of fft: r2r, r2c, c2c
+    type(dtfft_precision_t),          intent(in)    :: precision      !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
+    integer(int32),                   intent(in)    :: idist          !< Distance between the first element of two consecutive signals in a batch of the input data.
+    integer(int32),                   intent(in)    :: odist          !< Distance between the first element of two consecutive signals in a batch of the output data.
+    integer(int32),                   intent(in)    :: how_many       !< Number of transforms to create
+    integer(int32),                   intent(in)    :: fft_sizes(:)   !< Dimensions of transform
+    integer(int32),                   intent(in)    :: inembed(:)     !< Storage dimensions of the input data in memory.
+    integer(int32),                   intent(in)    :: onembed(:)     !< Storage dimensions of the output data in memory.
+    integer(int32),                   intent(inout) :: error_code     !< Error code to be returned to user
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !< Kinds of r2r transform
     integer(int32) :: forward_domain, mkl_precision, i, idx
     integer(c_long) :: iprod, oprod, sizes(fft_rank)
 
@@ -147,7 +147,7 @@ contains
     integer(int8),        intent(in)  :: sign                 !< Sign of transform
 
     if ( self%need_reconfigure ) then
-      if ( sign == DTFFT_FORWARD ) then
+      if ( sign == FFT_FORWARD ) then
         MKL_DFTI_CALL( "DftiSetValue", mkl_dfti_set_value(self%plan_forward, DFTI_INPUT_DISTANCE, self%idist) )
         MKL_DFTI_CALL( "DftiSetValue", mkl_dfti_set_value(self%plan_forward, DFTI_OUTPUT_DISTANCE, self%odist) )
         MKL_DFTI_CALL( "DftiSetValue", mkl_dfti_set_value(self%plan_forward, DFTI_INPUT_STRIDES, self%istrides) )

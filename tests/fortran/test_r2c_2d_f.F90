@@ -40,7 +40,7 @@ implicit none
   integer(I4P), parameter :: nx = 64, ny = 32
 #endif
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb
@@ -78,14 +78,14 @@ implicit none
 
   call attach_gpu_to_process()
 
-  call plan%create([nx, ny], effort_flag=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr)
+  call plan%create([nx, ny], effort_type=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
 
 #ifdef DTFFT_WITH_CUDA
   block
-    integer(I1P) :: selected_backend
+    type(dtfft_gpu_backend_t) :: selected_backend
 
     selected_backend = plan%get_gpu_backend(error_code=ierr)
     DTFFT_CHECK(ierr)

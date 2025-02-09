@@ -161,8 +161,8 @@ interface
   !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
   import
     type(c_ptr),                  value :: func         !< Function CUfunction or Kernel CUkernel to launch
-    type(c_ptr),                  value :: in           !< Input pointer
-    type(c_ptr),                  value :: out          !< Output pointer
+    type(c_devptr),               value :: in           !< Input pointer
+    type(c_devptr),               value :: out          !< Output pointer
     type(dim3)                          :: blocks       !< Grid in blocks
     type(dim3)                          :: threads      !< Thread block
     integer(cuda_stream_kind),    value :: stream       !< Stream identifier

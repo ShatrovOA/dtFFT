@@ -22,7 +22,7 @@ module dtfft_abstract_executor
 use iso_c_binding,    only: c_loc, c_ptr, c_int, c_null_ptr, c_associated
 use iso_fortran_env,  only: int8, int32
 use dtfft_pencil,     only: pencil
-use dtfft_parameters, only: DTFFT_SUCCESS, DTFFT_FORWARD, DTFFT_BACKWARD, COLOR_FFT
+use dtfft_parameters
 use dtfft_utils
 #include "dtfft_profile.h"
 #include "dtfft_cuda.h"
@@ -57,18 +57,18 @@ public :: abstract_executor
     subroutine create_interface(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)
     !! Creates FFT plan
     import
-      class(abstract_executor), intent(inout) :: self           !< FFT Executor
-      integer(int8),            intent(in)    :: fft_rank       !< Rank of fft: 1 or 2
-      integer(int8),            intent(in)    :: fft_type       !< Type of fft: r2r, r2c, c2r, c2c
-      integer(int8),            intent(in)    :: precision      !< Precision of fft: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
-      integer(int32),           intent(in)    :: idist          !< Distance between the first element of two consecutive signals in a batch of the input data.
-      integer(int32),           intent(in)    :: odist          !< Distance between the first element of two consecutive signals in a batch of the output data.
-      integer(int32),           intent(in)    :: how_many       !< Number of transforms to create
-      integer(int32),           intent(in)    :: fft_sizes(:)   !< Dimensions of transform
-      integer(int32),           intent(in)    :: inembed(:)     !< Storage dimensions of the input data in memory.
-      integer(int32),           intent(in)    :: onembed(:)     !< Storage dimensions of the output data in memory.
-      integer(int32),           intent(inout) :: error_code     !< Error code to be returned to user
-      integer(int8), optional,  intent(in)    :: r2r_kinds(:)   !< Kinds of r2r transform
+      class(abstract_executor),         intent(inout) :: self           !< FFT Executor
+      integer(int8),                    intent(in)    :: fft_rank       !< Rank of fft: 1 or 2
+      integer(int8),                    intent(in)    :: fft_type       !< Type of fft: r2r, r2c, c2c
+      type(dtfft_precision_t),          intent(in)    :: precision      !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
+      integer(int32),                   intent(in)    :: idist          !< Distance between the first element of two consecutive signals in a batch of the input data.
+      integer(int32),                   intent(in)    :: odist          !< Distance between the first element of two consecutive signals in a batch of the output data.
+      integer(int32),                   intent(in)    :: how_many       !< Number of transforms to create
+      integer(int32),                   intent(in)    :: fft_sizes(:)   !< Dimensions of transform
+      integer(int32),                   intent(in)    :: inembed(:)     !< Storage dimensions of the input data in memory.
+      integer(int32),                   intent(in)    :: onembed(:)     !< Storage dimensions of the output data in memory.
+      integer(int32),                   intent(inout) :: error_code     !< Error code to be returned to user
+      type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !< Kinds of r2r transform
     end subroutine create_interface
 
     subroutine execute_interface(self, a, b, sign)
@@ -90,19 +90,19 @@ public :: abstract_executor
 contains
   integer(int32) function create(self, fft_rank, fft_type, precision, real_pencil, complex_pencil, r2r_kinds)
   !! Creates FFT plan
-    class(abstract_executor),   intent(inout) :: self             !< FFT Executor
-    integer(int8),              intent(in)    :: fft_rank         !< Rank of fft: 1 or 2
-    integer(int8),              intent(in)    :: fft_type         !< Type of fft: r2r, r2c, c2c
-    integer(int8),              intent(in)    :: precision        !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
-    type(pencil),   optional,   intent(in)    :: real_pencil      !< Real data layout
-    type(pencil),   optional,   intent(in)    :: complex_pencil   !< Complex data layout
-    integer(int8),  optional,   intent(in)    :: r2r_kinds(:)     !< Kinds of r2r transform
-    integer(int32),             allocatable   :: fft_sizes(:)     !< Dimensions of transform
-    integer(int32),             allocatable   :: inembed(:)       !< 
-    integer(int32),             allocatable   :: onembed(:)       !< 
-    integer(int32)                            :: idist            !< Distance between the first element of two consecutive signals in a batch of the input data.
-    integer(int32)                            :: odist            !< Distance between the first element of two consecutive signals in a batch of the output data.
-    integer(int32)                            :: how_many         !< Number of transforms to create
+    class(abstract_executor),           intent(inout) :: self             !< FFT Executor
+    integer(int8),                      intent(in)    :: fft_rank         !< Rank of fft: 1 or 2
+    integer(int8),                      intent(in)    :: fft_type         !< Type of fft: r2r, r2c, c2c
+    type(dtfft_precision_t),            intent(in)    :: precision        !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
+    type(pencil),           optional,   intent(in)    :: real_pencil      !< Real data layout
+    type(pencil),           optional,   intent(in)    :: complex_pencil   !< Complex data layout
+    type(dtfft_r2r_kind_t), optional,   intent(in)    :: r2r_kinds(:)     !< Kinds of r2r transform
+    integer(int32),         allocatable   :: fft_sizes(:)     !< Dimensions of transform
+    integer(int32),         allocatable   :: inembed(:)       !< 
+    integer(int32),         allocatable   :: onembed(:)       !< 
+    integer(int32)                        :: idist            !< Distance between the first element of two consecutive signals in a batch of the input data.
+    integer(int32)                        :: odist            !< Distance between the first element of two consecutive signals in a batch of the output data.
+    integer(int32)                        :: how_many         !< Number of transforms to create
 
     create = DTFFT_SUCCESS
     if ( self%is_created .and. .not.c_associated(self%plan_forward, c_null_ptr) .and. .not.c_associated(self%plan_backward, c_null_ptr) ) return

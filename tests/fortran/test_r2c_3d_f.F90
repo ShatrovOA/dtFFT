@@ -31,7 +31,7 @@ implicit none
   real(R8P) :: local_error, rnd
   integer(I4P), parameter :: nx = 256, ny = 256, nz = 4
   integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   type(dtfft_plan_r2c) :: plan
   integer(I4P) :: in_counts(3)
   integer(c_size_t) :: alloc_size
@@ -63,7 +63,7 @@ implicit none
   executor_type = DTFFT_EXECUTOR_FFTW3
 #endif
 
-  call plan%create([nx, ny, nz], executor_type=executor_type, effort_flag=DTFFT_MEASURE)
+  call plan%create([nx, ny, nz], executor_type=executor_type, effort_type=DTFFT_MEASURE)
 
   call plan%get_local_sizes(in_counts = in_counts, alloc_size=alloc_size)
 

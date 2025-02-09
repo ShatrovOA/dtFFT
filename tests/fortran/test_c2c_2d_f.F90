@@ -34,7 +34,8 @@ implicit none
   type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb
-  integer(I1P) :: executor_type = DTFFT_EXECUTOR_NONE
+  type(dtfft_executor_t) :: executor_type = DTFFT_EXECUTOR_NONE
+  type(dtfft_config_t) :: conf
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
 #endif
@@ -80,12 +81,16 @@ implicit none
   endblock
 #endif
 
-#ifdef DTFFT_WITH_CUDA
-call dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_NCCL)
-#endif
+  call dtfft_create_config(conf)
 
-  call plan%create([nx, ny], effort_flag=DTFFT_MEASURE, executor_type=executor_type, error_code=ierr); DTFFT_CHECK(ierr)
+#ifdef DTFFT_WITH_CUDA
+  conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
+#endif
+  call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
+
+  call plan%create([nx, ny], effort_type=DTFFT_MEASURE, executor_type=executor_type, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
 
 #ifdef DTFFT_WITH_CUDA
   stream = plan%get_stream()

@@ -109,7 +109,7 @@ contains
     integer(int32),               allocatable   :: send_counts(:,:)   !< Each processor should know how much data each processor sends
     integer(int32)                              :: i                  !< Counter
     integer(int32)                              :: ierr               !< Error code
-    integer(int8)                               :: transpose_id       !< Transpose plan id
+    type(dtfft_transpose_type_t)                :: transpose_id       !< Transpose plan id
 
     self%comm = comm
     call MPI_Comm_size(self%comm, comm_size, ierr)
@@ -134,11 +134,11 @@ contains
     else
       transpose_id = get_transpose_id(send, recv)
 
-      if ( abs(transpose_id) == DTFFT_TRANSPOSE_X_TO_Y ) then
+      if ( abs(transpose_id%val) == DTFFT_TRANSPOSE_X_TO_Y%val ) then
         do i = 1, n_neighbors
           call self%create_transpose_XY(n_neighbors, i, send, send_counts(:,i), recv, recv_counts(:,i), datatype_id, base_type, base_storage)
         enddo
-      elseif ( abs(transpose_id) == DTFFT_TRANSPOSE_Y_TO_Z )then
+      elseif ( abs(transpose_id%val) == DTFFT_TRANSPOSE_Y_TO_Z%val )then
         do i = 1, n_neighbors
           call self%create_transpose_YZ(n_neighbors, i, send, send_counts(:,i), recv, recv_counts(:,i), datatype_id, base_type, base_storage)
         enddo

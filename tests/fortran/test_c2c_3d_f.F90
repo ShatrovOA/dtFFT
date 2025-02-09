@@ -38,15 +38,16 @@ implicit none
   integer(I4P), parameter :: nx = 129, ny = 123, nz = 33
 #endif
   integer(I4P) :: comm_size, comm_rank, i, j, k, ierr, ii, jj, kk, idx
-  integer(I1P) :: executor_type
+  type(dtfft_executor_t) :: executor_type
   type(dtfft_plan_c2c) :: plan
   integer(I4P) :: in_counts(3), out_counts(3), iter
   integer(I8P)  :: alloc_size
   real(R8P) :: ts, tf, tb
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
-  integer(I1P) :: selected_backend
+  type(dtfft_gpu_backend_t) :: selected_backend
 #endif
+  type(dtfft_config_t) :: conf
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -71,6 +72,8 @@ implicit none
   executor_type = DTFFT_EXECUTOR_NONE
 #endif
 
+  call dtfft_create_config(conf)
+
 #ifdef DTFFT_WITH_CUDA
   block
     use openacc
@@ -90,14 +93,14 @@ implicit none
     ! print*,'setting device',comm_rank,my_device
     call acc_set_device_num(my_device, acc_device_nvidia)
 
-    call dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_MPI_A2A, error_code=ierr)
-    DTFFT_CHECK(ierr)
+    conf%gpu_backend = DTFFT_GPU_BACKEND_MPI_A2A
   endblock
 #endif
 
-  ! Setting effort_flag=DTFFT_PATIENT will override call to `dtfft_set_gpu_backend`
+  call dtfft_set_config(conf)
+  ! Setting effort_type=DTFFT_PATIENT will ignore value of `conf%gpu_backend` and will run autotune to find best backend
   ! Fastest backend will be selected
-  call plan%create([nx, ny, nz], executor_type=executor_type, effort_flag=DTFFT_PATIENT, error_code=ierr)
+  call plan%create([nx, ny, nz], executor_type=executor_type, effort_type=DTFFT_PATIENT, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)

@@ -26,7 +26,7 @@
   } while (0)
 
 
-void vkfft_create(const int8_t rank, const int *dims, const int8_t precision, const int how_many,
+void vkfft_create(const int8_t rank, const int *dims, const int32_t precision, const int how_many,
                   const int8_t r2c, const int8_t c2r, const int8_t dct, const int8_t dst, cudaStream_t stream, VkFFTApplication **app_handle) {
   VkFFTConfiguration config = {};
   VkFFTApplication* app = (VkFFTApplication*)calloc(1, sizeof(VkFFTApplication));

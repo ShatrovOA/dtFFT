@@ -30,28 +30,26 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
     printf("----------------------------------------\n");
   }
 
-  if ( enable_z_slab ) {
-    dtfft_enable_z_slab();
-  } else {
-    dtfft_disable_z_slab();
-  }
+  dtfft_config_t conf;
 
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
-  // dtfft_disable_pipelined_backends();
-  // dtfft_enable_mpi_backends();
-  dtfft_set_gpu_backend(DTFFT_GPU_BACKEND_NCCL);
+  dtfft_create_config(&conf);
+
+  conf.enable_z_slab = enable_z_slab;
+  conf.gpu_backend = DTFFT_GPU_BACKEND_NCCL;
+
+  dtfft_set_config(conf);
 
   double create_time = -MPI_Wtime();
   // Create plan
   if ( c2c ) {
-    DTFFT_CALL( dtfft_create_plan_c2c(3, n, MPI_COMM_WORLD, precision, DTFFT_MEASURE, executor_type, &plan) );
+    DTFFT_CALL( dtfft_create_plan_c2c(3, n, MPI_COMM_WORLD, precision, DTFFT_MEASURE, DTFFT_EXECUTOR_NONE, &plan) );
   } else {
-    DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, precision, DTFFT_MEASURE, executor_type, &plan) );
+    DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, precision, DTFFT_MEASURE, DTFFT_EXECUTOR_NONE, &plan) );
   }
 
   if ( enable_z_slab ) {
     bool is_z_slab;
-    dtfft_get_z_slab(plan, &is_z_slab);
+    dtfft_get_z_slab_enabled(plan, &is_z_slab);
 
     if ( !is_z_slab ) {
       dtfft_destroy(&plan);

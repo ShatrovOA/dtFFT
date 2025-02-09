@@ -55,22 +55,22 @@ contains
     DTFFT_GET_MPI_VALUE(get_comm) = c_comm
   end function get_comm
 
-  function dtfft_create_plan_r2r_c(ndims, dims, kinds, comm, precision, effort_flag, executor_type, plan_ptr)       &
+  function dtfft_create_plan_r2r_c(ndims, dims, kinds, comm, precision, effort_type, executor_type, plan_ptr)       &
     result(error_code)                                                                                              &
     bind(C)
   !! Creates R2R dtFFT Plan, allocates all structures and prepares FFT, C/C++/Python interface
-    integer(c_int8_t),  intent(in)                :: ndims                !< Rank of transform. Can be 2 or 3.
-    type(c_ptr),                        value     :: dims                 !< Global sizes of transform
-    type(c_ptr),                        value     :: kinds                !< FFT R2R kinds
-    integer(c_int32_t),                 value     :: comm                 !< Communicator
-    integer(c_int8_t),  intent(in)                :: precision            !< Precision of transform
-    integer(c_int8_t),  intent(in)                :: effort_flag          !< DTFFT planner effort flag
-    integer(c_int8_t),  intent(in)                :: executor_type        !< Type of External FFT Executor
-    type(c_ptr),        intent(out)               :: plan_ptr             !< C pointer to Fortran plan
+    integer(c_int8_t),              intent(in)    :: ndims                !< Rank of transform. Can be 2 or 3.
+    type(c_ptr),            value,  intent(in)    :: dims                 !< Global sizes of transform
+    type(c_ptr),            value,  intent(in)    :: kinds                !< FFT R2R kinds
+    integer(c_int32_t),     value,  intent(in)    :: comm                 !< Communicator
+    type(dtfft_precision_t),        intent(in)    :: precision            !< Precision of transform
+    type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort type
+    type(dtfft_executor_t),         intent(in)    :: executor_type        !< Type of External FFT Executor
+    type(c_ptr),                    intent(out)   :: plan_ptr             !< C pointer to Fortran plan
     integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
                                                                           !< defines API call result codes.
     integer(int32),                     pointer   :: fdims(:)             !< Fortran dims
-    integer(int8),                      pointer   :: fkinds(:)            !< Fortran R2R kinds
+    type(dtfft_r2r_kind_t),             pointer   :: fkinds(:)            !< Fortran R2R kinds
     type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
 
     allocate(plan)
@@ -81,22 +81,22 @@ contains
 
     select type( p => plan%p )
     type is ( dtfft_plan_r2r )
-      call p%create(fdims, fkinds, get_comm(comm), precision, effort_flag, executor_type, error_code)
+      call p%create(fdims, fkinds, get_comm(comm), precision, effort_type, executor_type, error_code)
     endselect
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_r2r_c
 
-  function dtfft_create_plan_c2c_c(ndims, dims, comm, precision, effort_flag, executor_type, plan_ptr)              &
+  function dtfft_create_plan_c2c_c(ndims, dims, comm, precision, effort_type, executor_type, plan_ptr)              &
     result(error_code)                                                                                              &
     bind(C)
   !! Creates C2C dtFFT Plan, allocates all structures and prepares FFT, C/C++ interface
-    integer(c_int8_t),  intent(in)                :: ndims                !< Rank of transform. Can be 2 or 3.
-    type(c_ptr),                        value     :: dims                 !< Global sizes of transform
-    integer(c_int32_t),                 value     :: comm                 !< Communicator
-    integer(c_int8_t),  intent(in)                :: precision            !< Precision of transform
-    integer(c_int8_t),  intent(in)                :: effort_flag          !< DTFFT planner effort flag
-    integer(c_int8_t),  intent(in)                :: executor_type        !< Type of External FFT Executor
-    type(c_ptr),        intent(out)               :: plan_ptr             !< C pointer to Fortran plan
+    integer(c_int8_t),              intent(in)    :: ndims                !< Rank of transform. Can be 2 or 3.
+    type(c_ptr),            value,  intent(in)    :: dims                 !< Global sizes of transform
+    integer(c_int32_t),     value,  intent(in)    :: comm                 !< Communicator
+    type(dtfft_precision_t),        intent(in)    :: precision            !< Precision of transform
+    type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort type
+    type(dtfft_executor_t),         intent(in)    :: executor_type        !< Type of External FFT Executor
+    type(c_ptr),                    intent(out)   :: plan_ptr             !< C pointer to Fortran plan
     integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
                                                                           !< defines API call result codes.
     integer(int32),                     pointer   :: fdims(:)             !< Fortran dims
@@ -109,23 +109,23 @@ contains
 
     select type(p => plan%p)
     class is (dtfft_plan_c2c)
-      call p%create(fdims, get_comm(comm), precision, effort_flag, executor_type, error_code)
+      call p%create(fdims, get_comm(comm), precision, effort_type, executor_type, error_code)
     endselect
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_c2c_c
 
 #ifndef DTFFT_TRANSPOSE_ONLY
-  function dtfft_create_plan_r2c_c(ndims, dims, comm, precision, effort_flag, executor_type, plan_ptr)              &
+  function dtfft_create_plan_r2c_c(ndims, dims, comm, precision, effort_type, executor_type, plan_ptr)              &
     result(error_code)                                                                                              &
     bind(C)
   !! Creates R2C dtFFT Plan, allocates all structures and prepares FFT, C/C++/Python interface
-    integer(c_int8_t),  intent(in)                :: ndims                !< Rank of transform. Can be 2 or 3.
-    type(c_ptr),                        value     :: dims                 !< Global sizes of transform
-    integer(c_int32_t),                 value     :: comm                 !< Communicator
-    integer(c_int8_t),  intent(in)                :: precision            !< Precision of transform
-    integer(c_int8_t),  intent(in)                :: effort_flag          !< DTFFT planner effort flag
-    integer(c_int8_t),  intent(in)                :: executor_type        !< Type of External FFT Executor
-    type(c_ptr),        intent(out)               :: plan_ptr             !< C pointer to Fortran plan
+    integer(c_int8_t),              intent(in)    :: ndims                !< Rank of transform. Can be 2 or 3.
+    type(c_ptr),            value,  intent(in)    :: dims                 !< Global sizes of transform
+    integer(c_int32_t),     value,  intent(in)    :: comm                 !< Communicator
+    type(dtfft_precision_t),        intent(in)    :: precision            !< Precision of transform
+    type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort type
+    type(dtfft_executor_t),         intent(in)    :: executor_type        !< Type of External FFT Executor
+    type(c_ptr),                    intent(out)   :: plan_ptr             !< C pointer to Fortran plan
     integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
                                                                           !< defines API call result codes.
     integer(int32),                     pointer   :: fdims(:)             !< Fortran dims
@@ -138,35 +138,35 @@ contains
 
     select type(p => plan%p)
     class is (dtfft_plan_r2c)
-      call p%create(fdims, get_comm(comm), precision, effort_flag, executor_type, error_code)
+      call p%create(fdims, get_comm(comm), precision, effort_type, executor_type, error_code)
     endselect
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_r2c_c
 #endif
 
-  function dtfft_get_z_slab_c(plan_ptr, is_zlab)                                                                    &
+  function dtfft_get_z_slab_enabled_c(plan_ptr, is_z_slab_enabled)                                                  &
     result(error_code)                                                                                              &
     bind(C)
   !! Checks if dtFFT Plan is using Z-slab optimization
     type(c_ptr),        intent(in),     value     :: plan_ptr             !< C pointer to Fortran plan
-    logical(c_bool),    intent(out)               :: is_zlab              !< Is plan internally using Z-slab optimization
+    logical(c_bool),    intent(out)               :: is_z_slab_enabled    !< Is plan internally using Z-slab optimization
     integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
                                                                           !< defines API call result codes.
     type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr)
     call c_f_pointer(plan_ptr, plan)
-    is_zlab = plan%p%get_z_slab(error_code)
-  end function dtfft_get_z_slab_c
+    is_z_slab_enabled = plan%p%get_z_slab_enabled(error_code)
+  end function dtfft_get_z_slab_enabled_c
 
-  function dtfft_execute_c(plan_ptr, in, out, execute_type, aux)                                                  &
+  function dtfft_execute_c(plan_ptr, in, out, execute_type, aux)                                                    &
     result(error_code)                                                                                              &
     bind(C)
   !! Executes dtFFT Plan, C/C++/Python interface. `Aux` can be NULL. If `in` or `out` are NULL, bad things will happen.
     type(c_ptr),        intent(in),     value     :: plan_ptr             !< C pointer to Fortran plan
     real(c_float),  DEVICE_PTR    intent(inout)   :: in(*)                !< Incomming buffer, not NULL
     real(c_float),  DEVICE_PTR    intent(inout)   :: out(*)               !< Outgoing buffer
-    integer(c_int8_t),  intent(in)                :: execute_type       !< Type of execution,
+    type(dtfft_execute_type_t),   intent(in)      :: execute_type         !< Type of execution,
                                                                           !< one of ``DTFFT_TRANSPOSE_OUT``, ``DTFFT_TRANSPOSE_IN``
     real(c_float),      intent(inout),  optional  :: aux(*)               !< Aux buffer, can be NULL
     integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
@@ -182,10 +182,10 @@ contains
     result(error_code)                                                                                              &
     bind(C)
   !! Executes single transposition, C interface.
-    type(c_ptr),        intent(in),     value     :: plan_ptr             !< C pointer to Fortran plan
+    type(c_ptr),        value,      intent(in)    :: plan_ptr             !< C pointer to Fortran plan
     real(c_float),      DEVICE_PTR  intent(inout) :: in(*)                !< Incomming buffer, not NULL
     real(c_float),      DEVICE_PTR  intent(inout) :: out(*)               !< Outgoing buffer, not NULL
-    integer(c_int8_t),  intent(in)                :: transpose_type       !< Type of transposition. One of the:
+    type(dtfft_transpose_type_t),   intent(in)    :: transpose_type       !< Type of transposition. One of the:
                                                                           !< - `DTFFT_TRANSPOSE_X_TO_Y`
                                                                           !< - `DTFFT_TRANSPOSE_Y_TO_X`
                                                                           !< - `DTFFT_TRANSPOSE_Y_TO_Z` (only for 3d plan)
@@ -269,31 +269,29 @@ contains
     pencil = plan%p%get_pencil(dim, error_code)
   end function dtfft_get_pencil_c
 
+  function dtfft_set_config_c(config)                                                                               &
+    result(error_code)                                                                                              &
+    bind(C)
+    type(dtfft_config_t),             intent(in)  :: config
+    integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
+                                                                          !< defines API call result codes.
+    call dtfft_set_config(config, error_code)
+  end function dtfft_set_config_c
+
+  function dtfft_report_c(plan_ptr)                                                                                 &
+    result(error_code)                                                                                              &
+    bind(C)
+    type(c_ptr),                         value    :: plan_ptr             !< C pointer to Fortran plan
+    integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
+                                                                          !< defines API call result codes.
+    type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr)
+    call c_f_pointer(plan_ptr, plan)
+    call plan%p%report(error_code)
+  end function dtfft_report_c
+
 #ifdef DTFFT_WITH_CUDA
-  function dtfft_set_stream_c(stream)                                                                               &
-    result(error_code)                                                                                              &
-    bind(C)
-  !! Sets CUDA stream that should be used in dtFFT
-  !! In order for this call to take effect, must be called before creation of plan
-    integer(cuda_stream_kind),        intent(in)  :: stream               !< CUDA stream
-    integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
-                                                                          !< defines API call result codes.
-
-    call dtfft_set_stream(stream, error_code)
-  end function dtfft_set_stream_c
-
-  function dtfft_set_gpu_backend_c(backend_id)                                                                      &
-    result(error_code)                                                                                              &
-    bind(C)
-  !! Sets backend that should be used when ``effort_flag`` parameter of create subroutine is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
-  !! In order for this call to take effect, must be called before creation of plan
-    integer(c_int8_t),                intent(in)  :: backend_id           !< The enumerated type dtfft_gpu_backend_t
-    integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
-                                                                          !< defines API call result codes.
-
-    call dtfft_set_gpu_backend(backend_id, error_code)
-  end function dtfft_set_gpu_backend_c
-
   function dtfft_get_stream_c(plan_ptr, stream)                                                                     &
     result(error_code)                                                                                              &
     bind(C)
@@ -309,12 +307,12 @@ contains
     stream = plan%p%get_stream(error_code)
   end function dtfft_get_stream_c
 
-  function dtfft_get_gpu_backend_c(plan_ptr, backend_id)                                                             &
+  function dtfft_get_gpu_backend_c(plan_ptr, backend_id)                                                            &
     result(error_code)                                                                                              &
     bind(C)
   !! Returns selected dtfft_gpu_backend_t during autotuning
     type(c_ptr),                         value    :: plan_ptr             !< C pointer to Fortran plan
-    integer(c_int8_t),          intent(out)       :: backend_id           !< The enumerated type dtfft_gpu_backend_t
+    type(dtfft_gpu_backend_t),  intent(out)       :: backend_id           !< The enumerated type dtfft_gpu_backend_t
     integer(c_int32_t)                            :: error_code           !< The enumerated type dtfft_error_code_t
                                                                           !< defines API call result codes.
     type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
@@ -326,9 +324,9 @@ contains
 
   subroutine dtfft_get_gpu_backend_string_c(backend_id, backend_string, backend_string_size) bind(C)
   !! Returns string representation of ``dtfft_gpu_backend_t``
-    integer(c_int8_t),   intent(in)               :: backend_id           !< The enumerated type dtfft_gpu_backend_t
-    character(c_char),   intent(out)              :: backend_string(*)    !< Resulting string
-    integer(c_size_t),   intent(out)              :: backend_string_size  !< Size of string
+    type(dtfft_gpu_backend_t),  intent(in)       :: backend_id           !< The enumerated type dtfft_gpu_backend_t
+    character(c_char),          intent(out)      :: backend_string(*)    !< Resulting string
+    integer(c_size_t),          intent(out)      :: backend_string_size  !< Size of string
 
     call string_f2c(dtfft_get_gpu_backend_string(backend_id), backend_string, backend_string_size)
   end subroutine dtfft_get_gpu_backend_string_c
