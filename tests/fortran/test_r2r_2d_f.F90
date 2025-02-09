@@ -27,7 +27,7 @@ implicit none
   real(R8P) :: local_error, scaler, rnd
   integer(I4P), parameter :: nx = 8, ny = 12
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
-  type(dtfft_plan_r2r) :: plan
+  type(dtfft_plan_r2r_t) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2), in_vals
   real(R8P) :: tf, tb
   type(dtfft_r2r_kind_t) :: kinds(2)

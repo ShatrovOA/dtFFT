@@ -31,7 +31,7 @@ implicit none
   real(R8P) :: local_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 12, ny = 12
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
-  type(dtfft_plan_c2c) :: plan
+  type(dtfft_plan_c2c_t) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb
   type(dtfft_executor_t) :: executor_type = DTFFT_EXECUTOR_NONE

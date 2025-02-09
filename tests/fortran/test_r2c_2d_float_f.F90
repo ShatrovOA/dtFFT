@@ -32,7 +32,7 @@ implicit none
   integer(I4P), parameter :: nx = 17, ny = 19
   integer(I4P) :: comm_size, comm_rank, i, j, ierr, outsize
   type(dtfft_executor_t) :: executor_type
-  type(dtfft_plan_r2c) :: plan
+  type(dtfft_plan_r2c_t) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb
   integer(I8P) :: alloc_size

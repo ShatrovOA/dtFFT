@@ -41,7 +41,7 @@ implicit none
   integer(I4P), parameter :: nx = 512, ny = 32, nz = 8
 #endif
   integer(I4P) :: comm_size, comm_rank, i, j, k, out_size, in_size
-  class(dtfft_abstract_plan), allocatable :: plan
+  class(dtfft_plan_t), allocatable :: plan
   integer(I4P) :: in_starts(3), in_counts(3), out_counts(3), ierr, ijk
   integer(I4P) :: iter
   type(dtfft_executor_t) :: executor_type
@@ -85,9 +85,9 @@ implicit none
 
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
-  allocate( dtfft_plan_r2r :: plan )
+  allocate( dtfft_plan_r2r_t :: plan )
   select type (plan)
-  class is ( dtfft_plan_r2r )
+  class is ( dtfft_plan_r2r_t )
     call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm, effort_type=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr)
   endselect
   DTFFT_CHECK(ierr)

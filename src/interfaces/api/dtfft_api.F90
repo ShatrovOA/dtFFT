@@ -44,7 +44,7 @@ private
 
   type :: dtfft_plan_c
   !! C pointer to Fortran plan
-    class(dtfft_abstract_plan),  allocatable :: p                         !< Actual Fortran plan
+    class(dtfft_plan_t),  allocatable :: p                         !< Actual Fortran plan
   end type dtfft_plan_c
 
 contains
@@ -74,13 +74,13 @@ contains
     type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
 
     allocate(plan)
-    allocate( dtfft_plan_r2r :: plan%p )
+    allocate( dtfft_plan_r2r_t :: plan%p )
 
     call c_f_pointer(dims, fdims, [ndims])
     call c_f_pointer(kinds, fkinds, [ndims])
 
     select type( p => plan%p )
-    type is ( dtfft_plan_r2r )
+    type is ( dtfft_plan_r2r_t )
       call p%create(fdims, fkinds, get_comm(comm), precision, effort_type, executor_type, error_code)
     endselect
     plan_ptr = c_loc(plan)
@@ -103,12 +103,12 @@ contains
     type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
 
     allocate(plan)
-    allocate( dtfft_plan_c2c :: plan%p )
+    allocate( dtfft_plan_c2c_t :: plan%p )
 
     call c_f_pointer(dims, fdims, [ndims])
 
     select type(p => plan%p)
-    class is (dtfft_plan_c2c)
+    class is (dtfft_plan_c2c_t)
       call p%create(fdims, get_comm(comm), precision, effort_type, executor_type, error_code)
     endselect
     plan_ptr = c_loc(plan)
@@ -132,12 +132,12 @@ contains
     type(dtfft_plan_c),                 pointer   :: plan                 !< Pointer to Fortran object
 
     allocate(plan)
-    allocate( dtfft_plan_r2c :: plan%p )
+    allocate( dtfft_plan_r2c_t :: plan%p )
 
     call c_f_pointer(dims, fdims, [ndims])
 
     select type(p => plan%p)
-    class is (dtfft_plan_r2c)
+    class is (dtfft_plan_r2c_t)
       call p%create(fdims, get_comm(comm), precision, effort_type, executor_type, error_code)
     endselect
     plan_ptr = c_loc(plan)

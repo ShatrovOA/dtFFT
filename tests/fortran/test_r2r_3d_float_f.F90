@@ -37,7 +37,7 @@ implicit none
   integer(I4P), parameter :: nx = 512, ny = 64, nz = 16
   integer(I4P) :: comm_size, comm_rank, ierr, in_counts(3), in_product
   type(dtfft_executor_t) :: executor_type
-  type(dtfft_plan_r2r) :: plan
+  type(dtfft_plan_r2r_t) :: plan
   real(R8P) :: tf, tb
   integer(I8P)  :: alloc_size, i
 #ifdef DTFFT_WITH_CUDA

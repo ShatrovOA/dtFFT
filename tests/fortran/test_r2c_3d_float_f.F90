@@ -41,7 +41,7 @@ implicit none
 #endif
   integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
   type(dtfft_executor_t) :: executor_type
-  type(dtfft_plan_r2c) :: plan
+  type(dtfft_plan_r2c_t) :: plan
   integer(I4P) :: in_counts(3)
   integer(c_size_t) :: alloc_size
   real(R8P) :: tf, tb

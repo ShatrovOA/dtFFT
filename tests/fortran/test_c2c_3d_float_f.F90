@@ -29,7 +29,7 @@ implicit none
   real(R4P) :: local_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 13, ny = 45, nz = 2
   integer(I4P) :: comm_size, comm_rank, i, j, k
-  type(dtfft_plan_c2c) :: plan
+  type(dtfft_plan_c2c_t) :: plan
   integer(I4P) :: in_counts(3), out_counts(3), out_size
   integer(c_size_t) :: alloc_size
   real(R8P) :: tf, tb

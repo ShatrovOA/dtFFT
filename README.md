@@ -6,9 +6,9 @@
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
 
 This repository contains new library to perform FFT on a distibuted memory cluster. It is written in modern Fortran and uses MPI to handle communications between processes.
-The main idea of this library is to implement zero-copy algoritms in 2d and 3d cases. It uses advance MPI to create send and recieve MPI datatypes in a such way that recieved data will be aligned in memory and ready to run 1d FFT.
+The main idea of this library is to implement zero-copy algoritms in 2d and 3d cases. It uses advanced MPI to create send and recieve MPI Datatypes in a such way that recieved data will be aligned in memory and ready to run 1d FFT.
 
-Following Fortran column-major order consider XYZ is a three-dimensional buffer: X index varies most quickly. dtFFT will create MPI derived datatypes which will produce
+Following Fortran column-major order consider XYZ is a three-dimensional buffer: X index varies most quickly. dtFFT will create MPI Derived Datatypes which will produce
 - Forward transform: XYZ --> YXZ --> ZXY
 - Backward transform: ZXY --> YXZ --> XYZ
 
@@ -23,7 +23,7 @@ Special optimization is automatically used in 3D plan in case number of MPI proc
 - 2D and 3D transposition plans
 - Slab and Pencil decompositions
 - Host and CUDA versions
-- Can be linked with multiple FFT libraries simultaneously. Execution library can be specified during plan creation. Currenly supported libraries are:
+- Can be linked with multiple FFT libraries simultaneously or with no library at all. Execution library can be specified during plan creation. Currenly supported libraries are:
   -  [FFTW3](https://www.fftw.org/)
   -  [MKL](https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-fortran/2024-2/fourier-transform-functions.html)
   -  [cuFFT](https://docs.nvidia.com/cuda/cufft/)
@@ -32,15 +32,16 @@ Special optimization is automatically used in 3D plan in case number of MPI proc
 
 ## Usage
 Basic usage of dtFFT consists of 6 steps:
+- Create and set config to dtFFT (optional)
 - Create plan
 - Obtain local sizes in "real" and "Fourier" spaces
 - Allocate memory
-- Execute plan as many times as you want
+- Execute plan via `dtfft_execute` or `dtfft_transpose` as many times as you want
 - Destroy plan
 
 ### Plan creation
 #### Fortran
-3 Derived types are available in fortran interface: `dtfft_plan_c2c`, `dtfft_plan_r2c` and `dtfft_plan_r2r`. To create plan one have to call `create` method.
+3 Derived types are available in fortran interface: `dtfft_plan_c2c_t`, `dtfft_plan_r2c_t` and `dtfft_plan_r2r_t`. To create plan one have to call `create` method.
 User is able to provide two kinds of communicators. Without grid topology, e.g. `MPI_COMM_WORLD` and with created cartesian topology. dtFFT will handle both of such cases and create needed internal communicators.
 
 Plan creation subroutines have two common arguments:
@@ -51,13 +52,29 @@ Plan creation subroutines have two common arguments:
 - executor_type - this argument specifies which external library should be used to create and execute 1d FFT plans. Default value is `DTFFT_EXECUTOR_NONE` which means that FFTs will not be executed.
 
 ### Execution
-When executing plan user must provide `execute_type` argument. Two options are available: `DTFFT_TRANSPOSE_OUT` and `DTFFT_TRANSPOSE_IN`. First one assumes that incoming data is aligned in X direction (fastest) and return data aligned in Z direction.
+When executing plan via `dtfft_execute` method user must provide `execute_type` argument. Two options are available: `DTFFT_TRANSPOSE_OUT` and `DTFFT_TRANSPOSE_IN`. First one assumes that incoming data is aligned in X direction (fastest) and return data aligned in Z direction.
 
-All plans require additional auxiliary buffer. This buffer can be passed by user to `execute` method.  If user do not provide such buffer during the first call to `execute`, necessary memory will be allocated internally and deallocated when user calls `destroy` method.
+All plans, except those created without FFT support, require additional auxiliary buffer. This buffer can be passed by user to `execute` method.  If user do not provide such buffer during the first call to `execute`, necessary memory will be allocated internally and deallocated when user calls `destroy` method.
 
+*Warning*
 
+`dtfft_execute` almost always overwrites buffer `in`. If user requires to keep original values, he should copy them somewhere else.
 
-For more detaled examples check out tests provided in ```tests/fortran``` folder.
+When executing plan `dtfft_transpose` method user must provide `transpose_type` argument. There 6 valid values that user can provide:
+  - `DTFFT_TRANSPOSE_X_TO_Y` - Transpose from Fortran X aligned to Fortran Y aligned
+  - `DTFFT_TRANSPOSE_Y_TO_X` - Transpose from Fortran Y aligned to Fortran X aligned
+  - `DTFFT_TRANSPOSE_Y_TO_Z` - Transpose from Fortran Y aligned to Fortran Z aligned
+  - `DTFFT_TRANSPOSE_Z_TO_Y` - Transpose from Fortran Z aligned to Fortran Y aligned
+  - `DTFFT_TRANSPOSE_X_TO_Z` - Transpose from Fortran X aligned to Fortran Z aligned (only possible with 3D slab decomposition when slab distributed in Z direction)
+  - `DTFFT_TRANSPOSE_Z_TO_X` - Transpose from Fortran Z aligned to Fortran X aligned (only possible with 3D slab decomposition when slab distributed in Z direction)
+
+Starting from `DTFFT_TRANSPOSE_Y_TO_Z` plan has to be in 3D. Both `DTFFT_TRANSPOSE_X_TO_Z` and `DTFFT_TRANSPOSE_Z_TO_X` requires that Z-slab optimization is enabled. To check one should call `dtfft_get_z_slab_enabled` in C and `plan%get_z_slab_enabled` in Fortran.
+
+*Warning*
+
+`dtfft_transpose` behaves differently in host and CUDA library builds. In a host build buffer `in` remains untouched by dtFFT. CUDA version almost always (for the exception of running on a singular GPU) overwrites this buffer. If user requires to keep original values, he should copy them somewhere else.
+
+For more detaled examples check out tests provided in `tests/fortran` folder.
 ## Building library
 To build this library modern (2008+) Fortran compiler is required. This library successfully builds with gfortran-7 and above, ifort-18 and above. Currenly library can only be build using CMake. List of Cmake options can be found below:
 
@@ -107,16 +124,16 @@ Besides target `dtfft` cmake installation provides additional variables:
 | DTFFT_BACKWARD_X_Z | 1 / 2 | 2 | Default id of transposition plan for Z -> Y transpose which will be used if plan created with `DTFFT_ESTIMATE` and `DTFFT_MEASURE` effort_flags in case Z-slab optimization is used|
 
 ## Notes for C/C++ users
-dtFFT provids headers for both C and C++. Simply
+dtFFT provides headers for both C and C++. Simply
 ```c
 // C header
 #include <dtfft.h>
 // C++ header
 #include <dtfft.hpp>
 ```
-Since C arrays are stored in row-major order which is opposite to Fortran column-major when creating the plan, user should pass the dimensions of the array to the planner in reverse order. For example, if your array is a rank three N x M x L matrix in row-major order, you should pass the dimensions of the array as if it were an L x M x N matrix. Also if you are using R2R transform and wish to perform different transform kinds on different dimensions then buffer ```kinds``` should also be reversed. Same goes for MPI Communicators with attached cartesian topology.
+Since C arrays are stored in row-major order which is opposite to Fortran column-major when creating the plan, user should pass the dimensions of the array to the planner in reverse order. For example, if your array is a rank three N x M x L matrix in row-major order, you should pass the dimensions of the array as if it were an L x M x N matrix. Also if you are using R2R transform and wish to perform different transform kinds on different dimensions then buffer `kinds` should also be reversed. Same goes for MPI Communicators with attached cartesian topology.
 
-Examples are provided in ```tests/c``` folder.
+Examples are provided in `tests/c` folder.
 ## Next Steps
 
 - [x] Support effort_flag optional argument.

@@ -31,12 +31,12 @@ public :: DTFFT_VERSION_MAJOR
 public :: DTFFT_VERSION_MINOR
 public :: DTFFT_VERSION_PATCH
 ! Plans
-public :: dtfft_abstract_plan
-public :: dtfft_plan_c2c
+public :: dtfft_plan_t
+public :: dtfft_plan_c2c_t
 #ifndef DTFFT_TRANSPOSE_ONLY
-public :: dtfft_plan_r2c
+public :: dtfft_plan_r2c_t
 #endif
-public :: dtfft_plan_r2r
+public :: dtfft_plan_r2r_t
 
 public :: dtfft_pencil_t
 public :: dtfft_get_error_string

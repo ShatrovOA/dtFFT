@@ -18,7 +18,7 @@
 #include "dtfft_config.h"
 !------------------------------------------------------------------------------------------------
 module dtfft_plan
-!! This module describes ``dtfft_abstract_plan``, ``dtfft_plan_c2c``, ``dtfft_plan_r2c`` and ``dtfft_plan_r2r`` types
+!! This module describes ``dtfft_plan_t``, ``dtfft_plan_c2c_t``, ``dtfft_plan_r2c_t`` and ``dtfft_plan_r2r_t`` types
 use iso_c_binding,                    only: c_loc, c_f_pointer, c_ptr, c_bool
 use iso_fortran_env,                  only: int8, int32, int64, real32, real64, output_unit
 use dtfft_abstract_executor,          only: abstract_executor, FFT_1D, FFT_2D, FFT_C2C, FFT_R2C, FFT_R2R
@@ -50,12 +50,12 @@ use dtfft_transpose_plan_cuda,        only: transpose_plan_cuda
 #include "dtfft_profile.h"
 implicit none
 private
-public :: dtfft_abstract_plan
-public :: dtfft_plan_c2c
+public :: dtfft_plan_t
+public :: dtfft_plan_c2c_t
 #ifndef DTFFT_TRANSPOSE_ONLY
-public :: dtfft_plan_r2c
+public :: dtfft_plan_r2c_t
 #endif
-public :: dtfft_plan_r2r
+public :: dtfft_plan_r2r_t
 
 
 #define CHECK_INPUT_PARAMETER(param, check_func, code)            \
@@ -99,7 +99,7 @@ public :: dtfft_plan_r2r
     !< Executor
   end type fft_executor
 
-  type, abstract :: dtfft_abstract_plan
+  type, abstract :: dtfft_plan_t
   !! Abstract class for all DTFFT plans
   private
     integer(int8)                                 :: ndims
@@ -170,9 +170,9 @@ public :: dtfft_plan_r2r
     procedure,  pass(self), non_overridable         :: alloc_fft_plans    !< Allocates `fft_executor` classes
     procedure,  pass(self), non_overridable         :: check_aux          !< Checks if aux buffer was passed 
                                                                           !< and if not will allocate one internally
-  end type dtfft_abstract_plan
+  end type dtfft_plan_t
 
-  type, abstract, extends(dtfft_abstract_plan) :: dtfft_core_c2c
+  type, abstract, extends(dtfft_plan_t) :: dtfft_core_c2c
   !< Abstract C2C Plan
   private
   contains
@@ -180,16 +180,16 @@ public :: dtfft_plan_r2r
     procedure, pass(self), non_overridable          :: create_c2c_internal  !< Creates plan for both C2C and R2C
   end type dtfft_core_c2c
 
-  type, extends(dtfft_core_c2c) :: dtfft_plan_c2c
+  type, extends(dtfft_core_c2c) :: dtfft_plan_c2c_t
   !< C2C Plan
   private
   contains
   private
     procedure, pass(self), non_overridable, public  :: create => create_c2c !< C2C Plan Constructor
-  end type dtfft_plan_c2c
+  end type dtfft_plan_c2c_t
 
 #ifndef DTFFT_TRANSPOSE_ONLY
-  type, extends(dtfft_core_c2c) :: dtfft_plan_r2c
+  type, extends(dtfft_core_c2c) :: dtfft_plan_r2c_t
   !< R2C Plan
   private
     type(pencil)  :: real_pencil
@@ -197,16 +197,16 @@ public :: dtfft_plan_r2r
   contains
   private
     procedure,  pass(self), non_overridable, public :: create => create_r2c !< R2C Plan Constructor
-  end type dtfft_plan_r2c
+  end type dtfft_plan_r2c_t
 #endif
 
-  type, extends(dtfft_abstract_plan) :: dtfft_plan_r2r
+  type, extends(dtfft_plan_t) :: dtfft_plan_r2r_t
   !< R2R Plan
   private
   contains
   private
     procedure, pass(self),                  public  :: create => create_r2r !< R2R Plan Constructor
-  end type dtfft_plan_r2r
+  end type dtfft_plan_r2r_t
 
 contains
 
@@ -214,7 +214,7 @@ contains
   !! Performs single transposition
   !!
   !! Note, that `in` and `out` cannot be the same, otherwise call to MPI will fail
-    class(dtfft_abstract_plan),   intent(inout) :: self                 !< Abstract plan
+    class(dtfft_plan_t),          intent(inout) :: self                 !< Abstract plan
     type(*),  DEVICE_PTR  target, intent(inout) :: in(..)               !< Incoming buffer of any rank and kind. Note that this buffer 
                                                                                 !< will be modified in GPU build
     type(*),  DEVICE_PTR  target, intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
@@ -255,7 +255,7 @@ contains
 
   subroutine execute(self, in, out, execute_type, aux, error_code)
   !! Executes plan
-    class(dtfft_abstract_plan),     intent(inout)           :: self             !< Abstract plan
+    class(dtfft_plan_t),            intent(inout)           :: self             !< Abstract plan
     type(*),  DEVICE_PTR            intent(inout),  target  :: in(..)           !< Incoming buffer of any rank and kind
     type(*),  DEVICE_PTR            intent(inout),  target  :: out(..)          !< Resulting buffer of any rank and kind
     type(dtfft_execute_type_t),     intent(in)              :: execute_type     !< Type of transposition. One of the:
@@ -304,7 +304,7 @@ contains
 
   subroutine execute_private(self, in, out, execute_type, aux, inplace)
   !! Executes plan with specified auxiliary buffer
-    class(dtfft_abstract_plan), intent(inout) :: self                 !< Abstract plan
+    class(dtfft_plan_t),        intent(inout) :: self                 !< Abstract plan
     type(*),  DEVICE_PTR        intent(inout) :: in(..)               !< Incoming buffer of any rank and kind
     type(*),  DEVICE_PTR        intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
     type(dtfft_execute_type_t), intent(in)    :: execute_type         !< Type of transposition. One of the:
@@ -394,7 +394,7 @@ contains
 
   subroutine destroy(self, error_code)
   !! Destroys plan, frees all memory
-    class(dtfft_abstract_plan),   intent(inout) :: self               !< Abstract plan
+    class(dtfft_plan_t),          intent(inout) :: self               !< Abstract plan
     integer(int32),  optional,    intent(out)   :: error_code         !< Optional Error Code returned to user
     integer(int32)                              :: d                  !< Counter
     integer(int32)                              :: ierr               !< Error code
@@ -409,7 +409,7 @@ contains
 
 #ifndef DTFFT_TRANSPOSE_ONLY
     select type ( self )
-    class is ( dtfft_plan_r2c )
+    class is ( dtfft_plan_r2c_t )
       call self%real_pencil%destroy()
     endselect
 #endif
@@ -471,7 +471,7 @@ contains
 
   logical function get_z_slab_enabled(self, error_code)
   !! Returns logical value is Z-slab optimization
-    class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
+    class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
 
@@ -486,7 +486,7 @@ contains
 
   type(dtfft_pencil_t) function get_pencil(self, dim, error_code)
   !! Returns pencil decomposition
-    class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
+    class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
     integer(int8),              intent(in)  :: dim
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
@@ -504,7 +504,7 @@ contains
 
   subroutine report(self, error_code)
   !! Returns pencil decomposition
-    class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
+    class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
 
@@ -520,12 +520,12 @@ contains
       WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2))//"x"//int_to_str(self%dims(3)))
     endif
     select type( self )
-    class is ( dtfft_plan_c2c )
+    class is ( dtfft_plan_c2c_t )
       WRITE_REPORT("  Plan type            :  Complex2Complex")
-    class is ( dtfft_plan_r2r )
+    class is ( dtfft_plan_r2r_t )
       WRITE_REPORT("  Plan type            :  Real2Real")
 #ifndef DTFFT_TRANSPOSE_ONLY
-    class is ( dtfft_plan_r2c )
+    class is ( dtfft_plan_r2c_t )
       WRITE_REPORT("  Plan type            :  Real2Complex")
 #endif
     endselect
@@ -563,7 +563,7 @@ contains
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_gpu_backend_t) function get_gpu_backend(self, error_code)
   !! Returns selected GPU backend during autotuning
-    class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
+    class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
 
@@ -578,7 +578,7 @@ contains
 
   integer(cuda_stream_kind) function get_stream(self, error_code)
   !! Returns CUDA stream associated with plan
-    class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
+    class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
 
@@ -606,7 +606,7 @@ contains
 
   subroutine get_local_sizes(self, in_starts, in_counts, out_starts, out_counts, alloc_size, error_code)
   !! Obtain local starts and counts in `real` and `fourier` spaces
-    class(dtfft_abstract_plan), intent(in)  :: self                   !< Abstract plan
+    class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
     integer(int32), optional,   intent(out) :: in_starts(:)           !< Start indexes in `real` space (0-based)
     integer(int32), optional,   intent(out) :: in_counts(:)           !< Number of elements in `real` space
     integer(int32), optional,   intent(out) :: out_starts(:)          !< Start indexes in `fourier` space (0-based)
@@ -622,7 +622,7 @@ contains
 
     select type ( self )
 #ifndef DTFFT_TRANSPOSE_ONLY
-    class is (dtfft_plan_r2c)
+    class is (dtfft_plan_r2c_t)
       if (present( in_starts ) )    in_starts(1:self%ndims)   = self%real_pencil%starts(1:self%ndims)
       if (present( in_counts ) )    in_counts(1:self%ndims)   = self%real_pencil%counts(1:self%ndims)
       call get_local_sizes_private(self%pencils, out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size)
@@ -636,7 +636,7 @@ contains
   integer(int32) function create_private(self, dims, sngl_type, sngl_storage_size, dbl_type, dbl_storage_size, comm, precision, effort_type, executor_type, kinds)
 #define __FUNC__ create_private
   !! Creates core
-    class(dtfft_abstract_plan),       intent(inout) :: self                 !< Abstract plan
+    class(dtfft_plan_t),              intent(inout) :: self                 !< Abstract plan
     integer(int32),                   intent(in)    :: dims(:)              !< Counts of the transform requested
     TYPE_MPI_DATATYPE,                intent(in)    :: sngl_type            !< MPI_Datatype for single precision plan
     integer(int8),                    intent(in)    :: sngl_storage_size    !< Number of bytes needed to store single element (single precision)
@@ -717,7 +717,7 @@ contains
   integer(int32) function check_create_args(self, dims, comm, precision, effort_type, executor_type, kinds)
 #define __FUNC__ check_create_args
   !! Check arguments provided by user and sets private variables
-    class(dtfft_abstract_plan),         intent(inout) :: self             !< Abstract plan
+    class(dtfft_plan_t),                intent(inout) :: self             !< Abstract plan
     integer(int32),                     intent(in)    :: dims(:)          !< Global dimensions of transform
     TYPE_MPI_COMM,          optional,   intent(in)    :: comm             !< Optional MPI Communicator
     type(dtfft_precision_t),optional,   intent(in)    :: precision        !< Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
@@ -773,7 +773,7 @@ contains
 
   subroutine alloc_fft_plans(self, kinds)
   !! Allocates `fft_executor` with required FFT class
-    class(dtfft_abstract_plan),       intent(inout) :: self       !< Abstract plan
+    class(dtfft_plan_t),              intent(inout) :: self       !< Abstract plan
     type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)   !< Kinds of R2R transform
     integer(int8)                                   :: dim, dim2  !< Counters
     type(dtfft_r2r_kind_t),           allocatable   :: kinds_(:)  !< Dummy kinds
@@ -831,7 +831,7 @@ contains
         if ( dim == dim2 ) cycle
 #ifndef DTFFT_TRANSPOSE_ONLY
         select type ( self )
-        class is ( dtfft_plan_r2c )
+        class is ( dtfft_plan_r2c_t )
           if ( dim == 1 ) cycle
         endselect
 #endif
@@ -847,7 +847,7 @@ contains
 
   subroutine check_aux(self, aux)
   !! Checks if aux buffer was passed by user and if not will allocate one internally
-    class(dtfft_abstract_plan),     intent(inout) :: self                 !< Abstract plan
+    class(dtfft_plan_t),            intent(inout) :: self                 !< Abstract plan
     type(*), DEVICE_PTR   optional, intent(inout) :: aux(..)              !< Optional auxiliary buffer.
     integer(int64)                                :: alloc_size           !< Number of elements to be allocated
     character(len=100)                            :: debug_msg            !< Logging allocation size
@@ -869,7 +869,7 @@ contains
 
   subroutine create_r2r(self, dims, kinds, comm, precision, effort_type, executor_type, error_code)
   !! R2R Plan Constructor
-    class(dtfft_plan_r2r),            intent(inout) :: self               !< R2R Plan
+    class(dtfft_plan_r2r_t),          intent(inout) :: self               !< R2R Plan
     integer(int32),                   intent(in)    :: dims(:)            !< Global dimensions of transform
     type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)           !< Kinds of R2R transform
     TYPE_MPI_COMM,          optional, intent(in)    :: comm               !< Communicator
@@ -908,7 +908,7 @@ contains
 
   subroutine create_c2c(self, dims, comm, precision, effort_type, executor_type, error_code)
   !! C2C Plan Constructor
-    class(dtfft_plan_c2c),            intent(inout) :: self               !< C2C Plan
+    class(dtfft_plan_c2c_t),          intent(inout) :: self               !< C2C Plan
     integer(int32),                   intent(in)    :: dims(:)            !< Global dimensions of transform
     TYPE_MPI_COMM,          optional, intent(in)    :: comm               !< Communicator
     type(dtfft_precision_t),optional, intent(in)    :: precision          !< Presicion of Transform
@@ -941,7 +941,7 @@ contains
     if ( self%is_transpose_plan ) return
     select type ( self )
 #ifndef DTFFT_TRANSPOSE_ONLY
-    class is (dtfft_plan_r2c)
+    class is (dtfft_plan_r2c_t)
       fft_start = 2
 #endif
     class default
@@ -958,7 +958,7 @@ contains
 #ifndef DTFFT_TRANSPOSE_ONLY
   subroutine create_r2c(self, dims, comm, precision, effort_type, executor_type, error_code)
   !! R2C Plan Constructor
-    class(dtfft_plan_r2c),            intent(inout) :: self               !< R2C Plan
+    class(dtfft_plan_r2c_t),          intent(inout) :: self               !< R2C Plan
     integer(int32),                   intent(in)    :: dims(:)            !< Global dimensions of transform
     TYPE_MPI_COMM,          optional, intent(in)    :: comm               !< Communicator
     type(dtfft_precision_t),optional, intent(in)    :: precision          !< Presicion of Transform
