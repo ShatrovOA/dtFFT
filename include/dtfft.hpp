@@ -92,7 +92,7 @@ namespace dtfft
         template<typename T1, typename T2>
         dtfft_error_code_t
         execute(std::vector<T1> &in, std::vector<T2> &out, const dtfft_execute_type_t execute_type)
-        {return execute(in.data(), out.data(), execute_type, NULL);}
+        {return execute(in.data(), out.data(), execute_type, nullptr);}
 
 
 
@@ -126,7 +126,7 @@ namespace dtfft
 */
         dtfft_error_code_t
         execute(void *in, void *out, const dtfft_execute_type_t execute_type)
-        {return execute(in, out, execute_type, NULL);}
+        {return execute(in, out, execute_type, nullptr);}
 
 
 
@@ -152,7 +152,7 @@ namespace dtfft
   *
   * \param[inout]   in              Incoming vector
   * \param[out]     out             Transposed vector
-  * \param[in]      execute_type    Type of transpose:
+  * \param[in]      transpose_type  Type of transpose:
   *                                   - `DTFFT_TRANSPOSE_X_TO_Y`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_X`
   *                                   - `DTFFT_TRANSPOSE_Y_TO_Z` (3d plan only)
@@ -238,7 +238,7 @@ namespace dtfft
   * \return Status code of method execution
 */
         dtfft_error_code_t
-        get_local_sizes(int32_t *in_starts=NULL, int32_t *in_counts=NULL, int32_t *out_starts=NULL, int32_t *out_counts=NULL, size_t *alloc_size=NULL)
+        get_local_sizes(int32_t *in_starts=nullptr, int32_t *in_counts=nullptr, int32_t *out_starts=nullptr, int32_t *out_counts=nullptr, size_t *alloc_size=nullptr)
         {return dtfft_get_local_sizes(_plan, in_starts, in_counts, out_starts, out_counts, alloc_size);}
 
 
@@ -464,14 +464,14 @@ namespace dtfft
       PlanR2R(
         const std::vector<int32_t> &dims,
         const dtfft_precision_t precision
-      ):PlanR2R(dims.size(), dims.data(), NULL, MPI_COMM_WORLD, precision, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE) {}
+      ):PlanR2R(dims.size(), dims.data(), nullptr, MPI_COMM_WORLD, precision, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE) {}
 
 /** \brief Real-to-Real Plan constructor using C-style arguments. Must be called after MPI_Init
   *
   * \param[in]    ndims                 Number of dimensions: 2 or 3
   * \param[in]    dims                  Buffer of size `ndims` with global dimensions in reversed order.
   * \param[in]    kinds                 Buffer of size `ndims` with Real FFT kinds in reversed order.
-  *                                     Can be NULL if `executor_type` == `DTFFT_EXECUTOR_NONE`
+  *                                     Can be nullptr if `executor_type` == `DTFFT_EXECUTOR_NONE`
   * \param[in]    comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
   * \param[in]    precision             Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
   * \param[in]    effort_type           How hard DTFFT should look for best plan: `DTFFT_ESTIMATE`, `DTFFT_MEASURE` or `DTFFT_PATIENT`
@@ -485,7 +485,7 @@ namespace dtfft
       PlanR2R(
         const int8_t ndims,
         const int32_t *dims,
-        const dtfft_r2r_kind_t *kinds=NULL,
+        const dtfft_r2r_kind_t *kinds=nullptr,
         MPI_Comm comm=MPI_COMM_WORLD,
         const dtfft_precision_t precision=DTFFT_DOUBLE,
         const dtfft_effort_t effort_type=DTFFT_ESTIMATE,

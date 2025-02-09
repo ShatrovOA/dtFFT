@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(dtfft VERSION 1.0.0
-              DESCRIPTION "Library to perform FFT on a distibuted memory cluster."
+              DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
 

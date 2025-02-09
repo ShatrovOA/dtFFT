@@ -94,7 +94,7 @@ typedef enum {
   // For R2R plan, `kinds` parameter must be passed if `executor_type` != `DTFFT_EXECUTOR_NONE`
   DTFFT_ERROR_MISSING_R2R_KINDS = CONF_DTFFT_ERROR_MISSING_R2R_KINDS,
   // Invalid values detected in `kinds` parameter
-  DTFFT_ERROR_INVALID_R2R_KINDS= CONF_DTFFT_ERROR_INVALID_R2R_KINDS,
+  DTFFT_ERROR_INVALID_R2R_KINDS = CONF_DTFFT_ERROR_INVALID_R2R_KINDS,
   // Transpose plan is not supported in R2C, use R2R or C2C plan instead
   DTFFT_ERROR_R2C_TRANSPOSE_PLAN = CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN,
   // Inplace transpose is not supported
@@ -172,7 +172,7 @@ typedef enum {
 typedef enum {
 // Create plan as fast as possible
   DTFFT_ESTIMATE = CONF_DTFFT_ESTIMATE,
-// Will attempt to find best MPI Grid decompostion
+// Will attempt to find best MPI Grid decomposition
 // Passing this flag and MPI Communicator with cartesian topology to `dtfft_create_plan_*` is same as `DTFFT_ESTIMATE`.
   DTFFT_MEASURE = CONF_DTFFT_MEASURE,
 // Same as `DTFFT_MEASURE` plus cycle through various send and recieve MPI_Datatypes
@@ -191,7 +191,7 @@ typedef enum {
   DTFFT_EXECUTOR_FFTW3 = CONF_DTFFT_EXECUTOR_FFTW3,
 // Use MKL DFTI
   DTFFT_EXECUTOR_MKL = CONF_DTFFT_EXECUTOR_MKL,
-// Use GPU Executor cuFFT
+// Use GPU Executor CUFFT
   DTFFT_EXECUTOR_CUFFT = CONF_DTFFT_EXECUTOR_CUFFT,
 // Use GPU Executor VkFFT
   DTFFT_EXECUTOR_VKFFT = CONF_DTFFT_EXECUTOR_VKFFT
@@ -202,21 +202,21 @@ typedef enum {
  * @brief This enum lists the different R2R FFT kinds.
  */
 typedef enum {
-  // DCT-I (Logical N=2*(n-1), inverse is `DTFFT_DCT_1` )
+  // DCT-I (Logical N=2*(n-1), inverse is `DTFFT_DCT_1`)
   DTFFT_DCT_1 = CONF_DTFFT_DCT_1,
-  // DCT-II (Logical N=2*n, inverse is `DTFFT_DCT_3` )
+  // DCT-II (Logical N=2*n, inverse is `DTFFT_DCT_3`)
   DTFFT_DCT_2 = CONF_DTFFT_DCT_2,
-  // DCT-III (Logical N=2*n, inverse is `DTFFT_DCT_2` )
+  // DCT-III (Logical N=2*n, inverse is `DTFFT_DCT_2`)
   DTFFT_DCT_3 = CONF_DTFFT_DCT_3,
-  // DCT-IV (Logical N=2*n, inverse is `DTFFT_DCT_4` )
+  // DCT-IV (Logical N=2*n, inverse is `DTFFT_DCT_4`)
   DTFFT_DCT_4 = CONF_DTFFT_DCT_4,
-  // DST-I (Logical N=2*(n+1), inverse is `DTFFT_DST_1` )
+  // DST-I (Logical N=2*(n+1), inverse is `DTFFT_DST_1`)
   DTFFT_DST_1 = CONF_DTFFT_DST_1,
-  // DST-II (Logical N=2*n, inverse is `DTFFT_DST_3` )
+  // DST-II (Logical N=2*n, inverse is `DTFFT_DST_3`)
   DTFFT_DST_2 = CONF_DTFFT_DST_2,
-  // DST-III (Logical N=2*n, inverse is `DTFFT_DST_2` )
+  // DST-III (Logical N=2*n, inverse is `DTFFT_DST_2`)
   DTFFT_DST_3 = CONF_DTFFT_DST_3,
-  // DST-IV (Logical N=2*n, inverse is `DTFFT_DST_4` )
+  // DST-IV (Logical N=2*n, inverse is `DTFFT_DST_4`)
   DTFFT_DST_4 = CONF_DTFFT_DST_4
 } dtfft_r2r_kind_t;
 
@@ -226,7 +226,7 @@ do {                                                                          \
     dtfft_error_code_t ierr = call;                                           \
     if( ierr != DTFFT_SUCCESS ) {                                             \
         fprintf(stderr, "dtFFT error in file '%s:%i': %s.\n",                 \
-                __FILE__, __LINE__, dtfft_get_error_string( ierr ) );         \
+                __FILE__, __LINE__, dtfft_get_error_string( ierr ));          \
         MPI_Abort(MPI_COMM_WORLD, ierr);                                      \
     }                                                                         \
 } while (0);

@@ -138,7 +138,7 @@ integer(int32), parameter, public :: DTFFT_VERSION_CODE  = CONF_DTFFT_VERSION_CO
   !< Estimate flag. DTFFT will use default decomposition provided by MPI_Dims_create
   type(dtfft_effort_t), parameter,  public :: DTFFT_MEASURE  = dtfft_effort_t(CONF_DTFFT_MEASURE)
   !< Measure flag. DTFFT will run transpose routines to find the best grid decomposition.
-  !< Passing this flag and MPI Communicator with cartesian topology to `plan%create` makes dtFFT do nothing.
+  !< Passing this flag and MPI Communicator with Cartesian topology to `plan%create` makes dtFFT do nothing.
   type(dtfft_effort_t), parameter,  public :: DTFFT_PATIENT  = dtfft_effort_t(CONF_DTFFT_PATIENT)
   !< Patient flag. Same as `DTFFT_MEASURE`, but different MPI datatypes will also be tested
   type(dtfft_effort_t), parameter :: VALID_EFFORTS(*) = [DTFFT_ESTIMATE, DTFFT_MEASURE, DTFFT_PATIENT]
@@ -167,21 +167,21 @@ integer(int32), parameter, public :: DTFFT_VERSION_CODE  = CONF_DTFFT_VERSION_CO
   end type dtfft_r2r_kind_t
 
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DCT_1 = dtfft_r2r_kind_t(CONF_DTFFT_DCT_1)
-  !< DCT-I (Logical N=2*(n-1), inverse is `DTFFT_DCT_1` )
+  !< DCT-I (Logical N=2*(n-1), inverse is `DTFFT_DCT_1`)
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DCT_2 = dtfft_r2r_kind_t(CONF_DTFFT_DCT_2)
-  !< DCT-II (Logical N=2*n, inverse is `DTFFT_DCT_3` )
+  !< DCT-II (Logical N=2*n, inverse is `DTFFT_DCT_3`)
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DCT_3 = dtfft_r2r_kind_t(CONF_DTFFT_DCT_3)
-  !< DCT-III (Logical N=2*n, inverse is `DTFFT_DCT_2` )
+  !< DCT-III (Logical N=2*n, inverse is `DTFFT_DCT_2`)
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DCT_4 = dtfft_r2r_kind_t(CONF_DTFFT_DCT_4)
-  !< DCT-IV (Logical N=2*n, inverse is `DTFFT_DCT_4` )
+  !< DCT-IV (Logical N=2*n, inverse is `DTFFT_DCT_4`)
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DST_1 = dtfft_r2r_kind_t(CONF_DTFFT_DST_1)
-  !< DST-I (Logical N=2*(n+1), inverse is `DTFFT_DST_1` )
+  !< DST-I (Logical N=2*(n+1), inverse is `DTFFT_DST_1`)
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DST_2 = dtfft_r2r_kind_t(CONF_DTFFT_DST_2)
-  !< DST-II (Logical N=2*n, inverse is `DTFFT_DST_3` )
+  !< DST-II (Logical N=2*n, inverse is `DTFFT_DST_3`)
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DST_3 = dtfft_r2r_kind_t(CONF_DTFFT_DST_3)
-  !< DST-III (Logical N=2*n, inverse is `DTFFT_DST_2` )
+  !< DST-III (Logical N=2*n, inverse is `DTFFT_DST_2`)
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DST_4 = dtfft_r2r_kind_t(CONF_DTFFT_DST_4)
-  !< DST-IV (Logical N=2*n, inverse is `DTFFT_DST_4` )
+  !< DST-IV (Logical N=2*n, inverse is `DTFFT_DST_4`)
   type(dtfft_r2r_kind_t),   parameter :: VALID_R2R_KINDS(*) = [DTFFT_DCT_1, DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_4, DTFFT_DST_1, DTFFT_DST_2, DTFFT_DST_3, DTFFT_DST_4]
 
 
@@ -406,7 +406,7 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     case ( DTFFT_ERROR_INPLACE_TRANSPOSE )
       allocate(error_string, source="Inplace transpose is not supported")
     case ( DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED )
-      allocate(error_string, source="Selected `executor_type` does not support R2R FFTs")
+      allocate(error_string, source="Selected `executor_type` do not support R2R FFTs")
     case ( DTFFT_ERROR_INVALID_DIM )
       allocate(error_string, source="Invalid `dim` passed to `dtfft_get_pencil`")
     case ( DTFFT_ERROR_INVALID_USAGE )

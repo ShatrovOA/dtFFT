@@ -6,9 +6,9 @@
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
 
 This repository contains new library to perform FFT on a distibuted memory cluster. It is written in modern Fortran and uses MPI to handle communications between processes.
-The main idea of this library is to implement zero-copy algoritms in 2d and 3d cases. It uses advanced MPI to create send and recieve MPI Datatypes in a such way that recieved data will be aligned in memory and ready to run 1d FFT.
+The main idea of this library is to implement zero-copy algoritms in 2D and 3D cases. It uses advanced MPI to create send and recieve MPI Datatypes in a such way that recieved data will be aligned in memory and ready to run 1D FFT.
 
-Following Fortran column-major order consider XYZ is a three-dimensional buffer: X index varies most quickly. dtFFT will create MPI Derived Datatypes which will produce
+Following Fortran's column-major order, consider XYZ as a three-dimensional buffer where the X index varies most quickly. dtFFT will create MPI Derived Datatypes which will produce
 - Forward transform: XYZ --> YXZ --> ZXY
 - Backward transform: ZXY --> YXZ --> XYZ
 
@@ -42,14 +42,14 @@ Basic usage of dtFFT consists of 6 steps:
 ### Plan creation
 #### Fortran
 3 Derived types are available in fortran interface: `dtfft_plan_c2c_t`, `dtfft_plan_r2c_t` and `dtfft_plan_r2r_t`. To create plan one have to call `create` method.
-User is able to provide two kinds of communicators. Without grid topology, e.g. `MPI_COMM_WORLD` and with created cartesian topology. dtFFT will handle both of such cases and create needed internal communicators.
+Users can provide two kinds of communicators. Without grid topology, e.g. `MPI_COMM_WORLD` and with created cartesian topology. dtFFT will handle both of such cases and create needed internal communicators.
 
 Plan creation subroutines have two common arguments:
 - effort_flag - Three options are possible:
   - `DTFFT_ESTIMATE` - Will create plan as fast as possible.
   - `DTFFT_MEASURE` - Only make sense in 3D plan and MPI Communicator without attached cartesian topology. In such cases dtFFT will allocate temporal memory and run transpose routines to find the best grid decomposition.
   - `DTFFT_PATIENT` - most time consuming flag. It does same job as `DTFFT_MEASURE` plus will test different MPI Datatypes. In case of 3d plan, plan creation will take 8 times longer then passing `DTFFT_MEASURE` flag.
-- executor_type - this argument specifies which external library should be used to create and execute 1d FFT plans. Default value is `DTFFT_EXECUTOR_NONE` which means that FFTs will not be executed.
+- executor_type - this argument specifies which external library should be used to create and execute 1D FFT plans. Default value is `DTFFT_EXECUTOR_NONE` which means that FFTs will not be executed.
 
 ### Execution
 When executing plan via `dtfft_execute` method user must provide `execute_type` argument. Two options are available: `DTFFT_TRANSPOSE_OUT` and `DTFFT_TRANSPOSE_IN`. First one assumes that incoming data is aligned in X direction (fastest) and return data aligned in Z direction.
@@ -137,7 +137,7 @@ Examples are provided in `tests/c` folder.
 ## Next Steps
 
 - [x] Support effort_flag optional argument.
-- [x] Support more 1d FFT executors. ESSL, FFTPACK?
+- [x] Support more 1D FFT executors. ESSL, FFTPACK?
   - Added VkFFT and CUFFT
 - [x] Use different tools to build project: autotools, CMake?
   - Cmake is only build system supported
