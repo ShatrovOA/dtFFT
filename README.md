@@ -5,8 +5,8 @@
 [![codecov](https://codecov.io/gh/ShatrovOA/dtFFT/graph/badge.svg?token=6BI4AQVH7Z)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
 
-This repository contains new library to perform FFT on a distibuted memory cluster. It is written in modern Fortran and uses MPI to handle communications between processes.
-The main idea of this library is to implement zero-copy algoritms in 2D and 3D cases. It uses advanced MPI to create send and recieve MPI Datatypes in a such way that recieved data will be aligned in memory and ready to run 1D FFT.
+This repository contains new library to perform FFT on a distributed memory cluster. It is written in modern Fortran and uses MPI to handle communications between processes.
+The main idea of this library is to implement zero-copy algorithms in 2D and 3D cases. It uses advanced MPI to create send and recieve MPI Datatypes in a such way that recieved data will be aligned in memory and ready to run 1D FFT.
 
 Following Fortran's column-major order, consider XYZ as a three-dimensional buffer where the X index varies most quickly. dtFFT will create MPI Derived Datatypes which will produce
 - Forward transform: XYZ --> YXZ --> ZXY
