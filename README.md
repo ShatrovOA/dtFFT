@@ -119,11 +119,19 @@ Since C arrays are stored in row-major order which is opposite to Fortran column
 Examples are provided in ```tests/c``` folder.
 ## Next Steps
 
-- ~~GPU Support~~
-- Optimize CUDA NVRTC kernels
-- Add support for nvshmem
-- ~~Add support for custom NCCL installation~~
-- Create documentation
+- [x] Support effort_flag optional argument.
+- [x] Support more 1d FFT executors. ESSL, FFTPACK?
+  - Added VkFFT and CUFFT
+- [x] Use different tools to build project: autotools, CMake?
+  - Cmake is only build system supported
+- [ ] Add more interfaces: C++, Python?
+  - C++ was added
+- [x] Add GPU Support
+- [ ] Optimize CUDA NVRTC kernels
+- [ ] Add support for nvshmem
+- [x] Add support for custom NCCL installation
+- [ ] Create documentation web page
+
 ## Contribution
 
 You can help this project by reporting problems, suggestions, localizing it or contributing to the code. Go to issue tracker and check if your problem/suggestion is already reported. If not, create a new issue with a descriptive title and detail your suggestion or steps to reproduce the problem.

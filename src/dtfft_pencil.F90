@@ -52,8 +52,8 @@ public :: get_transpose_id
   private
     procedure, pass(self),  public  :: create         !< Creates pencil
     procedure, pass(self),  public  :: destroy        !< Destroys pencil
-    procedure, pass(self),  public  :: output         !< Writes pencil data to stdout
-                                                      !< Used only for debugging purposes
+    ! procedure, pass(self),  public  :: output         !< Writes pencil data to stdout
+    !                                                   !< Used only for debugging purposes
     procedure, pass(self),  public  :: make_public    !< Creates public object that users can use to create own FFT backends
   end type pencil
 
@@ -128,56 +128,56 @@ contains
     deallocate(shift)
   end subroutine get_local_size
 
-  subroutine output(self, name, vec)
-  !! Writes pencil data to stdout
-    class(pencil),                intent(in)  :: self                 !< Pencil
-    character(len=*),             intent(in)  :: name                 !< Name of pencil
-    real(real64),   DEVICE_PTR    intent(in)  :: vec(:)               !< Device pointer to data
-    integer(int32)                            :: iter                 !< Iteration counter
-    integer(int32)                            :: i,j,k,ijk            !< Counters
-    integer(int32)                            :: comm_size            !< Number of MPI processes
-    integer(int32)                            :: comm_rank            !< Rank of current MPI process
-    integer(int32)                            :: ierr                 !< Error code
-#ifdef DTFFT_WITH_CUDA
-    real(real64),                 allocatable :: buf(:)               !< Host buffer
-#endif
+!   subroutine output(self, name, vec)
+!   !! Writes pencil data to stdout
+!     class(pencil),                intent(in)  :: self                 !< Pencil
+!     character(len=*),             intent(in)  :: name                 !< Name of pencil
+!     real(real64),   DEVICE_PTR    intent(in)  :: vec(:)               !< Device pointer to data
+!     integer(int32)                            :: iter                 !< Iteration counter
+!     integer(int32)                            :: i,j,k,ijk            !< Counters
+!     integer(int32)                            :: comm_size            !< Number of MPI processes
+!     integer(int32)                            :: comm_rank            !< Rank of current MPI process
+!     integer(int32)                            :: ierr                 !< Error code
+! #ifdef DTFFT_WITH_CUDA
+!     real(real64),                 allocatable :: buf(:)               !< Host buffer
+! #endif
 
-    call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
-    call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+!     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
+!     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
 
-#ifdef DTFFT_WITH_CUDA
-    allocate( buf( product(self%counts) ) )
+! #ifdef DTFFT_WITH_CUDA
+!     allocate( buf( product(self%counts) ) )
 
-    CUDA_CALL( "cudaMemcpy", cudaMemcpy(buf, vec, product(self%counts), cudaMemcpyDeviceToHost) )
-#endif
+!     CUDA_CALL( "cudaMemcpy", cudaMemcpy(buf, vec, product(self%counts), cudaMemcpyDeviceToHost) )
+! #endif
 
-    do iter = 0, comm_size - 1
-      call MPI_Barrier(MPI_COMM_WORLD, ierr)
-      if ( iter == comm_rank ) then
-        write(output_unit,'(a)') name
-        do k = 0, self%counts(3) - 1
-          do j = 0, self%counts(2) - 1
-            ijk = k * self%counts(2) * self%counts(1) + j * self%counts(1)
-#ifdef DTFFT_WITH_CUDA
-            write(output_unit,'(2i5, *(f9.2))') j, k, (buf(ijk + i + 1), i=0,self%counts(1) - 1)
-#else
-            write(output_unit,'(2i5, *(f9.2))') j, k, (vec(ijk + i + 1), i=0,self%counts(1) - 1)
-#endif
-          enddo
-          write(output_unit, '(a)') ' '
-          flush(output_unit)
-        enddo
-        write(output_unit, '(a)') ' '
-        write(output_unit, '(a)') ' '
-        flush(output_unit)
-      endif
-      call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    enddo
+!     do iter = 0, comm_size - 1
+!       call MPI_Barrier(MPI_COMM_WORLD, ierr)
+!       if ( iter == comm_rank ) then
+!         write(output_unit,'(a)') name
+!         do k = 0, self%counts(3) - 1
+!           do j = 0, self%counts(2) - 1
+!             ijk = k * self%counts(2) * self%counts(1) + j * self%counts(1)
+! #ifdef DTFFT_WITH_CUDA
+!             write(output_unit,'(2i5, *(f9.2))') j, k, (buf(ijk + i + 1), i=0,self%counts(1) - 1)
+! #else
+!             write(output_unit,'(2i5, *(f9.2))') j, k, (vec(ijk + i + 1), i=0,self%counts(1) - 1)
+! #endif
+!           enddo
+!           write(output_unit, '(a)') ' '
+!           flush(output_unit)
+!         enddo
+!         write(output_unit, '(a)') ' '
+!         write(output_unit, '(a)') ' '
+!         flush(output_unit)
+!       endif
+!       call MPI_Barrier(MPI_COMM_WORLD, ierr)
+!     enddo
 
-#ifdef DTFFT_WITH_CUDA
-    deallocate(buf)
-#endif
-  end subroutine output
+! #ifdef DTFFT_WITH_CUDA
+!     deallocate(buf)
+! #endif
+!   end subroutine output
 
   type(dtfft_pencil_t) function make_public(self)
     class(pencil),  intent(in)  :: self                 !< Pencil
