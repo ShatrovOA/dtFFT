@@ -18,22 +18,35 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft
-!------------------------------------------------------------------------------------------------
-!< Main DTFFT module. Should be used in a Fortran program.
-!------------------------------------------------------------------------------------------------
+!! Main DTFFT module. Should be used in a Fortran program.
 use dtfft_parameters
-use dtfft_core_m
+use dtfft_pencil
+use dtfft_plan
 use dtfft_utils
 implicit none
 private
 
+public :: dtfft_get_version
+public :: DTFFT_VERSION_MAJOR
+public :: DTFFT_VERSION_MINOR
+public :: DTFFT_VERSION_PATCH
 ! Plans
-public :: dtfft_core,                                               &
-          dtfft_plan_c2c,                                           &
-          dtfft_plan_r2c,                                           &
-          dtfft_plan_r2r
+public :: dtfft_plan_t
+public :: dtfft_plan_c2c_t
+#ifndef DTFFT_TRANSPOSE_ONLY
+public :: dtfft_plan_r2c_t
+#endif
+public :: dtfft_plan_r2r_t
 
+public :: dtfft_pencil_t
 public :: dtfft_get_error_string
+
+public :: dtfft_execute_type_t, dtfft_transpose_type_t
+public :: dtfft_executor_t, dtfft_effort_t
+public :: dtfft_precision_t, dtfft_r2r_kind_t
+
+public :: operator(==)
+public :: operator(/=)
 
 ! Transpose types
 public :: DTFFT_TRANSPOSE_OUT,                                      &
@@ -47,21 +60,10 @@ public :: DTFFT_TRANSPOSE_OUT,                                      &
 
 ! 1d FFT External Executor types
 public :: DTFFT_EXECUTOR_NONE
-#ifdef DTFFT_WITH_FFTW
-public  :: DTFFT_EXECUTOR_FFTW3
-#endif
-#ifdef DTFFT_WITH_MKL
-public  :: DTFFT_EXECUTOR_MKL
-#endif
-#ifdef DTFFT_WITH_CUFFT
-public  :: DTFFT_EXECUTOR_CUFFT
-#endif
-! #ifdef DTFFT_WITH_KFR
-! public  :: DTFFT_EXECUTOR_KFR
-! #endif
-#ifdef DTFFT_WITH_VKFFT
-public  :: DTFFT_EXECUTOR_VKFFT
-#endif
+public :: DTFFT_EXECUTOR_FFTW3
+public :: DTFFT_EXECUTOR_MKL
+public :: DTFFT_EXECUTOR_CUFFT
+public :: DTFFT_EXECUTOR_VKFFT
 
 ! Effort flags
 public :: DTFFT_ESTIMATE,                                           &
@@ -83,4 +85,21 @@ public :: DTFFT_DCT_1,                                              &
           DTFFT_DST_4
 
 public :: DTFFT_SUCCESS
+
+public :: dtfft_config_t
+public :: dtfft_create_config, dtfft_set_config
+
+#ifdef DTFFT_WITH_CUDA
+
+public :: DTFFT_GPU_BACKEND_MPI_DATATYPE
+public :: DTFFT_GPU_BACKEND_MPI_P2P
+public :: DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED
+public :: DTFFT_GPU_BACKEND_MPI_A2A
+public :: DTFFT_GPU_BACKEND_NCCL
+public :: DTFFT_GPU_BACKEND_NCCL_PIPELINED
+
+public :: dtfft_gpu_backend_t
+public :: dtfft_get_gpu_backend_string
+
+#endif
 end module dtfft

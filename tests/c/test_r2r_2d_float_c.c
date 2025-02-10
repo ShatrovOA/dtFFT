@@ -23,14 +23,16 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "test_utils.h"
+
 int main(int argc, char *argv[]) {
 
-  dtfft_plan plan;
-  int nx = 32, ny = 32;
+  dtfft_plan_t plan;
+  int32_t nx = 32, ny = 32;
   float *in, *out, *check;
   int i,j, comm_rank, comm_size;
-  int in_counts[2], out_counts[2], n[2] = {ny, nx};
-  int kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
+  int32_t in_counts[2], out_counts[2], n[2] = {ny, nx};
+  dtfft_r2r_kind_t kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -48,9 +50,9 @@ int main(int argc, char *argv[]) {
   }
 
 #ifdef DTFFT_WITH_FFTW
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
 #else
-  int executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
 #endif
 
   // Create plan
@@ -72,29 +74,17 @@ int main(int argc, char *argv[]) {
   dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
   tf += MPI_Wtime();
 
-#ifndef DTFFT_TRANSPOSE_ONLY
-  for (i = 0; i < out_counts[1]; i++) { // y direction
-    for (j = 0; j < out_counts[0]; j++) { // x direction
-        out[i * out_counts[0] + j] /= (float) (4 * nx * (ny + 1));
+  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+    for (i = 0; i < out_counts[1]; i++) { // y direction
+      for (j = 0; j < out_counts[0]; j++) { // x direction
+          out[i * out_counts[0] + j] /= (float) (4 * nx * (ny + 1));
+      }
     }
   }
-#endif
 
   double tb = 0.0 - MPI_Wtime();
   dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
   tb += MPI_Wtime();
-
-  double t_sum;
-  MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tf = t_sum / (double) comm_size;
-  MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tb = t_sum / (double) comm_size;
-
-  if(comm_rank == 0) {
-    printf("Forward execution time: %f\n", tf);
-    printf("Backward execution time: %f\n", tb);
-    printf("----------------------------------------\n");
-  }
 
   float local_error = -1.0;
   for (i = 0; i < in_counts[1]; i++) {
@@ -103,18 +93,8 @@ int main(int argc, char *argv[]) {
       local_error = error > local_error ? error : local_error;
     }
   }
-  float global_error;
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
 
-  if(comm_rank == 0) {
-    if(global_error < 1e-5) {
-      printf("Test 'r2r_2d_float_c' PASSED!\n");
-    } else {
-      printf("Test 'r2r_2d_float_c' FAILED, error = %e\n", global_error);
-      return -1;
-    }
-    printf("----------------------------------------\n");
-  }
+  report_float(&nx, &ny, NULL, local_error, tf, tb);
 
   dtfft_destroy(&plan);
 

@@ -18,20 +18,22 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_c2c_2d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, output_unit, error_unit
+use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit
 use dtfft
+use test_utils
 use iso_c_binding
 #include "dtfft_mpi.h"
 implicit none
   complex(R4P),  allocatable, target :: in(:), out(:), check(:,:)
   complex(R4P),  pointer :: pin(:,:), pout(:,:)
-  real(R4P) :: local_error, global_error, rnd1, rnd2
+  real(R4P) :: local_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 64, ny = 32
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr, executor_type
+  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  type(dtfft_executor_t) :: executor_type
   integer(I8P) :: alloc_size
-  type(dtfft_plan_c2c) :: plan
+  type(dtfft_plan_c2c_t) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
-  real(R8P) :: tf, tb, t_sum
+  real(R8P) :: tf, tb
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -50,8 +52,6 @@ implicit none
   executor_type = DTFFT_EXECUTOR_FFTW3
 #elif defined(DTFFT_WITH_MKL)
   executor_type = DTFFT_EXECUTOR_MKL
-! #elif defined(DTFFT_WITH_KFR)
-!   executor_type = DTFFT_EXECUTOR_KFR
 #else
   executor_type = DTFFT_EXECUTOR_NONE
 #endif
@@ -78,9 +78,10 @@ implicit none
   tf = 0.0_R8P - MPI_Wtime()
   call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
   tf = tf + MPI_Wtime()
-#ifndef DTFFT_TRANSPOSE_ONLY
-  pout(:,:) = pout(:,:) / real(nx * ny, R4P)
-#endif
+
+  if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+    pout(:,:) = pout(:,:) / real(nx * ny, R4P)
+  endif
   ! Nullify recv buffer
   in = (-1._R4P, -1._R4P)
 
@@ -88,29 +89,8 @@ implicit none
   call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
-
   local_error = maxval(abs(pin - check))
-
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL, MPI_MAX, MPI_COMM_WORLD, ierr)
-  if(comm_rank == 0) then
-    if(global_error < 1.e-6) then
-      write(output_unit, '(a)') "Test 'c2c_2d_float' PASSED!"
-    else
-      write(error_unit, '(a, f16.10)') "Test 'c2c_2d_float' FAILED... error = ", global_error
-      error stop
-    endif
-    write(output_unit, '(a)') "----------------------------------------"
-  endif
+  call report(tf, tb, local_error, nx, ny)
 
   deallocate(in, out, check)
 

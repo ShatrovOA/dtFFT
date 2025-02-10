@@ -17,10 +17,8 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_fftw_m
-!------------------------------------------------------------------------------------------------
-!< This module creates interface with fftw3 library
-!------------------------------------------------------------------------------------------------
-use iso_c_binding, only: c_ptr, c_int
+!! This module creates interface with fftw3 library
+use iso_c_binding,                 only: c_ptr, c_int
 use dtfft_interface_fftw_native_m, only: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
 use dtfft_interface_fftw_native_m, only: fftw_destroy_plan, fftwf_destroy_plan
 implicit none

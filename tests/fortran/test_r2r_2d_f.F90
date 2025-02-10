@@ -18,18 +18,20 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_2d
-use iso_fortran_env, only: R4P => real32, R8P => real64, I4P => int32, output_unit, error_unit
+use iso_fortran_env, only: R4P => real32, R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit
 use dtfft
+use test_utils
 #include "dtfft_mpi.h"
 implicit none
   real(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R8P) :: local_error, global_error, scaler, rnd
+  real(R8P) :: local_error, scaler, rnd
   integer(I4P), parameter :: nx = 8, ny = 12
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
-  type(dtfft_plan_r2r) :: plan
+  type(dtfft_plan_r2r_t) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2), in_vals
-  real(R8P) :: tf, tb, t_sum
-  integer(I4P) :: kinds(2), executor_type
+  real(R8P) :: tf, tb
+  type(dtfft_r2r_kind_t) :: kinds(2)
+  type(dtfft_executor_t) :: executor_type
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -45,9 +47,6 @@ implicit none
   endif
 
   kinds = DTFFT_DCT_1
-! #ifdef DTFFT_WITH_KFR
-!   executor_type = DTFFT_EXECUTOR_KFR
-!   scaler = 4._R8P / real(nx * ny, R8P)
 #if defined (DTFFT_WITH_FFTW)
   executor_type = DTFFT_EXECUTOR_FFTW3
   scaler = 1._R8P / real(4 * (nx - 1) * (ny - 1), R8P)
@@ -56,7 +55,7 @@ implicit none
   scaler = 1._R8P
 #endif
 
-  call plan%create([nx, ny], kinds=kinds, effort_flag=DTFFT_PATIENT, executor_type=executor_type)
+  call plan%create([nx, ny], kinds=kinds, effort_type=DTFFT_PATIENT, executor_type=executor_type)
 
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
@@ -89,27 +88,9 @@ implicit none
   call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
   tb = tb + MPI_Wtime()
 
-  call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
-  call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
-
-  if(comm_rank == 0) then
-    write(output_unit, '(a, f16.10)') "Forward execution time: ", tf
-    write(output_unit, '(a, f16.10)') "Backward execution time: ", tb
-  endif
-
   local_error = maxval(abs(in - check))
 
-  call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
-  if(comm_rank == 0) then
-    if(global_error < 1.d-10) then
-      write(output_unit, '(a)') "Test 'r2r_2d' PASSED!"
-    else
-      write(error_unit, '(a, d16.5)') "Test 'r2r_2d' FAILED... error = ", global_error
-      error stop
-    endif
-  endif
+  call report(tf, tb, local_error, nx, ny)
 
   deallocate(in, out, check)
 

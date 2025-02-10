@@ -1,26 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
-project(dtFFT VERSION 0.2.0
-              DESCRIPTION "Library to perform FFT on a distibuted memory cluster."
+project(dtfft VERSION 1.0.0
+              DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
-
-option(DTFFT_WITH_FFTW "Build dtFFT with FFTW support" OFF)
-option(DTFFT_WITH_MKL "Build dtFFT with MKL DFTI support" OFF)
-option(DTFFT_WITH_CUFFT "Build dtFFT with cufft support" OFF)
-# option(DTFFT_WITH_KFR "Build dtFFT with KFR support" OFF)
-option(DTFFT_WITH_VKFFT "Build dtFFT with VkFFT support" OFF)
-# option(DTFFT_MEASURE_ITERS "Number of iterations to run in order to find best grid decomposition when passing DTFFT_MEASURE and DTFFT_PATIENT to effort_flag during plan creation" 2)
-
-option(DTFFT_BUILD_TESTS "Create dtFFT tests" OFF)
-option(DTFFT_ENABLE_COVERAGE "Create coverage with gcov utility" OFF)
-option(DTFFT_BUILD_SHARED "Build shared library" ON)
-option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
-option(DTFFT_BUILD_C_CXX_API "Create C API" ON)
-option(DTFFT_ENABLE_PERSISTENT_COMM "Enable MPI persistent collective calls" OFF)
-option(DTFFT_WITH_CALIPER "Build dtFFT with Caliper tool" OFF)
-option(DTFFT_RUNNING_CICD "Running tests in GitHub actions" OFF)
-# option(DTFFT_BUILD_JAVA_API "Create Java API" OFF)
-# option(DTFFT_BUILD_PYTHON_API "Create python API" OFF)
 
 # make sure that the default is a RELEASE
 if (NOT CMAKE_BUILD_TYPE)
@@ -29,16 +11,48 @@ if (NOT CMAKE_BUILD_TYPE)
       FORCE)
 endif (NOT CMAKE_BUILD_TYPE)
 
+option(DTFFT_WITH_FFTW "Build dtFFT with FFTW support" OFF)
+option(DTFFT_WITH_MKL "Build dtFFT with MKL DFTI support" OFF)
+option(DTFFT_WITH_CUFFT "Build dtFFT with cuFFT support" OFF)
+option(DTFFT_WITH_VKFFT "Build dtFFT with VkFFT support" OFF)
+option(DTFFT_WITH_CUDA "Build dtFFT with CUDA support" OFF)
+
+option(DTFFT_BUILD_TESTS "Create dtFFT tests" OFF)
+option(DTFFT_ENABLE_COVERAGE "Create coverage with gcov utility" OFF)
+option(DTFFT_BUILD_SHARED "Build shared library" ON)
+option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
+option(DTFFT_BUILD_C_CXX_API "Create C API" ON)
+option(DTFFT_ENABLE_PERSISTENT_COMM "Enable MPI persistent calls" OFF)
+option(DTFFT_WITH_PROFILER "Build dtFFT with profiler support" OFF)
+option(DTFFT_WITH_CUSTOM_NCCL "Build dtFFT with custom NCCL Library" OFF)
+
+set(DTFFT_CUDA_CC_LIST "70;80;90" CACHE STRING "List of CUDA compute capabilities to build for")
+
+set(DTFFT_RUNNING_CICD OFF CACHE STRING "Running tests in GitHub actions")
+
+
+SET( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake" )
+
 find_package(MPI REQUIRED)
 if(MPI_Fortran_HAVE_F08_MODULE)
   if(DTFFT_USE_MPI)
     add_compile_definitions(DTFFT_USE_MPI)
   endif()
 else()
+  if(NOT DTFFT_USE_MPI)
+    message(FATAL_ERROR "Requested `mpi_f08` module is missing. Try configure with -DDTFFT_USE_MPI=ON")
+  endif()
   if(NOT MPI_Fortran_HAVE_F90_MODULE)
     message(FATAL_ERROR "Neither `mpi_f08` nor `mpi` modules were found.." )
   endif()
   add_compile_definitions(DTFFT_USE_MPI)
+endif()
+
+
+if(DTFFT_BUILD_SHARED)
+  add_library(dtfft SHARED)
+else()
+  add_library(dtfft STATIC)
 endif()
 
 include(CheckFortranSourceCompiles)
@@ -62,66 +76,10 @@ end program"
 HAVE_BLOCK_STATEMENT
 SRC_EXT .F90)
 
-if( NOT DTFFT_WITH_FFTW
-    AND NOT DTFFT_WITH_MKL
-    # AND NOT DTFFT_WITH_KFR
-    # AND NOT DTFFT_WITH_CUFFT
-    # AND NOT DTFFT_WITH_VKFFT
-)
-  set ( DTFFT_TRANSPOSE_ONLY ON )
-endif()
-set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
-configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HEADER}" )
-
-
-# if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
-#   target_compile_definitions(dtfft PRIVATE DTFFT_WITH_CUDA)
-# endif()
-if(DTFFT_BUILD_SHARED)
-  add_library(dtfft SHARED)
-else()
-  add_library(dtfft STATIC)
-endif()
-target_include_directories(dtfft PRIVATE ${PROJECT_SOURCE_DIR}/src/include)
-target_include_directories(dtfft PRIVATE ${PROJECT_BINARY_DIR})
-target_include_directories(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:${MPI_Fortran_MODULE_DIR}>)
-target_include_directories(dtfft PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:${MPI_C_INCLUDE_DIRS}>)
-target_link_libraries(dtfft PRIVATE ${MPI_Fortran_LIBRARIES})
-
-set(DTFFT_MODULE_DIR ${PROJECT_BINARY_DIR}/mod)
-set_target_properties(dtfft PROPERTIES Fortran_MODULE_DIRECTORY ${DTFFT_MODULE_DIR})
-set_target_properties(dtfft PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
-set(DTFFT_HEADER_DIR "${PROJECT_SOURCE_DIR}/include")
-SET(DTFFT_MODULE "${DTFFT_MODULE_DIR}/dtfft.mod")
-SET(DTFFT_HEADERS "${DTFFT_MODULE};${DTFFT_HEADER_DIR}/dtfft.f03")
-
-if(DTFFT_BUILD_C_CXX_API)
-  set(DTFFT_HEADERS "${DTFFT_HEADERS};${DTFFT_HEADER_DIR}/dtfft.h;${DTFFT_HEADER_DIR}/dtfft.hpp;${DTFFT_CONF_HEADER}")
-  target_link_libraries(dtfft PRIVATE ${MPI_CXX_LIBRARIES})
-endif()
-set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
-target_include_directories(dtfft INTERFACE $<INSTALL_INTERFACE:include>)
-
-set(DTFFT_MEASURE_ITERS "2" CACHE STRING "Number of iterations to run in order to find best grid decomposition
-                                          when passing DTFFT_MEASURE or DTFFT_PATIENT to effort_flag parameter
-                                          during plan creation")
-target_compile_definitions(dtfft PRIVATE DTFFT_MEASURE_ITERS=${DTFFT_MEASURE_ITERS})
-
-set(DTFFT_FORWARD_X_Y "2" CACHE STRING "Default id of transposition plan for X -> Y transpose")
-set(DTFFT_BACKWARD_X_Y "2" CACHE STRING "Default id of transposition plan for Y -> X transpose")
-set(DTFFT_FORWARD_Y_Z "2" CACHE STRING "Default id of transposition plan for Y -> Z transpose")
-set(DTFFT_BACKWARD_Y_Z "2" CACHE STRING "Default id of transposition plan for Z -> Y transpose")
-set(DTFFT_FORWARD_X_Z "2" CACHE STRING "Default id of transposition plan for X -> Z transpose")
-set(DTFFT_BACKWARD_X_Z "2" CACHE STRING "Default id of transposition plan for Z -> X transpose")
-target_compile_definitions(dtfft PRIVATE DTFFT_FORWARD_X_Y=${DTFFT_FORWARD_X_Y}
-                                 PRIVATE DTFFT_BACKWARD_X_Y=${DTFFT_BACKWARD_X_Y}
-                                 PRIVATE DTFFT_FORWARD_Y_Z=${DTFFT_FORWARD_Y_Z}
-                                 PRIVATE DTFFT_BACKWARD_Y_Z=${DTFFT_BACKWARD_Y_Z}
-                                 PRIVATE DTFFT_FORWARD_X_Z=${DTFFT_FORWARD_X_Z}
-                                 PRIVATE DTFFT_BACKWARD_X_Z=${DTFFT_BACKWARD_X_Z}
-)
 
 if ( DTFFT_ENABLE_PERSISTENT_COMM )
+
+  target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_ENABLE_PERSISTENT_COMM>)
   set(CMAKE_REQUIRED_INCLUDES ${MPI_Fortran_MODULE_DIR})
   set(CMAKE_REQUIRED_LIBRARIES ${MPI_Fortran_LIBRARIES})
   check_fortran_source_compiles("
@@ -137,7 +95,7 @@ if ( DTFFT_ENABLE_PERSISTENT_COMM )
 
   if ( HAVE_PERSISTENT_COLLECTIVES )
     message(STATUS "Persistent communications ENABLED")
-    target_compile_definitions(dtfft PRIVATE DTFFT_ENABLE_PERSISTENT_COMM)
+    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_HAVE_PERSISTENT_COLLECTIVES>)
   else()
     message(WARNING "MPI implementation do not support collective persistent functions")
   endif()
@@ -145,19 +103,148 @@ if ( DTFFT_ENABLE_PERSISTENT_COMM )
   unset(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
-if ( DTFFT_WITH_CALIPER )
-  find_package( caliper REQUIRED )
-  message(STATUS "Found caliper: ${caliper_DIR}")
-  target_compile_definitions(dtfft PRIVATE DTFFT_WITH_CALIPER)
-  target_link_libraries(dtfft PRIVATE caliper)
+if( NOT DTFFT_WITH_FFTW
+    AND NOT DTFFT_WITH_MKL
+    AND NOT DTFFT_WITH_CUFFT
+    AND NOT DTFFT_WITH_VKFFT
+)
+  set ( DTFFT_TRANSPOSE_ONLY ON )
+endif()
+if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
+  set( DTFFT_WITH_CUDA ON )
 endif()
 
 
-add_subdirectory(src)
+math(EXPR DTFFT_VERSION_CODE 
+  "${PROJECT_VERSION_MAJOR} * 100000 + ${PROJECT_VERSION_MINOR} * 1000 + ${PROJECT_VERSION_PATCH}"
+)
+set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
+configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HEADER}" )
+
+
+if(DTFFT_WITH_CUDA)
+  if ( NOT CMAKE_Fortran_COMPILER_ID MATCHES NVHPC
+    OR NOT CMAKE_C_COMPILER_ID MATCHES NVHPC
+    OR NOT CMAKE_CXX_COMPILER_ID MATCHES NVHPC
+  )
+    message(FATAL_ERROR "CUDA build requires that Fortran, C and C++ compilers are NVHPC")
+  endif()
+  find_package(CUDAToolkit 9.0 REQUIRED)
+  target_link_libraries(dtfft PRIVATE CUDA::cuda_driver)
+  target_link_libraries(dtfft PRIVATE CUDA::nvrtc)
+  target_link_libraries(dtfft PUBLIC CUDA::cudart)
+
+  if ( DTFFT_WITH_CUSTOM_NCCL )
+    find_package(NCCL REQUIRED)
+    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_WITH_CUSTOM_NCCL>)
+    target_link_libraries(dtfft PRIVATE ${NCCL_LIBRARIES})
+  else()
+    set(COMMON_NVHPC_FLAGS "${COMMON_NVHPC_FLAGS} -cudalib=nccl")
+  endif()
+
+  set(CMAKE_REQUIRED_INCLUDES ${MPI_Fortran_MODULE_DIR})
+  set(CMAKE_REQUIRED_LIBRARIES ${MPI_Fortran_LIBRARIES})
+  if ( DTFFT_USE_MPI )
+    set(HAVE_MPI_INT64 OFF)
+  else()
+    check_fortran_source_compiles("
+      program test
+      use mpi_f08
+      implicit none
+        integer(MPI_COUNT_KIND) :: send_count
+        real, allocatable :: send_buf(:)
+        integer :: ierr
+        type(MPI_Request) :: request
+
+        call MPI_Isend(send_buf, send_count, MPI_REAL, 0, 0, MPI_COMM_WORLD, request, ierr)"
+      HAVE_MPI_INT64
+    SRC_EXT .F90)
+  endif()
+  if ( HAVE_MPI_INT64 )
+    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=MPI_COUNT_KIND;ADDR_KIND=MPI_ADDRESS_KIND>)
+  else()
+    message(WARNING "MPI 64bit integer indexing is disabled. Overflows might occur if MPI Backends will be used")
+    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=int32;ADDR_KIND=int32>)
+  endif()
+
+  set(CMAKE_REQUIRED_FLAGS "-cuda")
+
+  if ( DTFFT_USE_MPI )
+    check_fortran_source_compiles("
+        program main
+        use mpi
+        implicit none
+        integer :: request
+        real, device, allocatable :: buf(:)
+        integer :: mpi_ierr
+
+        call MPI_Isend(buf( 1 ), 1, MPI_REAL, 1, 0, MPI_COMM_WORLD, request, mpi_ierr)
+
+      end program main"
+      HAVE_MPI_DEVICE_SUPPORT
+      SRC_EXT .F90)
+    if (NOT HAVE_MPI_DEVICE_SUPPORT)
+      message(FATAL_ERROR "MPI Module does not support passing buffers with `device` attribute.")
+    endif()
+  else()
+    check_fortran_source_compiles("
+      program main
+      use mpi_f08
+      implicit none
+      type(MPI_Request) :: request
+      real, device, allocatable :: buf(:)
+      integer :: mpi_ierr
+
+      call MPI_Isend(buf( 1 ), 1, MPI_REAL, 1, 0, MPI_COMM_WORLD, request, mpi_ierr)
+
+      end program main"
+      HAVE_MPI_DEVICE_SUPPORT
+      SRC_EXT .F90)
+    if (NOT HAVE_MPI_DEVICE_SUPPORT)
+      message(FATAL_ERROR "MPI Module `mpi_f08` does not support passing buffers with `device` attribute. 
+                           Consider using `-DDTFFT_USE_MPI=on` while building dtFFT")
+    endif()
+  endif()
+
+  unset(CMAKE_REQUIRED_FLAGS)
+  unset(CMAKE_REQUIRED_INCLUDES)
+  unset(CMAKE_REQUIRED_LIBRARIES)
+endif()
+
+
+target_link_libraries(dtfft PUBLIC MPI::MPI_Fortran)
+
+set(DTFFT_MODULE_DIR ${PROJECT_BINARY_DIR}/modules)
+set_target_properties(dtfft PROPERTIES Fortran_MODULE_DIRECTORY ${DTFFT_MODULE_DIR})
+set_target_properties(dtfft PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
+set(DTFFT_HEADER_DIR "${PROJECT_SOURCE_DIR}/include")
+SET(DTFFT_HEADERS "${DTFFT_HEADER_DIR}/dtfft.f03")
+
+if(DTFFT_BUILD_C_CXX_API)
+  set(DTFFT_HEADERS "${DTFFT_HEADERS};${DTFFT_HEADER_DIR}/dtfft.h;${DTFFT_HEADER_DIR}/dtfft.hpp;${DTFFT_CONF_HEADER}")
+  target_link_libraries(dtfft PUBLIC MPI::MPI_CXX)
+endif()
 set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
+target_include_directories(dtfft PUBLIC 
+  $<BUILD_INTERFACE:${DTFFT_MODULE_DIR}>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<$<COMPILE_LANGUAGE:Fortran>:$<INSTALL_INTERFACE:include/modules>>
+  $<INSTALL_INTERFACE:include>
+)
 
-set(CMAKE_VERBOSE_MAKEFILE OFF)
 
+if ( DTFFT_WITH_PROFILER )
+  target_compile_definitions(dtfft PRIVATE DTFFT_WITH_PROFILER)
+  if ( DTFFT_WITH_CUDA )
+    set(COMMON_NVHPC_FLAGS        "${COMMON_NVHPC_FLAGS} -cudalib=nvtx3")
+  else()
+    find_package( caliper REQUIRED )
+    message(STATUS "Found caliper: ${caliper_DIR}")
+    target_link_libraries(dtfft PRIVATE caliper)
+  endif()
+endif()
 
 set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -D__DEBUG -g")
 if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
@@ -167,7 +254,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
   -Wrealloc-lhs-all -Wdo-subscript -Wundefined-do-loop -Wextra -ggdb -fopt-info -fopt-info-optall-optimized -fbacktrace -fdump-fortran-optimized\
   -ftree-vectorize -Wimplicit-interface -Wunused-parameter -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow -ffpe-summary=none \
   -Warray-bounds -Wimplicit-procedure -Wunderflow -Wuninitialized -fimplicit-none -fdump-core -finit-real=nan")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpedantic -Wall -Werror")
+
   if(DTFFT_RUNNING_CICD)
     set(DTFFT_ENABLE_COVERAGE ON)
   endif()
@@ -199,43 +286,116 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
       LINK_FLAGS "-lgcov --coverage"
     )
   endif()
-elseif(CMAKE_Fortran_COMPILER_ID MATCHES intel)
-  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -warn all -check all -ftrapuv -fpe3 -assume ieee_fpe_flags -debug extended -stand f03 -assume realloc_lhs -traceback -fstack-protector -assume protect_parens -implicitnone")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATCHES IntelLLVM)
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -free -warn all -traceback")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG}  -check all -ftrapuv -fpe3 -assume ieee_fpe_flags -debug extended -assume realloc_lhs  -fstack-protector -assume protect_parens -implicitnone")
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -march=native")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr")
+  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast")
 endif()
 
+if ( DTFFT_WITH_CUDA )
+  foreach(CUDA_CC ${DTFFT_CUDA_CC_LIST})
+    list(APPEND CUF_GPU_ARG "cc${CUDA_CC}")
+  endforeach()
+  list(APPEND CUF_GPU_ARG "cuda${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
+  list(JOIN CUF_GPU_ARG "," CUF_GPU_ARG)
+
+  target_compile_options(dtfft
+    PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-gpu=${CUF_GPU_ARG}>
+    PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-cuda>)
+  target_link_options(dtfft
+    PUBLIC $<$<LINK_LANGUAGE:Fortran>:-gpu=${CUF_GPU_ARG}>
+    PUBLIC $<$<LINK_LANGUAGE:Fortran>:-cuda>
+    PUBLIC $<$<LINK_LANGUAGE:C,CXX>:-cudaforlibs>)
+
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} ${COMMON_NVHPC_FLAGS} -cuda -gpu=${CUF_GPU_ARG}")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -Mnobounds")
+  set(CMAKE_C_FLAGS               "${CMAKE_C_FLAGS} -cuda -gpu=${CUF_GPU_ARG}")
+  set(CMAKE_CXX_FLAGS             "${CMAKE_CXX_FLAGS} -cuda -gpu=${CUF_GPU_ARG}")
+endif()
+
+if( CMAKE_C_COMPILER_ID MATCHES GNU )
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpedantic -Wall -Wextra")
+endif()
+
+if( CMAKE_CXX_COMPILER_ID MATCHES GNU )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra")
+endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-configure_package_config_file(
-    ${PROJECT_SOURCE_DIR}/cmake/dtFFTConfig.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/dtFFTConfig.cmake"
-    INSTALL_DESTINATION "lib/cmake/dtfft"
-    NO_SET_AND_CHECK_MACRO NO_CHECK_REQUIRED_COMPONENTS_MACRO)
 
 set(DTFFT_INSTALL_CMAKEDIR
     "${CMAKE_INSTALL_LIBDIR}/cmake/dtfft"
     CACHE STRING "Path to dtFFT CMake files")
 
 
-install(TARGETS dtfft EXPORT dtfft_export)
+install(TARGETS dtfft 
+  EXPORT dtfftTargets)
 
 install(
-    EXPORT dtfft_export
+    EXPORT dtfftTargets
     DESTINATION "${DTFFT_INSTALL_CMAKEDIR}"
     CONFIGURATIONS Debug Release
-    FILE dtFFTConfig.cmake)
+    FILE dtfftTargets.cmake)
 
-write_basic_package_version_file(dtFFTConfigVersion.cmake
-    VERSION ${CMAKE_PROJECT_VERSION} 
-    COMPATIBILITY SameMinorVersion)
+write_basic_package_version_file(dtfftConfigVersion.cmake
+    VERSION ${CMAKE_PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
 
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/dtFFTConfigVersion.cmake"
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfigVersion.cmake"
     DESTINATION
     "${DTFFT_INSTALL_CMAKEDIR}" )
 
+configure_package_config_file(
+  ${PROJECT_SOURCE_DIR}/cmake/dtfftConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfig.cmake"
+  INSTALL_DESTINATION "${DTFFT_INSTALL_CMAKEDIR}"
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfig.cmake"
+    DESTINATION "${DTFFT_INSTALL_CMAKEDIR}"
+)
+
+install(DIRECTORY ${DTFFT_MODULE_DIR}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.mod")
+
+add_subdirectory(src)
 if(DTFFT_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
+endif()
+
+message(STATUS "dtFFT configuration summary:")
+message(STATUS "Version                   : ${dtfft_VERSION}")
+message(STATUS "Build type                : ${CMAKE_BUILD_TYPE}")
+message(STATUS "Compiler                  : ${CMAKE_Fortran_COMPILER_ID} ${CMAKE_Fortran_COMPILER_VERSION}")
+message(STATUS "Install dir               : ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Build shared libs         : ${DTFFT_BUILD_SHARED}")
+message(STATUS "Use `mpi` module          : ${DTFFT_USE_MPI}")
+message(STATUS "Build C/C++ API:          : ${DTFFT_BUILD_C_CXX_API}")
+message(STATUS "Build tests               : ${DTFFT_BUILD_TESTS}")
+message(STATUS "Coverage                  : ${DTFFT_ENABLE_COVERAGE}")
+message(STATUS "Profiler                  : ${DTFFT_WITH_PROFILER}")
+message(STATUS "CUDA enabled              : ${DTFFT_WITH_CUDA}")
+if ( DTFFT_WITH_CUDA )
+message(STATUS "Custom NCCL enabled       : ${DTFFT_WITH_CUSTOM_NCCL}")
+
+endif()
+if ( DTFFT_TRANSPOSE_ONLY )
+  message(STATUS "Building transpose only interface")
+else()
+  if ( DTFFT_WITH_CUDA )
+    message(STATUS "cuFFT enabled             : ${DTFFT_WITH_CUFFT}")
+    message(STATUS "VkFFT enabled             : ${DTFFT_WITH_VKFFT}")
+  else()
+    message(STATUS "FFTW3 enabled             : ${DTFFT_WITH_FFTW}")
+    message(STATUS "MKL enabled               : ${DTFFT_WITH_MKL}")
+  endif()
 endif()

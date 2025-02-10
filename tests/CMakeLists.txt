@@ -1,17 +1,18 @@
 file(GLOB TEST_SOURCES "fortran/*_f.F90")
 
+if(DTFFT_BUILD_SHARED)
+  add_library(test_utils SHARED fortran/test_utils.F90)
+else()
+  add_library(test_utils STATIC fortran/test_utils.F90)
+endif()
+target_link_libraries(test_utils PRIVATE dtfft)
+
+
 if(DTFFT_BUILD_C_CXX_API)
   file(GLOB TESTS_C_CXX_SOURCES "c/*.c*")
   list(APPEND TEST_SOURCES ${TESTS_C_CXX_SOURCES})
 endif()
 
-# if(DTFFT_BUILD_JAVA_API)
-#   # add_subdirectory()
-# endif()
-
-# if(DTFFT_BUILD_PYTHON_API)
-#   add_subdirectory(python)
-# endif()
 
 if(DTFFT_RUNNING_CICD)
   set(TESTS_MAX_PROC 8)
@@ -27,17 +28,12 @@ foreach(test ${TEST_SOURCES})
   get_filename_component(test_name ${test} NAME_WLE)
   get_filename_component(extension ${test} EXT)
   add_executable(${test_name} ${test})
-  target_link_libraries(${test_name} PRIVATE dtfft)
-  target_link_libraries(${test_name} PRIVATE ${MPI_Fortran_LIBRARIES})
+  target_link_libraries(${test_name} PRIVATE dtfft test_utils)
   target_link_libraries(${test_name} PRIVATE -lm)
-  target_include_directories(${test_name} PRIVATE ${PROJECT_BINARY_DIR})
-  target_include_directories(${test_name} PRIVATE ${PROJECT_SOURCE_DIR}/include)
-  target_include_directories(${test_name} PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:${PROJECT_SOURCE_DIR}/src/include>)
-  target_include_directories(${test_name} PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:${DTFFT_MODULE_DIR}>)
-  target_include_directories(${test_name} PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:${MPI_Fortran_MODULE_DIR}>)
-  target_include_directories(${test_name} PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:${MPI_C_INCLUDE_DIRS}>)
-  if( extension STREQUAL ".cpp" )
-    target_link_libraries(${test_name} PRIVATE ${MPI_CXX_LIBRARIES})
+
+  if ( DTFFT_WITH_CUDA )
+    target_compile_options(${test_name} PRIVATE -acc -Minfo=acc)
+    target_link_options(${test_name} PRIVATE "-acc")
   endif()
 
   foreach(nproc RANGE 1 ${TESTS_MAX_PROC} 1)

@@ -17,11 +17,8 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "mkl_dfti.f90"
-
 module dtfft_interface_mkl_native_m
-!------------------------------------------------------------------------------------------------
-!< This module creates interface with MKL library
-!------------------------------------------------------------------------------------------------
+!! This module creates native interface with MKL library
 use MKL_DFTI
 implicit none
 private
@@ -36,5 +33,7 @@ public :: DFTI_NO_ERROR,                &
           DFTI_COMPLEX,                 &
           DFTI_REAL,                    &
           DFTI_INPLACE,                 &
-          DFTI_NOT_INPLACE, DFTI_INPUT_STRIDES, DFTI_OUTPUT_STRIDES
+          DFTI_NOT_INPLACE,             &
+          DFTI_INPUT_STRIDES,           &
+          DFTI_OUTPUT_STRIDES
 end module dtfft_interface_mkl_native_m

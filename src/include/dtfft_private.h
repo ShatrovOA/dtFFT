@@ -24,13 +24,23 @@
 extern "C" {
 #endif
 
-#define FFT_FORWARD (-1)
-#define FFT_BACKWARD (+1)
+#define CONF_FFT_FORWARD (-1)
+#define CONF_FFT_BACKWARD (+1)
 
 #define CHECK_CALL( func, ierr ) \
   ierr = func;  if ( ierr /= DTFFT_SUCCESS ) return
 
 #define CHECK_INTERNAL_CALL( func ) CHECK_CALL(func, __FUNC__)
+
+#ifdef __DEBUG
+# define WRITE_DEBUG(msg) if(get_log_enabled()) call write_message(output_unit, msg, "dtFFT DEBUG: ")
+#else
+# define WRITE_DEBUG(msg)
+#endif
+
+#define WRITE_REPORT(msg) call write_message(output_unit, msg, "dtFFT: ")
+#define WRITE_INFO(msg) if(get_log_enabled()) WRITE_REPORT(msg)
+#define WRITE_WARN(msg) if(get_log_enabled()) call write_message(error_unit, msg, "dtFFT WARNING: ")
 
 #ifdef __cplusplus
 }

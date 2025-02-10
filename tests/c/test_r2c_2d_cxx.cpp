@@ -23,12 +23,15 @@
 #include <iostream>
 #include <complex>
 #include <vector>
-#include <cstdlib>
+#include "test_utils.h"
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
+#if defined(DTFFT_TRANSPOSE_ONLY) || defined(DTFFT_WITH_CUDA)
+  return 0;
+#else
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
 
@@ -47,31 +50,29 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
+  dtfft_executor_t executor_type;
 #ifdef DTFFT_WITH_MKL
-  int executor_type = DTFFT_EXECUTOR_MKL;
-#elif defined(DTFFT_WITH_VKFFT)
-  int executor_type = DTFFT_EXECUTOR_VKFFT;
-#elif defined (DTFFT_WITH_FFTW)
-  int executor_type = DTFFT_EXECUTOR_FFTW3;
-#else
-  if(comm_rank == 0) {
-    cout << "No available executors found, skipping test..." << endl;
-  }
-  MPI_Finalize();
-  return 0;
-
-  int executor_type = DTFFT_EXECUTOR_NONE;
+  executor_type = DTFFT_EXECUTOR_MKL;
+#elif defined(DTFFT_WITH_FFTW )
+  executor_type = DTFFT_EXECUTOR_FFTW3;
 #endif
 
   // Create plan
-  vector<int> dims = {ny, nx};
-  dtfft::PlanR2C plan(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
+  vector<int32_t> dims = {ny, nx};
+  dtfft::PlanR2C *plan;
+  try {
+    plan = new dtfft::PlanR2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
+  } catch (const runtime_error& err) {
+    cerr << err.what() << endl;
+    MPI_Abort(MPI_COMM_WORLD, -1);
+    return -1;
+  }
 
-  vector<int> in_counts(2);
+  vector<int32_t> in_counts(2);
   size_t alloc_size;
-  plan.get_alloc_size(&alloc_size);
-  plan.get_local_sizes(NULL, in_counts.data());
-  int in_size = in_counts[0] * in_counts[1];
+  DTFFT_CALL( plan->get_alloc_size(&alloc_size) );
+  DTFFT_CALL( plan->get_local_sizes(NULL, in_counts.data()) );
+  size_t in_size = in_counts[0] * in_counts[1];
 
   vector<double> in(alloc_size), check(in_size);
   vector<complex<double>> out(alloc_size);
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  plan.execute(in, out, DTFFT_TRANSPOSE_OUT);
+  DTFFT_CALL( plan->execute(in, out, DTFFT_TRANSPOSE_OUT) );
   tf += MPI_Wtime();
 
   for ( auto & element: in) {
@@ -95,20 +96,8 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  plan.execute(out, in, DTFFT_TRANSPOSE_IN);
+  DTFFT_CALL( plan->execute(out, in, DTFFT_TRANSPOSE_IN) );
   tb += MPI_Wtime();
-
-  double t_sum;
-  MPI_Allreduce(&tf, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tf = t_sum / (double) comm_size;
-  MPI_Allreduce(&tb, &t_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  tb = t_sum / (double) comm_size;
-
-  if(comm_rank == 0) {
-    cout << "Forward execution time: " << tf << endl;
-    cout << "Backward execution time: " << tb << endl;
-    cout << "----------------------------------------" << endl;
-  }
 
   double local_error = -1.0;
   for (size_t i = 0; i < in_size; i++) {
@@ -116,20 +105,13 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
-  double global_error;
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  report_double(&nx, &ny, NULL, local_error, tf, tb);
 
-  if(comm_rank == 0) {
-    if(global_error < 1e-10) {
-      cout << "Test 'r2c_2d_cxx' PASSED!" << endl;
-    } else {
-      cout << "Test 'r2c_2d_cxx' FAILED, error = " << global_error << endl;
-      return -1;
-    }
-    cout << "----------------------------------------" << endl;
-  }
-  plan.destroy();
+  DTFFT_CALL( plan->destroy() );
+
+  delete plan;
 
   MPI_Finalize();
   return 0;
+#endif // DTFFT_TRANSPOSE_ONLY
 }
