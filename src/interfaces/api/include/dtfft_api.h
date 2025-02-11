@@ -70,7 +70,7 @@ int32_t
 dtfft_get_pencil_c(const void*, int8_t*, void *);
 
 extern
-int32_t
+void
 dtfft_create_config_c(void *);
 
 extern

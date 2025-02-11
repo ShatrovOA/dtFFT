@@ -156,7 +156,8 @@ dtfft_report(dtfft_plan_t plan) {
 dtfft_error_code_t
 dtfft_create_config(dtfft_config_t *config) {
   if ( config == NULL ) return DTFFT_ERROR_INVALID_USAGE;
-  return (dtfft_error_code_t)dtfft_create_config_c((void *)config);
+  dtfft_create_config_c((void *)config);
+  return DTFFT_SUCCESS;
 }
 
 #ifdef DTFFT_WITH_CUDA
