@@ -34,3 +34,11 @@ html_static_path = ['_static']
 
 breathe_projects = { "dtFFT": "xml/" }
 breathe_default_project = "dtFFT"
+
+import subprocess
+import os
+
+read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+
+if read_the_docs_build:
+    subprocess.call('doxygen', shell=True)
