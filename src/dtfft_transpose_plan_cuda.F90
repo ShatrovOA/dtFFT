@@ -40,7 +40,7 @@ public :: transpose_plan_cuda
 
   type, extends(abstract_transpose_plan) :: transpose_plan_cuda
   private
-    type(dtfft_gpu_backend_t)                 :: backend_id
+    type(dtfft_gpu_backend_t)                 :: gpu_backend
     integer(cuda_stream_kind)                 :: stream
     type(c_devptr)                            :: aux
     logical                                   :: is_aux_alloc
@@ -51,23 +51,33 @@ public :: transpose_plan_cuda
     procedure :: create_private => create_cuda
     procedure :: execute_private => execute_cuda
     procedure :: destroy => destroy_cuda
-    procedure :: get_backend_id
+    procedure :: get_gpu_backend
+    procedure :: mem_alloc
   end type transpose_plan_cuda
 
 contains
 
-  type(dtfft_gpu_backend_t) function get_backend_id(self)
+  type(dtfft_gpu_backend_t) function get_gpu_backend(self)
   class(transpose_plan_cuda), intent(in) :: self         !< Transposition class
-    get_backend_id = self%backend_id
-  end function get_backend_id
+    get_gpu_backend = self%gpu_backend
+  end function get_gpu_backend
 
-  integer(int32) function create_cuda(self, dims, transposed_dims, base_comm, comm_dims, effort_type, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
+  subroutine mem_alloc(self, alloc_bytes, ptr)
+  !! Allocates memory based on selected backend
+    class(transpose_plan_cuda),     intent(in)  :: self            !< Transposition class
+    integer(int64),                 intent(in)  :: alloc_bytes
+    type(c_devptr),                 intent(out) :: ptr
+
+    call self%generic_mem_alloc(alloc_bytes, ptr)
+  end subroutine mem_alloc
+
+  integer(int32) function create_cuda(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
     class(transpose_plan_cuda),     intent(inout) :: self                 !< GPU transpose plan
     integer(int32),                 intent(in)    :: dims(:)              !< Global sizes of the transform requested
     integer(int32),                 intent(in)    :: transposed_dims(:,:) !< Transposed dimensions
     TYPE_MPI_COMM,                  intent(in)    :: base_comm            !< Base communicator
     integer(int32),                 intent(in)    :: comm_dims(:)         !< Number of processors in each dimension
-    type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort flag
+    type(dtfft_effort_t),           intent(in)    :: effort               !< ``dtFFT`` planner type of effort
     TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
     integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
     logical,                        intent(in)    :: is_custom_cart_comm  !< is custom Cartesian communicator provided by user
@@ -83,16 +93,22 @@ contains
     logical :: pencils_created
     real(real64) :: ts, te
 
+    create_cuda = DTFFT_SUCCESS
+    ! TODO Update when nvshem becomes available
+    if ( .not.get_mpi_enabled() .and. .not.get_nccl_enabled() .and. effort == DTFFT_PATIENT) then
+      create_cuda = DTFFT_ERROR_GPU_BACKENDS_DISABLED
+      return
+    endif
 
     ndims = size(dims, kind=int8)
     allocate( best_decomposition(ndims) )
 
     self%stream = get_user_stream()
-    self%backend_id = get_user_gpu_backend()
+    self%gpu_backend = get_user_gpu_backend()
 
     best_decomposition(:) = comm_dims(:)
     call MPI_Comm_size(base_comm, comm_size, ierr)
-    if ( comm_size == 1 ) self%backend_id = BACKEND_NOT_SET
+    if ( comm_size == 1 ) self%gpu_backend = BACKEND_NOT_SET
 
     pencils_created = .false.
     if ( ndims == 2 .or. is_custom_cart_comm .or. self%is_z_slab ) then
@@ -105,23 +121,23 @@ contains
 
     ts = MPI_Wtime()
 
-    if ( effort_type == DTFFT_PATIENT .and. comm_size > 1) then
+    if ( effort == DTFFT_PATIENT .and. comm_size > 1) then
       if ( pencils_created ) then
-        call run_autotune_backend(comms, cart_comm, pencils, base_storage, self%stream, self%is_z_slab, best_backend_id=self%backend_id)
+        call run_autotune_backend(comms, cart_comm, pencils, base_storage, self%stream, self%is_z_slab, best_backend_id=self%gpu_backend)
       else
-        call autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage, self%stream, best_decomposition, best_backend_id=self%backend_id)
+        call autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage, self%stream, best_decomposition, best_backend_id=self%gpu_backend)
       endif
     else if ( ndims == 3                                &
       .and. .not.is_custom_cart_comm                    &
       .and. .not.self%is_z_slab                         &
-      .and. effort_type == DTFFT_MEASURE                &
+      .and. effort == DTFFT_MEASURE                     &
       .and. comm_size > 1 ) then
 
-      call autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage,self%stream, best_decomposition, backend_id=self%backend_id)
+      call autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage,self%stream, best_decomposition, gpu_backend=self%gpu_backend)
     endif
     te = MPI_Wtime()
 
-    if ( effort_type%val >= DTFFT_MEASURE%val .and. ndims > 2 .and. comm_size > 1 ) then
+    if ( effort%val >= DTFFT_MEASURE%val .and. ndims > 2 .and. comm_size > 1 ) then
       WRITE_INFO(repeat("*", 50))
       if ( self%is_z_slab ) then
         WRITE_INFO("Skipped search of MPI processor grid due to Z-slab optimization enabled")
@@ -131,10 +147,10 @@ contains
         WRITE_INFO("DTFFT_MEASURE: Selected MPI processor grid 1x"//int_to_str(best_decomposition(2))//"x"//int_to_str(best_decomposition(3)))
       endif
     endif
-    if ( effort_type == DTFFT_PATIENT .and. comm_size > 1 ) then
-      WRITE_INFO("DTFFT_PATIENT: Selected backend is "//dtfft_get_gpu_backend_string(self%backend_id))
+    if ( effort == DTFFT_PATIENT .and. comm_size > 1 ) then
+      WRITE_INFO("DTFFT_PATIENT: Selected backend is "//dtfft_get_gpu_backend_string(self%gpu_backend))
     endif
-    if ( effort_type%val >= DTFFT_MEASURE%val .and. comm_size > 1 ) then
+    if ( effort%val >= DTFFT_MEASURE%val .and. comm_size > 1 ) then
       WRITE_INFO("Time spent on autotune: "//double_to_str(te - ts)//" [s]")
     endif
 
@@ -147,15 +163,15 @@ contains
     n_transpose_plans = ndims - 1_int8; if( self%is_z_slab ) n_transpose_plans = n_transpose_plans + 1_int8
     allocate( self%out_plans(n_transpose_plans), self%in_plans(n_transpose_plans) )
 
-    call self%helper%create(cart_comm, comms, is_backend_nccl(self%backend_id))
+    call self%helper%create(cart_comm, comms, is_backend_nccl(self%gpu_backend))
 
     do d = 1_int8, ndims - 1_int8
-      call self%out_plans(d)%create(self%helper, pencils(d), pencils(d + 1), base_storage, self%backend_id)
-      call self%in_plans (d)%create(self%helper, pencils(d + 1), pencils(d), base_storage, self%backend_id)
+      call self%out_plans(d)%create(self%helper, pencils(d), pencils(d + 1), base_storage, self%gpu_backend)
+      call self%in_plans (d)%create(self%helper, pencils(d + 1), pencils(d), base_storage, self%gpu_backend)
     enddo
     if ( self%is_z_slab ) then
-      call self%out_plans(3)%create(self%helper, pencils(1), pencils(3), base_storage, self%backend_id)
-      call self%in_plans (3)%create(self%helper, pencils(3), pencils(1), base_storage, self%backend_id)
+      call self%out_plans(3)%create(self%helper, pencils(1), pencils(3), base_storage, self%gpu_backend)
+      call self%in_plans (3)%create(self%helper, pencils(3), pencils(1), base_storage, self%gpu_backend)
     endif
     self%is_aux_alloc = alloc_and_set_aux(cart_comm, self%aux, self%in_plans, self%out_plans)
 
@@ -204,14 +220,14 @@ contains
     deallocate(self% in_plans)
   end subroutine destroy_cuda
 
-  subroutine autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage, stream, best_decomposition, backend_id, min_execution_time, best_backend_id)
+  subroutine autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage, stream, best_decomposition, gpu_backend, min_execution_time, best_backend_id)
     integer(int32),                       intent(in)    :: dims(:)              !< Global sizes of the transform requested
     integer(int32),                       intent(in)    :: transposed_dims(:,:)
     TYPE_MPI_COMM,                        intent(in)    :: base_comm            !< 3D comm
     integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
     integer(cuda_stream_kind),            intent(in)    :: stream
     integer(int32),                       intent(out)   :: best_decomposition(:)
-    type(dtfft_gpu_backend_t),  optional, intent(in)    :: backend_id    !< ID of transpose name (from -3 to 3, except 0)
+    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend    !< ID of transpose name (from -3 to 3, except 0)
     real(real32),               optional, intent(out)   :: min_execution_time         !< Elapsed time for best plans selected
     type(dtfft_gpu_backend_t),  optional, intent(out)   :: best_backend_id
     integer(int8)   :: ndims
@@ -234,7 +250,7 @@ contains
     do i = 1, square_root - 1
       if ( mod( comm_size, i ) /= 0 ) cycle
 
-      call autotune_grid(dims, transposed_dims, base_comm, [1, i, comm_size / i], base_storage, .false., stream, backend_id=backend_id, best_time=current_time,best_backend_id=best_backend_id_)
+      call autotune_grid(dims, transposed_dims, base_comm, [1, i, comm_size / i], base_storage, .false., stream, gpu_backend=gpu_backend, best_time=current_time,best_backend_id=best_backend_id_)
       if ( current_time > 0.0 ) then
         current_timer = current_timer + 1
         timers(current_timer) = current_time
@@ -243,7 +259,7 @@ contains
         backends(current_timer) = best_backend_id_
       endif
       if ( i /= comm_size / i) then
-        call autotune_grid(dims, transposed_dims, base_comm, [1, comm_size / i, i], base_storage, .false., stream, backend_id=backend_id, best_time=current_time,best_backend_id=best_backend_id_)
+        call autotune_grid(dims, transposed_dims, base_comm, [1, comm_size / i, i], base_storage, .false., stream, gpu_backend=gpu_backend, best_time=current_time,best_backend_id=best_backend_id_)
         if ( current_time > 0.0 ) then
           current_timer = current_timer + 1
           timers(current_timer) = current_time
@@ -271,7 +287,7 @@ contains
     deallocate( timers, decomps, backends )
   end subroutine autotune_grid_decomposition
 
-  subroutine autotune_grid(dims, transposed_dims, base_comm, comm_dims, base_storage, is_z_slab, stream, backend_id, best_time, best_backend_id)
+  subroutine autotune_grid(dims, transposed_dims, base_comm, comm_dims, base_storage, is_z_slab, stream, gpu_backend, best_time, best_backend_id)
     integer(int32),                       intent(in)    :: dims(:)              !< Global sizes of the transform requested
     integer(int32),                       intent(in)    :: transposed_dims(:,:)
     TYPE_MPI_COMM,                        intent(in)    :: base_comm            !< 3D comm
@@ -279,7 +295,7 @@ contains
     integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
     logical,                              intent(in)    :: is_z_slab
     integer(cuda_stream_kind),            intent(in)    :: stream
-    type(dtfft_gpu_backend_t),  optional, intent(in)    :: backend_id           !< ID of transpose name (from -3 to 3, except 0)
+    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend           !< ID of transpose name (from -3 to 3, except 0)
     type(dtfft_gpu_backend_t),  optional, intent(out)   :: best_backend_id
     real(real32),               optional, intent(out)   :: best_time         !< Elapsed time for best plans selected
     type(pencil), allocatable :: pencils(:)
@@ -309,9 +325,9 @@ contains
       call pencils(d)%create(ndims, d, transposed_dims(:,d), comms)
     enddo
 
-    ! elapsed_time = autotune_backend_id(comms, cart_comm, pencils, base_storage, backend_id, stream)
+    ! elapsed_time = autotune_backend_id(comms, cart_comm, pencils, base_storage, gpu_backend, stream)
 
-    call run_autotune_backend(comms, cart_comm, pencils, base_storage, stream, is_z_slab, backend_id=backend_id, best_time=best_time, best_backend_id=best_backend_id)
+    call run_autotune_backend(comms, cart_comm, pencils, base_storage, stream, is_z_slab, gpu_backend=gpu_backend, best_time=best_time, best_backend_id=best_backend_id)
 
     do d = 1, ndims
       call pencils(d)%destroy()
@@ -322,14 +338,14 @@ contains
     PHASE_END(phase_name)
   end subroutine autotune_grid
 
-  subroutine run_autotune_backend(comms, cart_comm, pencils, base_storage, stream, is_z_slab, backend_id, best_time, best_backend_id)
+  subroutine run_autotune_backend(comms, cart_comm, pencils, base_storage, stream, is_z_slab, gpu_backend, best_time, best_backend_id)
     TYPE_MPI_COMM,                        intent(in)    :: comms(:)              !< 1D comms
     TYPE_MPI_COMM,                        intent(in)    :: cart_comm            !< 3D Cartesian comm
     type(pencil),                         intent(in)    :: pencils(:)           !< Source meta
     integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
     integer(cuda_stream_kind),            intent(in)    :: stream
     logical,                              intent(in)    :: is_z_slab
-    type(dtfft_gpu_backend_t),  optional, intent(in)    :: backend_id           !< ID of transpose name (from -3 to 3, except 0)
+    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend           !< ID of transpose name (from -3 to 3, except 0)
     real(real32),               optional, intent(out)   :: best_time
     type(dtfft_gpu_backend_t),  optional, intent(out)   :: best_backend_id
     type(dtfft_gpu_backend_t),  allocatable :: backends_to_run(:)
@@ -351,9 +367,9 @@ contains
     ! integer(int64)                                :: scaler         !< Scaling data amount to float size
     ! integer(cuda_count_kind) :: free, total
 
-    if ( present(backend_id) ) then
+    if ( present(gpu_backend) ) then
       allocate( backends_to_run(1) )
-      backends_to_run(1) = backend_id
+      backends_to_run(1) = gpu_backend
       is_udb = .true.
     else
       allocate(backends_to_run(size(VALID_GPU_BACKENDS(2:))))

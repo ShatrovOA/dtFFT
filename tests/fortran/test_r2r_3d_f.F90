@@ -44,7 +44,7 @@ implicit none
   class(dtfft_plan_t), allocatable :: plan
   integer(I4P) :: in_starts(3), in_counts(3), out_counts(3), ierr, ijk
   integer(I4P) :: iter
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
   real(R8P) :: tf, tb, temp
   integer(I8P) :: alloc_size
   TYPE_MPI_COMM :: comm
@@ -70,11 +70,11 @@ implicit none
   call MPI_Cart_create(MPI_COMM_WORLD, 1, [comm_size], [.false.], .false., comm, ierr)
 
 #if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
 #elif defined(DTFFT_WITH_VKFFT)
-  executor_type = DTFFT_EXECUTOR_VKFFT
+  executor = DTFFT_EXECUTOR_VKFFT
 #else
-  executor_type = DTFFT_EXECUTOR_NONE
+  executor = DTFFT_EXECUTOR_NONE
 #endif
 
   call dtfft_create_config(conf)
@@ -88,7 +88,7 @@ implicit none
   allocate( dtfft_plan_r2r_t :: plan )
   select type (plan)
   class is ( dtfft_plan_r2r_t )
-    call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm, effort_type=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr)
+    call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm, effort=DTFFT_PATIENT, executor=executor, error_code=ierr)
   endselect
   DTFFT_CHECK(ierr)
 
@@ -126,7 +126,7 @@ implicit none
   do iter = 1, 10
     temp = 0.0_R8P - MPI_Wtime()
   !$acc host_data use_device(in, out)
-    call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+    call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
   !$acc end host_data
     DTFFT_CHECK(ierr)
 
@@ -135,7 +135,7 @@ implicit none
 #endif
     tf = tf + temp + MPI_Wtime()
 
-    if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+    if ( executor /= DTFFT_EXECUTOR_NONE ) then
     !$acc kernels present(out)
       out(:out_size) = out(:out_size) / real(8 * nx * ny * nz, R8P)
     !$acc end kernels
@@ -147,7 +147,7 @@ implicit none
 
     temp = 0.0_R8P - MPI_Wtime()
   !$acc host_data use_device(in, out)
-    call plan%execute(out, in, DTFFT_TRANSPOSE_IN, error_code=ierr)
+    call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
   !$acc end host_data
     DTFFT_CHECK(ierr)
 #ifdef DTFFT_WITH_CUDA

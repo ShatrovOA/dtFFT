@@ -1,5 +1,7 @@
 #include "dtfft_config.h"
+#include "dtfft_private.h"
 #include <stdbool.h>
+#include <stdlib.h>
 
 bool is_same_ptr(const void *ptr1, const void *ptr2) {
   return ptr1 == ptr2;
@@ -46,6 +48,22 @@ bool is_device_ptr(const void *ptr) {
   cudaError_t ierr = cudaPointerGetAttributes(&attrs, ptr);
   if ( ierr == cudaErrorInvalidValue ) return false;
   return attrs.devicePointer != NULL;
+}
+
+#else
+
+void mem_alloc_host(size_t alloc_size, void **ptr) {
+  size_t displ = alloc_size % ALLOC_ALIGNMENT;
+  size_t alloc_size_ = alloc_size;
+  if ( displ != 0 ) {
+    alloc_size_ += (ALLOC_ALIGNMENT - displ);
+  }
+  void *ptr_ = aligned_alloc(ALLOC_ALIGNMENT, alloc_size_);
+  *ptr = ptr_;
+}
+
+void mem_free_host(void *ptr) {
+  free(ptr);
 }
 
 #endif

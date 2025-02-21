@@ -19,12 +19,13 @@
 #include "dtfft_config.h"
 module dtfft_abstract_transpose_plan
 !! This module defines most Abstract Transpose Plan: `abstract_transpose_plan`
-use iso_fortran_env,    only: int8, int32, error_unit, output_unit
+use iso_fortran_env,    only: int8, int32, int64, error_unit, output_unit
 use dtfft_pencil,       only: pencil
 use dtfft_parameters
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
 use dtfft_nvrtc_kernel, only: DEF_TILE_SIZE
+use cudafor
 #endif
 #include "dtfft_mpi.h"
 #include "dtfft_profile.h"
@@ -39,19 +40,21 @@ public :: create_cart_comm
   !! The most Abstract Transpose Plan
     logical :: is_z_slab  !< Z-slab optimization flag (for 3D transforms)
   contains
-    procedure,                    pass(self),           public          :: create           !< Create transposition plan
-    procedure,                    pass(self),           public          :: execute          !< Executes transposition
-    procedure(create_interface),  pass(self), deferred                  :: create_private   !< Creates overriding class
-    procedure(execute_interface), pass(self), deferred                  :: execute_private  !< Executes overriding class
-    procedure(destroy_interface), pass(self), deferred, public          :: destroy          !< Destroys overriding class
+    procedure,                            pass(self),           public  :: create           !< Create transposition plan
+    procedure,                            pass(self),           public  :: execute          !< Executes transposition
+    procedure(create_interface),          pass(self), deferred          :: create_private   !< Creates overriding class
+    procedure(execute_interface),         pass(self), deferred          :: execute_private  !< Executes overriding class
+    procedure(destroy_interface),         pass(self), deferred, public  :: destroy          !< Destroys overriding class
 #ifdef DTFFT_WITH_CUDA
-    procedure(get_backend_id_interface),  pass(self), deferred, public  :: get_backend_id   !< Returns backend id
+    procedure,                            nopass,               public  :: generic_mem_alloc!< Allocates memory via `cudaMalloc`
+    procedure(get_gpu_backend_interface), pass(self), deferred, public  :: get_gpu_backend  !< Returns backend id
+    procedure(mem_alloc_interface),       pass(self), deferred, public  :: mem_alloc        !< Allocates memory based on selected backend
 #endif
   end type abstract_transpose_plan
 
 
   interface
-    function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort_type, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
+    function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
     !! Creates transposition plans
     import
       class(abstract_transpose_plan), intent(inout) :: self                 !< Transposition class
@@ -59,7 +62,7 @@ public :: create_cart_comm
       integer(int32),                 intent(in)    :: transposed_dims(:,:) !< Transposed sizes of the transform requested
       TYPE_MPI_COMM,                  intent(in)    :: base_comm            !< Base MPI communicator
       integer(int32),                 intent(in)    :: comm_dims(:)         !< Dims in cartesian communicator
-      type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort flag
+      type(dtfft_effort_t),           intent(in)    :: effort               !< ``dtFFT`` planner type of effort
       TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
       integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
       logical,                        intent(in)    :: is_custom_cart_comm  !< Custom cartesian communicator provided by user
@@ -85,26 +88,34 @@ public :: create_cart_comm
     end subroutine destroy_interface
 
 #ifdef DTFFT_WITH_CUDA
-    type(dtfft_gpu_backend_t) function get_backend_id_interface(self)
+    type(dtfft_gpu_backend_t) function get_gpu_backend_interface(self)
     import
       class(abstract_transpose_plan), intent(in) :: self            !< Transposition class
-    end function get_backend_id_interface
+    end function get_gpu_backend_interface
+
+    subroutine mem_alloc_interface(self, alloc_bytes, ptr)
+    !! Allocates memory based on selected backend
+    import
+      class(abstract_transpose_plan), intent(in)  :: self            !< Transposition class
+      integer(int64),                 intent(in)  :: alloc_bytes
+      type(c_devptr),                 intent(out) :: ptr
+    end subroutine mem_alloc_interface
 #endif
   endinterface
 
 contains
 
-  function create(self, dims, base_comm_, effort_type, base_dtype, base_storage, cart_comm, comms, pencils) result(error_code)
+  function create(self, dims, base_comm_, effort, base_dtype, base_storage, cart_comm, comms, pencils) result(error_code)
   !! Creates transposition plans
     class(abstract_transpose_plan), intent(inout) :: self                 !< Transposition class
     integer(int32),                 intent(in)    :: dims(:)              !< Global sizes of the transform requested
     TYPE_MPI_COMM,                  intent(in)    :: base_comm_           !< Base communicator
-    type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort flag
+    type(dtfft_effort_t),           intent(in)    :: effort               !< ``dtFFT`` planner type of effort
     TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
     integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
     TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !< Cartesian communicator
     TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !< Array of 1d communicators
-    type(pencil),                   intent(out)   :: pencils(:)             !< Data distributing meta
+    type(pencil),                   intent(out)   :: pencils(:)           !< Data distributing meta
     integer(int32)                                :: error_code
     integer(int32),               allocatable     :: transposed_dims(:,:) !< Global counts in transposed coordinates
 
@@ -185,6 +196,12 @@ contains
           comm_dims(3) = 1
         endif
       call MPI_Dims_create(comm_size, int(ndims, int32), comm_dims, ierr)
+      if(dims(ndims - 1) < comm_dims(ndims - 1) .or. dims(ndims) < comm_dims(ndims) ) then
+        WRITE_WARN("Unable to create correct grid decomposition.")
+        WRITE_WARN("Fallback to Z slab is used")
+        comm_dims(ndims - 1) = 1
+        comm_dims(ndims) = comm_size
+      endif
     endif
     if ( self%is_z_slab ) then
       WRITE_INFO("Using Z-slab optimization")
@@ -212,7 +229,7 @@ contains
       transposed_dims(3, 3) = dims(2)
     endif
 
-    error_code = self%create_private(dims, transposed_dims, base_comm_, comm_dims, effort_type, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
+    error_code = self%create_private(dims, transposed_dims, base_comm_, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
     if ( error_code /= DTFFT_SUCCESS ) return
 
     deallocate( transposed_dims )
@@ -230,6 +247,16 @@ contains
     call self%execute_private(in, out, transpose_type)
     PHASE_END('Transpose '//TRANSPOSE_NAMES(transpose_type%val))
   end subroutine execute
+
+#ifdef DTFFT_WITH_CUDA
+  subroutine generic_mem_alloc(alloc_bytes, ptr)
+  !! Allocates memory via `cudaMalloc`
+    integer(int64),                 intent(in)  :: alloc_bytes
+    type(c_devptr),                 intent(out) :: ptr
+
+    CUDA_CALL( "cudaMalloc", cudaMalloc(ptr, alloc_bytes) )
+  end subroutine generic_mem_alloc
+#endif
 
   subroutine create_cart_comm(old_comm, comm_dims, comm, local_comms)
   !! Creates cartesian communicator

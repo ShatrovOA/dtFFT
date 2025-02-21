@@ -37,6 +37,7 @@ private
 public :: abstract_backend, backend_helper
 
   type :: backend_helper
+  !! Helper with nccl, mpi and nvshmem communicators
     logical                     :: is_nccl_created = .false.    !< Flag is `nccl_comm` has been created
     type(ncclComm)              :: nccl_comm                    !< NCCL communicator
     TYPE_MPI_COMM,  allocatable :: comms(:)                     !< MPI communicators
@@ -48,7 +49,7 @@ public :: abstract_backend, backend_helper
 
   type, abstract :: abstract_backend
   !! The most Abstract GPU Backend
-    type(dtfft_gpu_backend_t)         :: backend_id
+    type(dtfft_gpu_backend_t)         :: gpu_backend
     logical                           :: is_selfcopy
     logical                           :: is_pipelined
     real(real32), DEVICE_PTR  pointer :: aux(:)                 !< Auxiliary buffer used in pipelined algorithm
@@ -109,10 +110,10 @@ end interface
 
 contains
 
-  subroutine create(self, backend_id, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
+  subroutine create(self, gpu_backend, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
   !! Creates Abstract GPU Backend
     class(abstract_backend),    intent(inout) :: self           !< Abstract GPU Backend
-    type(dtfft_gpu_backend_t),  intent(in)    :: backend_id
+    type(dtfft_gpu_backend_t),  intent(in)    :: gpu_backend
     type(backend_helper),       intent(in)    :: helper         !< Backend helper
     integer(int8),              intent(in)    :: comm_id        !< Id of communicator to use
     integer(int32),             intent(in)    :: send_displs(:) !< Send data displacements, in original elements
@@ -152,9 +153,9 @@ contains
     self%recv_displs = self%recv_displs + 1
     self%recv_floats = int(recv_counts, int64) * scaler
 
-    self%backend_id = backend_id
-    self%is_pipelined = is_backend_pipelined(backend_id)
-    self%is_selfcopy = self%is_pipelined .or. is_backend_mpi(backend_id)
+    self%gpu_backend = gpu_backend
+    self%is_pipelined = is_backend_pipelined(gpu_backend)
+    self%is_selfcopy = self%is_pipelined .or. is_backend_mpi(gpu_backend)
 
     self%aux_size = 0_int64
     if ( self%is_pipelined ) then

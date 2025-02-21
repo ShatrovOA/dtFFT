@@ -27,6 +27,7 @@
 #include "test_utils.h"
 
 using namespace std;
+using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
@@ -61,35 +62,33 @@ int main(int argc, char *argv[])
 
   MPI_Comm grid_comm;
   // It is assumed that data is not distributed in Nz direction
-  // So 2d communicator is created here
+  // So 2D communicator is created here
   int comm_dims[2] = {0, 0};
   const int comm_periods[2] = {0, 0};
   MPI_Dims_create(comm_size, 2, comm_dims);
   MPI_Cart_create(MPI_COMM_WORLD, 2, comm_dims, comm_periods, 1, &grid_comm);
 
-  dtfft_executor_t executor_type;
+  Executor executor;
 #if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3;
+  executor = Executor::FFTW3;
 #elif defined (DTFFT_WITH_MKL)
-  executor_type = DTFFT_EXECUTOR_MKL;
+  executor = Executor::MKL;
 #else
-  executor_type = DTFFT_EXECUTOR_NONE;
+  executor = Executor::NONE;
 #endif
 
-  dtfft_config_t conf;
-  dtfft_create_config(&conf);
+  Config conf;
+  conf.set_enable_z_slab(true);
+  DTFFT_CXX_CALL( set_config(conf) );
 
-  conf.enable_z_slab = true;
-  dtfft_set_config(conf);
-
-  dtfft::PlanC2C plan(dims, grid_comm, DTFFT_SINGLE, DTFFT_MEASURE, executor_type);
+  Plan *plan = new PlanC2C(dims, grid_comm, Precision::SINGLE, Effort::MEASURE, executor);
   vector<int> in_counts(3);
-  plan.get_local_sizes(NULL, in_counts.data());
+  DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data()) )
 
   size_t in_size = std::accumulate(in_counts.begin(), in_counts.end(), 1, multiplies<int>());
 
   size_t alloc_size;
-  plan.get_alloc_size(&alloc_size);
+  plan->get_alloc_size(&alloc_size);
 
   vector<complex<float>> in(alloc_size),
                           out(alloc_size),
@@ -103,25 +102,25 @@ int main(int argc, char *argv[])
   }
 
   bool is_z_slab;
-  plan.get_z_slab_enabled(&is_z_slab);
+  DTFFT_CXX_CALL( plan->get_z_slab_enabled(&is_z_slab) )
   double tf = 0.0 - MPI_Wtime();
 
-  if ( executor_type == DTFFT_EXECUTOR_NONE ) {
+  if ( executor == Executor::NONE ) {
     if ( is_z_slab ) {
-      plan.transpose(in, out, DTFFT_TRANSPOSE_X_TO_Z);
+      DTFFT_CXX_CALL( plan->transpose(in.data(), out.data(), TransposeType::X_TO_Z) )
     } else {
-      plan.transpose(in, aux, DTFFT_TRANSPOSE_X_TO_Y);
-      plan.transpose(aux, out, DTFFT_TRANSPOSE_Y_TO_Z);
+      DTFFT_CXX_CALL( plan->transpose(in.data(), aux.data(), TransposeType::X_TO_Y) )
+      DTFFT_CXX_CALL( plan->transpose(aux.data(), out.data(), TransposeType::Y_TO_Z) )
     }
   } else {
-    plan.execute(in, out, DTFFT_TRANSPOSE_OUT, aux);
+    DTFFT_CXX_CALL( plan->execute(in.data(), out.data(), ExecuteType::FORWARD, aux.data()) )
   }
 
   tf += MPI_Wtime();
 
-  std::fill(in.begin(), in.end(), complex<float>(-1., -1.));
+  std::fill(in.begin(), in.end(), complex<float>{-1., -1.});
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+  if ( executor != Executor::NONE ) {
     float scaler = 1. / (float) (nx * ny * nz);
     for ( auto & element: out) {
       element *= scaler;
@@ -129,7 +128,7 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  plan.execute(out, in, DTFFT_TRANSPOSE_IN, aux);
+  DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), ExecuteType::BACKWARD, aux.data()) )
   tb += MPI_Wtime();
 
   float local_error = -1.0;
@@ -139,7 +138,7 @@ int main(int argc, char *argv[])
   }
 
   report_float(&nx, &ny, &nz, local_error, tf, tb);
-  plan.destroy();
+  DTFFT_CXX_CALL( plan->destroy() )
 
   MPI_Finalize();
   return 0;

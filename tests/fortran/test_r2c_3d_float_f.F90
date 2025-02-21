@@ -40,7 +40,7 @@ implicit none
   integer(I4P), parameter :: nx = 16, ny = 8, nz = 4
 #endif
   integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
   integer(I4P) :: in_counts(3)
   integer(c_size_t) :: alloc_size
@@ -94,13 +94,13 @@ implicit none
 #endif
 
 #if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
 #elif defined(DTFFT_WITH_MKL)
-  executor_type = DTFFT_EXECUTOR_MKL
+  executor = DTFFT_EXECUTOR_MKL
 #elif defined(DTFFT_WITH_CUFFT)
-  executor_type = DTFFT_EXECUTOR_CUFFT
+  executor = DTFFT_EXECUTOR_CUFFT
 #elif defined(DTFFT_WITH_VKFFT)
-  executor_type = DTFFT_EXECUTOR_VKFFT
+  executor = DTFFT_EXECUTOR_VKFFT
   conf%enable_z_slab = .false.
 #endif
 
@@ -110,7 +110,7 @@ implicit none
 
   call dtfft_set_config(conf)
 
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type, error_code=ierr)
+  plan = dtfft_plan_r2c_t([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts = in_counts, alloc_size = alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
@@ -140,7 +140,7 @@ implicit none
 
   tf = 0.0_R8P - MPI_Wtime()
 !$acc host_data use_device(in, out)
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
 #ifdef DTFFT_WITH_CUDA
@@ -157,7 +157,7 @@ implicit none
 
   tb = 0.0_R8P - MPI_Wtime()
 !$acc host_data use_device(in, out)
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN, error_code=ierr)
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
 #ifdef DTFFT_WITH_CUDA

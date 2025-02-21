@@ -53,15 +53,15 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_executor_t executor_type;
+  dtfft_executor_t executor;
 #ifdef DTFFT_WITH_MKL
-  executor_type = DTFFT_EXECUTOR_MKL;
+  executor = DTFFT_EXECUTOR_MKL;
 #elif defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3;
+  executor = DTFFT_EXECUTOR_FFTW3;
 #elif defined (DTFFT_WITH_VKFFT)
-  executor_type = DTFFT_EXECUTOR_VKFFT;
+  executor = DTFFT_EXECUTOR_VKFFT;
 #else
-  executor_type = DTFFT_EXECUTOR_NONE;
+  executor = DTFFT_EXECUTOR_NONE;
 #endif
 
   assign_device_to_process();
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   MPI_Dims_create(comm_size, 3, grid_dims);
   MPI_Cart_create(MPI_COMM_WORLD, 3, grid_dims, periods, 0, &grid_comm);
   // Create plan
-  DTFFT_CALL( dtfft_create_plan_c2c(3, n, grid_comm, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_c2c(3, n, grid_comm, DTFFT_DOUBLE, DTFFT_PATIENT, executor, &plan) )
 
   size_t alloc_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
@@ -85,9 +85,9 @@ int main(int argc, char *argv[])
   CUDA_SAFE_CALL( cudaMallocManaged((void**)&out, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
   CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
 #else
-  in = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size);
-  out = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size);
-  aux = (dtfft_complex*) malloc(sizeof(dtfft_complex) * alloc_size);
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&in) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&out) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&aux) )
 #endif
 
   for (i = 0; i < in_size; i++) {
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
   double tf = 0.0 - MPI_Wtime();
 
-  if ( executor_type == DTFFT_EXECUTOR_NONE ) {
+  if ( executor == DTFFT_EXECUTOR_NONE ) {
     bool is_z_slab;
     DTFFT_CALL( dtfft_get_z_slab_enabled(plan, &is_z_slab) )
     if ( is_z_slab ) {
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
       DTFFT_CALL( dtfft_transpose(plan, aux, out, DTFFT_TRANSPOSE_Y_TO_Z) )
     }
   } else {
-    DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux) )
+    DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, aux) )
   }
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
@@ -119,14 +119,14 @@ int main(int argc, char *argv[])
     in[i][1] = -2.0;
   }
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+  if ( executor != DTFFT_EXECUTOR_NONE ) {
     for (i = 0; i < out_size; i++) {
       out[i][0] /= (double) (nx * ny * nz);
       out[i][1] /= (double) (nx * ny * nz);
     }
   }
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux) )
+  DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, aux) )
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
 #endif
@@ -142,8 +142,6 @@ int main(int argc, char *argv[])
 
   report_double(&nx, &ny, &nz, local_error, tf, tb);
 
-  dtfft_destroy(&plan);
-
   free(check);
 
 #ifdef DTFFT_WITH_CUDA
@@ -151,10 +149,12 @@ int main(int argc, char *argv[])
   CUDA_SAFE_CALL( cudaFree(out) )
   CUDA_SAFE_CALL( cudaFree(aux) )
 #else
-  free(in);
-  free(out);
-  free(aux);
+  DTFFT_CALL( dtfft_mem_free(plan, in) )
+  DTFFT_CALL( dtfft_mem_free(plan, out) )
+  DTFFT_CALL( dtfft_mem_free(plan, aux) )
 #endif
+
+  DTFFT_CALL( dtfft_destroy(&plan) )
 
   MPI_Finalize();
   return 0;

@@ -50,32 +50,34 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_executor_t executor_type;
+  dtfft_executor_t executor;
 #ifdef DTFFT_WITH_MKL
-  executor_type = DTFFT_EXECUTOR_MKL;
+  executor = DTFFT_EXECUTOR_MKL;
 #elif defined(DTFFT_WITH_CUFFT)
-  executor_type = DTFFT_EXECUTOR_CUFFT;
+  executor = DTFFT_EXECUTOR_CUFFT;
 #elif defined(DTFFT_WITH_VKFFT)
-  executor_type = DTFFT_EXECUTOR_VKFFT;
+  executor = DTFFT_EXECUTOR_VKFFT;
 #elif defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3;
+  executor = DTFFT_EXECUTOR_FFTW3;
 #endif
 
   assign_device_to_process();
 
   // Create plan
-  DTFFT_CALL( dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor, &plan) )
 
   // Get local sizes
-  size_t alloc_size;
+  size_t alloc_size, el_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+  DTFFT_CALL( dtfft_get_element_size(plan, &el_size) )
 
   size_t in_size = in_counts[0] * in_counts[1];
   size_t out_size = out_counts[0] * out_counts[1];
   // Allocate buffers
-  inout = (float*) malloc(sizeof(float) * alloc_size);
-  check = (float*) malloc(sizeof(float) * in_size);
-  work =  (float*) malloc(sizeof(float) * alloc_size);
+  DTFFT_CALL( dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&inout) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&work) )
+
+  check = (float*) malloc(el_size * in_size);
 
 #pragma acc enter data create(inout[0:alloc_size-1], check[0:in_size-1], work[0:alloc_size-1])
 
@@ -87,7 +89,7 @@ int main(int argc, char *argv[])
   // Forward transpose
   double tf = 0.0 - MPI_Wtime();
 #pragma acc host_data use_device(inout, work)
-  DTFFT_CALL( dtfft_execute(plan, inout, inout, DTFFT_TRANSPOSE_OUT, work) );
+  DTFFT_CALL( dtfft_execute(plan, inout, inout, DTFFT_EXECUTE_FORWARD, work) );
 
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
@@ -103,7 +105,7 @@ int main(int argc, char *argv[])
   // Backward transpose
   double tb = 0.0 - MPI_Wtime();
 #pragma acc host_data use_device(inout, work)
-  DTFFT_CALL( dtfft_execute(plan, inout, inout, DTFFT_TRANSPOSE_IN, work) );
+  DTFFT_CALL( dtfft_execute(plan, inout, inout, DTFFT_EXECUTE_BACKWARD, work) );
 
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
@@ -120,12 +122,12 @@ int main(int argc, char *argv[])
 
   report_float(&nx, &ny, NULL, local_error, tf, tb);
 
-  // Destroy plan
-  dtfft_destroy(&plan);
-
   // Deallocate buffers
-  free(inout);
+  DTFFT_CALL( dtfft_mem_free(plan, inout) )
+  DTFFT_CALL( dtfft_mem_free(plan, work) )
   free(check);
+  // Destroy plan
+  DTFFT_CALL( dtfft_destroy(&plan) )
 
   MPI_Finalize();
   return 0;

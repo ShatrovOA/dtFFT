@@ -143,11 +143,12 @@ Examples are provided in `tests/c` folder.
   - Cmake is only build system supported
 - [ ] Add more interfaces: C++, Python?
   - C++ was added
-- [x] Add GPU Support
+- [x] Add CUDA Support
 - [ ] Optimize CUDA NVRTC kernels
 - [ ] Add support for nvshmem
 - [x] Add support for custom NCCL installation
 - [ ] Create documentation web page
+- [ ] Add HIP Support
 
 ## Contribution
 

@@ -57,17 +57,18 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------"          << endl;
   }
 
-  dtfft_config_t conf;
-  dtfft_create_config(&conf);
 
+  dtfft::Executor executor;
 #ifdef DTFFT_WITH_FFTW
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
+  executor = dtfft::Executor::FFTW3;
 #elif defined(DTFFT_WITH_VKFFT)
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_VKFFT;
-  conf.enable_z_slab = false;
+  executor = dtfft::Executor::VKFFT;
 #else
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
+  executor = dtfft::Executor::NONE;
 #endif
+
+  dtfft::Config conf;
+  conf.set_enable_z_slab(false);
 
 #ifdef DTFFT_WITH_CUDA
   MPI_Comm local_comm;
@@ -78,22 +79,23 @@ int main(int argc, char *argv[])
 
   cudaStream_t stream;
   CUDA_SAFE_CALL( cudaStreamCreate(&stream) );
-  conf.stream = stream;
-  conf.enable_mpi_backends = true;
+  conf.set_stream(stream);
+  conf.set_enable_mpi_backends(true);
 #endif
-  DTFFT_CALL( dtfft_set_config(conf) )
+
+DTFFT_CXX_CALL( dtfft::set_config(conf) );
 
   const int8_t ndims = 3;
   const int32_t dims[] = {nz, ny, nx};
-  const dtfft_r2r_kind_t kinds[] = {DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_2};
-  dtfft::PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor_type);
+  const dtfft::R2RKind kinds[] = {dtfft::R2RKind::DCT_2, dtfft::R2RKind::DCT_3, dtfft::R2RKind::DCT_2};
+  dtfft::PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, dtfft::Precision::SINGLE, dtfft::Effort::PATIENT, executor);
 
   int32_t in_sizes[ndims];
   int32_t out_sizes[ndims];
   size_t alloc_size;
 
-  DTFFT_CALL( plan.report() )
-  DTFFT_CALL( plan.get_local_sizes(NULL, in_sizes, NULL, out_sizes, &alloc_size) )
+  DTFFT_CXX_CALL( plan.report()  );
+  DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_sizes, nullptr, out_sizes, &alloc_size) );
 
   size_t in_size = std::accumulate(in_sizes, in_sizes + 3, 1, multiplies<int>());
   size_t out_size = std::accumulate(out_sizes, out_sizes + 3, 1, multiplies<int>());
@@ -103,6 +105,9 @@ int main(int argc, char *argv[])
 
 #ifdef DTFFT_WITH_CUDA
   float *d_inout, *d_aux;
+  size_t el_size;
+
+  DTFFT_CXX_CALL(plan.get_element_size(&el_size));
 
   CUDA_SAFE_CALL( cudaMalloc((void**)&d_inout, alloc_size * sizeof(float)) );
   CUDA_SAFE_CALL( cudaMalloc((void**)&d_aux, alloc_size * sizeof(float)) );
@@ -117,14 +122,14 @@ int main(int argc, char *argv[])
   double tf = 0.0 - MPI_Wtime();
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaMemcpyAsync(d_inout, inout, alloc_size * sizeof(float), cudaMemcpyHostToDevice, stream) );
-  plan.execute(d_inout, d_inout, DTFFT_TRANSPOSE_OUT, d_aux);
+  DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, dtfft::ExecuteType::FORWARD, d_aux) )
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
 #else
-  plan.execute(inout, inout, DTFFT_TRANSPOSE_OUT, aux);
+  DTFFT_CXX_CALL( plan.execute(inout, inout, dtfft::ExecuteType::FORWARD, aux) )
 #endif
   tf += MPI_Wtime();
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+  if ( executor != dtfft::Executor::NONE ) {
 #ifdef DTFFT_WITH_CUDA
 #pragma acc parallel loop deviceptr(d_inout) vector_length(256) async
     for (size_t i = 0; i < out_size; i++)
@@ -147,11 +152,11 @@ int main(int argc, char *argv[])
 
   double tb = 0.0 - MPI_Wtime();
 #ifdef DTFFT_WITH_CUDA
-  plan.execute(d_inout, d_inout, DTFFT_TRANSPOSE_IN, d_aux);
+  DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, dtfft::ExecuteType::BACKWARD, d_aux) )
   CUDA_SAFE_CALL( cudaMemcpyAsync(inout, d_inout, alloc_size * sizeof(float), cudaMemcpyDeviceToHost, stream) );
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
 #else
-  plan.execute(inout, inout, DTFFT_TRANSPOSE_IN, aux);
+  DTFFT_CXX_CALL( plan.execute(inout, inout, dtfft::ExecuteType::BACKWARD, aux) )
 #endif
   tb += MPI_Wtime();
 
@@ -170,7 +175,7 @@ int main(int argc, char *argv[])
   CUDA_SAFE_CALL( cudaStreamDestroy(stream) );
 #endif
 
-  plan.destroy();
+  DTFFT_CXX_CALL( plan.destroy() )
 
   delete[] inout;
   delete[] check;

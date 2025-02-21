@@ -59,7 +59,7 @@ contains
     type(backend_helper), intent(in)    :: helper             !< Backend helper
     integer(int32)                      :: i
 
-    if ( .not. is_backend_nccl(self%backend_id) ) error stop "dtFFT internal error: .not. is_backend_nccl"
+    if ( .not. is_backend_nccl(self%gpu_backend) ) error stop "dtFFT internal error: .not. is_backend_nccl"
     if ( .not. helper%is_nccl_created ) error stop "dtFFT internal error: .not. helper%is_nccl_created"
     self%nccl_comm = helper%nccl_comm
 

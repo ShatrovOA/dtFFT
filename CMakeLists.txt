@@ -118,6 +118,8 @@ endif()
 math(EXPR DTFFT_VERSION_CODE 
   "${PROJECT_VERSION_MAJOR} * 100000 + ${PROJECT_VERSION_MINOR} * 1000 + ${PROJECT_VERSION_PATCH}"
 )
+
+set ( DTFFT_VERSION "(X) * 100000 + (Y) * 1000 + (Z)" )
 set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
 configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HEADER}" )
 
@@ -139,7 +141,17 @@ if(DTFFT_WITH_CUDA)
     target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_WITH_CUSTOM_NCCL>)
     target_link_libraries(dtfft PRIVATE ${NCCL_LIBRARIES})
   else()
+  include(CheckSymbolExists)
+  SET(CMAKE_REQUIRED_FLAGS "-cudalib=nccl")
+    check_symbol_exists(NCCL_VERSION_CODE "nccl.h" NCCL_VERSION_DEFINED)
+    check_symbol_exists(ncclMemAlloc "nccl.h" NCCL_HAVE_MEMALLOC)
+    check_symbol_exists(ncclCommRegister "nccl.h" NCCL_HAVE_COMMREGISTER)
+    check_symbol_exists(ncclSend "nccl.h" NCCL_HAVE_SEND)
+    message(STATUS "NCCL_HAVE_MEMALLOC = ${NCCL_HAVE_MEMALLOC}")
+    message(STATUS "NCCL_HAVE_COMMREGISTER = ${NCCL_HAVE_COMMREGISTER}")
+    message(STATUS "NCCL_HAVE_SEND = ${NCCL_HAVE_SEND}")
     set(COMMON_NVHPC_FLAGS "${COMMON_NVHPC_FLAGS} -cudalib=nccl")
+    unset(CMAKE_REQUIRED_FLAGS)
   endif()
 
   set(CMAKE_REQUIRED_INCLUDES ${MPI_Fortran_MODULE_DIR})
@@ -209,6 +221,12 @@ if(DTFFT_WITH_CUDA)
   unset(CMAKE_REQUIRED_FLAGS)
   unset(CMAKE_REQUIRED_INCLUDES)
   unset(CMAKE_REQUIRED_LIBRARIES)
+
+else() # DTFFT_WITH_CUDA
+
+  set(CMAKE_C_STANDARD 11)
+  set(C_STANDARD_REQUIRED ON)
+
 endif()
 
 

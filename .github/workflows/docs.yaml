@@ -1,0 +1,19 @@
+# .github/workflows/documentation-links.yml
+
+name: dtfft docs
+on: [push]
+
+jobs:
+  documentation-links:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Requirements
+        run: |
+          sudo apt-add-repository universe
+          sudo apt-get update
+          sudo apt-get install doxygen
+      - name: Build docs
+        uses: readthedocs/actions/preview@v1
+        with:
+          project-slug: "dtfft"
+          single-version: "true"

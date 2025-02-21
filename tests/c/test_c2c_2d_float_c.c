@@ -53,21 +53,22 @@ int main(int argc, char *argv[])
   int32_t n[2] = {ny, nx};
 
 #ifdef DTFFT_WITH_FFTW
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_FFTW3;
 #elif defined( DTFFT_WITH_CUFFT )
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_CUFFT;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_CUFFT;
 #else
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #endif
 
   assign_device_to_process();
 
   dtfft_plan_t plan;
-  DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor, &plan) )
 
   int32_t in_counts[2], out_counts[2];
-  size_t alloc_size;
+  size_t alloc_size, el_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+  DTFFT_CALL( dtfft_get_element_size(plan, &el_size) )
   size_t in_size = in_counts[0] * in_counts[1];
   size_t out_size = out_counts[0] * out_counts[1];
 
@@ -77,9 +78,11 @@ int main(int argc, char *argv[])
 #endif
 
   dtfftf_complex *in, *out, *check;
-  in = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * alloc_size);
-  out = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * alloc_size);
-  check = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * in_size);
+
+  dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&in);
+  dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&out);
+  check = (dtfftf_complex*) malloc(el_size * in_size);
+
 
   for (size_t i = 0; i < in_size; i++) {
     in[i] = check[i] = (float)rand() / (float)(RAND_MAX) - (float)rand() / (float)(RAND_MAX) * I;
@@ -89,7 +92,7 @@ int main(int argc, char *argv[])
 
   double tf = 0.0 - MPI_Wtime();
 #pragma acc host_data use_device(in, out)
-  DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL) )
+  DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, NULL) )
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
 #endif
@@ -101,7 +104,7 @@ int main(int argc, char *argv[])
     in[i] = -1.0 + 1.0 * I;
   }
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+  if ( executor != DTFFT_EXECUTOR_NONE ) {
 #pragma acc parallel loop present(out)
     for (size_t i = 0; i < out_size; i++) {
       out[i] /= (float) (nx * ny);
@@ -110,7 +113,7 @@ int main(int argc, char *argv[])
 
   double tb = 0.0 - MPI_Wtime();
 #pragma acc host_data use_device(in, out)
-  DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL) )
+  DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, NULL) )
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
 #endif
@@ -126,11 +129,16 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
+  // Free memory before plan destruction
+  dtfft_mem_free(plan, in);
+  dtfft_mem_free(plan, out);
+  free(check);
+
   report_float(&nx, &ny, NULL, local_error, tf, tb);
 
 #pragma acc exit data delete(in, out)
 
-  dtfft_destroy(&plan);
+  DTFFT_CALL( dtfft_destroy(&plan) )
 
   MPI_Finalize();
   return 0;

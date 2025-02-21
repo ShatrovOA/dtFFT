@@ -24,6 +24,9 @@ use dtfft_pencil,                   only: pencil, get_local_sizes
 use dtfft_parameters
 use dtfft_transpose_handle_host,    only: transpose_handle_host
 use dtfft_utils
+#ifdef DTFFT_WITH_CUDA
+use cudafor
+#endif
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft_profile.h"
@@ -39,7 +42,7 @@ public :: transpose_plan_host
   type, extends(abstract_transpose_plan) :: transpose_plan_host
   private
 #ifdef DTFFT_WITH_CUDA
-    type(dtfft_gpu_backend_t)     :: backend_id = DTFFT_GPU_BACKEND_MPI_DATATYPE
+    type(dtfft_gpu_backend_t)     :: gpu_backend = DTFFT_GPU_BACKEND_MPI_DATATYPE
 #endif
     type(transpose_handle_host), allocatable :: in_plans(:)
     type(transpose_handle_host), allocatable :: out_plans(:)
@@ -49,7 +52,8 @@ public :: transpose_plan_host
     procedure :: execute_private
     procedure :: destroy
 #ifdef DTFFT_WITH_CUDA
-    procedure :: get_backend_id
+    procedure :: get_gpu_backend
+    procedure :: mem_alloc
 #endif
     procedure, nopass,      private :: get_plan_execution_time
     procedure, pass(self),  private :: autotune_transpose_id
@@ -60,20 +64,29 @@ public :: transpose_plan_host
 
 contains
 #ifdef DTFFT_WITH_CUDA
-  type(dtfft_gpu_backend_t) function get_backend_id(self)
+  type(dtfft_gpu_backend_t) function get_gpu_backend(self)
     class(transpose_plan_host), intent(in) :: self         !< Transposition class
-    get_backend_id = self%backend_id
-  end function get_backend_id
+    get_gpu_backend = self%gpu_backend
+  end function get_gpu_backend
+
+  subroutine mem_alloc(self, alloc_bytes, ptr)
+  !! Allocates memory via cudaMalloc
+    class(transpose_plan_host),     intent(in)  :: self            !< Transposition class
+    integer(int64),                 intent(in)  :: alloc_bytes
+    type(c_devptr),                 intent(out) :: ptr
+
+    call self%generic_mem_alloc(alloc_bytes, ptr)
+  end subroutine mem_alloc
 #endif
 
-  function create_private(self, dims, transposed_dims, base_comm, comm_dims, effort_type, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
+  function create_private(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
   !! Creates transposition plans
     class(transpose_plan_host),     intent(inout) :: self                 !< Transposition class
     integer(int32),                 intent(in)    :: dims(:)              !< Global sizes of the transform requested
     integer(int32),                 intent(in)    :: transposed_dims(:,:) !< Transposed sizes of the transform requested
     TYPE_MPI_COMM,                  intent(in)    :: base_comm            !< Base communicator
     integer(int32),                 intent(in)    :: comm_dims(:)         !< Number of MPI Processes in all directions
-    type(dtfft_effort_t),           intent(in)    :: effort_type          !< DTFFT planner effort flag
+    type(dtfft_effort_t),           intent(in)    :: effort          !< ``dtFFT`` planner type of effort
     TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
     integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
     logical,                        intent(in)    :: is_custom_cart_comm  !< Is custom Cartesian communicator provided by user
@@ -86,9 +99,9 @@ contains
     integer(int8), allocatable :: best_forward_ids(:), best_backward_ids(:)
     integer(int32) :: comm_size, ierr
 
-    FORWARD_PLAN_IDS(1) = get_datatype_from_env("FORWARD_X_Y"); BACKWARD_PLAN_IDS(1) = get_datatype_from_env("BACKWARD_X_Y")
-    FORWARD_PLAN_IDS(2) = get_datatype_from_env("FORWARD_Y_Z"); BACKWARD_PLAN_IDS(2) = get_datatype_from_env("BACKWARD_Y_Z")
-    FORWARD_PLAN_IDS(3) = get_datatype_from_env("FORWARD_X_Z"); BACKWARD_PLAN_IDS(3) = get_datatype_from_env("BACKWARD_X_Z")
+    FORWARD_PLAN_IDS(1) = get_datatype_from_env("DTYPE_X_Y"); BACKWARD_PLAN_IDS(1) = get_datatype_from_env("DTYPE_Y_X")
+    FORWARD_PLAN_IDS(2) = get_datatype_from_env("DTYPE_Y_Z"); BACKWARD_PLAN_IDS(2) = get_datatype_from_env("DTYPE_Z_Y")
+    FORWARD_PLAN_IDS(3) = get_datatype_from_env("DTYPE_X_Z"); BACKWARD_PLAN_IDS(3) = get_datatype_from_env("DTYPE_Z_X")
 
     ndims = size(dims, kind=int8)
 
@@ -105,12 +118,12 @@ contains
 
     call MPI_Comm_size(base_comm, comm_size, ierr)
     ! With custom cart comm we can only search for best Datatypes
-    ! only if effort_type == DTFFT_PATIENT
+    ! only if effort == DTFFT_PATIENT
     if ( (  is_custom_cart_comm                                 &
             .or. comm_size == 1                                 &
             .or. ndims == 2_int8                                &
             .or. self%is_z_slab                                 &
-          ) .and. effort_type == DTFFT_PATIENT ) then
+          ) .and. effort == DTFFT_PATIENT ) then
       block
         integer(int32) :: dummy
         real(real64) :: dummy_timer(1)
@@ -123,7 +136,7 @@ contains
         call self%autotune_grid(                                &
           base_comm, comm_dims,                                 &
           dims, transposed_dims,                                &
-          effort_type, base_dtype, base_storage,                &
+          effort, base_dtype, base_storage,                &
           dummy, dummy_timer, dummy_decomp, forw_ids, back_ids  &
         )
         best_forward_ids(:) = forw_ids(:, 1)
@@ -132,17 +145,17 @@ contains
     else if ( ndims == 3                                        &
               .and. .not.is_custom_cart_comm                    &
               .and. .not.self%is_z_slab                         &
-              .and. effort_type%val >= DTFFT_MEASURE%val        &
+              .and. effort%val >= DTFFT_MEASURE%val        &
               .and. comm_size > 1 ) then
       call self%autotune_grid_decomposition(                    &
         dims, transposed_dims, base_comm,                       &
-        effort_type, n_transpose_plans,                         &
+        effort, n_transpose_plans,                         &
         base_dtype, base_storage,                               &
         best_comm_dims, best_forward_ids, best_backward_ids     &
       )
     endif
 
-    if ( effort_type == DTFFT_PATIENT ) then
+    if ( effort == DTFFT_PATIENT ) then
       WRITE_INFO(repeat("*", 50))
       WRITE_INFO("DTFFT_PATIENT: Selected transpose ids:")
       do d = 1, n_transpose_plans
@@ -200,12 +213,12 @@ contains
     deallocate(self% in_plans)
   end subroutine destroy
 
-  subroutine autotune_grid_decomposition(self, dims, transposed_dims, base_comm, effort_type, n_transpose_plans, base_dtype, base_storage, best_comm_dims, best_forward_ids, best_backward_ids)
+  subroutine autotune_grid_decomposition(self, dims, transposed_dims, base_comm, effort, n_transpose_plans, base_dtype, base_storage, best_comm_dims, best_forward_ids, best_backward_ids)
     class(transpose_plan_host),   intent(in)    :: self                 !< Abstract plan
     integer(int32),               intent(in)    :: dims(:)              !< Global dims
     integer(int32),               intent(in)    :: transposed_dims(:,:) !< Transposed dims
     TYPE_MPI_COMM,                intent(in)    :: base_comm           !< Base communicator
-    type(dtfft_effort_t),         intent(in)    :: effort_type          !< DTFFT planner effort flag
+    type(dtfft_effort_t),         intent(in)    :: effort          !< ``dtFFT`` planner type of effort
     integer(int8),                intent(in)    :: n_transpose_plans
     TYPE_MPI_DATATYPE,            intent(in)    :: base_dtype            !< Base MPI_Datatype
     integer(int8),                intent(in)    :: base_storage         !< Number of bytes needed to store single element
@@ -239,9 +252,9 @@ contains
     do i = 1, square_root - 1
       if ( mod( comm_size, i ) /= 0 ) cycle
 
-      call self%autotune_grid(base_comm, [1, i, comm_size / i], dims, transposed_dims, effort_type, base_dtype, base_storage, current_timer, timers, decomps, forw_ids, back_ids)
+      call self%autotune_grid(base_comm, [1, i, comm_size / i], dims, transposed_dims, effort, base_dtype, base_storage, current_timer, timers, decomps, forw_ids, back_ids)
       if ( i /= comm_size / i) then
-        call self%autotune_grid(base_comm, [1, comm_size / i, i], dims, transposed_dims, effort_type, base_dtype, base_storage, current_timer, timers, decomps, forw_ids, back_ids)
+        call self%autotune_grid(base_comm, [1, comm_size / i, i], dims, transposed_dims, effort, base_dtype, base_storage, current_timer, timers, decomps, forw_ids, back_ids)
       endif
     enddo
 
@@ -259,7 +272,7 @@ contains
     best_comm_dims(3) = decomps(2, k)
     WRITE_INFO(repeat("*", 50))
     WRITE_INFO("DTFFT_MEASURE: Selected MPI grid 1x"//int_to_str(best_comm_dims(2))//"x"//int_to_str(best_comm_dims(3)))
-    if ( effort_type == DTFFT_PATIENT ) then
+    if ( effort == DTFFT_PATIENT ) then
       best_forward_ids(:) = forw_ids(:, k)
       best_backward_ids(:) = back_ids(:, k)
     else
@@ -269,13 +282,13 @@ contains
     deallocate(timers, decomps, forw_ids, back_ids)
   end subroutine autotune_grid_decomposition
 
-  subroutine autotune_grid(self, base_comm, comm_dims, dims, transposed_dims, effort_type, base_dtype, base_storage, latest_timer_id, timers, decomps, forw_ids, back_ids)
+  subroutine autotune_grid(self, base_comm, comm_dims, dims, transposed_dims, effort, base_dtype, base_storage, latest_timer_id, timers, decomps, forw_ids, back_ids)
     class(transpose_plan_host),   intent(in)    :: self                 !< Abstract plan
     TYPE_MPI_COMM,                intent(in)    :: base_comm            !< Base communicator
     integer(int32),               intent(in)    :: comm_dims(:)               !< Number of MPI Processes in Y and Z directions
     integer(int32),               intent(in)    :: dims(:)              !< Global dims
     integer(int32),               intent(in)    :: transposed_dims(:,:) !< Transposed dims
-    type(dtfft_effort_t),         intent(in)    :: effort_type          !< DTFFT planner effort flag
+    type(dtfft_effort_t),         intent(in)    :: effort          !< ``dtFFT`` planner type of effort
     TYPE_MPI_DATATYPE,            intent(in)    :: base_dtype           !< Basic MPI Datatype
     integer(int8),                intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
     integer(int32),               intent(inout) :: latest_timer_id      !< Current timer id
@@ -325,7 +338,7 @@ contains
     allocate(a(alloc_size))
     allocate(b(alloc_size))
 
-    if ( effort_type == DTFFT_PATIENT ) then
+    if ( effort == DTFFT_PATIENT ) then
       call self%autotune_mpi_datatypes(pencils, comm, comms, base_dtype, base_storage, a, b, forw_ids(:, latest_timer_id), back_ids(:, latest_timer_id), timers(latest_timer_id))
       WRITE_INFO("Execution time on a grid using fastest transpositions: "//double_to_str(timers(latest_timer_id)))
     else

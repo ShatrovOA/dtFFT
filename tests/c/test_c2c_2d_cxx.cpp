@@ -19,12 +19,13 @@
 
 #include <dtfft.hpp>
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <complex>
 #include "test_utils.h"
 
 using namespace std;
+using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
@@ -47,28 +48,36 @@ int main(int argc, char *argv[])
     cout << "Nx = " << nx << ", Ny = " << ny           << endl;
     cout << "Number of processors: " << comm_size      << endl;
     cout << "----------------------------------------" << endl;
+    cout << "dtFFT Version = " << Version::get()       << endl;
   }
 
   assign_device_to_process();
 
   // Create plan
   const vector<int32_t> dims = {ny, nx};
-  dtfft::PlanC2C plan = dtfft::PlanC2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE);
+  PlanC2C plan(dims, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, Executor::NONE);
+
+  plan.report();
 
   size_t alloc_size;
-  plan.get_alloc_size(&alloc_size);
+  DTFFT_CXX_CALL( plan.get_alloc_size(&alloc_size) )
 
-  dtfft_pencil_t pencils[2];
+  std::vector<dtfft::Pencil> pencils;
+
   for (int i = 0; i < 2; i++) {
-    plan.get_pencil(i + 1, &pencils[i]);
+    dtfft::Pencil pencil;
+    DTFFT_CXX_CALL( plan.get_pencil(i + 1, pencil) )
+    pencils.push_back(pencil);
   }
 
-  size_t in_size = pencils[0].counts[0] * pencils[0].counts[1];
-  size_t out_size = pencils[1].counts[0] * pencils[1].counts[1];
+  size_t in_size = pencils[0].get_size();
+  size_t out_size = pencils[1].get_size();
 
-  complex<double> *in = new complex<double>[alloc_size];
-  complex<double> *out = new complex<double>[alloc_size];
-  complex<double> *check = new complex<double>[in_size];
+  complex<double> *in, *out;
+  auto *check = new complex<double>[in_size];
+
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * sizeof(complex<double>), (void**)&in) )
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * sizeof(complex<double>), (void**)&out) )
 
   for (size_t j = 0; j < in_size; j++) {
     double real = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -81,7 +90,7 @@ int main(int argc, char *argv[])
 
   double tf = 0.0 - MPI_Wtime();
 #pragma acc host_data use_device(in, out)
-  DTFFT_CALL( plan.transpose(in, out, DTFFT_TRANSPOSE_X_TO_Y) )
+  DTFFT_CXX_CALL( plan.transpose(in, out, dtfft::TransposeType::X_TO_Y) );
 
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
@@ -95,7 +104,7 @@ int main(int argc, char *argv[])
 
   double tb = 0.0 - MPI_Wtime();
 #pragma acc host_data use_device(in, out)
-  DTFFT_CALL( plan.transpose(out, in, DTFFT_TRANSPOSE_Y_TO_X) )
+  DTFFT_CXX_CALL( plan.transpose(out, in, dtfft::TransposeType::Y_TO_X) );
 
 #ifdef DTFFT_WITH_CUDA
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
@@ -112,19 +121,19 @@ int main(int argc, char *argv[])
 
 #pragma acc exit data delete(in, out)
 
-  delete[] in;
-  delete[] out;
+  DTFFT_CXX_CALL( plan.mem_free(in) )
+  DTFFT_CXX_CALL( plan.mem_free(out) )
   delete[] check;
 
   report_double(&nx, &ny, nullptr, local_error, tf, tb);
 
-  dtfft_error_code_t error_code;
+  dtfft::ErrorCode error_code;
   error_code = plan.destroy();
-  std::cout << dtfft_get_error_string(error_code) << std::endl;
+  std::cout << dtfft::get_error_string(error_code) << std::endl;
   // Should not catch any signal
   // Simply returning `DTFFT_ERROR_PLAN_NOT_CREATED`
-  error_code = plan.execute(NULL, NULL, (dtfft_execute_type_t)-1);
-  std::cout << dtfft_get_error_string(error_code) << std::endl;
+  error_code = plan.execute(nullptr, nullptr, static_cast<dtfft::ExecuteType>(-1));
+  std::cout << dtfft::get_error_string(error_code) << std::endl;
   MPI_Finalize();
   return 0;
 }

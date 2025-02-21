@@ -36,7 +36,7 @@ implicit none
   real(R4P) :: local_error, rnd
   integer(I4P), parameter :: nx = 512, ny = 64, nz = 16
   integer(I4P) :: comm_size, comm_rank, ierr, in_counts(3), in_product
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2r_t) :: plan
   real(R8P) :: tf, tb
   integer(I8P)  :: alloc_size, i
@@ -59,7 +59,7 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
   endif
 
-  executor_type = DTFFT_EXECUTOR_NONE
+  executor = DTFFT_EXECUTOR_NONE
 
   call attach_gpu_to_process()
 
@@ -75,7 +75,7 @@ implicit none
 
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type, error_code=ierr)
+  plan = dtfft_plan_r2r_t([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
@@ -107,21 +107,21 @@ implicit none
 
   tf = 0.0_R8P - MPI_Wtime()
 #ifdef DTFFT_WITH_CUDA
-  call plan%execute(d_inout, d_inout, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+  call plan%execute(d_inout, d_inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
   CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #else
-  call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+  call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 #endif
   DTFFT_CHECK(ierr)
   tf = tf + MPI_Wtime()
 
   tb = 0.0_R8P - MPI_Wtime()
 #ifdef DTFFT_WITH_CUDA
-  call plan%execute(d_inout, d_inout, DTFFT_TRANSPOSE_IN, error_code=ierr)
+  call plan%execute(d_inout, d_inout, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
   CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
   inout(:) = d_inout(:)
 #else
-  call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN)
+  call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD)
 #endif
   DTFFT_CHECK(ierr)
   tb = tb + MPI_Wtime()

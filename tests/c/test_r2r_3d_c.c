@@ -49,19 +49,20 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 
   // Create plan
   dtfft_plan_t plan;
 
-  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor, &plan) )
 
   size_t alloc_size;
   DTFFT_CALL( dtfft_get_alloc_size(plan, &alloc_size) )
 
-  inout = (double*) malloc(sizeof(double) * alloc_size);
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(double) * alloc_size, (void**)&inout) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(double) * alloc_size, (void**)&aux) )
+
   check = (double*) malloc(sizeof(double) * alloc_size);
-  aux = (double*) malloc(sizeof(double) * alloc_size);
 
   // Obtain pencil information (optional)
   for ( int i = 0; i < 3; i++ ) {
@@ -91,7 +92,7 @@ int main(int argc, char *argv[])
   */
   tf += MPI_Wtime();
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+  if ( executor != DTFFT_EXECUTOR_NONE ) {
     // Perform scaling. Scaling value may very depending on FFT type
     for (int i = 0; i < out_size; i++)
       inout[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
@@ -119,10 +120,11 @@ int main(int argc, char *argv[])
 
   report_double(&nx, &ny, &nz, local_error, tf, tb);
 
-  dtfft_destroy(&plan);
-  free(inout);
+  DTFFT_CALL( dtfft_mem_free(plan, inout) )
+  DTFFT_CALL( dtfft_mem_free(plan, aux) )
+
+  DTFFT_CALL( dtfft_destroy(&plan) )
   free(check);
-  free(aux);
 
   MPI_Finalize();
   return 0;

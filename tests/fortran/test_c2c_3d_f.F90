@@ -38,7 +38,7 @@ implicit none
   integer(I4P), parameter :: nx = 129, ny = 123, nz = 33
 #endif
   integer(I4P) :: comm_size, comm_rank, i, j, k, ierr, ii, jj, kk, idx
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
   type(dtfft_plan_c2c_t) :: plan
   integer(I4P) :: in_counts(3), out_counts(3), iter
   integer(I8P)  :: alloc_size
@@ -63,16 +63,16 @@ implicit none
   endif
 
 #if defined(DTFFT_WITH_MKL)
-  executor_type = DTFFT_EXECUTOR_MKL
+  executor = DTFFT_EXECUTOR_MKL
 #elif defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
 #elif defined (DTFFT_WITH_CUFFT)
-  executor_type = DTFFT_EXECUTOR_CUFFT
+  executor = DTFFT_EXECUTOR_CUFFT
 #else
-  executor_type = DTFFT_EXECUTOR_NONE
+  executor = DTFFT_EXECUTOR_NONE
 #endif
 
-  call dtfft_create_config(conf)
+  conf = dtfft_config_t()
 
 #ifdef DTFFT_WITH_CUDA
   block
@@ -98,11 +98,13 @@ implicit none
 #endif
 
   call dtfft_set_config(conf)
-  ! Setting effort_type=DTFFT_PATIENT will ignore value of `conf%gpu_backend` and will run autotune to find best backend
+  ! Setting effort=DTFFT_PATIENT will ignore value of `conf%gpu_backend` and will run autotune to find best backend
   ! Fastest backend will be selected
-  call plan%create([nx, ny, nz], executor_type=executor_type, effort_type=DTFFT_PATIENT, error_code=ierr)
+  call plan%create([nx, ny, nz], executor=executor, effort=DTFFT_PATIENT, error_code=ierr)
   DTFFT_CHECK(ierr)
-  call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr)
+  call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, error_code=ierr)
+  DTFFT_CHECK(ierr)
+  alloc_size = plan%get_alloc_size(ierr)
   DTFFT_CHECK(ierr)
 
 #ifdef DTFFT_WITH_CUDA
@@ -138,7 +140,7 @@ implicit none
   do iter = 1, 3
     ts = - MPI_Wtime()
 !$acc host_data use_device(inout, aux)
-    call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT, aux,  error_code=ierr)
+    call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, aux,  error_code=ierr)
 !$acc end host_data
     DTFFT_CHECK(ierr)
 #ifdef DTFFT_WITH_CUDA
@@ -147,14 +149,14 @@ implicit none
 
     tf = tf + ts + MPI_Wtime()
 
-    if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+    if ( executor /= DTFFT_EXECUTOR_NONE ) then
     !$acc kernels present(inout)
       inout(:) = inout(:) / real(nx * ny * nz, R8P)
     !$acc end kernels
     endif
     ts = 0.0_R8P - MPI_Wtime()
   !$acc host_data use_device(inout, aux)
-    call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN, aux, error_code=ierr)
+    call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, aux, error_code=ierr)
   !$acc end host_data
     DTFFT_CHECK(ierr)
 #ifdef DTFFT_WITH_CUDA

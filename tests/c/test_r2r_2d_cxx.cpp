@@ -27,6 +27,7 @@
 #include "test_utils.h"
 
 using namespace std;
+using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
@@ -49,19 +50,19 @@ int main(int argc, char *argv[])
   }
 
 // #ifdef DTFFT_WITH_FFTW
-//   dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
+//   dtfft_executor_t executor = DTFFT_EXECUTOR_FFTW3;
 // #elif defined(DTFFT_WITH_VKFFT)
-//   dtfft_executor_t executor_type = DTFFT_EXECUTOR_VKFFT;
+//   dtfft_executor_t executor = DTFFT_EXECUTOR_VKFFT;
 // #else
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
+  Executor executor = Executor::NONE;
 // #endif
 
   // Create plan
   vector<int32_t> dims = {ny, nx};
-  vector<dtfft_r2r_kind_t> kinds = {};
-  dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type);
+  vector<dtfft::R2RKind> kinds = {};
+  dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, executor);
   size_t alloc_size;
-  plan.get_alloc_size(&alloc_size);
+  DTFFT_CXX_CALL( plan.get_alloc_size(&alloc_size) )
 
   vector<double> in(alloc_size),
                  out(alloc_size),
@@ -73,17 +74,17 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CALL( plan.execute(in, out, DTFFT_TRANSPOSE_OUT) )
+  DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), dtfft::ExecuteType::FORWARD) );
   tf += MPI_Wtime();
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+  if ( executor != Executor::NONE ) {
     for (size_t i = 0; i < alloc_size; i++) {
       out[i] /= (double) (4 * nx * ny);
     }
   }
 
   double tb = 0.0 - MPI_Wtime();
-  plan.execute(out, in, DTFFT_TRANSPOSE_IN);
+  DTFFT_CXX_CALL( plan.execute(out.data(), in.data(), dtfft::ExecuteType::BACKWARD) )
   tb += MPI_Wtime();
 
   double local_error = -1.0;
@@ -92,9 +93,9 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
-  report_double(&nx, &ny, NULL, local_error, tf, tb);
+  report_double(&nx, &ny, nullptr, local_error, tf, tb);
 
-  plan.destroy();
+  DTFFT_CXX_CALL( plan.destroy() )
 
   MPI_Finalize();
   return 0;

@@ -27,7 +27,7 @@ implicit none
   real(R4P) :: local_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 4
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2r_t) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb, t_sum
@@ -47,14 +47,14 @@ implicit none
   endif
 
 #if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
 #else
-  executor_type = DTFFT_EXECUTOR_NONE
+  executor = DTFFT_EXECUTOR_NONE
 #endif
 
   call MPI_Cart_create(MPI_COMM_WORLD, 1, [comm_size], [.false.], .true., comm_1d, ierr)
 
-  call plan%create([nx, ny], [DTFFT_DST_2, DTFFT_DST_3], comm=comm_1d, precision=DTFFT_SINGLE, executor_type=executor_type)
+  call plan%create([nx, ny], [DTFFT_DST_2, DTFFT_DST_3], comm=comm_1d, precision=DTFFT_SINGLE, executor=executor)
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,                     &
@@ -74,17 +74,17 @@ implicit none
   enddo
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
   tf = tf + MPI_Wtime()
 
-  if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+  if ( executor /= DTFFT_EXECUTOR_NONE ) then
     out(:,:) = out(:,:) / real(4 * nx * ny, R4P)
   endif
   ! Nullify recv buffer
   in = -1._R4P
 
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
   tb = tb + MPI_Wtime()
 
   local_error = maxval(abs(in - check))

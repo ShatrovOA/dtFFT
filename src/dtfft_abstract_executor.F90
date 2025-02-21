@@ -20,7 +20,7 @@
 module dtfft_abstract_executor
 !! This module describes `abstract_executor`: Abstract FFT wrapper class
 use iso_c_binding,    only: c_loc, c_ptr, c_int, c_null_ptr, c_associated
-use iso_fortran_env,  only: int8, int32
+use iso_fortran_env,  only: int8, int32, int64
 use dtfft_pencil,     only: pencil
 use dtfft_parameters
 use dtfft_utils
@@ -45,12 +45,16 @@ public :: abstract_executor
     logical,    private :: is_created = .false.
     logical             :: is_inverse_copied = .false.
   contains
-    procedure,  non_overridable,              pass(self), public    :: create               !< Creates FFT plan
-    procedure,  non_overridable,              pass(self), public    :: execute              !< Executes plan
-    procedure,  non_overridable,              pass(self), public    :: destroy              !< Destroys plan
-    procedure(create_interface),              pass(self), deferred  :: create_private       !< Creates FFT plan
-    procedure(execute_interface),             pass(self), deferred  :: execute_private      !< Executes plan
-    procedure(destroy_interface),             pass(self), deferred  :: destroy_private      !< Destroys plan
+    procedure,  non_overridable,              pass(self), public  :: create               !< Creates FFT plan
+    procedure,  non_overridable,              pass(self), public  :: execute              !< Executes plan
+    procedure,  non_overridable,              pass(self), public  :: destroy              !< Destroys plan
+#ifndef DTFFT_WITH_CUDA
+    procedure(mem_alloc_interface), deferred, nopass,     public  :: mem_alloc            !< Allocates aligned memory
+    procedure(mem_free_interface),  deferred, nopass,     public  :: mem_free             !< Frees aligned memory
+#endif
+    procedure(create_interface),    deferred, pass(self)          :: create_private       !< Creates FFT plan
+    procedure(execute_interface),   deferred, pass(self)          :: execute_private      !< Executes plan
+    procedure(destroy_interface),   deferred, pass(self)          :: destroy_private      !< Destroys plan
   end type abstract_executor
 
   abstract interface
@@ -85,6 +89,21 @@ public :: abstract_executor
     import
       class(abstract_executor), intent(inout) :: self           !< FFT Executor
     end subroutine destroy_interface
+
+#ifndef DTFFT_WITH_CUDA
+    subroutine mem_alloc_interface(alloc_bytes, ptr)
+    !! Allocates aligned memory
+    import
+      integer(int64),           intent(in)    :: alloc_bytes
+      type(c_ptr),              intent(out)   :: ptr
+    end subroutine mem_alloc_interface
+
+    subroutine mem_free_interface(ptr)
+    !! Frees aligned memory
+    import
+     type(c_ptr),               intent(inout) :: ptr
+    end subroutine mem_free_interface
+#endif
   end interface
 
 contains

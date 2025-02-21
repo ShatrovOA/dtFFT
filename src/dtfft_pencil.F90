@@ -33,10 +33,12 @@ private
 public :: pencil
 public :: dtfft_pencil_t
 public :: get_local_sizes
-public :: get_transpose_id
+public :: get_transpose_type
 
   type, bind(C) :: dtfft_pencil_t
+  !! Structure to hold pencil decomposition info
     integer(c_int8_t)   :: dim        !< Aligned dimension id
+    integer(c_int8_t)   :: ndims      !< Number of dimensions
     integer(c_int32_t)  :: starts(3)  !< Local starts, starting from 0 for both C and Fortran
     integer(c_int32_t)  :: counts(3)  !< Local counts of data, in elements
   end type dtfft_pencil_t
@@ -183,6 +185,7 @@ contains
     class(pencil),  intent(in)  :: self                 !< Pencil
 
     make_public%dim = self%aligned_dim
+    make_public%ndims = self%rank
     make_public%counts(1:self%rank) = self%counts
     make_public%starts(1:self%rank) = self%starts
   end function make_public
@@ -206,25 +209,25 @@ contains
     if ( present(alloc_size) ) alloc_size = maxval([(product(pencils(d)%counts), d=1,ndims)])
   end subroutine get_local_sizes
 
-  pure function get_transpose_id(send, recv) result(transpose_id)
+  pure function get_transpose_type(send, recv) result(transpose_type)
   !! Determines transpose ID based on pencils
     type(pencil),     intent(in)  :: send           !< Send pencil
     type(pencil),     intent(in)  :: recv           !< Receive pencil
-    type(dtfft_transpose_type_t)  :: transpose_id   !< Transpose ID
+    type(dtfft_transpose_type_t)  :: transpose_type   !< Transpose ID
 
-    transpose_id = dtfft_transpose_type_t(0)
+    transpose_type = dtfft_transpose_type_t(0)
     if (send%aligned_dim == 1 .and. recv%aligned_dim == 2) then
-      transpose_id = DTFFT_TRANSPOSE_X_TO_Y
+      transpose_type = DTFFT_TRANSPOSE_X_TO_Y
     else if (recv%aligned_dim == 1 .and. send%aligned_dim == 2) then
-      transpose_id = DTFFT_TRANSPOSE_Y_TO_X
+      transpose_type = DTFFT_TRANSPOSE_Y_TO_X
     else if (send%aligned_dim == 1 .and. recv%aligned_dim == 3) then
-      transpose_id = DTFFT_TRANSPOSE_X_TO_Z
+      transpose_type = DTFFT_TRANSPOSE_X_TO_Z
     else if (recv%aligned_dim == 1 .and. send%aligned_dim == 3) then
-      transpose_id = DTFFT_TRANSPOSE_Z_TO_X
+      transpose_type = DTFFT_TRANSPOSE_Z_TO_X
     else if (send%aligned_dim == 2 .and. recv%aligned_dim == 3) then
-      transpose_id = DTFFT_TRANSPOSE_Y_TO_Z
+      transpose_type = DTFFT_TRANSPOSE_Y_TO_Z
     else if (recv%aligned_dim == 2 .and. send%aligned_dim == 3) then
-      transpose_id = DTFFT_TRANSPOSE_Z_TO_Y
+      transpose_type = DTFFT_TRANSPOSE_Z_TO_Y
     endif
-  end function get_transpose_id
+  end function get_transpose_type
 end module dtfft_pencil

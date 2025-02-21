@@ -21,7 +21,7 @@ module dtfft_transpose_handle_host
 !! This module describes `transpose_handle_host` class
 use iso_fortran_env,  only: int8, int32
 use dtfft_parameters
-use dtfft_pencil,     only: pencil, get_transpose_id
+use dtfft_pencil,     only: pencil, get_transpose_type
 #include "dtfft_mpi.h"
 #include "dtfft_profile.h"
 #include "dtfft_cuda.h"
@@ -109,7 +109,7 @@ contains
     integer(int32),               allocatable   :: send_counts(:,:)   !< Each processor should know how much data each processor sends
     integer(int32)                              :: i                  !< Counter
     integer(int32)                              :: ierr               !< Error code
-    type(dtfft_transpose_type_t)                :: transpose_id       !< Transpose plan id
+    type(dtfft_transpose_type_t)                :: transpose_type       !< Transpose plan id
 
     self%comm = comm
     call MPI_Comm_size(self%comm, comm_size, ierr)
@@ -132,20 +132,20 @@ contains
         call self%create_transpose_2d(n_neighbors, i, send, send_counts(:,i), recv, recv_counts(:,i), datatype_id, base_type, base_storage)
       enddo
     else
-      transpose_id = get_transpose_id(send, recv)
+      transpose_type = get_transpose_type(send, recv)
 
-      if ( abs(transpose_id%val) == DTFFT_TRANSPOSE_X_TO_Y%val ) then
+      if ( abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val ) then
         do i = 1, n_neighbors
           call self%create_transpose_XY(n_neighbors, i, send, send_counts(:,i), recv, recv_counts(:,i), datatype_id, base_type, base_storage)
         enddo
-      elseif ( abs(transpose_id%val) == DTFFT_TRANSPOSE_Y_TO_Z%val )then
+      elseif ( abs(transpose_type%val) == DTFFT_TRANSPOSE_Y_TO_Z%val )then
         do i = 1, n_neighbors
           call self%create_transpose_YZ(n_neighbors, i, send, send_counts(:,i), recv, recv_counts(:,i), datatype_id, base_type, base_storage)
         enddo
       else
         do i = 1, n_neighbors
           ! Since XZ transpose is not symmetric, different DataTypes are needed
-          if ( transpose_id == DTFFT_TRANSPOSE_X_TO_Z ) then
+          if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z ) then
             call self%create_transpose_XZ(n_neighbors, i, send, send_counts(:,i), recv, recv_counts(:,i), datatype_id, base_type, base_storage)
           else
             call self%create_transpose_ZX(n_neighbors, i, send, send_counts(:,i), recv, recv_counts(:,i), datatype_id, base_type, base_storage)
@@ -385,22 +385,6 @@ contains
     integer(int32)      :: ierr                 !< Error code
 
     if ( datatype_id == 1 ) then
-      call MPI_Type_vector(send%counts(3), 1, send%counts(1) * send%counts(2), base_type, temp1, ierr)
-      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
-      call MPI_Type_contiguous(send%counts(1), temp2, temp3, ierr)
-      call MPI_Type_create_hvector(recv_counts(3), 1, int(send%counts(1) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, ierr)
-      displ = send%counts(1) * recv_counts(3) * base_storage
-      call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
-      call MPI_Type_commit(self%send%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
-      call free_datatypes(temp1, temp2, temp3, temp4)
-
-      call MPI_Type_vector(recv%counts(2) * recv%counts(3), send_counts(3), recv%counts(1), base_type, temp1, ierr)
-      call MPI_Type_create_resized(temp1, LB, int(send_counts(3) * base_storage, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
-      call MPI_Type_commit(self%recv%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3) * base_storage
-      call free_datatypes(temp1)
-    else
       call MPI_Type_vector(send%counts(3), send%counts(1), send%counts(1) * send%counts(2), base_type, temp1, ierr)
       call MPI_Type_create_resized(temp1, LB, int(send%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(recv_counts(3), temp2, self%send%dtypes(i), ierr)
@@ -418,6 +402,22 @@ contains
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
       if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3)* base_storage
       call free_datatypes(temp1, temp2, temp3, temp4)
+    else
+      call MPI_Type_vector(send%counts(3), 1, send%counts(1) * send%counts(2), base_type, temp1, ierr)
+      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
+      call MPI_Type_contiguous(send%counts(1), temp2, temp3, ierr)
+      call MPI_Type_create_hvector(recv_counts(3), 1, int(send%counts(1) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, ierr)
+      displ = send%counts(1) * recv_counts(3) * base_storage
+      call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
+      call MPI_Type_commit(self%send%dtypes(i), ierr)
+      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
+      call free_datatypes(temp1, temp2, temp3, temp4)
+
+      call MPI_Type_vector(recv%counts(2) * recv%counts(3), send_counts(3), recv%counts(1), base_type, temp1, ierr)
+      call MPI_Type_create_resized(temp1, LB, int(send_counts(3) * base_storage, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
+      call MPI_Type_commit(self%recv%dtypes(i), ierr)
+      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3) * base_storage
+      call free_datatypes(temp1)
     endif
   end subroutine create_transpose_XZ
 
@@ -442,21 +442,6 @@ contains
     integer(int32)      :: ierr                 !< Error code
 
     if ( datatype_id == 1 ) then
-      call MPI_Type_vector(send%counts(2) * send%counts(3), 1, send%counts(1), base_type, temp1, ierr)
-      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
-      call MPI_Type_contiguous(recv_counts(3), temp2, self%send%dtypes(i), ierr)
-      displ = recv_counts(3) * base_storage
-      call MPI_Type_commit(self%send%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
-      call free_datatypes(temp1, temp2)
-
-      call MPI_Type_vector(recv%counts(3), recv%counts(1) * send_counts(3), recv%counts(1) * recv%counts(2),  base_type, temp1, ierr)
-      displ = recv%counts(1) * send_counts(3) * base_storage
-      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + displ
-      call MPI_Type_commit(self%recv%dtypes(i), ierr)
-      call free_datatypes(temp1)
-    else
       call MPI_Type_vector(send%counts(2) * send%counts(3), recv_counts(3), send%counts(1), base_type, temp1, ierr)
       displ = recv_counts(3) * base_storage
       call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
@@ -473,6 +458,21 @@ contains
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
       if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + displ
       call free_datatypes(temp1, temp2, temp3, temp4)
+    else
+      call MPI_Type_vector(send%counts(2) * send%counts(3), 1, send%counts(1), base_type, temp1, ierr)
+      call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
+      call MPI_Type_contiguous(recv_counts(3), temp2, self%send%dtypes(i), ierr)
+      displ = recv_counts(3) * base_storage
+      call MPI_Type_commit(self%send%dtypes(i), ierr)
+      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
+      call free_datatypes(temp1, temp2)
+
+      call MPI_Type_vector(recv%counts(3), recv%counts(1) * send_counts(3), recv%counts(1) * recv%counts(2),  base_type, temp1, ierr)
+      displ = recv%counts(1) * send_counts(3) * base_storage
+      call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
+      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + displ
+      call MPI_Type_commit(self%recv%dtypes(i), ierr)
+      call free_datatypes(temp1)
     endif
   end subroutine create_transpose_ZX
 

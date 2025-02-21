@@ -26,6 +26,7 @@
 #include "test_utils.h"
 
 using namespace std;
+using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
@@ -50,18 +51,18 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
-  dtfft_executor_t executor_type;
+  Executor executor;
 #ifdef DTFFT_WITH_MKL
-  executor_type = DTFFT_EXECUTOR_MKL;
+  executor = Executor::MKL;
 #elif defined(DTFFT_WITH_FFTW )
-  executor_type = DTFFT_EXECUTOR_FFTW3;
+  executor = Executor::FFTW3;
 #endif
 
   // Create plan
   vector<int32_t> dims = {ny, nx};
   dtfft::PlanR2C *plan;
   try {
-    plan = new dtfft::PlanR2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
+    plan = new dtfft::PlanR2C(dims, executor);
   } catch (const runtime_error& err) {
     cerr << err.what() << endl;
     MPI_Abort(MPI_COMM_WORLD, -1);
@@ -70,8 +71,8 @@ int main(int argc, char *argv[])
 
   vector<int32_t> in_counts(2);
   size_t alloc_size;
-  DTFFT_CALL( plan->get_alloc_size(&alloc_size) );
-  DTFFT_CALL( plan->get_local_sizes(NULL, in_counts.data()) );
+  DTFFT_CXX_CALL( plan->get_alloc_size(&alloc_size) );
+  DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data()) );
   size_t in_size = in_counts[0] * in_counts[1];
 
   vector<double> in(alloc_size), check(in_size);
@@ -83,7 +84,7 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CALL( plan->execute(in, out, DTFFT_TRANSPOSE_OUT) );
+  DTFFT_CXX_CALL( plan->execute(in.data(), out.data(), ExecuteType::FORWARD) );
   tf += MPI_Wtime();
 
   for ( auto & element: in) {
@@ -96,7 +97,7 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CALL( plan->execute(out, in, DTFFT_TRANSPOSE_IN) );
+  DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), ExecuteType::BACKWARD) );
   tb += MPI_Wtime();
 
   double local_error = -1.0;
@@ -105,9 +106,9 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
-  report_double(&nx, &ny, NULL, local_error, tf, tb);
+  report_double(&nx, &ny, nullptr, local_error, tf, tb);
 
-  DTFFT_CALL( plan->destroy() );
+  DTFFT_CXX_CALL( plan->destroy() );
 
   delete plan;
 

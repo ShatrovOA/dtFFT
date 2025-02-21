@@ -40,7 +40,7 @@ implicit none
   integer(I4P), parameter :: nx = 64, ny = 32
 #endif
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb
@@ -67,18 +67,18 @@ implicit none
 #endif
 
 #if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
 #elif defined(DTFFT_WITH_MKL)
-  executor_type = DTFFT_EXECUTOR_MKL
+  executor = DTFFT_EXECUTOR_MKL
 #elif defined(DTFFT_WITH_VKFFT)
-  executor_type = DTFFT_EXECUTOR_VKFFT
+  executor = DTFFT_EXECUTOR_VKFFT
 #elif defined(DTFFT_WITH_CUFFT)
-  executor_type = DTFFT_EXECUTOR_CUFFT
+  executor = DTFFT_EXECUTOR_CUFFT
 #endif
 
   call attach_gpu_to_process()
 
-  call plan%create([nx, ny], effort_type=DTFFT_PATIENT, executor_type=executor_type, error_code=ierr)
+  call plan%create([nx, ny], effort=DTFFT_PATIENT, executor=executor, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
@@ -113,7 +113,7 @@ implicit none
 
   tf = 0.0_R8P - MPI_Wtime()
 !$acc host_data use_device(inout)
-  call plan%execute(inout, inout, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+  call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
 #ifdef DTFFT_WITH_CUDA
@@ -127,7 +127,7 @@ implicit none
 
   tb = 0.0_R8P - MPI_Wtime()
 !$acc host_data use_device(inout)
-  call plan%execute(inout, inout, DTFFT_TRANSPOSE_IN, error_code=ierr)
+  call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
 #ifdef DTFFT_WITH_CUDA

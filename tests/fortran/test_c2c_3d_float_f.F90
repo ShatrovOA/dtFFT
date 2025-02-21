@@ -33,7 +33,7 @@ implicit none
   integer(I4P) :: in_counts(3), out_counts(3), out_size
   integer(c_size_t) :: alloc_size
   real(R8P) :: tf, tb
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
   integer(I4P) :: ierr
 
   call MPI_Init(ierr)
@@ -50,12 +50,12 @@ implicit none
   endif
 
 #if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
 #else
-  executor_type = DTFFT_EXECUTOR_NONE
+  executor = DTFFT_EXECUTOR_NONE
 #endif
 
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor_type=executor_type, error_code=ierr)
+  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
@@ -77,19 +77,19 @@ implicit none
   enddo
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
   tf = tf + MPI_Wtime()
   DTFFT_CHECK(ierr)
 
   out_size = product(out_counts)
-  if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+  if ( executor /= DTFFT_EXECUTOR_NONE ) then
     out(:out_size) = out(:out_size) / real(nx * ny * nz, R4P)
   endif
   ! Nullify recv buffer
   in = (-1._R4P, -1._R4P)
 
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN, error_code=ierr)
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
   tb = tb + MPI_Wtime()
   DTFFT_CHECK(ierr)
 

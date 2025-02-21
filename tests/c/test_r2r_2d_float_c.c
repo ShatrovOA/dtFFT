@@ -50,18 +50,19 @@ int main(int argc, char *argv[]) {
   }
 
 #ifdef DTFFT_WITH_FFTW
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_FFTW3;
 #else
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #endif
 
   // Create plan
-  DTFFT_CALL( dtfft_create_plan_r2r(2, n, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2r(2, n, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor, &plan) )
 
-  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, NULL) )
+  size_t alloc_size;
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(float) * alloc_size, (void**)&in) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(float) * alloc_size, (void**)&out) )
 
-  in = (float*) malloc(sizeof(float) * in_counts[0] * in_counts[1]);
-  out = (float*) malloc(sizeof(float) * out_counts[0] * out_counts[1]);
   check = (float*) malloc(sizeof(float) * in_counts[0] * in_counts[1]);
 
   for (i = 0; i < in_counts[1]; i++) { // x direction
@@ -71,10 +72,10 @@ int main(int argc, char *argv[]) {
   }
 
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
+  dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, NULL);
   tf += MPI_Wtime();
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
+  if ( executor != DTFFT_EXECUTOR_NONE ) {
     for (i = 0; i < out_counts[1]; i++) { // y direction
       for (j = 0; j < out_counts[0]; j++) { // x direction
           out[i * out_counts[0] + j] /= (float) (4 * nx * (ny + 1));
@@ -83,7 +84,7 @@ int main(int argc, char *argv[]) {
   }
 
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
+  dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, NULL);
   tb += MPI_Wtime();
 
   float local_error = -1.0;
@@ -96,7 +97,11 @@ int main(int argc, char *argv[]) {
 
   report_float(&nx, &ny, NULL, local_error, tf, tb);
 
-  dtfft_destroy(&plan);
+  DTFFT_CALL( dtfft_mem_free(plan, in) )
+  DTFFT_CALL( dtfft_mem_free(plan, out) )
+  free(check);
+
+  DTFFT_CALL( dtfft_destroy(&plan) )
 
   MPI_Finalize();
   return 0;

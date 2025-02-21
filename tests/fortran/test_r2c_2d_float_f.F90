@@ -31,7 +31,7 @@ implicit none
   real(R4P) :: local_error, rnd
   integer(I4P), parameter :: nx = 17, ny = 19
   integer(I4P) :: comm_size, comm_rank, i, j, ierr, outsize
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb
@@ -58,12 +58,12 @@ implicit none
 #endif
 
 #if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
 #elif defined(DTFFT_WITH_MKL)
-  executor_type = DTFFT_EXECUTOR_MKL
+  executor = DTFFT_EXECUTOR_MKL
 #endif
 
-  call plan%create([nx, ny], precision=DTFFT_SINGLE, executor_type=executor_type)
+  call plan%create([nx, ny], precision=DTFFT_SINGLE, executor=executor)
 
   call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size)
 
@@ -82,7 +82,7 @@ implicit none
   enddo
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
   tf = tf + MPI_Wtime()
 
   outsize = product(out_counts)
@@ -91,7 +91,7 @@ implicit none
   in = -1._R4P
 
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
   tb = tb + MPI_Wtime()
 
   local_error = maxval(abs(pin - check))
@@ -100,7 +100,7 @@ implicit none
   deallocate(in, out, check)
   nullify( pin )
   call MPI_Finalize(ierr)
-  print*,ierr, dtfft_get_error_string(ierr)
+  print*,ierr
   !! Check that no error is raised when MPI is finalized
   call plan%destroy(ierr)
   print*,ierr, dtfft_get_error_string(ierr)

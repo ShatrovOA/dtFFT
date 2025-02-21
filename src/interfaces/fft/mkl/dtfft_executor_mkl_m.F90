@@ -20,7 +20,7 @@ module dtfft_executor_mkl_m
 !! This module describes MKL Wrappers to dtFFT: ``mkl_executor``
 !!
 !! https://software.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-fortran/top/fourier-transform-functions/fft-functions.html
-use iso_fortran_env,              only: int8, int32, error_unit
+use iso_fortran_env,              only: int8, int32, int64, error_unit
 use iso_c_binding,                only: c_int, c_long, c_ptr
 use dtfft_abstract_executor,      only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_interface_mkl_m
@@ -55,6 +55,8 @@ public :: mkl_executor
     procedure :: create_private => create     !< Creates FFT plan via MKL DFTI Interface
     procedure :: execute_private => execute   !< Executes MKL plan
     procedure :: destroy_private => destroy   !< Destroys MKL plan
+    procedure, nopass :: mem_alloc
+    procedure, nopass :: mem_free
   endtype mkl_executor
 
 contains
@@ -170,4 +172,19 @@ contains
 
     MKL_DFTI_CALL( "DftiFreeDescriptor", mkl_dfti_free_desc(self%plan_forward) )
   end subroutine destroy
+
+  subroutine mem_alloc(alloc_bytes, ptr)
+  !! Allocates MKL memory
+    integer(int64),           intent(in)  :: alloc_bytes
+    type(c_ptr),              intent(out) :: ptr
+
+    MKL_DFTI_CALL( "mkl_malloc", mkl_dfti_mem_alloc(alloc_bytes, ptr) )
+  end subroutine mem_alloc
+
+  subroutine mem_free(ptr)
+!! Frees MKL aligned memory
+    type(c_ptr),               intent(inout) :: ptr
+
+    MKL_DFTI_CALL( "mkl_free", mkl_dfti_mem_free(ptr) )
+  end subroutine mem_free
 end module dtfft_executor_mkl_m

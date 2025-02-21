@@ -29,12 +29,16 @@ use cudafor
 implicit none
   complex(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
   real(R8P) :: local_error, rnd1, rnd2
+#ifdef DTFFT_WITH_CUDA
+  integer(I4P), parameter :: nx = 2048, ny = 2048
+#else
   integer(I4P), parameter :: nx = 12, ny = 12
+#endif
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
   type(dtfft_plan_c2c_t) :: plan
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
   real(R8P) :: tf, tb
-  type(dtfft_executor_t) :: executor_type = DTFFT_EXECUTOR_NONE
+  type(dtfft_executor_t) :: executor = DTFFT_EXECUTOR_NONE
   type(dtfft_config_t) :: conf
 #ifdef DTFFT_WITH_CUDA
   integer(cuda_stream_kind) :: stream
@@ -46,6 +50,7 @@ implicit none
   call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
   if(comm_rank == 0) then
+    write(output_unit, '(a,i0)') "dtFFT Version = ",dtfft_get_version()
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a)') "|       DTFFT test: c2c_2d             |"
     write(output_unit, '(a)') "----------------------------------------"
@@ -55,9 +60,11 @@ implicit none
   endif
 
 #if defined(DTFFT_WITH_MKL)
-  executor_type = DTFFT_EXECUTOR_MKL
+  executor = DTFFT_EXECUTOR_MKL
 #elif defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
+#elif defined (DTFFT_WITH_CUFFT)
+  executor = DTFFT_EXECUTOR_CUFFT
 #endif
 
 #ifdef _OPENACC
@@ -81,14 +88,14 @@ implicit none
   endblock
 #endif
 
-  call dtfft_create_config(conf)
+  conf = dtfft_config_t()
 
 #ifdef DTFFT_WITH_CUDA
   conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
 #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
-  call plan%create([nx, ny], effort_type=DTFFT_MEASURE, executor_type=executor_type, error_code=ierr); DTFFT_CHECK(ierr)
+  plan = dtfft_plan_c2c_t([nx, ny], effort=DTFFT_MEASURE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
 
@@ -103,7 +110,7 @@ implicit none
   allocate(out(out_starts(1):out_starts(1) + out_counts(1) - 1,    &
                 out_starts(2):out_starts(2) + out_counts(2) - 1))
 
-!$acc enter data create(in, out, check)
+!$acc enter data create(in, out)
 
   do j = in_starts(2), in_starts(2) + in_counts(2) - 1
     do i = in_starts(1), in_starts(1) + in_counts(1) - 1
@@ -114,14 +121,19 @@ implicit none
     enddo
   enddo
 
+!$acc update device(in)
+
   tf = 0.0_R8P - MPI_Wtime()
 !$acc host_data use_device(in, out)
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, error_code=ierr)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
+!$acc wait
   tf = tf + MPI_Wtime()
-  if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
+  if ( executor /= DTFFT_EXECUTOR_NONE ) then
+!$acc kernels present(out)
     out(:,:) = out(:,:) / real(nx * ny, R8P)
+!$acc end kernels
   endif
   ! Clear recv buffer
   in = (-1._R8P, -1._R8P)
@@ -129,10 +141,13 @@ implicit none
 
   tb = 0.0_R8P - MPI_Wtime()
 !$acc host_data use_device(in, out)
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN, error_code=ierr)
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
+!$acc wait
   tb = tb + MPI_Wtime()
+
+!$acc update self(in)
 
   local_error = maxval(abs(in - check))
 

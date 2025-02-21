@@ -61,7 +61,9 @@ void report_private(double local_error, double errthr, double time_forward, doub
 
   if(comm_rank == 0) {
     if(global_error < errthr && global_error >= 0.) {
-      printf("Test PASSED!\n");
+      printf("************************************\n");
+      printf("           Test PASSED!\n");
+      printf("************************************\n");
     } else {
       fprintf(stderr, "Test FAILED, error = %e, threshold = %e\n", global_error, errthr);
       MPI_Abort(MPI_COMM_WORLD, -1);

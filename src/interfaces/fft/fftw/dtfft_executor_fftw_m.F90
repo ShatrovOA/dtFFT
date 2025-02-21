@@ -21,7 +21,7 @@ module dtfft_executor_fftw_m
 !!
 !! http://www.fftw.org
 use iso_c_binding,              only: c_ptr, c_loc, c_null_ptr, c_int
-use iso_fortran_env,            only: int8, int32, real32
+use iso_fortran_env,            only: int8, int32, int64, real32
 use dtfft_abstract_executor,    only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_pencil,               only: pencil
 use dtfft_interface_fftw_m
@@ -45,6 +45,8 @@ public :: fftw_executor
     procedure :: create_private => create               !< Creates FFT plan via FFTW3 Interface
     procedure :: execute_private => execute             !< Executes FFTW3 plan
     procedure :: destroy_private => destroy             !< Destroys FFTW3 plan
+    procedure, nopass :: mem_alloc
+    procedure, nopass :: mem_free
   end type fftw_executor
 
   abstract interface
@@ -216,4 +218,19 @@ contains
     self%apply_inverse => NULL()
     self%free  => NULL()
   end subroutine destroy
+
+  subroutine mem_alloc(alloc_bytes, ptr)
+    !! Allocates FFTW3 memory
+    integer(int64),           intent(in)  :: alloc_bytes
+    type(c_ptr),              intent(out) :: ptr
+
+    ptr = fftw_malloc(alloc_bytes)
+  end subroutine mem_alloc
+
+  subroutine mem_free(ptr)
+  !! Frees FFTW3 aligned memory
+    type(c_ptr),               intent(inout) :: ptr
+
+    call fftw_free(ptr)
+  end subroutine mem_free
 end module dtfft_executor_fftw_m

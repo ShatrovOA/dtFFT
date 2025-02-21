@@ -1,6 +1,6 @@
 #include "dtfft_config.h"
 module dtfft_utils
-use iso_c_binding,    only: c_char, c_null_char, c_int32_t, c_f_pointer, c_size_t, c_bool
+use iso_c_binding,    only: c_char, c_null_char, c_int32_t, c_f_pointer, c_size_t, c_bool, c_ptr
 use iso_fortran_env,  only: int8, int32, int64, real64, output_unit, error_unit
 use dtfft_parameters
 #ifdef DTFFT_WITH_CUDA
@@ -32,7 +32,9 @@ public :: get_user_gpu_backend
 public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_enabled
 # if defined(DTFFT_WITH_PROFILER)
 public :: push_nvtx_domain_range, pop_nvtx_domain_range
-#endif
+# endif
+#else
+public :: mem_alloc_host, mem_free_host
 #endif
 
   logical,                    save  :: is_log_enabled = .false.
@@ -83,11 +85,11 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
   !!
   !! Stream must not be destroyed before call to `plan%destroy`.
     type(dtfft_gpu_backend_t) :: gpu_backend
-  !! Backend that will be used by dtFFT when `effort_type` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+  !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
   !!
   !! Default is `DTFFT_GPU_BACKEND_NCCL`
     logical(c_bool)           :: enable_mpi_backends
-  !! Should MPI GPU Backends be enabled when `effort_type` is `DTFFT_PATIENT` or not.
+  !! Should MPI GPU Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
   !!
   !! Default is false.
   !!
@@ -102,22 +104,26 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
   !! Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to `mpiexec`,
   !! but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
     logical(c_bool)           :: enable_pipelined_backends
-  !! Should pipelined GPU backends be enabled when `effort_type` is `DTFFT_PATIENT` or not.
+  !! Should pipelined GPU backends be enabled when `effort` is `DTFFT_PATIENT` or not.
   !!
   !! Default is true.
   !!
   !! Pipelined backends require additional buffer that user has no control over.
     logical(c_bool)           :: enable_nccl_backends
-  !! Should NCCL Backends be enabled when `effort_type` is `DTFFT_PATIENT` or not.
+  !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
   !!
   !! Default is true.
     logical(c_bool)           :: enable_nvshmem_backends
-  !! Should NCCL Backends be enabled when `effort_type` is `DTFFT_PATIENT` or not.
+  !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
   !! Default is true.
   !!
   !! Unused. Reserved for future.
 #endif
   end type dtfft_config_t
+
+  interface dtfft_config_t
+    module procedure config_constructor
+  end interface dtfft_config_t
 
 #ifdef DTFFT_WITH_PROFILER
 #if defined (DTFFT_WITH_CUDA)
@@ -132,18 +138,32 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
 #endif
 
   interface int_to_str
-  !! Convert integer to string
     module procedure int_to_str_int8
     module procedure int_to_str_int32
   end interface int_to_str
 
   interface get_env
-  !! Obtain dtFFT environment variable
     module procedure get_env_int32
     module procedure get_env_int8
     module procedure get_env_logical
   end interface get_env
 
+#ifndef DTFFT_WITH_CUDA
+  interface
+    subroutine mem_alloc_host(alloc_size, ptr) bind(C)
+    import
+      integer(c_size_t),  value :: alloc_size
+      type(c_ptr)               :: ptr
+    end subroutine mem_alloc_host
+
+    subroutine mem_free_host(ptr) bind(C)
+    import
+      type(c_ptr),        value :: ptr
+    end subroutine mem_free_host
+  end interface
+
+
+#endif
 contains
 
   integer(int32) function init_internal()
@@ -202,7 +222,7 @@ contains
       deallocate(env_val_str, full_name)
       return
     endif
-    WRITE_WARN("Invalid environment variable: "//full_name//", it has been ignored")
+    WRITE_ERROR("Invalid environment variable: "//full_name//", it has been ignored")
     env = default
     deallocate(env_val_str, full_name)
   end function get_env_int32
@@ -270,6 +290,12 @@ contains
     config%enable_nvshmem_backends = .true.
 #endif
   end subroutine dtfft_create_config
+
+  function config_constructor() result(config)
+    type(dtfft_config_t) :: config
+
+    call dtfft_create_config(config)
+  end function config_constructor
 
   subroutine dtfft_set_config(config, error_code)
     type(dtfft_config_t),     intent(in)  :: config
@@ -378,14 +404,20 @@ contains
 
   subroutine write_message(unit, message, prefix)
   !! Write message to the specified unit
-    integer(int32),   intent(in)            :: unit       !< Unit number
-    character(len=*), intent(in)            :: message    !< Message to write
-    character(len=*), intent(in), optional  :: prefix     !< Prefix to the message
-    character(len=:), allocatable           :: prefix_    !< Dummy prefix
-    integer(int32)                          :: comm_rank  !< Size of world communicator
-    integer(int32)                          :: ierr       !< Error code
+    integer(int32),   intent(in)            :: unit         !< Unit number
+    character(len=*), intent(in)            :: message      !< Message to write
+    character(len=*), intent(in), optional  :: prefix       !< Prefix to the message
+    character(len=:), allocatable           :: prefix_      !< Dummy prefix
+    integer(int32)                          :: comm_rank    !< Size of world communicator
+    integer(int32)                          :: ierr         !< Error code
+    logical                                 :: is_finalized !< Is MPI Already finalized?
 
-    call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
+    call MPI_Finalized(is_finalized, ierr)
+    if ( is_finalized ) then
+      comm_rank = 0
+    else
+      call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
+    endif
     if ( comm_rank /= 0 ) return
 
     if ( present( prefix ) ) then

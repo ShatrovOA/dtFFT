@@ -31,7 +31,7 @@ implicit none
   integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2), in_vals
   real(R8P) :: tf, tb
   type(dtfft_r2r_kind_t) :: kinds(2)
-  type(dtfft_executor_t) :: executor_type
+  type(dtfft_executor_t) :: executor
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -48,14 +48,14 @@ implicit none
 
   kinds = DTFFT_DCT_1
 #if defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+  executor = DTFFT_EXECUTOR_FFTW3
   scaler = 1._R8P / real(4 * (nx - 1) * (ny - 1), R8P)
 #else
-  executor_type = DTFFT_EXECUTOR_NONE
+  executor = DTFFT_EXECUTOR_NONE
   scaler = 1._R8P
 #endif
 
-  call plan%create([nx, ny], kinds=kinds, effort_type=DTFFT_PATIENT, executor_type=executor_type)
+  call plan%create([nx, ny], kinds=kinds, effort=DTFFT_PATIENT, executor=executor)
 
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
@@ -76,7 +76,7 @@ implicit none
   allocate(check, source = in)
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
   tf = tf + MPI_Wtime()
 
 
@@ -85,7 +85,7 @@ implicit none
   in = -1._R8P
 
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN)
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
   tb = tb + MPI_Wtime()
 
   local_error = maxval(abs(in - check))

@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_mkl_m
 !! This module creates C interface with MKL library
-use iso_c_binding, only: c_long, c_int, c_ptr, c_f_pointer, c_null_char
+use iso_c_binding, only: c_long, c_int, c_ptr, c_f_pointer, c_null_char, c_size_t
 implicit none
 private
 
@@ -26,7 +26,9 @@ public :: mkl_dfti_create_desc,         &
           mkl_dfti_set_value,           &
           mkl_dfti_commit_desc,         &
           mkl_dfti_execute,             &
-          mkl_dfti_free_desc
+          mkl_dfti_free_desc,           &
+          mkl_dfti_mem_alloc,           &
+          mkl_dfti_mem_free
 public :: DftiErrorMessage
 
   interface
@@ -109,6 +111,25 @@ public :: DftiErrorMessage
       type(c_ptr),                  value :: desc             !< FFT descriptor.
       integer(c_long)                     :: status           !< Function completion status.
     end function mkl_dfti_free_desc
+
+    function mkl_dfti_mem_alloc(alloc_bytes, ptr)                             &
+      result(status)                                                          &
+      bind(C)
+    !! Allocates pointer via `mkl_malloc`
+    import
+      integer(c_size_t),            value :: alloc_bytes
+      type(c_ptr)                         :: ptr
+      integer(c_long)                     :: status           !< Function completion status.
+    end function mkl_dfti_mem_alloc
+
+    function mkl_dfti_mem_free(ptr)                                           &
+      result(status)                                                          &
+      bind(C)
+    !! Frees pointer via `mkl_free`
+    import
+      type(c_ptr),                  value :: ptr
+      integer(c_long)                     :: status           !< Function completion status.
+    end function mkl_dfti_mem_free
   endinterface
 
 contains

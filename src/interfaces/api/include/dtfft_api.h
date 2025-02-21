@@ -31,6 +31,10 @@ extern "C" {
 
 extern
 int32_t
+dtfft_get_version_current();
+
+extern
+int32_t
 dtfft_create_plan_c2c_c(const int8_t*, const int32_t*, MPI_Fint, const int32_t*, const int32_t*, const int32_t*, void**);
 
 extern
@@ -62,6 +66,18 @@ int32_t
 dtfft_get_local_sizes_c(const void*, int32_t*, int32_t*, int32_t*, int32_t*, size_t*);
 
 extern
+int32_t
+dtfft_get_alloc_size_c(const void*, size_t*);
+
+extern
+int32_t
+dtfft_mem_alloc_c(const void*, size_t, void**);
+
+extern
+int32_t
+dtfft_mem_free_c(const void*, void*);
+
+extern
 void
 dtfft_get_error_string_c(const int32_t*, char*, size_t*);
 
@@ -70,8 +86,12 @@ int32_t
 dtfft_get_pencil_c(const void*, int8_t*, void *);
 
 extern
-void
-dtfft_create_config_c(void *);
+int32_t
+dtfft_get_element_size_c(const void *, size_t*);
+
+extern
+void*
+dtfft_create_config_c();
 
 extern
 int32_t

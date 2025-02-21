@@ -1,5 +1,5 @@
 #include <dtfft_private.h>
-#include "mkl_dfti.h"
+#include "mkl.h"
 
 
 MKL_LONG mkl_dfti_create_desc(int precision, int domain, long int dim, long int *length, void **desc)
@@ -42,4 +42,17 @@ MKL_LONG mkl_dfti_execute(void *desc, void *in, void *out, int sign)
 MKL_LONG mkl_dfti_free_desc(DFTI_DESCRIPTOR_HANDLE desc)
 {
   return DftiFreeDescriptor(&desc);
+}
+
+MKL_LONG mkl_dfti_mem_alloc(size_t alloc_bytes, void **ptr)
+{
+  void *ptr_ = mkl_malloc(alloc_bytes, ALLOC_ALIGNMENT);
+  *ptr = ptr_;
+  return DFTI_NO_ERROR;
+}
+
+MKL_LONG mkl_dfti_mem_free(void *ptr)
+{
+  mkl_free(ptr);
+  return DFTI_NO_ERROR;
 }

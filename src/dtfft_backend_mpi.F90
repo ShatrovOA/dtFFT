@@ -32,6 +32,7 @@ private
 public :: backend_mpi
 
   type :: mpi_backend_helper
+  !! MPI Helper
     integer(CNT_KIND),  allocatable :: counts(:)
     integer(ADDR_KIND), allocatable :: displs(:)
     TYPE_MPI_REQUEST,   allocatable :: requests(:)
@@ -46,6 +47,7 @@ public :: backend_mpi
 
 
   type, extends(abstract_backend) :: backend_mpi
+  !! MPI Backend
   private
     type(mpi_backend_helper)        :: send
     type(mpi_backend_helper)        :: recv
@@ -99,9 +101,9 @@ contains
     class(backend_mpi),         intent(inout) :: self       !< Abstract GPU Backend
     type(backend_helper),       intent(in)    :: helper     !< Backend helper
 
-    if ( .not. is_backend_mpi(self%backend_id) ) error stop "dtFFT Internal Error: .not. is_backend_mpi"
+    if ( .not. is_backend_mpi(self%gpu_backend) ) error stop "dtFFT Internal Error: .not. is_backend_mpi"
 
-    if ( self%backend_id == DTFFT_GPU_BACKEND_MPI_A2A ) then
+    if ( self%gpu_backend == DTFFT_GPU_BACKEND_MPI_A2A ) then
       call self%send%create(self%send_floats, self%send_displs - 1, 1)
       call self%recv%create(self%recv_floats, self%recv_displs - 1, 0)
     else
@@ -129,7 +131,7 @@ contains
     ! Need to sync stream since there is no way pass current stream to MPI
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 
-    select case ( self%backend_id%val )
+    select case ( self%gpu_backend%val )
     case ( DTFFT_GPU_BACKEND_MPI_A2A%val )
       call run_mpi_a2a(self%comm, self%send, self%recv, in, out)
     case ( DTFFT_GPU_BACKEND_MPI_P2P%val )

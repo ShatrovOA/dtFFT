@@ -21,6 +21,7 @@ module dtfft_interface_fftw_m
 use iso_c_binding,                 only: c_ptr, c_int
 use dtfft_interface_fftw_native_m, only: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
 use dtfft_interface_fftw_native_m, only: fftw_destroy_plan, fftwf_destroy_plan
+use dtfft_interface_fftw_native_m, only: fftw_malloc, fftw_free
 implicit none
 private
 public :: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
@@ -33,6 +34,7 @@ public :: fftw_plan_many_dft, fftwf_plan_many_dft
 public :: fftw_plan_many_dft_r2c, fftwf_plan_many_dft_r2c
 public :: fftw_plan_many_dft_c2r, fftwf_plan_many_dft_c2r
 public :: fftw_plan_many_r2r, fftwf_plan_many_r2r
+public :: fftw_malloc, fftw_free
 
   interface
     subroutine fftw_execute_dft(plan, in, out) bind(C)
