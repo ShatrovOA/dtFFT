@@ -69,38 +69,38 @@ public :: fftw_malloc, fftw_free
 #include "args_execute.i90"
     end subroutine fftwf_execute_r2r
 
-    type(C_PTR) function fftw_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
+    type(c_ptr) function fftw_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
 #include "args_create.i90"
       integer(C_INT), value :: sign
     end function fftw_plan_many_dft
 
-    type(C_PTR) function fftwf_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
+    type(c_ptr) function fftwf_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
 #include "args_create.i90"
       integer(C_INT), value :: sign
     end function fftwf_plan_many_dft
 
-    type(C_PTR) function fftw_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    type(c_ptr) function fftw_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
 #include "args_create.i90"
     end function fftw_plan_many_dft_r2c
 
-    type(C_PTR) function fftwf_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    type(c_ptr) function fftwf_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
 #include "args_create.i90"
     end function fftwf_plan_many_dft_r2c
 
-    type(C_PTR) function fftw_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    type(c_ptr) function fftw_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
 #include "args_create.i90"
     end function fftw_plan_many_dft_c2r
 
-    type(C_PTR) function fftwf_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    type(c_ptr) function fftwf_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
 #include "args_create.i90"
     end function fftwf_plan_many_dft_c2r
 
-    type(C_PTR) function fftw_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
+    type(c_ptr) function fftw_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
 #include "args_create.i90"
       integer(C_FFTW_R2R_KIND), intent(in) :: kind(*)
     end function fftw_plan_many_r2r
 
-    type(C_PTR) function fftwf_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
+    type(c_ptr) function fftwf_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
 #include "args_create.i90"
       integer(C_FFTW_R2R_KIND), intent(in) :: kind(*)
     end function fftwf_plan_many_r2r

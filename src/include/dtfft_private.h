@@ -45,6 +45,14 @@ extern "C" {
 
 #define ALLOC_ALIGNMENT 16
 
+#ifdef __GFORTRAN__
+#define PASTE(a) a
+#define CONCAT(a,b) PASTE(a)b
+#else
+#define PASTE(a,b) a ## b
+#define CONCAT(a,b) PASTE(a,b)
+#endif
+
 #ifdef __cplusplus
 }
 #endif

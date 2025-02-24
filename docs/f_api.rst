@@ -1,8 +1,8 @@
 .. _f_link:
 
-###########
-Fortran API
-###########
+#####################
+Fortran API Reference
+#####################
 
 Error Codes
 ===========
@@ -643,61 +643,55 @@ ________________
 
 ------
 
-mem_alloc, Host Version
-_______________________
+mem_alloc
+_________
 
-.. f:function:: mem_alloc( alloc_bytes [, error_code] )
+Allocates memory tailored to the specific needs of the plan.  
 
-  Allocates memory specific for this plan
+The ``mem_alloc`` method is overloaded, offering two variants: one returning a raw pointer (``c_ptr`` for host, ``c_devptr`` for GPU) and another returning a Fortran pointer array. Both are designed to simplify memory management for plan execution.
 
-  :p integer(int64) alloc_bytes [in]:
-    Number of bytes to allocate
-  :o integer(int32) error_code [out, optional]:
-    Optional error code returned to user
-  :r type(c_ptr): Allocated host pointer
+**Raw Pointer Variant**
 
-------
+.. f:subroutine:: mem_alloc(alloc_bytes, ptr[, error_code])
 
-mem_alloc, GPU Version
-______________________
-
-.. f:function:: mem_alloc( alloc_bytes [, error_code] )
-
-  Allocates memory specific for this plan
-
-  :p integer(int64) alloc_bytes [in]:
-    Number of bytes to allocate
-  :o integer(int32) error_code [out, optional]:
-    Optional error code returned to user
-  :r type(c_devptr): Allocated device pointer
+  :p integer(int64) alloc_bytes [in]: Number of bytes to allocate  
+  :p type(c_ptr) ptr [out]: Allocated pointer (``c_devptr`` in CUDA builds)  
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user  
 
 ------
 
-mem_free, Host Version
-______________________
+**Fortran Array Variant**
 
-.. f:subroutine:: mem_free( ptr [, error_code] )
+.. f:function:: mem_alloc(alloc_size, ptr[, error_code])
 
-  Frees memory specific for this plan
-
-  :p type(c_ptr) ptr [in]:
-    Pointer allocated with mem_alloc
-  :o integer(int32) error_code [out, optional]:
-    Optional error code returned to user
+  :p integer(int64) alloc_size [in]: Number of elements to allocate  
+  :p type(*), pointer, dimension(:) ptr [out]: Allocated 1D pointer array of ``real`` or ``complex`` values (single or double precision)  
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user  
 
 ------
 
-mem_free, GPU Version
-_____________________
+mem_free
+________
 
-.. f:subroutine:: mem_free( ptr [, error_code] )
+Frees memory previously allocated by :f:func:`mem_alloc`.  
 
-  Frees memory specific for this plan
+The ``mem_free`` method is overloaded to accept either a raw pointer (``c_ptr`` or ``c_devptr``) or a Fortran pointer array, ensuring flexibility in deallocation.
 
-  :p type(c_devptr) ptr [in]:
-    Pointer allocated with mem_alloc
-  :o integer(int32) error_code [out, optional]:
-    Optional error code returned to user
+**Raw Pointer Variant**
+
+.. f:subroutine:: mem_free(ptr[, error_code])
+
+  :p type(c_ptr) ptr [in]: Pointer allocated with ``mem_alloc`` (``c_devptr`` expected in CUDA builds)  
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user  
+
+------
+
+**Fortran Array Variant**
+
+.. f:subroutine:: mem_free(ptr[, error_code])
+
+  :p type(*), pointer, dimension(..) ptr [in]: Pointer array allocated with ``mem_alloc`` (``real`` or ``complex``, any shape)  
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user  
 
 ------
 

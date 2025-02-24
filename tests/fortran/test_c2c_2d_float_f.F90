@@ -21,7 +21,6 @@ program test_c2c_2d_float
 use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit
 use dtfft
 use test_utils
-use iso_c_binding, only: c_f_pointer
 #ifdef DTFFT_WITH_CUDA
 use cudafor
 #endif
@@ -30,17 +29,17 @@ use cudafor
 #include "dtfft.f03"
 implicit none
 
-  complex(R4P), DEVICE_PTR pointer :: in(:), out(:), check(:,:)
+  complex(R4P), DEVICE_PTR pointer, contiguous :: in(:), out(:)
+  complex(R4P), allocatable :: check(:,:)
   complex(R4P), DEVICE_PTR pointer :: pin(:,:), pout(:,:)
   real(R4P) :: local_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 64, ny = 32
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
   type(dtfft_executor_t) :: executor
-  integer(I8P) :: alloc_size, element_size
+  integer(I8P) :: alloc_size
   type(dtfft_plan_c2c_t) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb
-  type(C_ADDR) :: in_ptr, out_ptr
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -65,13 +64,11 @@ implicit none
 
   call plan%create([nx, ny], precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
-  element_size = plan%get_element_size(error_code=ierr); DTFFT_CHECK(ierr)
-  in_ptr = plan%mem_alloc(alloc_size * element_size)
-  out_ptr = plan%mem_alloc(alloc_size * element_size)
 
-  allocate(in(alloc_size))
+  call plan%mem_alloc(alloc_size, in, ierr);  DTFFT_CHECK(ierr)
+  call plan%mem_alloc(alloc_size, out, ierr); DTFFT_CHECK(ierr)
+
   allocate(check(in_counts(1),in_counts(2)))
-  allocate(out(alloc_size))
 
   pin(1:in_counts(1), 1:in_counts(2)) => in
   pout(1:out_counts(1), 1:out_counts(2)) => out
@@ -93,7 +90,8 @@ implicit none
     pout(:,:) = pout(:,:) / real(nx * ny, R4P)
   endif
   ! Nullify recv buffer
-  in = (-1._R4P, -1._R4P)
+
+  in(:) = (-1._R4P, -1._R4P)
 
   tb = 0.0_R8P - MPI_Wtime()
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
@@ -102,7 +100,10 @@ implicit none
   local_error = maxval(abs(pin - check))
   call report(tf, tb, local_error, nx, ny)
 
-  deallocate(in, out, check)
+  call plan%mem_free(in)
+  call plan%mem_free(out)
+
+  deallocate(check)
 
   call plan%destroy()
   call MPI_Finalize(ierr)

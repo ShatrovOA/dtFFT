@@ -18,8 +18,11 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_transpose_plan_host
-use iso_fortran_env, only: int8, int32, int64, real32, real64, output_unit
+use iso_fortran_env,                only: int8, int32, int64, real32, real64, output_unit
 use dtfft_abstract_transpose_plan,  only: abstract_transpose_plan, create_cart_comm
+#ifdef DTFFT_WITH_CUDA
+use dtfft_abstract_transpose_plan,  only: alloc_mem
+#endif
 use dtfft_pencil,                   only: pencil, get_local_sizes
 use dtfft_parameters
 use dtfft_transpose_handle_host,    only: transpose_handle_host
@@ -41,9 +44,6 @@ public :: transpose_plan_host
 
   type, extends(abstract_transpose_plan) :: transpose_plan_host
   private
-#ifdef DTFFT_WITH_CUDA
-    type(dtfft_gpu_backend_t)     :: gpu_backend = DTFFT_GPU_BACKEND_MPI_DATATYPE
-#endif
     type(transpose_handle_host), allocatable :: in_plans(:)
     type(transpose_handle_host), allocatable :: out_plans(:)
   contains
@@ -51,10 +51,6 @@ public :: transpose_plan_host
     procedure :: create_private
     procedure :: execute_private
     procedure :: destroy
-#ifdef DTFFT_WITH_CUDA
-    procedure :: get_gpu_backend
-    procedure :: mem_alloc
-#endif
     procedure, nopass,      private :: get_plan_execution_time
     procedure, pass(self),  private :: autotune_transpose_id
     procedure, pass(self),  private :: autotune_mpi_datatypes
@@ -63,21 +59,6 @@ public :: transpose_plan_host
   end type transpose_plan_host
 
 contains
-#ifdef DTFFT_WITH_CUDA
-  type(dtfft_gpu_backend_t) function get_gpu_backend(self)
-    class(transpose_plan_host), intent(in) :: self         !< Transposition class
-    get_gpu_backend = self%gpu_backend
-  end function get_gpu_backend
-
-  subroutine mem_alloc(self, alloc_bytes, ptr)
-  !! Allocates memory via cudaMalloc
-    class(transpose_plan_host),     intent(in)  :: self            !< Transposition class
-    integer(int64),                 intent(in)  :: alloc_bytes
-    type(c_devptr),                 intent(out) :: ptr
-
-    call self%generic_mem_alloc(alloc_bytes, ptr)
-  end subroutine mem_alloc
-#endif
 
   function create_private(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
   !! Creates transposition plans
@@ -180,6 +161,10 @@ contains
       call self%out_plans(3)%create(cart_comm, pencils(1), pencils(3), base_dtype, base_storage, best_forward_ids(3))
       call self%in_plans (3)%create(cart_comm, pencils(3), pencils(1), base_dtype, base_storage, best_backward_ids(3))
     endif
+
+#ifdef DTFFT_WITH_CUDA
+    self%gpu_backend = DTFFT_GPU_BACKEND_MPI_DATATYPE
+#endif
 
     deallocate(best_comm_dims)
     deallocate(best_forward_ids, best_backward_ids)

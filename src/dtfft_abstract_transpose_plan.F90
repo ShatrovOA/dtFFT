@@ -26,6 +26,11 @@ use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
 use dtfft_nvrtc_kernel, only: DEF_TILE_SIZE
 use cudafor
+#ifdef DTFFT_WITH_CUSTOM_NCCL
+use dtfft_nccl_interfaces
+#else
+use nccl
+#endif
 #endif
 #include "dtfft_mpi.h"
 #include "dtfft_profile.h"
@@ -35,9 +40,15 @@ implicit none
 private
 public :: abstract_transpose_plan
 public :: create_cart_comm
+#ifdef DTFFT_WITH_CUDA
+public :: alloc_mem
+#endif
 
   type, abstract :: abstract_transpose_plan
   !! The most Abstract Transpose Plan
+#ifdef DTFFT_WITH_CUDA
+    type(dtfft_gpu_backend_t)     :: gpu_backend = DTFFT_GPU_BACKEND_MPI_DATATYPE
+#endif
     logical :: is_z_slab  !< Z-slab optimization flag (for 3D transforms)
   contains
     procedure,                            pass(self),           public  :: create           !< Create transposition plan
@@ -46,9 +57,9 @@ public :: create_cart_comm
     procedure(execute_interface),         pass(self), deferred          :: execute_private  !< Executes overriding class
     procedure(destroy_interface),         pass(self), deferred, public  :: destroy          !< Destroys overriding class
 #ifdef DTFFT_WITH_CUDA
-    procedure,                            nopass,               public  :: generic_mem_alloc!< Allocates memory via `cudaMalloc`
-    procedure(get_gpu_backend_interface), pass(self), deferred, public  :: get_gpu_backend  !< Returns backend id
-    procedure(mem_alloc_interface),       pass(self), deferred, public  :: mem_alloc        !< Allocates memory based on selected backend
+    procedure,   non_overridable,         pass(self),           public  :: get_gpu_backend  !< Returns backend id
+    procedure,   non_overridable,         pass(self),           public  :: mem_alloc        !< Allocates memory based on selected backend
+    procedure,   non_overridable,         pass(self),           public  :: mem_free         !< Frees memory allocated with mem_alloc
 #endif
   end type abstract_transpose_plan
 
@@ -86,21 +97,6 @@ public :: create_cart_comm
     import
       class(abstract_transpose_plan), intent(inout) :: self         !< Transposition class
     end subroutine destroy_interface
-
-#ifdef DTFFT_WITH_CUDA
-    type(dtfft_gpu_backend_t) function get_gpu_backend_interface(self)
-    import
-      class(abstract_transpose_plan), intent(in) :: self            !< Transposition class
-    end function get_gpu_backend_interface
-
-    subroutine mem_alloc_interface(self, alloc_bytes, ptr)
-    !! Allocates memory based on selected backend
-    import
-      class(abstract_transpose_plan), intent(in)  :: self            !< Transposition class
-      integer(int64),                 intent(in)  :: alloc_bytes
-      type(c_devptr),                 intent(out) :: ptr
-    end subroutine mem_alloc_interface
-#endif
   endinterface
 
 contains
@@ -249,13 +245,83 @@ contains
   end subroutine execute
 
 #ifdef DTFFT_WITH_CUDA
-  subroutine generic_mem_alloc(alloc_bytes, ptr)
-  !! Allocates memory via `cudaMalloc`
-    integer(int64),                 intent(in)  :: alloc_bytes
-    type(c_devptr),                 intent(out) :: ptr
+  type(dtfft_gpu_backend_t) function get_gpu_backend(self)
+    class(abstract_transpose_plan), intent(in)    :: self         !< Transposition class
+    get_gpu_backend = self%gpu_backend
+  end function get_gpu_backend
 
-    CUDA_CALL( "cudaMalloc", cudaMalloc(ptr, alloc_bytes) )
-  end subroutine generic_mem_alloc
+  subroutine mem_alloc(self, alloc_bytes, ptr, error_code)
+    !! Allocates memory based on selected backend
+    class(abstract_transpose_plan), intent(in)    :: self            !< Transposition class
+    integer(int64),                 intent(in)    :: alloc_bytes
+    type(c_devptr),                 intent(out)   :: ptr
+    integer(int32),                 intent(out)   :: error_code
+
+    call alloc_mem(self%gpu_backend, alloc_bytes, ptr, error_code)
+  end subroutine mem_alloc
+
+  subroutine mem_free(self, ptr, error_code)
+    class(abstract_transpose_plan), intent(in)    :: self            !< Transposition class
+    type(c_devptr),                 intent(in)    :: ptr
+    integer(int32),                 intent(out)   :: error_code
+
+    call free_mem(self%gpu_backend, ptr, error_code)
+  end subroutine mem_free
+
+  subroutine alloc_mem(gpu_backend, alloc_bytes, ptr, error_code)
+  !! Allocates memory based on ``gpu_backend``
+    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend
+    integer(int64),                 intent(in)    :: alloc_bytes
+    type(c_devptr),                 intent(out)   :: ptr
+    integer(int32),                 intent(out)   :: error_code
+    integer(int32)  :: ierr
+
+    error_code = DTFFT_SUCCESS
+    ierr = cudaSuccess
+    select case ( gpu_backend%val )
+    case (DTFFT_GPU_BACKEND_NCCL%val, DTFFT_GPU_BACKEND_NCCL_PIPELINED%val)
+#ifdef NCCL_HAVE_MEMALLOC
+    block
+      type(ncclResult) :: result
+
+      result = ncclMemAlloc(ptr, alloc_bytes)
+      if ( result /= ncclSuccess ) error_code = DTFFT_ERROR_ALLOC_FAILED
+    endblock
+#else
+      ierr = cudaMalloc(ptr, alloc_bytes)
+#endif
+    case default
+      ierr = cudaMalloc(ptr, alloc_bytes)
+    endselect
+    if ( ierr /= cudaSuccess ) error_code = DTFFT_ERROR_ALLOC_FAILED
+  end subroutine alloc_mem
+
+  subroutine free_mem(gpu_backend, ptr, error_code)
+  !! Frees memory based on ``gpu_backend``
+    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend
+    type(c_devptr),                 intent(in)    :: ptr
+    integer(int32),                 intent(out)   :: error_code
+    integer(int32)  :: ierr
+
+    error_code = DTFFT_SUCCESS
+    ierr = cudaSuccess
+    select case ( gpu_backend%val )
+    case (DTFFT_GPU_BACKEND_NCCL%val, DTFFT_GPU_BACKEND_NCCL_PIPELINED%val)
+#ifdef NCCL_HAVE_MEMALLOC
+    block
+      type(ncclResult) :: result
+
+      result = ncclMemFree(ptr)
+      if ( result /= ncclSuccess ) error_code = DTFFT_ERROR_FREE_FAILED
+    endblock
+#else
+      ierr = cudaFree(ptr)
+#endif
+    case default
+      ierr = cudaFree(ptr)
+    endselect
+    if ( ierr /= cudaSuccess ) error_code = DTFFT_ERROR_FREE_FAILED
+  end subroutine free_mem
 #endif
 
   subroutine create_cart_comm(old_comm, comm_dims, comm, local_comms)

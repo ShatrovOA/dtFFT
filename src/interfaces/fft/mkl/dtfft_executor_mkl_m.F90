@@ -183,7 +183,7 @@ contains
 
   subroutine mem_free(ptr)
 !! Frees MKL aligned memory
-    type(c_ptr),               intent(inout) :: ptr
+    type(c_ptr),               intent(in)   :: ptr
 
     MKL_DFTI_CALL( "mkl_free", mkl_dfti_mem_free(ptr) )
   end subroutine mem_free

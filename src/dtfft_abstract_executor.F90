@@ -101,7 +101,7 @@ public :: abstract_executor
     subroutine mem_free_interface(ptr)
     !! Frees aligned memory
     import
-     type(c_ptr),               intent(inout) :: ptr
+     type(c_ptr),               intent(in)    :: ptr
     end subroutine mem_free_interface
 #endif
   end interface

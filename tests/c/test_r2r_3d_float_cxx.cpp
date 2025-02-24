@@ -32,6 +32,7 @@
 #endif
 
 using namespace std;
+using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
@@ -58,16 +59,16 @@ int main(int argc, char *argv[])
   }
 
 
-  dtfft::Executor executor;
+  Executor executor;
 #ifdef DTFFT_WITH_FFTW
-  executor = dtfft::Executor::FFTW3;
+  executor = Executor::FFTW3;
 #elif defined(DTFFT_WITH_VKFFT)
-  executor = dtfft::Executor::VKFFT;
+  executor = Executor::VKFFT;
 #else
-  executor = dtfft::Executor::NONE;
+  executor = Executor::NONE;
 #endif
 
-  dtfft::Config conf;
+  Config conf;
   conf.set_enable_z_slab(false);
 
 #ifdef DTFFT_WITH_CUDA
@@ -83,12 +84,12 @@ int main(int argc, char *argv[])
   conf.set_enable_mpi_backends(true);
 #endif
 
-DTFFT_CXX_CALL( dtfft::set_config(conf) );
+  DTFFT_CXX_CALL( set_config(conf) );
 
   const int8_t ndims = 3;
   const int32_t dims[] = {nz, ny, nx};
-  const dtfft::R2RKind kinds[] = {dtfft::R2RKind::DCT_2, dtfft::R2RKind::DCT_3, dtfft::R2RKind::DCT_2};
-  dtfft::PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, dtfft::Precision::SINGLE, dtfft::Effort::PATIENT, executor);
+  const R2RKind kinds[] = {R2RKind::DCT_2, R2RKind::DCT_3, R2RKind::DCT_2};
+  PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, Precision::SINGLE, Effort::PATIENT, executor);
 
   int32_t in_sizes[ndims];
   int32_t out_sizes[ndims];
@@ -103,14 +104,18 @@ DTFFT_CXX_CALL( dtfft::set_config(conf) );
   float *check = new float[alloc_size];
   float *aux = new float[alloc_size];
 
-#ifdef DTFFT_WITH_CUDA
-  float *d_inout, *d_aux;
   size_t el_size;
-
   DTFFT_CXX_CALL(plan.get_element_size(&el_size));
 
-  CUDA_SAFE_CALL( cudaMalloc((void**)&d_inout, alloc_size * sizeof(float)) );
-  CUDA_SAFE_CALL( cudaMalloc((void**)&d_aux, alloc_size * sizeof(float)) );
+  if ( el_size != sizeof(float) ) {
+    DTFFT_THROW_EXCEPTION("el_size != sizeof(float)")
+  }
+
+#ifdef DTFFT_WITH_CUDA
+  float *d_inout, *d_aux;
+
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&d_inout) )
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&d_aux) )
 #endif
 
   for (size_t i = 0; i < in_size; i++)
@@ -121,15 +126,15 @@ DTFFT_CXX_CALL( dtfft::set_config(conf) );
 
   double tf = 0.0 - MPI_Wtime();
 #ifdef DTFFT_WITH_CUDA
-  CUDA_SAFE_CALL( cudaMemcpyAsync(d_inout, inout, alloc_size * sizeof(float), cudaMemcpyHostToDevice, stream) );
-  DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, dtfft::ExecuteType::FORWARD, d_aux) )
+  CUDA_SAFE_CALL( cudaMemcpyAsync(d_inout, inout, alloc_size * el_size, cudaMemcpyHostToDevice, stream) );
+  DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, ExecuteType::FORWARD, d_aux) )
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
 #else
-  DTFFT_CXX_CALL( plan.execute(inout, inout, dtfft::ExecuteType::FORWARD, aux) )
+  DTFFT_CXX_CALL( plan.execute(inout, inout, ExecuteType::FORWARD, aux) )
 #endif
   tf += MPI_Wtime();
 
-  if ( executor != dtfft::Executor::NONE ) {
+  if ( executor != Executor::NONE ) {
 #ifdef DTFFT_WITH_CUDA
 #pragma acc parallel loop deviceptr(d_inout) vector_length(256) async
     for (size_t i = 0; i < out_size; i++)
@@ -152,11 +157,11 @@ DTFFT_CXX_CALL( dtfft::set_config(conf) );
 
   double tb = 0.0 - MPI_Wtime();
 #ifdef DTFFT_WITH_CUDA
-  DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, dtfft::ExecuteType::BACKWARD, d_aux) )
-  CUDA_SAFE_CALL( cudaMemcpyAsync(inout, d_inout, alloc_size * sizeof(float), cudaMemcpyDeviceToHost, stream) );
+  DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, ExecuteType::BACKWARD, d_aux) )
+  CUDA_SAFE_CALL( cudaMemcpyAsync(inout, d_inout, alloc_size * el_size, cudaMemcpyDeviceToHost, stream) );
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
 #else
-  DTFFT_CXX_CALL( plan.execute(inout, inout, dtfft::ExecuteType::BACKWARD, aux) )
+  DTFFT_CXX_CALL( plan.execute(inout, inout, ExecuteType::BACKWARD, aux) )
 #endif
   tb += MPI_Wtime();
 
@@ -169,8 +174,8 @@ DTFFT_CXX_CALL( dtfft::set_config(conf) );
   report_float(&nx, &ny, &nz, local_error, tf, tb);
 
 #ifdef DTFFT_WITH_CUDA
-  CUDA_SAFE_CALL( cudaFree(d_inout) );
-  CUDA_SAFE_CALL( cudaFree(d_aux) );
+  DTFFT_CXX_CALL( plan.mem_free(d_inout) )
+  DTFFT_CXX_CALL( plan.mem_free(d_aux) )
 
   CUDA_SAFE_CALL( cudaStreamDestroy(stream) );
 #endif

@@ -129,6 +129,12 @@ namespace dtfft
   PLAN_IS_CREATED = DTFFT_ERROR_PLAN_IS_CREATED,
 /** Selected `executor` do not support R2R FFTs */
   R2R_FFT_NOT_SUPPORTED = DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED,
+/** Internal call of Plan.mem_alloc failed */
+  ALLOC_FAILED = DTFFT_ERROR_ALLOC_FAILED,
+/** Internal call of Plan.mem_free failed */
+  FREE_FAILED = DTFFT_ERROR_FREE_FAILED,
+/** Invalid `alloc_bytes` provided */
+  INVALID_ALLOC_BYTES = DTFFT_ERROR_INVALID_ALLOC_BYTES,
 /** Invalid stream provided */
   GPU_INVALID_STREAM = DTFFT_ERROR_GPU_INVALID_STREAM,
 /** Invalid GPU backend provided */
@@ -328,6 +334,8 @@ namespace dtfft
   */
   class Pencil {
     private:
+      bool is_created = false;
+
       dtfft_pencil_t pencil;
 
       /** Local starts in natural Fortran order */
@@ -348,7 +356,7 @@ namespace dtfft
 
     public:
     /** Default class constuctor */
-      Pencil() {}
+      Pencil() {is_created = false;}
 
     /** Constructor that is used internally by Plan.get_pencil */
       // explicit Pencil(dtfft_pencil_t& c_pencil) : pencil(c_pencil) {}
@@ -357,11 +365,12 @@ namespace dtfft
         pencil = c_pencil;
         starts = create_vector(pencil.starts, pencil.ndims);
         counts = create_vector(pencil.counts, pencil.ndims);
+        is_created = true;
       }
 
     /** @return Number of dimensions in a pencil */
       uint8_t get_ndims() const {
-        if ( counts.size() == 0 ) {
+        if ( !is_created ) {
           DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
         }
         return pencil.ndims;
@@ -369,7 +378,7 @@ namespace dtfft
 
     /** @return Aligned dimension id starting from 1 */
       uint8_t get_dim() const {
-        if ( counts.size() == 0 ) {
+        if ( !is_created ) {
           DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
         }
         return pencil.dim;
@@ -377,7 +386,7 @@ namespace dtfft
 
     /** @return Local starts in natural Fortran order */
       const std::vector<int32_t>& get_starts() const {
-        if ( starts.size() == 0 ) {
+        if ( !is_created ) {
           DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
         }
         return starts;
@@ -385,7 +394,7 @@ namespace dtfft
 
     /** @return Local counts in natural Fortran order */
       const std::vector<int32_t>& get_counts() const {
-        if ( counts.size() == 0 ) {
+        if ( !is_created ) {
           DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
         }
         return counts;
@@ -393,7 +402,7 @@ namespace dtfft
 
     /** @return Total number of elements */
       size_t get_size() const {
-        if ( counts.size() == 0 ) {
+        if ( !is_created ) {
           DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
         }
         return std::accumulate(counts.begin(),counts.end(),1, std::multiplies<size_t>());
@@ -401,6 +410,9 @@ namespace dtfft
 
     /** @return Underlying C structure */
       const dtfft_pencil_t& c_struct() const {
+        if ( !is_created ) {
+          DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
+        }
         return pencil;
       }
     };
@@ -429,7 +441,7 @@ namespace dtfft
  *
  * In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
  */
-      void set_enable_z_slab(bool enable_z_slab) { config.enable_z_slab = enable_z_slab; }
+      inline void set_enable_z_slab(bool enable_z_slab) { config.enable_z_slab = enable_z_slab; }
 
 #ifdef DTFFT_WITH_CUDA
 /**
@@ -443,7 +455,7 @@ namespace dtfft
  *
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      void set_stream(cudaStream_t stream) {config.stream = stream; }
+      inline void set_stream(cudaStream_t stream) {config.stream = stream; }
 
 /**
  * @brief Sets GPU Backend that will be used by dtFFT when `effort` is Effort::ESTIMATE or Effort::MEASURE.
@@ -451,7 +463,7 @@ namespace dtfft
  * @details Default is GPUBackend::NCCL
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      void set_gpu_backend(GPUBackend gpu_backend) {config.gpu_backend = static_cast<dtfft_gpu_backend_t>(gpu_backend); }
+      inline void set_gpu_backend(GPUBackend gpu_backend) {config.gpu_backend = static_cast<dtfft_gpu_backend_t>(gpu_backend); }
 
 /**
  * @brief Sets whether MPI GPU Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
@@ -471,7 +483,7 @@ namespace dtfft
  * but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      void set_enable_mpi_backends(bool enable_mpi_backends) {config.enable_mpi_backends = enable_mpi_backends; }
+      inline void set_enable_mpi_backends(bool enable_mpi_backends) {config.enable_mpi_backends = enable_mpi_backends; }
 
 /**
  * @brief Sets whether pipelined GPU backends be enabled when `effort` is Effort::PATIENT or not.
@@ -481,14 +493,14 @@ namespace dtfft
  * @note Pipelined backends require additional buffer that user has no control over.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      void set_enable_pipelined_backends(bool enable_pipelined_backends) {config.enable_pipelined_backends = enable_pipelined_backends; }
+      inline void set_enable_pipelined_backends(bool enable_pipelined_backends) {config.enable_pipelined_backends = enable_pipelined_backends; }
 
 /**
  * @brief Sets whether NCCL Backends be enabled when `effort` is Effort::PATIENT or not.
  * @details Default is `true`.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      void set_enable_nccl_backends(bool enable_nccl_backends) {config.enable_nccl_backends = enable_nccl_backends; }
+      inline void set_enable_nccl_backends(bool enable_nccl_backends) {config.enable_nccl_backends = enable_nccl_backends; }
 
 /**
  * @brief Should NCCL Backends be enabled when `effort` is Effort::PATIENT or not.
@@ -497,7 +509,7 @@ namespace dtfft
  * Unused. Reserved for future.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      void set_enable_nvshmem_backends(bool enable_nvshmem_backends) {config.enable_nvshmem_backends = enable_nvshmem_backends; }
+      static void set_enable_nvshmem_backends(bool enable_nvshmem_backends) {config.enable_nvshmem_backends = enable_nvshmem_backends; }
 #endif
 
 /** @return Underlying C structure */

@@ -77,8 +77,8 @@ implicit none
   executor = DTFFT_EXECUTOR_NONE
 #endif
 
-  call dtfft_create_config(conf)
-
+  conf = dtfft_config_t()
+  conf%enable_z_slab = .false.
 #ifdef DTFFT_WITH_CUDA
   conf%gpu_backend = DTFFT_GPU_BACKEND_MPI_P2P
 #endif
@@ -88,7 +88,7 @@ implicit none
   allocate( dtfft_plan_r2r_t :: plan )
   select type (plan)
   class is ( dtfft_plan_r2r_t )
-    call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm, effort=DTFFT_PATIENT, executor=executor, error_code=ierr)
+    call plan%create([nx, ny, nz], [DTFFT_DCT_2, DTFFT_DCT_2, DTFFT_DCT_2], comm=comm, effort=DTFFT_ESTIMATE, executor=executor, error_code=ierr)
   endselect
   DTFFT_CHECK(ierr)
 

@@ -293,6 +293,12 @@ public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend
   !< Invalid API Usage.
   integer(int32),  parameter,  public  :: DTFFT_ERROR_PLAN_IS_CREATED = CONF_DTFFT_ERROR_PLAN_IS_CREATED
   !< Trying to create already created plan
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_ALLOC_FAILED = CONF_DTFFT_ERROR_ALLOC_FAILED
+  !< Internal allocation failed
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_FREE_FAILED = CONF_DTFFT_ERROR_FREE_FAILED
+  !< Internal memory free failed
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_ALLOC_BYTES = CONF_DTFFT_ERROR_INVALID_ALLOC_BYTES
+  !< Invalid `alloc_bytes` provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
   !< Selected `executor` do not support R2R FFTs
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
@@ -457,6 +463,12 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(error_string, source="Invalid API Usage.")
     case ( DTFFT_ERROR_PLAN_IS_CREATED )
       allocate(error_string, source="Trying to create already created plan")
+    case ( DTFFT_ERROR_ALLOC_FAILED )
+      allocate(error_string, source="Allocation failed")
+    case ( DTFFT_ERROR_FREE_FAILED )
+      allocate(error_string, source="Memory free failed")
+    case ( DTFFT_ERROR_INVALID_ALLOC_BYTES )
+      allocate(error_string, source="Invalid `alloc_bytes` provided")
     case ( DTFFT_ERROR_GPU_INVALID_STREAM )
       allocate(error_string, source="Invalid stream provided")
     case ( DTFFT_ERROR_GPU_INVALID_BACKEND )

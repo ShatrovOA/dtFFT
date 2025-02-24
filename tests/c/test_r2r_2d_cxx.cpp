@@ -77,8 +77,12 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), dtfft::ExecuteType::FORWARD) );
   tf += MPI_Wtime();
 
+  Pencil out_pencil;
+  DTFFT_CXX_CALL( plan.get_pencil(2, out_pencil) )
+  size_t out_size = out_pencil.get_size();
+
   if ( executor != Executor::NONE ) {
-    for (size_t i = 0; i < alloc_size; i++) {
+    for (size_t i = 0; i < out_size; i++) {
       out[i] /= (double) (4 * nx * ny);
     }
   }

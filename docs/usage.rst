@@ -4,13 +4,13 @@
 Usage Guide
 ###########
 
-This guide provides a comprehensive overview of using the ``dtFFT`` library to perform parallel data transpositions and optionally 
-Fast Fourier Transforms (FFTs) across host and GPU environments. 
-Designed for high-performance computing, ``dtFFT`` simplifies the process of decomposing multidimensional data, managing memory, 
-and executing transformations by integrating with external FFT libraries or operating in transpose-only mode. 
+This guide provides a comprehensive overview of using the ``dtFFT`` library to perform parallel data transpositions and optionally
+Fast Fourier Transforms (FFTs) across host and GPU environments.
+Designed for high-performance computing, ``dtFFT`` simplifies the process of decomposing multidimensional data, managing memory,
+and executing transformations by integrating with external FFT libraries or operating in transpose-only mode.
 
-Whether targeting CPU clusters with MPI or GPU-accelerated systems with CUDA, this library offers flexible configuration options to 
-optimize performance for specific use cases. The following sections detail key aspects of working with ``dtFFT``, from plan creation to 
+Whether targeting CPU clusters with MPI or GPU-accelerated systems with CUDA, this library offers flexible configuration options to
+optimize performance for specific use cases. The following sections detail key aspects of working with ``dtFFT``, from plan creation to
 execution and resource management, with practical examples in Fortran, C, and C++.
 
 Error Handling and Macros
@@ -18,17 +18,17 @@ Error Handling and Macros
 
 Almost all ``dtFFT`` functions return error codes to indicate whether execution was successful. These codes help users identify and handle issues during plan creation, memory allocation, execution, and finalization. The error handling mechanism differs slightly across language APIs:
 
-- **Fortran API**: Functions include an optional ``error_code`` parameter (type ``integer(int32)``), always positioned as the last argument. 
-  If omitted, errors must be checked through other means, such as program termination or runtime assertions.  
-- **C API**: Functions return a value of type :c:type:`dtfft_error_code_t`, allowing direct inspection of the result.  
-- **C++ API**: Functions return :cpp:type:`dtfft::ErrorCode`, typically used with exception handling or explicit checks.  
+- **Fortran API**: Functions include an optional ``error_code`` parameter (type ``integer(int32)``), always positioned as the last argument.
+  If omitted, errors must be checked through other means, such as program termination or runtime assertions.
+- **C API**: Functions return a value of type :c:type:`dtfft_error_code_t`, allowing direct inspection of the result.
+- **C++ API**: Functions return :cpp:type:`dtfft::ErrorCode`, typically used with exception handling or explicit checks.
 
 To simplify error checking, ``dtFFT`` provides predefined macros that wrap function calls and handle error codes automatically:
 
-- **Fortran**: The ``DTFFT_CHECK`` macro, defined in ``dtfft.f03``, checks the ``error_code`` and halts execution with an informative message 
-  if an error occurs. Include this header with ``#include "dtfft.f03"`` to use it.  
-- **C**: The ``DTFFT_CALL`` macro wraps function calls, checks the returned :c:type:`dtfft_error_code_t`, 
-  and triggers an appropriate response (printing an error message and exiting) if the call fails.  
+- **Fortran**: The ``DTFFT_CHECK`` macro, defined in ``dtfft.f03``, checks the ``error_code`` and halts execution with an informative message
+  if an error occurs. Include this header with ``#include "dtfft.f03"`` to use it.
+- **C**: The ``DTFFT_CALL`` macro wraps function calls, checks the returned :c:type:`dtfft_error_code_t`,
+  and triggers an appropriate response (printing an error message and exiting) if the call fails.
 - **C++**: The ``DTFFT_CXX_CALL`` macro similarly wraps calls, throws C++ exception and displays an error message.
 
 Below is an example demonstrating error handling with these macros:
@@ -449,10 +449,27 @@ Following example creates config object, disables Z-slab, enables MPI Backends a
     // Now we can create a plan
 
 
-Memory allocation
+Memory Allocation
 =================
 
-After plan has been created user might want to know amount of memory that is required to execute plan.
+After a plan is created, users may need to determine the memory required to execute it.
+
+The plan method :f:func:`get_local_sizes` retrieves the number of elements in "real" and "Fourier" spaces and the
+minimum number of elements that must be allocated:
+
+- **in_starts**: Start indices of the local data portion in real space (0-based)
+- **in_counts**: Number of elements in the local data portion in real space
+- **out_starts**: Start indices of the local data portion in Fourier space (0-based)
+- **out_counts**: Number of elements in the local data portion in Fourier space
+- **alloc_size**: Minimum number of elements needed for ``in``, ``out``, or ``aux`` buffers
+
+Arrays ``in_starts``, ``in_counts``, ``out_starts``, and ``out_counts`` must have at least as many elements as the plan's dimensions.
+
+The minimum number of bytes required for each buffer is ``alloc_size * element_size``.
+The ``element_size`` can be obtained by :f:func:`get_element_size` which returns:
+
+- **C2C**: ``2 * sizeof(double)`` (double precision) or ``2 * sizeof(float)`` (single precision)
+- **R2R and R2C**: ``sizeof(double)`` (double precision) or ``sizeof(float)`` (single precision)
 
 .. tabs::
 
@@ -460,52 +477,128 @@ After plan has been created user might want to know amount of memory that is req
 
     integer(int64) :: alloc_size, element_size
 
+    ! Get number of elements
     call plan%get_local_sizes(alloc_size=alloc_size)
 
     ! OR use convenient wrapper
-    alloc_size = plan%get_alloc_size()
+    ! alloc_size = plan%get_alloc_size()
 
-    ! and if needed get element size for this plan
+    ! Optionally get element size in bytes
     element_size = plan%get_element_size()
 
   .. code-tab:: c
 
     size_t alloc_size;
+
+    // Get number of elements
     dtfft_get_local_sizes(plan, NULL, NULL, NULL, NULL, &alloc_size);
 
     // OR use convenient wrapper
-    dtfft_get_alloc_size(plan, &alloc_size);
+    // dtfft_get_alloc_size(plan, &alloc_size);
 
-    // and if needed get element size for this plan
+    // Optionally get element size in bytes
     size_t element_size;
     dtfft_get_element_size(plan, &element_size);
 
   .. code-tab:: c++
 
     size_t alloc_size;
-    DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, nullptr, nullptr, nullptr, &alloc_size) )
+
+    // Get number of elements
+    DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, nullptr, nullptr, nullptr, &alloc_size) );
 
     // OR use wrapper
-    DTFFT_CXX_CALL( plan.get_alloc_size(&alloc_size) )
+    // DTFFT_CXX_CALL( plan.get_alloc_size(&alloc_size) );
 
-    // and if needed get element size for this plan
+    // Optionally get element size in bytes
     size_t element_size;
-    DTFFT_CXX_CALL( plan.get_element_size(&element_size) )
+    DTFFT_CXX_CALL( plan.get_element_size(&element_size) );
 
-Minimum number of bytes required by each buffer passed to dtFFT while executing plan is ``alloc_size * element_size``.
-Note that :f:func:`get_local_sizes` has other parameters that can be obtained from plan:
+For 3D plans, :f:func:`get_local_sizes` does not detail the intermediate Y-direction layout.
+This information, useful for transpose-only plans or when using unsupported FFT libraries, can be retrieved via the ``pencil``
+interface (see `Pencil Decomposition`_ below). Pencil IDs start from 1 in C and Fortran.
 
-- **in_starts** - Starts of local portion of data in ``real`` space (0-based)
-- **in_counts** - Number of elements of local portion of data in ``real`` space
-- **out_starts** - Starts of local portion of data in ``fourier`` space (0-based)
-- **out_counts** - Number of elements of local portion of data in ``fourier`` space
+The ``dtFFT`` library provides overloaded functions to allocate and free memory tailored to the plan:
 
-All of these values are expected to hold at least *number of dimensions in a plan* integer elements.
+- :f:func:`mem_alloc`: Allocates memory (raw pointer or Fortran array)
+- :f:func:`mem_free`: Frees memory allocated by :f:func:`mem_alloc`
 
-While :f:func:`get_local_sizes` might be sufficient to execute plan in 2D case it returns no information about memory layout in 3D case at
-intermediate state, when data is distributed in ``Y`` direction. This information might be useful when user does not need any FFT to be performed
-or want to use FFT library that is unavailable in ``dtFFT``. Such information can obtained by using ``pencil`` interface of the plan.
-Here is an example. Note that pencil ID starts from 1 for both ``C`` and ``Fortran``.
+Host Version
+------------
+
+Allocates memory based on the FFT library: ``fftw_malloc`` for FFTW3, ``mkl_malloc`` for MKL DFTI, or
+C11 ``aligned_alloc`` (16-byte alignment) for transpose-only plans.
+In Fortran, ``mem_alloc`` can return a ``type(c_ptr)`` or directly allocate a pointer array.
+
+GPU Version
+-----------
+
+Allocates memory based on the :f:type:`dtfft_gpu_backend_t`. Uses ``ncclMemAlloc`` for NCCL (if available) or
+``cudaMalloc`` otherwise. Future versions may support NVSHMEM (``nvshmem_malloc``) or HIP.
+In Fortran, ``mem_alloc`` can return a ``type(c_devptr)`` or allocate a device pointer array.
+
+.. tabs::
+
+  .. code-tab:: fortran
+
+    ! Host version
+    use iso_c_binding
+    integer(int64) :: alloc_bytes
+    complex(real64), pointer :: a(:), b(:), aux(:)
+    type(c_ptr) :: a_ptr, b_ptr, aux_ptr
+
+    alloc_bytes = alloc_size * element_size
+
+    ! Raw pointer version
+    call plan%mem_alloc(alloc_bytes, a_ptr, error_code); DTFFT_CHECK(error_code)
+    call plan%mem_alloc(alloc_bytes, b_ptr, error_code); DTFFT_CHECK(error_code)
+    call plan%mem_alloc(alloc_bytes, aux_ptr, error_code); DTFFT_CHECK(error_code)
+    call c_f_pointer(a_ptr, a, [alloc_size])
+    call c_f_pointer(b_ptr, b, [alloc_size])
+    call c_f_pointer(aux_ptr, aux, [alloc_size])
+
+    ! OR array version
+    ! call plan%mem_alloc(alloc_size, a, error_code); DTFFT_CHECK(error_code)
+    ! call plan%mem_alloc(alloc_size, b, error_code); DTFFT_CHECK(error_code)
+    ! call plan%mem_alloc(alloc_size, aux, error_code); DTFFT_CHECK(error_code)
+
+    ! CUDA version is similar, with differences:
+    ! use cudafor
+    ! complex(real64), pointer, device :: a(:), b(:), aux(:)
+    ! type(c_devptr) :: a_ptr, b_ptr, aux_ptr
+
+  .. code-tab:: c
+
+    size_t alloc_bytes = alloc_size * element_size;
+    double *a, *b, *aux;
+
+    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&a) );
+    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&b) );
+    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) );
+
+  .. code-tab:: c++
+
+    #include <complex>
+
+    size_t alloc_bytes = alloc_size * element_size;
+    std::complex<double> *a, *b, *aux;
+
+    DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&a) );
+    DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&b) );
+    DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&aux) );
+
+.. note:: Memory allocated with :f:func:`mem_alloc` must be deallocated with :f:func:`mem_free` **before** the plan is destroyed to avoid memory leaks.
+
+Pencil Decomposition
+--------------------
+
+For detailed layout information in 3D plans (e.g., intermediate states like Y-direction distribution), use
+the :f:func:`get_pencil` method. This returns a ``dtfft_pencil_t`` structure containing:
+
+- **dim**: Aligned dimension ID (1 for X, 2 for Y, 3 for Z)
+- **ndims**: Number of dimensions in the pencil (2 or 3)
+- **starts**: Local start indices in natural Fortran order (0-based, array of 3 elements)
+- **counts**: Local element counts in natural Fortran order (array of 3 elements, only first ``ndims`` elements are defined)
 
 .. tabs::
 
@@ -515,136 +608,40 @@ Here is an example. Note that pencil ID starts from 1 for both ``C`` and ``Fortr
     type(dtfft_pencil_t) :: pencils(3)
 
     do i = 1, 3
-      ! Getting all 3 pencils from ``dtFFT``.
+      ! Get pencil for dimension i
       call plan%get_pencil(i, pencils(i), error_code)
-      ! Checking for errors
       DTFFT_CHECK(error_code)
-    enddo
+      ! Access pencil properties, e.g., pencils(i)%dim, pencils(i)%starts
+    end do
 
   .. code-tab:: c
 
     dtfft_pencil_t pencils[3];
 
-    for ( int8_t i = 0, i < 3; i++ ) {
-      DTFFT_CALL( dtfft_get_pencil(plan, i + 1, &pencils[i]) )
+    for (int8_t i = 0; i < 3; i++) {
+      DTFFT_CALL( dtfft_get_pencil(plan, i + 1, &pencils[i]) );
+      // Access pencil properties, e.g., pencils[i].dim, pencils[i].starts
     }
 
   .. code-tab:: c++
 
     std::vector<dtfft::Pencil> pencils;
 
-    for ( int8_t i = 0; i < 3; i++ ) {
+    for (int8_t i = 0; i < 3; i++) {
       dtfft::Pencil pencil;
-      DTFFT_CXX_CALL( plan.get_pencil(i + 1, pencil) )
+      DTFFT_CXX_CALL( plan.get_pencil(i + 1, pencil) );
       pencils.push_back(pencil);
+      // Access pencil properties, e.g., pencils[i].get_dim(), pencils[i].get_starts()
     }
 
-Once the number of elements and the size in bytes of each element are defined, we can allocate the necessary memory buffers.
-The ``dtFFT`` library provides convenient functions to allocate and free memory:
+In C++, the ``dtfft::Pencil`` class provides additional methods:
 
-- ``mem_alloc`` — for memory allocation;
-- ``mem_free`` — for memory deallocation.
-
-These functions behave differently in the host and GPU library builds.
-
-Host Version
-------------
-
-This version attempts to allocate memory based on the underlying FFT library. If the plan uses ``FFTW3``,
-it will call ``fftw_malloc``. If MKL DFTI is used, then ``mkl_malloc`` will be employed.
-For plans that do not use any FFT (e.g., "Transpose-Only" plans), the standard
-C11 function `aligned_alloc <https://en.cppreference.com/w/c/memory/aligned_alloc>`_ with 16-byte alignment will be called.
-The Fortran version of ``mem_alloc`` returns a ``type(c_ptr)`` that can be used to create a pointer of any type and shape via ``c_f_pointer``.
-
-GPU Version
------------
-
-This version allocates memory based on the underlying :f:type:`GPU Backend <dtfft_gpu_backend_t>`.
-If NCCL is used and ``ncclMemAlloc`` is available, it will be utilized.
-In all other cases, ``cudaMalloc`` will be used. Future versions of the library might include ``nvshmem``-based backends that would
-require a symmetric heap allocated with ``nvshmem_malloc``, which ``dtFFT`` might handle.
-The Fortran version of ``mem_alloc`` returns a ``type(c_devptr)`` from the cudafor module.
-
-.. note::
-
-   It should be noted that memory allocated with ``mem_alloc`` must be deallocated with ``mem_free`` before the plan is destroyed.
-
-
-.. tabs::
-
-  .. code-tab:: fortran
-
-    ! Host version
-    use iso_c_binding
-    integer(int64) :: alloc_bytes
-    complex(real64),  pointer :: a(:), b(:), aux(:)
-    type(c_ptr) :: a_ptr, b_ptr, aux_ptr
-
-    alloc_bytes = alloc_size * element_size
-    a_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
-    b_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
-    aux_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
-
-    call c_f_pointer(a_ptr, a, [alloc_size])
-    call c_f_pointer(b_ptr, b, [alloc_size])
-    call c_f_pointer(aux_ptr, aux, [alloc_size])
-
-    ...
-
-    ! Finished using buffers
-
-    call plan%mem_free(a_ptr, error_code); DTFFT_CHECK(error_code)
-    call plan%mem_free(b_ptr, error_code); DTFFT_CHECK(error_code)
-    call plan%mem_free(aux_ptr, error_code); DTFFT_CHECK(error_code)
-
-    ! GPU version is very similar
-    ! Only differences are
-    use cudafor
-    complex(real64),  pointer, device :: a(:), b(:), aux(:)
-    type(c_devptr) :: a_ptr, b_ptr, aux_ptr
-
-    ! Everything else is same
-
-  .. code-tab:: c
-
-    size_t alloc_bytes = alloc_size * element_size;
-
-    double *a, *b, *aux;
-
-    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&a) )
-    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&b) )
-    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
-
-    ...
-
-    // Finished using buffers
-    // Destroying buffers before plan
-
-    DTFFT_CALL( dtfft_mem_free(plan, a) )
-    DTFFT_CALL( dtfft_mem_free(plan, b) )
-    DTFFT_CALL( dtfft_mem_free(plan, aux) )
-
-  .. code-tab:: c++
-
-    #include <complex>
-
-    size_t alloc_bytes = alloc_size * element_size;
-
-    complex<double> *a, *b, *aux;
-
-    DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&a) )
-    DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&b) )
-    DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&aux) )
-
-    ...
-
-    // Finished using buffers
-    // Destroying buffers before plan
-
-    DTFFT_CXX_CALL( plan.mem_free(a) )
-    DTFFT_CXX_CALL( plan.mem_free(b) )
-    DTFFT_CXX_CALL( plan.mem_free(aux) )
-
+- ``get_ndims()``: Returns the number of dimensions
+- ``get_dim()``: Returns the aligned dimension ID
+- ``get_starts()``: Returns the start indices as a ``std::vector<int32_t>``
+- ``get_counts()``: Returns the element counts as a ``std::vector<int32_t>``
+- ``get_size()``: Returns the total number of elements (product of counts)
+- ``c_struct()``: Returns the underlying C structure (``dtfft_pencil_t``)
 
 Plan properties
 =====================================
@@ -842,38 +839,48 @@ The key parameter is ``execute_type``, with two options:
 For 3D plans, the method operates as follows:
 
 **Forward Execution** (``DTFFT_EXECUTE_FORWARD``):
-  - If ``Transpose-Only``:
-      - Transpose from X to Y
-      - Transpose from Y to Z
-  - If ``Transpose-Only`` with Z-slab and distinct ``in`` and ``out``:
-      - Transpose from X to Z
-  - If using FFT:
-      - Forward FFT in X direction
-      - Transpose from X to Y
-      - Forward FFT in Y direction
-      - Transpose from Y to Z
-      - Forward FFT in Z direction
-  - If using FFT with Z-slab:
-      - Forward 2D FFT in X-Y directions
-      - Transpose from X to Z
-      - Forward FFT in Z direction
+
+- If ``Transpose-Only``:
+
+  - Transpose from X to Y
+  - Transpose from Y to Z
+- If ``Transpose-Only`` with Z-slab and distinct ``in`` and ``out``:
+
+  - Transpose from X to Z
+- If using FFT:
+
+  - Forward FFT in X direction
+  - Transpose from X to Y
+  - Forward FFT in Y direction
+  - Transpose from Y to Z
+  - Forward FFT in Z direction
+- If using FFT with Z-slab:
+
+  - Forward 2D FFT in X-Y directions
+  - Transpose from X to Z
+  - Forward FFT in Z direction
 
 **Backward Execution** (``DTFFT_EXECUTE_BACKWARD``):
-  - If ``Transpose-Only``:
-      - Transpose from Z to Y
-      - Transpose from Y to X
-  - If ``Transpose-Only`` with Z-slab and distinct ``in`` and ``out``:
-      - Transpose from Z to X
-  - If using FFT:
-      - Backward FFT in Z direction
-      - Transpose from Z to Y
-      - Backward FFT in Y direction
-      - Transpose from Y to X
-      - Backward FFT in X direction
-  - If using FFT with Z-slab:
-      - Backward FFT in Z direction
-      - Transpose from Z to X
-      - Backward 2D FFT in X-Y directions
+
+- If ``Transpose-Only``:
+
+  - Transpose from Z to Y
+  - Transpose from Y to X
+- If ``Transpose-Only`` with Z-slab and distinct ``in`` and ``out``:
+
+  - Transpose from Z to X
+- If using FFT:
+
+  - Backward FFT in Z direction
+  - Transpose from Z to Y
+  - Backward FFT in Y direction
+  - Transpose from Y to X
+  - Backward FFT in X direction
+- If using FFT with Z-slab:
+
+  - Backward FFT in Z direction
+  - Transpose from Z to X
+  - Backward 2D FFT in X-Y directions
 
 .. note::
    For ``Transpose-Only`` plans with a Z-slab and identical ``in`` and ``out`` pointers, execution uses a
@@ -999,14 +1006,11 @@ creating a plan, allocating memory, executing forward and backward transformatio
     implicit none
       type(dtfft_plan_c2c_t) :: plan
       type(dtfft_config_t) :: config
-
       integer(int32) :: dims(3) = [64, 64, 64]  ! Example dimensions
       integer(int32) :: error_code
-
       integer(int64) :: alloc_size, element_size, alloc_bytes
-
       complex(real64), pointer :: a(:), b(:), aux(:)
-      type(c_ptr) :: a_ptr, b_ptr, aux_ptr
+
 
       call MPI_Init(error_code)
 
@@ -1026,19 +1030,11 @@ creating a plan, allocating memory, executing forward and backward transformatio
 
       ! Obtain allocation sizes
       alloc_size = plan%get_alloc_size(error_code); DTFFT_CHECK(error_code)
-      element_size = plan%get_element_size(error_code); DTFFT_CHECK(error_code)
-
-      alloc_bytes = alloc_size * element_size
 
       ! Allocate memory
-      a_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
-      b_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
-      aux_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
-
-      ! Set up pointers
-      call c_f_pointer(a_ptr, a, [alloc_size])
-      call c_f_pointer(b_ptr, b, [alloc_size])
-      call c_f_pointer(aux_ptr, aux, [alloc_size])
+      call plan%mem_alloc(alloc_size, a, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_alloc(alloc_size, b, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_alloc(alloc_size, aux, error_code); DTFFT_CHECK(error_code)
 
       ! Forward execution
       call plan%execute(a, b, DTFFT_EXECUTE_FORWARD, aux, error_code)
@@ -1052,9 +1048,9 @@ creating a plan, allocating memory, executing forward and backward transformatio
       DTFFT_CHECK(error_code)
 
       ! Free memory
-      call plan%mem_free(a_ptr, error_code); DTFFT_CHECK(error_code)
-      call plan%mem_free(b_ptr, error_code); DTFFT_CHECK(error_code)
-      call plan%mem_free(aux_ptr, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_free(a, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_free(b, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_free(aux, error_code); DTFFT_CHECK(error_code)
 
       ! Destroy the plan
       call plan%destroy(error_code)

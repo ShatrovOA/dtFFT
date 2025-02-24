@@ -229,7 +229,7 @@ contains
 
   subroutine mem_free(ptr)
   !! Frees FFTW3 aligned memory
-    type(c_ptr),               intent(inout) :: ptr
+    type(c_ptr),               intent(in)   :: ptr
 
     call fftw_free(ptr)
   end subroutine mem_free

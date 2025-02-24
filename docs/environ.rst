@@ -15,6 +15,7 @@ Purpose
 -------
 
 Logging enables monitoring of key operations, including:
+
 - **Z-Slab Usage**: Indicates whether the plan utilizes Z-slab optimization.
 - **Selected Datatype IDs**: Reports the :ref:`datatype IDs<datatype_selection>` or GPU backend chosen during autotuning when ``effort`` is :f:var:`DTFFT_PATIENT`.
 - **Execution Times During Autotune**: Logs timing data for autotuning stages.
@@ -72,6 +73,7 @@ Purpose
 -------
 
 MPI derived datatypes define the memory layout for data exchanged between processes during transposition. Two construction methods are supported:
+
 - **Method 1** (``1``): Contiguous send datatype with sparse receive datatype.
 - **Method 2** (``2``): Sparse send datatype with contiguous receive datatype (default).
 

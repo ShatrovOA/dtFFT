@@ -4,23 +4,25 @@
 Building the Library
 ####################
 
-This page outlines the process of building the ``dtFFT`` library using CMake, including compiler requirements, configuration options, and integration instructions for downstream projects. The library supports both host and GPU environments, leveraging modern Fortran and optional dependencies like CUDA, FFTW3, MKL, cuFFT, and VkFFT.
+This page outlines the process of building the ``dtFFT`` library using CMake, including compiler requirements, configuration options, and integration instructions for downstream projects. 
+The library supports both host and GPU environments, leveraging modern Fortran and optional dependencies like CUDA, FFTW3, MKL, cuFFT, and VkFFT.
 
 Prerequisites
 =============
 
-To build ``dtFFT``, a modern Fortran compiler (2008 standard or later) is required. The library has been successfully tested with:
+Since ``dtFFT`` is primarely written in Fortran, a modern Fortran compiler (2008 standard or later) is required. The library has been successfully tested with:
 
 - **GNU Fortran (gfortran)**: Version 12 and above
-- **Intel Fortran (ifort)**: Version 18 and above
+- **Intel Fortran (ifort / ifx)**: Version 18 and above
 - **NVHPC Fortran (nvfortran)**: Version 24.5 and above
 
-Currently, ``dtFFT`` can only be built using CMake (version 3.12 or higher recommended). Ensure CMake is installed and available in your PATH before proceeding.
+Currently, ``dtFFT`` can only be built using CMake (version 3.20 or higher recommended). Ensure CMake is installed and available in your PATH before proceeding.
 
 Configuration Options
 =====================
 
-The build process is controlled via CMake options, listed below. These options enable or disable features such as GPU support, FFT library integration, and additional utilities. Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
+The build process is controlled via CMake options, listed below. These options enable or disable features such as GPU support, FFT library integration, and additional utilities. 
+Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
 
 .. list-table:: CMake Configuration Options
    :widths: 20 20 15 45
@@ -77,7 +79,8 @@ The build process is controlled via CMake options, listed below. These options e
    * - ``DTFFT_ENABLE_PERSISTENT_COMM``
      - ``ON`` / ``OFF``
      - ``OFF``
-     - Enables persistent MPI communications for multiple plan executions. Communications are initialized on the first call to :f:func:`execute` or :f:func:`transpose`, with pointers stored internally by MPI. Users must ensure these pointers remain valid and are not freed prematurely.
+     - Enables persistent MPI communications for multiple plan executions. Communications are initialized on the first call to :f:func:`execute` or :f:func:`transpose`, with pointers stored internally by MPI. 
+       Users must ensure these pointers remain valid and are not freed prematurely.
    * - ``DTFFT_WITH_PROFILER``
      - ``ON`` / ``OFF``
      - ``OFF``

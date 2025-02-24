@@ -1,8 +1,8 @@
 .. _c_link:
 
-#####
-C API
-#####
+###############
+C API Reference
+###############
 
 This page describes all types, functions and macros available in ``dtFFT`` C API. 
 In order to use them user have to ``#include <dtfft.h>``.

@@ -69,6 +69,27 @@ implicit none
       type(ncclResult)                      :: ncclResult_t   !< Completion status
     end function ncclGetUniqueId
 
+    function ncclMemAlloc(ptr, alloc_bytes)                                         &
+      result(ncclResult_t)                                                          &
+      bind(C, name="ncclMemAlloc")
+    import
+    !! Allocate a GPU buffer with size.
+    !! Allocated buffer head address will be returned by ptr, and the actual allocated size can be larger 
+    !! than requested because of the buffer granularity requirements from all types of NCCL optimizations.
+      type(c_devptr),     intent(out)       :: ptr            !< Buffer address
+      integer(c_size_t),  intent(in), value :: alloc_bytes    !< Number of bytes to allocate
+      type(ncclResult)                      :: ncclResult_t   !< Completion status
+    end function ncclMemAlloc
+
+    function ncclMemFree(ptr)                                                       &
+      result(ncclResult_t)                                                          &
+      bind(C, name="ncclMemFree")
+    import
+    !! Free memory allocated by ncclMemAlloc().
+      type(c_devptr),     intent(in), value :: ptr            !< Buffer address
+      type(ncclResult)                      :: ncclResult_t   !< Completion status
+    end function ncclMemFree
+
     function ncclCommInitRank(comm, nranks, uniqueId, rank)                         &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclCommInitRank")

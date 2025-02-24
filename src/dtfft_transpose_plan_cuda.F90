@@ -21,7 +21,7 @@ module dtfft_transpose_plan_cuda
 use iso_fortran_env
 use iso_c_binding
 use cudafor
-use dtfft_abstract_transpose_plan,        only: abstract_transpose_plan, create_cart_comm
+use dtfft_abstract_transpose_plan,        only: abstract_transpose_plan, create_cart_comm, alloc_mem
 use dtfft_abstract_backend,               only: backend_helper
 use dtfft_nvrtc_kernel,                   only: clean_unused_cache
 use dtfft_parameters
@@ -40,7 +40,6 @@ public :: transpose_plan_cuda
 
   type, extends(abstract_transpose_plan) :: transpose_plan_cuda
   private
-    type(dtfft_gpu_backend_t)                 :: gpu_backend
     integer(cuda_stream_kind)                 :: stream
     type(c_devptr)                            :: aux
     logical                                   :: is_aux_alloc
@@ -51,25 +50,9 @@ public :: transpose_plan_cuda
     procedure :: create_private => create_cuda
     procedure :: execute_private => execute_cuda
     procedure :: destroy => destroy_cuda
-    procedure :: get_gpu_backend
-    procedure :: mem_alloc
   end type transpose_plan_cuda
 
 contains
-
-  type(dtfft_gpu_backend_t) function get_gpu_backend(self)
-  class(transpose_plan_cuda), intent(in) :: self         !< Transposition class
-    get_gpu_backend = self%gpu_backend
-  end function get_gpu_backend
-
-  subroutine mem_alloc(self, alloc_bytes, ptr)
-  !! Allocates memory based on selected backend
-    class(transpose_plan_cuda),     intent(in)  :: self            !< Transposition class
-    integer(int64),                 intent(in)  :: alloc_bytes
-    type(c_devptr),                 intent(out) :: ptr
-
-    call self%generic_mem_alloc(alloc_bytes, ptr)
-  end subroutine mem_alloc
 
   integer(int32) function create_cuda(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
     class(transpose_plan_cuda),     intent(inout) :: self                 !< GPU transpose plan
@@ -561,7 +544,7 @@ contains
     real(real32), DEVICE_PTR    pointer :: out(:)
 
     ! Development workaround for linter
-#ifndef __GFORTRAN__
+#if defined(DTFFT_WITH_CUDA) && !defined(__GFORTRAN__)
     call c_f_pointer(in, out, [size])
 #endif
   end function convert_pointer
