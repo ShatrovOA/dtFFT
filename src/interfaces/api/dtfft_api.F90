@@ -320,7 +320,7 @@ contains
 
     CHECK_PLAN_CREATED(plan_ptr)
     call c_f_pointer(plan_ptr, plan)
-    call plan%p%mem_alloc(alloc_bytes, ptr, error_code)
+    ptr = plan%p%mem_alloc(alloc_bytes, error_code)
   end function dtfft_mem_alloc_c
 
   function dtfft_mem_free_c(plan_ptr, ptr)                                                                          &

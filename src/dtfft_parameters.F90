@@ -391,9 +391,9 @@ public :: dtfft_platform_t
     integer(c_int32_t) :: val
   end type dtfft_platform_t
 
-  type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HOST = dtfft_platform_t(1)
+  type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HOST = dtfft_platform_t(CONF_DTFFT_PLATFORM_HOST)
   !< Host
-  type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_CUDA = dtfft_platform_t(2)
+  type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_CUDA = dtfft_platform_t(CONF_DTFFT_PLATFORM_CUDA)
   !< CUDA
   type(dtfft_platform_t),         parameter :: VALID_PLATFORMS(*) = [DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA]
 

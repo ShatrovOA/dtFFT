@@ -154,14 +154,15 @@ int main(int argc, char *argv[])
   report_double(&nx, &ny, &nz, local_error, tf, tb);
 
   // Deallocate buffers
-  free(in);
-  free(out);
   free(check);
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaFree(d_in) )
   CUDA_SAFE_CALL( cudaFree(d_out) )
-  DTFFT_CALL( dtfft_mem_free(plan, aux) )
+#else
+  DTFFT_CALL( dtfft_mem_free(plan, in) )
+  DTFFT_CALL( dtfft_mem_free(plan, out) )
 #endif
+  DTFFT_CALL( dtfft_mem_free(plan, aux) )
 
   // Destroy plan
   DTFFT_CALL( dtfft_destroy(&plan) )

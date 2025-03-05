@@ -518,24 +518,22 @@ For 3D plans, :f:func:`get_local_sizes` does not detail the intermediate Y-direc
 This information, useful for transpose-only plans or when using unsupported FFT libraries, can be retrieved via the ``pencil``
 interface (see `Pencil Decomposition`_ below). Pencil IDs start from 1 in C and Fortran.
 
-The ``dtFFT`` library provides overloaded functions to allocate and free memory tailored to the plan:
+The ``dtFFT`` library provides functions to allocate and free memory tailored to the plan:
 
-- :f:func:`mem_alloc`: Allocates memory (raw pointer or Fortran array)
-- :f:func:`mem_free`: Frees memory allocated by :f:func:`mem_alloc`
+- :f:func:`mem_alloc`: Allocates memory.
+- :f:func:`mem_free`: Frees memory allocated by :f:func:`mem_alloc`.
 
 Host Version
 ------------
 
 Allocates memory based on the FFT library: ``fftw_malloc`` for FFTW3, ``mkl_malloc`` for MKL DFTI, or
 C11 ``aligned_alloc`` (16-byte alignment) for transpose-only plans.
-In Fortran, ``mem_alloc`` can return a ``type(c_ptr)`` or directly allocate a pointer array.
 
 GPU Version
 -----------
 
-Allocates memory based on the :f:type:`dtfft_gpu_backend_t`. Uses ``ncclMemAlloc`` for NCCL (if available) or
-``cudaMalloc`` otherwise. Future versions may support NVSHMEM (``nvshmem_malloc``) or HIP.
-In Fortran, ``mem_alloc`` can return a ``type(c_devptr)`` or allocate a device pointer array.
+Allocates memory based on the :f:type:`dtfft_gpu_backend_t`. Uses ``ncclMemAlloc`` for NCCL (if available), ``nvshmem_malloc`` for NVSHMEM-based
+backends or ``cudaMalloc`` otherwise. Future versions may support HIP-based allocations.
 
 .. tabs::
 
@@ -549,23 +547,15 @@ In Fortran, ``mem_alloc`` can return a ``type(c_devptr)`` or allocate a device p
 
     alloc_bytes = alloc_size * element_size
 
-    ! Raw pointer version
-    call plan%mem_alloc(alloc_bytes, a_ptr, error_code); DTFFT_CHECK(error_code)
-    call plan%mem_alloc(alloc_bytes, b_ptr, error_code); DTFFT_CHECK(error_code)
-    call plan%mem_alloc(alloc_bytes, aux_ptr, error_code); DTFFT_CHECK(error_code)
+    ! Allocates memory
+    a_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
+    b_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
+    aux_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
+
+    ! Convert pointer to Fortran array
     call c_f_pointer(a_ptr, a, [alloc_size])
     call c_f_pointer(b_ptr, b, [alloc_size])
     call c_f_pointer(aux_ptr, aux, [alloc_size])
-
-    ! OR array version
-    ! call plan%mem_alloc(alloc_size, a, error_code); DTFFT_CHECK(error_code)
-    ! call plan%mem_alloc(alloc_size, b, error_code); DTFFT_CHECK(error_code)
-    ! call plan%mem_alloc(alloc_size, aux, error_code); DTFFT_CHECK(error_code)
-
-    ! CUDA version is similar, with differences:
-    ! use cudafor
-    ! complex(real64), pointer, device :: a(:), b(:), aux(:)
-    ! type(c_devptr) :: a_ptr, b_ptr, aux_ptr
 
   .. code-tab:: c
 
@@ -751,7 +741,7 @@ Below is an example of transposing data from X to Y and back:
 
   .. code-tab:: fortran
 
-    ! Assuming a 3D plan is created and buffers `a` and `b` are allocated with `mem_alloc`
+    ! Assuming a 3D plan is created and buffers `a` and `b` are allocated.
     call plan%transpose(a, b, DTFFT_TRANSPOSE_X_TO_Y, error_code)
     DTFFT_CHECK(error_code)  ! Checks for errors, e.g., DTFFT_ERROR_INPLACE_TRANSPOSE
 
@@ -764,7 +754,7 @@ Below is an example of transposing data from X to Y and back:
 
   .. code-tab:: c
 
-    // Assuming a 3D plan is created and buffers `a` and `b` are allocated with `mem_alloc`
+    // Assuming a 3D plan is created and buffers `a` and `b` are allocated.
     DTFFT_CALL( dtfft_transpose(plan, a, b, DTFFT_TRANSPOSE_X_TO_Y) )
 
     // Process Y-aligned data in buffer `b`
@@ -775,7 +765,7 @@ Below is an example of transposing data from X to Y and back:
 
   .. code-tab:: c++
 
-    // Assuming a 3D plan is created and buffers `a` and `b` are allocated with `mem_alloc`
+    // Assuming a 3D plan is created and buffers `a` and `b` are allocated.
     DTFFT_CXX_CALL( plan.transpose(a, b, dtfft::TransposeType::X_TO_Y) )
 
     // Process Y-aligned data in buffer `b`
@@ -1010,6 +1000,7 @@ creating a plan, allocating memory, executing forward and backward transformatio
       integer(int32) :: error_code
       integer(int64) :: alloc_size, element_size, alloc_bytes
       complex(real64), pointer :: a(:), b(:), aux(:)
+      type(c_ptr) :: a_ptr, b_ptr, aux_ptr
 
 
       call MPI_Init(error_code)
@@ -1030,11 +1021,18 @@ creating a plan, allocating memory, executing forward and backward transformatio
 
       ! Obtain allocation sizes
       alloc_size = plan%get_alloc_size(error_code); DTFFT_CHECK(error_code)
+      element_size = plan%get_element_size(); DTFFT_CHECK(error_code)
 
+      alloc_bytes = alloc_size * element_size
       ! Allocate memory
-      call plan%mem_alloc(alloc_size, a, error_code); DTFFT_CHECK(error_code)
-      call plan%mem_alloc(alloc_size, b, error_code); DTFFT_CHECK(error_code)
-      call plan%mem_alloc(alloc_size, aux, error_code); DTFFT_CHECK(error_code)
+      a_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
+      b_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
+      aux_ptr = plan%mem_alloc(alloc_bytes, error_code); DTFFT_CHECK(error_code)
+
+      ! Convert to Fortran arrays
+      call c_f_pointer(a_ptr, a, [alloc_size])
+      call c_f_pointer(b_ptr, b, [alloc_size])
+      call c_f_pointer(aux_ptr, aux, [alloc_size])
 
       ! Forward execution
       call plan%execute(a, b, DTFFT_EXECUTE_FORWARD, aux, error_code)
@@ -1048,9 +1046,9 @@ creating a plan, allocating memory, executing forward and backward transformatio
       DTFFT_CHECK(error_code)
 
       ! Free memory
-      call plan%mem_free(a, error_code); DTFFT_CHECK(error_code)
-      call plan%mem_free(b, error_code); DTFFT_CHECK(error_code)
-      call plan%mem_free(aux, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_free(a_ptr, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_free(b_ptr, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_free(aux_ptr, error_code); DTFFT_CHECK(error_code)
 
       ! Destroy the plan
       call plan%destroy(error_code)

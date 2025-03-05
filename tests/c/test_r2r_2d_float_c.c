@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
   for (i = 0; i < in_counts[1]; i++) { // x direction
     for (j = 0; j < in_counts[0]; j++) { // y direction
-        in[i * in_counts[0] + j] = check[i * in_counts[0] + j] = 15.0;
+        in[i * in_counts[0] + j] = check[i * in_counts[0] + j] = (float)(i * in_counts[0] + j) / (float)(alloc_size);
     }
   }
 

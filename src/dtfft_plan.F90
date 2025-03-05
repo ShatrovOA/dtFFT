@@ -155,22 +155,13 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: get_pencil         !< Returns pencil decomposition
     procedure,  pass(self), non_overridable, public :: get_element_size   !< Returns number of bytes required to store single element.
     procedure,  pass(self), non_overridable, public :: report             !< Print plan details
-    generic,                                 public :: mem_alloc =>     & !< Allocates memory specific for this plan
-                                                       mem_alloc_ptr,   &
-                                                       mem_alloc_r4,    &
-                                                       mem_alloc_r8,    &
-                                                       mem_alloc_c4,    &
-                                                       mem_alloc_c8
-    generic,                                 public :: mem_free  =>     & !< Frees previously allocated memory specific for this plan
-                                                       mem_free_ptr,    &
-                                                       mem_free_r4,     &
-                                                       mem_free_r8,     &
-                                                       mem_free_c4,     &
-                                                       mem_free_c8
+    procedure,  pass(self), non_overridable, public :: mem_alloc          !< Allocates memory specific for this plan
+    procedure,  pass(self), non_overridable, public :: mem_free           !< Frees previously allocated memory specific for this plan
 #ifdef DTFFT_WITH_CUDA
     procedure,  pass(self), non_overridable, public :: get_gpu_backend    !< Returns selected GPU backend during autotuning
-    ! procedure,  pass(self), non_overridable, public :: get_stream         !< Returns CUDA stream associated with plan
-    generic, public :: get_stream => get_stream_ptr, get_stream_int64
+    generic,                                 public :: get_stream       & !< Returns CUDA stream associated with plan
+                                                    => get_stream_ptr,  &
+                                                       get_stream_int64
     procedure,  pass(self), non_overridable         :: get_stream_ptr
     procedure,  pass(self), non_overridable         :: get_stream_int64
 #endif
@@ -180,16 +171,6 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable         :: alloc_fft_plans    !< Allocates `fft_executor` classes
     procedure,  pass(self), non_overridable         :: check_aux          !< Checks if aux buffer was passed 
                                                                           !< and if not will allocate one internally
-    procedure,  pass(self), non_overridable         :: mem_alloc_ptr
-    procedure,  pass(self), non_overridable         :: mem_alloc_r4
-    procedure,  pass(self), non_overridable         :: mem_alloc_r8
-    procedure,  pass(self), non_overridable         :: mem_alloc_c4
-    procedure,  pass(self), non_overridable         :: mem_alloc_c8
-    procedure,  pass(self), non_overridable         :: mem_free_ptr
-    procedure,  pass(self), non_overridable         :: mem_free_r4
-    procedure,  pass(self), non_overridable         :: mem_free_r8
-    procedure,  pass(self), non_overridable         :: mem_free_c4
-    procedure,  pass(self), non_overridable         :: mem_free_c8
   end type dtfft_plan_t
 
   type, abstract, extends(dtfft_plan_t) :: dtfft_core_c2c
@@ -557,14 +538,16 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_element_size
 
-  subroutine mem_alloc_ptr(self, alloc_bytes, ptr, error_code)
+  function mem_alloc(self, alloc_bytes, error_code) result(ptr)
+  !! Allocates memory specific for this plan
     class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
     integer(int64),             intent(in)  :: alloc_bytes            !< Number of bytes to allocate
-    type(c_ptr),                intent(out) :: ptr
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
+    type(c_ptr)                             :: ptr                    !< Allocated pointer
     integer(int32)                          :: ierr                   !< Error code
 
     ierr = DTFFT_SUCCESS
+    ptr = c_null_ptr
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
     if ( alloc_bytes < int(FLOAT_STORAGE_SIZE, int64) ) ierr = DTFFT_ERROR_INVALID_ALLOC_BYTES
@@ -584,70 +567,11 @@ contains
     endif
     CHECK_ERROR_AND_RETURN
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine mem_alloc_ptr
+  end function mem_alloc
 
-  subroutine mem_alloc_r4(self, alloc_size, buf, error_code)
-    class(dtfft_plan_t),        intent(in)  :: self
-    integer(int64),             intent(in)  :: alloc_size
-    real(real32),  pointer,  contiguous,  intent(out) :: buf(:)
-    integer(int32), optional,   intent(out)   :: error_code
-    integer(int32)                            :: ierr
-    integer(int64) :: alloc_bytes
-    type(c_ptr) :: ptr
-    alloc_bytes = alloc_size * int(FLOAT_STORAGE_SIZE, int64)
-    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr)
-    CHECK_ERROR_AND_RETURN_NO_MSG
-    call c_f_pointer(ptr, buf, [alloc_size])
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine mem_alloc_r4
-
-  subroutine mem_alloc_r8(self, alloc_size, buf, error_code)
-    class(dtfft_plan_t),        intent(in)  :: self
-    integer(int64),             intent(in)  :: alloc_size
-    real(real64),  pointer,  contiguous,  intent(out) :: buf(:)
-    integer(int32), optional,   intent(out)   :: error_code
-    integer(int32)                            :: ierr
-    integer(int64) :: alloc_bytes
-    type(c_ptr) :: ptr
-    alloc_bytes = alloc_size * int(DOUBLE_STORAGE_SIZE, int64)
-    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr)
-    CHECK_ERROR_AND_RETURN_NO_MSG
-    call c_f_pointer(ptr, buf, [alloc_size])
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine mem_alloc_r8
-
-  subroutine mem_alloc_c4(self, alloc_size, buf, error_code)
-    class(dtfft_plan_t),        intent(in)  :: self
-    integer(int64),             intent(in)  :: alloc_size
-    complex(real32),  pointer,  contiguous,  intent(out) :: buf(:)
-    integer(int32), optional,   intent(out)   :: error_code
-    integer(int32)                            :: ierr
-    integer(int64) :: alloc_bytes
-    type(c_ptr) :: ptr
-    alloc_bytes = alloc_size * int(COMPLEX_STORAGE_SIZE, int64)
-    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr)
-    CHECK_ERROR_AND_RETURN_NO_MSG
-    call c_f_pointer(ptr, buf, [alloc_size])
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine mem_alloc_c4
-
-  subroutine mem_alloc_c8(self, alloc_size, buf, error_code)
-    class(dtfft_plan_t),        intent(in)  :: self
-    integer(int64),             intent(in)  :: alloc_size
-    complex(real64),  pointer,  contiguous,  intent(out) :: buf(:)
-    integer(int32), optional,   intent(out)   :: error_code
-    integer(int32)                            :: ierr
-    integer(int64) :: alloc_bytes
-    type(c_ptr) :: ptr
-    alloc_bytes = alloc_size * int(DOUBLE_COMPLEX_STORAGE_SIZE, int64)
-    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr)
-    CHECK_ERROR_AND_RETURN_NO_MSG
-    call c_f_pointer(ptr, buf, [alloc_size])
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine mem_alloc_c8
-
-  subroutine mem_free_ptr(self, ptr, error_code)
-    class(dtfft_plan_t),        intent(in)    :: self                 !< Abstract plan
+  subroutine mem_free(self, ptr, error_code)
+  !! Frees previously allocated memory specific for this plan
+    class(dtfft_plan_t),        intent(in)    :: self                   !< Abstract plan
     type(c_ptr),                intent(in)    :: ptr
     integer(int32), optional,   intent(out)   :: error_code             !< Optional error code returned to user
     integer(int32)                            :: ierr                   !< Error code
@@ -667,35 +591,7 @@ contains
 #endif
     CHECK_ERROR_AND_RETURN
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine mem_free_ptr
-
-  subroutine mem_free_r4(self, buf, error_code)
-    class(dtfft_plan_t),        intent(in)    :: self
-    real(real32),      target,  intent(in)    :: buf(..)
-    integer(int32), optional,   intent(out)   :: error_code
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_r4
-
-  subroutine mem_free_r8(self, buf, error_code)
-    class(dtfft_plan_t),        intent(in)    :: self
-    real(real64),      target,  intent(in)    :: buf(..)
-    integer(int32), optional,   intent(out)   :: error_code
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_r8
-
-  subroutine mem_free_c4(self, buf, error_code)
-    class(dtfft_plan_t),        intent(in)    :: self
-    complex(real32),   target,  intent(in)    :: buf(..)
-    integer(int32), optional,   intent(out)   :: error_code
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_c4
-
-  subroutine mem_free_c8(self, buf, error_code)
-    class(dtfft_plan_t),        intent(in)    :: self
-    complex(real64),   target,  intent(in)    :: buf(..)
-    integer(int32), optional,   intent(out)   :: error_code
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_c8
+  end subroutine mem_free
 
   subroutine report(self, error_code)
   !! Prints plan-related information to stdout
@@ -1120,7 +1016,7 @@ contains
     alloc_size = self%get_alloc_size() * self%get_element_size()
     write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size, " bytes"
     WRITE_DEBUG(debug_msg)
-    call self%mem_alloc(alloc_size, self%aux_ptr)
+    self%aux_ptr = self%mem_alloc(alloc_size)
     call c_f_pointer(self%aux_ptr, self%aux, [ alloc_size /  int(FLOAT_STORAGE_SIZE, int64) ])
     self%is_aux_alloc = .true.
   end subroutine check_aux

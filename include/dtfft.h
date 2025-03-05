@@ -533,9 +533,9 @@ typedef void *dtfft_stream_t;
 /** Enum that specifies the execution platform, such as Host, CUDA, or HIP */
 typedef enum {
 /** Host */
-  DTFFT_PLATFORM_HOST = 1,
+  DTFFT_PLATFORM_HOST = CONF_DTFFT_PLATFORM_HOST,
 /** CUDA */
-  DTFFT_PLATFORM_CUDA = 2
+  DTFFT_PLATFORM_CUDA = CONF_DTFFT_PLATFORM_CUDA
 } dtfft_platform_t;
 
 

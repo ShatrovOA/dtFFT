@@ -160,9 +160,7 @@ jobs:
       CXX: "nvc++"
       FC: "nvfortran"
       DTFFT_ENABLE_LOG: "1"
-      LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/math_libs/12.6/lib64:
-        /opt/nvidia/hpc_sdk/Linux_x86_64/24.11/comm_libs/12.6/nccl/lib:
-        /opt/nvidia/hpc_sdk/Linux_x86_64/24.11/comm_libs/12.6/nvshmem/lib:$LD_LIBRARY_PATH"
+      LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/math_libs/12.6/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/comm_libs/12.6/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/24.11/comm_libs/12.6/nvshmem/lib:$LD_LIBRARY_PATH"
     steps:
       - name: Get Requirements
         run: |
@@ -198,7 +196,7 @@ jobs:
           cmake --build build
 
   ubuntu_openmpi_cuda:
-    name: Ubuntu OpenMPI with CUDA
+    name: Ubuntu OpenMPI with CUDA and NCCL
     runs-on: ubuntu-24.04
     env:
       CC: "gcc-12"
@@ -206,7 +204,7 @@ jobs:
       FC: "gfortran-12"
       DTFFT_ENABLE_LOG: "1"
       DTFFT_PLATFORM: "host"
-      LD_LIBRARY_PATH: "/usr/local/cuda/targets/x86_64-linux/lib:$LD_LIBRARY_PATH"
+      LD_LIBRARY_PATH: "/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
     steps:
       - name: Get Requirements
         run: |
@@ -221,6 +219,7 @@ jobs:
           sudo apt-get install libopenmpi-dev openmpi-bin
           sudo apt-get install libfftw3-dev
           sudo apt-get -y install cuda-toolkit-12-8
+          sudo apt install libnccl2=2.25.1-1+cuda12.8 libnccl-dev=2.25.1-1+cuda12.8
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
@@ -234,7 +233,8 @@ jobs:
             -DDTFFT_BUILD_SHARED=on \
             -DDTFFT_BUILD_C_CXX_API=on \
             -DDTFFT_WITH_CUDA=on \
-            -DDTFFT_MPI_VENDOR=openmpi
+            -DDTFFT_MPI_VENDOR=openmpi \
+            -DDTFFT_WITH_NCCL=on
           cmake --build build
       - name: Test
         run: cmake --build build --target coverage

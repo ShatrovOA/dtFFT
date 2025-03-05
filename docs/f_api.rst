@@ -146,6 +146,18 @@ All error codes that ``dtFFT`` can return are listed below.
 
   One of pointers passed to :f:func:`execute` or :f:func:`transpose` cannot be accessed from device
 
+.. f:variable:: DTFFT_ERROR_NOT_NVSHMEM_PTR
+
+  One of pointers passed to :f:func:`execute` or :f:func:`transpose` is not and ``NVSHMEM`` pointer
+
+.. f:variable:: DTFFT_ERROR_INVALID_PLATFORM
+
+  Invalid platform provided
+
+.. f:variable:: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
+
+  Invalid executor provided for selected platform
+
 Basic types
 ===========
 
@@ -371,6 +383,10 @@ _____________________
 
   NCCL backend with overlapping data copying and unpacking
 
+.. f:variable:: DTFFT_GPU_BACKEND_CUFFTMP
+
+  cuFFTMp backend
+
 Related Type functions
 _______________________
 
@@ -518,6 +534,23 @@ dtfft_pencil_t
 .. seealso:: :f:func:`get_pencil`
 
 ------
+
+dtfft_platform_t
+-----------------------
+
+  Type that specifies the execution platform, such as Host, CUDA, or HIP
+
+Type Parameters
+_____________________
+
+.. f:variable:: DTFFT_PLATFORM_HOST
+
+  Create HOST-related plan
+
+.. f:variable:: DTFFT_PLATFORM_CUDA
+
+  Create CUDA-related
+
 
 Version handling
 ================
@@ -670,25 +703,12 @@ _________
 
 Allocates memory tailored to the specific needs of the plan.  
 
-The ``mem_alloc`` method is overloaded, offering two variants: one returning a raw pointer (``c_ptr`` for host, ``c_devptr`` for GPU) and another returning a Fortran pointer array. Both are designed to simplify memory management for plan execution.
-
-**Raw Pointer Variant**
-
-.. f:subroutine:: mem_alloc(alloc_bytes, ptr[, error_code])
+.. f:function:: mem_alloc(alloc_bytes[, error_code])
 
   :p integer(int64) alloc_bytes [in]: Number of bytes to allocate  
-  :p type(c_ptr) ptr [out]: Allocated pointer (``c_devptr`` in CUDA builds)  
   :o integer(int32) error_code [out, optional]: Optional error code returned to user  
+  :r type(c_ptr): Allocated pointer
 
-------
-
-**Fortran Array Variant**
-
-.. f:function:: mem_alloc(alloc_size, ptr[, error_code])
-
-  :p integer(int64) alloc_size [in]: Number of elements to allocate  
-  :p type(*), pointer, dimension(:) ptr [out]: Allocated 1D pointer array of ``real`` or ``complex`` values (single or double precision)  
-  :o integer(int32) error_code [out, optional]: Optional error code returned to user  
 
 ------
 
@@ -697,22 +717,10 @@ ________
 
 Frees memory previously allocated by :f:func:`mem_alloc`.  
 
-The ``mem_free`` method is overloaded to accept either a raw pointer (``c_ptr`` or ``c_devptr``) or a Fortran pointer array, ensuring flexibility in deallocation.
-
-**Raw Pointer Variant**
 
 .. f:subroutine:: mem_free(ptr[, error_code])
 
-  :p type(c_ptr) ptr [in]: Pointer allocated with ``mem_alloc`` (``c_devptr`` expected in CUDA builds)  
-  :o integer(int32) error_code [out, optional]: Optional error code returned to user  
-
-------
-
-**Fortran Array Variant**
-
-.. f:subroutine:: mem_free(ptr[, error_code])
-
-  :p type(*), pointer, dimension(..) ptr [in]: Pointer array allocated with ``mem_alloc`` (``real`` or ``complex``, any shape)  
+  :p type(c_ptr) ptr [in]: Pointer allocated with ``mem_alloc``
   :o integer(int32) error_code [out, optional]: Optional error code returned to user  
 
 ------

@@ -771,7 +771,7 @@ class Version {
   }
 
 /** Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize */
-    virtual ~Plan() = 0;
+    virtual ~Plan() noexcept = 0;
   };
 
   inline Plan::~Plan() noexcept { destroy(); }

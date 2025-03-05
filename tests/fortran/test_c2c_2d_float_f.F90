@@ -29,19 +29,18 @@ use cudafor
 #include "dtfft_cuda.h"
 #include "dtfft.f03"
 implicit none
-
-  type(c_ptr) :: in, out
   complex(R4P), allocatable :: check(:,:)
   complex(R4P), DEVICE_PTR pointer :: pin(:,:), pout(:,:)
   real(R4P) :: local_error, rnd1, rnd2
   integer(I4P), parameter :: nx = 64, ny = 32
   integer(I4P) :: comm_size, comm_rank, i, j, ierr
   type(dtfft_executor_t) :: executor
-  integer(I8P) :: alloc_size, element_size
+  integer(I8P) :: alloc_size, element_size, alloc_bytes
   type(dtfft_plan_c2c_t) :: plan
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb
   type(dtfft_config_t) :: conf
+  type(c_ptr) :: in, out
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -73,10 +72,13 @@ implicit none
 
   call plan%create([nx, ny], precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
-  element_size = plan%get_element_size()
+  element_size = plan%get_element_size(ierr);  DTFFT_CHECK(ierr)
 
-  call plan%mem_alloc(alloc_size * element_size, in, ierr);  DTFFT_CHECK(ierr)
-  call plan%mem_alloc(alloc_size * element_size, out, ierr); DTFFT_CHECK(ierr)
+  alloc_bytes = alloc_size * element_size
+  in = plan%mem_alloc(alloc_bytes, ierr)
+  DTFFT_CHECK(ierr)
+  out = plan%mem_alloc(alloc_bytes, ierr)
+  DTFFT_CHECK(ierr)
 
   allocate(check(in_counts(1),in_counts(2)))
 
@@ -93,7 +95,7 @@ implicit none
   enddo
 
   tf = 0.0_R8P - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
+  call plan%execute(pin, pout, DTFFT_EXECUTE_FORWARD)
   tf = tf + MPI_Wtime()
 #ifndef DTFFT_WITH_CUDA
   if ( executor /= DTFFT_EXECUTOR_NONE ) then
@@ -105,7 +107,7 @@ implicit none
   pin(:,:) = cmplx(-1._R4P, -1._R4P)
 #endif
   tb = 0.0_R8P - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
+  call plan%execute(pout, pin, DTFFT_EXECUTE_BACKWARD)
   tb = tb + MPI_Wtime()
 
   local_error = maxval(abs(pin - check))
