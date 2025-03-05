@@ -32,6 +32,8 @@
 #include <numeric>
 #include <functional>
 #include <stdexcept>
+#include <string>
+#include <cstdint>
 
 
 #define DTFFT_THROW_EXCEPTION(msg)                            \
@@ -44,11 +46,11 @@
  *
  * Should be used to check error codes returned by ``dtFFT``.
  *
- * @details  If error occurs, throws Exception with an message explaining error.
+ * @details Throws an exception with a message explaining the error if one occurs.
  *
  * **Example**
  * @code
- * DTFFT_CXX_CALL( Plan.execute(plan, a, b) )
+ * DTFFT_CXX_CALL( plan.execute(a, b, dtfft::ExecuteType::FORWARD) )
  * @endcode
  */
 #define DTFFT_CXX_CALL( call )                                \
@@ -62,26 +64,26 @@
 
 namespace dtfft
 {
-  /** dtFFT version handler */
-  class Version {
-    public:
-  /** dtFFT Major Version */
-      const int32_t MAJOR = DTFFT_VERSION_MAJOR;
-
-  /** dtFFT Minor Version */
-      const int32_t MINOR = DTFFT_VERSION_MINOR;
-
-  /** dtFFT Patch Version */
-      const int32_t PATCH = DTFFT_VERSION_PATCH;
-
-  /** dtFFT Version Code. Can be used in Version comparison */
-      const int32_t CODE = DTFFT_VERSION_CODE;
-
-  /** @return Version Code defined during compilation */
-    static int32_t get() { return dtfft_get_version(); }
-
-   /** @return Version Code based on input parameters */
-    static int32_t get(int32_t major, int32_t minor, int32_t patch) {return DTFFT_VERSION(major, minor, patch);}
+/** dtFFT version information */
+class Version {
+  public:
+    /** dtFFT Major Version */
+    static constexpr int32_t MAJOR = DTFFT_VERSION_MAJOR;
+  
+    /** dtFFT Minor Version */
+    static constexpr int32_t MINOR = DTFFT_VERSION_MINOR;
+  
+    /** dtFFT Patch Version */
+    static constexpr int32_t PATCH = DTFFT_VERSION_PATCH;
+  
+    /** dtFFT Version Code. Can be used for version comparison */
+    static constexpr int32_t CODE = DTFFT_VERSION_CODE;
+  
+    /** @return Version Code defined during compilation */
+    static int32_t get() noexcept { return dtfft_get_version(); }
+  
+    /** @return Version Code based on input parameters */
+    static int32_t get(int32_t major, int32_t minor, int32_t patch) noexcept { return DTFFT_VERSION(major, minor, patch); }
   };
 
 /** This enum lists the different error codes that ``dtFFT`` can return. */
@@ -127,7 +129,7 @@ namespace dtfft
   INVALID_USAGE = DTFFT_ERROR_INVALID_USAGE,
 /** Trying to create already created plan */
   PLAN_IS_CREATED = DTFFT_ERROR_PLAN_IS_CREATED,
-/** Selected `executor` do not support R2R FFTs */
+/** Selected `executor` does not support R2R FFTs */
   R2R_FFT_NOT_SUPPORTED = DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED,
 /** Internal call of Plan.mem_alloc failed */
   ALLOC_FAILED = DTFFT_ERROR_ALLOC_FAILED,
@@ -143,19 +145,24 @@ namespace dtfft
   GPU_NOT_SET = DTFFT_ERROR_GPU_NOT_SET,
 /** When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions */
   VKFFT_R2R_2D_PLAN = DTFFT_ERROR_VKFFT_R2R_2D_PLAN,
-/** Passed `effort` ==  `Effort::PATIENT` but all GPU Backends has been disabled by `Config` */
+/** Passed `effort` ==  `Effort::PATIENT` but all GPU backends have been disabled by `Config` */
   GPU_BACKENDS_DISABLED = DTFFT_ERROR_GPU_BACKENDS_DISABLED,
 /** One of pointers passed to `Plan.execute` or `Plan.transpose` cannot be accessed from device */
-  NOT_DEVICE_PTR = DTFFT_ERROR_NOT_DEVICE_PTR
+  NOT_DEVICE_PTR = DTFFT_ERROR_NOT_DEVICE_PTR,
+/** One of pointers passed to `Plan.execute` or `Plan.transpose` is not and `NVSHMEM` pointer */
+  NOT_NVSHMEM_PTR = DTFFT_ERROR_NOT_NVSHMEM_PTR,
+/** Invalid platform provided */
+  INVALID_PLATFORM = DTFFT_ERROR_INVALID_PLATFORM,
+/** Invalid executor provided for selected platform */
+  INVALID_PLATFORM_EXECUTOR_TYPE = DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
   };
 
-/** @brief Gets the string description of an error code
+/** @brief Returns the string description of an error code
  *
- * @param[in]       error_code      Error code to convert to string
- *
- * @returns String representation of an `error_code` 
-*/
-  static std::string get_error_string(const ErrorCode error_code) {
+ * @param[in] error_code Error code to convert to string
+ * @return String representation of `error_code`
+ */
+  inline std::string get_error_string(ErrorCode error_code) noexcept {
     const char* error_str = dtfft_get_error_string(static_cast<dtfft_error_code_t>(error_code));
     return std::string(error_str);
   }
@@ -213,7 +220,7 @@ namespace dtfft
  */
     MEASURE = DTFFT_MEASURE,
 
-/** Same as Effort::MEASURE plus cycle through various send and recieve MPI_Datatypes.
+/** Same as Effort::MEASURE plus cycle through various send and receive MPI_Datatypes.
  * For GPU Build this flag will run autotune procedure to find best backend
  */
     PATIENT = DTFFT_PATIENT
@@ -291,7 +298,10 @@ namespace dtfft
     NCCL = DTFFT_GPU_BACKEND_NCCL,
 
 /** NCCL backend with overlapping data copying and unpacking */
-    NCCL_PIPELINED = DTFFT_GPU_BACKEND_NCCL_PIPELINED
+    NCCL_PIPELINED = DTFFT_GPU_BACKEND_NCCL_PIPELINED,
+
+/** cuFFTMp backend */
+    CUFFTMP = DTFFT_GPU_BACKEND_CUFFTMP
   };
 
 /**
@@ -302,31 +312,38 @@ namespace dtfft
  * @return String representation of `gpu_backend`.
  * @note This function is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-  static std::string get_gpu_backend_string(const GPUBackend gpu_backend) {
+  std::string get_gpu_backend_string(const GPUBackend gpu_backend) {
     const char *gpu_str = dtfft_get_gpu_backend_string( static_cast<dtfft_gpu_backend_t>(gpu_backend));
     return std::string(gpu_str);
   }
+
+/** Enum that specifies runtime platform, e.g. Host, CUDA, HIP */
+  enum class Platform {
+/** Host */
+    HOST = DTFFT_PLATFORM_HOST,
+/** CUDA */
+    CUDA = DTFFT_PLATFORM_CUDA,
+  };
 #endif
 
-  /** Basic exception class */
-  class Exception: public std::exception {
-    private:
-      std::string s;
-
-    public:
-      /**
-       * @brief Basic exception constructor
-       * @param msg     Message of an error occured
-       * @param file    Filename
-       * @param line    Line number
-       */
-      Exception(std::string msg, const char* file, int line) {
-        s = "dtFFT Exception: '" + msg + "' at ";
-        s += std::string(file) + std::string(":") + std::to_string(line);
-      }
-
-      /** Exception explanation */
-      const char* what() const throw() { return s.c_str(); }
+/** Basic exception class */
+  class Exception : public std::exception {
+  private:
+    std::string s;
+  
+  public:
+    /**
+     * @brief Basic exception constructor
+     * @param msg   Message describing the error that occurred
+     * @param file  Filename
+     * @param line  Line number
+     */
+    Exception(std::string msg, const char* file, int line) {
+      s = "dtFFT Exception: '" + std::move(msg) + "' at " + file + ":" + std::to_string(line);
+    }
+  
+    /** Exception explanation */
+    const char* what() const noexcept override { return s.c_str(); }
   };
 
   /** Class to handle Pencils 
@@ -334,7 +351,7 @@ namespace dtfft
   */
   class Pencil {
     private:
-      bool is_created = false;
+      bool is_created;
 
       dtfft_pencil_t pencil;
 
@@ -345,28 +362,22 @@ namespace dtfft
       std::vector<int32_t> counts;
 
       /** Creates vector from underlying struct pointer */
-      std::vector<int32_t> create_vector(const int32_t values[], uint8_t size) const {
+      std::vector<int32_t> create_vector(const int32_t values[], uint8_t size) const noexcept {
         std::vector<int32_t> vec;
         vec.reserve(size);
-        for (size_t i = 0; i < size; i++) {
-          vec.push_back(values[i]);
-        }
+        std::copy(values, values + size, std::back_inserter(vec));
         return vec;
       }
 
     public:
-    /** Default class constuctor */
-      Pencil() {is_created = false;}
+      /** Default constructor */
+      Pencil() : is_created(false) {}
 
-    /** Constructor that is used internally by Plan.get_pencil */
-      // explicit Pencil(dtfft_pencil_t& c_pencil) : pencil(c_pencil) {}
-
-      explicit Pencil(dtfft_pencil_t& c_pencil) {
-        pencil = c_pencil;
-        starts = create_vector(pencil.starts, pencil.ndims);
-        counts = create_vector(pencil.counts, pencil.ndims);
-        is_created = true;
-      }
+      /** Constructor used internally by Plan::get_pencil */
+      explicit Pencil(dtfft_pencil_t& c_pencil) : 
+        is_created(true), pencil(c_pencil), 
+        starts(create_vector(c_pencil.starts, c_pencil.ndims)), 
+        counts(create_vector(c_pencil.counts, c_pencil.ndims)) {}
 
     /** @return Number of dimensions in a pencil */
       uint8_t get_ndims() const {
@@ -400,12 +411,12 @@ namespace dtfft
         return counts;
       }
 
-    /** @return Total number of elements */
+      /** @return Total number of elements */
       size_t get_size() const {
-        if ( !is_created ) {
+        if (!is_created) {
           DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
         }
-        return std::accumulate(counts.begin(),counts.end(),1, std::multiplies<size_t>());
+        return static_cast<size_t>(std::accumulate(counts.begin(), counts.end(), 1LL, std::multiplies<int64_t>()));
       }
 
     /** @return Underlying C structure */
@@ -441,9 +452,18 @@ namespace dtfft
  *
  * In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
  */
-      inline void set_enable_z_slab(bool enable_z_slab) { config.enable_z_slab = enable_z_slab; }
+      inline void set_enable_z_slab(bool enable_z_slab) noexcept { config.enable_z_slab = enable_z_slab; }
 
 #ifdef DTFFT_WITH_CUDA
+/**
+ * @brief Sets platform to execute plan.
+ * 
+ * Default is Platform::HOST
+ *
+ * @details This option is only defined with device support build.
+ * Even when dtFFT is build with device support it does not necessary means that all plans must be related to device.
+ */
+      inline void set_platform(Platform platform) noexcept {config.platform = static_cast<dtfft_platform_t>(platform);}
 /**
  * @brief Sets Main CUDA stream that will be used in dtFFT.
  *
@@ -455,7 +475,7 @@ namespace dtfft
  *
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_stream(cudaStream_t stream) {config.stream = stream; }
+      inline void set_stream(dtfft_stream_t stream) noexcept {config.stream = stream; }
 
 /**
  * @brief Sets GPU Backend that will be used by dtFFT when `effort` is Effort::ESTIMATE or Effort::MEASURE.
@@ -463,7 +483,7 @@ namespace dtfft
  * @details Default is GPUBackend::NCCL
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_gpu_backend(GPUBackend gpu_backend) {config.gpu_backend = static_cast<dtfft_gpu_backend_t>(gpu_backend); }
+      inline void set_gpu_backend(GPUBackend gpu_backend) noexcept {config.gpu_backend = static_cast<dtfft_gpu_backend_t>(gpu_backend); }
 
 /**
  * @brief Sets whether MPI GPU Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
@@ -483,7 +503,7 @@ namespace dtfft
  * but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_enable_mpi_backends(bool enable_mpi_backends) {config.enable_mpi_backends = enable_mpi_backends; }
+      inline void set_enable_mpi_backends(bool enable_mpi_backends) noexcept {config.enable_mpi_backends = enable_mpi_backends; }
 
 /**
  * @brief Sets whether pipelined GPU backends be enabled when `effort` is Effort::PATIENT or not.
@@ -493,23 +513,21 @@ namespace dtfft
  * @note Pipelined backends require additional buffer that user has no control over.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_enable_pipelined_backends(bool enable_pipelined_backends) {config.enable_pipelined_backends = enable_pipelined_backends; }
+      inline void set_enable_pipelined_backends(bool enable_pipelined_backends) noexcept {config.enable_pipelined_backends = enable_pipelined_backends; }
 
 /**
  * @brief Sets whether NCCL Backends be enabled when `effort` is Effort::PATIENT or not.
  * @details Default is `true`.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_enable_nccl_backends(bool enable_nccl_backends) {config.enable_nccl_backends = enable_nccl_backends; }
+      inline void set_enable_nccl_backends(bool enable_nccl_backends) noexcept {config.enable_nccl_backends = enable_nccl_backends; }
 
 /**
- * @brief Should NCCL Backends be enabled when `effort` is Effort::PATIENT or not.
+ * @brief Should NVSHMEM Backends be enabled when `effort` is Effort::PATIENT or not.
  * @details Default is `true`.
- *
- * Unused. Reserved for future.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      static void set_enable_nvshmem_backends(bool enable_nvshmem_backends) {config.enable_nvshmem_backends = enable_nvshmem_backends; }
+      inline void set_enable_nvshmem_backends(bool enable_nvshmem_backends) noexcept {config.enable_nvshmem_backends = enable_nvshmem_backends; }
 #endif
 
 /** @return Underlying C structure */
@@ -518,14 +536,12 @@ namespace dtfft
     }
   };
 
-/**
- * @brief Sets configuration values to dtFFT. In order to take effect should be called before plan creation.
+/** @brief Sets configuration values to dtFFT. Must be called before plan creation to take effect.
  *
- * @return `ErrorCode::SUCCESS` if call was successfull, error code otherwise
+ * @return ErrorCode::SUCCESS if the call was successful, error code otherwise
  * @see Config
  */
-  inline ErrorCode
-  set_config(Config config) {
+  inline ErrorCode set_config(Config config) noexcept {
     return static_cast<ErrorCode>(dtfft_set_config(config.c_struct()));
   }
 
@@ -618,7 +634,7 @@ namespace dtfft
 
 /** @brief Wrapper around `Plan.get_local_sizes` to obtain `alloc_size` only
  *
- * @param[out]     alloc_size       Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
+ * @param[out]     alloc_size       Minimum number of elements to be allocated for `in`, `out` or `aux` buffers.
  *                                    Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
@@ -634,7 +650,7 @@ namespace dtfft
  * @param[out]   in_counts              Sizes  of local portion of data in 'real' space in reversed order
  * @param[out]   out_starts             Starts of local portion of data in 'fourier' space in reversed order
  * @param[out]   out_counts             Sizes  of local portion of data in 'fourier' space in reversed order
- * @param[out]   alloc_size             Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
+ * @param[out]   alloc_size             Minimum number of elements to be allocated for `in`, `out` or `aux` buffers.
  *                                      Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
@@ -717,8 +733,9 @@ namespace dtfft
 
 #ifdef DTFFT_WITH_CUDA
 /**
- * @brief Returns stream assosiated with current Plan.
- * This can either be steam passed by Config.set_stream followed by set_config() or stream created internally.
+ * @brief Returns stream associated with current Plan.
+ * This can either be stream passed by Config.set_stream followed by set_config() or stream created internally.
+ * Returns NULL pointer if plan's platform is Platform::HOST.
  *
  * @param[out]     stream         CUDA stream associated with plan
  *
@@ -726,7 +743,7 @@ namespace dtfft
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
       ErrorCode
-      get_stream(cudaStream_t *stream)
+      get_stream(dtfft_stream_t *stream)
       {return static_cast<ErrorCode>(dtfft_get_stream(_plan, stream));}
 
 /**
@@ -748,12 +765,16 @@ namespace dtfft
       }
 #endif
 
-
+  /** @return Underlying C structure */
+  dtfft_plan_t c_struct() const {
+    return _plan;
+  }
 
 /** Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize */
-      ~Plan() {destroy();}
+    virtual ~Plan() = 0;
   };
 
+  inline Plan::~Plan() noexcept { destroy(); }
 
 /** Complex-to-Complex Plan */
   class PlanC2C final: public Plan
@@ -765,7 +786,7 @@ namespace dtfft
  *                                        `dims.size()` must be 2 or 3
  * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]    precision              Precision of transform.
- * @param[in]    effort                 How hard DTFFT should look for best plan.
+ * @param[in]    effort                 How thoroughly `dtFFT` searches for the optimal plan
  * @param[in]    executor               Type of external FFT executor
  *
  * @throws Exception In case error occurs during plan creation
@@ -784,7 +805,7 @@ namespace dtfft
  * @param[in]    dims                   Vector with global dimensions in reversed order.
  *                                        `dims.size()` must be 2 or 3
  * @param[in]    precision              Precision of transform.
- * @param[in]    effort                 How hard DTFFT should look for best plan.
+ * @param[in]    effort                 How thoroughly `dtFFT` searches for the optimal plan
  *
  * @throws Exception In case error occurs during plan creation
  */
@@ -801,7 +822,7 @@ namespace dtfft
  * @param[in]    dims                   Buffer of size `ndims` with global dimensions in reversed order.
  * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]    precision              Precision of transform.
- * @param[in]    effort                 How hard DTFFT should look for best plan.
+ * @param[in]    effort                 How thoroughly `dtFFT` searches for the optimal plan
  * @param[in]    executor               Type of external FFT executor
  *
  * @throws Exception In case error occurs during plan creation
@@ -839,7 +860,7 @@ namespace dtfft
  * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]    executor               Type of external FFT executor
  * @param[in]    precision              Precision of transform.
- * @param[in]    effort                 How hard DTFFT should look for best plan.
+ * @param[in]    effort                 How thoroughly `dtFFT` searches for the optimal plan
  *
  * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used instead.
  *
@@ -860,7 +881,7 @@ namespace dtfft
  * @param[in]    dims                   Buffer of size `ndims` with global dimensions in reversed order.
  * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]    precision              Precision of transform.
- * @param[in]    effort                 How hard DTFFT should look for best plan.
+ * @param[in]    effort                 How thoroughly `dtFFT` searches for the optimal plan
  * @param[in]    executor               Type of external FFT executor
  *
  * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used instead.
@@ -897,7 +918,7 @@ namespace dtfft
  *                                      Can be empty vector if `executor` == Executor::NONE
  * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]    precision              Precision of transform.
- * @param[in]    effort                 How hard DTFFT should look for best plan.
+ * @param[in]    effort                 How thoroughly `dtFFT` searches for the optimal plan
  * @param[in]    executor               Type of external FFT executor.
  *
  * @throws Exception In case error occurs during plan creation
@@ -917,7 +938,7 @@ namespace dtfft
  * @param[in]    dims                   Vector with global dimensions in reversed order.
  *                                        `dims.size()` must be 2 or 3
  * @param[in]    precision              Precision of transform.
- * @param[in]    effort                 How hard DTFFT should look for best plan.
+ * @param[in]    effort                 How thoroughly `dtFFT` searches for the optimal plan
  *
  * @throws Exception In case error occurs during plan creation
  */
@@ -936,7 +957,7 @@ namespace dtfft
  *                                        Can be nullptr if `executor` == Executor::NONE
  * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]    precision              Precision of transform.
- * @param[in]    effort                 How hard DTFFT should look for best plan.
+ * @param[in]    effort                 How thoroughly `dtFFT` searches for the optimal plan
  * @param[in]    executor               Type of external FFT executor.
  *
  * @throws Exception In case error occurs during plan creation

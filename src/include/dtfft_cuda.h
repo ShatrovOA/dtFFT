@@ -27,16 +27,5 @@
 #define CUFFT_CALL(name, func) GPU_CALL("cuFFT", name, func, cufftGetErrorString)
 #define CUDA_CALL(name, func) GPU_CALL("CUDA", name, func, cudaGetErrorString)
 #define NVRTC_CALL(name, func) GPU_CALL("nvRTC", name, func, nvrtcGetErrorString)
-
-#define NCCL_CALL(name, func)                                                                                                                                                   \
-  block;                                                                                                                                                                        \
-  use iso_fortran_env, only: error_unit;                                                                                                                                        \
-  use iso_c_binding, only: c_int32_t;                                                                                                                                           \
-  integer(c_int32_t) :: mpi_err;                                                                                                                                                \
-  type(ncclResult) :: ierr;                                                                                                                                                     \
-  ierr = func;                                                                                                                                                                  \
-  if( ierr /= ncclSuccess ) then;                                                                                                                                               \
-    write(error_unit, '(a)') "NCCL Function '"//name//"' returned non-zero error code: '"//trim(ncclGetErrorString(ierr))//"' at "//__FILE__//":"//trim(int_to_str(__LINE__));  \
-    call MPI_Abort(MPI_COMM_WORLD, ierr%member, mpi_err);                                                                                                                       \
-  endif;                                                                                                                                                                        \
-  endblock
+#define NVSHMEM_CALL(name, func) GPU_CALL("NVSHMEM", name, func, int_to_str)
+#define NCCL_CALL(name, func) GPU_CALL("NCCL", name, func, ncclGetErrorString)

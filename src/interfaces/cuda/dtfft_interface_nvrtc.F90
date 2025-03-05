@@ -16,9 +16,10 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
-module dtfft_nvrtc_interfaces
+module dtfft_interface_nvrtc
 use iso_c_binding
-use cudafor,      only: c_devptr, cuda_stream_kind, dim3
+use dtfft_parameters, only: dtfft_stream_t
+use dtfft_interface_cuda, only: dim3
 implicit none
 private
 public :: nvrtcGetErrorString
@@ -31,7 +32,7 @@ public :: run_cuda_kernel
     integer(c_int)  :: n_ints = 0
     integer(c_int)  :: ints(5)
     integer(c_int)  :: n_ptrs = 0
-    type(c_devptr)  :: ptrs(3)
+    type(c_ptr)     :: ptrs(3)
   end type kernelArgs
 
 interface
@@ -161,11 +162,11 @@ interface
   !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
   import
     type(c_ptr),                  value :: func         !< Function CUfunction or Kernel CUkernel to launch
-    type(c_devptr),               value :: in           !< Input pointer
-    type(c_devptr),               value :: out          !< Output pointer
+    type(c_ptr),                  value :: in           !< Input pointer
+    type(c_ptr),                  value :: out          !< Output pointer
     type(dim3)                          :: blocks       !< Grid in blocks
     type(dim3)                          :: threads      !< Thread block
-    integer(cuda_stream_kind),    value :: stream       !< Stream identifier
+    type(dtfft_stream_t),         value :: stream       !< Stream identifier
     type(kernelArgs)                    :: args         !< Kernel parameters
     integer(c_int)                      :: cuResult     !< Driver result code
   end function run_cuda_kernel
@@ -185,4 +186,4 @@ contains
     call c_f_pointer(c_string, f_string)
     allocate( string, source=f_string(1:index(f_string, c_null_char) - 1) )
   end function nvrtcGetErrorString
-end module dtfft_nvrtc_interfaces
+end module dtfft_interface_nvrtc

@@ -22,7 +22,7 @@ use iso_fortran_env, only: R8P => real64, I4P => int32, I8P => int64, I1P => int
 use dtfft
 use test_utils
 use iso_c_binding
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
 use cudafor
 use dtfft_utils
 #endif
@@ -34,7 +34,7 @@ implicit none
   ! real(R8P),     allocatable :: in(:,:), check(:,:)
   real(R8P),     allocatable :: inout(:), check(:)
   real(R8P) :: local_error, rnd
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(I4P), parameter :: nx = 999, ny = 344
 #else
   integer(I4P), parameter :: nx = 64, ny = 32
@@ -45,6 +45,7 @@ implicit none
   integer(I4P) :: in_counts(2), out_counts(2)
   real(R8P) :: tf, tb
   integer(I8P) :: alloc_size, upper_bound, cmplx_upper_bound
+  type(dtfft_config_t) :: conf
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -78,12 +79,19 @@ implicit none
 
   call attach_gpu_to_process()
 
+  conf = dtfft_config_t()
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
+  conf%platform = DTFFT_PLATFORM_CUDA
+#endif
+  call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
+
   call plan%create([nx, ny], effort=DTFFT_PATIENT, executor=executor, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   block
     type(dtfft_gpu_backend_t) :: selected_backend
 
@@ -116,7 +124,7 @@ implicit none
   call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
 #endif
   tf = tf + MPI_Wtime()
@@ -130,7 +138,7 @@ implicit none
   call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
 #endif
   tb = tb + MPI_Wtime()

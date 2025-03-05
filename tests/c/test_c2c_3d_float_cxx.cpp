@@ -47,11 +47,11 @@ int main(int argc, char *argv[])
     cout << "Nx = " << nx << ", Ny = " << ny << ", Nz = " << nz << endl;
     cout << "Number of processors: " << comm_size               << endl;
     cout << "----------------------------------------"          << endl;
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
     cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
 #endif
   }
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   MPI_Finalize();
   return 0;
 #endif

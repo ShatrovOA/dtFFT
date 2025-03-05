@@ -21,14 +21,13 @@ module dtfft_abstract_backend
 !! This module defines most Abstract GPU Backend: `abstract_backend`
 use iso_c_binding
 use iso_fortran_env
-use cudafor
-#ifdef DTFFT_WITH_CUSTOM_NCCL
-use dtfft_nccl_interfaces
-#else
-use nccl
+use dtfft_interface_cuda
+#ifdef DTFFT_WITH_NCCL
+use dtfft_interface_nccl
 #endif
 use dtfft_nvrtc_kernel,   only: nvrtc_kernel
 use dtfft_parameters
+use dtfft_pencil,         only: pencil
 use dtfft_utils,          only: int_to_str
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
@@ -39,9 +38,13 @@ public :: abstract_backend, backend_helper
   type :: backend_helper
   !! Helper with nccl, mpi and nvshmem communicators
     logical                     :: is_nccl_created = .false.    !< Flag is `nccl_comm` has been created
+#ifdef DTFFT_WITH_NCCL
     type(ncclComm)              :: nccl_comm                    !< NCCL communicator
+#endif
     TYPE_MPI_COMM,  allocatable :: comms(:)                     !< MPI communicators
     integer(int32), allocatable :: comm_mappings(:,:)           !< Mapping of 1d comm ranks to global comm
+    type(dtfft_transpose_type_t):: tranpose_type
+    type(pencil),   pointer     :: pencils(:)
   contains
     procedure,  pass(self) :: create => create_helper
     procedure,  pass(self) :: destroy => destroy_helper
@@ -52,7 +55,7 @@ public :: abstract_backend, backend_helper
     type(dtfft_gpu_backend_t)         :: gpu_backend
     logical                           :: is_selfcopy
     logical                           :: is_pipelined
-    real(real32), DEVICE_PTR  pointer :: aux(:)                 !< Auxiliary buffer used in pipelined algorithm
+    real(real32),             pointer :: aux(:)                 !< Auxiliary buffer used in pipelined algorithm
     integer(int64)                    :: aux_size               !< Number of bytes required by aux buffer
     integer(int64)                    :: send_recv_buffer_size  !< Number of float elements used in ``c_f_pointer``
     TYPE_MPI_COMM                     :: comm                   !< MPI Communicator
@@ -66,39 +69,42 @@ public :: abstract_backend, backend_helper
     ! Self copy params
     type(cudaEvent)                   :: execution_event        !< Event for main execution stream
     type(cudaEvent)                   :: copy_event             !< Event for copy stream
-    integer(cuda_stream_kind)         :: copy_stream            !< Stream for copy operations
+    type(dtfft_stream_t)              :: copy_stream            !< Stream for copy operations
     integer(int64)                    :: self_copy_elements     !< Number of elements to copy
     integer(int64)                    :: self_send_displ        !< Displacement for send buffer
     integer(int64)                    :: self_recv_displ        !< Displacement for recv buffer
     ! Pipelined params
     type(nvrtc_kernel),       pointer :: unpack_kernel          !< Kernel for unpacking data
+    type(nvrtc_kernel),       pointer :: unpack_kernel2         !< Kernel for unpacking data
   contains
-    procedure,                                    pass(self)  :: create           !< Creates Abstract GPU Backend
-    procedure,                                    pass(self)  :: execute          !< Executes GPU Backend
-    procedure,                                    pass(self)  :: destroy          !< Destroys Abstract GPU Backend
-    procedure,                                    pass(self)  :: get_aux_size     !< Returns number of bytes required by aux buffer
-    procedure,                                    pass(self)  :: set_aux          !< Sets Auxiliary buffer
-    procedure,                                    pass(self)  :: set_unpack_kernel
+    procedure,      non_overridable,              pass(self)  :: create           !< Creates Abstract GPU Backend
+    procedure,      non_overridable,              pass(self)  :: execute          !< Executes GPU Backend
+    procedure,      non_overridable,              pass(self)  :: destroy          !< Destroys Abstract GPU Backend
+    procedure,      non_overridable,              pass(self)  :: get_aux_size     !< Returns number of bytes required by aux buffer
+    procedure,      non_overridable,              pass(self)  :: set_aux          !< Sets Auxiliary buffer
+    procedure,      non_overridable,              pass(self)  :: set_unpack_kernel
     procedure(createInterface),       deferred,   pass(self)  :: create_private   !< Creates overring class
     procedure(executeInterface),      deferred,   pass(self)  :: execute_private  !< Executes GPU Backend
     procedure(destroyInterface),      deferred,   pass(self)  :: destroy_private  !< Destroys overring class
   end type abstract_backend
 
   interface
-  subroutine createInterface(self, helper)
+  subroutine createInterface(self, helper, tranpose_type, base_storage)
   !! Creates overring class
   import
-    class(abstract_backend),    intent(inout) :: self       !< Abstract GPU Backend
-    type(backend_helper),       intent(in)    :: helper     !< Backend helper
+    class(abstract_backend),      intent(inout) :: self       !< Abstract GPU Backend
+    type(backend_helper),         intent(in)    :: helper     !< Backend helper
+    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
+    integer(int8),                intent(in)    :: base_storage   !< Number of bytes to store single element
   end subroutine createInterface
 
   subroutine executeInterface(self, in, out, stream)
   !! Executes GPU Backend
   import
     class(abstract_backend),    intent(inout) :: self       !< Abstract GPU Backend
-    real(real32),   DEVICE_PTR  intent(inout) :: in(:)      !< Send pointer
-    real(real32),   DEVICE_PTR  intent(inout) :: out(:)     !< Recv pointer
-    integer(cuda_stream_kind),  intent(in)    :: stream     !< Main execution CUDA stream
+    real(real32),     target,   intent(inout) :: in(:)      !< Send pointer
+    real(real32),     target,   intent(inout) :: out(:)     !< Recv pointer
+    type(dtfft_stream_t),       intent(in)    :: stream     !< Main execution CUDA stream
   end subroutine executeInterface
 
   subroutine destroyInterface(self)
@@ -110,17 +116,18 @@ end interface
 
 contains
 
-  subroutine create(self, gpu_backend, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
+  subroutine create(self, gpu_backend, tranpose_type, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
   !! Creates Abstract GPU Backend
-    class(abstract_backend),    intent(inout) :: self           !< Abstract GPU Backend
-    type(dtfft_gpu_backend_t),  intent(in)    :: gpu_backend
-    type(backend_helper),       intent(in)    :: helper         !< Backend helper
-    integer(int8),              intent(in)    :: comm_id        !< Id of communicator to use
-    integer(int32),             intent(in)    :: send_displs(:) !< Send data displacements, in original elements
-    integer(int32),             intent(in)    :: send_counts(:) !< Send data elements, in float elements
-    integer(int32),             intent(in)    :: recv_displs(:) !< Recv data displacements, in float elements
-    integer(int32),             intent(in)    :: recv_counts(:) !< Recv data elements, in float elements
-    integer(int8),              intent(in)    :: base_storage   !< Number of bytes to store single element
+    class(abstract_backend),      intent(inout) :: self           !< Abstract GPU Backend
+    type(dtfft_gpu_backend_t),    intent(in)    :: gpu_backend
+    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
+    type(backend_helper),         intent(in)    :: helper         !< Backend helper
+    integer(int8),                intent(in)    :: comm_id        !< Id of communicator to use
+    integer(int32),               intent(in)    :: send_displs(:) !< Send data displacements, in original elements
+    integer(int32),               intent(in)    :: send_counts(:) !< Send data elements, in float elements
+    integer(int32),               intent(in)    :: recv_displs(:) !< Recv data displacements, in float elements
+    integer(int32),               intent(in)    :: recv_counts(:) !< Recv data elements, in float elements
+    integer(int8),                intent(in)    :: base_storage   !< Number of bytes to store single element
     integer(int64)                            :: send_size      !< Total number of floats to send
     integer(int64)                            :: recv_size      !< Total number of floats to recv
     integer(int32)                            :: ierr           !< MPI Error code
@@ -165,7 +172,7 @@ contains
     if ( self%is_selfcopy ) then
       self%self_send_displ = self%send_displs(self%comm_rank)
       self%self_recv_displ = self%recv_displs(self%comm_rank)
-      self%self_copy_elements = self%send_floats(self%comm_rank)
+      self%self_copy_elements = self%send_floats(self%comm_rank) * int(FLOAT_STORAGE_SIZE, int64)
       self%send_floats(self%comm_rank) = 0
       self%recv_floats(self%comm_rank) = 0
 
@@ -174,15 +181,15 @@ contains
       CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(self%copy_stream) )
     endif
 
-    call self%create_private(helper)
+    call self%create_private(helper, tranpose_type, base_storage)
   end subroutine create
 
   subroutine execute(self, in, out, stream)
   !! Executes self-copying backend
     class(abstract_backend),    intent(inout) :: self     !< Self-copying backend
-    real(real32),   DEVICE_PTR  intent(inout) :: in(:)    !< Send pointer
-    real(real32),   DEVICE_PTR  intent(inout) :: out(:)   !< Recv pointer
-    integer(cuda_stream_kind),  intent(in)    :: stream   !< CUDA stream
+    real(real32),               intent(inout) :: in(:)    !< Send pointer
+    real(real32),               intent(inout) :: out(:)   !< Recv pointer
+    type(dtfft_stream_t),       intent(in)    :: stream   !< CUDA stream
 
     if ( .not. self%is_selfcopy ) then
       call self%execute_private(in, out, stream)
@@ -255,27 +262,31 @@ contains
   subroutine set_aux(self, aux)
   !! Sets aux buffer that can be used by various implementations
     class(abstract_backend),          intent(inout) :: self     !< Abstract GPU backend
-    real(real32), DEVICE_PTR  target, intent(in)    :: aux(:)   !< Aux pointer
+    real(real32),             target, intent(in)    :: aux(:)   !< Aux pointer
     self%aux => aux
   end subroutine set_aux
 
-  subroutine set_unpack_kernel(self, unpack_kernel)
+  subroutine set_unpack_kernel(self, unpack_kernel, unpack_kernel2)
   !! Sets unpack kernel for pipelined backend
-    class(abstract_backend),    intent(inout)   :: self           !< Pipelined backend
-    type(nvrtc_kernel), target, intent(in)      :: unpack_kernel  !< Kernel for unpacking data
+    class(abstract_backend),    intent(inout)             :: self           !< Pipelined backend
+    type(nvrtc_kernel), target, intent(in)                :: unpack_kernel  !< Kernel for unpacking data
+    type(nvrtc_kernel), target, intent(in), optional      :: unpack_kernel2  !< Kernel for unpacking data
 
     self%unpack_kernel => unpack_kernel
+    if ( present( unpack_kernel2 ) ) self%unpack_kernel2 => unpack_kernel2
   end subroutine set_unpack_kernel
 
-  subroutine create_helper(self, base_comm, comms, is_nccl_needed)
+  subroutine create_helper(self, base_comm, comms, is_nccl_needed, pencils)
     class(backend_helper),  intent(inout) :: self                 !< Backend helper
     TYPE_MPI_COMM,          intent(in)    :: base_comm            !< MPI communicator
     TYPE_MPI_COMM,          intent(in)    :: comms(:)             !< 1D Communicators
     logical,                intent(in)    :: is_nccl_needed       !< If nccl communicator will be needed
-    integer :: i, n_comms, max_size, comm_size, comm_rank, ierr
-    type(ncclUniqueId)  :: id           !< NCCL unique id
+    type(pencil), target,   intent(in)    :: pencils(:)
+    integer :: i, n_comms
 
     call self%destroy()
+
+    self%pencils => pencils(:)
 
     n_comms = size(comms)
     allocate( self%comms(n_comms) )
@@ -287,24 +298,31 @@ contains
     self%is_nccl_created = .false.
     if ( .not.is_nccl_needed ) return
 
-    max_size = -1
-    do i = 1, n_comms
-      call MPI_Comm_size(self%comms(i), comm_size, ierr)
-      max_size = max(max_size, comm_size)
-    enddo
-    call MPI_Comm_rank(base_comm, comm_rank, ierr)
+#ifdef DTFFT_WITH_NCCL
+    block
+      type(ncclUniqueId)  :: id           !< NCCL unique id
+      integer(int32) :: max_size, comm_size, comm_rank, ierr
 
-    allocate( self%comm_mappings(0:max_size - 1, n_comms), source=-1 )
-    do i = 1, n_comms
-      call MPI_Allgather(comm_rank, 1, MPI_INTEGER, self%comm_mappings(:, i), 1, MPI_INTEGER, self%comms(i), ierr)
-    enddo
+      max_size = -1
+      do i = 1, n_comms
+        call MPI_Comm_size(self%comms(i), comm_size, ierr)
+        max_size = max(max_size, comm_size)
+      enddo
+      call MPI_Comm_rank(base_comm, comm_rank, ierr)
 
-    if (comm_rank == 0) then
-      NCCL_CALL( "ncclGetUniqueId", ncclGetUniqueId(id) )
-    end if
-    call MPI_Bcast(id, int(sizeof(id)), MPI_BYTE, 0, base_comm, ierr)
-    NCCL_CALL( "ncclCommInitRank", ncclCommInitRank(self%nccl_comm, max_size, id, comm_rank) )
-    self%is_nccl_created = .true.
+      allocate( self%comm_mappings(0:max_size - 1, n_comms), source=-1 )
+      do i = 1, n_comms
+        call MPI_Allgather(comm_rank, 1, MPI_INTEGER, self%comm_mappings(:, i), 1, MPI_INTEGER, self%comms(i), ierr)
+      enddo
+
+      if (comm_rank == 0) then
+        NCCL_CALL( "ncclGetUniqueId", ncclGetUniqueId(id) )
+      end if
+      call MPI_Bcast(id, int(c_sizeof(id)), MPI_BYTE, 0, base_comm, ierr)
+      NCCL_CALL( "ncclCommInitRank", ncclCommInitRank(self%nccl_comm, max_size, id, comm_rank) )
+      self%is_nccl_created = .true.
+    endblock
+#endif
   end subroutine create_helper
 
   subroutine destroy_helper(self)
@@ -312,10 +330,13 @@ contains
 
     if ( allocated( self%comms ) )          deallocate(self%comms)
     if ( allocated( self%comm_mappings ) )  deallocate(self%comm_mappings)
+    nullify( self%pencils )
+#ifdef DTFFT_WITH_NCCL
     if ( self%is_nccl_created ) then
       NCCL_CALL( "ncclCommDestroy", ncclCommDestroy(self%nccl_comm) )
     endif
     self%is_nccl_created = .false.
+#endif
   end subroutine destroy_helper
 
 end module dtfft_abstract_backend

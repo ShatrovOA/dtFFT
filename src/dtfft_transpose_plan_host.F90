@@ -27,9 +27,6 @@ use dtfft_pencil,                   only: pencil, get_local_sizes
 use dtfft_parameters
 use dtfft_transpose_handle_host,    only: transpose_handle_host
 use dtfft_utils
-#ifdef DTFFT_WITH_CUDA
-use cudafor
-#endif
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft_profile.h"
@@ -174,8 +171,8 @@ contains
   subroutine execute_private(self, in, out, transpose_type)
   !! Executes single transposition
     class(transpose_plan_host),     intent(inout) :: self         !< Transposition class
-    type(*),  DEVICE_PTR  target,   intent(inout) :: in(..)       !< Incoming buffer of any rank and kind
-    type(*),  DEVICE_PTR  target,   intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
+    type(*),              target,   intent(inout) :: in(..)       !< Incoming buffer of any rank and kind
+    type(*),              target,   intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
     type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !< Type of transpose !< Type of transpose
 
     if ( transpose_type%val > 0 ) then

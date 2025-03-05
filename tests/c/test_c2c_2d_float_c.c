@@ -27,7 +27,7 @@
 
 int main(int argc, char *argv[])
 {
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   int32_t nx = 3333, ny = 4444;
 #else
   int32_t nx = 11, ny = 39;
@@ -60,6 +60,13 @@ int main(int argc, char *argv[])
   dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #endif
 
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  dtfft_config_t conf;
+  dtfft_create_config(&conf);
+  conf.platform = DTFFT_PLATFORM_CUDA;
+  dtfft_set_config(conf);
+#endif
+
   assign_device_to_process();
 
   dtfft_plan_t plan;
@@ -72,9 +79,9 @@ int main(int argc, char *argv[])
   size_t in_size = in_counts[0] * in_counts[1];
   size_t out_size = out_counts[0] * out_counts[1];
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   cudaStream_t stream;
-  DTFFT_CALL( dtfft_get_stream(plan, &stream) )
+  DTFFT_CALL( dtfft_get_stream(plan, (dtfft_stream_t*)&stream) )
 #endif
 
   dtfftf_complex *in, *out, *check;
@@ -93,7 +100,7 @@ int main(int argc, char *argv[])
   double tf = 0.0 - MPI_Wtime();
 #pragma acc host_data use_device(in, out)
   DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, NULL) )
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
 #endif
   tf += MPI_Wtime();
@@ -114,7 +121,7 @@ int main(int argc, char *argv[])
   double tb = 0.0 - MPI_Wtime();
 #pragma acc host_data use_device(in, out)
   DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, NULL) )
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
 #endif
   tb += MPI_Wtime();

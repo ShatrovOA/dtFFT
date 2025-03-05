@@ -21,8 +21,8 @@ module dtfft_backend_mpi
 !! This module implements MPI backend: `backend_mpi`
 use iso_fortran_env
 use iso_c_binding
-use cudafor
 use dtfft_abstract_backend
+use dtfft_interface_cuda
 use dtfft_parameters
 use dtfft_utils
 #include "dtfft_mpi.h"
@@ -97,9 +97,11 @@ contains
     self%n_requests = 0
   end subroutine destoy_helper
 
-  subroutine create_mpi(self, helper)
-    class(backend_mpi),         intent(inout) :: self       !< Abstract GPU Backend
-    type(backend_helper),       intent(in)    :: helper     !< Backend helper
+  subroutine create_mpi(self, helper, tranpose_type, base_storage)
+    class(backend_mpi),           intent(inout) :: self       !< MPI GPU Backend
+    type(backend_helper),         intent(in)    :: helper     !< Backend helper
+    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
+    integer(int8),                intent(in)    :: base_storage   !< Number of bytes to store single element
 
     if ( .not. is_backend_mpi(self%gpu_backend) ) error stop "dtFFT Internal Error: .not. is_backend_mpi"
 
@@ -120,10 +122,10 @@ contains
   end subroutine destroy_mpi
 
   subroutine execute_mpi(self, in, out, stream)
-    class(backend_mpi),           intent(inout) :: self
-    real(real32),   DEVICE_PTR    intent(inout) :: in(:)      !< Send pointer
-    real(real32),   DEVICE_PTR    intent(inout) :: out(:)     !< Recv pointer
-    integer(cuda_stream_kind),    intent(in)    :: stream     !< Main execution CUDA stream
+    class(backend_mpi),           intent(inout) :: self       !< MPI GPU Backend
+    real(real32),   target,       intent(inout) :: in(:)      !< Send pointer
+    real(real32),   target,       intent(inout) :: out(:)     !< Recv pointer
+    type(dtfft_stream_t),         intent(in)    :: stream     !< Main execution CUDA stream
     integer(int32)                              :: mpi_ierr
     logical,                      allocatable   :: is_complete_comm(:)  !< Testing for request completion
     integer(int32) :: request_counter, i
@@ -165,8 +167,8 @@ contains
     TYPE_MPI_COMM,            intent(in)    :: comm
     type(mpi_backend_helper), intent(inout) :: send
     type(mpi_backend_helper), intent(inout) :: recv
-    real(real32), DEVICE_PTR  intent(in)    :: in(:)
-    real(real32), DEVICE_PTR  intent(inout) :: out(:)
+    real(real32),             intent(in)    :: in(:)
+    real(real32),             intent(inout) :: out(:)
     integer(int32) :: send_request_counter, recv_request_counter
     integer(int32) :: i, comm_size, mpi_ierr
 
@@ -195,8 +197,8 @@ contains
       send%n_requests = send_request_counter; send%is_request_created = .true.
     endif
 
-    call MPI_Startall(send%n_requests, send%requests, mpi_ierr)
     call MPI_Startall(recv%n_requests, recv%requests, mpi_ierr)
+    call MPI_Startall(send%n_requests, send%requests, mpi_ierr)
 #else
     do i = 0, comm_size - 1
       if ( recv%counts(i) > 0 ) then
@@ -222,8 +224,8 @@ contains
     TYPE_MPI_COMM,            intent(in)    :: comm
     type(mpi_backend_helper), intent(inout) :: send
     type(mpi_backend_helper), intent(inout) :: recv
-    real(real32), DEVICE_PTR  intent(in)    :: in(:)
-    real(real32), DEVICE_PTR  intent(inout) :: out(:)
+    real(real32),             intent(in)    :: in(:)
+    real(real32),             intent(inout) :: out(:)
     integer(int32) :: mpi_ierr
 
 #if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)

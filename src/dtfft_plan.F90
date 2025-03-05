@@ -35,12 +35,13 @@ use dtfft_executor_cufft_m,           only: cufft_executor
 #ifdef DTFFT_WITH_VKFFT
 use dtfft_executor_vkfft_m,           only: vkfft_executor
 #endif
+use dtfft_config
 use dtfft_pencil,                     only: pencil, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
 use dtfft_parameters
 use dtfft_transpose_plan_host,        only: transpose_plan_host
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
-use cudafor
+use dtfft_interface_cuda
 use dtfft_nvrtc_kernel,               only: clean_unused_cache
 use dtfft_transpose_plan_cuda,        only: transpose_plan_cuda
 #endif
@@ -80,25 +81,6 @@ public :: dtfft_plan_r2r_t
 #define CHECK_OPTIONAL_CALL( func )                 \
   ierr = func;                                      \
   CHECK_ERROR_AND_RETURN
-
-  interface
-    function is_same_ptr(ptr1, ptr2) result(bool) bind(C)
-    import
-    !! Checks if two pointers are the same
-    !! Both Host and Device pointers are supported
-      type(c_ptr), value  :: ptr1   !< First pointer
-      type(c_ptr), value  :: ptr2   !< Second pointer
-      logical(c_bool)     :: bool   !< Result
-    end function is_same_ptr
-
-#ifdef DTFFT_WITH_CUDA
-    function is_device_ptr(ptr) result(bool) bind(C)
-    import
-      type(c_devptr), value :: ptr    !< Device pointer
-      logical(c_bool)       :: bool   !< Result
-    end function is_device_ptr
-#endif
-  end interface
 
   type :: fft_executor
   !! FFT handle
@@ -146,13 +128,15 @@ public :: dtfft_plan_r2r_t
     !< Transpose plan handle
     type(pencil),                     allocatable :: pencils(:)
     !< Information about data aligment and datatypes
+    type(dtfft_platform_t)                        :: platform
+    !< Execution platform
 #ifdef DTFFT_WITH_CUDA
-    integer(cuda_stream_kind)                     :: stream
+    type(dtfft_stream_t)                          :: stream
     !< CUDA Stream associated with current plan
 #endif
-    real(real32), DEVICE_PTR          pointer     :: aux(:)
+    real(real32),                     pointer     :: aux(:)
     !< Auxiliary buffer
-    type(C_ADDR)                                  :: aux_ptr
+    type(c_ptr)                                   :: aux_ptr
     !< Auxiliary pointer
     type(fft_executor),               allocatable :: fft(:)
     !< Internal fft runners
@@ -185,7 +169,10 @@ public :: dtfft_plan_r2r_t
                                                        mem_free_c8
 #ifdef DTFFT_WITH_CUDA
     procedure,  pass(self), non_overridable, public :: get_gpu_backend    !< Returns selected GPU backend during autotuning
-    procedure,  pass(self), non_overridable, public :: get_stream         !< Returns CUDA stream associated with plan
+    ! procedure,  pass(self), non_overridable, public :: get_stream         !< Returns CUDA stream associated with plan
+    generic, public :: get_stream => get_stream_ptr, get_stream_int64
+    procedure,  pass(self), non_overridable         :: get_stream_ptr
+    procedure,  pass(self), non_overridable         :: get_stream_int64
 #endif
     procedure,  pass(self), non_overridable         :: execute_private    !< Executes plan
     procedure,  pass(self), non_overridable         :: check_create_args  !< Check arguments provided to `create` subroutines
@@ -207,13 +194,14 @@ public :: dtfft_plan_r2r_t
 
 #define OVERLOAD_MEM_ALLOC(suffix,tp,precision,storage)\
   subroutine CONCAT(mem_alloc_,suffix)(self, alloc_size, buf, error_code);\
+    !DEC$ ATTRIBUTES NO_ARG_CHECK :: buf \
     class(dtfft_plan_t),        intent(in)  :: self;\
     integer(int64),             intent(in)  :: alloc_size;\
-    tp(precision),  DEVICE_PTR  pointer,  contiguous,  intent(out) :: buf(:);\
+    tp(precision),  pointer,  contiguous,  intent(out) :: buf(:);\
     integer(int32), optional,   intent(out)   :: error_code;\
     integer(int32)                            :: ierr;\
     integer(int64) :: alloc_bytes;\
-    type(C_ADDR) :: ptr;\
+    type(c_ptr) :: ptr;\
     alloc_bytes = alloc_size * int(storage, int64);\
     call self%mem_alloc(alloc_bytes, ptr, error_code=ierr);\
     CHECK_ERROR_AND_RETURN_NO_MSG;\
@@ -223,10 +211,11 @@ public :: dtfft_plan_r2r_t
 
 #define OVERLOAD_MEM_FREE(suffix,tp,precision)\
   subroutine CONCAT(mem_free_,suffix)(self, buf, error_code);\
+    !DEC$ ATTRIBUTES NO_ARG_CHECK :: buf\
     class(dtfft_plan_t),        intent(in)    :: self;\
-    tp(precision), DEVICE_PTR target, intent(in) :: buf(..);\
+    tp(precision),      target, intent(in)    :: buf(..);\
     integer(int32), optional,   intent(out)   :: error_code;\
-    call self%mem_free(LOC_FUN(buf), error_code);\
+    call self%mem_free(c_loc(buf), error_code);\
   end subroutine CONCAT(mem_free_,suffix)
 
   type, abstract, extends(dtfft_plan_t) :: dtfft_core_c2c
@@ -281,9 +270,9 @@ contains
   !!
   !! Note, that `in` and `out` cannot be the same, otherwise call to MPI will fail
     class(dtfft_plan_t),          intent(inout) :: self                 !< Abstract plan
-    type(*),  DEVICE_PTR  target, intent(inout) :: in(..)               !< Incoming buffer of any rank and kind. Note that this buffer
+    type(*),              target, intent(inout) :: in(..)               !< Incoming buffer of any rank and kind. Note that this buffer
                                                                         !< will be modified in GPU build
-    type(*),  DEVICE_PTR  target, intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
+    type(*),              target, intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
     type(dtfft_transpose_type_t), intent(in)    :: transpose_type       !< Type of transposition. One of the:
                                                                         !< - `DTFFT_TRANSPOSE_X_TO_Y`
                                                                         !< - `DTFFT_TRANSPOSE_Y_TO_X`
@@ -309,8 +298,10 @@ contains
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
 #ifdef DTFFT_WITH_CUDA
-    ierr = check_device_pointers(in, out)
-    CHECK_ERROR_AND_RETURN
+    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+      ierr = check_device_pointers(in, out, self%plan%get_gpu_backend())
+      CHECK_ERROR_AND_RETURN
+    endif
 #endif
 
     REGION_BEGIN("dtfft_transpose", COLOR_TRANSPOSE)
@@ -321,20 +312,20 @@ contains
 
   subroutine execute(self, in, out, execute_type, aux, error_code)
   !! Executes plan
-    class(dtfft_plan_t),            intent(inout)           :: self             !< Abstract plan
-    type(*),  DEVICE_PTR            intent(inout),  target  :: in(..)           !< Incoming buffer of any rank and kind
-    type(*),  DEVICE_PTR            intent(inout),  target  :: out(..)          !< Resulting buffer of any rank and kind
-    type(dtfft_execute_type_t),     intent(in)              :: execute_type     !< Type of transposition. One of the:
-                                                                                !< - `DTFFT_EXECUTE_FORWARD`
-                                                                                !< - `DTFFT_EXECUTE_BACKWARD`
-                                                                                !<
-                                                                                !< [//]: # (ListBreak)
-    type(*),  DEVICE_PTR  optional, intent(inout),  target  :: aux(..)          !< Optional auxiliary buffer.
-                                                                                !< Size of buffer must be greater than value
-                                                                                !< returned by `alloc_size` parameter of `get_local_sizes` subroutine
-    integer(int32),       optional, intent(out)             :: error_code       !< Optional error code returned to user
-    integer(int32)                                          :: ierr             !< Error code
-    logical                                                 :: inplace          !< Inplace execution flag
+    class(dtfft_plan_t),        intent(inout) :: self             !< Abstract plan
+    type(*),            target, intent(inout) :: in(..)           !< Incoming buffer of any rank and kind
+    type(*),            target, intent(inout) :: out(..)          !< Resulting buffer of any rank and kind
+    type(dtfft_execute_type_t), intent(in)    :: execute_type     !< Type of transposition. One of the:
+                                                                  !< - `DTFFT_EXECUTE_FORWARD`
+                                                                  !< - `DTFFT_EXECUTE_BACKWARD`
+                                                                  !<
+                                                                  !< [//]: # (ListBreak)
+    type(*),  optional, target, intent(inout) :: aux(..)          !< Optional auxiliary buffer.
+                                                                  !< Size of buffer must be greater than value
+                                                                  !< returned by `alloc_size` parameter of `get_local_sizes` subroutine
+    integer(int32), optional,   intent(out)   :: error_code       !< Optional error code returned to user
+    integer(int32)                            :: ierr             !< Error code
+    logical                                   :: inplace          !< Inplace execution flag
 
     inplace = is_same_ptr(c_loc(in), c_loc(out))
     ierr = DTFFT_SUCCESS
@@ -348,13 +339,15 @@ contains
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
     if ( present( aux ) ) then
-      if ( is_same_ptr(c_loc(in), c_loc(aux)) .or. is_same_ptr(c_loc(out), c_loc(aux)) )      &
+      if ( is_same_ptr(c_loc(in), c_loc(aux)) .or. is_same_ptr(c_loc(out), c_loc(aux)) )              &
         ierr = DTFFT_ERROR_INVALID_AUX
       CHECK_ERROR_AND_RETURN
     endif
 #ifdef DTFFT_WITH_CUDA
-    ierr = check_device_pointers(in, out, aux)
-    CHECK_ERROR_AND_RETURN
+    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+      ierr = check_device_pointers(in, out, self%plan%get_gpu_backend(), aux)
+      CHECK_ERROR_AND_RETURN
+    endif
 #endif
 
     REGION_BEGIN("dtfft_execute", COLOR_EXECUTE)
@@ -371,14 +364,14 @@ contains
   subroutine execute_private(self, in, out, execute_type, aux, inplace)
   !! Executes plan with specified auxiliary buffer
     class(dtfft_plan_t),        intent(inout) :: self                 !< Abstract plan
-    type(*),  DEVICE_PTR        intent(inout) :: in(..)               !< Incoming buffer of any rank and kind
-    type(*),  DEVICE_PTR        intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
+    type(*),                    intent(inout) :: in(..)               !< Incoming buffer of any rank and kind
+    type(*),                    intent(inout) :: out(..)              !< Resulting buffer of any rank and kind
     type(dtfft_execute_type_t), intent(in)    :: execute_type         !< Type of transposition. One of the:
                                                                       !< - `DTFFT_EXECUTE_FORWARD`
                                                                       !< - `DTFFT_EXECUTE_BACKWARD`
                                                                       !<
                                                                       !< [//]: # (ListBreak)
-    type(*),  DEVICE_PTR        intent(inout) :: aux(..)              !< Auxiliary buffer.
+    type(*),                    intent(inout) :: aux(..)              !< Auxiliary buffer.
     logical,                    intent(in)    :: inplace              !< Inplace execution flag
 
     if ( self%is_transpose_plan ) then
@@ -593,7 +586,7 @@ contains
   subroutine mem_alloc_ptr(self, alloc_bytes, ptr, error_code)
     class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
     integer(int64),             intent(in)  :: alloc_bytes            !< Number of bytes to allocate
-    type(C_ADDR),               intent(out) :: ptr
+    type(c_ptr),                intent(out) :: ptr
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
 
@@ -603,31 +596,85 @@ contains
     if ( alloc_bytes < int(FLOAT_STORAGE_SIZE, int64) ) ierr = DTFFT_ERROR_INVALID_ALLOC_BYTES
     CHECK_ERROR_AND_RETURN
 
+    if ( self%platform == DTFFT_PLATFORM_HOST ) then
+      if( self%is_transpose_plan ) then
+        call mem_alloc_host(alloc_bytes, ptr)
+      else
+        call self%fft(1)%fft%mem_alloc(alloc_bytes, ptr)
+      endif
+      if ( is_null_ptr(ptr) ) ierr = DTFFT_ERROR_ALLOC_FAILED
 #ifdef DTFFT_WITH_CUDA
-    call self%plan%mem_alloc(alloc_bytes, ptr, ierr)
-#else
-    if( self%is_transpose_plan ) then
-      call mem_alloc_host(alloc_bytes, ptr)
     else
-      call self%fft(1)%fft%mem_alloc(alloc_bytes, ptr)
-    endif
-    if ( is_same_ptr(ptr, c_null_ptr) ) ierr = DTFFT_ERROR_ALLOC_FAILED
+      call self%plan%mem_alloc(self%comm, alloc_bytes, ptr, ierr)
 #endif
+    endif
     CHECK_ERROR_AND_RETURN
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine mem_alloc_ptr
 
-  OVERLOAD_MEM_ALLOC(r4,real,real32,FLOAT_STORAGE_SIZE)
+  subroutine mem_alloc_r4(self, alloc_size, buf, error_code)
+    class(dtfft_plan_t),        intent(in)  :: self
+    integer(int64),             intent(in)  :: alloc_size
+    real(real32),  pointer,  contiguous,  intent(out) :: buf(:)
+    integer(int32), optional,   intent(out)   :: error_code
+    integer(int32)                            :: ierr
+    integer(int64) :: alloc_bytes
+    type(c_ptr) :: ptr
+    alloc_bytes = alloc_size * int(FLOAT_STORAGE_SIZE, int64)
+    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr)
+    CHECK_ERROR_AND_RETURN_NO_MSG
+    call c_f_pointer(ptr, buf, [alloc_size])
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine mem_alloc_r4
 
-  OVERLOAD_MEM_ALLOC(r8,real,real64,DOUBLE_STORAGE_SIZE)
+  subroutine mem_alloc_r8(self, alloc_size, buf, error_code)
+    class(dtfft_plan_t),        intent(in)  :: self
+    integer(int64),             intent(in)  :: alloc_size
+    real(real64),  pointer,  contiguous,  intent(out) :: buf(:)
+    integer(int32), optional,   intent(out)   :: error_code
+    integer(int32)                            :: ierr
+    integer(int64) :: alloc_bytes
+    type(c_ptr) :: ptr
+    alloc_bytes = alloc_size * int(DOUBLE_STORAGE_SIZE, int64)
+    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr)
+    CHECK_ERROR_AND_RETURN_NO_MSG
+    call c_f_pointer(ptr, buf, [alloc_size])
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine mem_alloc_r8
 
-  OVERLOAD_MEM_ALLOC(c4,complex,real32,COMPLEX_STORAGE_SIZE)
+  subroutine mem_alloc_c4(self, alloc_size, buf, error_code)
+    class(dtfft_plan_t),        intent(in)  :: self
+    integer(int64),             intent(in)  :: alloc_size
+    complex(real32),  pointer,  contiguous,  intent(out) :: buf(:)
+    integer(int32), optional,   intent(out)   :: error_code
+    integer(int32)                            :: ierr
+    integer(int64) :: alloc_bytes
+    type(c_ptr) :: ptr
+    alloc_bytes = alloc_size * int(COMPLEX_STORAGE_SIZE, int64)
+    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr)
+    CHECK_ERROR_AND_RETURN_NO_MSG
+    call c_f_pointer(ptr, buf, [alloc_size])
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine mem_alloc_c4
 
-  OVERLOAD_MEM_ALLOC(c8,complex,real64,DOUBLE_COMPLEX_STORAGE_SIZE)
+  subroutine mem_alloc_c8(self, alloc_size, buf, error_code)
+    class(dtfft_plan_t),        intent(in)  :: self
+    integer(int64),             intent(in)  :: alloc_size
+    complex(real64),  pointer,  contiguous,  intent(out) :: buf(:)
+    integer(int32), optional,   intent(out)   :: error_code
+    integer(int32)                            :: ierr
+    integer(int64) :: alloc_bytes
+    type(c_ptr) :: ptr
+    alloc_bytes = alloc_size * int(DOUBLE_COMPLEX_STORAGE_SIZE, int64)
+    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr)
+    CHECK_ERROR_AND_RETURN_NO_MSG
+    call c_f_pointer(ptr, buf, [alloc_size])
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine mem_alloc_c8
 
   subroutine mem_free_ptr(self, ptr, error_code)
     class(dtfft_plan_t),        intent(in)    :: self                 !< Abstract plan
-    type(C_ADDR),               intent(in)    :: ptr
+    type(c_ptr),                intent(in)    :: ptr
     integer(int32), optional,   intent(out)   :: error_code             !< Optional error code returned to user
     integer(int32)                            :: ierr                   !< Error code
 
@@ -648,13 +695,33 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine mem_free_ptr
 
-  OVERLOAD_MEM_FREE(r4,real,real32)
+  subroutine mem_free_r4(self, buf, error_code)
+    class(dtfft_plan_t),        intent(in)    :: self
+    real(real32),      target,  intent(in)    :: buf(..)
+    integer(int32), optional,   intent(out)   :: error_code
+    call self%mem_free(c_loc(buf), error_code)
+  end subroutine mem_free_r4
 
-  OVERLOAD_MEM_FREE(r8,real,real64)
+  subroutine mem_free_r8(self, buf, error_code)
+    class(dtfft_plan_t),        intent(in)    :: self
+    real(real64),      target,  intent(in)    :: buf(..)
+    integer(int32), optional,   intent(out)   :: error_code
+    call self%mem_free(c_loc(buf), error_code)
+  end subroutine mem_free_r8
 
-  OVERLOAD_MEM_FREE(c4,complex,real32)
+  subroutine mem_free_c4(self, buf, error_code)
+    class(dtfft_plan_t),        intent(in)    :: self
+    complex(real32),   target,  intent(in)    :: buf(..)
+    integer(int32), optional,   intent(out)   :: error_code
+    call self%mem_free(c_loc(buf), error_code)
+  end subroutine mem_free_c4
 
-  OVERLOAD_MEM_FREE(c8,complex,real64)
+  subroutine mem_free_c8(self, buf, error_code)
+    class(dtfft_plan_t),        intent(in)    :: self
+    complex(real64),   target,  intent(in)    :: buf(..)
+    integer(int32), optional,   intent(out)   :: error_code
+    call self%mem_free(c_loc(buf), error_code)
+  end subroutine mem_free_c8
 
   subroutine report(self, error_code)
   !! Prints plan-related information to stdout
@@ -673,6 +740,13 @@ contains
     else
       WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2))//"x"//int_to_str(self%dims(3)))
     endif
+#ifdef DTFFT_WITH_CUDA
+    if ( self%platform == DTFFT_PLATFORM_HOST ) then
+      WRITE_REPORT("  Execution platform   :  HOST")
+    else
+      WRITE_REPORT("  Execution platform   :  CUDA")
+    endif
+#endif
     select type( self )
     class is ( dtfft_plan_c2c_t )
       WRITE_REPORT("  Plan type            :  Complex-to-Complex")
@@ -722,7 +796,7 @@ contains
     integer(int32)                          :: ierr                   !< Error code
 
     ierr = DTFFT_SUCCESS
-    get_gpu_backend = dtfft_gpu_backend_t(0)
+    get_gpu_backend = BACKEND_NOT_SET
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     if ( present( error_code ) ) error_code = ierr
     if ( ierr /= DTFFT_SUCCESS ) return
@@ -730,31 +804,62 @@ contains
     get_gpu_backend = self%plan%get_gpu_backend()
   end function get_gpu_backend
 
-  integer(cuda_stream_kind) function get_stream(self, error_code)
+  subroutine get_stream_ptr(self, stream, error_code)
   !! Returns CUDA stream associated with plan
     class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
+    type(dtfft_stream_t),       intent(out) :: stream
+    integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
+    integer(int32)                          :: ierr                   !< Error code
+
+    ierr = DTFFT_SUCCESS
+    stream = NULL_STREAM
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    if ( self%platform == DTFFT_PLATFORM_HOST ) ierr = DTFFT_ERROR_INVALID_USAGE
+    CHECK_ERROR_AND_RETURN
+
+    stream = self%stream
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine get_stream_ptr
+
+  subroutine get_stream_int64(self, stream, error_code)
+  !! Returns CUDA stream associated with plan
+    class(dtfft_plan_t),        intent(in)  :: self                   !< Abstract plan
+    integer(int64),             intent(out) :: stream
     integer(int32), optional,   intent(out) :: error_code             !< Optional error code returned to user
     integer(int32)                          :: ierr                   !< Error code
 
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
-    if ( present( error_code ) ) error_code = ierr
-    if ( ierr /= DTFFT_SUCCESS ) return
+    CHECK_ERROR_AND_RETURN
+    if ( self%platform == DTFFT_PLATFORM_HOST ) ierr = DTFFT_ERROR_INVALID_USAGE
+    CHECK_ERROR_AND_RETURN
 
-    get_stream = self%stream
-  end function get_stream
+    stream = transfer(self%stream, stream)
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine get_stream_int64
 
-  integer(int32) function check_device_pointers(in, out, aux) result(error_code)
+  integer(int32) function check_device_pointers(in, out, gpu_backend, aux) result(error_code)
   !! Checks if device pointers are provided by user
-    type(*),  DEVICE_PTR            intent(inout) :: in(..)           !< Incoming buffer of any rank and kind
-    type(*),  DEVICE_PTR            intent(inout) :: out(..)          !< Resulting buffer of any rank and kind
-    type(*),  DEVICE_PTR  optional, intent(inout) :: aux(..)          !< Optional auxiliary buffer.
+    type(*),    target,           intent(in)  :: in(..)           !< Incoming buffer of any rank and kind
+    type(*),    target,           intent(in)  :: out(..)          !< Resulting buffer of any rank and kind
+    type(dtfft_gpu_backend_t),    intent(in)  :: gpu_backend
+    type(*),    target, optional, intent(in)  :: aux(..)          !< Optional auxiliary buffer.
     logical(c_bool) :: is_devptr
 
     error_code = DTFFT_SUCCESS
-    is_devptr = is_device_ptr(c_devloc(in)) .and. is_device_ptr(c_devloc(out))
-    if ( present(aux) ) is_devptr = is_devptr .and. is_device_ptr(c_devloc(aux))
-    if ( .not. is_devptr ) error_code = DTFFT_ERROR_NOT_DEVICE_PTR
+
+    if ( is_backend_nvshmem(gpu_backend) ) then
+#ifdef DTFFT_WITH_NVSHMEM
+      is_devptr = is_nvshmem_ptr(c_loc(in)) .and. is_nvshmem_ptr(c_loc(out))
+      if ( present(aux) ) is_devptr = is_devptr .and. is_device_ptr(c_loc(aux))
+      if ( .not. is_devptr ) error_code = DTFFT_ERROR_NOT_NVSHMEM_PTR
+#endif
+    else
+      is_devptr = is_device_ptr(c_loc(in)) .and. is_device_ptr(c_loc(out))
+      if ( present(aux) ) is_devptr = is_devptr .and. is_device_ptr(c_loc(aux))
+      if ( .not. is_devptr ) error_code = DTFFT_ERROR_NOT_DEVICE_PTR
+    endif
   end function check_device_pointers
 #endif
 
@@ -790,6 +895,11 @@ contains
     class default
       call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
     endselect
+#ifdef DTFFT_WITH_CUDA
+    if ( is_backend_nvshmem( self%get_gpu_backend() ) .and. present(alloc_size) ) then
+      call MPI_Allreduce(MPI_IN_PLACE, alloc_size, 1, MPI_INTEGER8, MPI_MAX, self%comm, ierr)
+    endif
+#endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine get_local_sizes
 
@@ -840,37 +950,38 @@ contains
 
     comm_ = MPI_COMM_WORLD; if ( present( comm ) ) comm_ = comm
 #ifdef DTFFT_WITH_CUDA
-    block
-      TYPE_MPI_COMM   :: local_comm
-      integer(int32)  :: n_devices, current_device, local_rank, local_size, ierr
-      integer(int32), allocatable :: local_devices(:)
+    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+      block
+        TYPE_MPI_COMM   :: local_comm
+        integer(int32)  :: n_devices, current_device, local_rank, local_size, ierr
+        integer(int32), allocatable :: local_devices(:)
 
-      call MPI_Comm_split_Type(comm_, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, local_comm, ierr)
-      call MPI_Comm_size(local_comm, local_size, ierr)
-      call MPI_Comm_rank(local_comm, local_rank, ierr)
+        call MPI_Comm_split_Type(comm_, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, local_comm, ierr)
+        call MPI_Comm_size(local_comm, local_size, ierr)
+        call MPI_Comm_rank(local_comm, local_rank, ierr)
 
-      allocate( local_devices(local_size) )
+        allocate( local_devices(local_size) )
 
-      CUDA_CALL( "cudaGetDeviceCount", cudaGetDeviceCount(n_devices) )
-      CUDA_CALL( "cudaGetDevice", cudaGetDevice(current_device) )
+        CUDA_CALL( "cudaGetDeviceCount", cudaGetDeviceCount(n_devices) )
+        CUDA_CALL( "cudaGetDevice", cudaGetDevice(current_device) )
 
-      call MPI_Allgather(current_device, 1, MPI_INTEGER4, local_devices, 1, MPI_INTEGER4, local_comm, ierr)
-      call MPI_Comm_free(local_comm, ierr)
-      if ( count_unique(local_devices) /= local_size ) then
-        create_private = DTFFT_ERROR_GPU_NOT_SET
-        return
-      endif
+        call MPI_Allgather(current_device, 1, MPI_INTEGER4, local_devices, 1, MPI_INTEGER4, local_comm, ierr)
+        call MPI_Comm_free(local_comm, ierr)
+        if ( count_unique(local_devices) /= local_size ) then
+          create_private = DTFFT_ERROR_GPU_NOT_SET
+          return
+        endif
 
-      deallocate( local_devices )
-    endblock
+        deallocate( local_devices )
+      endblock
+    endif
 
-    if ( get_user_gpu_backend() == DTFFT_GPU_BACKEND_MPI_DATATYPE ) then
+    if ( get_user_gpu_backend() == DTFFT_GPU_BACKEND_MPI_DATATYPE .or. self%platform == DTFFT_PLATFORM_HOST ) then
       allocate( transpose_plan_host :: self%plan )
     else
       allocate( transpose_plan_cuda :: self%plan )
+      self%stream = get_user_stream()
     endif
-
-    self%stream = get_user_stream()
 #else
     allocate( transpose_plan_host :: self%plan )
 #endif
@@ -898,6 +1009,8 @@ contains
     integer(int32)          :: dim              !< Counter
 
     CHECK_INTERNAL_CALL( init_internal() )
+
+    self%platform = get_platform()
 
     self%ndims = size(dims, kind=int8)
     CHECK_INPUT_PARAMETER(self%ndims, is_valid_dimension, DTFFT_ERROR_INVALID_N_DIMENSIONS)
@@ -928,6 +1041,13 @@ contains
     self%executor = DTFFT_EXECUTOR_NONE
     if ( present(executor) ) then
       CHECK_INPUT_PARAMETER(executor, is_valid_executor, DTFFT_ERROR_INVALID_EXECUTOR)
+#ifdef DTFFT_WITH_CUDA
+      if ( self%platform == DTFFT_PLATFORM_HOST ) then
+        CHECK_INPUT_PARAMETER(executor, is_host_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE)
+      else if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+        CHECK_INPUT_PARAMETER(executor, is_cuda_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE)
+      endif
+#endif
       self%executor = executor
     endif
     if ( self%executor == DTFFT_EXECUTOR_NONE ) self%is_transpose_plan = .true.
@@ -1017,7 +1137,7 @@ contains
   subroutine check_aux(self, aux)
   !! Checks if aux buffer was passed by user and if not will allocate one internally
     class(dtfft_plan_t),            intent(inout) :: self                 !< Abstract plan
-    type(*), DEVICE_PTR   optional, intent(inout) :: aux(..)              !< Optional auxiliary buffer.
+    type(*),              optional, intent(inout) :: aux(..)              !< Optional auxiliary buffer.
     integer(int64)                                :: alloc_size           !< Number of elements to be allocated
     character(len=100)                            :: debug_msg            !< Logging allocation size
 
@@ -1027,10 +1147,7 @@ contains
     write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size, " bytes"
     WRITE_DEBUG(debug_msg)
     call self%mem_alloc(alloc_size, self%aux_ptr)
-#if defined(DTFFT_WITH_CUDA) && defined(__GFORTRAN__)
-#else
     call c_f_pointer(self%aux_ptr, self%aux, [ alloc_size /  int(FLOAT_STORAGE_SIZE, int64) ])
-#endif
     self%is_aux_alloc = .true.
   end subroutine check_aux
 

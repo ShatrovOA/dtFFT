@@ -48,10 +48,8 @@ public :: abstract_executor
     procedure,  non_overridable,              pass(self), public  :: create               !< Creates FFT plan
     procedure,  non_overridable,              pass(self), public  :: execute              !< Executes plan
     procedure,  non_overridable,              pass(self), public  :: destroy              !< Destroys plan
-#ifndef DTFFT_WITH_CUDA
     procedure(mem_alloc_interface), deferred, nopass,     public  :: mem_alloc            !< Allocates aligned memory
     procedure(mem_free_interface),  deferred, nopass,     public  :: mem_free             !< Frees aligned memory
-#endif
     procedure(create_interface),    deferred, pass(self)          :: create_private       !< Creates FFT plan
     procedure(execute_interface),   deferred, pass(self)          :: execute_private      !< Executes plan
     procedure(destroy_interface),   deferred, pass(self)          :: destroy_private      !< Destroys plan
@@ -90,7 +88,6 @@ public :: abstract_executor
       class(abstract_executor), intent(inout) :: self           !< FFT Executor
     end subroutine destroy_interface
 
-#ifndef DTFFT_WITH_CUDA
     subroutine mem_alloc_interface(alloc_bytes, ptr)
     !! Allocates aligned memory
     import
@@ -103,7 +100,6 @@ public :: abstract_executor
     import
      type(c_ptr),               intent(in)    :: ptr
     end subroutine mem_free_interface
-#endif
   end interface
 
 contains
@@ -197,8 +193,8 @@ contains
   subroutine execute(self, a, b, sign)
   !! Executes plan
     class(abstract_executor),     intent(in)    :: self             !< FFT Executor
-    type(*),  DEVICE_PTR  target, intent(inout) :: a(..)            !< Source buffer
-    type(*),  DEVICE_PTR  target, intent(inout) :: b(..)            !< Target buffer
+    type(*),              target, intent(inout) :: a(..)            !< Source buffer
+    type(*),              target, intent(inout) :: b(..)            !< Target buffer
     integer(int8),                intent(in)    :: sign             !< Sign of transform
     if ( .not.self%is_created ) return
     PHASE_BEGIN("Executing FFT", COLOR_FFT)

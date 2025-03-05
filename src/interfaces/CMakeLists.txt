@@ -5,3 +5,7 @@ endif()
 if(NOT DTFFT_TRANSPOSE_ONLY)
   add_subdirectory(fft)
 endif()
+
+if (DTFFT_WITH_CUDA)
+ add_subdirectory(cuda)
+endif()

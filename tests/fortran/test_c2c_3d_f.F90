@@ -22,7 +22,7 @@ use iso_fortran_env, only: R8P => real64, I4P => int32, I8P => int64, I1P => int
 use dtfft
 use iso_c_binding
 use test_utils
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
 use cudafor
 use dtfft_utils
 #include "dtfft_cuda.h"
@@ -32,7 +32,7 @@ use dtfft_utils
 implicit none
   complex(R8P),  allocatable :: inout(:), check(:,:,:), aux(:)
   real(R8P) :: err, local_error, rnd1, rnd2
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(I4P), parameter :: nx = 2011, ny = 111, nz = 755
 #else
   integer(I4P), parameter :: nx = 129, ny = 123, nz = 33
@@ -43,7 +43,7 @@ implicit none
   integer(I4P) :: in_counts(3), out_counts(3), iter
   integer(I8P)  :: alloc_size
   real(R8P) :: ts, tf, tb
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
   type(dtfft_gpu_backend_t) :: selected_backend
 #endif
@@ -74,7 +74,7 @@ implicit none
 
   conf = dtfft_config_t()
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   block
     use openacc
     integer(I4P) :: num_devices, my_device, host_rank, host_size
@@ -94,6 +94,7 @@ implicit none
     call acc_set_device_num(my_device, acc_device_nvidia)
 
     conf%gpu_backend = DTFFT_GPU_BACKEND_MPI_A2A
+    conf%platform = DTFFT_PLATFORM_CUDA
   endblock
 #endif
 
@@ -107,11 +108,9 @@ implicit none
   alloc_size = plan%get_alloc_size(ierr)
   DTFFT_CHECK(ierr)
 
-#ifdef DTFFT_WITH_CUDA
-  stream = plan%get_stream(error_code=ierr)
-  DTFFT_CHECK(ierr)
-  selected_backend = plan%get_gpu_backend(error_code=ierr)
-  DTFFT_CHECK(ierr)
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  call plan%get_stream(stream, error_code=ierr); DTFFT_CHECK(ierr)
+  selected_backend = plan%get_gpu_backend(error_code=ierr); DTFFT_CHECK(ierr)
   if(comm_rank == 0) then
     write(output_unit, '(a)') "Selected backend: '"//dtfft_get_gpu_backend_string(selected_backend)//"'"
   endif
@@ -143,7 +142,7 @@ implicit none
     call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, aux,  error_code=ierr)
 !$acc end host_data
     DTFFT_CHECK(ierr)
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
 
@@ -159,7 +158,7 @@ implicit none
     call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, aux, error_code=ierr)
   !$acc end host_data
     DTFFT_CHECK(ierr)
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
     tb = tb + ts + MPI_Wtime()

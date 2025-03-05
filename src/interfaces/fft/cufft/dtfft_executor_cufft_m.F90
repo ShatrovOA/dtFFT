@@ -21,13 +21,13 @@ module dtfft_executor_cufft_m
 !!
 !! https://docs.nvidia.com/cuda/cufft/index.html
 use iso_c_binding,                  only: c_ptr, c_int, c_null_ptr, c_loc
-use iso_fortran_env,                only: int8, int32
-use cudafor,                        only: cudaSuccess
+use iso_fortran_env,                only: int8, int32, int64
 use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C
-use dtfft_interface_cufft_m
-use dtfft_interface_cufft_native_m
-use dtfft_utils,                    only: int_to_str, get_user_stream
+use dtfft_interface_cufft
+use dtfft_interface_cuda
+use dtfft_utils,                    only: int_to_str
+use dtfft_config,                   only: get_user_stream
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 implicit none
@@ -41,6 +41,8 @@ public :: cufft_executor
     procedure :: create_private => create     !< Creates FFT plan via cuFFT Interface
     procedure :: execute_private => execute   !< Executes cuFFT plan
     procedure :: destroy_private => destroy   !< Destroys cuFFT plan
+    procedure, nopass :: mem_alloc
+    procedure, nopass :: mem_free
   end type cufft_executor
 
 contains
@@ -128,4 +130,17 @@ contains
       CUFFT_CALL( "cufftDestroy", cufftDestroy(self%plan_backward) )
     endif
   end subroutine destroy
+
+  subroutine mem_alloc(alloc_bytes, ptr)
+    integer(int64),           intent(in)  :: alloc_bytes
+    type(c_ptr),              intent(out) :: ptr
+
+    error stop "mem_alloc for cuFFT called"
+  end subroutine mem_alloc
+
+  subroutine mem_free(ptr)
+    type(c_ptr),               intent(in)   :: ptr
+
+    error stop "mem_free for cuFFT called"
+  end subroutine mem_free
 end module dtfft_executor_cufft_m

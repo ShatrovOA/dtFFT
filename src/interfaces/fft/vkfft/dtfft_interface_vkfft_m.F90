@@ -1,6 +1,6 @@
 module dtfft_interface_vkfft_m
 use iso_c_binding, only: c_ptr, c_int, c_int8_t, c_int32_t
-use cudafor, only: cuda_stream_kind
+use dtfft_parameters, only: dtfft_stream_t
 implicit none
 private
 public :: vkfft_create
@@ -19,7 +19,7 @@ public :: vkfft_destroy
       integer(c_int8_t),          value :: c2r          !< Is C2R transform required
       integer(c_int8_t),          value :: dct          !< Is DCT transform required
       integer(c_int8_t),          value :: dst          !< Is DST transform required
-      integer(cuda_stream_kind),  value :: stream       !< CUDA stream
+      type(dtfft_stream_t),       value :: stream       !< CUDA stream
       type(c_ptr)                       :: app_handle   !< vkFFT application handle
     end subroutine vkfft_create
 

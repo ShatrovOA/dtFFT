@@ -32,6 +32,8 @@ Enumerators
 
 .. doxygenenum:: dtfft::GPUBackend
 
+.. doxygenenum:: dtfft::Platform
+
 Functions
 =========
 

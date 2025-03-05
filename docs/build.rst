@@ -71,7 +71,8 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
    * - ``DTFFT_USE_MPI``
      - ``ON`` / ``OFF``
      - ``ON``
-     - Uses the Fortran ``mpi`` module instead of ``mpi_f08`` for MPI integration.
+     - Uses the Fortran ``mpi`` module instead of ``mpi_f08`` for MPI integration. This make possible to pass ``integer`` to ``comm``
+       parameter when creating plan, but can produce integer overflow when using CUDA build and big array sizes.
    * - ``DTFFT_BUILD_C_CXX_API``
      - ``ON`` / ``OFF``
      - ``ON``

@@ -63,6 +63,13 @@ int main(int argc, char *argv[])
 
   assign_device_to_process();
 
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  dtfft_config_t conf;
+  dtfft_create_config(&conf);
+  conf.platform = DTFFT_PLATFORM_CUDA;
+  dtfft_set_config(conf);
+#endif
+
   // Create plan
   DTFFT_CALL( dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor, &plan) )
 
@@ -91,7 +98,7 @@ int main(int argc, char *argv[])
 #pragma acc host_data use_device(inout, work)
   DTFFT_CALL( dtfft_execute(plan, inout, inout, DTFFT_EXECUTE_FORWARD, work) );
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
 #endif
   tf += MPI_Wtime();
@@ -107,7 +114,7 @@ int main(int argc, char *argv[])
 #pragma acc host_data use_device(inout, work)
   DTFFT_CALL( dtfft_execute(plan, inout, inout, DTFFT_EXECUTE_BACKWARD, work) );
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
 #endif
   tb += MPI_Wtime();

@@ -30,10 +30,6 @@
 #include "dtfft_config.h"
 #include <mpi.h>
 
-#ifdef DTFFT_WITH_CUDA
-#include <cuda_runtime_api.h> // cudaStream_t
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,7 +45,7 @@ extern "C" {
 #define DTFFT_VERSION_PATCH CONF_DTFFT_VERSION_PATCH
 /** dtFFT Version Code. Can be used in Version comparison */
 #define DTFFT_VERSION_CODE CONF_DTFFT_VERSION_CODE
-/** Generates Version Code based on Major,Minor,Patch */
+/** Generates Version Code based on Major, Minor, Patch */
 #define DTFFT_VERSION(X,Y,Z) CONF_DTFFT_VERSION(X,Y,Z)
 
 /** @return Version Code defined during compilation */
@@ -60,7 +56,7 @@ dtfft_get_version();
  *
  * Should be used to check error codes returned by ``dtFFT``.
  *
- * @details  If error occurs, will write error message to ``stderr`` and call ``MPI_Abort``
+ * @details Writes an error message to ``stderr`` and calls ``MPI_Abort`` if an error occurs.
  *
  * **Example**
  * @code
@@ -154,7 +150,13 @@ typedef enum {
 /** Passed `effort` ==  `::DTFFT_PATIENT` but all GPU Backends has been disabled by `::dtfft_config_t`*/
   DTFFT_ERROR_GPU_BACKENDS_DISABLED = CONF_DTFFT_ERROR_GPU_BACKENDS_DISABLED,
 /** One of pointers passed to `::dtfft_execute` or `::dtfft_transpose` cannot be accessed from device */
-  DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR
+  DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR,
+/** One of pointers passed to `::dtfft_execute` or `::dtfft_transpose` is not and `NVSHMEM` pointer */
+  DTFFT_ERROR_NOT_NVSHMEM_PTR = CONF_DTFFT_ERROR_NOT_NVSHMEM_PTR,
+/** Invalid platform provided */
+  DTFFT_ERROR_INVALID_PLATFORM = CONF_DTFFT_ERROR_INVALID_PLATFORM,
+/** Invalid executor provided for selected platform */
+  DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
 } dtfft_error_code_t;
 
 
@@ -213,7 +215,7 @@ typedef enum {
  */
   DTFFT_MEASURE = CONF_DTFFT_MEASURE,
 
-/** Same as `::DTFFT_MEASURE` plus cycle through various send and recieve MPI_Datatypes.
+/** Same as `::DTFFT_MEASURE` plus cycle through various send and receive MPI_Datatypes.
  * For GPU Build this flag will run autotune procedure to find best backend
  */
   DTFFT_PATIENT = CONF_DTFFT_PATIENT
@@ -270,13 +272,13 @@ typedef enum {
 /** Real-to-Real Plan constructor.
  *
  * @param[in]      ndims                  Number of dimensions: 2 or 3
- * @param[in]      dims                   Buffer of size `ndims` with global dimensions in reversed order.
- *                                          dims[0] must be fastest varying
- * @param[in]      kinds                  Buffer of size `ndims` with Real FFT kinds in reversed order
+ * @param[in]      dims                   Array of size `ndims` containing global dimensions in reverse order
+ *                                          dims[0] must be the fastest varying
+ * @param[in]      kinds                  Array of size `ndims` containing Real FFT kinds in reverse order.
  *                                          Can be NULL if `executor` == `::DTFFT_EXECUTOR_NONE`
  * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]      precision              Precision of transform.
- * @param[in]      effort                 How hard ``dtFFT`` should look for best plan.
+ * @param[in]      effort                 How thoroughly `dtFFT` searches for the optimal plan
  * @param[in]      executor               Type of external FFT executor.
  * @param[out]     plan                   Plan handle ready to be executed
  *
@@ -296,13 +298,13 @@ dtfft_create_plan_r2r(
 
 /** Complex-to-Complex Plan constructor.
  *
- * @param[in]      ndims                 Number of dimensions: 2 or 3
- * @param[in]      dims                  Buffer of size `ndims` with global dimensions in reversed order.
- * @param[in]      comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
- * @param[in]      precision             Precision of transform.
- * @param[in]      effort           How hard ``dtFFT`` should look for best plan.
- * @param[in]      executor         Type of external FFT executor.
- * @param[out]     plan                  Plan handle ready to be executed
+ * @param[in]      ndims                  Number of dimensions: 2 or 3
+ * @param[in]      dims                   Array of size `ndims` containing global dimensions in reverse order
+ * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+ * @param[in]      precision              Precision of transform.
+ * @param[in]      effort                 How thoroughly `dtFFT` searches for the optimal plan
+ * @param[in]      executor               Type of external FFT executor.
+ * @param[out]     plan                   Plan handle ready to be executed
  *
  * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
  */
@@ -320,13 +322,13 @@ dtfft_create_plan_c2c(
 #ifndef DTFFT_TRANSPOSE_ONLY
 /** Real-to-Complex Plan constructor.
  *
- * @param[in]      ndims                 Number of dimensions: 2 or 3
- * @param[in]      dims                  Buffer of size `ndims` with global dimensions in reversed order.
- * @param[in]      comm                  MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
- * @param[in]      precision             Precision of transform.
- * @param[in]      effort           How hard ``dtFFT`` should look for best plan.
- * @param[in]      executor         Type of external FFT executor
- * @param[out]     plan                  Plan handle ready to be executed
+ * @param[in]      ndims                  Number of dimensions: 2 or 3
+ * @param[in]      dims                   Array of size `ndims` containing global dimensions in reverse order
+ * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+ * @param[in]      precision              Precision of transform.
+ * @param[in]      effort                 How thoroughly `dtFFT` searches for the optimal plan
+ * @param[in]      executor               Type of external FFT executor
+ * @param[out]     plan                   Plan handle ready to be executed
  *
  * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
  *
@@ -356,7 +358,7 @@ dtfft_error_code_t
 dtfft_get_z_slab_enabled(dtfft_plan_t plan, bool *is_z_slab_enabled);
 
 
-/** @brief Plan execution. Neither `in` nor `out` are allowed to be `NULL`. It is safe to pass same pointer to both `in` and `out`.
+/** @brief Plan execution. Neither `in` nor `out` are allowed to be `NULL`. The same pointer can safely be passed to both `in` and `out`.
  *
  * @param[in]      plan            Plan handle
  * @param[inout]   in              Incoming buffer
@@ -403,7 +405,7 @@ dtfft_destroy(dtfft_plan_t *plan);
  * @param[out]     in_counts       Number of elements of local portion of data in `real` space in reversed order
  * @param[out]     out_starts      Starts of local portion of data in `fourier` space in reversed order
  * @param[out]     out_counts      Number of elements of local portion of data in `fourier` space in reversed order
- * @param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
+ * @param[out]     alloc_size      Minimum number of elements to be allocated for `in`, `out` or `aux` buffers.
  *                                 Size of each element in bytes can be obtained by calling `::dtfft_get_element_size`.
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
@@ -414,7 +416,7 @@ dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts,
 /** @brief Wrapper around `dtfft_get_local_sizes` to obtain number of elements only
  *
  * @param[in]      plan            Plan handle
- * @param[out]     alloc_size      Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
+ * @param[out]     alloc_size      Minimum number of elements to be allocated for `in`, `out` or `aux` buffers.
  *                                 Size of each element in bytes can be obtained by calling `::dtfft_get_element_size`.
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
@@ -514,6 +516,28 @@ dtfft_report(dtfft_plan_t plan);
 
 
 #ifdef DTFFT_WITH_CUDA
+/**
+ * @brief `dtFFT` stream representation. 
+ * 
+ * @details For CUDA platform this should be casted from `cudaStream_t`.
+ * 
+ * **Example**
+ * @code
+ *  cudaStream_t stream;
+ *  cudaStreamCreate(&stream);
+ *  dtfft_stream_t dtfftStream = (dtfft_stream_t)stream;
+ * @endcode
+ */
+typedef void *dtfft_stream_t;
+
+/** Enum that specifies the execution platform, such as Host, CUDA, or HIP */
+typedef enum {
+/** Host */
+  DTFFT_PLATFORM_HOST = 1,
+/** CUDA */
+  DTFFT_PLATFORM_CUDA = 2
+} dtfft_platform_t;
+
 
 /** This enum lists the different available backend options.
  * @see dtfft_get_gpu_backend_string, dtfft_get_gpu_backend
@@ -525,26 +549,30 @@ typedef enum {
  */
   DTFFT_GPU_BACKEND_MPI_DATATYPE = CONF_DTFFT_GPU_BACKEND_MPI_DATATYPE,
 
-/** @brief MPI peer-to-peer algorithm */
+/** MPI peer-to-peer algorithm */
   DTFFT_GPU_BACKEND_MPI_P2P = CONF_DTFFT_GPU_BACKEND_MPI_P2P,
 
-/** @brief MPI peer-to-peer algorithm with overlapping data copying and unpacking */
+/** MPI peer-to-peer algorithm with overlapping data copying and unpacking */
   DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED = CONF_DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED,
 
-/** @brief MPI backend using MPI_Alltoallv */
+/** MPI backend using MPI_Alltoallv */
   DTFFT_GPU_BACKEND_MPI_A2A = CONF_DTFFT_GPU_BACKEND_MPI_A2A,
 
-/** @brief NCCL backend */
+/** NCCL backend */
   DTFFT_GPU_BACKEND_NCCL = CONF_DTFFT_GPU_BACKEND_NCCL,
 
-/** @brief NCCL backend with overlapping data copying and unpacking */
+/** NCCL backend with overlapping data copying and unpacking */
   DTFFT_GPU_BACKEND_NCCL_PIPELINED = CONF_DTFFT_GPU_BACKEND_NCCL_PIPELINED,
+
+/** cuFFTMp backend */
+  DTFFT_GPU_BACKEND_CUFFTMP = CONF_DTFFT_GPU_BACKEND_CUFFTMP
 } dtfft_gpu_backend_t;
 
 
 /**
- * @brief Returns stream assosiated with ``dtFFT`` plan.
- * This can either be steam passed by user to `::dtfft_set_config` or stream created internally.
+ * @brief Returns stream associated with ``dtFFT`` plan.
+ * This can either be stream passed by user to `::dtfft_set_config` or stream created internally.
+ * Returns NULL pointer if plan's platform is `::DTFFT_PLATFORM_HOST`.
  *
  * @param[in]      plan           Plan handle
  * @param[out]     stream         CUDA stream associated with plan
@@ -552,7 +580,7 @@ typedef enum {
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
 dtfft_error_code_t
-dtfft_get_stream(dtfft_plan_t plan, cudaStream_t *stream);
+dtfft_get_stream(dtfft_plan_t plan, dtfft_stream_t *stream);
 
 
 /**
@@ -600,6 +628,16 @@ typedef struct {
 
 #ifdef DTFFT_WITH_CUDA
 /**
+ * @brief Selects platform to execute plan.
+ * 
+ * Default is `::DTFFT_PLATFORM_HOST`
+ *
+ * @details This option is only defined in a build with device support.
+ * Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
+ */
+  dtfft_platform_t platform;
+
+/**
  * @brief Main CUDA stream that will be used in dtFFT.
  *
  * @details This parameter is a placeholder for user to set custom stream.
@@ -608,13 +646,15 @@ typedef struct {
  *
  * Stream must not be destroyed before call to `::dtfft_destroy`.
  */
-  cudaStream_t stream;
+  dtfft_stream_t stream;
+
 /**
  * @brief Backend that will be used by dtFFT when `effort` is `::DTFFT_ESTIMATE` or `::DTFFT_MEASURE`.
  *
  * @details Default is `::DTFFT_GPU_BACKEND_NCCL`
  */
   dtfft_gpu_backend_t gpu_backend;
+
 /**
  * @brief Should MPI GPU Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
  *
@@ -633,6 +673,7 @@ typedef struct {
  * but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
  */
   bool enable_mpi_backends;
+
 /**
  * @brief Should pipelined GPU backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
  *
@@ -641,16 +682,17 @@ typedef struct {
  * @note Pipelined backends require additional buffer that user has no control over.
  */
   bool enable_pipelined_backends;
+
 /**
  * @brief Should NCCL Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
  * @details Default is true.
  */
   bool enable_nccl_backends;
+
 /**
- * @brief Should NCCL Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
+ * @brief Should NVSHMEM Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
  * @details Default is true.
  *
- * Unused. Reserved for future.
  */
   bool enable_nvshmem_backends;
 #endif

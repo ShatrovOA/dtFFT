@@ -4,6 +4,16 @@
 Fortran API Reference
 #####################
 
+The ``dtFFT`` library provides a header file, ``dtfft.f03``, which can be included in Fortran source files using ``#include "dtfft.f03"``. 
+This file defines the ``DTFFT_CHECK`` macro for checking error codes returned by library functions:
+
+.. code-block:: fortran
+
+  call plan%execute(a, b, DTFFT_EXECUTE_FORWARD, aux, error_code)
+  DTFFT_CHECK(error_code)  ! Checks for execution errors
+
+All library functionality is contained in the Fortran module ``dtfft``, which should be imported with the ``use dtfft`` statement in your code.
+
 Error Codes
 ===========
 
@@ -95,6 +105,18 @@ All error codes that ``dtFFT`` can return are listed below.
 .. f:variable:: DTFFT_ERROR_PLAN_IS_CREATED
 
   Trying to create already created plan
+
+.. f:variable:: DTFFT_ERROR_ALLOC_FAILED
+
+  Internal allocation failed
+
+.. f:variable:: DTFFT_ERROR_FREE_FAILED
+
+  Internal memory free failed
+
+.. f:variable:: DTFFT_ERROR_INVALID_ALLOC_BYTES
+
+  Invalid ``alloc_bytes`` provided
 
 .. f:variable:: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 

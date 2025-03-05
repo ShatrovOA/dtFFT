@@ -5,14 +5,9 @@
 [![codecov](https://codecov.io/gh/ShatrovOA/dtFFT/graph/badge.svg?token=6BI4AQVH7Z)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
 
-This repository contains new library to perform FFT on a distributed memory cluster. It is written in modern Fortran and uses MPI to handle communications between processes.
-The main idea of this library is to implement zero-copy algorithms in 2D and 3D cases. It uses advanced MPI to create send and recieve MPI Datatypes in a such way that recieved data will be aligned in memory and ready to run 1D FFT.
+**DataTyped Fast Fourier Transform** (`dtFFT`) is a high-performance library for parallel data transpositions and optional Fast Fourier Transforms (FFTs) in multidimensional computing environments. 
 
-Following Fortran's column-major order, consider XYZ as a three-dimensional buffer where the X index varies most quickly. dtFFT will create MPI Derived Datatypes which will produce
-- Forward transform: XYZ --> YXZ --> ZXY
-- Backward transform: ZXY --> YXZ --> XYZ
-
-Special optimization is automatically used in 3D plan in case number of MPI processes is less then number of grid points in Z direction. In such case additional MPI datatype will be created to perform direct data transposition: XYZ --> ZXY.
+Initially designed for zero-copy transpositions using custom MPI datatypes on CPU clusters, it has evolved to support GPU acceleration by compiling CUDA kernels at runtime with ``nvrtc``.
 
 ![Pencils](doc/pencils.png)
 
@@ -28,6 +23,10 @@ Special optimization is automatically used in 3D plan in case number of MPI proc
   -  [MKL](https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-fortran/2024-2/fourier-transform-functions.html)
   -  [cuFFT](https://docs.nvidia.com/cuda/cufft/)
   -  [VkFFT](https://github.com/DTolm/VkFFT)
+- CUDA version supports different backends for data exchange:
+  - MPI
+  - NCCL
+  - cuFFTMp
 
 
 ## Usage

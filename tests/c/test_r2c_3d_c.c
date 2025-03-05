@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
   dtfft_complex *out, *aux;
   int comm_rank, comm_size;
   int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   double *d_in, *d_out;
 #endif
 
@@ -71,8 +71,9 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_create_config(&config) )
 
   config.enable_z_slab = false;
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   config.gpu_backend = DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED;
+  config.platform = DTFFT_PLATFORM_CUDA;
 #endif
   DTFFT_CALL( dtfft_set_config(config) )
 
@@ -89,7 +90,7 @@ int main(int argc, char *argv[])
 
   // Allocate buffers
   check = (double*) malloc(el_size * in_size);
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   in = (double*) malloc(el_size * alloc_size);
   out = (dtfft_complex*) malloc(el_size * alloc_size);
   DTFFT_CALL( dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&d_in) )
@@ -103,14 +104,14 @@ int main(int argc, char *argv[])
   for (size_t i = 0; i < in_size; i++) {
     in[i] = check[i] = (double)(i) / (double)(in_size);
   }
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaMemcpy( d_in, in, el_size * in_size, cudaMemcpyHostToDevice) )
   cudaStream_t stream;
   DTFFT_CALL( dtfft_get_stream(plan, &stream) )
 #endif
   // Forward transpose
   double tf = 0.0 - MPI_Wtime();
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   DTFFT_CALL( dtfft_execute(plan, d_in, d_out, DTFFT_EXECUTE_FORWARD, aux) )
   CUDA_SAFE_CALL( cudaMemcpyAsync(out, d_out, sizeof(dtfft_complex) * out_size, cudaMemcpyDeviceToHost, stream) )
   CUDA_SAFE_CALL( cudaMemcpyAsync(in, d_in, el_size * in_size, cudaMemcpyDeviceToHost, stream) )
@@ -132,7 +133,7 @@ int main(int argc, char *argv[])
 
   // Backward transpose
   double tb = 0.0 - MPI_Wtime();
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaMemcpyAsync(d_out, out, sizeof(dtfft_complex) * out_size, cudaMemcpyHostToDevice, stream) )
   CUDA_SAFE_CALL( cudaMemcpyAsync(d_in, in, el_size * in_size, cudaMemcpyHostToDevice, stream) )
   DTFFT_CALL( dtfft_execute(plan, d_out, d_in, DTFFT_EXECUTE_BACKWARD, aux) );
@@ -156,7 +157,7 @@ int main(int argc, char *argv[])
   free(in);
   free(out);
   free(check);
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaFree(d_in) )
   CUDA_SAFE_CALL( cudaFree(d_out) )
   DTFFT_CALL( dtfft_mem_free(plan, aux) )

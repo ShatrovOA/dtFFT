@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_parameters
 !! This module defines common ``dtFFT`` parameters
-use iso_c_binding,    only: c_int32_t
-use iso_fortran_env,  only: int8, int32, real32, real64
+use iso_c_binding,    only: c_int32_t, c_null_ptr, c_ptr
+use iso_fortran_env,  only: int8, int32, int64, real32, real64
 #include "dtfft_mpi.h"
 #include "dtfft_private.h"
 implicit none
@@ -34,10 +34,13 @@ public :: is_valid_precision, is_valid_r2r_kind
 public :: is_valid_dimension, is_valid_comm_type
 public :: dtfft_get_error_string
 public :: dtfft_get_version
+public :: is_host_executor, is_cuda_executor
+public :: is_valid_platform
 #ifdef DTFFT_WITH_CUDA
 public :: dtfft_gpu_backend_t
 public :: dtfft_get_gpu_backend_string
-public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl
+public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl, is_backend_nvshmem
+public :: dtfft_stream_t
 #endif
 
   integer(int32), parameter, public :: DTFFT_VERSION_MAJOR = CONF_DTFFT_VERSION_MAJOR
@@ -112,7 +115,7 @@ public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend
   !< cuFFT GPU executor
   type(dtfft_executor_t),  parameter,  public :: DTFFT_EXECUTOR_VKFFT = dtfft_executor_t(CONF_DTFFT_EXECUTOR_VKFFT)
   !< VkFFT GPU executor
-  type(dtfft_executor_t),  parameter  :: VALID_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE   &
+  type(dtfft_executor_t),  parameter  :: VALID_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE    &
 #ifdef DTFFT_WITH_FFTW
     ,DTFFT_EXECUTOR_FFTW3                                                             &
 #endif
@@ -126,6 +129,9 @@ public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend
     ,DTFFT_EXECUTOR_VKFFT                                                             &
 #endif
   ]
+
+  type(dtfft_executor_t),  parameter        :: HOST_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE, DTFFT_EXECUTOR_FFTW3, DTFFT_EXECUTOR_MKL]
+  type(dtfft_executor_t),  parameter        :: CUDA_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE, DTFFT_EXECUTOR_CUFFT, DTFFT_EXECUTOR_VKFFT]
 
 !------------------------------------------------------------------------------------------------
 ! FFT Execution directions
@@ -194,7 +200,7 @@ public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend
   type(dtfft_r2r_kind_t),   parameter :: VALID_R2R_KINDS(*) = [DTFFT_DCT_1, DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_4, DTFFT_DST_1, DTFFT_DST_2, DTFFT_DST_3, DTFFT_DST_4]
 
 
-
+public :: operator(==)
   interface operator(==)
     module procedure execute_type_eq
     module procedure transpose_type_eq
@@ -202,12 +208,13 @@ public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend
     module procedure effort_eq
     module procedure precision_eq
     module procedure r2r_kind_eq
+    module procedure platform_eq
 #ifdef DTFFT_WITH_CUDA
     module procedure gpu_backend_eq
 #endif
   end interface
-  public :: operator(==)
 
+public :: operator(/=)
   interface operator(/=)
     module procedure execute_type_ne
     module procedure transpose_type_ne
@@ -215,11 +222,11 @@ public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend
     module procedure effort_ne
     module procedure precision_ne
     module procedure r2r_kind_ne
+    module procedure platform_ne
 #ifdef DTFFT_WITH_CUDA
     module procedure gpu_backend_ne
 #endif
   end interface
-  public :: operator(/=)
 
 !------------------------------------------------------------------------------------------------
 ! Storage sizes
@@ -313,6 +320,12 @@ public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend
   !< Passed `effort` ==  `DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t` */
   integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR
   !< One of pointers passed to `plan.execute` or `plan.transpose` cannot be accessed from device
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_NVSHMEM_PTR = CONF_DTFFT_ERROR_NOT_NVSHMEM_PTR
+  !< One of pointers passed to `plan.execute` or `plan.transpose` is not and `NVSHMEM` pointer
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM = CONF_DTFFT_ERROR_INVALID_PLATFORM
+  !< Invalid platform provided
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
+  !< Invalid executor provided for selected platform
 
 #ifdef DTFFT_WITH_CUDA
 
@@ -339,17 +352,54 @@ public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend
   !< MPI peer-to-peer algorithm with overlapping data copying and unpacking
   type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_NCCL_PIPELINED = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_NCCL_PIPELINED)
   !< NCCL backend with overlapping data copying and unpacking
+  type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_CUFFTMP = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_CUFFTMP)
+  !< cuFFTMp backend
   type(dtfft_gpu_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_gpu_backend_t(-1_int8)
   type(dtfft_gpu_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED, DTFFT_GPU_BACKEND_NCCL_PIPELINED]
   type(dtfft_gpu_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_P2P, DTFFT_GPU_BACKEND_MPI_A2A, DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED]
   type(dtfft_gpu_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_GPU_BACKEND_NCCL, DTFFT_GPU_BACKEND_NCCL_PIPELINED]
-  type(dtfft_gpu_backend_t),  parameter,  public :: VALID_GPU_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_DATATYPE,        &
-                                                                             DTFFT_GPU_BACKEND_MPI_P2P,             &
-                                                                             DTFFT_GPU_BACKEND_MPI_A2A,             &
-                                                                             DTFFT_GPU_BACKEND_NCCL,                &
-                                                                             DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED,   &
-                                                                             DTFFT_GPU_BACKEND_NCCL_PIPELINED]
+  type(dtfft_gpu_backend_t),  parameter :: NVSHMEM_BACKENDS(*) = [DTFFT_GPU_BACKEND_CUFFTMP]
+
+  type(dtfft_gpu_backend_t),  parameter,  public :: VALID_GPU_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_DATATYPE         &
+                                                                             ,DTFFT_GPU_BACKEND_MPI_P2P             &
+                                                                             ,DTFFT_GPU_BACKEND_MPI_A2A             &
+                                                                             ,DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED   &
+#ifdef DTFFT_WITH_NCCL
+                                                                             ,DTFFT_GPU_BACKEND_NCCL_PIPELINED      &
+                                                                             ,DTFFT_GPU_BACKEND_NCCL                &
 #endif
+#ifdef DTFFT_WITH_NVSHMEM
+                                                                             ,DTFFT_GPU_BACKEND_CUFFTMP             &
+#endif
+                                                                             ]
+
+  type, bind(C) :: dtfft_stream_t
+    type(c_ptr) :: stream
+  end type dtfft_stream_t
+
+  type(dtfft_stream_t), parameter,  public :: NULL_STREAM = dtfft_stream_t(c_null_ptr)
+
+  interface dtfft_stream_t
+    module procedure stream_from_int64
+    module procedure stream_from_ptr
+  end interface dtfft_stream_t
+#endif
+
+public :: dtfft_platform_t
+  type, bind(C) :: dtfft_platform_t
+  !! Type that specifies runtime platform, e.g. Host, CUDA, HIP
+    integer(c_int32_t) :: val
+  end type dtfft_platform_t
+
+  type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HOST = dtfft_platform_t(1)
+  !< Host
+  type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_CUDA = dtfft_platform_t(2)
+  !< CUDA
+  type(dtfft_platform_t),         parameter :: VALID_PLATFORMS(*) = [DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA]
+
+  ! type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HIP = dtfft_platform_t(3)
+
+  type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_UNDEFINED = dtfft_platform_t(-1)
 
 #define MAKE_EQ_FUN(datatype, name)                         \
   pure elemental function name(left, right) result(res);    \
@@ -385,6 +435,7 @@ MAKE_EQ_FUN(dtfft_executor_t, executor_eq)
 MAKE_EQ_FUN(dtfft_effort_t, effort_eq)
 MAKE_EQ_FUN(dtfft_precision_t, precision_eq)
 MAKE_EQ_FUN(dtfft_r2r_kind_t, r2r_kind_eq)
+MAKE_EQ_FUN(dtfft_platform_t, platform_eq)
 
 
 MAKE_NE_FUN(dtfft_execute_type_t, execute_type_ne)
@@ -393,6 +444,7 @@ MAKE_NE_FUN(dtfft_executor_t, executor_ne)
 MAKE_NE_FUN(dtfft_effort_t, effort_ne)
 MAKE_NE_FUN(dtfft_precision_t, precision_ne)
 MAKE_NE_FUN(dtfft_r2r_kind_t, r2r_kind_ne)
+MAKE_NE_FUN(dtfft_platform_t, platform_ne)
 
 MAKE_VALID_FUN_DTYPE(dtfft_execute_type_t, is_valid_execute_type, VALID_EXECUTE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_transpose_type_t, is_valid_transpose_type, VALID_TRANSPOSE_TYPES)
@@ -400,6 +452,10 @@ MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_valid_executor, VALID_EXECUTORS)
 MAKE_VALID_FUN_DTYPE(dtfft_effort_t, is_valid_effort, VALID_EFFORTS)
 MAKE_VALID_FUN_DTYPE(dtfft_precision_t, is_valid_precision, VALID_PRECISIONS)
 MAKE_VALID_FUN_DTYPE(dtfft_r2r_kind_t, is_valid_r2r_kind, VALID_R2R_KINDS)
+MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_host_executor, HOST_EXECUTORS)
+MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_cuda_executor, CUDA_EXECUTORS)
+MAKE_VALID_FUN_DTYPE(dtfft_platform_t, is_valid_platform, VALID_PLATFORMS)
+
 MAKE_VALID_FUN(integer(int8), is_valid_dimension, VALID_DIMENSIONS)
 MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
 
@@ -477,6 +533,8 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(error_string, source="Multiple MPI Processes located on same host share same GPU which is not supported")
     case ( DTFFT_ERROR_VKFFT_R2R_2D_PLAN )
       allocate(error_string, source="When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions")
+    case ( DTFFT_ERROR_GPU_BACKENDS_DISABLED )
+      allocate(error_string, source="Passed `effort` ==  `::DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t`")
     case ( DTFFT_ERROR_NOT_DEVICE_PTR )
       allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` cannot be accessed from device" )
     case default
@@ -491,6 +549,7 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
   MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_backend_mpi, MPI_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_backend_nccl, NCCL_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_backend_nvshmem, NVSHMEM_BACKENDS)
 
   function dtfft_get_gpu_backend_string(gpu_backend) result(string)
   !! Gets the string description of a GPU backend
@@ -506,8 +565,8 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(string, source="DTFFT_GPU_BACKEND_MPI_A2A")
     case ( DTFFT_GPU_BACKEND_NCCL%val )
       allocate(string, source="DTFFT_GPU_BACKEND_NCCL")
-    ! case ( DTFFT_GPU_BACKEND_CUFFTMP )
-    !   allocate(string, source="DTFFT_GPU_BACKEND_CUFFTMP")
+    case ( DTFFT_GPU_BACKEND_CUFFTMP%val )
+      allocate(string, source="DTFFT_GPU_BACKEND_CUFFTMP")
     case ( DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED%val )
       allocate(string, source="DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED")
     case ( DTFFT_GPU_BACKEND_NCCL_PIPELINED%val )
@@ -518,5 +577,19 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(string, source="Unknown backend")
     endselect
   end function dtfft_get_gpu_backend_string
+
+  function stream_from_int64(val) result(stream)
+    integer(int64), intent(in)  :: val
+    type(dtfft_stream_t)        :: stream
+
+    stream = transfer(val, stream)
+  end function stream_from_int64
+
+  function stream_from_ptr(val) result(stream)
+    type(c_ptr),    intent(in)  :: val
+    type(dtfft_stream_t)        :: stream
+
+    stream%stream = val
+  end function stream_from_ptr
 #endif
 end module dtfft_parameters

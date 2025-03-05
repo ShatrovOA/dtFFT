@@ -103,11 +103,9 @@ dtfft_report_c(const void*);
 
 #ifdef DTFFT_WITH_CUDA
 
-#include <cuda_runtime.h> // cudaStream_t
-
 extern
 int32_t
-dtfft_set_stream_c(const cudaStream_t*);
+dtfft_set_stream_c(const dtfft_stream_t*);
 
 extern
 int32_t
@@ -115,7 +113,7 @@ dtfft_set_gpu_backend_c(const int32_t*);
 
 extern
 int32_t
-dtfft_get_stream_c(const void*, cudaStream_t*);
+dtfft_get_stream_c(const void*, dtfft_stream_t*);
 
 extern
 int32_t

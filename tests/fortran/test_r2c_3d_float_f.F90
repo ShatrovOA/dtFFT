@@ -23,7 +23,7 @@ use iso_c_binding, only: c_size_t
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
 use cudafor
 use dtfft_utils
 #include "dtfft_cuda.h"
@@ -34,7 +34,7 @@ implicit none
   real(R4P),     allocatable :: in(:,:,:), check(:,:,:)
   complex(R4P),  allocatable :: out(:)
   real(R4P) :: local_error, rnd
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(I4P), parameter :: nx = 513, ny = 711, nz = 33
 #else
   integer(I4P), parameter :: nx = 16, ny = 8, nz = 4
@@ -46,7 +46,7 @@ implicit none
   integer(c_size_t) :: alloc_size
   real(R8P) :: tf, tb
   type(dtfft_config_t) :: conf
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
 #endif
 
@@ -104,8 +104,9 @@ implicit none
   conf%enable_z_slab = .false.
 #endif
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
+  conf%platform = DTFFT_PLATFORM_CUDA
 #endif
 
   call dtfft_set_config(conf)
@@ -115,8 +116,8 @@ implicit none
   call plan%get_local_sizes(in_counts = in_counts, alloc_size = alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
 
-#ifdef DTFFT_WITH_CUDA
-  stream = plan%get_stream(error_code=ierr)
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  call plan%get_stream(stream, error_code=ierr)
   DTFFT_CHECK(ierr)
 #endif
 
@@ -143,7 +144,7 @@ implicit none
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
   tf = tf + MPI_Wtime()
@@ -160,7 +161,7 @@ implicit none
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
   tb = tb + MPI_Wtime()

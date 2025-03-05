@@ -86,7 +86,7 @@ void report_double(const int32_t *nx, const int32_t *ny, const int32_t *nz, doub
   report_private(local_error, errthr, time_forward, time_backward);
 }
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
 #include <cuda_runtime_api.h>
 
 
@@ -100,7 +100,7 @@ void report_double(const int32_t *nx, const int32_t *ny, const int32_t *nz, doub
 #endif
 
 void assign_device_to_process() {
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   MPI_Comm local_comm;
   MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &local_comm);
   int local_rank;

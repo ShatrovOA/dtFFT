@@ -22,7 +22,7 @@ use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => in
 use dtfft
 use dtfft_utils
 use test_utils
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
 use cudafor
 #endif
 #include "dtfft_mpi.h"
@@ -30,7 +30,7 @@ use cudafor
 #include "dtfft.f03"
 implicit none
   real(R4P),  allocatable :: inout(:), check(:)
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   real(R4P), managed, allocatable :: d_inout(:)
 #endif
   real(R4P) :: local_error, rnd
@@ -40,7 +40,7 @@ implicit none
   type(dtfft_plan_r2r_t) :: plan
   real(R8P) :: tf, tb
   integer(I8P)  :: alloc_size, i
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
   integer(I4P) :: host_rank, host_size, num_devices
   type(dtfft_gpu_backend_t) :: backend_to_use, actual_backend_used
@@ -65,12 +65,14 @@ implicit none
 
   call dtfft_create_config(conf)
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   backend_to_use = DTFFT_GPU_BACKEND_NCCL_PIPELINED
   conf%gpu_backend = backend_to_use
 
   CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(stream) )
-  conf%stream = stream
+  conf%stream = dtfft_stream_t(stream)
+
+  conf%platform = DTFFT_PLATFORM_CUDA
 #endif
 
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
@@ -80,7 +82,7 @@ implicit none
   call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   actual_backend_used = plan%get_gpu_backend(error_code=ierr);  DTFFT_CHECK(ierr)
   if(comm_rank == 0) then
     write(output_unit, '(a)') "Using backend: "//dtfft_get_gpu_backend_string(actual_backend_used)
@@ -100,13 +102,13 @@ implicit none
     check(i) = inout(i)
   enddo
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   allocate(d_inout(alloc_size))
   d_inout(:) = inout(:)
 #endif
 
   tf = 0.0_R8P - MPI_Wtime()
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   call plan%execute(d_inout, d_inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
   CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #else
@@ -116,7 +118,7 @@ implicit none
   tf = tf + MPI_Wtime()
 
   tb = 0.0_R8P - MPI_Wtime()
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   call plan%execute(d_inout, d_inout, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
   CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
   inout(:) = d_inout(:)
@@ -131,7 +133,7 @@ implicit none
   call report(tf, tb, local_error, nx, ny, nz)
 
   deallocate(inout, check)
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   deallocate(d_inout)
   CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(stream) )
 #endif

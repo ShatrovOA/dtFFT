@@ -55,6 +55,10 @@ Enumerators
 
 .. doxygenenum:: dtfft_gpu_backend_t
 
+---------
+
+.. doxygenenum:: dtfft_platform_t
+
 
 Types
 =====
@@ -70,6 +74,10 @@ Types
 
 .. doxygenstruct:: dtfft_config_t
   :members:
+
+---------
+
+.. doxygentypedef:: dtfft_stream_t
 
 Functions
 =========

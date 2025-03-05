@@ -19,10 +19,10 @@
 #include "dtfft_config.h"
 module dtfft
 !! Main ``dtFFT`` module. Should be used in a Fortran program.
+use dtfft_config
 use dtfft_parameters
 use dtfft_pencil
 use dtfft_plan
-use dtfft_utils
 implicit none
 private
 
@@ -115,11 +115,20 @@ public :: DTFFT_ERROR_GPU_NOT_SET
 public :: DTFFT_ERROR_VKFFT_R2R_2D_PLAN
 public :: DTFFT_ERROR_GPU_BACKENDS_DISABLED
 public :: DTFFT_ERROR_NOT_DEVICE_PTR
+public :: DTFFT_ERROR_NOT_NVSHMEM_PTR
+public :: DTFFT_ERROR_INVALID_PLATFORM
+public :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
+
 
 public :: dtfft_config_t
 public :: dtfft_create_config, dtfft_set_config
 
 #ifdef DTFFT_WITH_CUDA
+
+public :: dtfft_stream_t
+public :: dtfft_platform_t
+
+public :: DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA
 
 public :: DTFFT_GPU_BACKEND_MPI_DATATYPE
 public :: DTFFT_GPU_BACKEND_MPI_P2P
@@ -127,6 +136,7 @@ public :: DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED
 public :: DTFFT_GPU_BACKEND_MPI_A2A
 public :: DTFFT_GPU_BACKEND_NCCL
 public :: DTFFT_GPU_BACKEND_NCCL_PIPELINED
+public :: DTFFT_GPU_BACKEND_CUFFTMP
 
 public :: dtfft_gpu_backend_t
 public :: dtfft_get_gpu_backend_string

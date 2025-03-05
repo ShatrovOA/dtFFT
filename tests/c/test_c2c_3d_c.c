@@ -66,6 +66,13 @@ int main(int argc, char *argv[])
 
   assign_device_to_process();
 
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  dtfft_config_t conf;
+  dtfft_create_config(&conf);
+  conf.platform = DTFFT_PLATFORM_CUDA;
+  dtfft_set_config(conf);
+#endif
+
   MPI_Dims_create(comm_size, 3, grid_dims);
   MPI_Cart_create(MPI_COMM_WORLD, 3, grid_dims, periods, 0, &grid_comm);
   // Create plan
@@ -80,7 +87,7 @@ int main(int argc, char *argv[])
 
   check = (dtfft_complex*) malloc(sizeof(dtfft_complex) * in_size);
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaMallocManaged((void**)&in, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
   CUDA_SAFE_CALL( cudaMallocManaged((void**)&out, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
   CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
@@ -109,7 +116,7 @@ int main(int argc, char *argv[])
   } else {
     DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, aux) )
   }
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
 #endif
   tf += MPI_Wtime();
@@ -127,7 +134,7 @@ int main(int argc, char *argv[])
   }
   double tb = 0.0 - MPI_Wtime();
   DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, aux) )
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
 #endif
   tb += MPI_Wtime();
@@ -144,7 +151,7 @@ int main(int argc, char *argv[])
 
   free(check);
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   CUDA_SAFE_CALL( cudaFree(in) )
   CUDA_SAFE_CALL( cudaFree(out) )
   CUDA_SAFE_CALL( cudaFree(aux) )

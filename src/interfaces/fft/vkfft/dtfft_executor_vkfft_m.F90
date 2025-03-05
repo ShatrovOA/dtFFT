@@ -22,11 +22,11 @@ module dtfft_executor_vkfft_m
 !!
 !! https://github.com/DTolm/VkFFT/tree/master
 use iso_c_binding,                  only: c_ptr, c_int, c_int8_t
-use iso_fortran_env,                only: int8, int32
+use iso_fortran_env,                only: int8, int32, int64
 use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_interface_vkfft_m
-use dtfft_utils,                    only: get_user_stream
+use dtfft_config,                   only: get_user_stream
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 implicit none
@@ -41,6 +41,8 @@ public :: vkfft_executor
     procedure, pass(self)  :: create_private => create     !< Creates FFT plan via vkFFT Interface
     procedure, pass(self)  :: execute_private => execute   !< Executes vkFFT plan
     procedure, pass(self)  :: destroy_private => destroy   !< Destroys vkFFT plan
+    procedure, nopass :: mem_alloc
+    procedure, nopass :: mem_free
   end type vkfft_executor
 
 contains
@@ -131,4 +133,17 @@ contains
       call vkfft_destroy(self%plan_backward)
     endif
   end subroutine destroy
+
+  subroutine mem_alloc(alloc_bytes, ptr)
+    integer(int64),           intent(in)  :: alloc_bytes
+    type(c_ptr),              intent(out) :: ptr
+
+    error stop "mem_alloc for VkFFT called"
+  end subroutine mem_alloc
+
+  subroutine mem_free(ptr)
+    type(c_ptr),               intent(in)   :: ptr
+
+    error stop "mem_free for VkFFT called"
+  end subroutine mem_free
 end module dtfft_executor_vkfft_m

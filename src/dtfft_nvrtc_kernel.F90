@@ -23,9 +23,9 @@ module dtfft_nvrtc_kernel
 use iso_c_binding
 use iso_fortran_env
 use dtfft_utils
-use dtfft_nvrtc_interfaces
+use dtfft_interface_cuda
+use dtfft_interface_nvrtc
 use dtfft_parameters
-use cudafor
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft_profile.h"
@@ -52,11 +52,13 @@ public :: clean_unused_cache
   !! Should be used only in X-Y 3D plans.
   integer(int8), parameter, public  :: KERNEL_UNPACK              = 3
   !! Unpacks contiguous buffer.
-  ! integer(int8), parameter, public  :: KERNEL_UNPACK_SIMPLE_COPY  = 4
+  integer(int8), parameter, public  :: KERNEL_UNPACK_SIMPLE_COPY  = 4
   !! Doesn't actually unpacks anything. Performs ``cudaMemcpyAsync`` call.
   !! Should be used only when backend is ``DTFFT_GPU_BACKEND_CUFFTMP``.
   integer(int8), parameter, public  :: KERNEL_UNPACK_PIPELINED    = 5
   !! Unpacks pack of contiguous buffer recieved from rank.
+  integer(int8), parameter, public  :: KERNEL_UNPACK_PARTIAL    = 6
+  !! Unpacks contiguous buffer recieved from everyone except myself.
 
   type :: kernel_code
   !! Class to build CUDA kernel code
@@ -68,12 +70,6 @@ public :: clean_unused_cache
     procedure, pass(self),  public :: add_line                !< Adds new line to CUDA code
     procedure, pass(self),  public :: destroy => destroy_code !< Frees all memory
   end type kernel_code
-
-  type :: string
-  !! Class used to create array of strings
-  private
-    character(len=:), allocatable :: raw                      !< String
-  end type string
 
   type :: nvrtc_kernel
   !! nvRTC Compiled kernel class
@@ -141,7 +137,7 @@ contains
 
   subroutine create_device_pointer(ptr, values)
   !! Allocates memory on a device and copies ``values`` to it.
-    type(c_devptr),     intent(inout)       :: ptr            !< Device pointer
+    type(c_ptr),        intent(inout)       :: ptr            !< Device pointer
     integer(c_int),     intent(in), target  :: values(:)      !< Values to copy
     integer(c_size_t)                       :: n_bytes        !< Number of bytes to copy
 
@@ -192,6 +188,7 @@ contains
     integer(int8),                intent(in)    :: kernel_type        !< Type of kernel to build
     integer(int32), optional,     intent(in)    :: pointers(:,:)      !< Optional pointers to unpack kernels
     integer(int32)  :: comm_size          !< Number of processes in current MPI communicator
+    integer(int32)  :: comm_rank          !< Rank of current process
     integer(int32)  :: mpi_ierr           !< Error code
     integer(int32)  :: tile_dim           !< Dimension to tile
     integer(int32)  :: other_dim          !< Dimension not used to tile
@@ -209,17 +206,18 @@ contains
     self%is_dummy = .false.
     self%kernel_type = kernel_type
 
-    ! if ( kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
-    !   self%is_created = .true.
-    !   self%args%ints(1) = product(dims) * base_storage
-    !   return
-    ! endif
+    if ( kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
+      self%is_created = .true.
+      self%args%ints(1) = product(dims) * base_storage
+      return
+    endif
 
     call MPI_Comm_size(comm, comm_size, mpi_ierr)
+    call MPI_Comm_rank(comm, comm_rank, mpi_ierr)
 
     has_inner_loop = .false.
     tile_size = 0
-    if ( kernel_type == KERNEL_UNPACK ) then
+    if ( kernel_type == KERNEL_UNPACK .or. kernel_type == KERNEL_UNPACK_PARTIAL) then
       call get_contiguous_execution_blocks(product(dims), self%num_blocks, self%block_size)
     else if ( (kernel_type == KERNEL_TRANSPOSE) .or. (kernel_type == KERNEL_TRANSPOSE_PACKED) ) then
       if ( abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val .or. transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
@@ -258,7 +256,7 @@ contains
       endif
     endif
 
-    if ( kernel_type == KERNEL_UNPACK ) then
+    if ( kernel_type == KERNEL_UNPACK .or. kernel_type == KERNEL_UNPACK_PARTIAL) then
       self%args%n_ints = 3
       self%args%ints(1) = product(dims)
       if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
@@ -267,6 +265,10 @@ contains
         self%args%ints(2) = dims(0)
       endif
       self%args%ints(3) = comm_size
+      if( kernel_type == KERNEL_UNPACK_PARTIAL ) then
+        self%args%ints(4) = comm_rank
+        self%args%n_ints = 4
+      endif
     else if ( kernel_type == KERNEL_UNPACK_PIPELINED ) then
       self%args%n_ints = 5
       self%args%ints(1) = product(dims)
@@ -286,10 +288,10 @@ contains
     endif
 
     self%args%n_ptrs = 0
-    if ( kernel_type == KERNEL_TRANSPOSE_PACKED .or. kernel_type == KERNEL_UNPACK .or. kernel_type == KERNEL_UNPACK_PIPELINED ) then
+    if ( kernel_type == KERNEL_TRANSPOSE_PACKED .or. kernel_type == KERNEL_UNPACK .or. kernel_type == KERNEL_UNPACK_PIPELINED .or. kernel_type == KERNEL_UNPACK_PARTIAL) then
       if ( .not. present(pointers) ) error stop "Pointer required"
 
-      if (kernel_type == KERNEL_TRANSPOSE_PACKED .or. kernel_type == KERNEL_UNPACK) then
+      if (kernel_type == KERNEL_TRANSPOSE_PACKED .or. kernel_type == KERNEL_UNPACK .or. kernel_type == KERNEL_UNPACK_PARTIAL) then
         block
           integer(int32) :: i
           self%args%n_ptrs = size(self%args%ptrs)
@@ -309,9 +311,9 @@ contains
   subroutine execute(self, in, out, stream, source)
   !! Executes kernel on stream
     class(nvrtc_kernel),          intent(inout) :: self               !< nvRTC Compiled kernel class
-    real(real32),  DEVICE_PTR     intent(in)    :: in(:)              !< Source pointer
-    real(real32),  DEVICE_PTR     intent(in)    :: out(:)             !< Target pointer
-    integer(cuda_stream_kind),    intent(in)    :: stream             !< CUDA Stream
+    real(real32),    target,      intent(in)    :: in(:)              !< Source pointer
+    real(real32),    target,      intent(in)    :: out(:)             !< Target pointer
+    type(dtfft_stream_t),         intent(in)    :: stream             !< CUDA Stream
     integer(int32),   optional,   intent(in)    :: source             !< Source rank for pipelined unpacking
     integer(int32)    :: n_align_sent !< Number of aligned elements sent
     integer(int32)    :: displ_in     !< Displacement in source buffer
@@ -320,10 +322,10 @@ contains
     if ( self%is_dummy ) return
     if ( .not. self%is_created ) error stop "dtFFT Internal Error: `execute` called while plan not created"
 
-    ! if ( self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
-    !   CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out, in, self%args%ints(1), cudaMemcpyDeviceToDevice, stream) )
-    !   return
-    ! endif
+    if ( self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
+      CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(c_loc(out), c_loc(in), int(self%args%ints(1), c_size_t), cudaMemcpyDeviceToDevice, stream) )
+      return
+    endif
 
     if ( self%kernel_type == KERNEL_UNPACK_PIPELINED ) then
       if ( .not. present(source) ) error stop "Source is not passed"
@@ -338,7 +340,7 @@ contains
       call get_contiguous_execution_blocks(self%pointers(source, 4), self%num_blocks, self%block_size)
     endif
 
-    CUDA_CALL( "cuLaunchKernel", run_cuda_kernel(self%cuda_kernel, c_devloc(in), c_devloc(out), self%num_blocks, self%block_size, stream, self%args) )
+    CUDA_CALL( "cuLaunchKernel", run_cuda_kernel(self%cuda_kernel, c_loc(in), c_loc(out), self%num_blocks, self%block_size, stream, self%args) )
     ! CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
   end subroutine execute
 
@@ -348,8 +350,7 @@ contains
     integer(int32)  :: i  !< Counter
 
     if ( .not. self%is_created ) return
-    if ( self%is_dummy ) return
-    !  .or. self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) return
+    if ( self%is_dummy .or. self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) return
 
     call mark_unused(self%cuda_kernel)
 
@@ -428,12 +429,12 @@ contains
     integer(int32)                          :: num_options        !< Number of compilation options
     type(dtfft_transpose_type_t)            :: transpose_type_      !< Fixed id of transposition
     integer(int32)                          :: device_id          !< Current device number
-    type(cudaDeviceProp)                    :: prop               !< Current device properties
     integer(int32)                          :: ierr               !< Error code
     integer(int32)                          :: mpi_ierr           !< MPI Error code
     type(c_ptr)                             :: prog               !< nvRTC Program
     integer(c_size_t)                       :: cubinSizeRet       !< Size of cubin
     character(c_char),        allocatable   :: cubin(:)           !< Compiled binary
+    integer(int32) :: major, minor
 
     ! Check if kernel already been compiled
     kernel = get_cached_kernel(transpose_type, kernel_type, base_storage, tile_size, has_inner_loop)
@@ -472,12 +473,18 @@ contains
       case ( DTFFT_TRANSPOSE_Y_TO_Z%val )
         kernel_name = kernel_name // "yz"
       endselect
-    else
+    else if ( kernel_type == KERNEL_UNPACK ) then
       kernel_name = kernel_name // "unpack"
+    else if ( kernel_type == KERNEL_UNPACK_PIPELINED ) then
+      kernel_name = kernel_name // "unpack_pipelined"
+    else if ( kernel_type == KERNEL_UNPACK_PARTIAL ) then
+      kernel_name = kernel_name // "unpack_partial"
+    else
+      error stop "Unknown kernel type"
     endif
 
-    if ( kernel_type == KERNEL_UNPACK ) then
-      code = get_unpack_kernel_code(kernel_name, base_storage)
+    if ( kernel_type == KERNEL_UNPACK .or. kernel_type == KERNEL_UNPACK_PARTIAL) then
+      code = get_unpack_kernel_code(kernel_name, base_storage, kernel_type == KERNEL_UNPACK_PARTIAL)
     else if ( kernel_type == KERNEL_UNPACK_PIPELINED ) then
       code = get_unpack_pipelined_kernel_code(kernel_name, base_storage)
     else
@@ -492,17 +499,16 @@ contains
 #endif
 
     CUDA_CALL( "cudaGetDevice", cudaGetDevice(device_id) )
-    CUDA_CALL( "cudaGetDeviceProperties", cudaGetDeviceProperties(prop, device_id) )
+    call get_cuda_architecture(device_id, major, minor)
 
     allocate( c_options(num_options), options(num_options) )
-    options(1)%raw = "--gpu-architecture=sm_"//int_to_str(prop%major)//int_to_str(prop%minor)
-    options(2)%raw = "-DTILE_DIM="//int_to_str(tile_size)
+    options(1) = string("--gpu-architecture=sm_"//int_to_str(major)//int_to_str(minor) // c_null_char)
+    options(2) = string("-DTILE_DIM="//int_to_str(tile_size) // c_null_char)
 #ifdef __DEBUG
-    options(3)%raw = "--device-debug"
-    options(4)%raw = "--generate-line-info"
+    options(3) = string("--device-debug" // c_null_char)
+    options(4) = string("--generate-line-info" // c_null_char)
 #endif
     do i = 1, num_options
-      options(i)%raw = options(i)%raw // c_null_char
       c_options(i) = c_loc(options(i)%raw)
     enddo
 
@@ -762,10 +768,11 @@ contains
     deallocate( buffer_type )
   end function get_transpose_kernel_code
 
-  function get_unpack_kernel_code(kernel_name, base_storage) result(code)
+  function get_unpack_kernel_code(kernel_name, base_storage, is_partial) result(code)
   !! Generates code that will be used to unpack data when it is recieved
     character(len=*),   intent(in)  :: kernel_name        !< Name of CUDA kernel
     integer(int8),      intent(in)  :: base_storage       !< Number of bytes needed to store single element
+    logical,            intent(in)  :: is_partial
     type(kernel_code)               :: code               !< Resulting code
 
     call get_neighbor_function_code(code)
@@ -773,6 +780,9 @@ contains
     call code%add_line("  ,const int n_total")
     call code%add_line("  ,const int n_align")
     call code%add_line("  ,const int n_neighbors")
+    if ( is_partial ) then
+      call code%add_line("  ,const int me")
+    endif
     call code%add_line("  ,const int* __restrict__ recv_displs")
     call code%add_line("  ,const int* __restrict__ recv_starts")
     call code%add_line("  ,const int* __restrict__ send_sizes")
@@ -781,6 +791,9 @@ contains
     call code%add_line("")
     call code%add_line("  if (idx < n_total) {")
     call code%add_line("    int neighbor = findNeighborIdx(recv_displs, n_neighbors, idx);")
+    if ( is_partial ) then
+    call code%add_line("    if (neighbor == me) return;")
+    endif
     call code%add_line("    int start = recv_starts[neighbor];")
     call code%add_line("    int shift_out = idx - recv_displs[neighbor];")
     call code%add_line("    int sent_size = send_sizes[neighbor];")

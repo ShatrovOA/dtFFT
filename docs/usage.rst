@@ -1108,7 +1108,7 @@ creating a plan, allocating memory, executing forward and backward transformatio
       DTFFT_CALL( dtfft_mem_free(plan, aux) );
 
       // Destroy the plan
-      DTFFT_CALL( dtfft_destroy(plan) );
+      DTFFT_CALL( dtfft_destroy(&plan) );
 
       MPI_Finalize();
       return 0;

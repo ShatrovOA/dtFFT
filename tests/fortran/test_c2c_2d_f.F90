@@ -21,7 +21,7 @@ program test_c2c_2d
 use iso_fortran_env, only: R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit, int32, R4P => real32
 use dtfft
 use test_utils
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
 use cudafor
 #endif
 #include "dtfft_mpi.h"
@@ -29,7 +29,7 @@ use cudafor
 implicit none
   complex(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
   real(R8P) :: local_error, rnd1, rnd2
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(I4P), parameter :: nx = 2048, ny = 2048
 #else
   integer(I4P), parameter :: nx = 12, ny = 12
@@ -40,9 +40,6 @@ implicit none
   real(R8P) :: tf, tb
   type(dtfft_executor_t) :: executor = DTFFT_EXECUTOR_NONE
   type(dtfft_config_t) :: conf
-#ifdef DTFFT_WITH_CUDA
-  integer(cuda_stream_kind) :: stream
-#endif
 
 
   call MPI_Init(ierr)
@@ -90,8 +87,9 @@ implicit none
 
   conf = dtfft_config_t()
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
+  conf%platform = DTFFT_PLATFORM_CUDA
 #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
@@ -99,9 +97,6 @@ implicit none
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
 
-#ifdef DTFFT_WITH_CUDA
-  stream = plan%get_stream()
-#endif
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,       &
               in_starts(2):in_starts(2) + in_counts(2) - 1))
 

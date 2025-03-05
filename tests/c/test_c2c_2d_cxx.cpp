@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   int32_t nx = 31334, ny = 44;
 #else
   int32_t nx = 313, ny = 44;
@@ -52,6 +52,14 @@ int main(int argc, char *argv[])
   }
 
   assign_device_to_process();
+
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  Config config;
+  config.set_gpu_backend(GPUBackend::MPI_P2P);
+  config.set_platform(Platform::CUDA);
+  // config.set_enable_nvshmem_backends(false);
+  set_config(config);
+#endif
 
   // Create plan
   const vector<int32_t> dims = {ny, nx};
@@ -76,8 +84,18 @@ int main(int argc, char *argv[])
   complex<double> *in, *out;
   auto *check = new complex<double>[in_size];
 
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  complex<double> *d_in, *d_out;
+
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * sizeof(complex<double>), (void**)&d_in) )
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * sizeof(complex<double>), (void**)&d_out) )
+
+  in = new complex<double>[alloc_size];
+  out = new complex<double>[alloc_size];
+#else
   DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * sizeof(complex<double>), (void**)&in) )
   DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * sizeof(complex<double>), (void**)&out) )
+#endif
 
   for (size_t j = 0; j < in_size; j++) {
     double real = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -86,32 +104,31 @@ int main(int argc, char *argv[])
     check[j] = in[j];
   }
 
-#pragma acc enter data copyin(in[0:alloc_size - 1]) create(out[0:alloc_size - 1])
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  CUDA_SAFE_CALL( cudaMemcpy(d_in, in, alloc_size * sizeof(complex<double>), cudaMemcpyHostToDevice) );
 
   double tf = 0.0 - MPI_Wtime();
-#pragma acc host_data use_device(in, out)
-  DTFFT_CXX_CALL( plan.transpose(in, out, dtfft::TransposeType::X_TO_Y) );
-
-#ifdef DTFFT_WITH_CUDA
+  DTFFT_CXX_CALL( plan.transpose(d_in, d_out, dtfft::TransposeType::X_TO_Y) );
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+#else
+  double tf = 0.0 - MPI_Wtime();
+  DTFFT_CXX_CALL( plan.transpose(in, out, dtfft::TransposeType::X_TO_Y) );
 #endif
   tf += MPI_Wtime();
 
-#pragma acc parallel loop present(in)
   for ( size_t i = 0; i < out_size; i++) {
     in[i] = complex<double>{-1., -1.};
   }
 
   double tb = 0.0 - MPI_Wtime();
-#pragma acc host_data use_device(in, out)
-  DTFFT_CXX_CALL( plan.transpose(out, in, dtfft::TransposeType::Y_TO_X) );
-
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  DTFFT_CXX_CALL( plan.transpose(d_out, d_in, dtfft::TransposeType::Y_TO_X) );
   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  CUDA_SAFE_CALL( cudaMemcpy(in, d_in, alloc_size * sizeof(complex<double>), cudaMemcpyDeviceToHost) );
+#else
+  DTFFT_CXX_CALL( plan.transpose(out, in, dtfft::TransposeType::Y_TO_X) );
 #endif
   tb += MPI_Wtime();
-
-#pragma acc update self(in[0:in_size-1])
 
   double local_error = -1.;
   for (size_t i = 0; i < in_size; i++) {
@@ -119,10 +136,16 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
-#pragma acc exit data delete(in, out)
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  DTFFT_CXX_CALL( plan.mem_free(d_in) )
+  DTFFT_CXX_CALL( plan.mem_free(d_out) )
 
+  delete[] in;
+  delete[] out;
+#else
   DTFFT_CXX_CALL( plan.mem_free(in) )
   DTFFT_CXX_CALL( plan.mem_free(out) )
+#endif
   delete[] check;
 
   report_double(&nx, &ny, nullptr, local_error, tf, tb);

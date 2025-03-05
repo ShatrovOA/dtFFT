@@ -16,36 +16,32 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
-#include "dtfft_config.h"
-module dtfft_nccl_interfaces
+module dtfft_interface_nccl
 use iso_c_binding
-use cudafor
-#include "dtfft_cuda.h"
+use dtfft_parameters, only: dtfft_stream_t
 implicit none
+private
+public :: ncclGetUniqueId, ncclMemAlloc, ncclMemFree, ncclCommInitRank
+public :: ncclSend, ncclRecv, ncclGroupStart, ncclGroupEnd, ncclCommDestroy
+public :: ncclGetErrorString
 
+public :: ncclUniqueId
   type, bind(c) :: ncclUniqueId
     character(c_char) :: internal(128)
   end type ncclUniqueId
 
+public :: ncclComm
   type, bind(c) :: ncclComm
     type(c_ptr) :: member
   end type ncclComm
 
-  type, bind(c) :: ncclResult
-    integer(c_int) :: member
-  end type ncclResult
-
+public :: ncclDataType
   type, bind(c) :: ncclDataType
     integer(c_int) :: member
   end type ncclDataType
 
-  type(ncclResult),   parameter :: ncclSuccess = ncclResult(0)
-  type(ncclDataType), parameter :: ncclFloat = ncclDataType(7)
+  type(ncclDataType), parameter, public :: ncclFloat = ncclDataType(7)
 
-
-  interface operator (.NE.)
-    module procedure ncclResult_ne
-  end interface
 
   interface
     function ncclGetErrorString_c(ncclResult_t)                                     &
@@ -53,7 +49,7 @@ implicit none
       bind(C, name="ncclGetErrorString")
     import
     !! Returns a human-readable string corresponding to the passed error code.
-      type(ncclResult),  intent(in), value  :: ncclResult_t    !< Completion status of a NCCL function.
+      integer(c_int32_t), intent(in), value :: ncclResult_t    !< Completion status of a NCCL function.
       type(c_ptr)                           :: message         !< Pointer to message
     end function ncclGetErrorString_c
 
@@ -66,7 +62,7 @@ implicit none
     !! distributed to all ranks in the communicator before calling ncclCommInitRank. 
     !! uniqueId should point to a ncclUniqueId object allocated by the user.
       type(ncclUniqueId), intent(out)       :: uniqueId       !< Unique ID
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclGetUniqueId
 
     function ncclMemAlloc(ptr, alloc_bytes)                                         &
@@ -76,9 +72,9 @@ implicit none
     !! Allocate a GPU buffer with size.
     !! Allocated buffer head address will be returned by ptr, and the actual allocated size can be larger 
     !! than requested because of the buffer granularity requirements from all types of NCCL optimizations.
-      type(c_devptr),     intent(out)       :: ptr            !< Buffer address
+      type(c_ptr),        intent(out)       :: ptr            !< Buffer address
       integer(c_size_t),  intent(in), value :: alloc_bytes    !< Number of bytes to allocate
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclMemAlloc
 
     function ncclMemFree(ptr)                                                       &
@@ -86,8 +82,8 @@ implicit none
       bind(C, name="ncclMemFree")
     import
     !! Free memory allocated by ncclMemAlloc().
-      type(c_devptr),     intent(in), value :: ptr            !< Buffer address
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      type(c_ptr),        intent(in), value :: ptr            !< Buffer address
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclMemFree
 
     function ncclCommInitRank(comm, nranks, uniqueId, rank)                         &
@@ -105,7 +101,7 @@ implicit none
       integer(c_int),               value   :: nranks         !< Number of ranks in communicator
       type(ncclUniqueId),           value   :: uniqueId       !< Unique ID
       integer(c_int),               value   :: rank           !< Calling rank
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclCommInitRank
 
     function ncclSend(sendbuff, count, datatype, peer, comm, stream)                &
@@ -119,13 +115,13 @@ implicit none
     !! This operation is blocking for the GPU.
     !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
     !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
-      real(c_float),  DEVICE_PTR intent(in) :: sendbuff(*)    !< Buffer to send data from
-      integer(c_size_t),             value  :: count          !< Number of elements to send
-      type(ncclDataType),            value  :: datatype       !< Datatype to send
-      integer(c_int),                value  :: peer           !< Target GPU
-      type(ncclComm),                value  :: comm           !< Communicator
-      integer(cuda_stream_kind),     value  :: stream         !< CUDA Stream
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      real(c_float)                         :: sendbuff       !< Buffer to send data from
+      integer(c_size_t),            value   :: count          !< Number of elements to send
+      type(ncclDataType),           value   :: datatype       !< Datatype to send
+      integer(c_int),               value   :: peer           !< Target GPU
+      type(ncclComm),               value   :: comm           !< Communicator
+      type(dtfft_stream_t),         value   :: stream         !< CUDA Stream
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclSend
 
     function ncclRecv(recvbuff, count, datatype, peer, comm, stream)                &
@@ -139,13 +135,13 @@ implicit none
     !! This operation is blocking for the GPU.
     !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
     !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
-      real(c_float), DEVICE_PTR intent(in)  :: recvbuff(*)    !< Buffer to recv data into
-      integer(c_size_t),             value  :: count          !< Number of elements to recv
-      type(ncclDataType),            value  :: datatype       !< Datatype to recv
-      integer(c_int),                value  :: peer           !< Source GPU
-      type(ncclComm),                value  :: comm           !< Communicator
-      integer(cuda_stream_kind),     value  :: stream         !< CUDA Stream
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      real(c_float)                         :: recvbuff       !< Buffer to recv data into
+      integer(c_size_t),            value   :: count          !< Number of elements to recv
+      type(ncclDataType),           value   :: datatype       !< Datatype to recv
+      integer(c_int),               value   :: peer           !< Source GPU
+      type(ncclComm),               value   :: comm           !< Communicator
+      type(dtfft_stream_t),         value   :: stream         !< CUDA Stream
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclRecv
 
     function ncclGroupStart()                                                       &
@@ -155,7 +151,7 @@ implicit none
     !! Start a group call.
     !!
     !! All subsequent calls to NCCL until ncclGroupEnd will not block due to inter-CPU synchronization.
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclGroupStart
 
     function ncclGroupEnd()                                                         &
@@ -167,7 +163,7 @@ implicit none
     !! Returns when all operations since ncclGroupStart have been processed.
     !! This means the communication primitives have been enqueued to the provided streams, 
     !! but are not necessarily complete.
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclGroupEnd
 
     function ncclCommDestroy(comm)                                                  &
@@ -176,20 +172,20 @@ implicit none
     import
     !! Destroy a communicator object comm.
       type(ncclComm),                 value :: comm           !< Communicator
-      type(ncclResult)                      :: ncclResult_t   !< Completion status
+      integer(c_int32_t)                    :: ncclResult_t   !< Completion status
     end function ncclCommDestroy
 
   end interface
 
 contains
-  elemental logical function ncclResult_ne(a, b)
-    type(ncclResult), intent(in) :: a, b
-    ncclResult_ne = (a%member .NE. b%member)
-  end function ncclResult_ne
+  ! elemental logical function ncclResult_ne(a, b)
+  !   type(ncclResult), intent(in) :: a, b
+  !   ncclResult_ne = (a%member .NE. b%member)
+  ! end function ncclResult_ne
 
   function ncclGetErrorString(ncclResult_t) result(string)
   !! Generates an error message.
-    type(ncclResult),    intent(in)   :: ncclResult_t       !< Completion status of a function.
+    integer(c_int32_t), intent(in)    :: ncclResult_t       !< Completion status of a function.
     character(len=:),   allocatable   :: string             !< Error message
     type(c_ptr)                       :: c_string
     character(len=256), pointer       :: f_string
@@ -198,4 +194,4 @@ contains
     call c_f_pointer(c_string, f_string)
     allocate( string, source=f_string(1:index(f_string, c_null_char) - 1) )
   end function ncclGetErrorString
-end module dtfft_nccl_interfaces
+end module dtfft_interface_nccl

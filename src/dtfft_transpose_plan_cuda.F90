@@ -17,11 +17,13 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
+#include "dtfft.f03"
 module dtfft_transpose_plan_cuda
 use iso_fortran_env
 use iso_c_binding
-use cudafor
-use dtfft_abstract_transpose_plan,        only: abstract_transpose_plan, create_cart_comm, alloc_mem
+use dtfft_interface_cuda
+use dtfft_config
+use dtfft_abstract_transpose_plan,        only: abstract_transpose_plan, create_cart_comm, alloc_mem, free_mem
 use dtfft_abstract_backend,               only: backend_helper
 use dtfft_nvrtc_kernel,                   only: clean_unused_cache
 use dtfft_parameters
@@ -40,8 +42,8 @@ public :: transpose_plan_cuda
 
   type, extends(abstract_transpose_plan) :: transpose_plan_cuda
   private
-    integer(cuda_stream_kind)                 :: stream
-    type(c_devptr)                            :: aux
+    type(dtfft_stream_t)                      :: stream
+    type(c_ptr)                               :: aux
     logical                                   :: is_aux_alloc
     type(backend_helper)                      :: helper
     type(transpose_handle_cuda), allocatable  :: in_plans(:)
@@ -77,8 +79,7 @@ contains
     real(real64) :: ts, te
 
     create_cuda = DTFFT_SUCCESS
-    ! TODO Update when nvshem becomes available
-    if ( .not.get_mpi_enabled() .and. .not.get_nccl_enabled() .and. effort == DTFFT_PATIENT) then
+    if ( .not.get_mpi_enabled() .and. .not.get_nccl_enabled() .and. .not.get_nvshmem_enabled() .and. effort == DTFFT_PATIENT) then
       create_cuda = DTFFT_ERROR_GPU_BACKENDS_DISABLED
       return
     endif
@@ -146,7 +147,7 @@ contains
     n_transpose_plans = ndims - 1_int8; if( self%is_z_slab ) n_transpose_plans = n_transpose_plans + 1_int8
     allocate( self%out_plans(n_transpose_plans), self%in_plans(n_transpose_plans) )
 
-    call self%helper%create(cart_comm, comms, is_backend_nccl(self%gpu_backend))
+    call self%helper%create(cart_comm, comms, is_backend_nccl(self%gpu_backend), pencils)
 
     do d = 1_int8, ndims - 1_int8
       call self%out_plans(d)%create(self%helper, pencils(d), pencils(d + 1), base_storage, self%gpu_backend)
@@ -156,7 +157,7 @@ contains
       call self%out_plans(3)%create(self%helper, pencils(1), pencils(3), base_storage, self%gpu_backend)
       call self%in_plans (3)%create(self%helper, pencils(3), pencils(1), base_storage, self%gpu_backend)
     endif
-    self%is_aux_alloc = alloc_and_set_aux(cart_comm, self%aux, self%in_plans, self%out_plans)
+    self%is_aux_alloc = alloc_and_set_aux(self%gpu_backend, cart_comm, self%aux, self%in_plans, self%out_plans)
 
     call clean_unused_cache()
     deallocate( best_decomposition )
@@ -165,16 +166,15 @@ contains
 
   subroutine execute_cuda(self, in, out, transpose_type)
   !! Executes single transposition
-  !dir$ ignore_tkr in, out
     class(transpose_plan_cuda),    intent(inout) :: self          !< Transposition class
-    type(*),  DEVICE_PTR  target,  intent(inout) :: in(..)        !< Incoming buffer of any rank and kind
-    type(*),  DEVICE_PTR  target,  intent(inout) :: out(..)       !< Resulting buffer of any rank and kind
+    type(*),              target,  intent(inout) :: in(..)        !< Incoming buffer of any rank and kind
+    type(*),              target,  intent(inout) :: out(..)       !< Resulting buffer of any rank and kind
     type(dtfft_transpose_type_t),  intent(in)    :: transpose_type
-    real(real32), DEVICE_PTR pointer :: pin(:)
-    real(real32), DEVICE_PTR pointer :: pout(:)
+    real(real32),   pointer :: pin(:)
+    real(real32),   pointer :: pout(:)
 
-    pin => convert_pointer(c_devloc(in), 1_int64)
-    pout => convert_pointer(c_devloc(out), 1_int64)
+    pin => convert_pointer(c_loc(in), 1_int64)
+    pout => convert_pointer(c_loc(out), 1_int64)
 
     if ( transpose_type%val > 0 ) then
       call self%out_plans(transpose_type%val)%execute(pin, pout, self%stream)
@@ -187,9 +187,10 @@ contains
   !! Destroys transposition plans
     class(transpose_plan_cuda),    intent(inout) :: self         !< Transposition class
     integer(int8) :: i
+    integer(int32) :: ierr
 
     if ( self%is_aux_alloc ) then
-      CUDA_CALL( "cudaFree", cudaFree(self%aux) )
+      call self%mem_free(self%aux, ierr)
       self%is_aux_alloc = .false.
     endif
 
@@ -208,7 +209,7 @@ contains
     integer(int32),                       intent(in)    :: transposed_dims(:,:)
     TYPE_MPI_COMM,                        intent(in)    :: base_comm            !< 3D comm
     integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
-    integer(cuda_stream_kind),            intent(in)    :: stream
+    type(dtfft_stream_t),                 intent(in)    :: stream
     integer(int32),                       intent(out)   :: best_decomposition(:)
     type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend    !< ID of transpose name (from -3 to 3, except 0)
     real(real32),               optional, intent(out)   :: min_execution_time         !< Elapsed time for best plans selected
@@ -277,7 +278,7 @@ contains
     integer(int32),                       intent(in)    :: comm_dims(:)
     integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
     logical,                              intent(in)    :: is_z_slab
-    integer(cuda_stream_kind),            intent(in)    :: stream
+    type(dtfft_stream_t),                 intent(in)    :: stream
     type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend           !< ID of transpose name (from -3 to 3, except 0)
     type(dtfft_gpu_backend_t),  optional, intent(out)   :: best_backend_id
     real(real32),               optional, intent(out)   :: best_time         !< Elapsed time for best plans selected
@@ -326,20 +327,20 @@ contains
     TYPE_MPI_COMM,                        intent(in)    :: cart_comm            !< 3D Cartesian comm
     type(pencil),                         intent(in)    :: pencils(:)           !< Source meta
     integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
-    integer(cuda_stream_kind),            intent(in)    :: stream
+    type(dtfft_stream_t),                 intent(in)    :: stream
     logical,                              intent(in)    :: is_z_slab
     type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend           !< ID of transpose name (from -3 to 3, except 0)
     real(real32),               optional, intent(out)   :: best_time
     type(dtfft_gpu_backend_t),  optional, intent(out)   :: best_backend_id
     type(dtfft_gpu_backend_t),  allocatable :: backends_to_run(:)
-    type(dtfft_gpu_backend_t) :: current_backend_id, first_backend, best_backend_id_
+    type(dtfft_gpu_backend_t) :: current_backend_id, best_backend_id_
     logical :: is_udb !! Used defined backend
     real(real32) :: execution_time, min_execution_time, max_execution_time, avg_execution_time, best_time_, total_time
-    integer(int32) :: iter, comm_size, mpi_ierr, b
+    integer(int32) :: iter, comm_size, mpi_ierr, b, ierr
     type(transpose_handle_cuda),  allocatable   :: plans(:)
     integer(int8) :: i, n_transpose_plans
-    type(c_devptr) :: in, out, aux
-    real(real32), DEVICE_PTR pointer :: pin(:), pout(:), paux(:)
+    type(c_ptr) :: in, out, aux
+    real(real32), pointer :: pin(:), pout(:)
     logical :: is_aux_alloc
     ! , need_aux
     integer(int64)         :: alloc_size
@@ -361,7 +362,7 @@ contains
       enddo
       is_udb = .false.
     endif
-    first_backend = backends_to_run(1)
+    best_backend_id_ = backends_to_run(1)
 
     if ( is_z_slab ) then
       n_transpose_plans = 1
@@ -374,33 +375,21 @@ contains
     call get_local_sizes(pencils, alloc_size=alloc_size)
     alloc_size = alloc_size * int(base_storage, int64)
 
-    CUDA_CALL( "cudaMalloc", cudaMalloc(in, alloc_size) )
-    CUDA_CALL( "cudaMalloc", cudaMalloc(out, alloc_size) )
-    CUDA_CALL( "cudaMemset", cudaMemset(in, 0, alloc_size) )
-
-    pin => convert_pointer(in, 1_int64)
-    pout => convert_pointer(out, 1_int64)
-    is_aux_alloc = .false.
-    if ( any( [is_backend_pipelined(backends_to_run)] ) ) then
-      CUDA_CALL( "cudaMalloc", cudaMalloc(aux, alloc_size) )
-      paux => convert_pointer(aux, 1_int64)
-      is_aux_alloc = .true.
-    endif
-
     CUDA_CALL( "cudaEventCreate", cudaEventCreate(timer_start) )
     CUDA_CALL( "cudaEventCreate", cudaEventCreate(timer_stop) )
 
     call MPI_Comm_size(cart_comm, comm_size, mpi_ierr)
 
-    call helper%create(cart_comm, comms, any(is_backend_nccl(backends_to_run)))
+    call helper%create(cart_comm, comms, any(is_backend_nccl(backends_to_run)), pencils)
 
     best_time_ = MaxR4P
 
     do b = 1, size(backends_to_run)
       current_backend_id = backends_to_run(b)
 
-      if ( (is_backend_pipelined(current_backend_id) .and. .not.get_pipelined_enabled()   &
-            .or.is_backend_mpi(current_backend_id) .and. .not.get_mpi_enabled() )         &
+      if ( (is_backend_pipelined(current_backend_id) .and. .not.get_pipelined_enabled()         &
+            .or.is_backend_mpi(current_backend_id) .and. .not.get_mpi_enabled()                 &
+            .or.is_backend_nvshmem(current_backend_id) .and. .not.get_nvshmem_enabled())        &
             .and. .not.is_udb) cycle
 
       if ( is_z_slab ) then
@@ -413,11 +402,13 @@ contains
         enddo
       endif
 
-      if ( is_aux_alloc ) then
-        do i = 1, 2_int8 * n_transpose_plans
-          call plans(i)%set_aux(paux)
-        enddo
-      endif
+      call alloc_mem(current_backend_id, cart_comm, alloc_size, in, ierr); DTFFT_CHECK(ierr)
+      call alloc_mem(current_backend_id, cart_comm, alloc_size, out, ierr); DTFFT_CHECK(ierr)
+
+      pin => convert_pointer(in, 1_int64)
+      pout => convert_pointer(out, 1_int64)
+
+      is_aux_alloc = alloc_and_set_aux(current_backend_id, cart_comm, aux, plans)
 
       testing_phase = "Testing backend "//dtfft_get_gpu_backend_string(current_backend_id)
       PHASE_BEGIN(testing_phase, COLOR_AUTOTUNE)
@@ -472,6 +463,11 @@ contains
         best_backend_id_ = current_backend_id
       endif
 
+      call free_mem(current_backend_id, in, ierr)
+      call free_mem(current_backend_id, out, ierr)
+      if ( is_aux_alloc ) call free_mem(current_backend_id, aux, ierr)
+
+
       do i = 1, 2_int8 * n_transpose_plans
         call plans(i)%destroy()
       enddo
@@ -479,11 +475,11 @@ contains
       PHASE_END("Testing backend "//dtfft_get_gpu_backend_string(current_backend_id))
     enddo
 
-    CUDA_CALL( "cudaFree", cudaFree(in) )
-    CUDA_CALL( "cudaFree", cudaFree(out) )
-    if ( is_aux_alloc ) then
-      CUDA_CALL( "cudaFree", cudaFree(aux) )
-    endif
+    ! CUDA_CALL( "cudaFree", cudaFree(in) )
+    ! CUDA_CALL( "cudaFree", cudaFree(out) )
+    ! if ( is_aux_alloc ) then
+    !   CUDA_CALL( "cudaFree", cudaFree(aux) )
+    ! endif
 
     deallocate( plans )
     CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(timer_start) )
@@ -495,16 +491,17 @@ contains
     if ( present(best_backend_id) ) best_backend_id = best_backend_id_
   end subroutine run_autotune_backend
 
-  function alloc_and_set_aux(cart_comm, aux, plans, out_plans) result(is_aux_alloc)
+  function alloc_and_set_aux(gpu_backend, cart_comm, aux, plans, out_plans) result(is_aux_alloc)
+    type(dtfft_gpu_backend_t),    intent(in)                :: gpu_backend
     TYPE_MPI_COMM,                intent(in)                :: cart_comm
-    type(c_devptr),               intent(inout)             :: aux
+    type(c_ptr),                  intent(inout)             :: aux
     type(transpose_handle_cuda),  intent(inout)             :: plans(:)
     type(transpose_handle_cuda),  intent(inout),  optional  :: out_plans(:)
     logical                                                 :: is_aux_alloc
     integer(int64), allocatable :: worksizes(:)
     integer(int64) :: max_work_size_local, max_work_size_global
     integer(int32)  :: mpi_ierr, n_transpose_plans, i, n_in_plans, n_out_plans
-    real(real32), DEVICE_PTR pointer :: paux(:)
+    real(real32),   pointer :: paux(:)
 
     n_in_plans = size(plans)
     n_out_plans = 0;  if ( present(out_plans) ) n_out_plans = size(out_plans)
@@ -524,7 +521,7 @@ contains
 
     is_aux_alloc = .false.
     if ( max_work_size_global > 0 ) then
-      CUDA_CALL( "cudaMalloc", cudaMalloc(aux, max_work_size_global) )
+      call alloc_mem(gpu_backend, cart_comm, max_work_size_global, aux, mpi_ierr)
       paux => convert_pointer(aux, 1_int64)
       do i = 1, n_in_plans
         call plans(i)%set_aux(paux)
@@ -539,13 +536,10 @@ contains
   end function alloc_and_set_aux
 
   function convert_pointer(in, size) result(out)
-    type(c_devptr),         intent(in)  :: in
+    type(c_ptr),            intent(in)  :: in
     integer(int64),         intent(in)  :: size
-    real(real32), DEVICE_PTR    pointer :: out(:)
+    real(real32),     pointer :: out(:)
 
-    ! Development workaround for linter
-#if defined(DTFFT_WITH_CUDA) && !defined(__GFORTRAN__)
     call c_f_pointer(in, out, [size])
-#endif
   end function convert_pointer
 end module dtfft_transpose_plan_cuda

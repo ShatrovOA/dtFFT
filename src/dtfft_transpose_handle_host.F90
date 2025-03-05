@@ -159,8 +159,8 @@ contains
   subroutine transpose(self, send, recv)
   !! Executes transposition
     class(transpose_handle_host), intent(inout) :: self         !< Transposition class
-    type(*),  DEVICE_PTR          intent(in)    :: send(..)     !< Incoming buffer of any rank and kind
-    type(*),  DEVICE_PTR          intent(inout) :: recv(..)     !< Resulting buffer of any rank and kind
+    type(*),                      intent(in)    :: send(..)     !< Incoming buffer of any rank and kind
+    type(*),                      intent(inout) :: recv(..)     !< Resulting buffer of any rank and kind
     integer(int32)                              :: ierr         !< Error code
 
 #if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)

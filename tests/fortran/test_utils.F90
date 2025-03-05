@@ -3,8 +3,8 @@ module test_utils
 use iso_fortran_env
 use dtfft_utils, only: int_to_str, double_to_str
 #include "dtfft_mpi.h"
-#ifdef DTFFT_WITH_CUDA
-use cudafor
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+use dtfft_interface_cuda
 #include "dtfft_cuda.h"
 #endif
 implicit none
@@ -102,7 +102,7 @@ contains
   end subroutine write_timers
 
   subroutine attach_gpu_to_process
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
     integer(int32) :: comm_rank, ierr, host_rank, host_size, num_devices
     TYPE_MPI_COMM  :: host_comm
 
