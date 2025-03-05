@@ -80,18 +80,20 @@ contains
 
   subroutine destoy_helper(self)
     class(mpi_backend_helper),  intent(inout) :: self
-    integer(int32)  :: mpi_ierr
-    integer(int32)  :: i
 
     if ( allocated(self%counts) ) deallocate( self%counts )
     if ( allocated(self%displs) ) deallocate( self%displs )
 #ifdef DTFFT_ENABLE_PERSISTENT_COMM
-    if ( self%is_request_created ) then
-      do i = 1, self%n_requests
-        call MPI_Request_free(self%requests(i), mpi_ierr)
-      enddo
-    endif
-    self%is_request_created = .false.
+    block
+      integer(int32)  :: mpi_ierr, i
+
+      if ( self%is_request_created ) then
+        do i = 1, self%n_requests
+          call MPI_Request_free(self%requests(i), mpi_ierr)
+        enddo
+      endif
+      self%is_request_created = .false.
+    endblock
 #endif
     if ( allocated(self%requests) ) deallocate(self%requests)
     self%n_requests = 0

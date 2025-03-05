@@ -150,15 +150,15 @@ contains
 
     allocate( self%send_displs(0:self%comm_size - 1) )
     allocate( self%send_floats(0:self%comm_size - 1) )
-    self%send_displs = int(send_displs, int64) * scaler
-    self%send_displs = self%send_displs + 1
-    self%send_floats = int(send_counts, int64) * scaler
+    self%send_displs(:) = int(send_displs(:), int64) * scaler
+    self%send_displs(:) = self%send_displs(:) + 1
+    self%send_floats(:) = int(send_counts(:), int64) * scaler
 
     allocate( self%recv_displs(0:self%comm_size - 1) )
     allocate( self%recv_floats(0:self%comm_size - 1) )
-    self%recv_displs = int(recv_displs, int64) * scaler
-    self%recv_displs = self%recv_displs + 1
-    self%recv_floats = int(recv_counts, int64) * scaler
+    self%recv_displs(:) = int(recv_displs(:), int64) * scaler
+    self%recv_displs(:) = self%recv_displs(:) + 1
+    self%recv_floats(:) = int(recv_counts(:), int64) * scaler
 
     self%gpu_backend = gpu_backend
     self%is_pipelined = is_backend_pipelined(gpu_backend)
