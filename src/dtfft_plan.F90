@@ -192,32 +192,6 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable         :: mem_free_c8
   end type dtfft_plan_t
 
-#define OVERLOAD_MEM_ALLOC(suffix,tp,precision,storage)\
-  subroutine CONCAT(mem_alloc_,suffix)(self, alloc_size, buf, error_code);\
-    !DEC$ ATTRIBUTES NO_ARG_CHECK :: buf \
-    class(dtfft_plan_t),        intent(in)  :: self;\
-    integer(int64),             intent(in)  :: alloc_size;\
-    tp(precision),  pointer,  contiguous,  intent(out) :: buf(:);\
-    integer(int32), optional,   intent(out)   :: error_code;\
-    integer(int32)                            :: ierr;\
-    integer(int64) :: alloc_bytes;\
-    type(c_ptr) :: ptr;\
-    alloc_bytes = alloc_size * int(storage, int64);\
-    call self%mem_alloc(alloc_bytes, ptr, error_code=ierr);\
-    CHECK_ERROR_AND_RETURN_NO_MSG;\
-    call c_f_pointer(ptr, buf, [alloc_size]);\
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS;\
-  end subroutine CONCAT(mem_alloc_,suffix)
-
-#define OVERLOAD_MEM_FREE(suffix,tp,precision)\
-  subroutine CONCAT(mem_free_,suffix)(self, buf, error_code);\
-    !DEC$ ATTRIBUTES NO_ARG_CHECK :: buf\
-    class(dtfft_plan_t),        intent(in)    :: self;\
-    tp(precision),      target, intent(in)    :: buf(..);\
-    integer(int32), optional,   intent(out)   :: error_code;\
-    call self%mem_free(c_loc(buf), error_code);\
-  end subroutine CONCAT(mem_free_,suffix)
-
   type, abstract, extends(dtfft_plan_t) :: dtfft_core_c2c
   !< Abstract C2C Plan
   private
