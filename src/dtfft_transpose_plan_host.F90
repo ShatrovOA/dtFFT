@@ -20,9 +20,6 @@
 module dtfft_transpose_plan_host
 use iso_fortran_env,                only: int8, int32, int64, real32, real64, output_unit
 use dtfft_abstract_transpose_plan,  only: abstract_transpose_plan, create_cart_comm
-#ifdef DTFFT_WITH_CUDA
-use dtfft_abstract_transpose_plan,  only: alloc_mem
-#endif
 use dtfft_pencil,                   only: pencil, get_local_sizes
 use dtfft_parameters
 use dtfft_transpose_handle_host,    only: transpose_handle_host

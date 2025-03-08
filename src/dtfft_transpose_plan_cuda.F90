@@ -45,7 +45,6 @@ public :: transpose_plan_cuda
     type(dtfft_stream_t)                      :: stream
     type(c_ptr)                               :: aux
     logical                                   :: is_aux_alloc
-    type(backend_helper)                      :: helper
     type(transpose_handle_cuda), allocatable  :: in_plans(:)
     type(transpose_handle_cuda), allocatable  :: out_plans(:)
   contains
@@ -157,7 +156,7 @@ contains
       call self%out_plans(3)%create(self%helper, pencils(1), pencils(3), base_storage, self%gpu_backend)
       call self%in_plans (3)%create(self%helper, pencils(3), pencils(1), base_storage, self%gpu_backend)
     endif
-    self%is_aux_alloc = alloc_and_set_aux(self%gpu_backend, cart_comm, self%aux, self%in_plans, self%out_plans)
+    self%is_aux_alloc = alloc_and_set_aux(self%helper, self%gpu_backend, cart_comm, self%aux, self%in_plans, self%out_plans)
 
     call clean_unused_cache()
     deallocate( best_decomposition )
@@ -402,13 +401,13 @@ contains
         enddo
       endif
 
-      call alloc_mem(current_backend_id, cart_comm, alloc_size, in, ierr); DTFFT_CHECK(ierr)
-      call alloc_mem(current_backend_id, cart_comm, alloc_size, out, ierr); DTFFT_CHECK(ierr)
+      call alloc_mem(helper, current_backend_id, cart_comm, alloc_size, in, ierr); DTFFT_CHECK(ierr)
+      call alloc_mem(helper, current_backend_id, cart_comm, alloc_size, out, ierr); DTFFT_CHECK(ierr)
 
       pin => convert_pointer(in, 1_int64)
       pout => convert_pointer(out, 1_int64)
 
-      is_aux_alloc = alloc_and_set_aux(current_backend_id, cart_comm, aux, plans)
+      is_aux_alloc = alloc_and_set_aux(helper, current_backend_id, cart_comm, aux, plans)
 
       testing_phase = "Testing backend "//dtfft_get_gpu_backend_string(current_backend_id)
       PHASE_BEGIN(testing_phase, COLOR_AUTOTUNE)
@@ -463,9 +462,9 @@ contains
         best_backend_id_ = current_backend_id
       endif
 
-      call free_mem(current_backend_id, in, ierr)
-      call free_mem(current_backend_id, out, ierr)
-      if ( is_aux_alloc ) call free_mem(current_backend_id, aux, ierr)
+      call free_mem(helper, current_backend_id, in, ierr)
+      call free_mem(helper, current_backend_id, out, ierr)
+      if ( is_aux_alloc ) call free_mem(helper, current_backend_id, aux, ierr)
 
 
       do i = 1, 2_int8 * n_transpose_plans
@@ -491,7 +490,8 @@ contains
     if ( present(best_backend_id) ) best_backend_id = best_backend_id_
   end subroutine run_autotune_backend
 
-  function alloc_and_set_aux(gpu_backend, cart_comm, aux, plans, out_plans) result(is_aux_alloc)
+  function alloc_and_set_aux(helper, gpu_backend, cart_comm, aux, plans, out_plans) result(is_aux_alloc)
+    type(backend_helper),         intent(inout)             :: helper
     type(dtfft_gpu_backend_t),    intent(in)                :: gpu_backend
     TYPE_MPI_COMM,                intent(in)                :: cart_comm
     type(c_ptr),                  intent(inout)             :: aux
@@ -501,6 +501,7 @@ contains
     integer(int64), allocatable :: worksizes(:)
     integer(int64) :: max_work_size_local, max_work_size_global
     integer(int32)  :: mpi_ierr, n_transpose_plans, i, n_in_plans, n_out_plans
+    integer(int32) :: alloc_ierr
     real(real32),   pointer :: paux(:)
 
     n_in_plans = size(plans)
@@ -521,7 +522,8 @@ contains
 
     is_aux_alloc = .false.
     if ( max_work_size_global > 0 ) then
-      call alloc_mem(gpu_backend, cart_comm, max_work_size_global, aux, mpi_ierr)
+      call alloc_mem(helper, gpu_backend, cart_comm, max_work_size_global, aux, alloc_ierr)
+      if ( alloc_ierr /= DTFFT_SUCCESS ) error stop "Failed to allocate aux memory"
       paux => convert_pointer(aux, 1_int64)
       do i = 1, n_in_plans
         call plans(i)%set_aux(paux)

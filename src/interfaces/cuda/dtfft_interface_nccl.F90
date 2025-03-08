@@ -24,6 +24,7 @@ private
 public :: ncclGetUniqueId, ncclMemAlloc, ncclMemFree, ncclCommInitRank
 public :: ncclSend, ncclRecv, ncclGroupStart, ncclGroupEnd, ncclCommDestroy
 public :: ncclGetErrorString
+public :: ncclCommRegister, ncclCommDeregister
 
 public :: ncclUniqueId
   type, bind(c) :: ncclUniqueId
@@ -174,6 +175,29 @@ public :: ncclDataType
       type(ncclComm),                 value :: comm           !! Communicator
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclCommDestroy
+
+    function ncclCommRegister(comm, buff, size, handle)                             &
+      result(ncclResult_t)                                                          &
+      bind(C, name="ncclCommRegister")
+    import
+    !! Register a buffer for collective communication.
+      type(ncclComm),                 value :: comm           !! Communicator
+      type(c_ptr),                    value :: buff           !! Buffer to register
+      integer(c_size_t),              value :: size           !! Size of the buffer in bytes
+      type(c_ptr)                           :: handle         !! Handle to the registered buffer
+      integer(c_int32_t)                    :: ncclResult_t   !! Completion status
+    end function ncclCommRegister
+
+    function ncclCommDeregister(comm, handle)                                       &
+      result(ncclResult_t)                                                          &
+      bind(C, name="ncclCommDeregister")
+    import
+    !! Deregister a buffer for collective communication.
+      type(ncclComm),                 value :: comm           !! Communicator
+      type(c_ptr),                    value :: handle         !! Handle to the registered buffer
+      integer(c_int32_t)                    :: ncclResult_t   !! Completion status
+    end function ncclCommDeregister
+
 
   end interface
 

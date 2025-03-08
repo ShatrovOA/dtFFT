@@ -28,18 +28,28 @@ use dtfft_interface_nccl
 use dtfft_nvrtc_kernel,   only: nvrtc_kernel
 use dtfft_parameters
 use dtfft_pencil,         only: pencil
-use dtfft_utils,          only: int_to_str
+use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: abstract_backend, backend_helper
+
+#ifdef NCCL_HAVE_COMM_REGISTER
+  integer(int32), parameter, public :: NCCL_REGISTER_PREALLOC_SIZE = 8
+#endif
 
   type :: backend_helper
   !! Helper with nccl, mpi and nvshmem communicators
     logical                     :: is_nccl_created = .false.    !! Flag is `nccl_comm` has been created
 #ifdef DTFFT_WITH_NCCL
     type(ncclComm)              :: nccl_comm                    !! NCCL communicator
+#endif
+#ifdef NCCL_HAVE_COMM_REGISTER
+    logical                     :: should_register
+    type(c_ptr),    allocatable :: nccl_register(:,:)
+    integer(int32)              :: nccl_register_size       !! Number of elements in `nccl_register`
 #endif
     TYPE_MPI_COMM,  allocatable :: comms(:)                     !! MPI communicators
     integer(int32), allocatable :: comm_mappings(:,:)           !! Mapping of 1d comm ranks to global comm
@@ -322,6 +332,18 @@ contains
       NCCL_CALL( "ncclCommInitRank", ncclCommInitRank(self%nccl_comm, max_size, id, comm_rank) )
       self%is_nccl_created = .true.
     endblock
+
+# ifdef NCCL_HAVE_COMM_REGISTER
+    self%should_register = get_env("NCCL_BUFFER_REGISTER", .true.)
+    if ( self%should_register ) then
+      self%nccl_register_size = 0
+      allocate( self%nccl_register(NCCL_REGISTER_PREALLOC_SIZE, 2) )
+      do i = 1, NCCL_REGISTER_PREALLOC_SIZE
+        self%nccl_register(i, 1) = c_null_ptr
+        self%nccl_register(i, 2) = c_null_ptr
+      enddo
+    endif
+# endif
 #endif
   end subroutine create_helper
 
@@ -336,6 +358,13 @@ contains
       NCCL_CALL( "ncclCommDestroy", ncclCommDestroy(self%nccl_comm) )
     endif
     self%is_nccl_created = .false.
+#endif
+#ifdef NCCL_HAVE_COMM_REGISTER
+    if ( self%nccl_register_size > 0 ) then
+      WRITE_ERROR("NCCL register is not empty")
+    endif
+    if ( allocated( self%nccl_register ) ) deallocate(self%nccl_register)
+    self%nccl_register_size = 0
 #endif
   end subroutine destroy_helper
 

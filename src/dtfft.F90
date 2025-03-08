@@ -125,7 +125,7 @@ public :: dtfft_create_config, dtfft_set_config
 
 #ifdef DTFFT_WITH_CUDA
 
-public :: dtfft_stream_t
+public :: dtfft_stream_t, get_cuda_stream
 public :: dtfft_platform_t
 
 public :: DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA

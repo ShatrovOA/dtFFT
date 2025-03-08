@@ -39,8 +39,8 @@ option(DTFFT_WITH_CUDA "Build dtFFT with CUDA support" OFF)
 #                            This means we are using nvfortran, nvc, nvc++ compiler set and CUDA aware-OpenMPI shipped with HPC SDK.
 #                            When DTFFT_WITH_CUDA=ON, NCCL and NVSHMEM-enabled backends will be available automatically" OFF)
 
-option(DTFFT_WITH_NCCL "Build dtFFT with NCCL support. 
-                        Enabling this option when DTFFT_WITH_HPC_SDK=ON and DTFFT_WITH_CUDA=ON 
+option(DTFFT_WITH_NCCL "Build dtFFT with NCCL support.
+                        Enabling this option when DTFFT_WITH_HPC_SDK=ON and DTFFT_WITH_CUDA=ON
                         requires to set NCCL_ROOT enviroment variable to find custom installation of NCCL" OFF)
 
 option(DTFFT_WITHOUT_NCCL "Build dtFFT without NCCL support.
@@ -114,7 +114,7 @@ if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
 endif()
 
 
-math(EXPR DTFFT_VERSION_CODE 
+math(EXPR DTFFT_VERSION_CODE
   "${PROJECT_VERSION_MAJOR} * 100000 + ${PROJECT_VERSION_MINOR} * 1000 + ${PROJECT_VERSION_PATCH}"
 )
 
@@ -191,6 +191,9 @@ if(DTFFT_WITH_CUDA)
     if ( NCCL_HAVE_MEMALLOC )
       target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:NCCL_HAVE_MEMALLOC>)
     endif()
+    if ( NCCL_HAVE_COMMREGISTER )
+      target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:NCCL_HAVE_COMM_REGISTER>)
+    endif()
     target_include_directories(dtfft PRIVATE ${NCCL_INCLUDE_DIRS})
     target_link_libraries(dtfft PRIVATE ${NCCL_LIBRARIES})
   endif()
@@ -231,7 +234,7 @@ if(DTFFT_BUILD_C_CXX_API)
   target_link_libraries(dtfft PUBLIC MPI::MPI_CXX)
 endif()
 set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
-target_include_directories(dtfft PUBLIC 
+target_include_directories(dtfft PUBLIC
   $<BUILD_INTERFACE:${DTFFT_MODULE_DIR}>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
@@ -321,7 +324,7 @@ endif()
 #   # SET( NVHPC_CUDA_VERSION ${cuda_ver} )
 #   # set(CMAKE_PREFIX_PATH "${CUDAToolkit_LIBRARY_ROOT}/../../cmake")
 #   # find_package(NVHPC REQUIRED COMPONENTS MATH)
-  
+
 
 #   # if ( CMAKE_Fortran_COMPILER_ID MATCHES NVHPC )
 #   #   set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} ${COMMON_NVHPC_FLAGS}")
@@ -346,7 +349,7 @@ set(DTFFT_INSTALL_CMAKEDIR
     CACHE STRING "Path to dtFFT CMake files")
 
 
-install(TARGETS dtfft 
+install(TARGETS dtfft
   EXPORT dtfftTargets)
 
 install(

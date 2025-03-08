@@ -133,6 +133,31 @@ Accepted Values
    - Availability of some backends (e.g., ``nccl``, ``nccl_pipe``, ``cufftmp``) depends on additional library 
      support (e.g., NCCL, cuFFTMp) during compilation.
 
+.. _dtfft_nccl_buffer_register_env:
+
+DTFFT_NCCL_BUFFER_REGISTER
+==========================
+
+Specifies whether to enable buffer registration for NCCL operations. 
+When enabled, NCCL buffers are registered, which can improve performance for certain workloads.
+
+Purpose
+-------
+
+Buffer registration can reduce the overhead of memory operations in NCCL by pre-registering memory regions. 
+This is particularly useful for workloads with repeated communication patterns. However, in some cases, disabling registration may 
+be beneficial, depending on the specific system configuration or workload characteristics.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Disable NCCL buffer registration.
+  - ``1``: Enable NCCL buffer registration.
+
+- **Default**: ``1``
 
 
 .. _datatype_selection:

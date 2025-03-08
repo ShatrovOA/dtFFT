@@ -38,52 +38,32 @@ Below is an example demonstrating error handling with these macros:
   .. code-tab:: fortran
 
     #include "dtfft.f03"
-    use dtfft
-    use mpi
 
-    type(dtfft_plan_c2c_t) :: plan
-    integer(int32) :: dims(3) = [32, 32, 32]
-    integer(int32) :: error_code
+    ...
 
-    call MPI_Init()
-
-    ! Create plan with error checking
-    call plan%create(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE, error_code)
+    call plan%execute(a, b, DTFFT_EXECUTE_FORWARD, error_code=error_code)
     DTFFT_CHECK(error_code)  ! Halts if error_code != DTFFT_SUCCESS
+
+    ...
 
   .. code-tab:: c
 
     #include <dtfft.h>
-    #include <mpi.h>
 
-    int main(int argc, char *argv[]) {
-      dtfft_plan_t plan;
-      int32_t dims[3] = {32, 32, 32};
+    ...
 
-      MPI_Init(&argc, &argv);
+    DTFFT_CALL( dtfft_execute(plan, a, b, DTFFT_EXECUTE_FORWARD, NULL) )
 
-      // Create plan with error checking
-      DTFFT_CALL( dtfft_create_plan_c2c(3, dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE, &plan) );
-
-      return 0;
-    }
+    ...
 
   .. code-tab:: c++
 
     #include <dtfft.hpp>
-    #include <mpi.h>
 
-    int main(int argc, char *argv[]) {
-      MPI_Init(&argc, &argv);
+    ...
 
-      std::vector<int32_t> dims = {32, 32, 32};
+    DTFFT_CXX_CALL( plan.execute(a, b, dtfft::ExecuteType::FORWARD, nullptr) );
 
-      // Create plan with error checking
-      dtfft::PlanC2C plan(dims, MPI_COMM_WORLD, dtfft::Precision::DOUBLE, dtfft::Effort::PATIENT, dtfft::Executor::NONE);
-      DTFFT_CXX_CALL( plan.create(dims, MPI_COMM_WORLD, dtfft::Precision::DOUBLE, dtfft::Effort::PATIENT, dtfft::Executor::NONE) );
-
-      return 0;
-    }
 
 Error codes are defined in the API sections (e.g., :f:var:`DTFFT_SUCCESS`, :f:var:`DTFFT_ERROR_INVALID_TRANSPOSE_TYPE`). Refer to the Fortran, C, and C++ API documentation for a complete list and detailed descriptions.
 
@@ -263,7 +243,7 @@ The ``effort`` parameter in ``dtFFT`` determines the level of optimization appli
 influencing how data transposition is configured. On the host, ``dtFFT`` leverages custom MPI datatypes to perform transpositions,
 tailored to the grid decomposition and data layout. On the GPU, transposition is handled by nvRTC-compiled kernels, optimized at runtime
 for specific data sizes and types, with data exchange between GPUs facilitated by various backend options (e.g., NCCL, MPI P2P).
-The supported effort levels—defined by :f:type:`dtfft_effort_t`—control the extent of this optimization as follows:
+The supported effort levels defined by :f:type:`dtfft_effort_t` control the extent of this optimization as follows:
 
 DTFFT_ESTIMATE
 ______________
@@ -292,7 +272,7 @@ _____________
 This maximum-effort option extends ``DTFFT_MEASURE`` by exhaustively optimizing transposition strategies. On the host, it cycles
 through various custom MPI datatype combinations (e.g., contiguous send with sparse receive, sparse send with contiguous receive) to
 minimize network latency and maximize throughput. On the GPU, it cycles through available GPU backends (e.g., NCCL, MPI P2P) to select
-the fastest transposition method.
+the fastest available backend.
 
 ---------
 
@@ -391,6 +371,8 @@ Configurations must be set prior to creating a plan to take effect. The availabl
 These settings allow fine-tuning of transposition strategies and GPU behavior.
 For example, disabling ``enable_mpi_backends`` mitigates memory leaks, while setting a custom ``stream`` integrates ``dtFFT``
 with existing CUDA workflows. Refer to the Fortran, C and C++ API pages for detailed parameter specifications.
+
+.. note:: Some of the configurations described here can be overridden by environment variables, as detailed in the :ref:`Environment Variables<environ_link>` section.
 
 Following example creates config object, disables Z-slab, enables MPI Backends and sets custom stream:
 
@@ -558,6 +540,11 @@ GPU Version
 
 Allocates memory based on the :f:type:`dtfft_gpu_backend_t`. Uses ``ncclMemAlloc`` for NCCL (if available), ``nvshmem_malloc`` for NVSHMEM-based
 backends or ``cudaMalloc`` otherwise. Future versions may support HIP-based allocations.
+
+If NCCL is used and supports buffer registration via ``ncclCommRegister``, and the environment variable 
+:ref:`DTFFT_NCCL_BUFFER_REGISTER<dtfft_nccl_buffer_register_env>` is set to ``1``, the allocated buffer will also be registered. 
+This registration optimizes communication performance by reducing the overhead of memory operations, 
+which is particularly beneficial for workloads with repeated communication patterns.
 
 .. tabs::
 

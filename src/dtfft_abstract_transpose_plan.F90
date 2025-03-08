@@ -19,14 +19,18 @@
 #include "dtfft_config.h"
 module dtfft_abstract_transpose_plan
 !! This module defines most Abstract Transpose Plan: `abstract_transpose_plan`
-use iso_c_binding, only: c_ptr
+use iso_c_binding,      only: c_ptr, c_null_ptr
 use iso_fortran_env,    only: int8, int32, int64, error_unit, output_unit
 use dtfft_config
 use dtfft_pencil,       only: pencil
 use dtfft_parameters
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
-use dtfft_nvrtc_kernel, only: DEF_TILE_SIZE
+use dtfft_abstract_backend, only: backend_helper
+#ifdef NCCL_HAVE_COMM_REGISTER
+use dtfft_abstract_backend, only: NCCL_REGISTER_PREALLOC_SIZE
+#endif
+use dtfft_nvrtc_kernel,     only: DEF_TILE_SIZE
 use dtfft_interface_cuda
 # ifdef DTFFT_WITH_NVSHMEM
 use dtfft_interface_nvshmem
@@ -51,6 +55,7 @@ public :: alloc_mem, free_mem
   !! The most Abstract Transpose Plan
 #ifdef DTFFT_WITH_CUDA
     type(dtfft_gpu_backend_t)     :: gpu_backend = DTFFT_GPU_BACKEND_MPI_DATATYPE
+    type(backend_helper)          :: helper
 #endif
     logical :: is_z_slab  !! Z-slab optimization flag (for 3D transforms)
   contains
@@ -256,25 +261,26 @@ contains
 
   subroutine mem_alloc(self, comm, alloc_bytes, ptr, error_code)
     !! Allocates memory based on selected backend
-    class(abstract_transpose_plan), intent(in)    :: self            !! Transposition class
+    class(abstract_transpose_plan), intent(inout) :: self            !! Transposition class
     TYPE_MPI_COMM,                  intent(in)    :: comm
     integer(int64),                 intent(in)    :: alloc_bytes
     type(c_ptr),                    intent(out)   :: ptr
     integer(int32),                 intent(out)   :: error_code
 
-    call alloc_mem(self%gpu_backend, comm, alloc_bytes, ptr, error_code)
+    call alloc_mem(self%helper, self%gpu_backend, comm, alloc_bytes, ptr, error_code)
   end subroutine mem_alloc
 
   subroutine mem_free(self, ptr, error_code)
-    class(abstract_transpose_plan), intent(in)    :: self            !! Transposition class
+    class(abstract_transpose_plan), intent(inout) :: self            !! Transposition class
     type(c_ptr),                    intent(in)    :: ptr
     integer(int32),                 intent(out)   :: error_code
 
-    call free_mem(self%gpu_backend, ptr, error_code)
+    call free_mem(self%helper, self%gpu_backend, ptr, error_code)
   end subroutine mem_free
 
-  subroutine alloc_mem(gpu_backend, comm, alloc_bytes, ptr, error_code)
+  subroutine alloc_mem(helper, gpu_backend, comm, alloc_bytes, ptr, error_code)
   !! Allocates memory based on ``gpu_backend``
+    type(backend_helper),           intent(inout) :: helper
     type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend
     TYPE_MPI_COMM,                  intent(in)    :: comm
     integer(int64),                 intent(in)    :: alloc_bytes
@@ -291,6 +297,28 @@ contains
       ierr = ncclMemAlloc(ptr, alloc_bytes)
 # else
       ierr = cudaMalloc(ptr, alloc_bytes)
+# endif
+# ifdef NCCL_HAVE_COMM_REGISTER
+      if ( ierr == cudaSuccess .and. helper%should_register) then
+        block
+          type(c_ptr), allocatable :: temp(:,:)
+          type(c_ptr) :: handle
+
+          if ( size(helper%nccl_register, dim=1) == helper%nccl_register_size ) then
+            allocate( temp(helper%nccl_register_size, 2) )
+            temp(:,:) = helper%nccl_register(:,:)
+            deallocate( helper%nccl_register )
+            allocate( helper%nccl_register(helper%nccl_register_size + NCCL_REGISTER_PREALLOC_SIZE, 2) )
+            helper%nccl_register(:helper%nccl_register_size,:) = temp(:,:)
+            deallocate( temp )
+          endif
+          helper%nccl_register_size = helper%nccl_register_size + 1
+
+          NCCL_CALL( "ncclCommRegister", ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes, handle) )
+          helper%nccl_register(helper%nccl_register_size, 1) = ptr
+          helper%nccl_register(helper%nccl_register_size, 2) = handle
+        endblock
+      endif
 # endif
 #else
       error stop "not DTFFT_WITH_NCCL"
@@ -312,8 +340,9 @@ contains
     if ( ierr /= cudaSuccess ) error_code = DTFFT_ERROR_ALLOC_FAILED
   end subroutine alloc_mem
 
-  subroutine free_mem(gpu_backend, ptr, error_code)
+  subroutine free_mem(helper, gpu_backend, ptr, error_code)
   !! Frees memory based on ``gpu_backend``
+    type(backend_helper),           intent(inout) :: helper
     type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend
     type(c_ptr),                    intent(in)    :: ptr
     integer(int32),                 intent(out)   :: error_code
@@ -322,6 +351,21 @@ contains
     error_code = DTFFT_SUCCESS
     ierr = cudaSuccess
     if ( is_backend_nccl(gpu_backend) ) then
+#ifdef NCCL_HAVE_COMM_REGISTER
+      if ( helper%should_register ) then
+        block
+          integer(int32) :: i
+
+          do i = 1, size(helper%nccl_register, dim=1)
+            if ( .not. is_same_ptr(ptr, helper%nccl_register(i, 1)) ) cycle
+            NCCL_CALL( "ncclCommDeregister", ncclCommDeregister(helper%nccl_comm, helper%nccl_register(i, 2)) )
+            helper%nccl_register(i, 1) = c_null_ptr
+            helper%nccl_register(i, 2) = c_null_ptr
+            helper%nccl_register_size = helper%nccl_register_size - 1
+          enddo
+        endblock
+      endif
+#endif
 #ifdef DTFFT_WITH_NCCL
 # ifdef NCCL_HAVE_MEMALLOC
       ierr = ncclMemFree(ptr)

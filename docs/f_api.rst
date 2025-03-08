@@ -567,6 +567,7 @@ _____________________
 ------
 
 dtfft_stream_t
+-----------------------
 
 .. f:type:: dtfft_stream_t
 
@@ -574,6 +575,30 @@ dtfft_stream_t
 
   :f type(c_ptr) stream:
     Actual stream
+
+Related Type functions
+_______________________
+
+.. f:function:: dtfft_stream_t(stream)
+
+  C-pointer constructor
+
+  :p type(c_ptr) stream [in]: Stream pointer
+  :r dtfft_stream_t: Stream object
+
+.. f:function:: dtfft_stream_t(stream)
+
+  CUDA-Fortran stream constructor
+
+  :p integer(cuda_stream_kind) stream [in]: CUDA-Fortran stream
+  :r dtfft_stream_t: Stream object
+
+.. f:function:: get_cuda_stream(stream)
+
+  Gets CUDA stream from dtfft_stream_t object
+
+  :p dtfft_stream_t stream [in]: Stream object
+  :r integer(cuda_stream_kind): CUDA-Fortran stream
 
 
 Version handling

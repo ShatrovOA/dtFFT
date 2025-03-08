@@ -40,7 +40,7 @@ public :: is_valid_platform
 public :: dtfft_gpu_backend_t
 public :: dtfft_get_gpu_backend_string
 public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl, is_backend_nvshmem
-public :: dtfft_stream_t
+public :: dtfft_stream_t, get_cuda_stream
 #endif
 
   integer(int32), parameter, public :: DTFFT_VERSION_MAJOR = CONF_DTFFT_VERSION_MAJOR
@@ -593,5 +593,12 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
 
     stream%stream = val
   end function stream_from_ptr
+
+  function get_cuda_stream(stream) result(cuda_stream)
+    type(dtfft_stream_t), intent(in) :: stream
+    integer(int64)                   :: cuda_stream
+
+    cuda_stream = transfer(stream, int64)
+  end function get_cuda_stream
 #endif
 end module dtfft_parameters

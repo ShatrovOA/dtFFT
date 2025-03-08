@@ -556,13 +556,13 @@ contains
 
   function mem_alloc(self, alloc_bytes, error_code) result(ptr)
   !! Allocates memory specific for this plan
-    class(dtfft_plan_t),        intent(in)  :: self
+    class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
-    integer(int64),             intent(in)  :: alloc_bytes
+    integer(int64),             intent(in)    :: alloc_bytes
       !! Number of bytes to allocate
-    integer(int32), optional,   intent(out) :: error_code
+    integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
-    type(c_ptr)                             :: ptr
+    type(c_ptr)                               :: ptr
       !! Allocated pointer
     integer(int32)  :: ierr     !! Error code
 
@@ -591,7 +591,7 @@ contains
 
   subroutine mem_free(self, ptr, error_code)
   !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(in)    :: self
+    class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
     type(c_ptr),                intent(in)    :: ptr
       !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
@@ -746,16 +746,12 @@ contains
       !! CUDA-Fortran Stream
     integer(int32), optional,   intent(out) :: error_code
       !! Optional error code returned to user
-    integer(int32)  :: ierr     !! Error code
+    integer(int32)        :: ierr     !! Error code
+    type(dtfft_stream_t)  :: stream_
 
-    ierr = DTFFT_SUCCESS
-    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
-    CHECK_ERROR_AND_RETURN
-    if ( self%platform == DTFFT_PLATFORM_HOST ) ierr = DTFFT_ERROR_INVALID_USAGE
-    CHECK_ERROR_AND_RETURN
-
-    stream = transfer(self%stream, stream)
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+    call self%get_stream(stream_, error_code=ierr)
+    if ( ierr == DTFFT_SUCCESS ) stream = get_cuda_stream(stream_)
+    if ( present( error_code ) ) error_code = ierr
   end subroutine get_stream_int64
 
   integer(int32) function check_device_pointers(in, out, gpu_backend, aux) result(error_code)
