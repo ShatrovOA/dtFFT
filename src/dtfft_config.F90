@@ -14,7 +14,7 @@ private
 public :: dtfft_config_t
 public :: dtfft_create_config, dtfft_set_config
 public :: get_z_slab_flag
-public :: get_platform
+public :: get_user_platform
 #ifdef DTFFT_WITH_CUDA
 public :: get_user_stream
 public :: destroy_stream
@@ -24,9 +24,9 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
 
 
   logical,                    save  :: is_z_slab_enabled = .true.
-  !< Should we use z-slab decomposition or not
+  !! Should we use z-slab decomposition or not
   type(dtfft_platform_t),     save  :: platform = DTFFT_PLATFORM_HOST
-  !< Default platform
+  !! Default platform
 
 #ifdef DTFFT_WITH_CUDA
 # ifdef DTFFT_WITH_NCCL
@@ -36,23 +36,23 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
 # endif
 
   type(dtfft_stream_t),       save  :: main_stream
-  !< Default dtFFT CUDA stream
+  !! Default dtFFT CUDA stream
   type(dtfft_stream_t),       save  :: custom_stream
-  !< CUDA stream set by the user
+  !! CUDA stream set by the user
   logical,                    save  :: is_stream_created = .false.
-  !< Is the default stream created?
+  !! Is the default stream created?
   logical,                    save  :: is_custom_stream = .false.
-  !< Is the custom stream provided by the user?
+  !! Is the custom stream provided by the user?
   logical,                    save  :: is_pipelined_enabled = .true.
-  !< Should we use pipelined backends or not
+  !! Should we use pipelined backends or not
   logical,                    save  :: is_mpi_enabled = .false.
-  !< Should we use MPI backends or not
+  !! Should we use MPI backends or not
   logical,                    save  :: is_nccl_enabled = .true.
-  !< Should we use NCCL backends or not
+  !! Should we use NCCL backends or not
   logical,                    save  :: is_nvshmem_enabled = .true.
-  !< Should we use NCCL backends or not
+  !! Should we use NCCL backends or not
   type(dtfft_gpu_backend_t),  save  :: gpu_backend = DEFAULT_GPU_BACKEND
-  !< Default GPU backend
+  !! Default GPU backend
 #endif
 
 
@@ -74,6 +74,7 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
     !! This option is only defined with device support build.
     !! Even when dtFFT is build with device support it does not nessasary means that all plans must be related to device.
     !! This enables single library installation to be compiled with both host, CUDA and HIP plans.
+
     type(dtfft_stream_t) :: stream
     !! Main CUDA stream that will be used in dtFFT.
     !!
@@ -84,10 +85,12 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
     !! When user sets stream he is responsible of destroying it.
     !!
     !! Stream must not be destroyed before call to `plan%destroy`.
+
     type(dtfft_gpu_backend_t) :: gpu_backend
     !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
     !!
     !! Default is `DTFFT_GPU_BACKEND_NCCL`
+
     logical(c_bool)           :: enable_mpi_backends
     !! Should MPI GPU Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
     !!
@@ -103,16 +106,19 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
     !!
     !! Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to `mpiexec`,
     !! but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
+
     logical(c_bool)           :: enable_pipelined_backends
     !! Should pipelined GPU backends be enabled when `effort` is `DTFFT_PATIENT` or not.
     !!
     !! Default is true.
     !!
     !! Pipelined backends require additional buffer that user has no control over.
+
     logical(c_bool)           :: enable_nccl_backends
     !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
     !!
     !! Default is true.
+
     logical(c_bool)           :: enable_nvshmem_backends
     !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
     !!
@@ -193,11 +199,11 @@ contains
     get_z_slab_flag = is_z_slab_enabled
   end function get_z_slab_flag
 
-  type(dtfft_platform_t) function get_platform()
+  type(dtfft_platform_t) function get_user_platform()
   !! Returns platform set by the user or default one
-    get_platform = platform
-    if ( get_platform_from_env() /= DTFFT_PLATFORM_UNDEFINED ) get_platform = get_platform_from_env()
-  end function get_platform
+    get_user_platform = platform
+    if ( get_platform_from_env() /= PLATFORM_UNDEFINED ) get_user_platform = get_platform_from_env()
+  end function get_user_platform
 
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_stream_t) function get_user_stream() result(stream)
@@ -224,6 +230,7 @@ contains
   type(dtfft_gpu_backend_t) function get_user_gpu_backend()
   !! Returns GPU backend set by the user or default one
     get_user_gpu_backend = gpu_backend
+    if ( get_gpu_backend_from_env() /= BACKEND_NOT_SET) get_user_gpu_backend = get_gpu_backend_from_env()
   end function get_user_gpu_backend
 
   logical function get_pipelined_enabled()

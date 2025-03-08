@@ -62,6 +62,79 @@ Accepted Values
 - **Recommended Range**: 5–20 (values > 1 balance accuracy and runtime)
 - **Default**: ``5``
 
+.. _dtfft_platform_env:
+
+DTFFT_PLATFORM
+==============
+
+Specifies the execution platform for ``dtFFT`` plans. 
+This environment variable allows users to override the platform set via the ``dtfft_config_t`` structure, 
+taking precedence over API configuration.
+
+Purpose
+-------
+
+The ``DTFFT_PLATFORM`` variable provides a flexible way to control whether ``dtFFT`` executes on the host (CPU) or a CUDA-enabled GPU 
+without modifying code or API calls. It ensures that runtime platform selection aligns with user preferences or system capabilities, 
+prioritizing environment settings over programmatic defaults.
+
+Accepted Values
+---------------
+
+- **Type**: String
+- **Supported Values**: 
+
+  - ``host``: Execute on the host (CPU).
+  - ``cuda``: Execute on a CUDA device (GPU).
+
+- **Default**: ``host``
+
+.. note::
+   - Case-insensitive (e.g., ``HOST`` is equivalent to ``host``).
+   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined). In non-CUDA builds, it is ignored, and execution 
+     defaults to the host.
+   - If an unsupported value is provided, it is silently ignored, and the default (``host``) is used.
+
+.. _dtfft_gpu_backend_env:
+
+DTFFT_GPU_BACKEND
+=================
+
+Specifies the GPU backend used by ``dtFFT`` for data transposition and communication when executing plans on a CUDA device. 
+This environment variable allows users to override the backend selected through the ``dtfft_config_t`` structure, 
+taking precedence over API configuration.
+
+Purpose
+-------
+
+The ``DTFFT_GPU_BACKEND`` variable enables users to select a specific GPU backend for optimizing data movement and computation in ``dtFFT`` plans. Different backends offer varying performance characteristics depending on the system configuration, workload, and MPI implementation, allowing fine-tuned control over GPU execution without modifying code.
+
+Accepted Values
+---------------
+
+- **Type**: String
+- **Supported Values**:
+
+  - ``mpi_dt``: Backend using MPI datatypes.
+  - ``mpi_p2p``: MPI peer-to-peer backend.
+  - ``mpi_a2a``: MPI backend using ``MPI_Alltoallv``.
+  - ``mpi_p2p_pipe``: Pipelined MPI peer-to-peer backend with overlapping data copying and unpacking.
+  - ``nccl``: NCCL backend.
+  - ``nccl_pipe``: Pipelined NCCL backend with overlapping data copying and unpacking.
+  - ``cufftmp``: cuFFTMp backend.
+  
+- **Default**: ``nccl`` if NCCL is available in the library build; otherwise, ``mpi_p2p``.
+
+.. note::
+   - Case-insensitive (e.g., ``MPI_DT`` is equivalent to ``mpi_dt``).
+   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set 
+     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
+   - If an unsupported value is provided, it is silently ignored, and the default backend (``nccl`` or ``mpi_p2p``, depending on build) is used.
+   - Availability of some backends (e.g., ``nccl``, ``nccl_pipe``, ``cufftmp``) depends on additional library 
+     support (e.g., NCCL, cuFFTMp) during compilation.
+
+
+
 .. _datatype_selection:
 
 MPI Datatype Selection Variables

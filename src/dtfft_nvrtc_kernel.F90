@@ -63,44 +63,44 @@ public :: clean_unused_cache
   type :: kernel_code
   !! Class to build CUDA kernel code
   private
-    character(len=:), allocatable :: raw                      !< String that holds CUDA code
+    character(len=:), allocatable :: raw                      !! String that holds CUDA code
   contains
   private
-    procedure, pass(self),  public :: to_cstr                 !< Converts Fortran CUDA code to C pointer
-    procedure, pass(self),  public :: add_line                !< Adds new line to CUDA code
-    procedure, pass(self),  public :: destroy => destroy_code !< Frees all memory
+    procedure, pass(self),  public :: to_cstr                 !! Converts Fortran CUDA code to C pointer
+    procedure, pass(self),  public :: add_line                !! Adds new line to CUDA code
+    procedure, pass(self),  public :: destroy => destroy_code !! Frees all memory
   end type kernel_code
 
   type :: nvrtc_kernel
   !! nvRTC Compiled kernel class
   private
-    logical                       :: is_created = .false.     !< Kernel is created flag.
-    logical                       :: is_dummy = .false.       !< If kernel should do anything or not.
-    type(c_ptr)                   :: cuda_kernel              !< Pointer to CUDA kernel.
-    type(dim3)                    :: num_blocks               !< Grid of blocks.
-    type(dim3)                    :: block_size               !< Thread block.
-    integer(int8)                 :: kernel_type              !< Type of kernel to execute.
-    type(kernelArgs)              :: args                     !< Kernel arguments.
-    integer(int32),   allocatable :: pointers(:,:)            !< Optional pointers that hold info about counts and displacements
-                                                              !< in ``KERNEL_UNPACK_PIPELINED`` kernel.
+    logical                       :: is_created = .false.     !! Kernel is created flag.
+    logical                       :: is_dummy = .false.       !! If kernel should do anything or not.
+    type(c_ptr)                   :: cuda_kernel              !! Pointer to CUDA kernel.
+    type(dim3)                    :: num_blocks               !! Grid of blocks.
+    type(dim3)                    :: block_size               !! Thread block.
+    integer(int8)                 :: kernel_type              !! Type of kernel to execute.
+    type(kernelArgs)              :: args                     !! Kernel arguments.
+    integer(int32),   allocatable :: pointers(:,:)            !! Optional pointers that hold info about counts and displacements
+                                                              !! in ``KERNEL_UNPACK_PIPELINED`` kernel.
   contains
   private
-    procedure,  pass(self), public  :: create                 !< Creates kernel
-    procedure,  pass(self), public  :: execute                !< Executes kernel
-    procedure,  pass(self), public  :: destroy                !< Destroys kernel
+    procedure,  pass(self), public  :: create                 !! Creates kernel
+    procedure,  pass(self), public  :: execute                !! Executes kernel
+    procedure,  pass(self), public  :: destroy                !! Destroys kernel
   end type nvrtc_kernel
 
   type :: nvrtc_cache
   !! Class to cache compiled kernels
   private
-    integer(int32)                :: ref_count = 0            !< Number of references to this kernel
-    type(c_ptr)                   :: cuda_module = c_null_ptr !< Pointer to CUDA Module.
-    type(c_ptr)                   :: cuda_kernel = c_null_ptr !< Pointer to CUDA kernel.
-    integer(int8)                 :: kernel_type              !< Type of kernel to execute.
-    type(dtfft_transpose_type_t)  :: transpose_type             !< Type of transpose
-    integer(int32)                :: tile_size                !< Tile size of transpose kernel
-    integer(int8)                 :: base_storage             !< Number of bytes needed to store single element
-    logical                       :: has_inner_loop           !< If kernel has inner loop
+    integer(int32)                :: ref_count = 0            !! Number of references to this kernel
+    type(c_ptr)                   :: cuda_module = c_null_ptr !! Pointer to CUDA Module.
+    type(c_ptr)                   :: cuda_kernel = c_null_ptr !! Pointer to CUDA kernel.
+    integer(int8)                 :: kernel_type              !! Type of kernel to execute.
+    type(dtfft_transpose_type_t)  :: transpose_type             !! Type of transpose
+    integer(int32)                :: tile_size                !! Tile size of transpose kernel
+    integer(int8)                 :: base_storage             !! Number of bytes needed to store single element
+    logical                       :: has_inner_loop           !! If kernel has inner loop
   end type nvrtc_cache
 
   integer(int32),     parameter         :: CACHE_PREALLOC_SIZE = 10
@@ -113,16 +113,16 @@ contains
 
   subroutine to_cstr(self, c_code)
   !! Converts Fortran CUDA code to C pointer
-    class(kernel_code),             intent(in)    :: self     !< Kernel code
-    character(c_char), allocatable, intent(out)   :: c_code(:)!< C pointer to code
+    class(kernel_code),             intent(in)    :: self     !! Kernel code
+    character(c_char), allocatable, intent(out)   :: c_code(:)!! C pointer to code
 
     call astring_f2c(self%raw, c_code)
   end subroutine to_cstr
 
   subroutine add_line(self, line)
   !! Adds new line to CUDA code
-    class(kernel_code),             intent(inout) :: self     !< Kernel code
-    character(len=*),               intent(in)    :: line     !< Line to add
+    class(kernel_code),             intent(inout) :: self     !! Kernel code
+    character(len=*),               intent(in)    :: line     !! Line to add
 
     if ( .not. allocated( self%raw ) ) allocate(self%raw, source="")
     self%raw = self%raw // line // c_new_line
@@ -130,16 +130,16 @@ contains
 
   subroutine destroy_code(self)
   !! Frees all memory
-    class(kernel_code),             intent(inout) :: self     !< Kernel code
+    class(kernel_code),             intent(inout) :: self     !! Kernel code
 
     if ( allocated( self%raw ) ) deallocate(self%raw)
   end subroutine destroy_code
 
   subroutine create_device_pointer(ptr, values)
   !! Allocates memory on a device and copies ``values`` to it.
-    type(c_ptr),        intent(inout)       :: ptr            !< Device pointer
-    integer(c_int),     intent(in), target  :: values(:)      !< Values to copy
-    integer(c_size_t)                       :: n_bytes        !< Number of bytes to copy
+    type(c_ptr),        intent(inout)       :: ptr            !! Device pointer
+    integer(c_int),     intent(in), target  :: values(:)      !! Values to copy
+    integer(c_size_t)                       :: n_bytes        !! Number of bytes to copy
 
     n_bytes = size(values) * c_sizeof(c_int)
     CUDA_CALL( "cudaMalloc", cudaMalloc(ptr, n_bytes) )
@@ -148,8 +148,8 @@ contains
 
   integer(int32) function get_tile_size(x, y)
   !! Returns tile size to use in a tranpose kernel
-    integer(int32), intent(in)  :: x     !< Number of elements in x direction
-    integer(int32), intent(in)  :: y     !< Number of elements in y direction
+    integer(int32), intent(in)  :: x     !! Number of elements in x direction
+    integer(int32), intent(in)  :: y     !! Number of elements in y direction
 
     if ( minval([x, y]) >= DEF_TILE_SIZE ) then
       get_tile_size = DEF_TILE_SIZE
@@ -159,10 +159,10 @@ contains
   end function get_tile_size
 
   subroutine get_contiguous_execution_blocks(size, num_blocks, block_sizes)
-    integer(int32), intent(in)  :: size         !< Total amount of iterations required
-    type(dim3),     intent(out) :: num_blocks   !< Grid of blocks.
-    type(dim3),     intent(out) :: block_sizes  !< Thread block.
-    integer(int32)              :: block_size   !< Number of threads in a block
+    integer(int32), intent(in)  :: size         !! Total amount of iterations required
+    type(dim3),     intent(out) :: num_blocks   !! Grid of blocks.
+    type(dim3),     intent(out) :: block_sizes  !! Thread block.
+    integer(int32)              :: block_size   !! Number of threads in a block
 
     if ( size < TARGET_THREADS_PER_BLOCK ) then
       block_size = size
@@ -180,21 +180,21 @@ contains
 
   subroutine create(self, comm, dims, base_storage, transpose_type, kernel_type, pointers)
   !! Creates kernel
-    class(nvrtc_kernel),          intent(inout) :: self               !< nvRTC Compiled kernel class
-    TYPE_MPI_COMM,                intent(in)    :: comm               !< MPI Communicator
-    integer(int32), target,       intent(in)    :: dims(0:)           !< Global dimensions to process
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    type(dtfft_transpose_type_t), intent(in)    :: transpose_type     !< Type of transposition to perform
-    integer(int8),                intent(in)    :: kernel_type        !< Type of kernel to build
-    integer(int32), optional,     intent(in)    :: pointers(:,:)      !< Optional pointers to unpack kernels
-    integer(int32)  :: comm_size          !< Number of processes in current MPI communicator
-    integer(int32)  :: comm_rank          !< Rank of current process
-    integer(int32)  :: mpi_ierr           !< Error code
-    integer(int32)  :: tile_dim           !< Dimension to tile
-    integer(int32)  :: other_dim          !< Dimension not used to tile
-    integer(int32)  :: tile_size          !< Tile size
-    integer(int32)  :: scaler             !< Scaler to adjust number of blocks
-    logical         :: has_inner_loop     !< If kernel has inner loop
+    class(nvrtc_kernel),          intent(inout) :: self               !! nvRTC Compiled kernel class
+    TYPE_MPI_COMM,                intent(in)    :: comm               !! MPI Communicator
+    integer(int32), target,       intent(in)    :: dims(0:)           !! Global dimensions to process
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type     !! Type of transposition to perform
+    integer(int8),                intent(in)    :: kernel_type        !! Type of kernel to build
+    integer(int32), optional,     intent(in)    :: pointers(:,:)      !! Optional pointers to unpack kernels
+    integer(int32)  :: comm_size          !! Number of processes in current MPI communicator
+    integer(int32)  :: comm_rank          !! Rank of current process
+    integer(int32)  :: mpi_ierr           !! Error code
+    integer(int32)  :: tile_dim           !! Dimension to tile
+    integer(int32)  :: other_dim          !! Dimension not used to tile
+    integer(int32)  :: tile_size          !! Tile size
+    integer(int32)  :: scaler             !! Scaler to adjust number of blocks
+    logical         :: has_inner_loop     !! If kernel has inner loop
 
     call self%destroy()
 
@@ -310,14 +310,14 @@ contains
 
   subroutine execute(self, in, out, stream, source)
   !! Executes kernel on stream
-    class(nvrtc_kernel),          intent(inout) :: self               !< nvRTC Compiled kernel class
-    real(real32),    target,      intent(in)    :: in(:)              !< Source pointer
-    real(real32),    target,      intent(in)    :: out(:)             !< Target pointer
-    type(dtfft_stream_t),         intent(in)    :: stream             !< CUDA Stream
-    integer(int32),   optional,   intent(in)    :: source             !< Source rank for pipelined unpacking
-    integer(int32)    :: n_align_sent !< Number of aligned elements sent
-    integer(int32)    :: displ_in     !< Displacement in source buffer
-    integer(int32)    :: displ_out    !< Displacement in target buffer
+    class(nvrtc_kernel),          intent(inout) :: self               !! nvRTC Compiled kernel class
+    real(real32),    target,      intent(in)    :: in(:)              !! Source pointer
+    real(real32),    target,      intent(in)    :: out(:)             !! Target pointer
+    type(dtfft_stream_t),         intent(in)    :: stream             !! CUDA Stream
+    integer(int32),   optional,   intent(in)    :: source             !! Source rank for pipelined unpacking
+    integer(int32)    :: n_align_sent !! Number of aligned elements sent
+    integer(int32)    :: displ_in     !! Displacement in source buffer
+    integer(int32)    :: displ_out    !! Displacement in target buffer
 
     if ( self%is_dummy ) return
     if ( .not. self%is_created ) error stop "dtFFT Internal Error: `execute` called while plan not created"
@@ -346,8 +346,8 @@ contains
 
   subroutine destroy(self)
   !! Destroys kernel
-    class(nvrtc_kernel),          intent(inout) :: self               !< nvRTC Compiled kernel class
-    integer(int32)  :: i  !< Counter
+    class(nvrtc_kernel),          intent(inout) :: self               !! nvRTC Compiled kernel class
+    integer(int32)  :: i  !! Counter
 
     if ( .not. self%is_created ) return
     if ( self%is_dummy .or. self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) return
@@ -368,14 +368,14 @@ contains
   function get_cached_kernel(transpose_type, kernel_type, base_storage, tile_size, has_inner_loop) result(kernel)
   !! Returns cached kernel if it exists.
   !! If not returns null pointer.
-    type(dtfft_transpose_type_t), intent(in)    :: transpose_type       !< Type of transposition to perform
-    integer(int8),                intent(in)    :: kernel_type        !< Type of kernel to build
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    integer(int32),               intent(in)    :: tile_size          !< Tile size
-    logical,                      intent(in)    :: has_inner_loop     !< If kernel has inner loop
-    type(c_ptr)                   :: kernel             !< Cached kernel
-    type(dtfft_transpose_type_t)  :: transpose_type_    !< Fixed id of transposition
-    integer(int32)                :: i                !< Counter
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type       !! Type of transposition to perform
+    integer(int8),                intent(in)    :: kernel_type        !! Type of kernel to build
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int32),               intent(in)    :: tile_size          !! Tile size
+    logical,                      intent(in)    :: has_inner_loop     !! If kernel has inner loop
+    type(c_ptr)                   :: kernel             !! Cached kernel
+    type(dtfft_transpose_type_t)  :: transpose_type_    !! Fixed id of transposition
+    integer(int32)                :: i                !! Counter
 
     kernel = c_null_ptr
     transpose_type_ = get_true_transpose_type(transpose_type)
@@ -399,8 +399,8 @@ contains
   !! Returns generic transpose id.
   !! Since X-Y and Y-Z transpositions are symmectric, it returns only one of them.
   !! X-Z and Z-X are not symmetric
-    type(dtfft_transpose_type_t), intent(in)    :: transpose_type       !< Type of transposition to perform
-    type(dtfft_transpose_type_t)                :: transpose_type_      !< Fixed id of transposition
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type       !! Type of transposition to perform
+    type(dtfft_transpose_type_t)                :: transpose_type_      !! Fixed id of transposition
 
     if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z .or. transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
       transpose_type_ = transpose_type
@@ -411,29 +411,29 @@ contains
 
   function compile_and_cache(comm, dims, transpose_type, kernel_type, base_storage, tile_size, has_inner_loop) result(kernel)
   !! Compiles kernel and caches it. Returns compiled kernel.
-    TYPE_MPI_COMM,                intent(in)    :: comm               !< MPI Communicator
-    integer(int32), target,       intent(in)    :: dims(:)            !< Global dimensions to process
-    type(dtfft_transpose_type_t), intent(in)    :: transpose_type     !< Type of transposition to perform
-    integer(int8),                intent(in)    :: kernel_type        !< Type of kernel to build
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    integer(int32),               intent(in)    :: tile_size          !< Tile size
-    logical,                      intent(in)    :: has_inner_loop     !< If kernel has inner loop
-    type(c_ptr)                             :: kernel             !< Compiled kernel to return
-    type(nvrtc_cache),        allocatable   :: temp(:)            !< Temporary cache
-    integer(int32)                          :: i                  !< Counter
-    character(len=:),         allocatable   :: kernel_name        !< Name of kernel
-    type(kernel_code)                       :: code               !< CUDA Code to compile
-    character(c_char),        allocatable   :: c_code(:)          !< CUDA C Code to compile
-    type(string),   target,   allocatable   :: options(:)         !< Compilation options
-    type(c_ptr),              allocatable   :: c_options(:)       !< C style, null-string terminated options
-    integer(int32)                          :: num_options        !< Number of compilation options
-    type(dtfft_transpose_type_t)            :: transpose_type_      !< Fixed id of transposition
-    integer(int32)                          :: device_id          !< Current device number
-    integer(int32)                          :: ierr               !< Error code
-    integer(int32)                          :: mpi_ierr           !< MPI Error code
-    type(c_ptr)                             :: prog               !< nvRTC Program
-    integer(c_size_t)                       :: cubinSizeRet       !< Size of cubin
-    character(c_char),        allocatable   :: cubin(:)           !< Compiled binary
+    TYPE_MPI_COMM,                intent(in)    :: comm               !! MPI Communicator
+    integer(int32), target,       intent(in)    :: dims(:)            !! Global dimensions to process
+    type(dtfft_transpose_type_t), intent(in)    :: transpose_type     !! Type of transposition to perform
+    integer(int8),                intent(in)    :: kernel_type        !! Type of kernel to build
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int32),               intent(in)    :: tile_size          !! Tile size
+    logical,                      intent(in)    :: has_inner_loop     !! If kernel has inner loop
+    type(c_ptr)                             :: kernel             !! Compiled kernel to return
+    type(nvrtc_cache),        allocatable   :: temp(:)            !! Temporary cache
+    integer(int32)                          :: i                  !! Counter
+    character(len=:),         allocatable   :: kernel_name        !! Name of kernel
+    type(kernel_code)                       :: code               !! CUDA Code to compile
+    character(c_char),        allocatable   :: c_code(:)          !! CUDA C Code to compile
+    type(string),   target,   allocatable   :: options(:)         !! Compilation options
+    type(c_ptr),              allocatable   :: c_options(:)       !! C style, null-string terminated options
+    integer(int32)                          :: num_options        !! Number of compilation options
+    type(dtfft_transpose_type_t)            :: transpose_type_      !! Fixed id of transposition
+    integer(int32)                          :: device_id          !! Current device number
+    integer(int32)                          :: ierr               !! Error code
+    integer(int32)                          :: mpi_ierr           !! MPI Error code
+    type(c_ptr)                             :: prog               !! nvRTC Program
+    integer(c_size_t)                       :: cubinSizeRet       !! Size of cubin
+    character(c_char),        allocatable   :: cubin(:)           !! Compiled binary
     integer(int32) :: major, minor
 
     ! Check if kernel already been compiled
@@ -573,8 +573,8 @@ contains
   subroutine mark_unused(kernel)
   !! Takes CUDA kernel as an argument and searches for it in cache
   !! If kernel is found than reduces `ref_count` and return null pointer
-    type(c_ptr),  intent(inout) :: kernel   !< CUDA kernel to search for
-    integer(int32)              :: i        !< Counter
+    type(c_ptr),  intent(inout) :: kernel   !! CUDA kernel to search for
+    integer(int32)              :: i        !! Counter
 
     if ( .not. allocated(cache) ) return
     do i = 1, cache_size
@@ -588,7 +588,7 @@ contains
 
   subroutine clean_unused_cache()
   !! Removes unused modules from cuda context
-    integer(int32)  :: i  !< Counter
+    integer(int32)  :: i  !! Counter
 
     do i = 1, cache_size
       if ( cache(i)%ref_count == 0 .and. c_associated(cache(i)%cuda_module) ) then
@@ -610,7 +610,7 @@ contains
   subroutine get_neighbor_function_code(code)
   !! Generated device function that is used to determite id of process that to which data is being sent or from which data has been recieved
   !! based on local element coordinate
-    type(kernel_code),  intent(inout) :: code   !< Resulting code
+    type(kernel_code),  intent(inout) :: code   !! Resulting code
 
     call code%add_line("__device__")
     call code%add_line("int findNeighborIdx(const int *a, int n, int val) {")
@@ -636,11 +636,11 @@ contains
 
   subroutine get_code_init(kernel_name, base_storage, code, buffer_type)
   !! Generates basic code that is used in all other kernels
-    character(len=*),                         intent(in)    :: kernel_name        !< Name of CUDA kernel
-    integer(int8),                            intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    type(kernel_code),                        intent(inout) :: code               !< Resulting code
-    character(len=:), optional, allocatable,  intent(out)   :: buffer_type        !< Type of buffer that should be used
-    character(len=:),           allocatable                 :: buffer_type_       !< Type of buffer that should be used
+    character(len=*),                         intent(in)    :: kernel_name        !! Name of CUDA kernel
+    integer(int8),                            intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    type(kernel_code),                        intent(inout) :: code               !! Resulting code
+    character(len=:), optional, allocatable,  intent(out)   :: buffer_type        !! Type of buffer that should be used
+    character(len=:),           allocatable                 :: buffer_type_       !! Type of buffer that should be used
 
     select case ( base_storage )
     case ( FLOAT_STORAGE_SIZE )
@@ -666,15 +666,15 @@ contains
 
   function get_transpose_kernel_code(kernel_name, ndims, base_storage, transpose_type, enable_packing, enable_multiprocess) result(code)
   !! Generates code that will be used to locally tranpose data and prepares to send it to other processes
-    character(len=*),               intent(in)  :: kernel_name              !< Name of CUDA kernel
-    integer(int8),                  intent(in)  :: ndims                    !< Number of dimensions
-    integer(int8),                  intent(in)  :: base_storage             !< Number of bytes needed to store single element
-    type(dtfft_transpose_type_t),   intent(in)  :: transpose_type           !< Transpose id
-    logical,                        intent(in)  :: enable_packing           !< If data should be manually packed or not
-    logical,                        intent(in)  :: enable_multiprocess      !< If thread should process more then one element
-    type(kernel_code)               :: code                     !< Resulting code
-    character(len=:),   allocatable :: buffer_type              !< Type of buffer that should be used
-    character(len=2) :: temp                                    !< Temporary string
+    character(len=*),               intent(in)  :: kernel_name              !! Name of CUDA kernel
+    integer(int8),                  intent(in)  :: ndims                    !! Number of dimensions
+    integer(int8),                  intent(in)  :: base_storage             !! Number of bytes needed to store single element
+    type(dtfft_transpose_type_t),   intent(in)  :: transpose_type           !! Transpose id
+    logical,                        intent(in)  :: enable_packing           !! If data should be manually packed or not
+    logical,                        intent(in)  :: enable_multiprocess      !! If thread should process more then one element
+    type(kernel_code)               :: code                     !! Resulting code
+    character(len=:),   allocatable :: buffer_type              !! Type of buffer that should be used
+    character(len=2) :: temp                                    !! Temporary string
 
     if ( ndims == 2 .and. (enable_packing .or. enable_multiprocess) ) error stop "dtFFT Internal error: ndims == 2 .and. (enable_packing .or. enable_multiprocess)"
 
@@ -770,10 +770,10 @@ contains
 
   function get_unpack_kernel_code(kernel_name, base_storage, is_partial) result(code)
   !! Generates code that will be used to unpack data when it is recieved
-    character(len=*),   intent(in)  :: kernel_name        !< Name of CUDA kernel
-    integer(int8),      intent(in)  :: base_storage       !< Number of bytes needed to store single element
+    character(len=*),   intent(in)  :: kernel_name        !! Name of CUDA kernel
+    integer(int8),      intent(in)  :: base_storage       !! Number of bytes needed to store single element
     logical,            intent(in)  :: is_partial
-    type(kernel_code)               :: code               !< Resulting code
+    type(kernel_code)               :: code               !! Resulting code
 
     call get_neighbor_function_code(code)
     call get_code_init(kernel_name, base_storage, code)
@@ -808,9 +808,9 @@ contains
 
   function get_unpack_pipelined_kernel_code(kernel_name, base_storage) result(code)
   !! Generates code that will be used to partially unpack data when it is recieved from other process
-    character(len=*),   intent(in)  :: kernel_name        !< Name of CUDA kernel
-    integer(int8),      intent(in)  :: base_storage       !< Number of bytes needed to store single element
-    type(kernel_code)               :: code               !< Resulting code
+    character(len=*),   intent(in)  :: kernel_name        !! Name of CUDA kernel
+    integer(int8),      intent(in)  :: base_storage       !! Number of bytes needed to store single element
+    type(kernel_code)               :: code               !! Resulting code
 
     call get_code_init(kernel_name, base_storage, code)
     call code%add_line("  ,const int n_total")

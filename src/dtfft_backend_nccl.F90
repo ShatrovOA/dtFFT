@@ -37,19 +37,19 @@ public :: backend_nccl
   private
     type(ncclComm)                :: nccl_comm
   contains
-    procedure         :: create_private => create_nccl        !< Creates NCCL backend
-    procedure         :: execute_private => execute_nccl      !< Executes NCCL backend
-    procedure         :: destroy_private => destroy_nccl      !< Destroys NCCL backend
+    procedure         :: create_private => create_nccl        !! Creates NCCL backend
+    procedure         :: execute_private => execute_nccl      !! Executes NCCL backend
+    procedure         :: destroy_private => destroy_nccl      !! Destroys NCCL backend
   end type backend_nccl
 
 contains
 
   subroutine create_nccl(self, helper, tranpose_type, base_storage)
   !! Creates NCCL backend
-    class(backend_nccl),          intent(inout) :: self               !< NCCL backend
-    type(backend_helper),         intent(in)    :: helper             !< Backend helper
+    class(backend_nccl),          intent(inout) :: self               !! NCCL backend
+    type(backend_helper),         intent(in)    :: helper             !! Backend helper
     type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes to store single element
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes to store single element
 
     if ( .not. is_backend_nccl(self%gpu_backend) ) error stop "dtFFT internal error: .not. is_backend_nccl"
     if ( .not. helper%is_nccl_created ) error stop "dtFFT internal error: .not. helper%is_nccl_created"
@@ -58,12 +58,12 @@ contains
 
   subroutine execute_nccl(self, in, out, stream)
   !! Executes NCCL backend
-    class(backend_nccl),          intent(inout) :: self       !< NCCL backend
-    real(real32),   target,       intent(inout) :: in(:)      !< Send pointer
-    real(real32),   target,       intent(inout) :: out(:)     !< Recv pointer
-    type(dtfft_stream_t),         intent(in)    :: stream     !< Main execution CUDA stream
-    integer(int32)                              :: i        !< Counter
-    integer(int32)                              :: rnk      !< Rank to send-recv
+    class(backend_nccl),          intent(inout) :: self       !! NCCL backend
+    real(real32),   target,       intent(inout) :: in(:)      !! Send pointer
+    real(real32),   target,       intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),         intent(in)    :: stream     !! Main execution CUDA stream
+    integer(int32)                              :: i        !! Counter
+    integer(int32)                              :: rnk      !! Rank to send-recv
     real(real32), pointer :: pin(:), pout(:)
 
     if ( self%is_pipelined ) then
@@ -94,7 +94,7 @@ contains
 
   subroutine destroy_nccl(self)
   !! Destroys NCCL backend
-    class(backend_nccl),  intent(inout) :: self       !< NCCL backend
+    class(backend_nccl),  intent(inout) :: self       !! NCCL backend
 
   end subroutine destroy_nccl
 end module dtfft_backend_nccl

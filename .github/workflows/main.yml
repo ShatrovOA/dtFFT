@@ -219,7 +219,8 @@ jobs:
           sudo apt-get install libopenmpi-dev openmpi-bin
           sudo apt-get install libfftw3-dev
           sudo apt-get -y install cuda-toolkit-12-8
-          sudo apt install libnccl2=2.25.1-1+cuda12.8 libnccl-dev=2.25.1-1+cuda12.8
+          apt-cache policy libnccl2 libnccl-dev
+          sudo apt-get install -y libnccl2 libnccl-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build

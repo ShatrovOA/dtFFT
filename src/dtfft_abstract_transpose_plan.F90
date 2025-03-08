@@ -52,17 +52,17 @@ public :: alloc_mem, free_mem
 #ifdef DTFFT_WITH_CUDA
     type(dtfft_gpu_backend_t)     :: gpu_backend = DTFFT_GPU_BACKEND_MPI_DATATYPE
 #endif
-    logical :: is_z_slab  !< Z-slab optimization flag (for 3D transforms)
+    logical :: is_z_slab  !! Z-slab optimization flag (for 3D transforms)
   contains
-    procedure,                            pass(self),           public  :: create           !< Create transposition plan
-    procedure,                            pass(self),           public  :: execute          !< Executes transposition
-    procedure(create_interface),          pass(self), deferred          :: create_private   !< Creates overriding class
-    procedure(execute_interface),         pass(self), deferred          :: execute_private  !< Executes overriding class
-    procedure(destroy_interface),         pass(self), deferred, public  :: destroy          !< Destroys overriding class
+    procedure,                            pass(self),           public  :: create           !! Create transposition plan
+    procedure,                            pass(self),           public  :: execute          !! Executes transposition
+    procedure(create_interface),          pass(self), deferred          :: create_private   !! Creates overriding class
+    procedure(execute_interface),         pass(self), deferred          :: execute_private  !! Executes overriding class
+    procedure(destroy_interface),         pass(self), deferred, public  :: destroy          !! Destroys overriding class
 #ifdef DTFFT_WITH_CUDA
-    procedure,   non_overridable,         pass(self),           public  :: get_gpu_backend  !< Returns backend id
-    procedure,   non_overridable,         pass(self),           public  :: mem_alloc        !< Allocates memory based on selected backend
-    procedure,   non_overridable,         pass(self),           public  :: mem_free         !< Frees memory allocated with mem_alloc
+    procedure,   non_overridable,         pass(self),           public  :: get_gpu_backend  !! Returns backend id
+    procedure,   non_overridable,         pass(self),           public  :: mem_alloc        !! Allocates memory based on selected backend
+    procedure,   non_overridable,         pass(self),           public  :: mem_free         !! Frees memory allocated with mem_alloc
 #endif
   end type abstract_transpose_plan
 
@@ -71,34 +71,34 @@ public :: alloc_mem, free_mem
     function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
     !! Creates transposition plans
     import
-      class(abstract_transpose_plan), intent(inout) :: self                 !< Transposition class
-      integer(int32),                 intent(in)    :: dims(:)              !< Global sizes of the transform requested
-      integer(int32),                 intent(in)    :: transposed_dims(:,:) !< Transposed sizes of the transform requested
-      TYPE_MPI_COMM,                  intent(in)    :: base_comm            !< Base MPI communicator
-      integer(int32),                 intent(in)    :: comm_dims(:)         !< Dims in cartesian communicator
-      type(dtfft_effort_t),           intent(in)    :: effort               !< ``dtFFT`` planner type of effort
-      TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
-      integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
-      logical,                        intent(in)    :: is_custom_cart_comm  !< Custom cartesian communicator provided by user
-      TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !< Cartesian communicator
-      TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !< Array of 1d communicators
-      type(pencil),                   intent(out)   :: pencils(:)           !< Data distributing meta
-      integer(int32)                                :: error_code           !< Error code
+      class(abstract_transpose_plan), intent(inout) :: self                 !! Transposition class
+      integer(int32),                 intent(in)    :: dims(:)              !! Global sizes of the transform requested
+      integer(int32),                 intent(in)    :: transposed_dims(:,:) !! Transposed sizes of the transform requested
+      TYPE_MPI_COMM,                  intent(in)    :: base_comm            !! Base MPI communicator
+      integer(int32),                 intent(in)    :: comm_dims(:)         !! Dims in cartesian communicator
+      type(dtfft_effort_t),           intent(in)    :: effort               !! ``dtFFT`` planner type of effort
+      TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !! Base MPI_Datatype
+      integer(int8),                  intent(in)    :: base_storage         !! Number of bytes needed to store single element
+      logical,                        intent(in)    :: is_custom_cart_comm  !! Custom cartesian communicator provided by user
+      TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
+      TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
+      type(pencil),                   intent(out)   :: pencils(:)           !! Data distributing meta
+      integer(int32)                                :: error_code           !! Error code
     end function create_interface
 
     subroutine execute_interface(self, in, out, transpose_type)
     !! Executes single transposition
     import
-      class(abstract_transpose_plan), intent(inout) :: self           !< Transposition class
-      type(*),              target,   intent(inout) :: in(..)         !< Incoming buffer of any rank and kind
-      type(*),              target,   intent(inout) :: out(..)        !< Resulting buffer of any rank and kind
-      type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !< Type of transpose
+      class(abstract_transpose_plan), intent(inout) :: self           !! Transposition class
+      type(*),              target,   intent(inout) :: in(..)         !! Incoming buffer of any rank and kind
+      type(*),              target,   intent(inout) :: out(..)        !! Resulting buffer of any rank and kind
+      type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !! Type of transpose
     end subroutine execute_interface
 
     subroutine destroy_interface(self)
     !! Destroys transposition plans
     import
-      class(abstract_transpose_plan), intent(inout) :: self         !< Transposition class
+      class(abstract_transpose_plan), intent(inout) :: self         !! Transposition class
     end subroutine destroy_interface
   endinterface
 
@@ -106,17 +106,17 @@ contains
 
   function create(self, dims, base_comm_, effort, base_dtype, base_storage, cart_comm, comms, pencils) result(error_code)
   !! Creates transposition plans
-    class(abstract_transpose_plan), intent(inout) :: self                 !< Transposition class
-    integer(int32),                 intent(in)    :: dims(:)              !< Global sizes of the transform requested
-    TYPE_MPI_COMM,                  intent(in)    :: base_comm_           !< Base communicator
-    type(dtfft_effort_t),           intent(in)    :: effort               !< ``dtFFT`` planner type of effort
-    TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
-    integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
-    TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !< Cartesian communicator
-    TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !< Array of 1d communicators
-    type(pencil),                   intent(out)   :: pencils(:)           !< Data distributing meta
+    class(abstract_transpose_plan), intent(inout) :: self                 !! Transposition class
+    integer(int32),                 intent(in)    :: dims(:)              !! Global sizes of the transform requested
+    TYPE_MPI_COMM,                  intent(in)    :: base_comm_           !! Base communicator
+    type(dtfft_effort_t),           intent(in)    :: effort               !! ``dtFFT`` planner type of effort
+    TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !! Base MPI_Datatype
+    integer(int8),                  intent(in)    :: base_storage         !! Number of bytes needed to store single element
+    TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
+    TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
+    type(pencil),                   intent(out)   :: pencils(:)           !! Data distributing meta
     integer(int32)                                :: error_code
-    integer(int32),               allocatable     :: transposed_dims(:,:) !< Global counts in transposed coordinates
+    integer(int32),               allocatable     :: transposed_dims(:,:) !! Global counts in transposed coordinates
     logical :: cond1, cond2
 
     integer(int32),  allocatable :: comm_dims(:)
@@ -135,10 +135,10 @@ contains
     if ( top_type == MPI_CART ) then
       is_custom_cart_comm = .true.
       block
-        integer(int32)                 :: grid_ndims           !< Number of dims in user defined cartesian communicator
-        integer(int32),  allocatable   :: temp_dims(:)         !< Temporary dims needed by MPI_Cart_get
-        integer(int32),  allocatable   :: temp_coords(:)       !< Temporary coordinates needed by MPI_Cart_get
-        logical,         allocatable   :: temp_periods(:)      !< Temporary periods needed by MPI_Cart_get
+        integer(int32)                 :: grid_ndims           !! Number of dims in user defined cartesian communicator
+        integer(int32),  allocatable   :: temp_dims(:)         !! Temporary dims needed by MPI_Cart_get
+        integer(int32),  allocatable   :: temp_coords(:)       !! Temporary coordinates needed by MPI_Cart_get
+        logical,         allocatable   :: temp_periods(:)      !! Temporary periods needed by MPI_Cart_get
         integer(int8) :: d
 
         call MPI_Cartdim_get(base_comm_, grid_ndims, ierr)
@@ -175,7 +175,7 @@ contains
       comm_dims(:) = 0
       comm_dims(1) = 1
 #ifdef DTFFT_WITH_CUDA
-      if ( get_platform() == DTFFT_PLATFORM_HOST ) then
+      if ( get_user_platform() == DTFFT_PLATFORM_HOST ) then
         cond1 = comm_size <= dims(ndims)
         cond2 = comm_size <= dims(1) .and. comm_size <= dims(2)
       else
@@ -238,10 +238,10 @@ contains
 
   subroutine execute(self, in, out, transpose_type)
   !! Executes single transposition
-    class(abstract_transpose_plan), intent(inout) :: self         !< Transposition class
-    type(*),                        intent(inout) :: in(..)       !< Incoming buffer of any rank and kind
-    type(*),                        intent(inout) :: out(..)      !< Resulting buffer of any rank and kind
-    type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !< Type of transpose
+    class(abstract_transpose_plan), intent(inout) :: self         !! Transposition class
+    type(*),                        intent(inout) :: in(..)       !! Incoming buffer of any rank and kind
+    type(*),                        intent(inout) :: out(..)      !! Resulting buffer of any rank and kind
+    type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !! Type of transpose
 
     PHASE_BEGIN('Transpose '//TRANSPOSE_NAMES(transpose_type%val), COLOR_TRANSPOSE_PALLETTE(transpose_type%val))
     call self%execute_private(in, out, transpose_type)
@@ -250,13 +250,13 @@ contains
 
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_gpu_backend_t) function get_gpu_backend(self)
-    class(abstract_transpose_plan), intent(in)    :: self         !< Transposition class
+    class(abstract_transpose_plan), intent(in)    :: self         !! Transposition class
     get_gpu_backend = self%gpu_backend
   end function get_gpu_backend
 
   subroutine mem_alloc(self, comm, alloc_bytes, ptr, error_code)
     !! Allocates memory based on selected backend
-    class(abstract_transpose_plan), intent(in)    :: self            !< Transposition class
+    class(abstract_transpose_plan), intent(in)    :: self            !! Transposition class
     TYPE_MPI_COMM,                  intent(in)    :: comm
     integer(int64),                 intent(in)    :: alloc_bytes
     type(c_ptr),                    intent(out)   :: ptr
@@ -266,7 +266,7 @@ contains
   end subroutine mem_alloc
 
   subroutine mem_free(self, ptr, error_code)
-    class(abstract_transpose_plan), intent(in)    :: self            !< Transposition class
+    class(abstract_transpose_plan), intent(in)    :: self            !! Transposition class
     type(c_ptr),                    intent(in)    :: ptr
     integer(int32),                 intent(out)   :: error_code
 
@@ -346,14 +346,14 @@ contains
 
   subroutine create_cart_comm(old_comm, comm_dims, comm, local_comms)
   !! Creates cartesian communicator
-    TYPE_MPI_COMM,        intent(in)    :: old_comm             !< Communicator to create cartesian from
-    integer(int32),       intent(in)    :: comm_dims(:)         !< Dims in cartesian communicator
-    TYPE_MPI_COMM,        intent(out)   :: comm                 !< Cartesian communicator
-    TYPE_MPI_COMM,        intent(out)   :: local_comms(:)       !< 1d communicators in cartesian communicator
-    logical,              allocatable   :: periods(:)           !< Grid is not periodic
-    logical,              allocatable   :: remain_dims(:)       !< Needed by MPI_Cart_sub
-    integer(int8)                       :: dim                  !< Counter
-    integer(int32)                      :: ierr                 !< Error code
+    TYPE_MPI_COMM,        intent(in)    :: old_comm             !! Communicator to create cartesian from
+    integer(int32),       intent(in)    :: comm_dims(:)         !! Dims in cartesian communicator
+    TYPE_MPI_COMM,        intent(out)   :: comm                 !! Cartesian communicator
+    TYPE_MPI_COMM,        intent(out)   :: local_comms(:)       !! 1d communicators in cartesian communicator
+    logical,              allocatable   :: periods(:)           !! Grid is not periodic
+    logical,              allocatable   :: remain_dims(:)       !! Needed by MPI_Cart_sub
+    integer(int8)                       :: dim                  !! Counter
+    integer(int32)                      :: ierr                 !! Error code
     integer(int8)                       :: ndims
 
     ndims = size(comm_dims, kind=int8)

@@ -10,7 +10,7 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
   end type nvtxDomainHandle
 
   type(nvtxDomainHandle),     save  :: domain_nvtx
-  !< NVTX domain handle
+  !! NVTX domain handle
   logical,                    save  :: domain_created = .false.
 
   interface
@@ -48,8 +48,8 @@ contains
 
   subroutine push_nvtx_domain_range(message, color)
   !! Pushes a range to the NVTX domain
-    character(len=*), intent(in)    :: message    !< Message to push
-    integer(c_int),   intent(in)    :: color      !< Color of the range
+    character(len=*), intent(in)    :: message    !! Message to push
+    integer(c_int),   intent(in)    :: color      !! Color of the range
     character(c_char), allocatable  :: cstr(:)
 
     if ( .not. domain_created ) call create_nvtx_domain()

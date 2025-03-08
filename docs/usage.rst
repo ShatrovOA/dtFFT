@@ -314,28 +314,51 @@ or the :f:func:`dtfft_create_config` function, followed by a call to :f:func:`dt
 
 Configurations must be set prior to creating a plan to take effect. The available parameters are:
 
-- **Z-Slab Optimization** (``enable_z_slab``):
+- **Z-Slab Optimization** (``enable_z_slab``)
+
   A logical flag determining whether ``dtFFT`` uses Z-slab optimization (see `Grid Decomposition`_).
   When enabled (default: ``.true.``), it reduces network data transfers in plans decomposed as ``NX × NY × NZ / P`` by employing
   a two-dimensional FFT algorithm. Disabling it (``.false.``) may resolve :f:var:`DTFFT_ERROR_VKFFT_R2R_2D_PLAN` or
   improve performance if the underlying 2D FFT implementation is suboptimal.
   In most cases, Z-slab is faster due to fewer transpositions.
 
-- **CUDA Stream** (``stream``):
-  An ``integer(cuda_stream_kind)`` specifying the main CUDA stream for GPU operations.
+- **Execution platform** (``platform``)
+
+  A :f:type:`dtfft_platform_t` value specifying the platform for executing ``dtFFT`` plans.
+  By default, set to :f:var:`DTFFT_PLATFORM_HOST`, meaning execution occurs on the host (CPU).
+  Users can set it to :f:var:`DTFFT_PLATFORM_CUDA` for GPU execution, provided the build supports CUDA
+  (``DTFFT_WITH_CUDA`` defined). The value can be overridden by the :ref:`DTFFT_PLATFORM<dtfft_platform_env>` environment variable,
+  which takes precedence if set.
+
+  Available only in CUDA-enabled builds.
+
+- **CUDA Stream** (``stream``)
+
+  A :f:type:`dtfft_stream_t` value specifying the main CUDA stream for GPU operations.
   By default, ``dtFFT`` manages its own stream, retrievable via :f:func:`get_stream`. Users can set a custom stream,
   taking responsibility for its destruction after the plan is destroyed with :f:func:`destroy`.
 
   Available only in CUDA-enabled builds.
 
-- **GPU Backend** (``gpu_backend``):
-  A :f:type:`dtfft_gpu_backend_t` value selecting the GPU backend for transposition when ``effort`` is ``DTFFT_ESTIMATE`` or
-  ``DTFFT_MEASURE`` (see `Selecting plan effort`_). The default is ``DTFFT_GPU_BACKEND_NCCL``.
-  Options include NCCL, MPI P2P, and others.
+- **GPU Backend** (``gpu_backend``)
+
+  A :f:type:`dtfft_gpu_backend_t` value selecting the GPU backend for transposition when ``effort`` is :f:var:`DTFFT_ESTIMATE` or
+  :f:var:`DTFFT_MEASURE` (see `Selecting plan effort`_). The default is :f:var:`DTFFT_GPU_BACKEND_NCCL` if NCCL is available
+  in the library build; otherwise, :f:var:`DTFFT_GPU_BACKEND_MPI_P2P`. This value can be overridden by the
+  :ref:`DTFFT_GPU_BACKEND<dtfft_gpu_backend_env>` environment variable, which takes precedence if set. Supported options include:
+
+  - :f:var:`DTFFT_GPU_BACKEND_MPI_DATATYPE`: Backend using MPI datatypes.
+  - :f:var:`DTFFT_GPU_BACKEND_MPI_P2P`: MPI peer-to-peer backend.
+  - :f:var:`DTFFT_GPU_BACKEND_MPI_A2A`: MPI backend using ``MPI_Alltoallv``.
+  - :f:var:`DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED`: Pipelined MPI peer-to-peer backend.
+  - :f:var:`DTFFT_GPU_BACKEND_NCCL`: NCCL backend.
+  - :f:var:`DTFFT_GPU_BACKEND_NCCL_PIPELINED`: Pipelined NCCL backend.
+  - :f:var:`DTFFT_GPU_BACKEND_CUFFTMP`: cuFFTMp backend.
 
   Available only in CUDA-enabled builds.
 
-- **MPI Backends** (``enable_mpi_backends``):
+- **MPI Backends** (``enable_mpi_backends``)
+
   A logical flag controlling whether MPI-based GPU backends (e.g., MPI P2P) are tested during autotuning with ``DTFFT_PATIENT``
   effort (default: ``.false.``). Disabled by default due to an OpenMPI bug (https://github.com/open-mpi/ompi/issues/12849)
   causing GPU memory leaks during autotuning (e.g., 8 GB leak for a 1024×1024×512 C2C plan with Z-slab on a single GPU,
@@ -346,21 +369,22 @@ Configurations must be set prior to creating a plan to take effect. The availabl
 
   Available only in CUDA-enabled builds.
 
-- **Pipelined Backends** (``enable_pipelined_backends``):
+- **Pipelined Backends** (``enable_pipelined_backends``)
+
   A logical flag enabling pipelined GPU backends (e.g., overlapping data copy and unpack) during ``DTFFT_PATIENT``
   autotuning (default: ``.true.``). These require an additional internal buffer managed by ``dtFFT``.
 
   Available only in CUDA-enabled builds.
 
-- **NCCL Backends** (``enable_nccl_backends``):
+- **NCCL Backends** (``enable_nccl_backends``)
+
   A logical flag enabling NCCL backends during ``DTFFT_PATIENT`` autotuning (default: ``.true.``).
 
   Available only in CUDA-enabled builds.
 
-- **NVSHMEM Backends** (``enable_nvshmem_backends``):
-  A logical flag reserved for future NVSHMEM backend support during ``DTFFT_PATIENT`` autotuning (default: ``.true.``).
+- **NVSHMEM Backends** (``enable_nvshmem_backends``)
 
-  Currently unused.
+  A logical flag enabling ``NVSHMEM``-enabled backends support during ``DTFFT_PATIENT`` autotuning (default: ``.true.``).
 
   Available only in CUDA-enabled builds.
 
@@ -720,17 +744,80 @@ This method transposes data according to the specified ``transpose_type``. Suppo
 .. note::
    Passing the same pointer to both ``in`` and ``out`` is not permitted; doing so triggers the error :f:var:`DTFFT_ERROR_INPLACE_TRANSPOSE`.
 
-**Host Version**: Executes a single ``MPI_Alltoall(w)`` call and returns once the ``out`` buffer contains the transposed data,
-leaving the ``in`` buffer unchanged.
+**Host Version**: Executes a single ``MPI_Alltoall(w)`` call using non-contiguous MPI Datatypes and returns once the ``out`` 
+buffer contains the transposed data, leaving the ``in`` buffer unchanged.
 
-**GPU Version**: Performs a three-step transposition:
+**GPU Version**: Performs a two-step transposition:
 
 - Launches an nvRTC-compiled kernel to transpose data locally. On a single GPU, this completes the task, and control returns to the user.
-- Performs data redistribution using the selected GPU backend (e.g., MPI, NCCL)
-- Launches another nvRTC-compiled kernel to unpack the transposed data
+- Performs data redistribution using the selected GPU backend (e.g., MPI, NCCL), followed by final processing (e.g., unpacking via nvRTC or copying to ``out``)
+  Differences between backends begin at this step (see below for specifics).
 
-In the GPU version, the ``in`` buffer may serve as intermediate storage, potentially modifying its contents, except when
-operating on a single GPU, where it remains unchanged.
+In the GPU version, the ``in`` buffer may serve as intermediate storage, potentially modifying its contents,
+except when operating on a single GPU, where it remains unchanged.
+
+GPU Backend-Specific Behavior
+_____________________________
+
+- **MPI-Based Backends** (:f:var:`DTFFT_GPU_BACKEND_MPI_P2P` and :f:var:`DTFFT_GPU_BACKEND_MPI_A2A`):
+
+  After local transposition, redistributes data using CUDA-aware MPI. Data destined for the same GPU ("self" data) is
+  copied via ``cudaMemcpyAsync``.
+
+  For **MPI Peer-to-Peer** (``MPI_P2P``), it issues non-blocking ``MPI_Irecv`` and ``MPI_Isend``
+  calls (or ``MPI_Recv_init`` and ``MPI_Send_init`` with ``MPI_Startall`` if built with ``DTFFT_ENABLE_PERSISTENT_COMM``) for point-to-point
+  exchanges between GPUs, completing with ``MPI_Waitall``; an nvRTC kernel then unpacks all data at once.
+
+  For **MPI All-to-All** (``MPI_A2A``), it performs a single ``MPI_Ialltoallv`` call (or ``MPI_Alltoallv_init`` with ``MPI_Start``
+  if built with ``DTFFT_ENABLE_PERSISTENT_COMM`` and supported by MPI), completing with ``MPI_Wait``; an nvRTC kernel then unpacks the data.
+
+- **Pipelined MPI Peer-to-Peer** (:f:var:`DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED`):
+
+  After local transposition, redistributes data similarly to ``MPI_P2P`` using CUDA-aware MPI with non-blocking ``MPI_Irecv`` and
+  ``MPI_Isend`` calls (or ``MPI_Recv_init`` and ``MPI_Send_init`` with ``MPI_Startall`` if built with ``DTFFT_ENABLE_PERSISTENT_COMM``).
+
+  Data destined for the same GPU ("self" data) is copied via ``cudaMemcpyAsync``. Unlike ``MPI_P2P``, as soon as data arrives from a
+  process *i*, it is immediately unpacked by launching an nvRTC kernel specific to that process's data.
+
+  This results in *N* nvRTC kernels (one per process) instead of a single kernel unpacking all data, enabling pipelining of
+  communication and computation to reduce latency.
+
+- **NCCL-Based Backends** (:f:var:`DTFFT_GPU_BACKEND_NCCL` and :f:var:`DTFFT_GPU_BACKEND_NCCL_PIPELINED`):
+
+  After local transposition, redistributes data using the NCCL library for GPU-to-GPU communication.
+
+  For **NCCL** (``DTFFT_GPU_BACKEND_NCCL``), it executes a cycle of ``ncclSend`` and ``ncclRecv`` calls within ``ncclGroupStart``
+  and ``ncclGroupEnd`` to perform point-to-point exchanges between all processes, including "self" data. Once communication completes,
+  an nvRTC kernel unpacks all data at once, similar to ``MPI_P2P``.
+
+  For **Pipelined NCCL** (:f:var:`DTFFT_GPU_BACKEND_NCCL_PIPELINED`), it copies "self" data using ``cudaMemcpyAsync`` and immediately
+  unpacks it with an nvRTC kernel in a parallel stream created by ``dtFFT``. Concurrently, in main stream, it runs
+  the same ``ncclSend`` / ``ncclRecv`` cycle (within ``ncclGroupStart`` and ``ncclGroupEnd``) for data exchange with other
+  processes, excluding "self" data. After communication completes, an nvRTC kernel unpacks the data received from all other processes.
+
+- **cuFFTMp** (:f:var:`DTFFT_GPU_BACKEND_CUFFTMP`):
+
+  After local transposition from the ``in`` buffer to the ``out`` buffer using an nvRTC kernel,
+  redistributes data using the cuFFTMp library by calling ``cufftMpExecReshapeAsync``.
+  This function performs an asynchronous all-to-all exchange across multiple GPUs, reshaping the data from the ``out`` buffer
+  back into the ``in`` buffer. Since the final transposed data is required in the ``out`` buffer,
+  it is then copied from ``in`` to ``out`` using ``cudaMemcpyAsync``.
+
+
+.. note::
+
+  Performance and behavior may vary based on GPU interconnects (e.g., NVLink), MPI implementation, and system configuration. 
+  To automatically select the fastest GPU backend for a given system, use the ``DTFFT_PATIENT`` effort level when creating plan, 
+  which tests each backend and chooses the most efficient one.
+
+.. note::
+
+  Pipelined backends (:f:var:`DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED` and :f:var:`DTFFT_GPU_BACKEND_NCCL_PIPELINED`) require an
+  additional ``aux`` buffer, which is managed internally by ``dtFFT`` and inaccessible to the user.
+  Similarly, :f:var:`DTFFT_GPU_BACKEND_CUFFTMP` may require an ``aux`` buffer if ``cufftMpGetReshapeSize`` returns a value greater than 0,
+  such as when the environment variable ``CUFFT_RESHAPE_USE_PACKING=1`` is set.
+
+  In all other cases, transposition requires only the ``in`` and ``out`` buffers.
 
 Example
 _______
@@ -741,7 +828,7 @@ Below is an example of transposing data from X to Y and back:
 
   .. code-tab:: fortran
 
-    ! Assuming a 3D plan is created and buffers `a` and `b` are allocated.
+    ! Assuming plan is created and buffers `a` and `b` are allocated.
     call plan%transpose(a, b, DTFFT_TRANSPOSE_X_TO_Y, error_code)
     DTFFT_CHECK(error_code)  ! Checks for errors, e.g., DTFFT_ERROR_INPLACE_TRANSPOSE
 
@@ -754,7 +841,7 @@ Below is an example of transposing data from X to Y and back:
 
   .. code-tab:: c
 
-    // Assuming a 3D plan is created and buffers `a` and `b` are allocated.
+    // Assuming plan is created and buffers `a` and `b` are allocated.
     DTFFT_CALL( dtfft_transpose(plan, a, b, DTFFT_TRANSPOSE_X_TO_Y) )
 
     // Process Y-aligned data in buffer `b`
@@ -765,7 +852,7 @@ Below is an example of transposing data from X to Y and back:
 
   .. code-tab:: c++
 
-    // Assuming a 3D plan is created and buffers `a` and `b` are allocated.
+    // Assuming plan is created and buffers `a` and `b` are allocated.
     DTFFT_CXX_CALL( plan.transpose(a, b, dtfft::TransposeType::X_TO_Y) )
 
     // Process Y-aligned data in buffer `b`

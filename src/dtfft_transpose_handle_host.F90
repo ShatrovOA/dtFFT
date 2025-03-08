@@ -34,43 +34,43 @@ public :: transpose_handle_host
 
   type :: handle_t
   !! Transposition handle class
-    TYPE_MPI_DATATYPE,     allocatable :: dtypes(:)           !< Datatypes buffer
-    integer(int32),        allocatable :: counts(:)           !< Number of datatypes (always equals 1)
-    integer(int32),        allocatable :: displs(:)           !< Displacements is bytes
+    TYPE_MPI_DATATYPE,     allocatable :: dtypes(:)           !! Datatypes buffer
+    integer(int32),        allocatable :: counts(:)           !! Number of datatypes (always equals 1)
+    integer(int32),        allocatable :: displs(:)           !! Displacements is bytes
   contains
-    procedure, pass(self) :: create => create_handle          !< Creates transposition handle
-    procedure, pass(self) :: destroy => destroy_handle        !< Destroys transposition handle
+    procedure, pass(self) :: create => create_handle          !! Creates transposition handle
+    procedure, pass(self) :: destroy => destroy_handle        !! Destroys transposition handle
   end type handle_t
 
   type :: transpose_handle_host
   !! Transposition class
   private
-    TYPE_MPI_COMM                   :: comm                   !< 1d communicator
-    logical                         :: is_even                !< Is decomposition even
-    type(handle_t)                  :: send                   !< Handle to send data
-    type(handle_t)                  :: recv                   !< Handle to recieve data
+    TYPE_MPI_COMM                   :: comm                   !! 1d communicator
+    logical                         :: is_even                !! Is decomposition even
+    type(handle_t)                  :: send                   !! Handle to send data
+    type(handle_t)                  :: recv                   !! Handle to recieve data
 #if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)
-    TYPE_MPI_REQUEST                :: request                !< Request for persistent communication
-    logical                         :: is_request_created     !< Is request created
+    TYPE_MPI_REQUEST                :: request                !! Request for persistent communication
+    logical                         :: is_request_created     !! Is request created
 #endif
   contains
   private
-    procedure, pass(self),  public  :: create                 !< Initializes class
-    procedure, pass(self),  public  :: transpose              !< Performs MPI_Alltoall(w)
-    procedure, pass(self),  public  :: destroy                !< Destroys class
-    procedure, pass(self)           :: create_transpose_2d    !< Creates two-dimensional transposition datatypes
-    procedure, pass(self)           :: create_transpose_XY    !< Creates three-dimensional X --> Y, Y --> X transposition datatypes
-    procedure, pass(self)           :: create_transpose_YZ    !< Creates three-dimensional Y --> Z, Z --> Y transposition datatypes
-    procedure, pass(self)           :: create_transpose_XZ    !< Creates three-dimensional X --> Z datatype, only slab!
-    procedure, pass(self)           :: create_transpose_ZX    !< Creates three-dimensional Z --> X datatype, only slab!
+    procedure, pass(self),  public  :: create                 !! Initializes class
+    procedure, pass(self),  public  :: transpose              !! Performs MPI_Alltoall(w)
+    procedure, pass(self),  public  :: destroy                !! Destroys class
+    procedure, pass(self)           :: create_transpose_2d    !! Creates two-dimensional transposition datatypes
+    procedure, pass(self)           :: create_transpose_XY    !! Creates three-dimensional X --> Y, Y --> X transposition datatypes
+    procedure, pass(self)           :: create_transpose_YZ    !! Creates three-dimensional Y --> Z, Z --> Y transposition datatypes
+    procedure, pass(self)           :: create_transpose_XZ    !! Creates three-dimensional X --> Z datatype, only slab!
+    procedure, pass(self)           :: create_transpose_ZX    !! Creates three-dimensional Z --> X datatype, only slab!
   end type transpose_handle_host
 
 contains
 
   subroutine create_handle(self, n)
   !! Creates transposition handle
-    class(handle_t),  intent(inout) :: self   !< Transposition handle
-    integer(int32),   intent(in)    :: n      !< Number of datatypes to be created
+    class(handle_t),  intent(inout) :: self   !! Transposition handle
+    integer(int32),   intent(in)    :: n      !! Number of datatypes to be created
 
     call self%destroy()
     allocate(self%dtypes(n))
@@ -80,9 +80,9 @@ contains
 
   subroutine destroy_handle(self)
   !! Destroys transposition handle
-    class(handle_t),  intent(inout)   :: self   !< Transposition handle
-    integer(int32)                    :: i      !< Counter
-    integer(int32)                    :: ierr   !< Error code
+    class(handle_t),  intent(inout)   :: self   !! Transposition handle
+    integer(int32)                    :: i      !! Counter
+    integer(int32)                    :: ierr   !! Error code
 
     if ( allocated(self%dtypes) ) then
       do i = 1, size(self%dtypes)
@@ -96,20 +96,20 @@ contains
 
   subroutine create(self, comm, send, recv, base_type, base_storage, datatype_id)
   !! Creates `transpose_handle_host` class
-    class(transpose_handle_host), intent(inout) :: self               !< Transposition class
-    TYPE_MPI_COMM,                intent(in)    :: comm               !< 1d communicator
-    class(pencil),                intent(in)    :: send               !< Information about send buffer
-    class(pencil),                intent(in)    :: recv               !< Information about recv buffer
-    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !< Base MPI Datatype
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    integer(int8),                intent(in)    :: datatype_id        !< Type of datatype to use
-    integer(int32)                              :: comm_size          !< Size of 1d communicator
-    integer(int32)                              :: n_neighbors        !< Number of datatypes to be created
-    integer(int32),               allocatable   :: recv_counts(:,:)   !< Each processor should know how much data each processor recieves
-    integer(int32),               allocatable   :: send_counts(:,:)   !< Each processor should know how much data each processor sends
-    integer(int32)                              :: i                  !< Counter
-    integer(int32)                              :: ierr               !< Error code
-    type(dtfft_transpose_type_t)                :: transpose_type       !< Transpose plan id
+    class(transpose_handle_host), intent(inout) :: self               !! Transposition class
+    TYPE_MPI_COMM,                intent(in)    :: comm               !! 1d communicator
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    class(pencil),                intent(in)    :: recv               !! Information about recv buffer
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI Datatype
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int8),                intent(in)    :: datatype_id        !! Type of datatype to use
+    integer(int32)                              :: comm_size          !! Size of 1d communicator
+    integer(int32)                              :: n_neighbors        !! Number of datatypes to be created
+    integer(int32),               allocatable   :: recv_counts(:,:)   !! Each processor should know how much data each processor recieves
+    integer(int32),               allocatable   :: send_counts(:,:)   !! Each processor should know how much data each processor sends
+    integer(int32)                              :: i                  !! Counter
+    integer(int32)                              :: ierr               !! Error code
+    type(dtfft_transpose_type_t)                :: transpose_type       !! Transpose plan id
 
     self%comm = comm
     call MPI_Comm_size(self%comm, comm_size, ierr)
@@ -158,10 +158,10 @@ contains
 
   subroutine transpose(self, send, recv)
   !! Executes transposition
-    class(transpose_handle_host), intent(inout) :: self         !< Transposition class
-    type(*),                      intent(in)    :: send(..)     !< Incoming buffer of any rank and kind
-    type(*),                      intent(inout) :: recv(..)     !< Resulting buffer of any rank and kind
-    integer(int32)                              :: ierr         !< Error code
+    class(transpose_handle_host), intent(inout) :: self         !! Transposition class
+    type(*),                      intent(in)    :: send(..)     !! Incoming buffer of any rank and kind
+    type(*),                      intent(inout) :: recv(..)     !! Resulting buffer of any rank and kind
+    integer(int32)                              :: ierr         !! Error code
 
 #if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)
     if ( .not. self%is_request_created ) then
@@ -187,7 +187,7 @@ contains
 
   subroutine destroy(self)
   !! Destroys `transpose_handle_host` class
-    class(transpose_handle_host), intent(inout) :: self       !< Transposition class
+    class(transpose_handle_host), intent(inout) :: self       !! Transposition class
 
     call self%send%destroy()
     call self%recv%destroy()
@@ -203,20 +203,20 @@ contains
 
   subroutine create_transpose_2d(self, n_neighbors, i, send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage)
   !! Creates two-dimensional transposition datatypes
-    class(transpose_handle_host), intent(inout) :: self               !< Transposition class
-    integer(int32),               intent(in)    :: n_neighbors        !< Size of 1d comm
-    integer(int32),               intent(in)    :: i                  !< Counter
-    class(pencil),                intent(in)    :: send               !< Information about send buffer
-    integer(int32),               intent(in)    :: send_counts(:)     !< Rank i is sending this counts
-    class(pencil),                intent(in)    :: recv               !< Information about send buffer
-    integer(int32),               intent(in)    :: recv_counts(:)     !< Rank i is recieving this counts
-    integer(int8),                intent(in)    :: datatype_id        !< Id of transpose plan to use
-    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !< Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    TYPE_MPI_DATATYPE   :: temp1              !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp2              !< Temporary datatype
-    integer(int32)      :: displ              !< Displacement in bytes
-    integer(int32)      :: ierr               !< Error code
+    class(transpose_handle_host), intent(inout) :: self               !! Transposition class
+    integer(int32),               intent(in)    :: n_neighbors        !! Size of 1d comm
+    integer(int32),               intent(in)    :: i                  !! Counter
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE   :: temp1              !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp2              !! Temporary datatype
+    integer(int32)      :: displ              !! Displacement in bytes
+    integer(int32)      :: ierr               !! Error code
 
 
     if ( datatype_id == 1 ) then
@@ -253,22 +253,22 @@ contains
 
   subroutine create_transpose_XY(self, n_neighbors, i, send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage)
   !! Creates three-dimensional X --> Y, Y --> X transposition datatypes
-    class(transpose_handle_host), intent(inout) :: self               !< Transposition class
-    integer(int32),               intent(in)    :: n_neighbors        !< Size of 1d comm
-    integer(int32),               intent(in)    :: i                  !< Counter
-    class(pencil),                intent(in)    :: send               !< Information about send buffer
-    integer(int32),               intent(in)    :: send_counts(:)     !< Rank i is sending this counts
-    class(pencil),                intent(in)    :: recv               !< Information about send buffer
-    integer(int32),               intent(in)    :: recv_counts(:)     !< Rank i is recieving this counts
-    integer(int8),                intent(in)    :: datatype_id        !< Id of transpose plan to use
-    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !< Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    TYPE_MPI_DATATYPE   :: temp1                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp2                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp3                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp4                !< Temporary datatype
-    integer(int32)      :: displ                !< Rank i is sending / recieving with this displacement in bytes
-    integer(int32)      :: ierr                 !< Error code
+    class(transpose_handle_host), intent(inout) :: self               !! Transposition class
+    integer(int32),               intent(in)    :: n_neighbors        !! Size of 1d comm
+    integer(int32),               intent(in)    :: i                  !! Counter
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE   :: temp1                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp2                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp3                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp4                !! Temporary datatype
+    integer(int32)      :: displ                !! Rank i is sending / recieving with this displacement in bytes
+    integer(int32)      :: ierr                 !! Error code
 
     if ( datatype_id == 1 ) then
     ! This datatype_id has "contiguous" send and strided recieve datatype
@@ -310,22 +310,22 @@ contains
 
   subroutine create_transpose_YZ(self, n_neighbors, i, send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage)
   !! Creates three-dimensional Y --> Z, Z --> Y transposition datatypes
-    class(transpose_handle_host), intent(inout) :: self               !< Transposition class
-    integer(int32),               intent(in)    :: n_neighbors        !< Size of 1d comm
-    integer(int32),               intent(in)    :: i                  !< Counter
-    class(pencil),                intent(in)    :: send               !< Information about send buffer
-    integer(int32),               intent(in)    :: send_counts(:)     !< Rank i is sending this counts
-    class(pencil),                intent(in)    :: recv               !< Information about send buffer
-    integer(int32),               intent(in)    :: recv_counts(:)     !< Rank i is recieving this counts
-    integer(int8),                intent(in)    :: datatype_id        !< Id of transpose plan to use
-    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !< Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    TYPE_MPI_DATATYPE   :: temp1                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp2                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp3                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp4                !< Temporary datatype
-    integer(int32)      :: displ                !< Rank i is sending / recieving with this displacement in bytes
-    integer(int32)      :: ierr                 !< Error code
+    class(transpose_handle_host), intent(inout) :: self               !! Transposition class
+    integer(int32),               intent(in)    :: n_neighbors        !! Size of 1d comm
+    integer(int32),               intent(in)    :: i                  !! Counter
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE   :: temp1                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp2                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp3                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp4                !! Temporary datatype
+    integer(int32)      :: displ                !! Rank i is sending / recieving with this displacement in bytes
+    integer(int32)      :: ierr                 !! Error code
 
     if ( datatype_id == 1 ) then
       call MPI_Type_vector(send%counts(3), 1, send%counts(1) * send%counts(2), base_type, temp1, ierr)
@@ -367,22 +367,22 @@ contains
   subroutine create_transpose_XZ(self, n_neighbors, i, send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage)
   !! Creates three-dimensional X --> Z transposition datatypes
   !! Can only be used with 3D slab decomposition when slabs are distributed in Z direction
-    class(transpose_handle_host), intent(inout) :: self               !< Transposition class
-    integer(int32),               intent(in)    :: n_neighbors        !< Size of 1d comm
-    integer(int32),               intent(in)    :: i                  !< Counter
-    class(pencil),                intent(in)    :: send               !< Information about send buffer
-    integer(int32),               intent(in)    :: send_counts(:)     !< Rank i is sending this counts
-    class(pencil),                intent(in)    :: recv               !< Information about send buffer
-    integer(int32),               intent(in)    :: recv_counts(:)     !< Rank i is recieving this counts
-    integer(int8),                intent(in)    :: datatype_id        !< Id of transpose plan to use
-    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !< Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    TYPE_MPI_DATATYPE   :: temp1                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp2                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp3                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp4                !< Temporary datatype
-    integer(int32)      :: displ                !< Rank i is sending / recieving with this displacement in bytes
-    integer(int32)      :: ierr                 !< Error code
+    class(transpose_handle_host), intent(inout) :: self               !! Transposition class
+    integer(int32),               intent(in)    :: n_neighbors        !! Size of 1d comm
+    integer(int32),               intent(in)    :: i                  !! Counter
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE   :: temp1                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp2                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp3                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp4                !! Temporary datatype
+    integer(int32)      :: displ                !! Rank i is sending / recieving with this displacement in bytes
+    integer(int32)      :: ierr                 !! Error code
 
     if ( datatype_id == 1 ) then
       call MPI_Type_vector(send%counts(3), send%counts(1), send%counts(1) * send%counts(2), base_type, temp1, ierr)
@@ -424,22 +424,22 @@ contains
   subroutine create_transpose_ZX(self, n_neighbors, i, send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage)
   !! Creates three-dimensional Z --> X transposition datatypes
   !! Can only be used with 3D slab decomposition when slabs are distributed in Z direction
-    class(transpose_handle_host), intent(inout) :: self               !< Transposition class
-    integer(int32),               intent(in)    :: n_neighbors        !< Size of 1d comm
-    integer(int32),               intent(in)    :: i                  !< Counter
-    class(pencil),                intent(in)    :: send               !< Information about send buffer
-    integer(int32),               intent(in)    :: send_counts(:)     !< Rank i is sending this counts
-    class(pencil),                intent(in)    :: recv               !< Information about send buffer
-    integer(int32),               intent(in)    :: recv_counts(:)     !< Rank i is recieving this counts
-    integer(int8),                intent(in)    :: datatype_id        !< Id of transpose plan to use
-    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !< Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    TYPE_MPI_DATATYPE   :: temp1                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp2                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp3                !< Temporary datatype
-    TYPE_MPI_DATATYPE   :: temp4                !< Temporary datatype
-    integer(int32)      :: displ                !< Rank i is sending / recieving with this displacement in bytes
-    integer(int32)      :: ierr                 !< Error code
+    class(transpose_handle_host), intent(inout) :: self               !! Transposition class
+    integer(int32),               intent(in)    :: n_neighbors        !! Size of 1d comm
+    integer(int32),               intent(in)    :: i                  !! Counter
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE   :: temp1                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp2                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp3                !! Temporary datatype
+    TYPE_MPI_DATATYPE   :: temp4                !! Temporary datatype
+    integer(int32)      :: displ                !! Rank i is sending / recieving with this displacement in bytes
+    integer(int32)      :: ierr                 !! Error code
 
     if ( datatype_id == 1 ) then
       call MPI_Type_vector(send%counts(2) * send%counts(3), recv_counts(3), send%counts(1), base_type, temp1, ierr)
@@ -478,11 +478,11 @@ contains
 
   subroutine free_datatypes(t1, t2, t3, t4)
   !! Frees temporary datatypes
-    TYPE_MPI_DATATYPE,  intent(inout), optional :: t1     !< Temporary datatype
-    TYPE_MPI_DATATYPE,  intent(inout), optional :: t2     !< Temporary datatype
-    TYPE_MPI_DATATYPE,  intent(inout), optional :: t3     !< Temporary datatype
-    TYPE_MPI_DATATYPE,  intent(inout), optional :: t4     !< Temporary datatype
-    integer(int32)                              :: ierr   !< Error code
+    TYPE_MPI_DATATYPE,  intent(inout), optional :: t1     !! Temporary datatype
+    TYPE_MPI_DATATYPE,  intent(inout), optional :: t2     !! Temporary datatype
+    TYPE_MPI_DATATYPE,  intent(inout), optional :: t3     !! Temporary datatype
+    TYPE_MPI_DATATYPE,  intent(inout), optional :: t4     !! Temporary datatype
+    integer(int32)                              :: ierr   !! Error code
 
     if ( present(t1) ) call MPI_Type_free(t1, ierr)
     if ( present(t2) ) call MPI_Type_free(t2, ierr)

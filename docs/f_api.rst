@@ -4,7 +4,7 @@
 Fortran API Reference
 #####################
 
-The ``dtFFT`` library provides a header file, ``dtfft.f03``, which can be included in Fortran source files using ``#include "dtfft.f03"``. 
+The ``dtFFT`` library provides a header file, ``dtfft.f03``, which can be included in Fortran source files using ``#include "dtfft.f03"``.
 This file defines the ``DTFFT_CHECK`` macro for checking error codes returned by library functions:
 
 .. code-block:: fortran
@@ -420,7 +420,18 @@ dtfft_config_t
 
     In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
 
-  :f integer(cuda_stream_kind) stream:
+  :f type(dtfft_platform_t) platform:
+
+    Selects platform to execute plan.
+
+    Default is :f:var:`DTFFT_PLATFORM_HOST`
+
+    This option is only defined in a build with device support.
+    Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
+
+    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+
+  :f type(dtfft_stream_t) stream:
 
     Main CUDA stream that will be used in dtFFT.
 
@@ -438,7 +449,7 @@ dtfft_config_t
 
     Backend that will be used by dtFFT when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
 
-    Default is ``DTFFT_GPU_BACKEND_NCCL``
+    Default is :f:var:`DTFFT_GPU_BACKEND_NCCL`
 
     .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
@@ -538,6 +549,8 @@ dtfft_pencil_t
 dtfft_platform_t
 -----------------------
 
+.. f:type:: dtfft_platform_t
+
   Type that specifies the execution platform, such as Host, CUDA, or HIP
 
 Type Parameters
@@ -550,6 +563,17 @@ _____________________
 .. f:variable:: DTFFT_PLATFORM_CUDA
 
   Create CUDA-related
+
+------
+
+dtfft_stream_t
+
+.. f:type:: dtfft_stream_t
+
+  ``dtFFT`` stream representation.
+
+  :f type(c_ptr) stream:
+    Actual stream
 
 
 Version handling
@@ -701,12 +725,12 @@ ________________
 mem_alloc
 _________
 
-Allocates memory tailored to the specific needs of the plan.  
+Allocates memory tailored to the specific needs of the plan.
 
 .. f:function:: mem_alloc(alloc_bytes[, error_code])
 
-  :p integer(int64) alloc_bytes [in]: Number of bytes to allocate  
-  :o integer(int32) error_code [out, optional]: Optional error code returned to user  
+  :p integer(int64) alloc_bytes [in]: Number of bytes to allocate
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user
   :r type(c_ptr): Allocated pointer
 
 
@@ -715,13 +739,13 @@ Allocates memory tailored to the specific needs of the plan.
 mem_free
 ________
 
-Frees memory previously allocated by :f:func:`mem_alloc`.  
+Frees memory previously allocated by :f:func:`mem_alloc`.
 
 
 .. f:subroutine:: mem_free(ptr[, error_code])
 
   :p type(c_ptr) ptr [in]: Pointer allocated with ``mem_alloc``
-  :o integer(int32) error_code [out, optional]: Optional error code returned to user  
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user
 
 ------
 

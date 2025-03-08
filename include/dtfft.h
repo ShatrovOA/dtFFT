@@ -599,6 +599,18 @@ dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *gpu_backend);
 
 
 /**
+ * @brief Returns plan execution platform .
+ *
+ * @param[in]        plan           Plan handle
+ * @param[out]       platform       Plan platform
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_code_t
+dtfft_get_platform(dtfft_plan_t plan, dtfft_platform_t *platform);
+
+
+/**
  * @brief Returns null terminated string with name of backend provided as argument.
  *
  * @param[in]         gpu_backend    Backend to represent

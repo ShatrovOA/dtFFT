@@ -100,10 +100,10 @@ contains
   end subroutine destoy_helper
 
   subroutine create_mpi(self, helper, tranpose_type, base_storage)
-    class(backend_mpi),           intent(inout) :: self       !< MPI GPU Backend
-    type(backend_helper),         intent(in)    :: helper     !< Backend helper
+    class(backend_mpi),           intent(inout) :: self       !! MPI GPU Backend
+    type(backend_helper),         intent(in)    :: helper     !! Backend helper
     type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
-    integer(int8),                intent(in)    :: base_storage   !< Number of bytes to store single element
+    integer(int8),                intent(in)    :: base_storage   !! Number of bytes to store single element
 
     if ( .not. is_backend_mpi(self%gpu_backend) ) error stop "dtFFT Internal Error: .not. is_backend_mpi"
 
@@ -124,12 +124,12 @@ contains
   end subroutine destroy_mpi
 
   subroutine execute_mpi(self, in, out, stream)
-    class(backend_mpi),           intent(inout) :: self       !< MPI GPU Backend
-    real(real32),   target,       intent(inout) :: in(:)      !< Send pointer
-    real(real32),   target,       intent(inout) :: out(:)     !< Recv pointer
-    type(dtfft_stream_t),         intent(in)    :: stream     !< Main execution CUDA stream
+    class(backend_mpi),           intent(inout) :: self       !! MPI GPU Backend
+    real(real32),   target,       intent(inout) :: in(:)      !! Send pointer
+    real(real32),   target,       intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),         intent(in)    :: stream     !! Main execution CUDA stream
     integer(int32)                              :: mpi_ierr
-    logical,                      allocatable   :: is_complete_comm(:)  !< Testing for request completion
+    logical,                      allocatable   :: is_complete_comm(:)  !! Testing for request completion
     integer(int32) :: request_counter, i
 
     ! Need to sync stream since there is no way pass current stream to MPI

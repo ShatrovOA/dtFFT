@@ -40,6 +40,7 @@ public :: backend_cufftmp
   end type Box3D
 
   type, extends(abstract_backend) :: backend_cufftmp
+  !! cuFFTMp GPU Backend
   private
     type(cufftReshapeHandle)  :: plan
   contains
@@ -51,11 +52,12 @@ public :: backend_cufftmp
 contains
 
   subroutine create(self, helper, tranpose_type, base_storage)
-    class(backend_cufftmp),       intent(inout) :: self       !< CufftMp GPU Backend
-    type(backend_helper),         intent(in)    :: helper     !< Backend helper
+  !! Creates cuFFTMp GPU Backend
+    class(backend_cufftmp),       intent(inout) :: self       !! cuFFTMp GPU Backend
+    type(backend_helper),         intent(in)    :: helper     !! Backend helper
     type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
-    integer(int8),                intent(in)    :: base_storage       !< Number of bytes to store single element
-    type(Box3D)                      :: inbox, outbox      !< Reshape boxes
+    integer(int8),                intent(in)    :: base_storage       !! Number of bytes to store single element
+    type(Box3D)                      :: inbox, outbox      !! Reshape boxes
     type(pencil), pointer :: in, out
     type(c_ptr) :: c_comm
 
@@ -125,17 +127,19 @@ contains
   end subroutine create
 
   subroutine execute(self, in, out, stream)
-    class(backend_cufftmp),     intent(inout) :: self       !< CufftMp GPU Backend
-    real(real32),     target,   intent(inout) :: in(:)      !< Send pointer
-    real(real32),     target,   intent(inout) :: out(:)     !< Recv pointer
-    type(dtfft_stream_t),       intent(in)    :: stream     !< Main execution CUDA stream
+  !! Executes cuFFTMp GPU Backend
+    class(backend_cufftmp),     intent(inout) :: self       !! cuFFTMp GPU Backend
+    real(real32),     target,   intent(inout) :: in(:)      !! Send pointer
+    real(real32),     target,   intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),       intent(in)    :: stream     !! Main execution CUDA stream
 
     call nvshmemx_sync_all_on_stream(stream)
     CUFFT_CALL( "cufftMpExecReshapeAsync", cufftMpExecReshapeAsync(self%plan, c_loc(out), c_loc(in), c_loc(self%aux), stream) )
   end subroutine execute
 
   subroutine destroy(self)
-    class(backend_cufftmp),      intent(inout) :: self        !< CufftMp GPU Backend
+  !! Destroys cuFFTMp GPU Backend
+    class(backend_cufftmp),      intent(inout) :: self        !! cuFFTMp GPU Backend
 
     CUFFT_CALL( "cufftMpDestroyReshape", cufftMpDestroyReshape(self%plan) )
   end subroutine destroy

@@ -219,6 +219,13 @@ dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *gpu_backend)
   return (dtfft_error_code_t)dtfft_get_gpu_backend_c(get_plan_handle(plan), (int32_t*)gpu_backend);
 }
 
+dtfft_error_code_t
+dtfft_get_platform(dtfft_plan_t plan, dtfft_platform_t *platform)
+{
+  if ( !platform ) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_code_t)dtfft_get_platform_c(get_plan_handle(plan), (int32_t*)platform);
+}
+
 const char *
 dtfft_get_gpu_backend_string(const dtfft_gpu_backend_t gpu_backend)
 {

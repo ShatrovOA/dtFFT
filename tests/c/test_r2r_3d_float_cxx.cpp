@@ -25,6 +25,7 @@
 #include <complex>
 #include <vector>
 #include <numeric>
+#include <cstring>
 
 #include "test_utils.h"
 
@@ -105,13 +106,16 @@ executor = Executor::NONE;
   float *check = new float[alloc_size];
 
   size_t el_size;
-  DTFFT_CXX_CALL(plan.get_element_size(&el_size));
+  DTFFT_CXX_CALL( plan.get_element_size(&el_size) );
 
   if ( el_size != sizeof(float) ) {
     DTFFT_THROW_EXCEPTION("el_size != sizeof(float)")
   }
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  Platform platform;
+  DTFFT_CXX_CALL( plan.get_platform(&platform) )
+
   float *d_inout, *d_aux;
 
   DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&d_inout) )
@@ -128,7 +132,11 @@ executor = Executor::NONE;
 
   double tf = 0.0 - MPI_Wtime();
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  CUDA_SAFE_CALL( cudaMemcpyAsync(d_inout, inout, alloc_size * el_size, cudaMemcpyHostToDevice, stream) );
+  if ( platform == Platform::CUDA ) {
+    CUDA_SAFE_CALL( cudaMemcpyAsync(d_inout, inout, alloc_size * el_size, cudaMemcpyHostToDevice, stream) );
+  } else {
+    std::memcpy(d_inout, inout, alloc_size * el_size);
+  }
   DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, ExecuteType::FORWARD, d_aux) )
   CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
 #else
@@ -138,7 +146,7 @@ executor = Executor::NONE;
 
   if ( executor != Executor::NONE ) {
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-#pragma acc parallel loop deviceptr(d_inout) vector_length(256) async
+#pragma acc parallel loop deviceptr(d_inout) vector_length(256) async if(platform == Platform::CUDA)
     for (size_t i = 0; i < out_size; i++)
     {
       d_inout[i] /= (float) (8 * nx * ny * nz);
@@ -160,8 +168,12 @@ executor = Executor::NONE;
   double tb = 0.0 - MPI_Wtime();
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, ExecuteType::BACKWARD, d_aux) )
-  CUDA_SAFE_CALL( cudaMemcpyAsync(inout, d_inout, alloc_size * el_size, cudaMemcpyDeviceToHost, stream) );
-  CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
+  if ( platform == Platform::CUDA ) {
+    CUDA_SAFE_CALL( cudaMemcpyAsync(inout, d_inout, alloc_size * el_size, cudaMemcpyDeviceToHost, stream) );
+    CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
+  } else {
+    std::memcpy(inout, d_inout, alloc_size * el_size);
+  }
 #else
   DTFFT_CXX_CALL( plan.execute(inout, inout, ExecuteType::BACKWARD, aux) )
 #endif

@@ -34,38 +34,38 @@ public :: get_transpose_type
 
   type, bind(C) :: dtfft_pencil_t
   !! Structure to hold pencil decomposition info
-    integer(c_int8_t)   :: dim        !< Aligned dimension id
-    integer(c_int8_t)   :: ndims      !< Number of dimensions
-    integer(c_int32_t)  :: starts(3)  !< Local starts, starting from 0 for both C and Fortran
-    integer(c_int32_t)  :: counts(3)  !< Local counts of data, in elements
+    integer(c_int8_t)   :: dim        !! Aligned dimension id
+    integer(c_int8_t)   :: ndims      !! Number of dimensions
+    integer(c_int32_t)  :: starts(3)  !! Local starts, starting from 0 for both C and Fortran
+    integer(c_int32_t)  :: counts(3)  !! Local counts of data, in elements
   end type dtfft_pencil_t
 
   type :: pencil
   !! Class that describes information about data layout
-    integer(int8)                :: aligned_dim       !< Position of aligned dimension. For example: X pencil aligned_dim = 1, Z pencil aligned_dim = 3
-    integer(int8)                :: rank              !< Rank of buffer: 2 or 3
-    integer(int32), allocatable  :: starts(:)         !< Local starts, starting from 0 for both C and Fortran
-    integer(int32), allocatable  :: counts(:)         !< Local counts of data, in elements
-    logical                      :: is_even           !< Is data evenly distributed across processes
+    integer(int8)                :: aligned_dim       !! Position of aligned dimension. For example: X pencil aligned_dim = 1, Z pencil aligned_dim = 3
+    integer(int8)                :: rank              !! Rank of buffer: 2 or 3
+    integer(int32), allocatable  :: starts(:)         !! Local starts, starting from 0 for both C and Fortran
+    integer(int32), allocatable  :: counts(:)         !! Local counts of data, in elements
+    logical                      :: is_even           !! Is data evenly distributed across processes
   contains
   private
-    procedure, pass(self),  public  :: create         !< Creates pencil
-    procedure, pass(self),  public  :: destroy        !< Destroys pencil
-    ! procedure, pass(self),  public  :: output         !< Writes pencil data to stdout
-    !                                                   !< Used only for debugging purposes
-    procedure, pass(self),  public  :: make_public    !< Creates public object that users can use to create own FFT backends
+    procedure, pass(self),  public  :: create         !! Creates pencil
+    procedure, pass(self),  public  :: destroy        !! Destroys pencil
+    ! procedure, pass(self),  public  :: output         !! Writes pencil data to stdout
+    !                                                   !! Used only for debugging purposes
+    procedure, pass(self),  public  :: make_public    !! Creates public object that users can use to create own FFT backends
   end type pencil
 
 contains
   subroutine create(self, rank, aligned_dim, counts, comms)
   !! Creates pencil
-    class(pencil),      intent(inout) :: self             !< Pencil
-    integer(int8),      intent(in)    :: rank             !< Rank of buffer
-    integer(int8),      intent(in)    :: aligned_dim      !< Position of aligned dimension
-    integer(int32),     intent(in)    :: counts(:)        !< Global counts
-    TYPE_MPI_COMM,      intent(in)    :: comms(:)         !< Grid communicators
-    integer(int8)                     :: d                !< Counter
-    logical, allocatable              :: is_even(:)       !< Even distribution flag
+    class(pencil),      intent(inout) :: self             !! Pencil
+    integer(int8),      intent(in)    :: rank             !! Rank of buffer
+    integer(int8),      intent(in)    :: aligned_dim      !! Position of aligned dimension
+    integer(int32),     intent(in)    :: counts(:)        !! Global counts
+    TYPE_MPI_COMM,      intent(in)    :: comms(:)         !! Grid communicators
+    integer(int8)                     :: d                !! Counter
+    logical, allocatable              :: is_even(:)       !! Even distribution flag
 
     call self%destroy()
     allocate(self%counts(rank))
@@ -82,7 +82,7 @@ contains
 
   subroutine destroy(self)
   !! Destroys pencil
-    class(pencil),      intent(inout) :: self             !< Pencil
+    class(pencil),      intent(inout) :: self             !! Pencil
 
     if ( allocated(self%counts) ) deallocate(self%counts)
     if ( allocated(self%starts) ) deallocate(self%starts)
@@ -90,17 +90,17 @@ contains
 
   subroutine get_local_size(n_global, comm, start, count, is_even)
   !! Computes local portions of data based on global count and position inside grid communicator
-    integer(int32), intent(in)    :: n_global             !< Global number of points
-    TYPE_MPI_COMM,  intent(in)    :: comm                 !< Grid communicator
-    integer(int32), intent(out)   :: start                !< Local start
-    integer(int32), intent(out)   :: count                !< Local count
-    logical,        intent(out)   :: is_even              !< Is data evenly distributed across processes
-    integer(int32), allocatable   :: shift(:)             !< Work buffer
-    integer(int32)                :: comm_dim             !< Number of MPI processes along n_global
-    integer(int32)                :: comm_rank            !< Rank of current MPI process
-    integer(int32)                :: res                  !< Residual from n_global / comm_dim
-    integer(int32)                :: i                    !< Counter
-    integer(int32)                :: ierr                 !< Error code
+    integer(int32), intent(in)    :: n_global             !! Global number of points
+    TYPE_MPI_COMM,  intent(in)    :: comm                 !! Grid communicator
+    integer(int32), intent(out)   :: start                !! Local start
+    integer(int32), intent(out)   :: count                !! Local count
+    logical,        intent(out)   :: is_even              !! Is data evenly distributed across processes
+    integer(int32), allocatable   :: shift(:)             !! Work buffer
+    integer(int32)                :: comm_dim             !! Number of MPI processes along n_global
+    integer(int32)                :: comm_rank            !! Rank of current MPI process
+    integer(int32)                :: res                  !! Residual from n_global / comm_dim
+    integer(int32)                :: i                    !! Counter
+    integer(int32)                :: ierr                 !! Error code
 
     call MPI_Comm_size(comm, comm_dim, ierr)
     call MPI_Comm_rank(comm, comm_rank, ierr)
@@ -129,16 +129,16 @@ contains
 
 !   subroutine output(self, name, vec)
 !   !! Writes pencil data to stdout
-!     class(pencil),                intent(in)  :: self                 !< Pencil
-!     character(len=*),             intent(in)  :: name                 !< Name of pencil
-!     real(real64),   DEVICE_PTR    intent(in)  :: vec(:)               !< Device pointer to data
-!     integer(int32)                            :: iter                 !< Iteration counter
-!     integer(int32)                            :: i,j,k,ijk            !< Counters
-!     integer(int32)                            :: comm_size            !< Number of MPI processes
-!     integer(int32)                            :: comm_rank            !< Rank of current MPI process
-!     integer(int32)                            :: ierr                 !< Error code
+!     class(pencil),                intent(in)  :: self                 !! Pencil
+!     character(len=*),             intent(in)  :: name                 !! Name of pencil
+!     real(real64),   DEVICE_PTR    intent(in)  :: vec(:)               !! Device pointer to data
+!     integer(int32)                            :: iter                 !! Iteration counter
+!     integer(int32)                            :: i,j,k,ijk            !! Counters
+!     integer(int32)                            :: comm_size            !! Number of MPI processes
+!     integer(int32)                            :: comm_rank            !! Rank of current MPI process
+!     integer(int32)                            :: ierr                 !! Error code
 ! #ifdef DTFFT_WITH_CUDA
-!     real(real64),                 allocatable :: buf(:)               !< Host buffer
+!     real(real64),                 allocatable :: buf(:)               !! Host buffer
 ! #endif
 
 !     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
@@ -179,7 +179,7 @@ contains
 !   end subroutine output
 
   type(dtfft_pencil_t) function make_public(self)
-    class(pencil),  intent(in)  :: self                 !< Pencil
+    class(pencil),  intent(in)  :: self                 !! Pencil
 
     make_public%dim = self%aligned_dim
     make_public%ndims = self%rank
@@ -189,14 +189,14 @@ contains
 
   subroutine get_local_sizes(pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
   !! Obtain local starts and counts in `real` and `fourier` spaces
-    type(pencil),             intent(in)  :: pencils(:)             !< Array of pencils
-    integer(int32), optional, intent(out) :: in_starts(:)           !< Start indexes in `real` space (0-based)
-    integer(int32), optional, intent(out) :: in_counts(:)           !< Number of elements in `real` space
-    integer(int32), optional, intent(out) :: out_starts(:)          !< Start indexes in `fourier` space (0-based)
-    integer(int32), optional, intent(out) :: out_counts(:)          !< Number of elements in `fourier` space
-    integer(int64), optional, intent(out) :: alloc_size             !< Minimal number of elements required to execute plan
-    integer(int8)                         :: d                      !< Counter
-    integer(int8)                         :: ndims                  !< Number of dimensions
+    type(pencil),             intent(in)  :: pencils(:)             !! Array of pencils
+    integer(int32), optional, intent(out) :: in_starts(:)           !! Start indexes in `real` space (0-based)
+    integer(int32), optional, intent(out) :: in_counts(:)           !! Number of elements in `real` space
+    integer(int32), optional, intent(out) :: out_starts(:)          !! Start indexes in `fourier` space (0-based)
+    integer(int32), optional, intent(out) :: out_counts(:)          !! Number of elements in `fourier` space
+    integer(int64), optional, intent(out) :: alloc_size             !! Minimal number of elements required to execute plan
+    integer(int8)                         :: d                      !! Counter
+    integer(int8)                         :: ndims                  !! Number of dimensions
 
     ndims = size(pencils, kind=int8)
     if ( present(in_starts) )  in_starts(1:ndims)   = pencils(1)%starts(1:ndims)
@@ -208,9 +208,9 @@ contains
 
   pure function get_transpose_type(send, recv) result(transpose_type)
   !! Determines transpose ID based on pencils
-    type(pencil),     intent(in)  :: send           !< Send pencil
-    type(pencil),     intent(in)  :: recv           !< Receive pencil
-    type(dtfft_transpose_type_t)  :: transpose_type   !< Transpose ID
+    type(pencil),     intent(in)  :: send           !! Send pencil
+    type(pencil),     intent(in)  :: recv           !! Receive pencil
+    type(dtfft_transpose_type_t)  :: transpose_type   !! Transpose ID
 
     transpose_type = dtfft_transpose_type_t(0)
     if (send%aligned_dim == 1 .and. recv%aligned_dim == 2) then

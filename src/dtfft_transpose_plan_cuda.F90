@@ -57,18 +57,18 @@ public :: transpose_plan_cuda
 contains
 
   integer(int32) function create_cuda(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
-    class(transpose_plan_cuda),     intent(inout) :: self                 !< GPU transpose plan
-    integer(int32),                 intent(in)    :: dims(:)              !< Global sizes of the transform requested
-    integer(int32),                 intent(in)    :: transposed_dims(:,:) !< Transposed dimensions
-    TYPE_MPI_COMM,                  intent(in)    :: base_comm            !< Base communicator
-    integer(int32),                 intent(in)    :: comm_dims(:)         !< Number of processors in each dimension
-    type(dtfft_effort_t),           intent(in)    :: effort               !< ``dtFFT`` planner type of effort
-    TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !< Base MPI_Datatype
-    integer(int8),                  intent(in)    :: base_storage         !< Number of bytes needed to store single element
-    logical,                        intent(in)    :: is_custom_cart_comm  !< is custom Cartesian communicator provided by user
-    TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !< Cartesian communicator
-    TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !< Array of 1d communicators
-    type(pencil),                   intent(out)   :: pencils(:)           !< Data distributing meta
+    class(transpose_plan_cuda),     intent(inout) :: self                 !! GPU transpose plan
+    integer(int32),                 intent(in)    :: dims(:)              !! Global sizes of the transform requested
+    integer(int32),                 intent(in)    :: transposed_dims(:,:) !! Transposed dimensions
+    TYPE_MPI_COMM,                  intent(in)    :: base_comm            !! Base communicator
+    integer(int32),                 intent(in)    :: comm_dims(:)         !! Number of processors in each dimension
+    type(dtfft_effort_t),           intent(in)    :: effort               !! ``dtFFT`` planner type of effort
+    TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !! Base MPI_Datatype
+    integer(int8),                  intent(in)    :: base_storage         !! Number of bytes needed to store single element
+    logical,                        intent(in)    :: is_custom_cart_comm  !! is custom Cartesian communicator provided by user
+    TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
+    TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
+    type(pencil),                   intent(out)   :: pencils(:)           !! Data distributing meta
     integer(int8) :: n_transpose_plans
     integer(int8) :: d, ndims!, b
     integer(int32) :: comm_size, ierr
@@ -166,9 +166,9 @@ contains
 
   subroutine execute_cuda(self, in, out, transpose_type)
   !! Executes single transposition
-    class(transpose_plan_cuda),    intent(inout) :: self          !< Transposition class
-    type(*),              target,  intent(inout) :: in(..)        !< Incoming buffer of any rank and kind
-    type(*),              target,  intent(inout) :: out(..)       !< Resulting buffer of any rank and kind
+    class(transpose_plan_cuda),    intent(inout) :: self          !! Transposition class
+    type(*),              target,  intent(inout) :: in(..)        !! Incoming buffer of any rank and kind
+    type(*),              target,  intent(inout) :: out(..)       !! Resulting buffer of any rank and kind
     type(dtfft_transpose_type_t),  intent(in)    :: transpose_type
     real(real32),   pointer :: pin(:)
     real(real32),   pointer :: pout(:)
@@ -185,7 +185,7 @@ contains
 
   subroutine destroy_cuda(self)
   !! Destroys transposition plans
-    class(transpose_plan_cuda),    intent(inout) :: self         !< Transposition class
+    class(transpose_plan_cuda),    intent(inout) :: self         !! Transposition class
     integer(int8) :: i
     integer(int32) :: ierr
 
@@ -205,14 +205,14 @@ contains
   end subroutine destroy_cuda
 
   subroutine autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage, stream, best_decomposition, gpu_backend, min_execution_time, best_backend_id)
-    integer(int32),                       intent(in)    :: dims(:)              !< Global sizes of the transform requested
+    integer(int32),                       intent(in)    :: dims(:)              !! Global sizes of the transform requested
     integer(int32),                       intent(in)    :: transposed_dims(:,:)
-    TYPE_MPI_COMM,                        intent(in)    :: base_comm            !< 3D comm
-    integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
+    TYPE_MPI_COMM,                        intent(in)    :: base_comm            !! 3D comm
+    integer(int8),                        intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
     type(dtfft_stream_t),                 intent(in)    :: stream
     integer(int32),                       intent(out)   :: best_decomposition(:)
-    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend    !< ID of transpose name (from -3 to 3, except 0)
-    real(real32),               optional, intent(out)   :: min_execution_time         !< Elapsed time for best plans selected
+    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend    !! ID of transpose name (from -3 to 3, except 0)
+    real(real32),               optional, intent(out)   :: min_execution_time         !! Elapsed time for best plans selected
     type(dtfft_gpu_backend_t),  optional, intent(out)   :: best_backend_id
     integer(int8)   :: ndims
     type(dtfft_gpu_backend_t) :: best_backend_id_
@@ -272,18 +272,18 @@ contains
   end subroutine autotune_grid_decomposition
 
   subroutine autotune_grid(dims, transposed_dims, base_comm, comm_dims, base_storage, is_z_slab, stream, gpu_backend, best_time, best_backend_id)
-    integer(int32),                       intent(in)    :: dims(:)              !< Global sizes of the transform requested
+    integer(int32),                       intent(in)    :: dims(:)              !! Global sizes of the transform requested
     integer(int32),                       intent(in)    :: transposed_dims(:,:)
-    TYPE_MPI_COMM,                        intent(in)    :: base_comm            !< 3D comm
+    TYPE_MPI_COMM,                        intent(in)    :: base_comm            !! 3D comm
     integer(int32),                       intent(in)    :: comm_dims(:)
-    integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
+    integer(int8),                        intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
     logical,                              intent(in)    :: is_z_slab
     type(dtfft_stream_t),                 intent(in)    :: stream
-    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend           !< ID of transpose name (from -3 to 3, except 0)
+    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend           !! ID of transpose name (from -3 to 3, except 0)
     type(dtfft_gpu_backend_t),  optional, intent(out)   :: best_backend_id
-    real(real32),               optional, intent(out)   :: best_time         !< Elapsed time for best plans selected
+    real(real32),               optional, intent(out)   :: best_time         !! Elapsed time for best plans selected
     type(pencil), allocatable :: pencils(:)
-    character(len=:),             allocatable   :: phase_name           !< Caliper phase name
+    character(len=:),             allocatable   :: phase_name           !! Caliper phase name
     integer(int8) :: d, ndims
     TYPE_MPI_COMM, allocatable :: comms(:)
     TYPE_MPI_COMM :: cart_comm
@@ -323,13 +323,13 @@ contains
   end subroutine autotune_grid
 
   subroutine run_autotune_backend(comms, cart_comm, pencils, base_storage, stream, is_z_slab, gpu_backend, best_time, best_backend_id)
-    TYPE_MPI_COMM,                        intent(in)    :: comms(:)              !< 1D comms
-    TYPE_MPI_COMM,                        intent(in)    :: cart_comm            !< 3D Cartesian comm
-    type(pencil),                         intent(in)    :: pencils(:)           !< Source meta
-    integer(int8),                        intent(in)    :: base_storage         !< Number of bytes needed to store Basic MPI Datatype
+    TYPE_MPI_COMM,                        intent(in)    :: comms(:)              !! 1D comms
+    TYPE_MPI_COMM,                        intent(in)    :: cart_comm            !! 3D Cartesian comm
+    type(pencil),                         intent(in)    :: pencils(:)           !! Source meta
+    integer(int8),                        intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
     type(dtfft_stream_t),                 intent(in)    :: stream
     logical,                              intent(in)    :: is_z_slab
-    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend           !< ID of transpose name (from -3 to 3, except 0)
+    type(dtfft_gpu_backend_t),  optional, intent(in)    :: gpu_backend           !! ID of transpose name (from -3 to 3, except 0)
     real(real32),               optional, intent(out)   :: best_time
     type(dtfft_gpu_backend_t),  optional, intent(out)   :: best_backend_id
     type(dtfft_gpu_backend_t),  allocatable :: backends_to_run(:)
@@ -348,7 +348,7 @@ contains
     character(len=:), allocatable :: testing_phase
     type(backend_helper)                      :: helper
     integer(int32) :: n_warmup_iters, n_iters
-    ! integer(int64)                                :: scaler         !< Scaling data amount to float size
+    ! integer(int64)                                :: scaler         !! Scaling data amount to float size
     ! integer(cuda_count_kind) :: free, total
 
     if ( present(gpu_backend) ) then

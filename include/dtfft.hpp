@@ -563,16 +563,21 @@ class Version {
  *
  * @return ErrorCode::SUCCESS if call was without error, error code otherwise
  */
+      inline
       ErrorCode
-      get_z_slab_enabled(bool *is_z_slab_enabled) const { return static_cast<ErrorCode>(dtfft_get_z_slab_enabled(_plan, is_z_slab_enabled)); }
+      get_z_slab_enabled(bool *is_z_slab_enabled) const noexcept
+      {
+        return static_cast<ErrorCode>(dtfft_get_z_slab_enabled(_plan, is_z_slab_enabled));
+      }
 
 /**
  * @brief Prints plan-related information to stdout
  *
  * @return ErrorCode::SUCCESS if call was without error, error code otherwise
  */
+      inline
       ErrorCode
-      report() const { return static_cast<ErrorCode>(dtfft_report(_plan)); }
+      report() const noexcept { return static_cast<ErrorCode>(dtfft_report(_plan)); }
 
 /**
  * @brief Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation,
@@ -586,8 +591,9 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
+      inline
       ErrorCode
-      get_pencil(const int8_t dim, Pencil& pencil) const
+      get_pencil(const int8_t dim, Pencil& pencil) const noexcept
       {
         dtfft_pencil_t c_pencil;
         const ErrorCode error_code = static_cast<ErrorCode>(dtfft_get_pencil(_plan, dim, &c_pencil));
@@ -607,8 +613,9 @@ class Version {
  * @return ErrorCode::SUCCESS on success or error code on failure.
  * @note
  */
+      inline
       ErrorCode
-      execute(void *in, void *out, const ExecuteType execute_type, void *aux=nullptr) const
+      execute(void *in, void *out, const ExecuteType execute_type, void *aux=nullptr) const noexcept
       {
         dtfft_error_code_t error_code = dtfft_execute(_plan, in, out, static_cast<dtfft_execute_type_t>(execute_type), aux);
         return static_cast<ErrorCode>(error_code);
@@ -624,8 +631,9 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
+      inline
       ErrorCode
-      transpose(void *in, void *out, const TransposeType transpose_type) const
+      transpose(void *in, void *out, const TransposeType transpose_type) const noexcept
       {
         dtfft_error_code_t error_code = dtfft_transpose(_plan, in, out, static_cast<dtfft_transpose_type_t>(transpose_type));
         return static_cast<ErrorCode>(error_code);
@@ -639,8 +647,9 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
+      inline
       ErrorCode
-      get_alloc_size(size_t *alloc_size) const
+      get_alloc_size(size_t *alloc_size) const noexcept
       {return static_cast<ErrorCode>(dtfft_get_alloc_size(_plan, alloc_size));}
 
 
@@ -655,13 +664,14 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
+      inline
       ErrorCode
       get_local_sizes(
         std::vector<int32_t>&in_starts,
         std::vector<int32_t>&in_counts,
         std::vector<int32_t>&out_starts,
         std::vector<int32_t>&out_counts,
-        size_t *alloc_size) const
+        size_t *alloc_size) const noexcept
       {return get_local_sizes(in_starts.data(), in_counts.data(), out_starts.data(), out_counts.data(), alloc_size);}
 
 
@@ -676,13 +686,14 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
+      inline
       ErrorCode
       get_local_sizes(
         int32_t *in_starts=nullptr,
         int32_t *in_counts=nullptr,
         int32_t *out_starts=nullptr,
         int32_t *out_counts=nullptr,
-        size_t *alloc_size=nullptr) const
+        size_t *alloc_size=nullptr) const noexcept
       {return static_cast<ErrorCode>(dtfft_get_local_sizes(_plan, in_starts, in_counts, out_starts, out_counts, alloc_size));}
 
 
@@ -693,8 +704,9 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
+      inline
       ErrorCode
-      get_element_size(size_t *element_size) const
+      get_element_size(size_t *element_size) const noexcept
       {return static_cast<ErrorCode>(dtfft_get_element_size(_plan, element_size));}
 
 
@@ -706,8 +718,9 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
+      inline
       ErrorCode
-      mem_alloc(size_t alloc_bytes, void **ptr) const
+      mem_alloc(size_t alloc_bytes, void **ptr) const noexcept
       {return static_cast<ErrorCode>(dtfft_mem_alloc(_plan, alloc_bytes, ptr));}
 
 
@@ -718,8 +731,9 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
+      inline
       ErrorCode
-      mem_free(void *ptr) const
+      mem_free(void *ptr) const noexcept
       {return static_cast<ErrorCode>(dtfft_mem_free(_plan, ptr));}
 
 
@@ -727,8 +741,11 @@ class Version {
  *
  * @return ErrorCode::SUCCESS on success or error code on failure.
  */
-      ErrorCode destroy()
-      {return static_cast<ErrorCode>(dtfft_destroy(&_plan));}
+      inline
+      ErrorCode destroy() noexcept
+      {
+        return static_cast<ErrorCode>(dtfft_destroy(&_plan));
+      }
 
 
 #ifdef DTFFT_WITH_CUDA
@@ -742,8 +759,9 @@ class Version {
  * @return ErrorCode::SUCCESS on success or error code on failure.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
+      inline
       ErrorCode
-      get_stream(dtfft_stream_t *stream)
+      get_stream(dtfft_stream_t *stream) const noexcept
       {return static_cast<ErrorCode>(dtfft_get_stream(_plan, stream));}
 
 /**
@@ -755,12 +773,28 @@ class Version {
  * @return ErrorCode::SUCCESS on success or error code on failure.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
+      inline
       ErrorCode
-      get_gpu_backend(GPUBackend *gpu_backend)
+      get_gpu_backend(GPUBackend *gpu_backend) const noexcept
       {
         dtfft_gpu_backend_t gpu_backend_;
         dtfft_error_code_t error_code = dtfft_get_gpu_backend(_plan, &gpu_backend_);
         *gpu_backend = static_cast<GPUBackend>(gpu_backend_);
+        return static_cast<ErrorCode>(error_code);
+      }
+
+/**
+ * @brief Returns plan execution platform.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+      inline
+      ErrorCode
+      get_platform(Platform *platform) const noexcept
+      {
+        dtfft_platform_t platform_;
+        dtfft_error_code_t error_code = dtfft_get_platform(_plan, &platform_);
+        *platform = static_cast<Platform>(platform_);
         return static_cast<ErrorCode>(error_code);
       }
 #endif

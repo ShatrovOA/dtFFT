@@ -37,12 +37,12 @@ public :: abstract_backend, backend_helper
 
   type :: backend_helper
   !! Helper with nccl, mpi and nvshmem communicators
-    logical                     :: is_nccl_created = .false.    !< Flag is `nccl_comm` has been created
+    logical                     :: is_nccl_created = .false.    !! Flag is `nccl_comm` has been created
 #ifdef DTFFT_WITH_NCCL
-    type(ncclComm)              :: nccl_comm                    !< NCCL communicator
+    type(ncclComm)              :: nccl_comm                    !! NCCL communicator
 #endif
-    TYPE_MPI_COMM,  allocatable :: comms(:)                     !< MPI communicators
-    integer(int32), allocatable :: comm_mappings(:,:)           !< Mapping of 1d comm ranks to global comm
+    TYPE_MPI_COMM,  allocatable :: comms(:)                     !! MPI communicators
+    integer(int32), allocatable :: comm_mappings(:,:)           !! Mapping of 1d comm ranks to global comm
     type(dtfft_transpose_type_t):: tranpose_type
     type(pencil),   pointer     :: pencils(:)
   contains
@@ -55,62 +55,62 @@ public :: abstract_backend, backend_helper
     type(dtfft_gpu_backend_t)         :: gpu_backend
     logical                           :: is_selfcopy
     logical                           :: is_pipelined
-    real(real32),             pointer :: aux(:)                 !< Auxiliary buffer used in pipelined algorithm
-    integer(int64)                    :: aux_size               !< Number of bytes required by aux buffer
-    integer(int64)                    :: send_recv_buffer_size  !< Number of float elements used in ``c_f_pointer``
-    TYPE_MPI_COMM                     :: comm                   !< MPI Communicator
-    integer(int32),       allocatable :: comm_mapping(:)        !< Mapping of 1d comm ranks to global comm
-    integer(int32)                    :: comm_size              !< Size of MPI Comm
-    integer(int32)                    :: comm_rank              !< Rank in MPI Comm
-    integer(int64),       allocatable :: send_displs(:)         !< Send data displacements, in float elements
-    integer(int64),       allocatable :: send_floats(:)         !< Send data elements, in float elements
-    integer(int64),       allocatable :: recv_displs(:)         !< Recv data displacements, in float elements
-    integer(int64),       allocatable :: recv_floats(:)         !< Recv data elements, in float elements
+    real(real32),             pointer :: aux(:)                 !! Auxiliary buffer used in pipelined algorithm
+    integer(int64)                    :: aux_size               !! Number of bytes required by aux buffer
+    integer(int64)                    :: send_recv_buffer_size  !! Number of float elements used in ``c_f_pointer``
+    TYPE_MPI_COMM                     :: comm                   !! MPI Communicator
+    integer(int32),       allocatable :: comm_mapping(:)        !! Mapping of 1d comm ranks to global comm
+    integer(int32)                    :: comm_size              !! Size of MPI Comm
+    integer(int32)                    :: comm_rank              !! Rank in MPI Comm
+    integer(int64),       allocatable :: send_displs(:)         !! Send data displacements, in float elements
+    integer(int64),       allocatable :: send_floats(:)         !! Send data elements, in float elements
+    integer(int64),       allocatable :: recv_displs(:)         !! Recv data displacements, in float elements
+    integer(int64),       allocatable :: recv_floats(:)         !! Recv data elements, in float elements
     ! Self copy params
-    type(cudaEvent)                   :: execution_event        !< Event for main execution stream
-    type(cudaEvent)                   :: copy_event             !< Event for copy stream
-    type(dtfft_stream_t)              :: copy_stream            !< Stream for copy operations
-    integer(int64)                    :: self_copy_elements     !< Number of elements to copy
-    integer(int64)                    :: self_send_displ        !< Displacement for send buffer
-    integer(int64)                    :: self_recv_displ        !< Displacement for recv buffer
+    type(cudaEvent)                   :: execution_event        !! Event for main execution stream
+    type(cudaEvent)                   :: copy_event             !! Event for copy stream
+    type(dtfft_stream_t)              :: copy_stream            !! Stream for copy operations
+    integer(int64)                    :: self_copy_elements     !! Number of elements to copy
+    integer(int64)                    :: self_send_displ        !! Displacement for send buffer
+    integer(int64)                    :: self_recv_displ        !! Displacement for recv buffer
     ! Pipelined params
-    type(nvrtc_kernel),       pointer :: unpack_kernel          !< Kernel for unpacking data
-    type(nvrtc_kernel),       pointer :: unpack_kernel2         !< Kernel for unpacking data
+    type(nvrtc_kernel),       pointer :: unpack_kernel          !! Kernel for unpacking data
+    type(nvrtc_kernel),       pointer :: unpack_kernel2         !! Kernel for unpacking data
   contains
-    procedure,      non_overridable,              pass(self)  :: create           !< Creates Abstract GPU Backend
-    procedure,      non_overridable,              pass(self)  :: execute          !< Executes GPU Backend
-    procedure,      non_overridable,              pass(self)  :: destroy          !< Destroys Abstract GPU Backend
-    procedure,      non_overridable,              pass(self)  :: get_aux_size     !< Returns number of bytes required by aux buffer
-    procedure,      non_overridable,              pass(self)  :: set_aux          !< Sets Auxiliary buffer
+    procedure,      non_overridable,              pass(self)  :: create           !! Creates Abstract GPU Backend
+    procedure,      non_overridable,              pass(self)  :: execute          !! Executes GPU Backend
+    procedure,      non_overridable,              pass(self)  :: destroy          !! Destroys Abstract GPU Backend
+    procedure,      non_overridable,              pass(self)  :: get_aux_size     !! Returns number of bytes required by aux buffer
+    procedure,      non_overridable,              pass(self)  :: set_aux          !! Sets Auxiliary buffer
     procedure,      non_overridable,              pass(self)  :: set_unpack_kernel
-    procedure(createInterface),       deferred,   pass(self)  :: create_private   !< Creates overring class
-    procedure(executeInterface),      deferred,   pass(self)  :: execute_private  !< Executes GPU Backend
-    procedure(destroyInterface),      deferred,   pass(self)  :: destroy_private  !< Destroys overring class
+    procedure(createInterface),       deferred,   pass(self)  :: create_private   !! Creates overring class
+    procedure(executeInterface),      deferred,   pass(self)  :: execute_private  !! Executes GPU Backend
+    procedure(destroyInterface),      deferred,   pass(self)  :: destroy_private  !! Destroys overring class
   end type abstract_backend
 
   interface
   subroutine createInterface(self, helper, tranpose_type, base_storage)
   !! Creates overring class
   import
-    class(abstract_backend),      intent(inout) :: self       !< Abstract GPU Backend
-    type(backend_helper),         intent(in)    :: helper     !< Backend helper
+    class(abstract_backend),      intent(inout) :: self       !! Abstract GPU Backend
+    type(backend_helper),         intent(in)    :: helper     !! Backend helper
     type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
-    integer(int8),                intent(in)    :: base_storage   !< Number of bytes to store single element
+    integer(int8),                intent(in)    :: base_storage   !! Number of bytes to store single element
   end subroutine createInterface
 
   subroutine executeInterface(self, in, out, stream)
   !! Executes GPU Backend
   import
-    class(abstract_backend),    intent(inout) :: self       !< Abstract GPU Backend
-    real(real32),     target,   intent(inout) :: in(:)      !< Send pointer
-    real(real32),     target,   intent(inout) :: out(:)     !< Recv pointer
-    type(dtfft_stream_t),       intent(in)    :: stream     !< Main execution CUDA stream
+    class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
+    real(real32),     target,   intent(inout) :: in(:)      !! Send pointer
+    real(real32),     target,   intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),       intent(in)    :: stream     !! Main execution CUDA stream
   end subroutine executeInterface
 
   subroutine destroyInterface(self)
   !! Destroys overring class
   import
-    class(abstract_backend),    intent(inout) :: self       !< Abstract GPU Backend
+    class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
   end subroutine destroyInterface
 end interface
 
@@ -118,20 +118,20 @@ contains
 
   subroutine create(self, gpu_backend, tranpose_type, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
   !! Creates Abstract GPU Backend
-    class(abstract_backend),      intent(inout) :: self           !< Abstract GPU Backend
+    class(abstract_backend),      intent(inout) :: self           !! Abstract GPU Backend
     type(dtfft_gpu_backend_t),    intent(in)    :: gpu_backend
     type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
-    type(backend_helper),         intent(in)    :: helper         !< Backend helper
-    integer(int8),                intent(in)    :: comm_id        !< Id of communicator to use
-    integer(int32),               intent(in)    :: send_displs(:) !< Send data displacements, in original elements
-    integer(int32),               intent(in)    :: send_counts(:) !< Send data elements, in float elements
-    integer(int32),               intent(in)    :: recv_displs(:) !< Recv data displacements, in float elements
-    integer(int32),               intent(in)    :: recv_counts(:) !< Recv data elements, in float elements
-    integer(int8),                intent(in)    :: base_storage   !< Number of bytes to store single element
-    integer(int64)                            :: send_size      !< Total number of floats to send
-    integer(int64)                            :: recv_size      !< Total number of floats to recv
-    integer(int32)                            :: ierr           !< MPI Error code
-    integer(int64)                            :: scaler         !< Scaling data amount to float size
+    type(backend_helper),         intent(in)    :: helper         !! Backend helper
+    integer(int8),                intent(in)    :: comm_id        !! Id of communicator to use
+    integer(int32),               intent(in)    :: send_displs(:) !! Send data displacements, in original elements
+    integer(int32),               intent(in)    :: send_counts(:) !! Send data elements, in float elements
+    integer(int32),               intent(in)    :: recv_displs(:) !! Recv data displacements, in float elements
+    integer(int32),               intent(in)    :: recv_counts(:) !! Recv data elements, in float elements
+    integer(int8),                intent(in)    :: base_storage   !! Number of bytes to store single element
+    integer(int64)                            :: send_size      !! Total number of floats to send
+    integer(int64)                            :: recv_size      !! Total number of floats to recv
+    integer(int32)                            :: ierr           !! MPI Error code
+    integer(int64)                            :: scaler         !! Scaling data amount to float size
 
     scaler = int(base_storage, int64) / int(FLOAT_STORAGE_SIZE, int64)
 
@@ -186,10 +186,10 @@ contains
 
   subroutine execute(self, in, out, stream)
   !! Executes self-copying backend
-    class(abstract_backend),    intent(inout) :: self     !< Self-copying backend
-    real(real32),               intent(inout) :: in(:)    !< Send pointer
-    real(real32),               intent(inout) :: out(:)   !< Recv pointer
-    type(dtfft_stream_t),       intent(in)    :: stream   !< CUDA stream
+    class(abstract_backend),    intent(inout) :: self     !! Self-copying backend
+    real(real32),               intent(inout) :: in(:)    !! Send pointer
+    real(real32),               intent(inout) :: out(:)   !! Recv pointer
+    type(dtfft_stream_t),       intent(in)    :: stream   !! CUDA stream
 
     if ( .not. self%is_selfcopy ) then
       call self%execute_private(in, out, stream)
@@ -232,7 +232,7 @@ contains
 
   subroutine destroy(self)
   !! Destroys Abstract GPU Backend
-    class(abstract_backend),    intent(inout) :: self     !< Abstract GPU backend
+    class(abstract_backend),    intent(inout) :: self     !! Abstract GPU backend
 
     if ( allocated( self%send_displs ) ) deallocate( self%send_displs )
     if ( allocated( self%send_floats ) ) deallocate( self%send_floats )
@@ -255,32 +255,32 @@ contains
 
   integer(int64) function get_aux_size(self)
   !! Returns number of bytes required by aux buffer
-    class(abstract_backend),    intent(in)    :: self     !< Abstract GPU backend
+    class(abstract_backend),    intent(in)    :: self     !! Abstract GPU backend
     get_aux_size = self%aux_size
   end function get_aux_size
 
   subroutine set_aux(self, aux)
   !! Sets aux buffer that can be used by various implementations
-    class(abstract_backend),          intent(inout) :: self     !< Abstract GPU backend
-    real(real32),             target, intent(in)    :: aux(:)   !< Aux pointer
+    class(abstract_backend),          intent(inout) :: self     !! Abstract GPU backend
+    real(real32),             target, intent(in)    :: aux(:)   !! Aux pointer
     self%aux => aux
   end subroutine set_aux
 
   subroutine set_unpack_kernel(self, unpack_kernel, unpack_kernel2)
   !! Sets unpack kernel for pipelined backend
-    class(abstract_backend),    intent(inout)             :: self           !< Pipelined backend
-    type(nvrtc_kernel), target, intent(in)                :: unpack_kernel  !< Kernel for unpacking data
-    type(nvrtc_kernel), target, intent(in), optional      :: unpack_kernel2  !< Kernel for unpacking data
+    class(abstract_backend),    intent(inout)             :: self           !! Pipelined backend
+    type(nvrtc_kernel), target, intent(in)                :: unpack_kernel  !! Kernel for unpacking data
+    type(nvrtc_kernel), target, intent(in), optional      :: unpack_kernel2  !! Kernel for unpacking data
 
     self%unpack_kernel => unpack_kernel
     if ( present( unpack_kernel2 ) ) self%unpack_kernel2 => unpack_kernel2
   end subroutine set_unpack_kernel
 
   subroutine create_helper(self, base_comm, comms, is_nccl_needed, pencils)
-    class(backend_helper),  intent(inout) :: self                 !< Backend helper
-    TYPE_MPI_COMM,          intent(in)    :: base_comm            !< MPI communicator
-    TYPE_MPI_COMM,          intent(in)    :: comms(:)             !< 1D Communicators
-    logical,                intent(in)    :: is_nccl_needed       !< If nccl communicator will be needed
+    class(backend_helper),  intent(inout) :: self                 !! Backend helper
+    TYPE_MPI_COMM,          intent(in)    :: base_comm            !! MPI communicator
+    TYPE_MPI_COMM,          intent(in)    :: comms(:)             !! 1D Communicators
+    logical,                intent(in)    :: is_nccl_needed       !! If nccl communicator will be needed
     type(pencil), target,   intent(in)    :: pencils(:)
     integer :: i, n_comms
 
@@ -300,7 +300,7 @@ contains
 
 #ifdef DTFFT_WITH_NCCL
     block
-      type(ncclUniqueId)  :: id           !< NCCL unique id
+      type(ncclUniqueId)  :: id           !! NCCL unique id
       integer(int32) :: max_size, comm_size, comm_rank, ierr
 
       max_size = -1
@@ -326,7 +326,7 @@ contains
   end subroutine create_helper
 
   subroutine destroy_helper(self)
-    class(backend_helper),  intent(inout) :: self                 !< Backend helper
+    class(backend_helper),  intent(inout) :: self                 !! Backend helper
 
     if ( allocated( self%comms ) )          deallocate(self%comms)
     if ( allocated( self%comm_mappings ) )  deallocate(self%comm_mappings)

@@ -32,21 +32,21 @@ private
 public :: fftw_executor
 
   integer(int32), parameter :: FFTW3_FLAGS = FFTW_MEASURE + FFTW_DESTROY_INPUT
-  !< FFTW3 planner flags
+  !! FFTW3 planner flags
 
   type, extends(abstract_executor) :: fftw_executor
   !! FFTW3 FFT Executor
   private
-    procedure(apply_interface), nopass, pointer :: apply => NULL()          !< Pointer to FFTW3 function that executes FFT plan
-    procedure(free_interface),  nopass, pointer :: free => NULL()           !< Pointer to FFTW3 function that destroys FFT plan
-    procedure(apply_interface), nopass, pointer :: apply_inverse => NULL()  !< Pointer to FFTW3 function that executes inverse FFT plan
-                                                                            !< Used in R2C only
+    procedure(apply_interface), nopass, pointer :: apply => NULL()          !! Pointer to FFTW3 function that executes FFT plan
+    procedure(free_interface),  nopass, pointer :: free => NULL()           !! Pointer to FFTW3 function that destroys FFT plan
+    procedure(apply_interface), nopass, pointer :: apply_inverse => NULL()  !! Pointer to FFTW3 function that executes inverse FFT plan
+                                                                            !! Used in R2C only
   contains
-    procedure :: create_private => create               !< Creates FFT plan via FFTW3 Interface
-    procedure :: execute_private => execute             !< Executes FFTW3 plan
-    procedure :: destroy_private => destroy             !< Destroys FFTW3 plan
-    procedure, nopass :: mem_alloc
-    procedure, nopass :: mem_free
+    procedure :: create_private => create       !! Creates FFT plan via FFTW3 Interface
+    procedure :: execute_private => execute     !! Executes FFTW3 plan
+    procedure :: destroy_private => destroy     !! Destroys FFTW3 plan
+    procedure, nopass :: mem_alloc              !! Allocates FFTW3 memory
+    procedure, nopass :: mem_free               !! Frees FFTW3 aligned memory
   end type fftw_executor
 
   abstract interface
@@ -80,21 +80,21 @@ public :: fftw_executor
 contains
   subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)
   !! Creates FFT plan via FFTW3 Interface
-    class(fftw_executor),             intent(inout) :: self           !< FFTW FFT Executor
-    integer(int8),                    intent(in)    :: fft_rank       !< Rank of fft: 1 or 2
-    integer(int8),                    intent(in)    :: fft_type       !< Type of fft: r2r, r2c, c2c
-    type(dtfft_precision_t),          intent(in)    :: precision      !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
-    integer(int32),                   intent(in)    :: idist          !< Distance between the first element of two consecutive signals in a batch of the input data.
-    integer(int32),                   intent(in)    :: odist          !< Distance between the first element of two consecutive signals in a batch of the output data.
-    integer(int32),                   intent(in)    :: how_many       !< Number of transforms to create
-    integer(int32),                   intent(in)    :: fft_sizes(:)   !< Dimensions of transform
-    integer(int32),                   intent(in)    :: inembed(:)     !< Storage dimensions of the input data in memory.
-    integer(int32),                   intent(in)    :: onembed(:)     !< Storage dimensions of the output data in memory.
-    integer(int32),                   intent(inout) :: error_code     !< Error code to be returned to user
-    type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !< Kinds of r2r transform
-    real(real32),           target,   allocatable   :: buf(:)         !< Buffer needed to create plan
-    integer(int32)                                  :: n_elements     !< Number of elements in `buf`
-    type(c_ptr)                                     :: ptr            !< C pointer to `buf`
+    class(fftw_executor),             intent(inout) :: self           !! FFTW FFT Executor
+    integer(int8),                    intent(in)    :: fft_rank       !! Rank of fft: 1 or 2
+    integer(int8),                    intent(in)    :: fft_type       !! Type of fft: r2r, r2c, c2c
+    type(dtfft_precision_t),          intent(in)    :: precision      !! Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
+    integer(int32),                   intent(in)    :: idist          !! Distance between the first element of two consecutive signals in a batch of the input data.
+    integer(int32),                   intent(in)    :: odist          !! Distance between the first element of two consecutive signals in a batch of the output data.
+    integer(int32),                   intent(in)    :: how_many       !! Number of transforms to create
+    integer(int32),                   intent(in)    :: fft_sizes(:)   !! Dimensions of transform
+    integer(int32),                   intent(in)    :: inembed(:)     !! Storage dimensions of the input data in memory.
+    integer(int32),                   intent(in)    :: onembed(:)     !! Storage dimensions of the output data in memory.
+    integer(int32),                   intent(inout) :: error_code     !! Error code to be returned to user
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !! Kinds of r2r transform
+    real(real32),           target,   allocatable   :: buf(:)         !! Buffer needed to create plan
+    integer(int32)                                  :: n_elements     !! Number of elements in `buf`
+    type(c_ptr)                                     :: ptr            !! C pointer to `buf`
 
     error_code = DTFFT_SUCCESS
 
@@ -192,10 +192,10 @@ contains
 
   subroutine execute(self, a, b, sign)
   !! Executes FFTW3 plan
-    class(fftw_executor), intent(in)  :: self                 !< FFTW FFT Executor
-    type(c_ptr),          intent(in)  :: a                    !< Source pointer
-    type(c_ptr),          intent(in)  :: b                    !< Target pointer
-    integer(int8),        intent(in)  :: sign                 !< Sign of transform
+    class(fftw_executor), intent(in)  :: self                 !! FFTW FFT Executor
+    type(c_ptr),          intent(in)  :: a                    !! Source pointer
+    type(c_ptr),          intent(in)  :: b                    !! Target pointer
+    integer(int8),        intent(in)  :: sign                 !! Sign of transform
 
     if ( sign == FFT_FORWARD ) then
       call self%apply(self%plan_forward, a, b)
@@ -210,7 +210,7 @@ contains
 
   subroutine destroy(self)
   !! Destroys FFTW3 plan
-    class(fftw_executor), intent(inout) :: self               !< FFTW FFT Executor
+    class(fftw_executor), intent(inout) :: self               !! FFTW FFT Executor
 
     call self%free(self%plan_forward)
     if( .not. self%is_inverse_copied ) call self%free(self%plan_backward)
@@ -220,16 +220,16 @@ contains
   end subroutine destroy
 
   subroutine mem_alloc(alloc_bytes, ptr)
-    !! Allocates FFTW3 memory
-    integer(int64),           intent(in)  :: alloc_bytes
-    type(c_ptr),              intent(out) :: ptr
+  !! Allocates FFTW3 memory
+    integer(int64),           intent(in)  :: alloc_bytes      !! Number of bytes to allocate
+    type(c_ptr),              intent(out) :: ptr              !! Allocated pointer
 
     ptr = fftw_malloc(alloc_bytes)
   end subroutine mem_alloc
 
   subroutine mem_free(ptr)
   !! Frees FFTW3 aligned memory
-    type(c_ptr),               intent(in)   :: ptr
+    type(c_ptr),               intent(in)   :: ptr            !! Pointer to free
 
     call fftw_free(ptr)
   end subroutine mem_free

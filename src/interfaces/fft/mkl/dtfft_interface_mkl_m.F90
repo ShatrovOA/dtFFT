@@ -37,8 +37,8 @@ public :: DftiErrorMessage
       bind(C, name="DftiErrorMessage")
     !! Generates an error message.
     import
-      integer(c_long),  intent(in), value  :: error_code      !< Completion status of a function.
-      type(c_ptr)                          :: message         !< Pointer to message
+      integer(c_long),  intent(in), value  :: error_code      !! Completion status of a function.
+      type(c_ptr)                          :: message         !! Pointer to message
     end function DftiErrorMessage_c
   end interface
 
@@ -49,10 +49,10 @@ public :: DftiErrorMessage
       bind(C)
     !! Sets one particular configuration parameter with integer value.
     import
-      type(c_ptr),                  value :: desc             !< FFT descriptor.
-      integer(c_int),   intent(in), value :: param            !< Configuration parameter.
-      integer(c_int),   intent(in), value :: value            !< Configuration value.
-      integer(c_long)                     :: status           !< Function completion status.
+      type(c_ptr),                  value :: desc             !! FFT descriptor.
+      integer(c_int),   intent(in), value :: param            !! Configuration parameter.
+      integer(c_int),   intent(in), value :: value            !! Configuration value.
+      integer(c_long)                     :: status           !! Function completion status.
     end function mkl_dfti_set_integer
 
     function mkl_dfti_set_pointer(desc, param, value)                         &
@@ -60,10 +60,10 @@ public :: DftiErrorMessage
       bind(C)
     !! Sets one particular configuration parameter with pointer value.
     import
-      type(c_ptr),                  value :: desc             !< FFT descriptor.
-      integer(c_int),   intent(in), value :: param            !< Configuration parameter.
-      integer(c_long),  intent(in)        :: value(*)         !< Configuration value.
-      integer(c_long)                     :: status           !< Function completion status.
+      type(c_ptr),                  value :: desc             !! FFT descriptor.
+      integer(c_int),   intent(in), value :: param            !! Configuration parameter.
+      integer(c_long),  intent(in)        :: value(*)         !! Configuration value.
+      integer(c_long)                     :: status           !! Function completion status.
     end function mkl_dfti_set_pointer
   end interface mkl_dfti_set_value
 
@@ -73,13 +73,13 @@ public :: DftiErrorMessage
       bind(C)
     !! Allocates the descriptor data structure and initializes it with default configuration values.
     import
-      integer(c_int),   intent(in), value :: precision        !< Precision of the transform: DFTI_SINGLE or DFTI_DOUBLE.
-      integer(c_int),   intent(in), value :: domain           !< Forward domain of the transform: DFTI_COMPLEX or DFTI_REAL.
-      integer(c_long),  intent(in), value :: dim              !< Dimension of the transform.
-      integer(c_long),  intent(in)        :: length(*)        !< Length of the transform for a one-dimensional transform. 
-                                                              !< Lengths of each dimension for a multi-dimensional transform.
-      type(c_ptr)                         :: desc             !< FFT descriptor.
-      integer(c_long)                     :: status           !< Function completion status.
+      integer(c_int),   intent(in), value :: precision        !! Precision of the transform: DFTI_SINGLE or DFTI_DOUBLE.
+      integer(c_int),   intent(in), value :: domain           !! Forward domain of the transform: DFTI_COMPLEX or DFTI_REAL.
+      integer(c_long),  intent(in), value :: dim              !! Dimension of the transform.
+      integer(c_long),  intent(in)        :: length(*)        !! Length of the transform for a one-dimensional transform. 
+                                                              !! Lengths of each dimension for a multi-dimensional transform.
+      type(c_ptr)                         :: desc             !! FFT descriptor.
+      integer(c_long)                     :: status           !! Function completion status.
     end function mkl_dfti_create_desc
 
     function mkl_dfti_commit_desc(desc)                                       &
@@ -87,8 +87,8 @@ public :: DftiErrorMessage
       bind(C)
     !! Performs all initialization for the actual FFT computation.
     import
-      type(c_ptr),                  value :: desc             !< FFT descriptor.
-      integer(c_long)                     :: status           !< Function completion status.
+      type(c_ptr),                  value :: desc             !! FFT descriptor.
+      integer(c_long)                     :: status           !! Function completion status.
     end function mkl_dfti_commit_desc
 
     function mkl_dfti_execute(desc, in, out, sign)                            &
@@ -96,11 +96,11 @@ public :: DftiErrorMessage
       bind(C)
     !! Computes FFT.
       import
-      type(c_ptr),                  value :: desc             !< FFT descriptor.
-      type(c_ptr),                  value :: in               !< Data to be transformed 
-      type(c_ptr),                  value :: out              !< The transformed data
-      integer(c_int),   intent(in), value :: sign             !< Sign of transform
-      integer(c_long)                     :: status           !< Function completion status.
+      type(c_ptr),                  value :: desc             !! FFT descriptor.
+      type(c_ptr),                  value :: in               !! Data to be transformed 
+      type(c_ptr),                  value :: out              !! The transformed data
+      integer(c_int),   intent(in), value :: sign             !! Sign of transform
+      integer(c_long)                     :: status           !! Function completion status.
     end function mkl_dfti_execute
 
     function mkl_dfti_free_desc(desc)                                         &
@@ -108,8 +108,8 @@ public :: DftiErrorMessage
       bind(C)
     !! Frees the memory allocated for a descriptor.
     import
-      type(c_ptr),                  value :: desc             !< FFT descriptor.
-      integer(c_long)                     :: status           !< Function completion status.
+      type(c_ptr),                  value :: desc             !! FFT descriptor.
+      integer(c_long)                     :: status           !! Function completion status.
     end function mkl_dfti_free_desc
 
     function mkl_dfti_mem_alloc(alloc_bytes, ptr)                             &
@@ -119,7 +119,7 @@ public :: DftiErrorMessage
     import
       integer(c_size_t),            value :: alloc_bytes
       type(c_ptr)                         :: ptr
-      integer(c_long)                     :: status           !< Function completion status.
+      integer(c_long)                     :: status           !! Function completion status.
     end function mkl_dfti_mem_alloc
 
     function mkl_dfti_mem_free(ptr)                                           &
@@ -128,7 +128,7 @@ public :: DftiErrorMessage
     !! Frees pointer via `mkl_free`
     import
       type(c_ptr),                  value :: ptr
-      integer(c_long)                     :: status           !< Function completion status.
+      integer(c_long)                     :: status           !! Function completion status.
     end function mkl_dfti_mem_free
   endinterface
 
@@ -136,8 +136,8 @@ contains
 
   function DftiErrorMessage(error_code) result(string)
   !! Generates an error message.
-    integer(c_long),    intent(in)  :: error_code       !< Completion status of a function.
-    character(len=:),   allocatable :: string           !< Error message
+    integer(c_long),    intent(in)  :: error_code       !! Completion status of a function.
+    character(len=:),   allocatable :: string           !! Error message
     type(c_ptr)                     :: c_string
     character(len=256), pointer     :: f_string
 

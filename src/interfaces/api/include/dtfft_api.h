@@ -120,6 +120,10 @@ int32_t
 dtfft_get_gpu_backend_c(const void*, int32_t*);
 
 extern
+int32_t
+dtfft_get_platform_c(const void*, int32_t*);
+
+extern
 void
 dtfft_get_gpu_backend_string_c(const int32_t*, char*, size_t*);
 

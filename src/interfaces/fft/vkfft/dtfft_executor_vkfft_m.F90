@@ -16,7 +16,6 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
-#include "dtfft_config.h"
 module dtfft_executor_vkfft_m
 !! This module describes vkFFT Wrappers to dtFFT: ``vkfft_executor``
 !!
@@ -27,8 +26,6 @@ use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_interface_vkfft_m
 use dtfft_config,                   only: get_user_stream
-#include "dtfft_mpi.h"
-#include "dtfft_cuda.h"
 implicit none
 private
 public :: vkfft_executor
@@ -38,29 +35,29 @@ public :: vkfft_executor
   private
     logical :: is_inverse_required
   contains
-    procedure, pass(self)  :: create_private => create     !< Creates FFT plan via vkFFT Interface
-    procedure, pass(self)  :: execute_private => execute   !< Executes vkFFT plan
-    procedure, pass(self)  :: destroy_private => destroy   !< Destroys vkFFT plan
-    procedure, nopass :: mem_alloc
-    procedure, nopass :: mem_free
+    procedure, pass(self)  :: create_private => create      !! Creates FFT plan via vkFFT Interface
+    procedure, pass(self)  :: execute_private => execute    !! Executes vkFFT plan
+    procedure, pass(self)  :: destroy_private => destroy    !! Destroys vkFFT plan
+    procedure, nopass :: mem_alloc                          !! Dummy method. Raises `error stop`
+    procedure, nopass :: mem_free                           !! Dummy method. Raises `error stop`
   end type vkfft_executor
 
 contains
 
   subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)
   !! Creates FFT plan via vkFFT Interface
-    class(vkfft_executor),            intent(inout) :: self           !< vkFFT FFT Executor
-    integer(int8),                    intent(in)    :: fft_rank       !< Rank of fft: 1 or 2
-    integer(int8),                    intent(in)    :: fft_type       !< Type of fft: r2r, r2c, c2c
-    type(dtfft_precision_t),          intent(in)    :: precision      !< Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
-    integer(int32),                   intent(in)    :: idist          !< Distance between the first element of two consecutive signals in a batch of the input data.
-    integer(int32),                   intent(in)    :: odist          !< Distance between the first element of two consecutive signals in a batch of the output data.
-    integer(int32),                   intent(in)    :: how_many       !< Number of transforms to create
-    integer(int32),                   intent(in)    :: fft_sizes(:)   !< Dimensions of transform
-    integer(int32),                   intent(in)    :: inembed(:)     !< Storage dimensions of the input data in memory.
-    integer(int32),                   intent(in)    :: onembed(:)     !< Storage dimensions of the output data in memory.
-    integer(int32),                   intent(inout) :: error_code     !< Error code to be returned to user
-    type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !< Kinds of r2r transform
+    class(vkfft_executor),            intent(inout) :: self           !! vkFFT FFT Executor
+    integer(int8),                    intent(in)    :: fft_rank       !! Rank of fft: 1 or 2
+    integer(int8),                    intent(in)    :: fft_type       !! Type of fft: r2r, r2c, c2c
+    type(dtfft_precision_t),          intent(in)    :: precision      !! Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
+    integer(int32),                   intent(in)    :: idist          !! Distance between the first element of two consecutive signals in a batch of the input data.
+    integer(int32),                   intent(in)    :: odist          !! Distance between the first element of two consecutive signals in a batch of the output data.
+    integer(int32),                   intent(in)    :: how_many       !! Number of transforms to create
+    integer(int32),                   intent(in)    :: fft_sizes(:)   !! Dimensions of transform
+    integer(int32),                   intent(in)    :: inembed(:)     !! Storage dimensions of the input data in memory.
+    integer(int32),                   intent(in)    :: onembed(:)     !! Storage dimensions of the output data in memory.
+    integer(int32),                   intent(inout) :: error_code     !! Error code to be returned to user
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !! Kinds of r2r transform
     integer(c_int8_t) :: r2c, dct, dst
     integer(c_int)    :: knd, i, dims(2)
 
@@ -112,10 +109,10 @@ contains
 
   subroutine execute(self, a, b, sign)
   !! Executes vkFFT plan
-    class(vkfft_executor),  intent(in)      :: self           !< vkFFT FFT Executor
-    type(c_ptr),            intent(in)      :: a              !< Source pointer
-    type(c_ptr),            intent(in)      :: b              !< Target pointer
-    integer(int8),          intent(in)      :: sign           !< Sign of transform
+    class(vkfft_executor),  intent(in)      :: self           !! vkFFT FFT Executor
+    type(c_ptr),            intent(in)      :: a              !! Source pointer
+    type(c_ptr),            intent(in)      :: b              !! Target pointer
+    integer(int8),          intent(in)      :: sign           !! Sign of transform
 
     if ( self%is_inverse_required .and. sign == FFT_BACKWARD ) then
       call vkfft_execute(self%plan_backward, a, b, sign)
@@ -126,7 +123,7 @@ contains
 
   subroutine destroy(self)
   !! Destroys vkFFT plan
-    class(vkfft_executor), intent(inout)    :: self           !< vkFFT FFT Executor
+    class(vkfft_executor), intent(inout)    :: self           !! vkFFT FFT Executor
 
     call vkfft_destroy(self%plan_forward)
     if ( self%is_inverse_required ) then
@@ -135,14 +132,16 @@ contains
   end subroutine destroy
 
   subroutine mem_alloc(alloc_bytes, ptr)
-    integer(int64),           intent(in)  :: alloc_bytes
-    type(c_ptr),              intent(out) :: ptr
+  !! Dummy method. Raises `error stop`
+    integer(int64),           intent(in)  :: alloc_bytes  !! Number of bytes to allocate
+    type(c_ptr),              intent(out) :: ptr          !! Allocated pointer
 
     error stop "mem_alloc for VkFFT called"
   end subroutine mem_alloc
 
   subroutine mem_free(ptr)
-    type(c_ptr),               intent(in)   :: ptr
+  !! Dummy method. Raises `error stop`
+    type(c_ptr),               intent(in)   :: ptr        !! Pointer to free
 
     error stop "mem_free for VkFFT called"
   end subroutine mem_free

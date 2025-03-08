@@ -172,3 +172,6 @@ Plan information
 
 .. doxygenfunction:: dtfft_get_gpu_backend
 
+---------
+
+.. doxygenfunction:: dtfft_get_platform

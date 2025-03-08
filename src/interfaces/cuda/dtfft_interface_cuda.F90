@@ -322,10 +322,10 @@ contains
   function cudaGetErrorString(errcode) result(string)
   !! Helper function that returns a string describing the given nvrtcResult code
   !! For unrecognized enumeration values, it returns "NVRTC_ERROR unknown"
-    integer(c_int),   intent(in)  :: errcode     !< CUDA Runtime Compilation API result code.
-    character(len=:), allocatable :: string         !< Result string
-    type(c_ptr)                   :: c_string       !< Pointer to C string
-    character(len=256), pointer   :: f_string       !< Pointer to Fortran string
+    integer(c_int),   intent(in)  :: errcode     !! CUDA Runtime Compilation API result code.
+    character(len=:), allocatable :: string         !! Result string
+    type(c_ptr)                   :: c_string       !! Pointer to C string
+    character(len=256), pointer   :: f_string       !! Pointer to Fortran string
 
     c_string = cudaGetErrorString_c(errcode)
     call c_f_pointer(c_string, f_string)
