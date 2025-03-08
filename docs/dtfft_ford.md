@@ -34,10 +34,10 @@ display: public
     protected
     private
 warn: false
-graph: false
+graph: true
 coloured_edges: true
 sort: permission
-search: false
+search: true
 
 
 
