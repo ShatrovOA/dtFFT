@@ -241,7 +241,7 @@ jobs:
             -DDTFFT_WITH_NCCL=on
           cmake --build build
       - name: Test
-        run: cmake --build build --target coverage --output-on-failure
+        run: CTEST_OUTPUT_ON_FAILURE=1 cmake --build build --target coverage
       - name: Install
         run: sudo cmake --install build
       - name: Test install
