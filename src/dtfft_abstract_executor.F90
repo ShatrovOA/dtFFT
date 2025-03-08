@@ -16,6 +16,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 module dtfft_abstract_executor
 !! This module describes `abstract_executor`: Abstract FFT wrapper class
 use iso_c_binding,    only: c_loc, c_ptr, c_int, c_null_ptr, c_associated
