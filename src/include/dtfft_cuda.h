@@ -1,21 +1,14 @@
-#ifdef DTFFT_WITH_CUDA
-# ifdef _DEVELOPMENT
-#  define DEVICE_PTR
-# else
-#  define DEVICE_PTR device,
-# endif
-# define LOC_FUN c_devloc
-# define C_ADDR c_devptr
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+# define DEVICE_PTR device,
 #else
 # define DEVICE_PTR
-# define LOC_FUN c_loc
-# define C_ADDR c_ptr
 #endif
 
 #define GPU_CALL(lib, name, func, getErrorString)                                                                                                                               \
   block;                                                                                                                                                                        \
   use iso_fortran_env, only: error_unit;                                                                                                                                        \
   use iso_c_binding, only: c_int32_t;                                                                                                                                           \
+  use dtfft_interface_cuda, only: cudaSuccess;                                                                                                                                  \
   integer(c_int32_t) :: ierr, mpi_err;                                                                                                                                          \
   ierr = func;                                                                                                                                                                  \
   if( ierr /= cudaSuccess ) then;                                                                                                                                               \
