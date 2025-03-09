@@ -18,11 +18,12 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_backend_cufftmp
+!! cuFFTMp GPU Backend [[backend_cufftmp]]
 use iso_fortran_env
 use iso_c_binding
 use dtfft_interface_nvshmem
 use dtfft_abstract_backend,     only: abstract_backend, backend_helper
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 use dtfft_interface_cufft
 use dtfft_parameters
 use dtfft_pencil,               only: pencil

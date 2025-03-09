@@ -18,12 +18,13 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_nvrtc_kernel
-!! This module describes NVRTC Kernel class.
-!! It uses caching of compiled kernels to avoid recompilation similar kernels.
+!! This module describes NVRTC Kernel class [[nvrtc_kernel]]
+!! It uses caching of compiled kernels to avoid recompilation similar kernels: [[nvrtc_cache]]
 use iso_c_binding
 use iso_fortran_env
 use dtfft_utils
 use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 use dtfft_interface_nvrtc
 use dtfft_parameters
 #include "dtfft_mpi.h"
@@ -340,7 +341,7 @@ contains
       call get_contiguous_execution_blocks(self%pointers(source, 4), self%num_blocks, self%block_size)
     endif
 
-    CUDA_CALL( "cuLaunchKernel", run_cuda_kernel(self%cuda_kernel, c_loc(in), c_loc(out), self%num_blocks, self%block_size, stream, self%args) )
+    CUDA_CALL( "cuLaunchKernel", cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), self%num_blocks, self%block_size, stream, self%args) )
     ! CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
   end subroutine execute
 
@@ -427,13 +428,14 @@ contains
     type(string),   target,   allocatable   :: options(:)         !! Compilation options
     type(c_ptr),              allocatable   :: c_options(:)       !! C style, null-string terminated options
     integer(int32)                          :: num_options        !! Number of compilation options
-    type(dtfft_transpose_type_t)            :: transpose_type_      !! Fixed id of transposition
+    type(dtfft_transpose_type_t)            :: transpose_type_    !! Fixed id of transposition
     integer(int32)                          :: device_id          !! Current device number
     integer(int32)                          :: ierr               !! Error code
     integer(int32)                          :: mpi_ierr           !! MPI Error code
     type(c_ptr)                             :: prog               !! nvRTC Program
     integer(c_size_t)                       :: cubinSizeRet       !! Size of cubin
     character(c_char),        allocatable   :: cubin(:)           !! Compiled binary
+    character(c_char),        allocatable   :: cstr(:)            !! Temporary string
     integer(int32) :: major, minor
 
     ! Check if kernel already been compiled
@@ -512,7 +514,9 @@ contains
       c_options(i) = c_loc(options(i)%raw)
     enddo
 
-    NVRTC_CALL( "nvrtcCreateProgram", nvrtcCreateProgram(prog, c_code, "nvrtc_kernel.cu"//c_null_char, 0, c_null_ptr, c_null_ptr) )
+    call astring_f2c("nvrtc_kernel.cu"//c_null_char, cstr)
+    NVRTC_CALL( "nvrtcCreateProgram", nvrtcCreateProgram(prog, c_code, cstr, 0, c_null_ptr, c_null_ptr) )
+    deallocate(cstr)
     ierr = nvrtcCompileProgram(prog, num_options, c_options)
     ! It is assumed here that ierr can only be positive
     call MPI_Allreduce(MPI_IN_PLACE, ierr, 1, MPI_INTEGER4, MPI_MAX, comm, mpi_ierr)
@@ -553,7 +557,9 @@ contains
     cache(cache_size)%ref_count = 1
 
     CUDA_CALL( "cuModuleLoadDataEx", cuModuleLoadDataEx(cache(cache_size)%cuda_module, cubin, 0, c_null_ptr, c_null_ptr) )
-    CUDA_CALL( "cuModuleGetFunction", cuModuleGetFunction(cache(cache_size)%cuda_kernel, cache(cache_size)%cuda_module, kernel_name//c_null_char) )
+    call astring_f2c(kernel_name//c_null_char, cstr)
+    CUDA_CALL( "cuModuleGetFunction", cuModuleGetFunction(cache(cache_size)%cuda_kernel, cache(cache_size)%cuda_module, cstr) )
+    deallocate(cstr)
     ! Result -- compiled function
     kernel = cache(cache_size)%cuda_kernel
 
@@ -590,6 +596,7 @@ contains
   !! Removes unused modules from cuda context
     integer(int32)  :: i  !! Counter
 
+    if ( .not. allocated(cache) ) return
     do i = 1, cache_size
       if ( cache(i)%ref_count == 0 .and. c_associated(cache(i)%cuda_module) ) then
         CUDA_CALL( "cuModuleUnload", cuModuleUnload(cache(i)%cuda_module) )

@@ -18,7 +18,7 @@
 #include "dtfft_config.h"
 !------------------------------------------------------------------------------------------------
 module dtfft_plan
-!! This module describes ``dtfft_plan_t``, ``dtfft_plan_c2c_t``, ``dtfft_plan_r2c_t`` and ``dtfft_plan_r2r_t`` types
+!! This module describes [[dtfft_plan_t]], [[dtfft_plan_c2c_t]], [[dtfft_plan_r2c_t]] and [[dtfft_plan_r2r_t]] types
 use iso_c_binding,                    only: c_loc, c_f_pointer, c_ptr, c_bool, c_null_ptr
 use iso_fortran_env,                  only: int8, int32, int64, real32, real64, output_unit, error_unit
 use dtfft_abstract_executor,          only: abstract_executor, FFT_1D, FFT_2D, FFT_C2C, FFT_R2C, FFT_R2R
@@ -41,7 +41,7 @@ use dtfft_parameters
 use dtfft_transpose_plan_host,        only: transpose_plan_host
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 use dtfft_nvrtc_kernel,               only: clean_unused_cache
 use dtfft_transpose_plan_cuda,        only: transpose_plan_cuda
 #endif
@@ -146,7 +146,7 @@ public :: dtfft_plan_r2r_t
       !! only single FFT plan needs to be created
   contains
   private
-    procedure,  pass(self), non_overridable, public :: transpose !! Performs single transposition
+    procedure,  pass(self), non_overridable, public :: transpose          !! Performs single transposition
     procedure,  pass(self), non_overridable, public :: execute            !! Executes plan
     procedure,  pass(self), non_overridable, public :: destroy            !! Destroys plan
     procedure,  pass(self), non_overridable, public :: get_local_sizes    !! Returns local starts and counts in `real` and `fourier` spaces
@@ -186,9 +186,12 @@ public :: dtfft_plan_r2r_t
   type, extends(dtfft_core_c2c) :: dtfft_plan_c2c_t
   !! C2C Plan
   private
+  contains
+  private
   end type dtfft_plan_c2c_t
 
   interface dtfft_plan_c2c_t
+  !! C2C Plan Constructor
     module procedure :: c2c_constructor
   end interface dtfft_plan_c2c_t
 
@@ -196,7 +199,9 @@ public :: dtfft_plan_r2r_t
   type, extends(dtfft_core_c2c) :: dtfft_plan_r2c_t
   !! R2C Plan
   private
-    type(pencil)  :: real_pencil
+    type(pencil)  :: real_pencil                            !! "Real" pencil decomposition info
+  contains
+  private
   end type dtfft_plan_r2c_t
 
   interface dtfft_plan_r2c_t
@@ -210,7 +215,7 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self),                  public  :: create => create_r2r !! R2R Plan Constructor
+    procedure, pass(self),  public  :: create => create_r2r !! R2R Plan Constructor
   end type dtfft_plan_r2r_t
 
   interface dtfft_plan_r2r_t
@@ -423,7 +428,7 @@ contains
     CHECK_ERROR_AND_RETURN
 
     REGION_BEGIN("dtfft_destroy", COLOR_DESTROY)
-
+print*,'dtfft_destroy'
     if ( allocated(self%dims) ) deallocate(self%dims)
 
 #ifndef DTFFT_TRANSPOSE_ONLY
@@ -443,6 +448,7 @@ contains
     if ( self%is_aux_alloc ) then
       call self%mem_free(self%aux_ptr)
       nullify(self%aux)
+      self%is_aux_alloc = .false.
     endif
 
     if ( allocated(self%fft) ) then
@@ -467,23 +473,24 @@ contains
 
       if ( is_finalized ) ierr = DTFFT_ERROR_MPI_FINALIZED
       CHECK_ERROR_AND_RETURN
+    end block
 
-      if ( allocated( self%plan ) ) then
-        call self%plan%destroy()
-        deallocate( self%plan )
-      endif
+    if ( allocated( self%plan ) ) then
+      call self%plan%destroy()
+      deallocate( self%plan )
+    endif
 #ifdef DTFFT_WITH_CUDA
-      call clean_unused_cache()
+    call clean_unused_cache()
 #endif
 
-      if ( allocated(self%comms) ) then
-        do d = 1, self%ndims
-          call MPI_Comm_free(self%comms(d), ierr)
-        enddo
-        deallocate(self%comms)
-      endif
-      call MPI_Comm_free(self%comm, ierr)
-    end block
+    if ( allocated(self%comms) ) then
+      do d = 1, self%ndims
+        call MPI_Comm_free(self%comms(d), ierr)
+      enddo
+      deallocate(self%comms)
+    endif
+    call MPI_Comm_free(self%comm, ierr)
+
     self%ndims = -1
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
     REGION_END("dtfft_destroy")
@@ -516,6 +523,8 @@ contains
       !!   - 1 for XYZ layout
       !!   - 2 for YXZ layout
       !!   - 3 for ZXY layout
+      !!
+      !! [//]: # (ListBreak)
     integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
@@ -603,15 +612,17 @@ contains
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
 
+    if ( self%platform == DTFFT_PLATFORM_HOST ) then
+      if( self%is_transpose_plan ) then
+        call mem_free_host(ptr)
+      else
+        call self%fft(1)%fft%mem_free(ptr)
+      endif
 #ifdef DTFFT_WITH_CUDA
-    call self%plan%mem_free(ptr, ierr)
-#else
-    if( self%is_transpose_plan ) then
-      call mem_free_host(ptr)
     else
-      call self%fft(1)%fft%mem_free(ptr)
-    endif
+      call self%plan%mem_free(ptr, ierr)
 #endif
+    endif
     CHECK_ERROR_AND_RETURN
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine mem_free

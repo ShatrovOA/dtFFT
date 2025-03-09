@@ -10,6 +10,8 @@ jobs:
       CXX: "g++-14"
       FC: "gfortran-14"
       DTFFT_ENABLE_LOG: "1"
+      DTFFT_MEASURE_WARMUP_ITERS: "-1"
+      DTFFT_MEASURE_ITERS: "3"
     steps:
       - name: Get Requirements
         run: |
@@ -228,6 +230,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
+          ls -lah /usr/local/cuda/lib64/stubs
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_RUNNING_CICD=on \

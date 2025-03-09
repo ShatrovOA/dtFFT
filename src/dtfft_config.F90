@@ -1,11 +1,31 @@
+!------------------------------------------------------------------------------------------------
+! Copyright (c) 2021, Oleg Shatrov
+! All rights reserved.
+! This file is part of dtFFT library.
+
+! dtFFT is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+
+! dtFFT is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+
+! You should have received a copy of the GNU General Public License
+! along with this program.  If not, see <https://www.gnu.org/licenses/>.
+!------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_config
+!! This module handles additional configuration ``dtFFT``, provided by [[dtfft_config_t]]
+!! or environment variables
 use iso_c_binding
 use iso_fortran_env
 use dtfft_parameters
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 #endif
 #include "dtfft_cuda.h"
 #include "dtfft_mpi.h"

@@ -18,10 +18,10 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_abstract_backend
-!! This module defines most Abstract GPU Backend: `abstract_backend`
+!! This module describes Abstraction for all GPU Backends: [[abstract_backend]]
 use iso_c_binding
 use iso_fortran_env
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 #ifdef DTFFT_WITH_NCCL
 use dtfft_interface_nccl
 #endif

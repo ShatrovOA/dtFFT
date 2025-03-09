@@ -1,4 +1,5 @@
 target_sources(dtfft PRIVATE
+  dtfft_interface_cuda_runtime.F90
   dtfft_interface_cuda.F90
   dtfft_interface_nvrtc.F90
 )

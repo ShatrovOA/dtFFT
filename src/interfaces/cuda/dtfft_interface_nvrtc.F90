@@ -17,160 +17,111 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_nvrtc
+!! nvRTC Interfaces
 use iso_c_binding
 use dtfft_parameters, only: dtfft_stream_t
-use dtfft_interface_cuda, only: dim3
+use dtfft_interface_cuda_runtime, only: dim3
 implicit none
 private
 public :: nvrtcGetErrorString
-public :: nvrtcCreateProgram, nvrtcDestroyProgram, nvrtcCompileProgram, nvrtcGetProgramLog
-public :: nvrtcGetCUBINSize, nvrtcGetCUBIN, cuModuleLoadDataEx, cuModuleGetFunction, cuModuleUnload
-public :: kernelArgs
-public :: run_cuda_kernel
 
-  type, bind(C) :: kernelArgs
-    integer(c_int)  :: n_ints = 0
-    integer(c_int)  :: ints(5)
-    integer(c_int)  :: n_ptrs = 0
-    type(c_ptr)     :: ptrs(3)
-  end type kernelArgs
-
-interface
-  function nvrtcGetErrorString_c(error_code)                                              &
-    result(string)                                                                        &
-    bind(C, name="nvrtcGetErrorString")
+  interface nvrtcGetErrorString_c
   !! Helper function that returns a string describing the given nvrtcResult code
   !! For unrecognized enumeration values, it returns "NVRTC_ERROR unknown"
-  import
-    integer(c_int),  value  :: error_code !! CUDA Runtime Compilation API result code.
-    type(c_ptr)             :: string     !! Pointer to C string
-  end function nvrtcGetErrorString_c
+    function nvrtcGetErrorString_c(error_code)                                              &
+      result(string)                                                                        &
+      bind(C, name="nvrtcGetErrorString")
+    import
+      integer(c_int),  value  :: error_code !! CUDA Runtime Compilation API result code.
+      type(c_ptr)             :: string     !! Pointer to C string
+    end function nvrtcGetErrorString_c
+  end interface
 
-  function nvrtcCreateProgram(prog, src, name, numHeaders, headers, includeNames)         &
-    result(nvrtcResult)                                                                   &
-    bind(C, name="nvrtcCreateProgram")
+public :: nvrtcCreateProgram
+  interface nvrtcCreateProgram
   !! Creates an instance of nvrtcProgram with the given input parameters, 
   !! and sets the output parameter prog with it.
-  import
-    type(c_ptr)           :: prog         !! CUDA Runtime Compilation program.
-    character(c_char)     :: src(*)       !! CUDA program source.
-    character(c_char)     :: name(*)      !! CUDA program name.
-    integer(c_int), value :: numHeaders   !! Number of headers used. Must be greater than or equal to 0.
-    type(c_ptr),    value :: headers      !! Sources of the headers
-    type(c_ptr),    value :: includeNames !! Name of each header by which they can be included in the CUDA program source
-    integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
-  end function nvrtcCreateProgram
+    function nvrtcCreateProgram(prog, src, name, numHeaders, headers, includeNames)         &
+      result(nvrtcResult)                                                                   &
+      bind(C, name="nvrtcCreateProgram")
+    import
+      type(c_ptr)           :: prog         !! CUDA Runtime Compilation program.
+      character(c_char)     :: src(*)       !! CUDA program source.
+      character(c_char)     :: name(*)      !! CUDA program name.
+      integer(c_int), value :: numHeaders   !! Number of headers used. Must be greater than or equal to 0.
+      type(c_ptr),    value :: headers      !! Sources of the headers
+      type(c_ptr),    value :: includeNames !! Name of each header by which they can be included in the CUDA program source
+      integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
+    end function nvrtcCreateProgram
+  end interface
 
-  function nvrtcDestroyProgram(prog)                                                      &
-    result(nvrtcResult)                                                                   &
-    bind(C, name="nvrtcDestroyProgram")
+public :: nvrtcDestroyProgram
+  interface nvrtcDestroyProgram
   !! Destroys the given program.
-  import
-    type(c_ptr)           :: prog         !! CUDA Runtime Compilation program.
-    integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
-  end function nvrtcDestroyProgram
+    function nvrtcDestroyProgram(prog)                                                      &
+      result(nvrtcResult)                                                                   &
+      bind(C, name="nvrtcDestroyProgram")
+    import
+      type(c_ptr)           :: prog         !! CUDA Runtime Compilation program.
+      integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
+    end function nvrtcDestroyProgram
+  end interface
 
-  function nvrtcCompileProgram(prog, numOptions, options)                                 &
-    result(nvrtcResult)                                                                   &
-    bind(C, name="nvrtcCompileProgram")
+public :: nvrtcCompileProgram
+  interface nvrtcCompileProgram
   !! Compiles the given program.
-  import
-    type(c_ptr),    value :: prog         !! CUDA Runtime Compilation program.
-    integer(c_int), value :: numOptions   !! Number of compiler options passed.
-    type(c_ptr)           :: options(*)   !! Compiler options in the form of C string array
-    integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
-  end function nvrtcCompileProgram
+    function nvrtcCompileProgram(prog, numOptions, options)                                 &
+      result(nvrtcResult)                                                                   &
+      bind(C, name="nvrtcCompileProgram")
+    import
+      type(c_ptr),    value :: prog         !! CUDA Runtime Compilation program.
+      integer(c_int), value :: numOptions   !! Number of compiler options passed.
+      type(c_ptr)           :: options(*)   !! Compiler options in the form of C string array
+      integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
+    end function nvrtcCompileProgram
+  end interface
 
-  function nvrtcGetProgramLog(prog, log)                                                  &
-    result(nvrtcResult)                                                                   &
-    bind(C, name="nvrtcGetProgramLog")
+public :: nvrtcGetProgramLog
+  interface nvrtcGetProgramLog
   !! Stores the log generated by the previous compilation of prog in the memory pointed by log
-  import
-    type(c_ptr),    value :: prog         !! CUDA Runtime Compilation program.
-    type(c_ptr),    value :: log          !! Compilation log.
-    integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
-  end function nvrtcGetProgramLog
+    function nvrtcGetProgramLog(prog, log)                                                  &
+      result(nvrtcResult)                                                                   &
+      bind(C, name="nvrtcGetProgramLog")
+    import
+      type(c_ptr),    value :: prog         !! CUDA Runtime Compilation program.
+      type(c_ptr),    value :: log          !! Compilation log.
+      integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
+    end function nvrtcGetProgramLog
+  end interface
 
-  function nvrtcGetCUBINSize(prog, cubinSizeRet)                                          &
-    result(nvrtcResult)                                                                   &
-    bind(C, name="nvrtcGetCUBINSize")
+public :: nvrtcGetCUBINSize
+  interface nvrtcGetCUBINSize
   !! Sets the value of ``cubinSizeRet`` with the size of the cubin generated by the previous compilation of ``prog``.
-  import
-    type(c_ptr),    value :: prog         !! CUDA Runtime Compilation program.
-    integer(c_size_t)     :: cubinSizeRet !! Size of the generated cubin.
-    integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
-  end function nvrtcGetCUBINSize
+    function nvrtcGetCUBINSize(prog, cubinSizeRet)                                          &
+      result(nvrtcResult)                                                                   &
+      bind(C, name="nvrtcGetCUBINSize")
+    import
+      type(c_ptr),    value :: prog         !! CUDA Runtime Compilation program.
+      integer(c_size_t)     :: cubinSizeRet !! Size of the generated cubin.
+      integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
+    end function nvrtcGetCUBINSize
+  end interface
 
-  function nvrtcGetCUBIN(prog, cubin)                                                     &
-    result(nvrtcResult)                                                                   &
-    bind(C, name="nvrtcGetCUBIN")
+public :: nvrtcGetCUBIN
+  interface nvrtcGetCUBIN
   !! Stores the cubin generated by the previous compilation of ``prog`` in the memory pointed by ``cubin``.
-  import
-    type(c_ptr),    value :: prog         !! CUDA Runtime Compilation program.
-    character(c_char)     :: cubin(*)     !! Compiled and assembled result.
-    integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
-  end function nvrtcGetCUBIN
+    function nvrtcGetCUBIN(prog, cubin)                                                     &
+      result(nvrtcResult)                                                                   &
+      bind(C, name="nvrtcGetCUBIN")
+    import
+      type(c_ptr),    value :: prog         !! CUDA Runtime Compilation program.
+      character(c_char)     :: cubin(*)     !! Compiled and assembled result.
+      integer(c_int)        :: nvrtcResult  !! The enumerated type nvrtcResult defines API call result codes.
+    end function nvrtcGetCUBIN
+  end interface
 
-  function cuModuleLoadDataEx(mod, image, numOptions, options, optionValues)              &
-    result(cuResult)                                                                      &
-    bind(C, name="cuModuleLoadDataEx")
-  !! Load a module's data with options.
-  !!
-  !! Takes a pointer image and loads the corresponding module module into the current context. 
-  !! The image may be a cubin or fatbin as output by nvcc, or a NULL-terminated PTX, either as output by nvcc or hand-written.
-  import
-    type(c_ptr)           :: mod          !! Returned module
-    character(c_char)     :: image(*)     !! Module data to load
-    integer(c_int), value :: numOptions   !! Number of options
-    type(c_ptr),    value :: options      !! Options for JIT
-    type(c_ptr)           :: optionValues !! Option values for JIT
-    integer(c_int)        :: cuResult     !! Driver result code
-  end function cuModuleLoadDataEx
 
-  function cuModuleUnload(hmod)                                                           &
-    result(cuResult)                                                                      &
-    bind(C, name="cuModuleUnload")
-  !! Unloads a module.
-  !!
-  !! Unloads a module ``hmod`` from the current context. 
-  !! Attempting to unload a module which was obtained from the Library Management API 
-  !! such as ``cuLibraryGetModule`` will return ``CUDA_ERROR_NOT_PERMITTED``.
-  import
-    type(c_ptr), value    :: hmod         !! Module to unload
-    integer(c_int)        :: cuResult     !! Driver result code
-  end function cuModuleUnload
 
-  function cuModuleGetFunction(hfunc, hmod, name)                                          &
-    result(cuResult)                                                                      &
-    bind(C, name="cuModuleGetFunction")
-  !! Returns a function handle.
-  !!
-  !! Returns in ``hfunc`` the handle of the function of name name located in module hmod.
-  !! If no function of that name exists, ``cuModuleGetFunction`` returns ``CUDA_ERROR_NOT_FOUND``.
-  import
-    type(c_ptr)           :: hfunc        !! Returns a function handle.
-    type(c_ptr),    value :: hmod         !! Module to retrieve function from
-    character(c_char)     :: name(*)      !! Name of function to retrieve
-    integer(c_int)        :: cuResult     !! Driver result code
-  end function cuModuleGetFunction
-
-  function run_cuda_kernel(func, in, out, blocks, threads, stream, args)                 &
-    result(cuResult)                                                                      &
-    bind(C, name="run_cuda_kernel")
-  !! Wrapper around ``cuLaunchKernel``, since I have to idea how to pass array of pointers to ``cuLaunchKernel``.
-  !!
-  !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
-  import
-    type(c_ptr),                  value :: func         !! Function CUfunction or Kernel CUkernel to launch
-    type(c_ptr),                  value :: in           !! Input pointer
-    type(c_ptr),                  value :: out          !! Output pointer
-    type(dim3)                          :: blocks       !! Grid in blocks
-    type(dim3)                          :: threads      !! Thread block
-    type(dtfft_stream_t),         value :: stream       !! Stream identifier
-    type(kernelArgs)                    :: args         !! Kernel parameters
-    integer(c_int)                      :: cuResult     !! Driver result code
-  end function run_cuda_kernel
-end interface
 
 contains
 

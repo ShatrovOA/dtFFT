@@ -101,13 +101,17 @@ void report_double(const int32_t *nx, const int32_t *ny, const int32_t *nz, doub
 
 void assign_device_to_process() {
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  int num_devices;
+  CUDA_SAFE_CALL( cudaGetDeviceCount(&num_devices) )
   MPI_Comm local_comm;
   MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &local_comm);
-  int local_rank;
+  int local_rank, local_size;
   MPI_Comm_rank(local_comm, &local_rank);
-  CUDA_SAFE_CALL( cudaSetDevice(local_rank) );
-
+  MPI_Comm_size(local_comm, &local_size);
   MPI_Comm_free(&local_comm);
+  if ( num_devices >= local_size ) {
+    CUDA_SAFE_CALL( cudaSetDevice(local_rank) );
+  }
 #endif
 }
 

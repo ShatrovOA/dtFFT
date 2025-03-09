@@ -15,6 +15,7 @@ author: Oleg Shatrov
 github: https://github.com/ShatrovOA
 email: shatrov.oleg.a@gmail.com
 summary: DataTyped Fast Fourier Transform
+favicon: ./images/favicon.png
 md_extensions: markdown.extensions.toc
     markdown.extensions.smarty
     markdown.extensions.extra
@@ -39,6 +40,5 @@ coloured_edges: true
 sort: permission
 search: true
 
+<img src="../images/pencils.png" alt="pencils" width="850"/>
 
-
-{!../README.md!}

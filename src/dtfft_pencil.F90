@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_pencil
-!! This module describes private `pencil` and public `dtfft_pencil` classes
+!! This module describes private [[pencil]] and public [[dtfft_pencil]] classes
 use iso_c_binding,    only: c_int8_t, c_int32_t
 use iso_fortran_env,  only: int8, int32, int64, real64, output_unit
 use dtfft_parameters

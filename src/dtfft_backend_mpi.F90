@@ -18,11 +18,11 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_backend_mpi
-!! This module implements MPI backend: `backend_mpi`
+!! MPI Based GPU Backends [[backend_mpi]]
 use iso_fortran_env
 use iso_c_binding
 use dtfft_abstract_backend
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 use dtfft_parameters
 use dtfft_utils
 #include "dtfft_mpi.h"

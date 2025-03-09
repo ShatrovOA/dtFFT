@@ -17,7 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_executor_mkl_m
-!! This module describes MKL Wrappers to dtFFT: ``mkl_executor``
+!! This module describes MKL based FFT Executor: [[mkl_executor]]
 !!
 !! https://software.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-fortran/top/fourier-transform-functions/fft-functions.html
 use iso_fortran_env,              only: int8, int32, int64, error_unit

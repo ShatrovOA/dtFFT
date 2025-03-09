@@ -4,7 +4,7 @@ use iso_fortran_env
 use dtfft_utils, only: int_to_str, double_to_str
 #include "dtfft_mpi.h"
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 #include "dtfft_cuda.h"
 #endif
 implicit none
