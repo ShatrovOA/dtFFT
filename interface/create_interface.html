@@ -76,20 +76,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.3% of total for procedures.">29 statements</a>
+                 title=" 0.4% of total for procedures.">37 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_transpose_plan.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_transpose_plan.f90.html'>dtfft_abstract_transpose_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_transpose_plan.html'>dtfft_abstract_transpose_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
             <li class="breadcrumb-item active" aria-current="page">create_interface</li>
           </ol>
         </nav>
@@ -137,7 +137,7 @@
     
     <div class="col-md-9" id='text'>
       <h2>interface <br>
-      private  function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)  
+      private  subroutine create_interface(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)  
 </h2>    
 
     
@@ -155,8 +155,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~32"></span>
-              class(<a href='../type/abstract_transpose_plan.html'>abstract_transpose_plan</a>),
+              <span class="anchor" id="variable-self~55"></span>
+              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -165,102 +165,12 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Transposition class</p>
+                <p>FFT Executor</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dims~7"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>dims</strong>(:)</td>
-            <td>
-                <p>Global sizes of the transform requested</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-transposed_dims~4"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>transposed_dims</strong>(:,:)</td>
-            <td>
-                <p>Transposed sizes of the transform requested</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-base_comm~4"></span>
-              type(MPI_Comm),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>base_comm</strong></td>
-            <td>
-                <p>Base MPI communicator</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-comm_dims~3"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>comm_dims</strong>(:)</td>
-            <td>
-                <p>Dims in cartesian communicator</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-effort~6"></span>
-              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>effort</strong></td>
-            <td>
-                <p><code>dtFFT</code> planner type of effort</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-base_dtype~7"></span>
-              type(MPI_Datatype),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>base_dtype</strong></td>
-            <td>
-                <p>Base MPI_Datatype</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-base_storage~14"></span>
+              <span class="anchor" id="variable-fft_rank~7"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -268,78 +178,166 @@
               
             </td>
             <td>::</td>
-            <td><strong>base_storage</strong></td>
+            <td><strong>fft_rank</strong></td>
             <td>
-                <p>Number of bytes needed to store single element</p>
+                <p>Rank of fft: 1 or 2</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_custom_cart_comm~2"></span>
-              logical,
+              <span class="anchor" id="variable-fft_type~4"></span>
+              integer(kind=int8),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>is_custom_cart_comm</strong></td>
+            <td><strong>fft_type</strong></td>
             <td>
-                <p>Custom cartesian communicator provided by user</p>
+                <p>Type of fft: r2r, r2c, c2c</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-cart_comm~5"></span>
-              type(MPI_Comm),
+              <span class="anchor" id="variable-precision~12"></span>
+              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
             </td>
-<td>intent(out)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>cart_comm</strong></td>
+            <td><strong>precision</strong></td>
             <td>
-                <p>Cartesian communicator</p>
+                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comms~5"></span>
-              type(MPI_Comm),
+              <span class="anchor" id="variable-idist~9"></span>
+              integer(kind=int32),
             </td>
-<td>intent(out)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>comms</strong>(:)</td>
+            <td><strong>idist</strong></td>
             <td>
-                <p>Array of 1d communicators</p>
+                <p>Distance between the first element of two consecutive signals in a batch of the input data.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-pencils~5"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
+              <span class="anchor" id="variable-odist~9"></span>
+              integer(kind=int32),
             </td>
-<td>intent(out)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>pencils</strong>(:)</td>
+            <td><strong>odist</strong></td>
             <td>
-                <p>Data distributing meta</p>
+                <p>Distance between the first element of two consecutive signals in a batch of the output data.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-how_many~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>how_many</strong></td>
+            <td>
+                <p>Number of transforms to create</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_sizes~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_sizes</strong>(:)</td>
+            <td>
+                <p>Dimensions of transform</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-inembed~7"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the input data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-onembed~7"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>onembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the output data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~26"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Error code to be returned to user</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r2r_kinds~5"></span>
+              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>r2r_kinds</strong>(:)</td>
+            <td>
+                <p>Kinds of r2r transform</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value <span class="anchor" id="variable-error_code~23"></span><small>integer(kind=int32)</small></h3>
-    <p>Error code</p>
     <h3>Description</h3>
-    <p>Creates transposition plans</p>
+    <p>Creates FFT plan</p>
     <br>
 
  </div>
