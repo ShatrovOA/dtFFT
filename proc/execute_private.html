@@ -76,20 +76,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.4% of total for procedures.">67 statements</a>
+                 title=" 0.1% of total for procedures.">11 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_plan.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_plan_host.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_plan_host.f90.html'>dtfft_transpose_plan_host.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_plan_host.html'>dtfft_transpose_plan_host</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute_private</li>
           </ol>
         </nav>
@@ -135,14 +135,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute_private(self, in, out, execute_type, aux, inplace)  
+    <h2>private  subroutine execute_private(self, in, out, transpose_type)  
 </h2>
     
 
-    <p>Executes plan with specified auxiliary buffer</p>
+    <p>Executes single transposition</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
+    <p><a href='../type/transpose_plan_host.html'>transpose_plan_host</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -157,8 +157,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~18"></span>
-              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
+              <span class="anchor" id="variable-self~39"></span>
+              class(<a href='../type/transpose_plan_host.html'>transpose_plan_host</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -167,17 +167,17 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Abstract plan</p>
+                <p>Transposition class</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~6"></span>
+              <span class="anchor" id="variable-in~9"></span>
               type(*),
             </td>
-<td>intent(inout)</td>
+<td>intent(inout),</td>
               <td></td>            <td>
-              
+              target
             </td>
             <td>::</td>
             <td><strong>in</strong>(..)</td>
@@ -187,12 +187,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~6"></span>
+              <span class="anchor" id="variable-out~9"></span>
               type(*),
             </td>
-<td>intent(inout)</td>
+<td>intent(inout),</td>
               <td></td>            <td>
-              
+              target
             </td>
             <td>::</td>
             <td><strong>out</strong>(..)</td>
@@ -202,47 +202,17 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-execute_type~3"></span>
-              type(<a href='../type/dtfft_execute_type_t.html'>dtfft_execute_type_t</a>),
+              <span class="anchor" id="variable-transpose_type~4"></span>
+              type(<a href='../type/dtfft_transpose_type_t.html'>dtfft_transpose_type_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>execute_type</strong></td>
+            <td><strong>transpose_type</strong></td>
             <td>
-                <p>Type of execution.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-aux~4"></span>
-              type(*),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>aux</strong>(..)</td>
-            <td>
-                <p>Auxiliary buffer.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-inplace~2"></span>
-              logical,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>inplace</strong></td>
-            <td>
-                <p>Inplace execution flag</p>
+                <p>Type of transpose !! Type of transpose</p>
             </td>
         </tr>
     </tbody>
