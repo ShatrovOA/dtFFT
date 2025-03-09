@@ -76,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.5% of total for modules and submodules.">44 statements</a>
+                 title=" 0.8% of total for modules and submodules.">61 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -134,11 +134,11 @@
       <div id="inters-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/dtfft_interface_nvshmem.html#interface-nvshmem_malloc">nvshmem_malloc</a>
+            <a class="list-group-item" href="../module/dtfft_interface_nvshmem.html#interface-nvshmem_free">nvshmem_free</a>
+            <a class="list-group-item" href="../module/dtfft_interface_nvshmem.html#interface-nvshmemx_sync_all_on_stream">nvshmemx_sync_all_on_stream</a>
             <a class="list-group-item" href="../module/dtfft_interface_nvshmem.html#interface-nvshmemx_float_alltoall_on_stream">nvshmemx_float_alltoall_on_stream</a>
             <a class="list-group-item" href="../module/dtfft_interface_nvshmem.html#interface-nvshmem_ptr">nvshmem_ptr</a>
             <a class="list-group-item" href="../module/dtfft_interface_nvshmem.html#interface-nvshmem_my_pe">nvshmem_my_pe</a>
-            <a class="list-group-item" href="../module/dtfft_interface_nvshmem.html#interface-nvshmem_free">nvshmem_free</a>
-            <a class="list-group-item" href="../module/dtfft_interface_nvshmem.html#interface-nvshmemx_sync_all_on_stream">nvshmemx_sync_all_on_stream</a>
         </div>
       </div>
     </div>
@@ -172,15 +172,15 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      
+      <p>NVSHMEM Interfaces</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -1176,13 +1176,16 @@ parameter
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-nvshmem_malloc"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/nvshmem_malloc.html'>nvshmem_malloc</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Allocates symmetric memory in the NVSHMEM heap.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function nvshmem_malloc(size) bind(C)  
+          <li class="list-group-item">
+                <h3>
+    private  function nvshmem_malloc(size) bind(C)  
 
     </h3>
   
@@ -1200,7 +1203,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-size"></span>
+              <span class="anchor" id="variable-size~4"></span>
               integer(kind=c_size_t),
             </td>
 <td></td>
@@ -1210,7 +1213,7 @@ parameter
             <td>::</td>
             <td><strong>size</strong></td>
             <td>
-                
+                <p>Size of the allocation in bytes.</p>
             </td>
         </tr>
     </tbody>
@@ -1220,22 +1223,127 @@ parameter
     Return Value
     <small>type(c_ptr)</small>
     </h4>
-    
+    <p>Pointer to the allocated memory.</p>
 
-        </li>
+          </li>
+    </ul>
+  </div>
+
+              <div class="card">
+    <div class="card-header bg-light codesum">
+      <span class="anchor" id="interface-nvshmem_free"></span>
+      <h3>public        interface <a href='../interface/nvshmem_free.html'>nvshmem_free</a> 
+      </h3>
+    </div>
+      <div class="card-body">
+        <p>Frees symmetric memory allocated by nvshmem_malloc.</p>
+      </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  subroutine nvshmem_free(ptr) bind(C)  
+
+    </h3>
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ptr~33"></span>
+              type(c_ptr),
+            </td>
+<td></td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>ptr</strong></td>
+            <td>
+                <p>Pointer to the memory to free.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+          </li>
+    </ul>
+  </div>
+
+              <div class="card">
+    <div class="card-header bg-light codesum">
+      <span class="anchor" id="interface-nvshmemx_sync_all_on_stream"></span>
+      <h3>public        interface <a href='../interface/nvshmemx_sync_all_on_stream.html'>nvshmemx_sync_all_on_stream</a> 
+      </h3>
+    </div>
+      <div class="card-body">
+        <p>Synchronizes all PEs (Processing Elements) on the specified stream.</p>
+      </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  subroutine nvshmemx_sync_all_on_stream(stream) bind(C)  
+
+    </h3>
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~36"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+                <p>CUDA stream for synchronization.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-nvshmemx_float_alltoall_on_stream"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/nvshmemx_float_alltoall_on_stream.html'>nvshmemx_float_alltoall_on_stream</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Performs an all-to-all exchange of floating-point data on the specified stream.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function nvshmemx_float_alltoall_on_stream(team, dest, source, nelems, stream) bind(C)  
+          <li class="list-group-item">
+                <h3>
+    private  function nvshmemx_float_alltoall_on_stream(team, dest, source, nelems, stream) bind(C)  
 
     </h3>
   
@@ -1263,7 +1371,7 @@ parameter
             <td>::</td>
             <td><strong>team</strong></td>
             <td>
-                
+                <p>NVSHMEM team.</p>
             </td>
         </tr>
         <tr>
@@ -1278,12 +1386,12 @@ parameter
             <td>::</td>
             <td><strong>dest</strong></td>
             <td>
-                
+                <p>Destination buffer.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-source"></span>
+              <span class="anchor" id="variable-source~2"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -1293,7 +1401,7 @@ parameter
             <td>::</td>
             <td><strong>source</strong></td>
             <td>
-                
+                <p>Source buffer.</p>
             </td>
         </tr>
         <tr>
@@ -1308,12 +1416,12 @@ parameter
             <td>::</td>
             <td><strong>nelems</strong></td>
             <td>
-                
+                <p>Number of elements to exchange.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~20"></span>
+              <span class="anchor" id="variable-stream~37"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in),</td>
@@ -1323,7 +1431,7 @@ parameter
             <td>::</td>
             <td><strong>stream</strong></td>
             <td>
-                
+                <p>CUDA stream for the operation.</p>
             </td>
         </tr>
     </tbody>
@@ -1333,22 +1441,25 @@ parameter
     Return Value
     <small>integer(kind=c_int)</small>
     </h4>
-    
+    <p>Completion status.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-nvshmem_ptr"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/nvshmem_ptr.html'>nvshmem_ptr</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Returns a pointer to a symmetric memory location on a specified PE.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function nvshmem_ptr(ptr, pe) bind(C)  
+          <li class="list-group-item">
+                <h3>
+    private  function nvshmem_ptr(ptr, pe) bind(C)  
 
     </h3>
   
@@ -1366,7 +1477,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-ptr~16"></span>
+              <span class="anchor" id="variable-ptr~34"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -1376,7 +1487,7 @@ parameter
             <td>::</td>
             <td><strong>ptr</strong></td>
             <td>
-                
+                <p>Local pointer to the symmetric memory.</p>
             </td>
         </tr>
         <tr>
@@ -1391,7 +1502,7 @@ parameter
             <td>::</td>
             <td><strong>pe</strong></td>
             <td>
-                
+                <p>PE (Processing Element) number.</p>
             </td>
         </tr>
     </tbody>
@@ -1401,22 +1512,25 @@ parameter
     Return Value
     <small>type(c_ptr)</small>
     </h4>
-    
+    <p>Pointer to the symmetric memory on the specified PE.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-nvshmem_my_pe"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/nvshmem_my_pe.html'>nvshmem_my_pe</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Returns the PE (Processing Element) number of the calling thread.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function nvshmem_my_pe() bind(C)  
+          <li class="list-group-item">
+                <h3>
+    private  function nvshmem_my_pe() bind(C)  
 
     </h3>
   
@@ -1427,105 +1541,9 @@ parameter
     Return Value
     <small>integer(kind=c_int)</small>
     </h4>
-    
+    <p>PE number of the calling thread.</p>
 
-        </li>
-    </ul>
-  </div>
-
-              <div class="card">
-    <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-nvshmem_free"></span>
-      <h3>        interface
-      </h3>
-    </div>
-    <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  subroutine nvshmem_free(ptr) bind(C)  
-
-    </h3>
-  
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-ptr~15"></span>
-              type(c_ptr),
-            </td>
-<td></td>
-              <td></td>            <td>
-              value
-            </td>
-            <td>::</td>
-            <td><strong>ptr</strong></td>
-            <td>
-                
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-        </li>
-    </ul>
-  </div>
-
-              <div class="card">
-    <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-nvshmemx_sync_all_on_stream"></span>
-      <h3>        interface
-      </h3>
-    </div>
-    <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  subroutine nvshmemx_sync_all_on_stream(stream) bind(C)  
-
-    </h3>
-  
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-stream~19"></span>
-              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              value
-            </td>
-            <td>::</td>
-            <td><strong>stream</strong></td>
-            <td>
-                
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-        </li>
+          </li>
     </ul>
   </div>
 
@@ -1545,7 +1563,7 @@ parameter
       </h3>
     </div>
     <div class="card-body">
-      
+      <p>NVSHMEM team.</p>
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -1572,7 +1590,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+<p>Internal representation of the NVSHMEM team.</p>
             </td>
         </tr>
     </tbody>

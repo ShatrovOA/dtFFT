@@ -76,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.4% of total for modules and submodules.">111 statements</a>
+                 title=" 1.7% of total for modules and submodules.">141 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -191,15 +191,15 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      
+      <p>NCCL Interfaces</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -734,19 +734,22 @@ parameter
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclgetuniqueid"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclgetuniqueid.html'>ncclGetUniqueId</a> 
       </h3>
     </div>
-    <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclGetUniqueId(uniqueId) result(ncclResult_t) bind(C, name="ncclGetUniqueId")  
-
-    </h3>
-  <p>Generates an Id to be used in ncclCommInitRank. 
+      <div class="card-body">
+        <p>Generates an Id to be used in ncclCommInitRank. 
 ncclGetUniqueId should be called once when creating a communicator and the Id should be 
 distributed to all ranks in the communicator before calling ncclCommInitRank. 
 uniqueId should point to a ncclUniqueId object allocated by the user.</p>
+      </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function ncclGetUniqueId(uniqueId) result(ncclResult_t) bind(C, name="ncclGetUniqueId")  
+
+    </h3>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -783,25 +786,28 @@ uniqueId should point to a ncclUniqueId object allocated by the user.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclmemalloc"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclmemalloc.html'>ncclMemAlloc</a> 
       </h3>
     </div>
-    <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclMemAlloc(ptr, alloc_bytes) result(ncclResult_t) bind(C, name="ncclMemAlloc")  
-
-    </h3>
-  <p>Allocate a GPU buffer with size.
+      <div class="card-body">
+        <p>Allocate a GPU buffer with size.
 Allocated buffer head address will be returned by ptr, and the actual allocated size can be larger 
 than requested because of the buffer granularity requirements from all types of NCCL optimizations.</p>
+      </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function ncclMemAlloc(ptr, alloc_bytes) result(ncclResult_t) bind(C, name="ncclMemAlloc")  
+
+    </h3>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -816,7 +822,7 @@ than requested because of the buffer granularity requirements from all types of 
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-ptr~25"></span>
+              <span class="anchor" id="variable-ptr"></span>
               type(c_ptr),
             </td>
 <td>intent(out)</td>
@@ -831,7 +837,7 @@ than requested because of the buffer granularity requirements from all types of 
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alloc_bytes~8"></span>
+              <span class="anchor" id="variable-alloc_bytes"></span>
               integer(kind=c_size_t),
             </td>
 <td>intent(in),</td>
@@ -853,23 +859,26 @@ than requested because of the buffer granularity requirements from all types of 
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclmemfree"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclmemfree.html'>ncclMemFree</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Free memory allocated by ncclMemAlloc().</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclMemFree(ptr) result(ncclResult_t) bind(C, name="ncclMemFree")  
+          <li class="list-group-item">
+                <h3>
+    private  function ncclMemFree(ptr) result(ncclResult_t) bind(C, name="ncclMemFree")  
 
     </h3>
-  <p>Free memory allocated by ncclMemAlloc().</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -884,7 +893,7 @@ than requested because of the buffer granularity requirements from all types of 
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-ptr~26"></span>
+              <span class="anchor" id="variable-ptr~2"></span>
               type(c_ptr),
             </td>
 <td>intent(in),</td>
@@ -906,27 +915,30 @@ than requested because of the buffer granularity requirements from all types of 
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclcomminitrank"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclcomminitrank.html'>ncclCommInitRank</a> 
       </h3>
     </div>
-    <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclCommInitRank(comm, nranks, uniqueId, rank) result(ncclResult_t) bind(C, name="ncclCommInitRank")  
-
-    </h3>
-  <p>Creates a new communicator (multi thread/process version).</p>
+      <div class="card-body">
+        <p>Creates a new communicator (multi thread/process version).</p>
 <p>rank must be between 0 and nranks-1 and unique within a communicator clique. 
 Each rank is associated to a CUDA device, which has to be set before calling ncclCommInitRank. </p>
 <p>ncclCommInitRank implicitly synchronizes with other ranks, hence it must be called by different 
 threads/processes or used within ncclGroupStart/ncclGroupEnd.</p>
+      </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function ncclCommInitRank(comm, nranks, uniqueId, rank) result(ncclResult_t) bind(C, name="ncclCommInitRank")  
+
+    </h3>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -941,7 +953,7 @@ threads/processes or used within ncclGroupStart/ncclGroupEnd.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~12"></span>
+              <span class="anchor" id="variable-comm"></span>
               type(<a href='../type/ncclcomm.html'>ncclComm</a>)
             </td>
 <td></td>
@@ -986,7 +998,7 @@ threads/processes or used within ncclGroupStart/ncclGroupEnd.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rank~11"></span>
+              <span class="anchor" id="variable-rank"></span>
               integer(kind=c_int),
             </td>
 <td></td>
@@ -1008,27 +1020,30 @@ threads/processes or used within ncclGroupStart/ncclGroupEnd.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclsend"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclsend.html'>ncclSend</a> 
       </h3>
     </div>
-    <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclSend(sendbuff, count, datatype, peer, comm, stream) result(ncclResult_t) bind(c, name='ncclSend')  
-
-    </h3>
-  <p>Send data from sendbuff to rank peer.</p>
+      <div class="card-body">
+        <p>Send data from sendbuff to rank peer.</p>
 <p>Rank peer needs to call ncclRecv with the same datatype and the same count as this rank.</p>
 <p>This operation is blocking for the GPU.
 If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
 they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
+      </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function ncclSend(sendbuff, count, datatype, peer, comm, stream) result(ncclResult_t) bind(c, name='ncclSend')  
+
+    </h3>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1058,7 +1073,7 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-count~7"></span>
+              <span class="anchor" id="variable-count"></span>
               integer(kind=c_size_t),
             </td>
 <td></td>
@@ -1103,7 +1118,7 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~13"></span>
+              <span class="anchor" id="variable-comm~2"></span>
               type(<a href='../type/ncclcomm.html'>ncclComm</a>),
             </td>
 <td></td>
@@ -1118,7 +1133,7 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~22"></span>
+              <span class="anchor" id="variable-stream"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td></td>
@@ -1140,27 +1155,30 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclrecv"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclrecv.html'>ncclRecv</a> 
       </h3>
     </div>
-    <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclRecv(recvbuff, count, datatype, peer, comm, stream) result(ncclResult_t) bind(c, name='ncclRecv')  
-
-    </h3>
-  <p>Receive data from rank peer into recvbuff.</p>
+      <div class="card-body">
+        <p>Receive data from rank peer into recvbuff.</p>
 <p>Rank peer needs to call ncclSend with the same datatype and the same count as this rank.</p>
 <p>This operation is blocking for the GPU.
 If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
 they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
+      </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function ncclRecv(recvbuff, count, datatype, peer, comm, stream) result(ncclResult_t) bind(c, name='ncclRecv')  
+
+    </h3>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1190,7 +1208,7 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-count~8"></span>
+              <span class="anchor" id="variable-count~2"></span>
               integer(kind=c_size_t),
             </td>
 <td></td>
@@ -1235,7 +1253,7 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~14"></span>
+              <span class="anchor" id="variable-comm~3"></span>
               type(<a href='../type/ncclcomm.html'>ncclComm</a>),
             </td>
 <td></td>
@@ -1250,7 +1268,7 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~23"></span>
+              <span class="anchor" id="variable-stream~2"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td></td>
@@ -1272,24 +1290,27 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclgroupstart"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclgroupstart.html'>ncclGroupStart</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Start a group call.</p>
+<p>All subsequent calls to NCCL until ncclGroupEnd will not block due to inter-CPU synchronization.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclGroupStart() result(ncclResult_t) bind(C, name="ncclGroupStart")  
+          <li class="list-group-item">
+                <h3>
+    private  function ncclGroupStart() result(ncclResult_t) bind(C, name="ncclGroupStart")  
 
     </h3>
-  <p>Start a group call.</p>
-<p>All subsequent calls to NCCL until ncclGroupEnd will not block due to inter-CPU synchronization.</p>
+  
 
   <h4>Arguments</h4>
     <em>None</em>
@@ -1299,26 +1320,29 @@ they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclgroupend"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclgroupend.html'>ncclGroupEnd</a> 
       </h3>
     </div>
-    <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclGroupEnd() result(ncclResult_t) bind(C, name="ncclGroupEnd")  
-
-    </h3>
-  <p>End a group call.</p>
+      <div class="card-body">
+        <p>End a group call.</p>
 <p>Returns when all operations since ncclGroupStart have been processed.
 This means the communication primitives have been enqueued to the provided streams, 
 but are not necessarily complete.</p>
+      </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function ncclGroupEnd() result(ncclResult_t) bind(C, name="ncclGroupEnd")  
+
+    </h3>
+  
 
   <h4>Arguments</h4>
     <em>None</em>
@@ -1328,23 +1352,26 @@ but are not necessarily complete.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclcommdestroy"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclcommdestroy.html'>ncclCommDestroy</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Destroy a communicator object comm.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclCommDestroy(comm) result(ncclResult_t) bind(C, name="ncclCommDestroy")  
+          <li class="list-group-item">
+                <h3>
+    private  function ncclCommDestroy(comm) result(ncclResult_t) bind(C, name="ncclCommDestroy")  
 
     </h3>
-  <p>Destroy a communicator object comm.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1359,7 +1386,7 @@ but are not necessarily complete.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~15"></span>
+              <span class="anchor" id="variable-comm~4"></span>
               type(<a href='../type/ncclcomm.html'>ncclComm</a>),
             </td>
 <td></td>
@@ -1381,23 +1408,26 @@ but are not necessarily complete.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclcommregister"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclcommregister.html'>ncclCommRegister</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Register a buffer for collective communication.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclCommRegister(comm, buff, size, handle) result(ncclResult_t) bind(C, name="ncclCommRegister")  
+          <li class="list-group-item">
+                <h3>
+    private  function ncclCommRegister(comm, buff, size, handle) result(ncclResult_t) bind(C, name="ncclCommRegister")  
 
     </h3>
-  <p>Register a buffer for collective communication.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1412,7 +1442,7 @@ but are not necessarily complete.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~16"></span>
+              <span class="anchor" id="variable-comm~5"></span>
               type(<a href='../type/ncclcomm.html'>ncclComm</a>),
             </td>
 <td></td>
@@ -1442,7 +1472,7 @@ but are not necessarily complete.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-size~2"></span>
+              <span class="anchor" id="variable-size"></span>
               integer(kind=c_size_t),
             </td>
 <td></td>
@@ -1457,7 +1487,7 @@ but are not necessarily complete.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-handle~2"></span>
+              <span class="anchor" id="variable-handle"></span>
               type(c_ptr)
             </td>
 <td></td>
@@ -1479,23 +1509,26 @@ but are not necessarily complete.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclcommderegister"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/ncclcommderegister.html'>ncclCommDeregister</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Deregister a buffer for collective communication.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function ncclCommDeregister(comm, handle) result(ncclResult_t) bind(C, name="ncclCommDeregister")  
+          <li class="list-group-item">
+                <h3>
+    private  function ncclCommDeregister(comm, handle) result(ncclResult_t) bind(C, name="ncclCommDeregister")  
 
     </h3>
-  <p>Deregister a buffer for collective communication.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1510,7 +1543,7 @@ but are not necessarily complete.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~17"></span>
+              <span class="anchor" id="variable-comm~6"></span>
               type(<a href='../type/ncclcomm.html'>ncclComm</a>),
             </td>
 <td></td>
@@ -1525,7 +1558,7 @@ but are not necessarily complete.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-handle~3"></span>
+              <span class="anchor" id="variable-handle~2"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -1547,19 +1580,19 @@ but are not necessarily complete.</p>
     </h4>
     <p>Completion status</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-ncclgeterrorstring_c"></span>
-      <h3>        interface
+      <h3>private        interface <a href='../interface/ncclgeterrorstring_c.html'>ncclGetErrorString_c</a> 
       </h3>
     </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
+          <li class="list-group-item">
+                <h3>
     private  function ncclGetErrorString_c(ncclResult_t) result(message) bind(C, name="ncclGetErrorString")  
 
     </h3>
@@ -1600,7 +1633,7 @@ but are not necessarily complete.</p>
     </h4>
     <p>Pointer to message</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 

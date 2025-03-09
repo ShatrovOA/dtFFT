@@ -76,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 2.1% of total for modules and submodules.">168 statements</a>
+                 title=" 2.4% of total for modules and submodules.">193 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -127,8 +127,8 @@
       </a>
       <div id="enums-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/dtfft_interface_cufft.html#enum-__unnamed__~3"><em>unnamed</em></a>
-            <a class="list-group-item" href="../module/dtfft_interface_cufft.html#enum-__unnamed__~4"><em>unnamed</em></a>
+            <a class="list-group-item" href="../module/dtfft_interface_cufft.html#enum-__unnamed__"><em>unnamed</em></a>
+            <a class="list-group-item" href="../module/dtfft_interface_cufft.html#enum-__unnamed__~2"><em>unnamed</em></a>
         </div>
       </div>
     </div>
@@ -199,15 +199,15 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      
+      <p>cuFFT Interfaces</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -630,7 +630,7 @@ parameter
         <section>
           <h2>Enumerations</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="enum-__unnamed__~3"></span><h3>enum, bind(c)</h3></div>
+    <div class="card-header codesum"><span class="anchor" id="enum-__unnamed__"></span><h3>enum, bind(c)</h3></div>
     <div class="card-body">
       <h4>Enumerators</h4>
       <table class="table table-striped varlist">
@@ -665,7 +665,7 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="enum-__unnamed__~4"></span><h3>enum, bind(c)</h3></div>
+    <div class="card-header codesum"><span class="anchor" id="enum-__unnamed__~2"></span><h3>enum, bind(c)</h3></div>
     <div class="card-body">
       <h4>Enumerators</h4>
       <table class="table table-striped varlist">
@@ -751,16 +751,19 @@ parameter
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftplanmany"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftplanmany.html'>cufftPlanMany</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Creates a FFT plan configuration of dimension rank, with sizes specified in the array n.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftPlanMany(plan, rank, n, inembed, istride, idist, onembed, ostride, odist, ffttype, batch) result(cufftResult) bind(C, name="cufftPlanMany")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftPlanMany(plan, rank, n, inembed, istride, idist, onembed, ostride, odist, ffttype, batch) result(cufftResult) bind(C, name="cufftPlanMany")  
 
     </h3>
-  <p>Creates a FFT plan configuration of dimension rank, with sizes specified in the array n.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -775,7 +778,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-plan"></span>
+              <span class="anchor" id="variable-plan~11"></span>
               type(c_ptr)
             </td>
 <td></td>
@@ -790,7 +793,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rank"></span>
+              <span class="anchor" id="variable-rank~13"></span>
               integer(kind=c_int),
             </td>
 <td></td>
@@ -805,7 +808,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-n~6"></span>
+              <span class="anchor" id="variable-n~10"></span>
               integer(kind=c_int)
             </td>
 <td></td>
@@ -822,7 +825,7 @@ and n[rank-1] innermost (contiguous) dimension of a transform.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-inembed~2"></span>
+              <span class="anchor" id="variable-inembed~11"></span>
               integer(kind=c_int)
             </td>
 <td></td>
@@ -833,12 +836,12 @@ and n[rank-1] innermost (contiguous) dimension of a transform.</p>
             <td><strong>inembed</strong>(*)</td>
             <td>
                 <p>Pointer of size rank that indicates the storage dimensions of the input data in memory. 
-If set to NULL all other advanced data layout parameters are ignored.</p>
+If set to NULL, all other advanced data layout parameters are ignored.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-istride"></span>
+              <span class="anchor" id="variable-istride~9"></span>
               integer(kind=c_int),
             </td>
 <td></td>
@@ -854,7 +857,7 @@ significant (i.e., innermost) dimension.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idist~2"></span>
+              <span class="anchor" id="variable-idist~13"></span>
               integer(kind=c_int),
             </td>
 <td></td>
@@ -870,7 +873,7 @@ in a batch of the input data.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-onembed~2"></span>
+              <span class="anchor" id="variable-onembed~11"></span>
               integer(kind=c_int)
             </td>
 <td></td>
@@ -881,12 +884,12 @@ in a batch of the input data.</p>
             <td><strong>onembed</strong>(*)</td>
             <td>
                 <p>Pointer of size rank that indicates the storage dimensions of the output data in memory. 
-If set to NULL all other advanced data layout parameters are ignored.</p>
+If set to NULL, all other advanced data layout parameters are ignored.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ostride"></span>
+              <span class="anchor" id="variable-ostride~9"></span>
               integer(kind=c_int),
             </td>
 <td></td>
@@ -902,7 +905,7 @@ in the least significant (i.e., innermost) dimension.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-odist~2"></span>
+              <span class="anchor" id="variable-odist~13"></span>
               integer(kind=c_int),
             </td>
 <td></td>
@@ -955,24 +958,27 @@ in a batch of the output data.</p>
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftxtexec"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftxtexec.html'>cufftXtExec</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Executes any cuFFT transform regardless of precision and type.
+In case of complex-to-real and real-to-complex transforms, the direction parameter is ignored.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftXtExec(plan, input, output, direction) result(cufftResult) bind(C, name="cufftXtExec")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftXtExec(plan, input, output, direction) result(cufftResult) bind(C, name="cufftXtExec")  
 
     </h3>
-  <p>Executes any cuFFT transform regardless of precision and type.
-In case of complex-to-real and real-to-complex transforms direction parameter is ignored.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -987,7 +993,7 @@ In case of complex-to-real and real-to-complex transforms direction parameter is
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-plan~2"></span>
+              <span class="anchor" id="variable-plan~12"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -997,7 +1003,7 @@ In case of complex-to-real and real-to-complex transforms direction parameter is
             <td>::</td>
             <td><strong>plan</strong></td>
             <td>
-                <p>cufftHandle returned by cufftCreate</p>
+                <p>cufftHandle returned by cufftCreate.</p>
             </td>
         </tr>
         <tr>
@@ -1055,23 +1061,26 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftdestroy"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftdestroy.html'>cufftDestroy</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Frees all GPU resources associated with a cuFFT plan and destroys the internal plan data structure.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftDestroy(plan) result(cufftResult) bind(C, name="cufftDestroy")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftDestroy(plan) result(cufftResult) bind(C, name="cufftDestroy")  
 
     </h3>
-  <p>Frees all GPU resources associated with a cuFFT plan and destroys the internal plan data structure.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1086,7 +1095,7 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-plan~3"></span>
+              <span class="anchor" id="variable-plan~13"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -1108,23 +1117,26 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftsetstream"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftsetstream.html'>cufftSetStream</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Associates a CUDA stream with a cuFFT plan.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftSetStream(plan, stream) result(cufftResult) bind(C, name="cufftSetStream")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftSetStream(plan, stream) result(cufftResult) bind(C, name="cufftSetStream")  
 
     </h3>
-  <p>Associates a CUDA stream with a cuFFT plan.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1139,7 +1151,7 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-plan~4"></span>
+              <span class="anchor" id="variable-plan~14"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -1154,7 +1166,7 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~16"></span>
+              <span class="anchor" id="variable-stream~5"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td></td>
@@ -1164,7 +1176,7 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
             <td>::</td>
             <td><strong>stream</strong></td>
             <td>
-                <p>A valid CUDA stream</p>
+                <p>A valid CUDA stream.</p>
             </td>
         </tr>
     </tbody>
@@ -1176,23 +1188,26 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftmpcreatereshape"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftmpcreatereshape.html'>cufftMpCreateReshape</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Initializes a reshape handle for future use. This function is not collective.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftMpCreateReshape(reshapeHandle) result(cufftResult) bind(C, name="cufftMpCreateReshape")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftMpCreateReshape(reshapeHandle) result(cufftResult) bind(C, name="cufftMpCreateReshape")  
 
     </h3>
-  <p>This function initializes a reshape handle for future use. This function is not collective.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1229,23 +1244,26 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftmpattachreshapecomm"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftmpattachreshapecomm.html'>cufftMpAttachReshapeComm</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Attaches a communication handle to a reshape. This function is not collective.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftMpAttachReshapeComm(reshapeHandle, commType, fcomm) result(cufftResult) bind(C, name="cufftMpAttachReshapeComm")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftMpAttachReshapeComm(reshapeHandle, commType, fcomm) result(cufftResult) bind(C, name="cufftMpAttachReshapeComm")  
 
     </h3>
-  <p>This function attaches a communication handle to a reshape. This function is not collective.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1290,7 +1308,7 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fcomm~2"></span>
+              <span class="anchor" id="variable-fcomm"></span>
               type(c_ptr)
             </td>
 <td></td>
@@ -1300,7 +1318,7 @@ Ignored for complex-to-real and real-to-complex transforms.</p>
             <td>::</td>
             <td><strong>fcomm</strong></td>
             <td>
-                <p>If comm_type is CUFFT_COMM_MPI, this should be a pointer to an MPI communicator. 
+                <p>If commType is CUFFT_COMM_MPI, this should be a pointer to an MPI communicator. 
 The pointer should remain valid until destruction of the handle. 
 Otherwise, this should be NULL.</p>
             </td>
@@ -1314,24 +1332,26 @@ Otherwise, this should be NULL.</p>
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftmpgetreshapesize"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftmpgetreshapesize.html'>cufftMpGetReshapeSize</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Returns the amount (in bytes) of workspace required to execute the handle.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftMpGetReshapeSize(reshapeHandle, workSize) result(cufftResult) bind(C, name="cufftMpGetReshapeSize")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftMpGetReshapeSize(reshapeHandle, workSize) result(cufftResult) bind(C, name="cufftMpGetReshapeSize")  
 
     </h3>
-  <p>Returns the amount (in bytes) of workspace required to execute the handle. 
-There is no guarantee that the workspace_size will or will not change between versions of cuFFTMp.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1371,7 +1391,7 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>workSize</strong></td>
             <td>
-                <p>The size, in bytes, of the workspace required during reshape execution</p>
+                <p>The size, in bytes, of the workspace required during reshape execution.</p>
             </td>
         </tr>
     </tbody>
@@ -1383,23 +1403,26 @@ There is no guarantee that the workspace_size will or will not change between ve
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftmpmakereshape"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftmpmakereshape.html'>cufftMpMakeReshape</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Creates a reshape intended to re-distribute a global array of 3D data.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftMpMakeReshape(reshapeHandle, elementSize, rank, lower_input, upper_input, lower_output, upper_output, strides_input, strides_output) result(cufftResult) bind(C, name="cufftMpMakeReshape")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftMpMakeReshape(reshapeHandle, elementSize, rank, lower_input, upper_input, lower_output, upper_output, strides_input, strides_output) result(cufftResult) bind(C, name="cufftMpMakeReshape")  
 
     </h3>
-  <p>This function creates a reshape intended to re-distribute a global array of 3D data. </p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1439,12 +1462,12 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>elementSize</strong></td>
             <td>
-                <p>The size of the individual elements, in bytes. Allowed values are 4, 8 and 16.</p>
+                <p>The size of the individual elements, in bytes. Allowed values are 4, 8, and 16.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rank~2"></span>
+              <span class="anchor" id="variable-rank~14"></span>
               integer(kind=c_int),
             </td>
 <td></td>
@@ -1454,7 +1477,7 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>rank</strong></td>
             <td>
-                <p>The length of the lower_input, upper_input, lower_output, upper_output, strides_input and strides_output arrays. rank should be 3.</p>
+                <p>The length of the lower_input, upper_input, lower_output, upper_output, strides_input, and strides_output arrays. rank should be 3.</p>
             </td>
         </tr>
         <tr>
@@ -1469,7 +1492,7 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>lower_input</strong>(*)</td>
             <td>
-                <p>An array of length rank, respresenting the lower-corner of the portion of the global nx * ny * nz array owned by the current process in the input descriptor.</p>
+                <p>An array of length rank, representing the lower-corner of the portion of the global nx * ny * nz array owned by the current process in the input descriptor.</p>
             </td>
         </tr>
         <tr>
@@ -1484,7 +1507,7 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>upper_input</strong>(*)</td>
             <td>
-                <p>An array of length rank, respresenting the upper-corner of the portion of the global nx * ny * nz array owned by the current process in the input descriptor.</p>
+                <p>An array of length rank, representing the upper-corner of the portion of the global nx * ny * nz array owned by the current process in the input descriptor.</p>
             </td>
         </tr>
         <tr>
@@ -1499,7 +1522,7 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>lower_output</strong>(*)</td>
             <td>
-                <p>An array of length rank, respresenting the lower-corner of the portion of the global nx * ny * nz array owned by the current process in the output descriptor.</p>
+                <p>An array of length rank, representing the lower-corner of the portion of the global nx * ny * nz array owned by the current process in the output descriptor.</p>
             </td>
         </tr>
         <tr>
@@ -1514,7 +1537,7 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>upper_output</strong>(*)</td>
             <td>
-                <p>An array of length rank, respresenting the upper-corner of the portion of the global nx * ny * nz array owned by the current process in the output descriptor.</p>
+                <p>An array of length rank, representing the upper-corner of the portion of the global nx * ny * nz array owned by the current process in the output descriptor.</p>
             </td>
         </tr>
         <tr>
@@ -1529,7 +1552,7 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>strides_input</strong>(*)</td>
             <td>
-                <p>An array of length rank, respresenting the local data layout of the input descriptor in memory. All entries much be decreasing and positive.</p>
+                <p>An array of length rank, representing the local data layout of the input descriptor in memory. All entries must be decreasing and positive.</p>
             </td>
         </tr>
         <tr>
@@ -1544,7 +1567,7 @@ There is no guarantee that the workspace_size will or will not change between ve
             <td>::</td>
             <td><strong>strides_output</strong>(*)</td>
             <td>
-                <p>An array of length rank, respresenting the local data layout of the output descriptor in memory. All entries much be decreasing and positive.</p>
+                <p>An array of length rank, representing the local data layout of the output descriptor in memory. All entries must be decreasing and positive.</p>
             </td>
         </tr>
     </tbody>
@@ -1556,23 +1579,26 @@ There is no guarantee that the workspace_size will or will not change between ve
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftmpexecreshapeasync"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftmpexecreshapeasync.html'>cufftMpExecReshapeAsync</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Executes the reshape, redistributing data_in into data_out using the workspace in workspace.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftMpExecReshapeAsync(reshapeHandle, dataOut, dataIn, workSpace, stream) result(cufftResult) bind(C, name="cufftMpExecReshapeAsync")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftMpExecReshapeAsync(reshapeHandle, dataOut, dataIn, workSpace, stream) result(cufftResult) bind(C, name="cufftMpExecReshapeAsync")  
 
     </h3>
-  <p>Executes the reshape, redistributing data_in into data_out using the workspace in workspace.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1647,7 +1673,7 @@ There is no guarantee that the workspace_size will or will not change between ve
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~17"></span>
+              <span class="anchor" id="variable-stream~6"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td></td>
@@ -1669,23 +1695,26 @@ There is no guarantee that the workspace_size will or will not change between ve
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
               <div class="card">
     <div class="card-header bg-light codesum">
       <span class="anchor" id="interface-cufftmpdestroyreshape"></span>
-      <h3>        interface
+      <h3>public        interface <a href='../interface/cufftmpdestroyreshape.html'>cufftMpDestroyReshape</a> 
       </h3>
     </div>
+      <div class="card-body">
+        <p>Destroys a reshape and all its associated data.</p>
+      </div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cufftMpDestroyReshape(reshapeHandle) result(cufftResult) bind(C, name="cufftMpDestroyReshape")  
+          <li class="list-group-item">
+                <h3>
+    private  function cufftMpDestroyReshape(reshapeHandle) result(cufftResult) bind(C, name="cufftMpDestroyReshape")  
 
     </h3>
-  <p>Destroys a reshape and all its associated data.</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1722,7 +1751,7 @@ There is no guarantee that the workspace_size will or will not change between ve
     </h4>
     <p>The enumerated type cufftResult defines API call result codes.</p>
 
-        </li>
+          </li>
     </ul>
   </div>
 
@@ -1806,7 +1835,7 @@ There is no guarantee that the workspace_size will or will not change between ve
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~3"></span>
+              <span class="anchor" id="variable-error_code~4"></span>
               integer(kind=c_int32_t),
             </td>
 <td>intent(in)</td>

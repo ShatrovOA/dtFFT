@@ -17,7 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_executor_fftw_m
-!! This module describes FFTW3 Wrapper to dtFFT: ``fftw_executor``
+!! This module describes FFTW3 based FFT Executor: [[fftw_executor]]
 !!
 !! http://www.fftw.org
 use iso_c_binding,              only: c_ptr, c_loc, c_null_ptr, c_int
@@ -198,6 +198,7 @@ contains
     integer(int8),        intent(in)  :: sign                 !! Sign of transform
 
     if ( sign == FFT_FORWARD ) then
+      print*,transfer(a, int64),transfer(b, int64)
       call self%apply(self%plan_forward, a, b)
     else
       if ( associated( self%apply_inverse ) ) then

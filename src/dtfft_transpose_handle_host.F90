@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_transpose_handle_host
-!! This module describes `transpose_handle_host` class
+!! This module describes [[transpose_handle_host]] class
 use iso_fortran_env,  only: int8, int32
 use dtfft_parameters
 use dtfft_pencil,     only: pencil, get_transpose_type

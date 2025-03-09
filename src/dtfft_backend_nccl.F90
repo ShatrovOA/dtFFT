@@ -18,10 +18,10 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_backend_nccl
-!! This module implements NCCL backend: `backend_nccl`
+!! NCCL Based GPU Backends [[backend_nccl]]
 use iso_fortran_env
 use iso_c_binding, only: c_ptr, c_f_pointer
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 use dtfft_interface_nccl
 use dtfft_abstract_backend,         only: abstract_backend, backend_helper
 use dtfft_parameters

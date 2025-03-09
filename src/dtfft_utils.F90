@@ -1,5 +1,24 @@
+!------------------------------------------------------------------------------------------------
+! Copyright (c) 2021, Oleg Shatrov
+! All rights reserved.
+! This file is part of dtFFT library.
+
+! dtFFT is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+
+! dtFFT is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+
+! You should have received a copy of the GNU General Public License
+! along with this program.  If not, see <https://www.gnu.org/licenses/>.
+!------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_utils
+!! All Utilities functions are located here
 use iso_c_binding
 use iso_fortran_env,  only: int8, int32, int64, real64, output_unit, error_unit
 use dtfft_parameters
@@ -11,7 +30,7 @@ use dtfft_interface_nvshmem
 #include "dtfft_private.h"
 implicit none
 private
-public :: string_f2c, astring_f2c
+public :: string_f2c
 public :: int_to_str, double_to_str
 public :: write_message, init_internal, get_log_enabled
 public :: get_env, get_iters_from_env, get_datatype_from_env
@@ -21,6 +40,7 @@ public :: get_platform_from_env
 public :: is_same_ptr, is_null_ptr
 public :: mem_alloc_host, mem_free_host
 #ifdef DTFFT_WITH_CUDA
+public :: astring_f2c
 public :: count_unique
 public :: Comm_f2c
 public :: is_device_ptr
@@ -50,12 +70,15 @@ public :: is_nvshmem_ptr
 
   interface get_env
     module procedure :: get_env_base
+#ifdef DTFFT_WITH_CUDA
     module procedure :: get_env_string
+#endif
     module procedure :: get_env_int32
     module procedure :: get_env_int8
     module procedure :: get_env_logical
   end interface get_env
 
+#ifdef DTFFT_WITH_CUDA
 public :: string
   type :: string
   !! Class used to create array of strings
@@ -63,8 +86,10 @@ public :: string
   end type string
 
   interface string
+  !! Creates [[string]] object
     module procedure :: string_constructor
   end interface string
+#endif
 
   interface
     subroutine mem_alloc_host(alloc_size, ptr) bind(C)
@@ -95,10 +120,12 @@ public :: string
 
 contains
 
+#ifdef DTFFT_WITH_CUDA
   type(string) function string_constructor(str)
     character(len=*), intent(in)  :: str
     allocate( string_constructor%raw, source=str )
   end function string_constructor
+#endif
 
   integer(int32) function init_internal()
   !! Checks if MPI is initialized and reads the environment variable to enable logging
@@ -215,6 +242,7 @@ contains
     deallocate(full_name_)
   end function get_env_base
 
+#ifdef DTFFT_WITH_CUDA
   function get_env_string(name, default, valid_values, is_lower) result(env)
     character(len=*), intent(in)            :: name                 !! Name of environment variable without prefix
     character(len=*), intent(in)            :: default              !! Name of environment variable without prefix
@@ -255,6 +283,7 @@ contains
     allocate(env, source=default)
     deallocate(env_val_str, full_name)
   end function get_env_string
+#endif
 
   integer(int32) function get_env_int32(name, default, valid_values, min_valid_value, is_external) result(env)
   !! Base Integer function of obtaining dtFFT environment variable
@@ -376,6 +405,7 @@ contains
     if(present( string_size )) string_size = j
   end subroutine string_f2c
 
+#ifdef DTFFT_WITH_CUDA
   subroutine astring_f2c(fstring, cstring, string_size)
   !! Convert Fortran string to C allocatable string
     character(len=*),                     intent(in)  :: fstring      !! Fortran string
@@ -385,6 +415,7 @@ contains
     allocate(cstring( len_trim(fstring) + 1 ))
     call string_f2c(fstring, cstring, string_size)
   end subroutine astring_f2c
+#endif
 
   function int_to_str_int32(n) result(string)
   !! Convert 32-bit integer to string

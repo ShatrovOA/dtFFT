@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_abstract_transpose_plan
-!! This module defines most Abstract Transpose Plan: `abstract_transpose_plan`
+!! This module describes Abstraction for all Tranpose plans: [[abstract_transpose_plan]]
 use iso_c_binding,      only: c_ptr, c_null_ptr
 use iso_fortran_env,    only: int8, int32, int64, error_unit, output_unit
 use dtfft_config
@@ -31,7 +31,7 @@ use dtfft_abstract_backend, only: backend_helper
 use dtfft_abstract_backend, only: NCCL_REGISTER_PREALLOC_SIZE
 #endif
 use dtfft_nvrtc_kernel,     only: DEF_TILE_SIZE
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 # ifdef DTFFT_WITH_NVSHMEM
 use dtfft_interface_nvshmem
 # endif

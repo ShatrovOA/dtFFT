@@ -18,8 +18,8 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_abstract_executor
-!! This module describes `abstract_executor`: Abstract FFT wrapper class
-use iso_c_binding,    only: c_loc, c_ptr, c_int, c_null_ptr, c_associated
+!! This module describes Abstraction for all FFT Executors: [[abstract_executor]]
+use iso_c_binding,    only: c_loc, c_ptr, c_null_ptr
 use iso_fortran_env,  only: int8, int32, int64
 use dtfft_pencil,     only: pencil
 use dtfft_parameters
@@ -119,7 +119,7 @@ contains
     integer(int32)                        :: how_many         !! Number of transforms to create
 
     create = DTFFT_SUCCESS
-    if ( self%is_created .and. .not.c_associated(self%plan_forward, c_null_ptr) .and. .not.c_associated(self%plan_backward, c_null_ptr) ) return
+    if ( self%is_created .and. .not.is_null_ptr(self%plan_forward) .and. .not.is_null_ptr(self%plan_backward) ) return
 
     PHASE_BEGIN("Creating FFT", COLOR_FFT)
 
@@ -183,7 +183,7 @@ contains
     endif
 
     call self%create_private(fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, create, r2r_kinds)
-    if ( c_associated(self%plan_forward, c_null_ptr) .or. c_associated(self%plan_backward, c_null_ptr) ) error stop "Failed to create FFT Executor"
+    if ( is_null_ptr(self%plan_forward) .or. is_null_ptr(self%plan_backward) ) error stop "Failed to create FFT Executor"
     if( create == DTFFT_SUCCESS ) self%is_created = .true.
     deallocate( fft_sizes, inembed, onembed )
     PHASE_END("Creating FFT")

@@ -18,6 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_transpose_plan_host
+!! This module describes [[transpose_plan_host]] class
 use iso_fortran_env,                only: int8, int32, int64, real32, real64, output_unit
 use dtfft_abstract_transpose_plan,  only: abstract_transpose_plan, create_cart_comm
 use dtfft_pencil,                   only: pencil, get_local_sizes

@@ -1,4 +1,23 @@
+!------------------------------------------------------------------------------------------------
+! Copyright (c) 2021, Oleg Shatrov
+! All rights reserved.
+! This file is part of dtFFT library.
+
+! dtFFT is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+
+! dtFFT is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+
+! You should have received a copy of the GNU General Public License
+! along with this program.  If not, see <https://www.gnu.org/licenses/>.
+!------------------------------------------------------------------------------------------------
 module dtfft_interface_nvtx
+!! nvtx3 Interfaces
 use iso_c_binding
 use dtfft_utils
 implicit none
@@ -12,24 +31,32 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
   type(nvtxDomainHandle),     save  :: domain_nvtx
   !! NVTX domain handle
   logical,                    save  :: domain_created = .false.
+  !! Has domain been created?
 
-  interface
+  interface nvtxDomainCreate_c
+  !! Creates an NVTX domain with the specified name.
     subroutine nvtxDomainCreate_c(name, domain) bind(C, name="nvtxDomainCreate_c")
-    import
-      character(c_char),  intent(in)  :: name(*)
-      type(nvtxDomainHandle)          :: domain
+      import
+      character(c_char),  intent(in)  :: name(*)  !! Name of the NVTX domain.
+      type(nvtxDomainHandle)          :: domain   !! Handle to the created NVTX domain.
     end subroutine nvtxDomainCreate_c
+  end interface
 
+  interface nvtxDomainRangePushEx_c
+  !! Pushes a range with a custom message and color onto the specified NVTX domain.
     subroutine nvtxDomainRangePushEx_c(domain, message, color) bind(C, name="nvtxDomainRangePushEx_c")
-    import
-      type(nvtxDomainHandle), value               :: domain
-      character(c_char),              intent(in)  :: message(*)
-      integer(c_int),         value,  intent(in)  :: color
+      import
+      type(nvtxDomainHandle), value               :: domain  !! NVTX domain handle.
+      character(c_char),              intent(in)  :: message(*)  !! Custom message for the range.
+      integer(c_int),         value,  intent(in)  :: color   !! Color for the range.
     end subroutine nvtxDomainRangePushEx_c
+  end interface
 
+  interface nvtxDomainRangePop_c
+  !! Pops a range from the specified NVTX domain.
     subroutine nvtxDomainRangePop_c(domain) bind(C, name="nvtxDomainRangePop_c")
-    import
-      type(nvtxDomainHandle), value               :: domain
+      import
+      type(nvtxDomainHandle), value :: domain  !! NVTX domain handle.
     end subroutine nvtxDomainRangePop_c
   end interface
 

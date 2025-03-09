@@ -19,9 +19,10 @@
 #include "dtfft_config.h"
 #include "dtfft.f03"
 module dtfft_transpose_plan_cuda
+!! This module describes [[transpose_plan_cuda]] class
 use iso_fortran_env
 use iso_c_binding
-use dtfft_interface_cuda
+use dtfft_interface_cuda_runtime
 use dtfft_config
 use dtfft_abstract_transpose_plan,        only: abstract_transpose_plan, create_cart_comm, alloc_mem, free_mem
 use dtfft_abstract_backend,               only: backend_helper

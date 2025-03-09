@@ -17,7 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_executor_vkfft_m
-!! This module describes vkFFT Wrappers to dtFFT: ``vkfft_executor``
+!! This module describes VkFFT based FFT Executor: [[vkfft_executor]]
 !!
 !! https://github.com/DTolm/VkFFT/tree/master
 use iso_c_binding,                  only: c_ptr, c_int, c_int8_t

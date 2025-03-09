@@ -17,14 +17,12 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_nccl
+!! NCCL Interfaces
 use iso_c_binding
 use dtfft_parameters, only: dtfft_stream_t
 implicit none
 private
-public :: ncclGetUniqueId, ncclMemAlloc, ncclMemFree, ncclCommInitRank
-public :: ncclSend, ncclRecv, ncclGroupStart, ncclGroupEnd, ncclCommDestroy
 public :: ncclGetErrorString
-public :: ncclCommRegister, ncclCommDeregister
 
 public :: ncclUniqueId
   type, bind(c) :: ncclUniqueId
@@ -44,7 +42,7 @@ public :: ncclDataType
   type(ncclDataType), parameter, public :: ncclFloat = ncclDataType(7)
 
 
-  interface
+  interface ncclGetErrorString_c
     function ncclGetErrorString_c(ncclResult_t)                                     &
       result(message)                                                               &
       bind(C, name="ncclGetErrorString")
@@ -53,69 +51,84 @@ public :: ncclDataType
       integer(c_int32_t), intent(in), value :: ncclResult_t    !! Completion status of a NCCL function.
       type(c_ptr)                           :: message         !! Pointer to message
     end function ncclGetErrorString_c
+  endinterface
 
+public :: ncclGetUniqueId
+  interface ncclGetUniqueId
+  !! Generates an Id to be used in ncclCommInitRank. 
+  !! ncclGetUniqueId should be called once when creating a communicator and the Id should be 
+  !! distributed to all ranks in the communicator before calling ncclCommInitRank. 
+  !! uniqueId should point to a ncclUniqueId object allocated by the user.
     function ncclGetUniqueId(uniqueId)                                              &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclGetUniqueId")
     import
-    !! Generates an Id to be used in ncclCommInitRank. 
-    !! ncclGetUniqueId should be called once when creating a communicator and the Id should be 
-    !! distributed to all ranks in the communicator before calling ncclCommInitRank. 
-    !! uniqueId should point to a ncclUniqueId object allocated by the user.
       type(ncclUniqueId), intent(out)       :: uniqueId       !! Unique ID
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclGetUniqueId
-
+  end interface
+  
+public :: ncclMemAlloc
+  interface ncclMemAlloc
+  !! Allocate a GPU buffer with size.
+  !! Allocated buffer head address will be returned by ptr, and the actual allocated size can be larger 
+  !! than requested because of the buffer granularity requirements from all types of NCCL optimizations.
     function ncclMemAlloc(ptr, alloc_bytes)                                         &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclMemAlloc")
     import
-    !! Allocate a GPU buffer with size.
-    !! Allocated buffer head address will be returned by ptr, and the actual allocated size can be larger 
-    !! than requested because of the buffer granularity requirements from all types of NCCL optimizations.
       type(c_ptr),        intent(out)       :: ptr            !! Buffer address
       integer(c_size_t),  intent(in), value :: alloc_bytes    !! Number of bytes to allocate
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclMemAlloc
+  end interface
 
+public :: ncclMemFree
+  interface ncclMemFree
+  !! Free memory allocated by ncclMemAlloc().
     function ncclMemFree(ptr)                                                       &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclMemFree")
     import
-    !! Free memory allocated by ncclMemAlloc().
       type(c_ptr),        intent(in), value :: ptr            !! Buffer address
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclMemFree
+  end interface
 
+public :: ncclCommInitRank
+  interface ncclCommInitRank
+  !! Creates a new communicator (multi thread/process version).
+  !!
+  !! rank must be between 0 and nranks-1 and unique within a communicator clique. 
+  !! Each rank is associated to a CUDA device, which has to be set before calling ncclCommInitRank. 
+  !!
+  !! ncclCommInitRank implicitly synchronizes with other ranks, hence it must be called by different 
+  !! threads/processes or used within ncclGroupStart/ncclGroupEnd.
     function ncclCommInitRank(comm, nranks, uniqueId, rank)                         &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclCommInitRank")
     import
-    !! Creates a new communicator (multi thread/process version).
-    !!
-    !! rank must be between 0 and nranks-1 and unique within a communicator clique. 
-    !! Each rank is associated to a CUDA device, which has to be set before calling ncclCommInitRank. 
-    !!
-    !! ncclCommInitRank implicitly synchronizes with other ranks, hence it must be called by different 
-    !! threads/processes or used within ncclGroupStart/ncclGroupEnd.
       type(ncclComm)                        :: comm           !! Communicator
       integer(c_int),               value   :: nranks         !! Number of ranks in communicator
       type(ncclUniqueId),           value   :: uniqueId       !! Unique ID
       integer(c_int),               value   :: rank           !! Calling rank
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclCommInitRank
+  end interface
 
+public :: ncclSend
+  interface ncclSend
+  !! Send data from sendbuff to rank peer.
+  !!
+  !! Rank peer needs to call ncclRecv with the same datatype and the same count as this rank.
+  !!
+  !! This operation is blocking for the GPU.
+  !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
+  !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
     function ncclSend(sendbuff, count, datatype, peer, comm, stream)                &
       result(ncclResult_t)                                                          &
       bind(c, name='ncclSend')
     import
-    !! Send data from sendbuff to rank peer.
-    !!
-    !! Rank peer needs to call ncclRecv with the same datatype and the same count as this rank.
-    !!
-    !! This operation is blocking for the GPU.
-    !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
-    !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
       real(c_float)                         :: sendbuff       !! Buffer to send data from
       integer(c_size_t),            value   :: count          !! Number of elements to send
       type(ncclDataType),           value   :: datatype       !! Datatype to send
@@ -124,18 +137,21 @@ public :: ncclDataType
       type(dtfft_stream_t),         value   :: stream         !! CUDA Stream
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclSend
+  end interface
 
+public :: ncclRecv
+  interface ncclRecv
+  !! Receive data from rank peer into recvbuff.
+  !!
+  !! Rank peer needs to call ncclSend with the same datatype and the same count as this rank.
+
+  !! This operation is blocking for the GPU.
+  !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
+  !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
     function ncclRecv(recvbuff, count, datatype, peer, comm, stream)                &
       result(ncclResult_t)                                                          &
       bind(c, name='ncclRecv')
     import
-    !! Receive data from rank peer into recvbuff.
-    !!
-    !! Rank peer needs to call ncclSend with the same datatype and the same count as this rank.
-
-    !! This operation is blocking for the GPU.
-    !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
-    !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
       real(c_float)                         :: recvbuff       !! Buffer to recv data into
       integer(c_size_t),            value   :: count          !! Number of elements to recv
       type(ncclDataType),           value   :: datatype       !! Datatype to recv
@@ -144,68 +160,77 @@ public :: ncclDataType
       type(dtfft_stream_t),         value   :: stream         !! CUDA Stream
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclRecv
+  end interface
 
+public :: ncclGroupStart
+  interface ncclGroupStart
+  !! Start a group call.
+  !!
+  !! All subsequent calls to NCCL until ncclGroupEnd will not block due to inter-CPU synchronization.
     function ncclGroupStart()                                                       &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclGroupStart")
     import
-    !! Start a group call.
-    !!
-    !! All subsequent calls to NCCL until ncclGroupEnd will not block due to inter-CPU synchronization.
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclGroupStart
+  end interface
 
+public :: ncclGroupEnd
+  interface ncclGroupEnd
+  !! End a group call.
+  !!
+  !! Returns when all operations since ncclGroupStart have been processed.
+  !! This means the communication primitives have been enqueued to the provided streams, 
+  !! but are not necessarily complete.
     function ncclGroupEnd()                                                         &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclGroupEnd")
     import
-    !! End a group call.
-    !!
-    !! Returns when all operations since ncclGroupStart have been processed.
-    !! This means the communication primitives have been enqueued to the provided streams, 
-    !! but are not necessarily complete.
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclGroupEnd
+  end interface
 
+public :: ncclCommDestroy
+  interface ncclCommDestroy
+  !! Destroy a communicator object comm.
     function ncclCommDestroy(comm)                                                  &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclCommDestroy")
     import
-    !! Destroy a communicator object comm.
       type(ncclComm),                 value :: comm           !! Communicator
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclCommDestroy
+  end interface
 
+public :: ncclCommRegister
+  interface ncclCommRegister
+  !! Register a buffer for collective communication.
     function ncclCommRegister(comm, buff, size, handle)                             &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclCommRegister")
     import
-    !! Register a buffer for collective communication.
       type(ncclComm),                 value :: comm           !! Communicator
       type(c_ptr),                    value :: buff           !! Buffer to register
       integer(c_size_t),              value :: size           !! Size of the buffer in bytes
       type(c_ptr)                           :: handle         !! Handle to the registered buffer
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclCommRegister
+  end interface
 
+public :: ncclCommDeregister
+  interface ncclCommDeregister
+  !! Deregister a buffer for collective communication.
     function ncclCommDeregister(comm, handle)                                       &
       result(ncclResult_t)                                                          &
       bind(C, name="ncclCommDeregister")
     import
-    !! Deregister a buffer for collective communication.
       type(ncclComm),                 value :: comm           !! Communicator
       type(c_ptr),                    value :: handle         !! Handle to the registered buffer
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclCommDeregister
-
-
   end interface
 
 contains
-  ! elemental logical function ncclResult_ne(a, b)
-  !   type(ncclResult), intent(in) :: a, b
-  !   ncclResult_ne = (a%member .NE. b%member)
-  ! end function ncclResult_ne
 
   function ncclGetErrorString(ncclResult_t) result(string)
   !! Generates an error message.
