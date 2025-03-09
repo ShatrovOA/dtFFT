@@ -30,7 +30,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_theme = 'furo'
 html_static_path = ['_static']
-
+html_logo = "images/logo.png"
+html_favicon = "images/favicon.png"
 
 breathe_projects = { "dtFFT": "xml/" }
 breathe_default_project = "dtFFT"

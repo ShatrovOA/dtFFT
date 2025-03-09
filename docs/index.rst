@@ -1,6 +1,12 @@
 ##############################
 Welcome to dtFFT Documentation
 ##############################
+
+.. image:: images/pencils.png
+   :width: 1900px
+   :alt: Pencil decomposition
+   :align: center
+
 Usage Guide
 ===========
 

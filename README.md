@@ -9,7 +9,7 @@
 
 Initially designed for zero-copy transpositions using custom MPI datatypes on CPU clusters, it has evolved to support GPU acceleration by compiling CUDA kernels at runtime with ``nvrtc``.
 
-![Pencils](doc/pencils.png)
+![Pencils](docs/images/pencils.png)
 
 ## Features
 - R2C, C2C, R2R transforms are supported
