@@ -36,10 +36,10 @@ display: public
     protected
     private
 warn: false
-graph: true
+graph: false
 coloured_edges: true
 sort: permission
-search: true
+search: false
 
 <img src="./media/pencils.png" alt="pencils" width="850"/>
 

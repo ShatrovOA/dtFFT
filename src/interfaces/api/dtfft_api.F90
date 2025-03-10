@@ -22,7 +22,7 @@ module dtfft_api
 use iso_c_binding,    only: c_int8_t, c_int32_t, c_size_t, &
                             c_float, c_bool, c_char,        &
                             c_null_ptr, c_ptr, c_loc,       &
-                            c_f_pointer, c_associated
+                            c_f_pointer
 use iso_fortran_env,  only: int8, int32
 use dtfft_config
 use dtfft_parameters
@@ -35,7 +35,7 @@ implicit none
 private
 
 #define CHECK_PLAN_CREATED(plan)                \
-  if(.not.c_associated(plan)) then;             \
+  if(is_null_ptr(plan)) then;             \
     error_code = DTFFT_ERROR_PLAN_NOT_CREATED;  \
     return;                                     \
   endif

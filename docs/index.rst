@@ -23,7 +23,7 @@ The library supports MPI for distributed systems and GPU acceleration via CUDA, 
 such as FFTW3, MKL DFTI, cuFFT, and VkFFT, or operating in transpose-only mode.
 
 Whether you're working on CPU clusters or GPU-enabled nodes, ``dtFFT`` provides a flexible and efficient framework for scientific 
-computing tasks requiring large-scale data transformations. 
+computing tasks requiring large-scale data transformations.
 
 This documentation covers the essentials of using, building, and extending ``dtFFT``. Explore the sections below to get started.
 
