@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,11 +52,6 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -76,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.4% of total for procedures.">42 statements</a>
+                 title=" 0.7% of total for procedures.">70 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_transpose_plan_cuda.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_plan_host.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_plan_cuda.f90.html'>dtfft_transpose_plan_cuda.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_plan_cuda.html'>dtfft_transpose_plan_cuda</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_plan_host.f90.html'>dtfft_transpose_plan_host.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_plan_host.html'>dtfft_transpose_plan_host</a></li>
             <li class="breadcrumb-item active" aria-current="page">autotune_grid</li>
           </ol>
         </nav>
@@ -135,11 +129,13 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine autotune_grid(dims, transposed_dims, base_comm, comm_dims, base_storage, is_z_slab, stream, gpu_backend, best_time, best_backend_id)  
+    <h2>private  subroutine autotune_grid(self, base_comm, comm_dims, dims, transposed_dims, effort, base_dtype, base_storage, latest_timer_id, timers, decomps, forw_ids, back_ids)  
 </h2>
     
 
 
+    <h3>Type Bound</h3>
+    <p><a href='../type/transpose_plan_host.html'>transpose_plan_host</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -154,32 +150,17 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dims~13"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-self~8"></span>
+              class(<a href='../type/transpose_plan_host.html'>transpose_plan_host</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>dims</strong>(:)</td>
+            <td><strong>self</strong></td>
             <td>
-                <p>Global sizes of the transform requested</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-transposed_dims~3"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>transposed_dims</strong>(:,:)</td>
-            <td>
-                
+                <p>Abstract plan</p>
             </td>
         </tr>
         <tr>
@@ -194,7 +175,7 @@
             <td>::</td>
             <td><strong>base_comm</strong></td>
             <td>
-                <p>3D comm</p>
+                <p>Base communicator</p>
             </td>
         </tr>
         <tr>
@@ -209,12 +190,72 @@
             <td>::</td>
             <td><strong>comm_dims</strong>(:)</td>
             <td>
-                
+                <p>Number of MPI Processes in Y and Z directions</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_storage~19"></span>
+              <span class="anchor" id="variable-dims~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+                <p>Global dims</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transposed_dims~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transposed_dims</strong>(:,:)</td>
+            <td>
+                <p>Transposed dims</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-effort~3"></span>
+              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>effort</strong></td>
+            <td>
+                <p><code>dtFFT</code> planner type of effort</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_dtype~3"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_dtype</strong></td>
+            <td>
+                <p>Basic MPI Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~4"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -229,1677 +270,82 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_z_slab~2"></span>
-              logical,
+              <span class="anchor" id="variable-latest_timer_id"></span>
+              integer(kind=int32),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>is_z_slab</strong></td>
+            <td><strong>latest_timer_id</strong></td>
             <td>
-                
+                <p>Current timer id</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~17"></span>
-              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+              <span class="anchor" id="variable-timers~2"></span>
+              real(kind=real64),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>stream</strong></td>
+            <td><strong>timers</strong>(:)</td>
             <td>
-                
+                <p>Time of current function execution is stored in timers(latest_timer_id)</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-gpu_backend~3"></span>
-              type(<a href='../type/dtfft_gpu_backend_t.html'>dtfft_gpu_backend_t</a>),
+              <span class="anchor" id="variable-decomps~2"></span>
+              integer(kind=int32),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(inout)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>gpu_backend</strong></td>
+            <td><strong>decomps</strong>(:,:)</td>
             <td>
-                <p>ID of transpose name (from -3 to 3, except 0)</p>
+                <p>Current decomposition is stored in decomps(:, latest_timer_id)</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-best_time"></span>
-              real(kind=real32),
+              <span class="anchor" id="variable-forw_ids~2"></span>
+              integer(kind=int8),
             </td>
-<td>intent(out),</td>
-              <td>optional</td>            <td>
+<td>intent(inout)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>best_time</strong></td>
+            <td><strong>forw_ids</strong>(:,:)</td>
             <td>
-                <p>Elapsed time for best plans selected</p>
+                <p>Best Forward ids are stored in forw_ids(:, latest_timer_id)</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-best_backend_id~2"></span>
-              type(<a href='../type/dtfft_gpu_backend_t.html'>dtfft_gpu_backend_t</a>),
+              <span class="anchor" id="variable-back_ids~2"></span>
+              integer(kind=int8),
             </td>
-<td>intent(out),</td>
-              <td>optional</td>            <td>
+<td>intent(inout)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>best_backend_id</strong></td>
+            <td><strong>back_ids</strong>(:,:)</td>
             <td>
-                
+                <p>Best Backward ids are stored in back_ids(:, latest_timer_id)</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-    <br>
-    <div class="card">
-      <div class="card-header">
-  <h3 class="card-title">Calls</h3>
-      </div>
-      <div class="card-body">
-  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: proc~~autotune_grid~~CallsGraph Pages: 1 -->
-<svg id="procautotune_gridCallsGraph" width="641pt" height="1008pt"
- viewBox="0.00 0.00 641.00 1007.84" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~autotune_grid~~CallsGraph" class="graph" transform="scale(0.52 0.52) rotate(0) translate(4 1950.35)">
-<title>proc~~autotune_grid~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-1950.35 1239,-1950.35 1239,4 -4,4"/>
-<!-- proc~autotune_grid -->
-<g id="proc~~autotune_grid~~CallsGraph_node1" class="node">
-<title>proc~autotune_grid</title>
-<polygon fill="none" stroke="black" points="87,-1740.35 0,-1740.35 0,-1716.35 87,-1716.35 87,-1740.35"/>
-<text text-anchor="middle" x="43.5" y="-1725.95" font-family="Helvetica,sans-Serif" font-size="10.50">autotune_grid</text>
-</g>
-<!-- interface~int_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_node2" class="node">
-<title>interface~int_to_str</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node2"><a xlink:href="../interface/int_to_str.html" xlink:title="int_to_str">
-<polygon fill="#a7506f" stroke="#a7506f" points="897.5,-1345.35 836.5,-1345.35 836.5,-1321.35 897.5,-1321.35 897.5,-1345.35"/>
-<text text-anchor="middle" x="867" y="-1330.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int_to_str</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;interface~int_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_edge1" class="edge">
-<title>proc~autotune_grid&#45;&gt;interface~int_to_str</title>
-<path fill="none" stroke="#ff0000" d="M67.52,-1716.31C82.82,-1708.9 103.59,-1699.98 123,-1695.35 189.42,-1679.52 686.41,-1699.28 736,-1652.35 829.06,-1564.29 691.52,-1466.03 772,-1366.35 785.17,-1350.04 806.94,-1341.78 826.22,-1337.6"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="827.12,-1340.99 836.31,-1335.72 825.83,-1334.11 827.12,-1340.99"/>
-</g>
-<!-- mpi_comm_free -->
-<g id="proc~~autotune_grid~~CallsGraph_node3" class="node">
-<title>mpi_comm_free</title>
-<polygon fill="#777777" stroke="#777777" points="239.5,-1879.35 141.5,-1879.35 141.5,-1855.35 239.5,-1855.35 239.5,-1879.35"/>
-<text text-anchor="middle" x="190.5" y="-1864.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_free</text>
-</g>
-<!-- proc~autotune_grid&#45;&gt;mpi_comm_free -->
-<g id="proc~~autotune_grid~~CallsGraph_edge2" class="edge">
-<title>proc~autotune_grid&#45;&gt;mpi_comm_free</title>
-<path fill="none" stroke="#ff0000" d="M49.37,-1740.71C59.44,-1764.69 84.85,-1817.66 123,-1846.35 125.84,-1848.49 128.91,-1850.41 132.11,-1852.15"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="130.88,-1855.43 141.42,-1856.53 133.87,-1849.1 130.88,-1855.43"/>
-</g>
-<!-- proc~create_cart_comm -->
-<g id="proc~~autotune_grid~~CallsGraph_node4" class="node">
-<title>proc~create_cart_comm</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node4"><a xlink:href="../proc/create_cart_comm.html" xlink:title="create_cart_comm">
-<polygon fill="#d9534f" stroke="#d9534f" points="246.5,-1921.35 134.5,-1921.35 134.5,-1897.35 246.5,-1897.35 246.5,-1921.35"/>
-<text text-anchor="middle" x="190.5" y="-1906.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_cart_comm</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;proc~create_cart_comm -->
-<g id="proc~~autotune_grid~~CallsGraph_edge3" class="edge">
-<title>proc~autotune_grid&#45;&gt;proc~create_cart_comm</title>
-<path fill="none" stroke="#ff0000" d="M46.98,-1740.38C53.71,-1770.03 75.14,-1847.19 123,-1888.35 124.55,-1889.68 126.18,-1890.93 127.88,-1892.1"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="126.45,-1895.32 136.86,-1897.31 129.97,-1889.26 126.45,-1895.32"/>
-</g>
-<!-- proc~create~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_node5" class="node">
-<title>proc~create~2</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node5"><a xlink:href="../proc/create~2.html" xlink:title="pencil%create">
-<polygon fill="#d9534f" stroke="#d9534f" points="234.5,-1837.35 146.5,-1837.35 146.5,-1813.35 234.5,-1813.35 234.5,-1837.35"/>
-<text text-anchor="middle" x="190.5" y="-1822.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pencil%create</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;proc~create~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge4" class="edge">
-<title>proc~autotune_grid&#45;&gt;proc~create~2</title>
-<path fill="none" stroke="#ff0000" d="M55.13,-1740.36C69.32,-1755.78 95.81,-1782.53 123,-1799.35 128.95,-1803.03 135.51,-1806.35 142.12,-1809.3"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="141.2,-1812.7 151.77,-1813.33 143.9,-1806.25 141.2,-1812.7"/>
-</g>
-<!-- proc~destroy~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_node6" class="node">
-<title>proc~destroy~2</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node6"><a xlink:href="../proc/destroy~2.html" xlink:title="pencil%destroy">
-<polygon fill="#d9534f" stroke="#d9534f" points="436,-1803.35 342,-1803.35 342,-1779.35 436,-1779.35 436,-1803.35"/>
-<text text-anchor="middle" x="389" y="-1788.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pencil%destroy</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;proc~destroy~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge5" class="edge">
-<title>proc~autotune_grid&#45;&gt;proc~destroy~2</title>
-<path fill="none" stroke="#ff0000" d="M81.77,-1740.39C94.72,-1744.28 109.41,-1748.35 123,-1751.35 194.28,-1767.1 277.72,-1778.57 331.65,-1785.09"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="331.35,-1788.58 341.69,-1786.29 332.18,-1781.63 331.35,-1788.58"/>
-</g>
-<!-- proc~get_log_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_node7" class="node">
-<title>proc~get_log_enabled</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node7"><a xlink:href="../proc/get_log_enabled.html" xlink:title="get_log_enabled">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="1098,-1185.35 998,-1185.35 998,-1161.35 1098,-1161.35 1098,-1185.35"/>
-<text text-anchor="middle" x="1048" y="-1170.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_log_enabled</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;proc~get_log_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_edge6" class="edge">
-<title>proc~autotune_grid&#45;&gt;proc~get_log_enabled</title>
-<path fill="none" stroke="#ff0000" d="M87.03,-1724.48C151.89,-1718.93 279.45,-1709.35 388,-1709.35 388,-1709.35 388,-1709.35 629,-1709.35 801.19,-1709.35 872.66,-1658.55 962,-1511.35 1012.5,-1428.15 971.71,-1389.06 998,-1295.35 1008.2,-1259.01 1025.67,-1218.71 1036.76,-1194.73"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="1040.01,-1196.05 1041.08,-1185.51 1033.67,-1193.08 1040.01,-1196.05"/>
-</g>
-<!-- proc~pop_nvtx_domain_range -->
-<g id="proc~~autotune_grid~~CallsGraph_node8" class="node">
-<title>proc~pop_nvtx_domain_range</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node8"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
-<polygon fill="#d9534f" stroke="#d9534f" points="460.5,-1623.35 317.5,-1623.35 317.5,-1599.35 460.5,-1599.35 460.5,-1623.35"/>
-<text text-anchor="middle" x="389" y="-1608.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;proc~pop_nvtx_domain_range -->
-<g id="proc~~autotune_grid~~CallsGraph_edge7" class="edge">
-<title>proc~autotune_grid&#45;&gt;proc~pop_nvtx_domain_range</title>
-<path fill="none" stroke="#ff0000" d="M53.96,-1716.31C67.43,-1700.09 93.76,-1671.6 123,-1657.35 180.67,-1629.24 252.77,-1618.05 307.2,-1613.72"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="307.78,-1617.19 317.49,-1612.97 307.26,-1610.21 307.78,-1617.19"/>
-</g>
-<!-- proc~push_nvtx_domain_range -->
-<g id="proc~~autotune_grid~~CallsGraph_node9" class="node">
-<title>proc~push_nvtx_domain_range</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node9"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
-<polygon fill="#d9534f" stroke="#d9534f" points="463,-1761.35 315,-1761.35 315,-1737.35 463,-1737.35 463,-1761.35"/>
-<text text-anchor="middle" x="389" y="-1746.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;proc~push_nvtx_domain_range -->
-<g id="proc~~autotune_grid~~CallsGraph_edge8" class="edge">
-<title>proc~autotune_grid&#45;&gt;proc~push_nvtx_domain_range</title>
-<path fill="none" stroke="#ff0000" d="M87.31,-1730.97C141.45,-1734.28 235.88,-1740.05 304.5,-1744.25"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="304.66,-1747.76 314.86,-1744.88 305.09,-1740.78 304.66,-1747.76"/>
-</g>
-<!-- proc~run_autotune_backend -->
-<g id="proc~~autotune_grid~~CallsGraph_node10" class="node">
-<title>proc~run_autotune_backend</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node10"><a xlink:href="../proc/run_autotune_backend.html" xlink:title="run_autotune_backend">
-<polygon fill="#d9534f" stroke="#d9534f" points="258,-875.35 123,-875.35 123,-851.35 258,-851.35 258,-875.35"/>
-<text text-anchor="middle" x="190.5" y="-860.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_autotune_backend</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;proc~run_autotune_backend -->
-<g id="proc~~autotune_grid~~CallsGraph_edge9" class="edge">
-<title>proc~autotune_grid&#45;&gt;proc~run_autotune_backend</title>
-<path fill="none" stroke="#ff0000" d="M46.55,-1716.12C62.37,-1621.74 164.99,-1009.58 185.82,-885.33"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="189.27,-885.88 187.47,-875.44 182.37,-884.73 189.27,-885.88"/>
-</g>
-<!-- proc~write_message -->
-<g id="proc~~autotune_grid~~CallsGraph_node11" class="node">
-<title>proc~write_message</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node11"><a xlink:href="../proc/write_message.html" xlink:title="write_message">
-<polygon fill="#d9534f" stroke="#d9534f" points="1094,-976.35 1002,-976.35 1002,-952.35 1094,-952.35 1094,-976.35"/>
-<text text-anchor="middle" x="1048" y="-961.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">write_message</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid&#45;&gt;proc~write_message -->
-<g id="proc~~autotune_grid~~CallsGraph_edge10" class="edge">
-<title>proc~autotune_grid&#45;&gt;proc~write_message</title>
-<path fill="none" stroke="#ff0000" d="M44.89,-1716.28C47.56,-1638.2 64.79,-1196.63 123,-842.35 175.41,-523.35 142.28,-420.82 294,-135.35 323.09,-80.63 326.02,-32.35 388,-32.35 388,-32.35 388,-32.35 629,-32.35 777.24,-32.35 855.32,51.58 962,-51.35 995.19,-83.37 1037.94,-805.55 1045.75,-942.16"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="1042.26,-942.48 1046.32,-952.27 1049.25,-942.08 1042.26,-942.48"/>
-</g>
-<!-- proc~int_to_str_int32 -->
-<g id="proc~~autotune_grid~~CallsGraph_node45" class="node">
-<title>proc~int_to_str_int32</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node45"><a xlink:href="../proc/int_to_str_int32.html" xlink:title="int_to_str_int32">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="1094.5,-1328.35 1001.5,-1328.35 1001.5,-1304.35 1094.5,-1304.35 1094.5,-1328.35"/>
-<text text-anchor="middle" x="1048" y="-1313.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int_to_str_int32</text>
-</a>
-</g>
-</g>
-<!-- interface~int_to_str&#45;&gt;proc~int_to_str_int32 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge11" class="edge">
-<title>interface~int_to_str&#45;&gt;proc~int_to_str_int32</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M897.56,-1330.54C922.89,-1328.14 960.09,-1324.61 991.04,-1321.67"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="991.64,-1325.12 1001.27,-1320.69 990.98,-1318.16 991.64,-1325.12"/>
-</g>
-<!-- proc~int_to_str_int8 -->
-<g id="proc~~autotune_grid~~CallsGraph_node46" class="node">
-<title>proc~int_to_str_int8</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node46"><a xlink:href="../proc/int_to_str_int8.html" xlink:title="int_to_str_int8">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="1091,-1370.35 1005,-1370.35 1005,-1346.35 1091,-1346.35 1091,-1370.35"/>
-<text text-anchor="middle" x="1048" y="-1355.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int_to_str_int8</text>
-</a>
-</g>
-</g>
-<!-- interface~int_to_str&#45;&gt;proc~int_to_str_int8 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge12" class="edge">
-<title>interface~int_to_str&#45;&gt;proc~int_to_str_int8</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M897.56,-1337.48C923.9,-1341.16 963.07,-1346.63 994.69,-1351.05"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="994.28,-1354.52 1004.67,-1352.44 995.25,-1347.59 994.28,-1354.52"/>
-</g>
-<!-- mpi_cart_create -->
-<g id="proc~~autotune_grid~~CallsGraph_node21" class="node">
-<title>mpi_cart_create</title>
-<polygon fill="#777777" stroke="#777777" points="438,-1946.35 340,-1946.35 340,-1922.35 438,-1922.35 438,-1946.35"/>
-<text text-anchor="middle" x="389" y="-1931.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_cart_create</text>
-</g>
-<!-- proc~create_cart_comm&#45;&gt;mpi_cart_create -->
-<g id="proc~~autotune_grid~~CallsGraph_edge13" class="edge">
-<title>proc~create_cart_comm&#45;&gt;mpi_cart_create</title>
-<path fill="none" stroke="#cbff00" d="M246.76,-1916.38C272.61,-1919.67 303.42,-1923.59 329.65,-1926.93"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="329.47,-1930.43 339.83,-1928.22 330.35,-1923.49 329.47,-1930.43"/>
-</g>
-<!-- mpi_cart_sub -->
-<g id="proc~~autotune_grid~~CallsGraph_node22" class="node">
-<title>mpi_cart_sub</title>
-<polygon fill="#777777" stroke="#777777" points="430.5,-1904.35 347.5,-1904.35 347.5,-1880.35 430.5,-1880.35 430.5,-1904.35"/>
-<text text-anchor="middle" x="389" y="-1889.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_cart_sub</text>
-</g>
-<!-- proc~create_cart_comm&#45;&gt;mpi_cart_sub -->
-<g id="proc~~autotune_grid~~CallsGraph_edge14" class="edge">
-<title>proc~create_cart_comm&#45;&gt;mpi_cart_sub</title>
-<path fill="none" stroke="#cbff00" d="M246.76,-1904.57C275.14,-1902.12 309.49,-1899.14 337.21,-1896.75"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="337.82,-1900.21 347.48,-1895.86 337.22,-1893.23 337.82,-1900.21"/>
-</g>
-<!-- proc~create~2&#45;&gt;proc~destroy~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge15" class="edge">
-<title>proc~create~2&#45;&gt;proc~destroy~2</title>
-<path fill="none" stroke="#33ff00" d="M234.62,-1817.89C263.14,-1812.95 300.83,-1806.43 331.71,-1801.09"/>
-<polygon fill="#33ff00" stroke="#33ff00" points="332.64,-1804.48 341.9,-1799.33 331.45,-1797.59 332.64,-1804.48"/>
-</g>
-<!-- proc~get_local_size -->
-<g id="proc~~autotune_grid~~CallsGraph_node40" class="node">
-<title>proc~get_local_size</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node40"><a xlink:href="../proc/get_local_size.html" xlink:title="get_local_size">
-<polygon fill="#d9534f" stroke="#d9534f" points="432,-1845.35 346,-1845.35 346,-1821.35 432,-1821.35 432,-1845.35"/>
-<text text-anchor="middle" x="389" y="-1830.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_local_size</text>
-</a>
-</g>
-</g>
-<!-- proc~create~2&#45;&gt;proc~get_local_size -->
-<g id="proc~~autotune_grid~~CallsGraph_edge16" class="edge">
-<title>proc~create~2&#45;&gt;proc~get_local_size</title>
-<path fill="none" stroke="#33ff00" d="M234.62,-1827.11C264.36,-1828.32 304.07,-1829.93 335.63,-1831.22"/>
-<polygon fill="#33ff00" stroke="#33ff00" points="335.86,-1834.73 345.99,-1831.64 336.14,-1827.74 335.86,-1834.73"/>
-</g>
-<!-- proc~astring_f2c -->
-<g id="proc~~autotune_grid~~CallsGraph_node28" class="node">
-<title>proc~astring_f2c</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node28"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
-<polygon fill="#d9534f" stroke="#d9534f" points="902.5,-1780.35 831.5,-1780.35 831.5,-1756.35 902.5,-1756.35 902.5,-1780.35"/>
-<text text-anchor="middle" x="867" y="-1765.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
-</a>
-</g>
-</g>
-<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
-<g id="proc~~autotune_grid~~CallsGraph_edge17" class="edge">
-<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
-<path fill="none" stroke="#3200ff" d="M463.07,-1752.27C562.92,-1756.25 738.94,-1763.28 821.24,-1766.56"/>
-<polygon fill="#3200ff" stroke="#3200ff" points="821.14,-1770.06 831.27,-1766.97 821.42,-1763.07 821.14,-1770.06"/>
-</g>
-<!-- proc~create_nvtx_domain -->
-<g id="proc~~autotune_grid~~CallsGraph_node31" class="node">
-<title>proc~create_nvtx_domain</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node31"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
-<polygon fill="#d9534f" stroke="#d9534f" points="688,-1799.35 568,-1799.35 568,-1775.35 688,-1775.35 688,-1799.35"/>
-<text text-anchor="middle" x="628" y="-1784.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
-</a>
-</g>
-</g>
-<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
-<g id="proc~~autotune_grid~~CallsGraph_edge18" class="edge">
-<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
-<path fill="none" stroke="#3200ff" d="M463.04,-1761.06C493.22,-1765.9 528.04,-1771.49 557.81,-1776.26"/>
-<polygon fill="#3200ff" stroke="#3200ff" points="557.27,-1779.72 567.7,-1777.84 558.38,-1772.8 557.27,-1779.72"/>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;interface~int_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_edge25" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;interface~int_to_str</title>
-<path fill="none" stroke="#cc00ff" d="M192.07,-875.46C195.59,-944.53 216.84,-1287.74 294,-1350.35 359.57,-1403.56 403.41,-1375.59 484,-1350.35 502.59,-1344.53 501.41,-1331.17 520,-1325.35 611.61,-1296.66 640.05,-1322.4 736,-1325.35 766.29,-1326.28 800.5,-1328.43 826.22,-1330.27"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="826.11,-1333.77 836.34,-1331.01 826.62,-1326.79 826.11,-1333.77"/>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~get_log_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_edge43" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~get_log_enabled</title>
-<path fill="none" stroke="#cc00ff" d="M192.27,-875.51C196.74,-941.88 221.73,-1259.58 294,-1317.35 359.96,-1370.08 400.19,-1327.67 484,-1317.35 500.37,-1315.34 503.84,-1311.66 520,-1308.35 714.91,-1268.41 778.92,-1315.26 962,-1237.35 986.9,-1226.76 1011.13,-1207.34 1027.31,-1192.66"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="1030.07,-1194.86 1034.99,-1185.48 1025.29,-1189.75 1030.07,-1194.86"/>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~pop_nvtx_domain_range -->
-<g id="proc~~autotune_grid~~CallsGraph_edge51" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~pop_nvtx_domain_range</title>
-<path fill="none" stroke="#cc00ff" d="M192.03,-875.48C195.8,-957.07 220.47,-1426.47 294,-1545.35 307.37,-1566.97 330.73,-1583.42 350.82,-1594.5"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="349.29,-1597.65 359.77,-1599.2 352.55,-1591.45 349.29,-1597.65"/>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~push_nvtx_domain_range -->
-<g id="proc~~autotune_grid~~CallsGraph_edge52" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~push_nvtx_domain_range</title>
-<path fill="none" stroke="#cc00ff" d="M192.21,-875.36C197.48,-961.59 231.76,-1487.03 294,-1632.35 310.89,-1671.77 344.92,-1708.87 367.06,-1730.33"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="364.69,-1732.91 374.36,-1737.25 369.51,-1727.83 364.69,-1732.91"/>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~write_message -->
-<g id="proc~~autotune_grid~~CallsGraph_edge53" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~write_message</title>
-<path fill="none" stroke="#cc00ff" d="M196.96,-851.01C209.54,-824.32 243.42,-761.67 294,-737.35 360.89,-705.19 901.12,-690.89 962,-733.35 1031.6,-781.9 1044.37,-894.13 1046.59,-942.03"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="1043.1,-942.37 1046.95,-952.24 1050.1,-942.13 1043.1,-942.37"/>
-</g>
-<!-- cudaeventcreate -->
-<g id="proc~~autotune_grid~~CallsGraph_node12" class="node">
-<title>cudaeventcreate</title>
-<polygon fill="#777777" stroke="#777777" points="440.5,-652.35 337.5,-652.35 337.5,-628.35 440.5,-628.35 440.5,-652.35"/>
-<text text-anchor="middle" x="389" y="-637.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaeventcreate</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;cudaeventcreate -->
-<g id="proc~~autotune_grid~~CallsGraph_edge19" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;cudaeventcreate</title>
-<path fill="none" stroke="#cc00ff" d="M194.26,-851C202.68,-816.27 231.37,-717.05 294,-666.35 303.56,-658.61 315.27,-653.17 327.13,-649.35"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="328.44,-652.61 337.09,-646.5 326.51,-645.88 328.44,-652.61"/>
-</g>
-<!-- cudaeventdestroy -->
-<g id="proc~~autotune_grid~~CallsGraph_node13" class="node">
-<title>cudaeventdestroy</title>
-<polygon fill="#777777" stroke="#777777" points="443,-610.35 335,-610.35 335,-586.35 443,-586.35 443,-610.35"/>
-<text text-anchor="middle" x="389" y="-595.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaeventdestroy</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;cudaeventdestroy -->
-<g id="proc~~autotune_grid~~CallsGraph_edge20" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;cudaeventdestroy</title>
-<path fill="none" stroke="#cc00ff" d="M192.75,-851.18C197.53,-811.15 218.39,-682.58 294,-619.35 302.83,-611.97 313.71,-607.04 324.89,-603.77"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="325.9,-607.13 334.76,-601.31 324.21,-600.34 325.9,-607.13"/>
-</g>
-<!-- cudaeventelapsedtime -->
-<g id="proc~~autotune_grid~~CallsGraph_node14" class="node">
-<title>cudaeventelapsedtime</title>
-<polygon fill="#777777" stroke="#777777" points="456.5,-568.35 321.5,-568.35 321.5,-544.35 456.5,-544.35 456.5,-568.35"/>
-<text text-anchor="middle" x="389" y="-553.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaeventelapsedtime</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;cudaeventelapsedtime -->
-<g id="proc~~autotune_grid~~CallsGraph_edge21" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;cudaeventelapsedtime</title>
-<path fill="none" stroke="#cc00ff" d="M191.91,-851.35C194.08,-807.34 207.8,-653.45 294,-577.35 299.22,-572.74 305.23,-569.08 311.64,-566.17"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="313.21,-569.32 321.26,-562.43 310.67,-562.79 313.21,-569.32"/>
-</g>
-<!-- cudaeventrecord -->
-<g id="proc~~autotune_grid~~CallsGraph_node15" class="node">
-<title>cudaeventrecord</title>
-<polygon fill="#777777" stroke="#777777" points="440.5,-526.35 337.5,-526.35 337.5,-502.35 440.5,-502.35 440.5,-526.35"/>
-<text text-anchor="middle" x="389" y="-511.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaeventrecord</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;cudaeventrecord -->
-<g id="proc~~autotune_grid~~CallsGraph_edge22" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;cudaeventrecord</title>
-<path fill="none" stroke="#cc00ff" d="M191.28,-851.32C191.11,-803.39 197.2,-624.43 294,-535.35 303.22,-526.86 315.11,-521.55 327.3,-518.27"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="328.11,-521.67 337.1,-516.06 326.57,-514.85 328.11,-521.67"/>
-</g>
-<!-- cudaeventsynchronize -->
-<g id="proc~~autotune_grid~~CallsGraph_node16" class="node">
-<title>cudaeventsynchronize</title>
-<polygon fill="#777777" stroke="#777777" points="455,-484.35 323,-484.35 323,-460.35 455,-460.35 455,-484.35"/>
-<text text-anchor="middle" x="389" y="-469.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaeventsynchronize</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;cudaeventsynchronize -->
-<g id="proc~~autotune_grid~~CallsGraph_edge23" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;cudaeventsynchronize</title>
-<path fill="none" stroke="#cc00ff" d="M193.2,-851.05C201.49,-792.78 239.53,-545.14 294,-493.35 299.5,-488.12 306,-484.09 312.98,-480.99"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="314.61,-484.11 322.74,-477.32 312.15,-477.56 314.61,-484.11"/>
-</g>
-<!-- cudastreamsynchronize -->
-<g id="proc~~autotune_grid~~CallsGraph_node17" class="node">
-<title>cudastreamsynchronize</title>
-<polygon fill="#777777" stroke="#777777" points="458.5,-442.35 319.5,-442.35 319.5,-418.35 458.5,-418.35 458.5,-442.35"/>
-<text text-anchor="middle" x="389" y="-427.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudastreamsynchronize</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;cudastreamsynchronize -->
-<g id="proc~~autotune_grid~~CallsGraph_edge24" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;cudastreamsynchronize</title>
-<path fill="none" stroke="#cc00ff" d="M192.8,-851.35C199.69,-789.76 234.01,-509.92 294,-451.35 298.63,-446.83 304.01,-443.19 309.81,-440.28"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="311.39,-443.41 319.22,-436.28 308.65,-436.97 311.39,-443.41"/>
-</g>
-<!-- mpi_abort -->
-<g id="proc~~autotune_grid~~CallsGraph_node18" class="node">
-<title>mpi_abort</title>
-<polygon fill="#777777" stroke="#777777" points="900.5,-1228.35 833.5,-1228.35 833.5,-1204.35 900.5,-1204.35 900.5,-1228.35"/>
-<text text-anchor="middle" x="867" y="-1213.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;mpi_abort -->
-<g id="proc~~autotune_grid~~CallsGraph_edge26" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;mpi_abort</title>
-<path fill="none" stroke="#cc00ff" d="M191.57,-875.53C192.54,-920.85 202.57,-1080.86 294,-1153.35 335.31,-1186.1 697.33,-1207.67 823.14,-1214.24"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="823.01,-1217.74 833.18,-1214.76 823.37,-1210.74 823.01,-1217.74"/>
-</g>
-<!-- mpi_allreduce -->
-<g id="proc~~autotune_grid~~CallsGraph_node19" class="node">
-<title>mpi_allreduce</title>
-<polygon fill="#777777" stroke="#777777" points="911,-197.35 823,-197.35 823,-173.35 911,-173.35 911,-197.35"/>
-<text text-anchor="middle" x="867" y="-182.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_allreduce</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;mpi_allreduce -->
-<g id="proc~~autotune_grid~~CallsGraph_edge27" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;mpi_allreduce</title>
-<path fill="none" stroke="#cc00ff" d="M191.27,-851.26C189.92,-766.83 186.58,-265.99 294,-173.35 370.44,-107.43 686.05,-153.75 812.88,-175.63"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="812.31,-179.09 822.76,-177.36 813.51,-172.19 812.31,-179.09"/>
-</g>
-<!-- mpi_barrier -->
-<g id="proc~~autotune_grid~~CallsGraph_node20" class="node">
-<title>mpi_barrier</title>
-<polygon fill="#777777" stroke="#777777" points="426.5,-324.35 351.5,-324.35 351.5,-300.35 426.5,-300.35 426.5,-324.35"/>
-<text text-anchor="middle" x="389" y="-309.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_barrier</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;mpi_barrier -->
-<g id="proc~~autotune_grid~~CallsGraph_edge28" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;mpi_barrier</title>
-<path fill="none" stroke="#cc00ff" d="M192.18,-851.1C196.42,-779.62 221.29,-416.89 294,-338.35 306.12,-325.26 324.17,-318.55 341.23,-315.17"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="341.81,-318.62 351.11,-313.54 340.68,-311.71 341.81,-318.62"/>
-</g>
-<!-- mpi_comm_size -->
-<g id="proc~~autotune_grid~~CallsGraph_node24" class="node">
-<title>mpi_comm_size</title>
-<polygon fill="#777777" stroke="#777777" points="676.5,-1643.35 579.5,-1643.35 579.5,-1619.35 676.5,-1619.35 676.5,-1643.35"/>
-<text text-anchor="middle" x="628" y="-1628.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_size</text>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;mpi_comm_size -->
-<g id="proc~~autotune_grid~~CallsGraph_edge29" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;mpi_comm_size</title>
-<path fill="none" stroke="#cc00ff" d="M191.99,-875.41C195.41,-953.58 217.69,-1388.64 294,-1492.35 310.64,-1514.96 493.64,-1595.7 520,-1605.35 535.76,-1611.12 553.29,-1615.99 569.53,-1619.9"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="568.91,-1623.35 579.44,-1622.21 570.5,-1616.53 568.91,-1623.35"/>
-</g>
-<!-- proc~alloc_and_set_aux -->
-<g id="proc~~autotune_grid~~CallsGraph_node26" class="node">
-<title>proc~alloc_and_set_aux</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node26"><a xlink:href="../proc/alloc_and_set_aux.html" xlink:title="alloc_and_set_aux">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="443.5,-206.35 334.5,-206.35 334.5,-182.35 443.5,-182.35 443.5,-206.35"/>
-<text text-anchor="middle" x="389" y="-191.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">alloc_and_set_aux</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~alloc_and_set_aux -->
-<g id="proc~~autotune_grid~~CallsGraph_edge30" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~alloc_and_set_aux</title>
-<path fill="none" stroke="#cc00ff" d="M191.7,-851.35C193.29,-771.61 206.13,-318.63 294,-220.35 302.11,-211.28 313.08,-205.25 324.66,-201.27"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="325.87,-204.57 334.48,-198.39 323.9,-197.85 325.87,-204.57"/>
-</g>
-<!-- proc~alloc_mem -->
-<g id="proc~~autotune_grid~~CallsGraph_node27" class="node">
-<title>proc~alloc_mem</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node27"><a xlink:href="../proc/alloc_mem.html" xlink:title="alloc_mem">
-<polygon fill="#d9534f" stroke="#d9534f" points="663.5,-286.35 592.5,-286.35 592.5,-262.35 663.5,-262.35 663.5,-286.35"/>
-<text text-anchor="middle" x="628" y="-271.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">alloc_mem</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~alloc_mem -->
-<g id="proc~~autotune_grid~~CallsGraph_edge31" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~alloc_mem</title>
-<path fill="none" stroke="#cc00ff" d="M192.37,-851.17C197.46,-783.17 225.62,-451.06 294,-380.35 354.48,-317.82 401.34,-360.46 484,-333.35 521.6,-321.02 563.29,-303.34 591.91,-290.55"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="593.4,-293.71 601.08,-286.42 590.53,-287.33 593.4,-293.71"/>
-</g>
-<!-- proc~convert_pointer -->
-<g id="proc~~autotune_grid~~CallsGraph_node29" class="node">
-<title>proc~convert_pointer</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node29"><a xlink:href="../proc/convert_pointer.html" xlink:title="convert_pointer">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="676.5,-244.35 579.5,-244.35 579.5,-220.35 676.5,-220.35 676.5,-244.35"/>
-<text text-anchor="middle" x="628" y="-229.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">convert_pointer</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~convert_pointer -->
-<g id="proc~~autotune_grid~~CallsGraph_edge32" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~convert_pointer</title>
-<path fill="none" stroke="#cc00ff" d="M191.62,-851.11C192.67,-772.71 202.58,-341.9 294,-258.35 332.93,-222.77 484.68,-224.63 569.25,-228.68"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="569.31,-232.19 579.47,-229.2 569.66,-225.2 569.31,-232.19"/>
-</g>
-<!-- proc~create_helper~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_node30" class="node">
-<title>proc~create_helper~2</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node30"><a xlink:href="../proc/create_helper~2.html" xlink:title="backend_helper%create_helper">
-<polygon fill="#d9534f" stroke="#d9534f" points="479.5,-1483.35 298.5,-1483.35 298.5,-1459.35 479.5,-1459.35 479.5,-1483.35"/>
-<text text-anchor="middle" x="389" y="-1468.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_helper%create_helper</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~create_helper~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge33" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~create_helper~2</title>
-<path fill="none" stroke="#cc00ff" d="M191.11,-875.39C189.67,-935.31 189.46,-1205.83 294,-1388.35 309.69,-1415.75 337.77,-1438.74 359.17,-1453.53"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="357.32,-1456.5 367.58,-1459.16 361.22,-1450.69 357.32,-1456.5"/>
-</g>
-<!-- proc~cudageterrorstring -->
-<g id="proc~~autotune_grid~~CallsGraph_node32" class="node">
-<title>proc~cudageterrorstring</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node32"><a xlink:href="../proc/cudageterrorstring.html" xlink:title="cudaGetErrorString">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="924.5,-1144.35 809.5,-1144.35 809.5,-1120.35 924.5,-1120.35 924.5,-1144.35"/>
-<text text-anchor="middle" x="867" y="-1129.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~cudageterrorstring -->
-<g id="proc~~autotune_grid~~CallsGraph_edge34" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~cudageterrorstring</title>
-<path fill="none" stroke="#cc00ff" d="M193.26,-875.52C199.33,-912.61 223.08,-1024.7 294,-1073.35 375.3,-1129.12 638.16,-1099.26 736,-1111.35 756.67,-1113.91 779.1,-1117.3 799.41,-1120.62"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="799.06,-1124.11 809.5,-1122.29 800.2,-1117.2 799.06,-1124.11"/>
-</g>
-<!-- proc~destroy~9 -->
-<g id="proc~~autotune_grid~~CallsGraph_node33" class="node">
-<title>proc~destroy~9</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node33"><a xlink:href="../proc/destroy~9.html" xlink:title="transpose_handle_cuda%destroy">
-<polygon fill="#d9534f" stroke="#d9534f" points="482.5,-1144.35 295.5,-1144.35 295.5,-1120.35 482.5,-1120.35 482.5,-1144.35"/>
-<text text-anchor="middle" x="389" y="-1129.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_handle_cuda%destroy</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~destroy~9 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge35" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~destroy~9</title>
-<path fill="none" stroke="#cc00ff" d="M192.93,-875.61C198.22,-915.33 220.38,-1041.69 294,-1106.35 298.13,-1109.98 302.73,-1113.11 307.61,-1115.81"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="306.14,-1118.98 316.66,-1120.2 309.2,-1112.68 306.14,-1118.98"/>
-</g>
-<!-- proc~double_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_node34" class="node">
-<title>proc~double_to_str</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node34"><a xlink:href="../proc/double_to_str.html" xlink:title="double_to_str">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="431,-1308.35 347,-1308.35 347,-1284.35 431,-1284.35 431,-1308.35"/>
-<text text-anchor="middle" x="389" y="-1293.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">double_to_str</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~double_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_edge36" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~double_to_str</title>
-<path fill="none" stroke="#cc00ff" d="M192.8,-875.36C199.69,-936.94 234.01,-1216.78 294,-1275.35 305.39,-1286.47 321.29,-1292.22 336.79,-1295.06"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="336.46,-1298.55 346.86,-1296.54 337.48,-1291.63 336.46,-1298.55"/>
-</g>
-<!-- proc~dtfft_get_error_string -->
-<g id="proc~~autotune_grid~~CallsGraph_node35" class="node">
-<title>proc~dtfft_get_error_string</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node35"><a xlink:href="../proc/dtfft_get_error_string.html" xlink:title="dtfft_get_error_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="451,-1266.35 327,-1266.35 327,-1242.35 451,-1242.35 451,-1266.35"/>
-<text text-anchor="middle" x="389" y="-1251.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_error_string</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~dtfft_get_error_string -->
-<g id="proc~~autotune_grid~~CallsGraph_edge37" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~dtfft_get_error_string</title>
-<path fill="none" stroke="#cc00ff" d="M193.2,-875.65C201.49,-933.92 239.53,-1181.57 294,-1233.35 300.52,-1239.55 308.44,-1244.07 316.9,-1247.34"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="316.03,-1250.74 326.62,-1250.53 318.21,-1244.09 316.03,-1250.74"/>
-</g>
-<!-- proc~dtfft_get_gpu_backend_string -->
-<g id="proc~~autotune_grid~~CallsGraph_node36" class="node">
-<title>proc~dtfft_get_gpu_backend_string</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node36"><a xlink:href="../proc/dtfft_get_gpu_backend_string.html" xlink:title="dtfft_get_gpu_backend_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="473.5,-1224.35 304.5,-1224.35 304.5,-1200.35 473.5,-1200.35 473.5,-1224.35"/>
-<text text-anchor="middle" x="389" y="-1209.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_gpu_backend_string</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~dtfft_get_gpu_backend_string -->
-<g id="proc~~autotune_grid~~CallsGraph_edge38" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~dtfft_get_gpu_backend_string</title>
-<path fill="none" stroke="#cc00ff" d="M191.48,-875.39C192.08,-922.55 200.78,-1096.56 294,-1186.35 297.72,-1189.93 301.88,-1193.03 306.33,-1195.7"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="304.72,-1198.81 315.2,-1200.35 307.97,-1192.61 304.72,-1198.81"/>
-</g>
-<!-- proc~execute~7 -->
-<g id="proc~~autotune_grid~~CallsGraph_node37" class="node">
-<title>proc~execute~7</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node37"><a xlink:href="../proc/execute~7.html" xlink:title="transpose_handle_cuda%execute">
-<polygon fill="#d9534f" stroke="#d9534f" points="484,-812.35 294,-812.35 294,-788.35 484,-788.35 484,-812.35"/>
-<text text-anchor="middle" x="389" y="-797.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_handle_cuda%execute</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~execute~7 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge39" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~execute~7</title>
-<path fill="none" stroke="#cc00ff" d="M217.6,-851.22C238.05,-842.07 267.4,-829.71 294,-821.35 301.46,-819.01 309.33,-816.82 317.21,-814.81"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="318.3,-818.15 327.17,-812.36 316.63,-811.35 318.3,-818.15"/>
-</g>
-<!-- proc~free_mem -->
-<g id="proc~~autotune_grid~~CallsGraph_node38" class="node">
-<title>proc~free_mem</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node38"><a xlink:href="../proc/free_mem.html" xlink:title="free_mem">
-<polygon fill="#d9534f" stroke="#d9534f" points="661.5,-407.35 594.5,-407.35 594.5,-383.35 661.5,-383.35 661.5,-407.35"/>
-<text text-anchor="middle" x="628" y="-392.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">free_mem</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~free_mem -->
-<g id="proc~~autotune_grid~~CallsGraph_edge40" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~free_mem</title>
-<path fill="none" stroke="#cc00ff" d="M192.31,-851.24C197,-785.14 222.96,-468.63 294,-409.35 336.84,-373.61 504.1,-383.77 584.02,-390.96"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="583.95,-394.47 594.24,-391.91 584.6,-387.5 583.95,-394.47"/>
-</g>
-<!-- proc~get_iters_from_env -->
-<g id="proc~~autotune_grid~~CallsGraph_node39" class="node">
-<title>proc~get_iters_from_env</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node39"><a xlink:href="../proc/get_iters_from_env.html" xlink:title="get_iters_from_env">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="445.5,-1064.35 332.5,-1064.35 332.5,-1040.35 445.5,-1040.35 445.5,-1064.35"/>
-<text text-anchor="middle" x="389" y="-1049.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_iters_from_env</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~get_iters_from_env -->
-<g id="proc~~autotune_grid~~CallsGraph_edge41" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~get_iters_from_env</title>
-<path fill="none" stroke="#cc00ff" d="M195.15,-875.39C205.27,-906.56 236.77,-990.38 294,-1031.35 302.45,-1037.4 312.33,-1041.75 322.46,-1044.87"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="321.64,-1048.27 332.21,-1047.5 323.46,-1041.51 321.64,-1048.27"/>
-</g>
-<!-- proc~get_local_sizes -->
-<g id="proc~~autotune_grid~~CallsGraph_node41" class="node">
-<title>proc~get_local_sizes</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node41"><a xlink:href="../proc/get_local_sizes.html" xlink:title="get_local_sizes">
-<polygon fill="#d9534f" stroke="#d9534f" points="434.5,-1022.35 343.5,-1022.35 343.5,-998.35 434.5,-998.35 434.5,-1022.35"/>
-<text text-anchor="middle" x="389" y="-1007.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_local_sizes</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~get_local_sizes -->
-<g id="proc~~autotune_grid~~CallsGraph_edge42" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~get_local_sizes</title>
-<path fill="none" stroke="#cc00ff" d="M197.79,-875.69C211.52,-901.27 246.75,-960.13 294,-989.35 305.67,-996.57 319.52,-1001.32 332.96,-1004.44"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="332.6,-1007.94 343.1,-1006.52 334.01,-1001.08 332.6,-1007.94"/>
-</g>
-<!-- proc~get_mpi_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_node42" class="node">
-<title>proc~get_mpi_enabled</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node42"><a xlink:href="../proc/get_mpi_enabled.html" xlink:title="get_mpi_enabled">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="441,-980.35 337,-980.35 337,-956.35 441,-956.35 441,-980.35"/>
-<text text-anchor="middle" x="389" y="-965.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_mpi_enabled</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~get_mpi_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_edge44" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~get_mpi_enabled</title>
-<path fill="none" stroke="#cc00ff" d="M202.52,-875.45C220.03,-893.91 256.15,-928.92 294,-947.35 304.23,-952.33 315.67,-956.15 326.94,-959.07"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="326.24,-962.5 336.78,-961.41 327.86,-955.69 326.24,-962.5"/>
-</g>
-<!-- proc~get_nvshmem_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_node43" class="node">
-<title>proc~get_nvshmem_enabled</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node43"><a xlink:href="../proc/get_nvshmem_enabled.html" xlink:title="get_nvshmem_enabled">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="457,-938.35 321,-938.35 321,-914.35 457,-914.35 457,-938.35"/>
-<text text-anchor="middle" x="389" y="-923.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_nvshmem_enabled</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~get_nvshmem_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_edge45" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~get_nvshmem_enabled</title>
-<path fill="none" stroke="#cc00ff" d="M217.6,-875.48C238.05,-884.63 267.4,-897 294,-905.35 301.46,-907.69 309.33,-909.88 317.21,-911.89"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="316.63,-915.35 327.17,-914.34 318.3,-908.56 316.63,-915.35"/>
-</g>
-<!-- proc~get_pipelined_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_node44" class="node">
-<title>proc~get_pipelined_enabled</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node44"><a xlink:href="../proc/get_pipelined_enabled.html" xlink:title="get_pipelined_enabled">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="455.5,-896.35 322.5,-896.35 322.5,-872.35 455.5,-872.35 455.5,-896.35"/>
-<text text-anchor="middle" x="389" y="-881.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_pipelined_enabled</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~get_pipelined_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_edge46" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~get_pipelined_enabled</title>
-<path fill="none" stroke="#cc00ff" d="M258.03,-870.46C275.34,-872.31 294.12,-874.32 311.89,-876.22"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="311.89,-879.74 322.21,-877.32 312.64,-872.78 311.89,-879.74"/>
-</g>
-<!-- proc~is_backend_mpi -->
-<g id="proc~~autotune_grid~~CallsGraph_node47" class="node">
-<title>proc~is_backend_mpi</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node47"><a xlink:href="../proc/is_backend_mpi.html" xlink:title="is_backend_mpi">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="437.5,-854.35 340.5,-854.35 340.5,-830.35 437.5,-830.35 437.5,-854.35"/>
-<text text-anchor="middle" x="389" y="-839.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_mpi</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~is_backend_mpi -->
-<g id="proc~~autotune_grid~~CallsGraph_edge47" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~is_backend_mpi</title>
-<path fill="none" stroke="#cc00ff" d="M258.03,-856.24C281.49,-853.73 307.65,-850.94 330.32,-848.52"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="330.9,-851.97 340.47,-847.43 330.16,-845.01 330.9,-851.97"/>
-</g>
-<!-- proc~is_backend_nccl -->
-<g id="proc~~autotune_grid~~CallsGraph_node48" class="node">
-<title>proc~is_backend_nccl</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node48"><a xlink:href="../proc/is_backend_nccl.html" xlink:title="is_backend_nccl">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="916.5,-407.35 817.5,-407.35 817.5,-383.35 916.5,-383.35 916.5,-407.35"/>
-<text text-anchor="middle" x="867" y="-392.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nccl</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~is_backend_nccl -->
-<g id="proc~~autotune_grid~~CallsGraph_edge48" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~is_backend_nccl</title>
-<path fill="none" stroke="#cc00ff" d="M195.67,-851.09C206.61,-820.92 239.1,-742.75 294,-704.35 364.95,-654.73 406.56,-700.08 484,-661.35 634.3,-586.18 621.59,-491.31 772,-416.35 782.87,-410.93 795.15,-406.9 807.15,-403.9"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="808.16,-407.26 817.13,-401.61 806.6,-400.43 808.16,-407.26"/>
-</g>
-<!-- proc~is_backend_nvshmem -->
-<g id="proc~~autotune_grid~~CallsGraph_node49" class="node">
-<title>proc~is_backend_nvshmem</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node49"><a xlink:href="../proc/is_backend_nvshmem.html" xlink:title="is_backend_nvshmem">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="932,-365.35 802,-365.35 802,-341.35 932,-341.35 932,-365.35"/>
-<text text-anchor="middle" x="867" y="-350.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nvshmem</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~is_backend_nvshmem -->
-<g id="proc~~autotune_grid~~CallsGraph_edge49" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~is_backend_nvshmem</title>
-<path fill="none" stroke="#cc00ff" d="M191.67,-851.19C192.99,-775.21 204.25,-366.45 294,-291.35 358.76,-237.16 399.83,-284.57 484,-291.35 514.02,-293.77 689.34,-323.21 791.73,-340.64"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="791.26,-344.11 801.7,-342.34 792.43,-337.21 791.26,-344.11"/>
-</g>
-<!-- proc~is_backend_pipelined -->
-<g id="proc~~autotune_grid~~CallsGraph_node50" class="node">
-<title>proc~is_backend_pipelined</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node50"><a xlink:href="../proc/is_backend_pipelined.html" xlink:title="is_backend_pipelined">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="452.5,-770.35 325.5,-770.35 325.5,-746.35 452.5,-746.35 452.5,-770.35"/>
-<text text-anchor="middle" x="389" y="-755.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_pipelined</text>
-</a>
-</g>
-</g>
-<!-- proc~run_autotune_backend&#45;&gt;proc~is_backend_pipelined -->
-<g id="proc~~autotune_grid~~CallsGraph_edge50" class="edge">
-<title>proc~run_autotune_backend&#45;&gt;proc~is_backend_pipelined</title>
-<path fill="none" stroke="#cc00ff" d="M202.52,-851.25C220.03,-832.79 256.15,-797.78 294,-779.35 300.79,-776.04 308.12,-773.25 315.58,-770.89"/>
-<polygon fill="#cc00ff" stroke="#cc00ff" points="316.79,-774.18 325.42,-768.03 314.84,-767.46 316.79,-774.18"/>
-</g>
-<!-- mpi_comm_rank -->
-<g id="proc~~autotune_grid~~CallsGraph_node23" class="node">
-<title>mpi_comm_rank</title>
-<polygon fill="#777777" stroke="#777777" points="1235,-1603.35 1134,-1603.35 1134,-1579.35 1235,-1579.35 1235,-1603.35"/>
-<text text-anchor="middle" x="1184.5" y="-1588.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
-</g>
-<!-- proc~write_message&#45;&gt;mpi_comm_rank -->
-<g id="proc~~autotune_grid~~CallsGraph_edge54" class="edge">
-<title>proc~write_message&#45;&gt;mpi_comm_rank</title>
-<path fill="none" stroke="#ff0098" d="M1052.48,-976.6C1060.9,-1006.49 1082.81,-1085.59 1098,-1152.35 1134.14,-1311.24 1168.49,-1504.64 1179.69,-1569.19"/>
-<polygon fill="#ff0098" stroke="#ff0098" points="1176.25,-1569.81 1181.4,-1579.07 1183.14,-1568.62 1176.25,-1569.81"/>
-</g>
-<!-- mpi_finalized -->
-<g id="proc~~autotune_grid~~CallsGraph_node25" class="node">
-<title>mpi_finalized</title>
-<polygon fill="#777777" stroke="#777777" points="1226,-976.35 1143,-976.35 1143,-952.35 1226,-952.35 1226,-976.35"/>
-<text text-anchor="middle" x="1184.5" y="-961.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalized</text>
-</g>
-<!-- proc~write_message&#45;&gt;mpi_finalized -->
-<g id="proc~~autotune_grid~~CallsGraph_edge55" class="edge">
-<title>proc~write_message&#45;&gt;mpi_finalized</title>
-<path fill="none" stroke="#ff0098" d="M1094.16,-964.35C1106.44,-964.35 1119.83,-964.35 1132.42,-964.35"/>
-<polygon fill="#ff0098" stroke="#ff0098" points="1132.76,-967.85 1142.76,-964.35 1132.76,-960.85 1132.76,-967.85"/>
-</g>
-<!-- proc~alloc_and_set_aux&#45;&gt;mpi_allreduce -->
-<g id="proc~~autotune_grid~~CallsGraph_edge56" class="edge">
-<title>proc~alloc_and_set_aux&#45;&gt;mpi_allreduce</title>
-<path fill="none" stroke="#00ff27" d="M443.68,-193.34C535.45,-191.6 721.44,-188.08 812.85,-186.36"/>
-<polygon fill="#00ff27" stroke="#00ff27" points="813.05,-189.85 822.98,-186.16 812.92,-182.85 813.05,-189.85"/>
-</g>
-<!-- proc~alloc_and_set_aux&#45;&gt;proc~alloc_mem -->
-<g id="proc~~autotune_grid~~CallsGraph_edge57" class="edge">
-<title>proc~alloc_and_set_aux&#45;&gt;proc~alloc_mem</title>
-<path fill="none" stroke="#00ff27" d="M412.38,-206.45C437.79,-219.72 480.82,-240.8 520,-253.35 540.02,-259.76 562.8,-264.56 582.19,-267.94"/>
-<polygon fill="#00ff27" stroke="#00ff27" points="581.83,-271.43 592.27,-269.63 582.99,-264.53 581.83,-271.43"/>
-</g>
-<!-- proc~alloc_and_set_aux&#45;&gt;proc~convert_pointer -->
-<g id="proc~~autotune_grid~~CallsGraph_edge58" class="edge">
-<title>proc~alloc_and_set_aux&#45;&gt;proc~convert_pointer</title>
-<path fill="none" stroke="#00ff27" d="M443.78,-202.97C481.26,-208.98 531.21,-216.99 569.49,-223.13"/>
-<polygon fill="#00ff27" stroke="#00ff27" points="569.03,-226.6 579.46,-224.73 570.14,-219.69 569.03,-226.6"/>
-</g>
-<!-- proc~get_aux_size -->
-<g id="proc~~autotune_grid~~CallsGraph_node63" class="node">
-<title>proc~get_aux_size</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node63"><a xlink:href="../proc/get_aux_size.html" xlink:title="transpose_handle_cuda%get_aux_size">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="736,-126.35 520,-126.35 520,-102.35 736,-102.35 736,-126.35"/>
-<text text-anchor="middle" x="628" y="-111.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_handle_cuda%get_aux_size</text>
-</a>
-</g>
-</g>
-<!-- proc~alloc_and_set_aux&#45;&gt;proc~get_aux_size -->
-<g id="proc~~autotune_grid~~CallsGraph_edge59" class="edge">
-<title>proc~alloc_and_set_aux&#45;&gt;proc~get_aux_size</title>
-<path fill="none" stroke="#00ff27" d="M425.74,-182.29C467.42,-168.22 536.39,-144.94 581.77,-129.62"/>
-<polygon fill="#00ff27" stroke="#00ff27" points="583,-132.9 591.36,-126.38 580.77,-126.26 583,-132.9"/>
-</g>
-<!-- proc~set_aux -->
-<g id="proc~~autotune_grid~~CallsGraph_node66" class="node">
-<title>proc~set_aux</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node66"><a xlink:href="../proc/set_aux.html" xlink:title="transpose_handle_cuda%set_aux">
-<polygon fill="#d9534f" stroke="#d9534f" points="722.5,-84.35 533.5,-84.35 533.5,-60.35 722.5,-60.35 722.5,-84.35"/>
-<text text-anchor="middle" x="628" y="-69.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_handle_cuda%set_aux</text>
-</a>
-</g>
-</g>
-<!-- proc~alloc_and_set_aux&#45;&gt;proc~set_aux -->
-<g id="proc~~autotune_grid~~CallsGraph_edge60" class="edge">
-<title>proc~alloc_and_set_aux&#45;&gt;proc~set_aux</title>
-<path fill="none" stroke="#00ff27" d="M401.61,-182.16C422.91,-160.59 470.58,-115.85 520,-93.35 524.9,-91.12 530.03,-89.13 535.28,-87.34"/>
-<polygon fill="#00ff27" stroke="#00ff27" points="536.34,-90.68 544.84,-84.36 534.25,-84 536.34,-90.68"/>
-</g>
-<!-- proc~alloc_mem&#45;&gt;mpi_allreduce -->
-<g id="proc~~autotune_grid~~CallsGraph_edge62" class="edge">
-<title>proc~alloc_mem&#45;&gt;mpi_allreduce</title>
-<path fill="none" stroke="#00ff4e" d="M663.56,-273.74C685.72,-271.93 714.29,-266.83 736,-253.35 758.36,-239.48 749.83,-220.52 772,-206.35 784.13,-198.6 798.74,-193.69 812.78,-190.58"/>
-<polygon fill="#00ff4e" stroke="#00ff4e" points="813.71,-193.97 822.86,-188.62 812.38,-187.09 813.71,-193.97"/>
-</g>
-<!-- proc~alloc_mem&#45;&gt;proc~is_backend_nccl -->
-<g id="proc~~autotune_grid~~CallsGraph_edge64" class="edge">
-<title>proc~alloc_mem&#45;&gt;proc~is_backend_nccl</title>
-<path fill="none" stroke="#00ff4e" d="M642.49,-286.57C666.63,-307.76 719.6,-351.26 772,-374.35 783,-379.2 795.23,-382.98 807.14,-385.91"/>
-<polygon fill="#00ff4e" stroke="#00ff4e" points="806.5,-389.35 817.03,-388.18 808.06,-382.53 806.5,-389.35"/>
-</g>
-<!-- proc~alloc_mem&#45;&gt;proc~is_backend_nvshmem -->
-<g id="proc~~autotune_grid~~CallsGraph_edge65" class="edge">
-<title>proc~alloc_mem&#45;&gt;proc~is_backend_nvshmem</title>
-<path fill="none" stroke="#00ff4e" d="M663.77,-278.42C685.48,-282 713.48,-288.55 736,-300.35 754.96,-310.28 752.95,-322.6 772,-332.35 778.34,-335.6 785.18,-338.35 792.17,-340.67"/>
-<polygon fill="#00ff4e" stroke="#00ff4e" points="791.18,-344.03 801.77,-343.59 793.22,-337.33 791.18,-344.03"/>
-</g>
-<!-- cudamalloc -->
-<g id="proc~~autotune_grid~~CallsGraph_node52" class="node">
-<title>cudamalloc</title>
-<polygon fill="#777777" stroke="#777777" points="904.5,-323.35 829.5,-323.35 829.5,-299.35 904.5,-299.35 904.5,-323.35"/>
-<text text-anchor="middle" x="867" y="-308.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudamalloc</text>
-</g>
-<!-- proc~alloc_mem&#45;&gt;cudamalloc -->
-<g id="proc~~autotune_grid~~CallsGraph_edge61" class="edge">
-<title>proc~alloc_mem&#45;&gt;cudamalloc</title>
-<path fill="none" stroke="#00ff4e" d="M663.72,-279.77C704.83,-286.19 773.51,-296.91 819.27,-304.06"/>
-<polygon fill="#00ff4e" stroke="#00ff4e" points="818.82,-307.53 829.24,-305.61 819.9,-300.61 818.82,-307.53"/>
-</g>
-<!-- nvshmem_malloc -->
-<g id="proc~~autotune_grid~~CallsGraph_node59" class="node">
-<title>nvshmem_malloc</title>
-<polygon fill="#777777" stroke="#777777" points="920,-281.35 814,-281.35 814,-257.35 920,-257.35 920,-281.35"/>
-<text text-anchor="middle" x="867" y="-266.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvshmem_malloc</text>
-</g>
-<!-- proc~alloc_mem&#45;&gt;nvshmem_malloc -->
-<g id="proc~~autotune_grid~~CallsGraph_edge63" class="edge">
-<title>proc~alloc_mem&#45;&gt;nvshmem_malloc</title>
-<path fill="none" stroke="#00ff4e" d="M663.72,-273.62C700.33,-272.85 758.81,-271.61 803.49,-270.67"/>
-<polygon fill="#00ff4e" stroke="#00ff4e" points="803.74,-274.17 813.67,-270.46 803.59,-267.17 803.74,-274.17"/>
-</g>
-<!-- proc~is_null_ptr -->
-<g id="proc~~autotune_grid~~CallsGraph_node64" class="node">
-<title>proc~is_null_ptr</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node64"><a xlink:href="../proc/is_null_ptr.html" xlink:title="is_null_ptr">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="900,-239.35 834,-239.35 834,-215.35 900,-215.35 900,-239.35"/>
-<text text-anchor="middle" x="867" y="-224.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
-</a>
-</g>
-</g>
-<!-- proc~alloc_mem&#45;&gt;proc~is_null_ptr -->
-<g id="proc~~autotune_grid~~CallsGraph_edge66" class="edge">
-<title>proc~alloc_mem&#45;&gt;proc~is_null_ptr</title>
-<path fill="none" stroke="#00ff4e" d="M663.7,-267.57C684.64,-263.48 711.86,-258.13 736,-253.35 765.37,-247.53 798.46,-240.91 823.9,-235.81"/>
-<polygon fill="#00ff4e" stroke="#00ff4e" points="824.84,-239.19 833.95,-233.79 823.46,-232.33 824.84,-239.19"/>
-</g>
-<!-- proc~string_f2c -->
-<g id="proc~~autotune_grid~~CallsGraph_node67" class="node">
-<title>proc~string_f2c</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node67"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
-<polygon fill="#d9534f" stroke="#d9534f" points="1080,-1780.35 1016,-1780.35 1016,-1756.35 1080,-1756.35 1080,-1780.35"/>
-<text text-anchor="middle" x="1048" y="-1765.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
-</a>
-</g>
-</g>
-<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
-<g id="proc~~autotune_grid~~CallsGraph_edge67" class="edge">
-<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
-<path fill="none" stroke="#00ff75" d="M902.51,-1768.35C931.99,-1768.35 974.47,-1768.35 1005.74,-1768.35"/>
-<polygon fill="#00ff75" stroke="#00ff75" points="1005.88,-1771.85 1015.88,-1768.35 1005.88,-1764.85 1005.88,-1771.85"/>
-</g>
-<!-- proc~create_helper~2&#45;&gt;interface~int_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_edge68" class="edge">
-<title>proc~create_helper~2&#45;&gt;interface~int_to_str</title>
-<path fill="none" stroke="#00ffc4" d="M402.9,-1459.29C430.18,-1434.08 493.41,-1377.2 520,-1366.35 624.22,-1323.85 760.25,-1325.76 826.41,-1329.93"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="826.19,-1333.43 836.41,-1330.61 826.67,-1326.44 826.19,-1333.43"/>
-</g>
-<!-- proc~create_helper~2&#45;&gt;mpi_abort -->
-<g id="proc~~autotune_grid~~CallsGraph_edge69" class="edge">
-<title>proc~create_helper~2&#45;&gt;mpi_abort</title>
-<path fill="none" stroke="#00ffc4" d="M397.49,-1459.16C415.25,-1431.28 462.72,-1362.41 520,-1325.35 617.83,-1262.06 754.96,-1233.32 823.5,-1222.25"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="824.16,-1225.69 833.5,-1220.68 823.07,-1218.77 824.16,-1225.69"/>
-</g>
-<!-- proc~create_helper~2&#45;&gt;mpi_comm_rank -->
-<g id="proc~~autotune_grid~~CallsGraph_edge72" class="edge">
-<title>proc~create_helper~2&#45;&gt;mpi_comm_rank</title>
-<path fill="none" stroke="#00ffc4" d="M476.39,-1483.58C479.03,-1485.02 481.58,-1486.6 484,-1488.35 511.09,-1507.91 491.75,-1536.5 520,-1554.35 619.19,-1617.03 979.65,-1603.47 1123.56,-1595.24"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="1124.17,-1598.72 1133.95,-1594.64 1123.76,-1591.73 1124.17,-1598.72"/>
-</g>
-<!-- proc~create_helper~2&#45;&gt;mpi_comm_size -->
-<g id="proc~~autotune_grid~~CallsGraph_edge73" class="edge">
-<title>proc~create_helper~2&#45;&gt;mpi_comm_size</title>
-<path fill="none" stroke="#00ffc4" d="M429.73,-1483.39C448.24,-1490.7 469.35,-1501.69 484,-1517.35 512.87,-1548.21 487.97,-1577.79 520,-1605.35 533.69,-1617.13 551.84,-1623.75 569.31,-1627.43"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="569,-1630.93 579.47,-1629.26 570.25,-1624.04 569,-1630.93"/>
-</g>
-<!-- mpi_allgather -->
-<g id="proc~~autotune_grid~~CallsGraph_node54" class="node">
-<title>mpi_allgather</title>
-<polygon fill="#777777" stroke="#777777" points="671,-1841.35 585,-1841.35 585,-1817.35 671,-1817.35 671,-1841.35"/>
-<text text-anchor="middle" x="628" y="-1826.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_allgather</text>
-</g>
-<!-- proc~create_helper~2&#45;&gt;mpi_allgather -->
-<g id="proc~~autotune_grid~~CallsGraph_edge70" class="edge">
-<title>proc~create_helper~2&#45;&gt;mpi_allgather</title>
-<path fill="none" stroke="#00ffc4" d="M403.14,-1483.45C423.99,-1503.49 464.31,-1545.8 484,-1590.35 523.69,-1680.17 451.62,-1737.87 520,-1808.35 534.09,-1822.87 555.06,-1828.93 574.72,-1831.06"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="574.59,-1834.56 584.83,-1831.84 575.13,-1827.58 574.59,-1834.56"/>
-</g>
-<!-- mpi_bcast -->
-<g id="proc~~autotune_grid~~CallsGraph_node55" class="node">
-<title>mpi_bcast</title>
-<polygon fill="#777777" stroke="#777777" points="661.5,-1525.35 594.5,-1525.35 594.5,-1501.35 661.5,-1501.35 661.5,-1525.35"/>
-<text text-anchor="middle" x="628" y="-1510.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_bcast</text>
-</g>
-<!-- proc~create_helper~2&#45;&gt;mpi_bcast -->
-<g id="proc~~autotune_grid~~CallsGraph_edge71" class="edge">
-<title>proc~create_helper~2&#45;&gt;mpi_bcast</title>
-<path fill="none" stroke="#00ffc4" d="M457.91,-1483.39C498.62,-1490.6 549.14,-1499.55 584.3,-1505.79"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="583.79,-1509.25 594.25,-1507.55 585.01,-1502.36 583.79,-1509.25"/>
-</g>
-<!-- ncclcomminitrank -->
-<g id="proc~~autotune_grid~~CallsGraph_node56" class="node">
-<title>ncclcomminitrank</title>
-<polygon fill="#777777" stroke="#777777" points="682.5,-1483.35 573.5,-1483.35 573.5,-1459.35 682.5,-1459.35 682.5,-1483.35"/>
-<text text-anchor="middle" x="628" y="-1468.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclcomminitrank</text>
-</g>
-<!-- proc~create_helper~2&#45;&gt;ncclcomminitrank -->
-<g id="proc~~autotune_grid~~CallsGraph_edge74" class="edge">
-<title>proc~create_helper~2&#45;&gt;ncclcomminitrank</title>
-<path fill="none" stroke="#00ffc4" d="M479.6,-1471.35C507.36,-1471.35 537.38,-1471.35 563.04,-1471.35"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="563.38,-1474.85 573.38,-1471.35 563.38,-1467.85 563.38,-1474.85"/>
-</g>
-<!-- ncclgetuniqueid -->
-<g id="proc~~autotune_grid~~CallsGraph_node57" class="node">
-<title>ncclgetuniqueid</title>
-<polygon fill="#777777" stroke="#777777" points="677,-1441.35 579,-1441.35 579,-1417.35 677,-1417.35 677,-1441.35"/>
-<text text-anchor="middle" x="628" y="-1426.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclgetuniqueid</text>
-</g>
-<!-- proc~create_helper~2&#45;&gt;ncclgetuniqueid -->
-<g id="proc~~autotune_grid~~CallsGraph_edge75" class="edge">
-<title>proc~create_helper~2&#45;&gt;ncclgetuniqueid</title>
-<path fill="none" stroke="#00ffc4" d="M457.91,-1459.32C492.87,-1453.12 535.06,-1445.64 568.55,-1439.71"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="569.41,-1443.11 578.64,-1437.92 568.19,-1436.22 569.41,-1443.11"/>
-</g>
-<!-- proc~destroy_helper -->
-<g id="proc~~autotune_grid~~CallsGraph_node60" class="node">
-<title>proc~destroy_helper</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node60"><a xlink:href="../proc/destroy_helper.html" xlink:title="backend_helper%destroy_helper">
-<polygon fill="#d9534f" stroke="#d9534f" points="721.5,-1399.35 534.5,-1399.35 534.5,-1375.35 721.5,-1375.35 721.5,-1399.35"/>
-<text text-anchor="middle" x="628" y="-1384.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_helper%destroy_helper</text>
-</a>
-</g>
-</g>
-<!-- proc~create_helper~2&#45;&gt;proc~destroy_helper -->
-<g id="proc~~autotune_grid~~CallsGraph_edge76" class="edge">
-<title>proc~create_helper~2&#45;&gt;proc~destroy_helper</title>
-<path fill="none" stroke="#00ffc4" d="M410.91,-1459.12C436.02,-1444.94 479.8,-1421.79 520,-1408.35 527.32,-1405.9 535.03,-1403.7 542.81,-1401.73"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="543.77,-1405.1 552.68,-1399.36 542.14,-1398.3 543.77,-1405.1"/>
-</g>
-<!-- proc~ncclgeterrorstring -->
-<g id="proc~~autotune_grid~~CallsGraph_node65" class="node">
-<title>proc~ncclgeterrorstring</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node65"><a xlink:href="../proc/ncclgeterrorstring.html" xlink:title="ncclGetErrorString">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="922.5,-1502.35 811.5,-1502.35 811.5,-1478.35 922.5,-1478.35 922.5,-1502.35"/>
-<text text-anchor="middle" x="867" y="-1487.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclGetErrorString</text>
-</a>
-</g>
-</g>
-<!-- proc~create_helper~2&#45;&gt;proc~ncclgeterrorstring -->
-<g id="proc~~autotune_grid~~CallsGraph_edge77" class="edge">
-<title>proc~create_helper~2&#45;&gt;proc~ncclgeterrorstring</title>
-<path fill="none" stroke="#00ffc4" d="M414.7,-1483.49C451.62,-1501.62 517.2,-1533.71 520,-1534.35 613.57,-1555.83 641.28,-1549.95 736,-1534.35 768.52,-1529 803.85,-1516.58 829.46,-1506.3"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="830.85,-1509.51 838.78,-1502.48 828.2,-1503.04 830.85,-1509.51"/>
-</g>
-<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
-<g id="proc~~autotune_grid~~CallsGraph_edge78" class="edge">
-<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
-<path fill="none" stroke="#00ffeb" d="M688.19,-1782.61C729.42,-1779.3 783.56,-1774.96 821.22,-1771.94"/>
-<polygon fill="#00ffeb" stroke="#00ffeb" points="821.69,-1775.41 831.38,-1771.13 821.13,-1768.44 821.69,-1775.41"/>
-</g>
-<!-- proc~destroy~7 -->
-<g id="proc~~autotune_grid~~CallsGraph_node61" class="node">
-<title>proc~destroy~7</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node61"><a xlink:href="../proc/destroy~7.html" xlink:title="nvrtc_kernel%destroy">
-<polygon fill="#d9534f" stroke="#d9534f" points="691.5,-1144.35 564.5,-1144.35 564.5,-1120.35 691.5,-1120.35 691.5,-1144.35"/>
-<text text-anchor="middle" x="628" y="-1129.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvrtc_kernel%destroy</text>
-</a>
-</g>
-</g>
-<!-- proc~destroy~9&#45;&gt;proc~destroy~7 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge79" class="edge">
-<title>proc~destroy~9&#45;&gt;proc~destroy~7</title>
-<path fill="none" stroke="#00c4ff" d="M482.65,-1132.35C506.4,-1132.35 531.62,-1132.35 554.21,-1132.35"/>
-<polygon fill="#00c4ff" stroke="#00c4ff" points="554.39,-1135.85 564.39,-1132.35 554.39,-1128.85 554.39,-1135.85"/>
-</g>
-<!-- proc~execute~5 -->
-<g id="proc~~autotune_grid~~CallsGraph_node62" class="node">
-<title>proc~execute~5</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node62"><a xlink:href="../proc/execute~5.html" xlink:title="nvrtc_kernel%execute">
-<polygon fill="#d9534f" stroke="#d9534f" points="693,-850.35 563,-850.35 563,-826.35 693,-826.35 693,-850.35"/>
-<text text-anchor="middle" x="628" y="-835.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvrtc_kernel%execute</text>
-</a>
-</g>
-</g>
-<!-- proc~execute~7&#45;&gt;proc~execute~5 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge80" class="edge">
-<title>proc~execute~7&#45;&gt;proc~execute~5</title>
-<path fill="none" stroke="#0027ff" d="M464.99,-812.37C493.01,-816.87 524.8,-821.96 552.75,-826.45"/>
-<polygon fill="#0027ff" stroke="#0027ff" points="552.44,-829.94 562.86,-828.07 553.54,-823.03 552.44,-829.94"/>
-</g>
-<!-- proc~free_mem&#45;&gt;proc~is_backend_nccl -->
-<g id="proc~~autotune_grid~~CallsGraph_edge83" class="edge">
-<title>proc~free_mem&#45;&gt;proc~is_backend_nccl</title>
-<path fill="none" stroke="#0000ff" d="M661.95,-395.35C699.44,-395.35 761.38,-395.35 807.2,-395.35"/>
-<polygon fill="#0000ff" stroke="#0000ff" points="807.3,-398.85 817.3,-395.35 807.3,-391.85 807.3,-398.85"/>
-</g>
-<!-- proc~free_mem&#45;&gt;proc~is_backend_nvshmem -->
-<g id="proc~~autotune_grid~~CallsGraph_edge84" class="edge">
-<title>proc~free_mem&#45;&gt;proc~is_backend_nvshmem</title>
-<path fill="none" stroke="#0000ff" d="M661.95,-389.51C695.35,-383.59 748.15,-374.24 791.67,-366.52"/>
-<polygon fill="#0000ff" stroke="#0000ff" points="792.42,-369.94 801.66,-364.75 791.2,-363.05 792.42,-369.94"/>
-</g>
-<!-- cudafree -->
-<g id="proc~~autotune_grid~~CallsGraph_node51" class="node">
-<title>cudafree</title>
-<polygon fill="#777777" stroke="#777777" points="897,-1018.35 837,-1018.35 837,-994.35 897,-994.35 897,-1018.35"/>
-<text text-anchor="middle" x="867" y="-1003.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudafree</text>
-</g>
-<!-- proc~free_mem&#45;&gt;cudafree -->
-<g id="proc~~autotune_grid~~CallsGraph_edge81" class="edge">
-<title>proc~free_mem&#45;&gt;cudafree</title>
-<path fill="none" stroke="#0000ff" d="M632.23,-407.4C645.62,-457.49 697.88,-654.33 736,-817.35 753.39,-891.71 718.24,-931.12 772,-985.35 786.1,-999.58 807.6,-1005.09 826.47,-1006.93"/>
-<polygon fill="#0000ff" stroke="#0000ff" points="826.42,-1010.43 836.63,-1007.6 826.88,-1003.44 826.42,-1010.43"/>
-</g>
-<!-- nvshmem_free -->
-<g id="proc~~autotune_grid~~CallsGraph_node58" class="node">
-<title>nvshmem_free</title>
-<polygon fill="#777777" stroke="#777777" points="912.5,-449.35 821.5,-449.35 821.5,-425.35 912.5,-425.35 912.5,-449.35"/>
-<text text-anchor="middle" x="867" y="-434.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvshmem_free</text>
-</g>
-<!-- proc~free_mem&#45;&gt;nvshmem_free -->
-<g id="proc~~autotune_grid~~CallsGraph_edge82" class="edge">
-<title>proc~free_mem&#45;&gt;nvshmem_free</title>
-<path fill="none" stroke="#0000ff" d="M661.95,-401.19C700.58,-408.04 765.18,-419.49 811.35,-427.67"/>
-<polygon fill="#0000ff" stroke="#0000ff" points="810.74,-431.11 821.2,-429.41 811.96,-424.22 810.74,-431.11"/>
-</g>
-<!-- interface~get_env -->
-<g id="proc~~autotune_grid~~CallsGraph_node53" class="node">
-<title>interface~get_env</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node53"><a xlink:href="../interface/get_env.html" xlink:title="get_env">
-<polygon fill="#a7506f" stroke="#a7506f" points="655.5,-1018.35 600.5,-1018.35 600.5,-994.35 655.5,-994.35 655.5,-1018.35"/>
-<text text-anchor="middle" x="628" y="-1003.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env</text>
-</a>
-</g>
-</g>
-<!-- proc~get_iters_from_env&#45;&gt;interface~get_env -->
-<g id="proc~~autotune_grid~~CallsGraph_edge85" class="edge">
-<title>proc~get_iters_from_env&#45;&gt;interface~get_env</title>
-<path fill="none" stroke="#2700ff" d="M445.57,-1041.57C490.09,-1032.93 551.3,-1021.04 590.01,-1013.53"/>
-<polygon fill="#2700ff" stroke="#2700ff" points="591.15,-1016.88 600.3,-1011.53 589.82,-1010 591.15,-1016.88"/>
-</g>
-<!-- proc~get_local_size&#45;&gt;mpi_comm_rank -->
-<g id="proc~~autotune_grid~~CallsGraph_edge87" class="edge">
-<title>proc~get_local_size&#45;&gt;mpi_comm_rank</title>
-<path fill="none" stroke="#4e00ff" d="M431.92,-1845.4C550.91,-1876.83 895.22,-1948.38 1098,-1789.35 1154.8,-1744.81 1174.54,-1655.08 1180.82,-1613.47"/>
-<polygon fill="#4e00ff" stroke="#4e00ff" points="1184.29,-1613.92 1182.2,-1603.53 1177.36,-1612.96 1184.29,-1613.92"/>
-</g>
-<!-- proc~get_local_size&#45;&gt;mpi_comm_size -->
-<g id="proc~~autotune_grid~~CallsGraph_edge88" class="edge">
-<title>proc~get_local_size&#45;&gt;mpi_comm_size</title>
-<path fill="none" stroke="#4e00ff" d="M432.14,-1830.16C449.26,-1827.34 468.59,-1822.08 484,-1812.35 505.95,-1798.49 503.94,-1786.75 520,-1766.35 552.09,-1725.61 589.8,-1678.13 610.79,-1651.72"/>
-<polygon fill="#4e00ff" stroke="#4e00ff" points="613.75,-1653.62 617.24,-1643.62 608.27,-1649.26 613.75,-1653.62"/>
-</g>
-<!-- proc~get_local_size&#45;&gt;mpi_allgather -->
-<g id="proc~~autotune_grid~~CallsGraph_edge86" class="edge">
-<title>proc~get_local_size&#45;&gt;mpi_allgather</title>
-<path fill="none" stroke="#4e00ff" d="M432.1,-1832.64C471.91,-1831.97 531.79,-1830.96 574.66,-1830.23"/>
-<polygon fill="#4e00ff" stroke="#4e00ff" points="574.96,-1833.73 584.9,-1830.06 574.84,-1826.73 574.96,-1833.73"/>
-</g>
-<!-- proc~get_env_base -->
-<g id="proc~~autotune_grid~~CallsGraph_node73" class="node">
-<title>proc~get_env_base</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node73"><a xlink:href="../proc/get_env_base.html" xlink:title="get_env_base">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="909.5,-934.35 824.5,-934.35 824.5,-910.35 909.5,-910.35 909.5,-934.35"/>
-<text text-anchor="middle" x="867" y="-919.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_base</text>
-</a>
-</g>
-</g>
-<!-- interface~get_env&#45;&gt;proc~get_env_base -->
-<g id="proc~~autotune_grid~~CallsGraph_edge89" class="edge">
-<title>interface~get_env&#45;&gt;proc~get_env_base</title>
-<path fill="none" stroke="#ffb300" stroke-dasharray="5,2" d="M652.73,-994.18C680.65,-980.26 728.7,-957.58 772,-943.35 785.55,-938.9 800.51,-935.08 814.43,-931.97"/>
-<polygon fill="#ffb300" stroke="#ffb300" points="815.31,-935.36 824.35,-929.83 813.83,-928.52 815.31,-935.36"/>
-</g>
-<!-- proc~get_env_int32 -->
-<g id="proc~~autotune_grid~~CallsGraph_node74" class="node">
-<title>proc~get_env_int32</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node74"><a xlink:href="../proc/get_env_int32.html" xlink:title="get_env_int32">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="910.5,-976.35 823.5,-976.35 823.5,-952.35 910.5,-952.35 910.5,-976.35"/>
-<text text-anchor="middle" x="867" y="-961.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_int32</text>
-</a>
-</g>
-</g>
-<!-- interface~get_env&#45;&gt;proc~get_env_int32 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge90" class="edge">
-<title>interface~get_env&#45;&gt;proc~get_env_int32</title>
-<path fill="none" stroke="#ffb300" stroke-dasharray="5,2" d="M655.73,-997.15C693.81,-987.86 764.49,-974.91 813.33,-967.96"/>
-<polygon fill="#ffb300" stroke="#ffb300" points="813.97,-971.41 823.4,-966.58 813.01,-964.47 813.97,-971.41"/>
-</g>
-<!-- proc~get_env_int8 -->
-<g id="proc~~autotune_grid~~CallsGraph_node75" class="node">
-<title>proc~get_env_int8</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node75"><a xlink:href="../proc/get_env_int8.html" xlink:title="get_env_int8">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="907,-892.35 827,-892.35 827,-868.35 907,-868.35 907,-892.35"/>
-<text text-anchor="middle" x="867" y="-877.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_int8</text>
-</a>
-</g>
-</g>
-<!-- interface~get_env&#45;&gt;proc~get_env_int8 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge91" class="edge">
-<title>interface~get_env&#45;&gt;proc~get_env_int8</title>
-<path fill="none" stroke="#ffb300" stroke-dasharray="5,2" d="M636.92,-994.24C657.4,-970.09 714.52,-918.48 772,-892.35 785.98,-886 802.02,-881.5 816.85,-878.76"/>
-<polygon fill="#ffb300" stroke="#ffb300" points="817.56,-882.19 826.88,-877.14 816.45,-875.28 817.56,-882.19"/>
-</g>
-<!-- proc~get_env_logical -->
-<g id="proc~~autotune_grid~~CallsGraph_node76" class="node">
-<title>proc~get_env_logical</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node76"><a xlink:href="../proc/get_env_logical.html" xlink:title="get_env_logical">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="914.5,-1060.35 819.5,-1060.35 819.5,-1036.35 914.5,-1036.35 914.5,-1060.35"/>
-<text text-anchor="middle" x="867" y="-1045.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_logical</text>
-</a>
-</g>
-</g>
-<!-- interface~get_env&#45;&gt;proc~get_env_logical -->
-<g id="proc~~autotune_grid~~CallsGraph_edge92" class="edge">
-<title>interface~get_env&#45;&gt;proc~get_env_logical</title>
-<path fill="none" stroke="#ffb300" stroke-dasharray="5,2" d="M655.73,-1006.62C694.83,-1010.94 768.29,-1023.59 817.19,-1034.12"/>
-<polygon fill="#ffb300" stroke="#ffb300" points="816.71,-1037.6 827.23,-1036.33 818.22,-1030.76 816.71,-1037.6"/>
-</g>
-<!-- proc~get_env_string -->
-<g id="proc~~autotune_grid~~CallsGraph_node77" class="node">
-<title>proc~get_env_string</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node77"><a xlink:href="../proc/get_env_string.html" xlink:title="get_env_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="912,-1102.35 822,-1102.35 822,-1078.35 912,-1078.35 912,-1102.35"/>
-<text text-anchor="middle" x="867" y="-1087.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_string</text>
-</a>
-</g>
-</g>
-<!-- interface~get_env&#45;&gt;proc~get_env_string -->
-<g id="proc~~autotune_grid~~CallsGraph_edge93" class="edge">
-<title>interface~get_env&#45;&gt;proc~get_env_string</title>
-<path fill="none" stroke="#ffb300" stroke-dasharray="5,2" d="M655.53,-1013.22C683.79,-1024.92 730.12,-1046.59 772,-1060.35 790.59,-1066.46 811.83,-1071.37 829.41,-1075.76"/>
-<polygon fill="#ffb300" stroke="#ffb300" points="828.73,-1079.2 839.29,-1078.3 830.47,-1072.42 828.73,-1079.2"/>
-</g>
-<!-- proc~destroy_helper&#45;&gt;interface~int_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_edge94" class="edge">
-<title>proc~destroy_helper&#45;&gt;interface~int_to_str</title>
-<path fill="none" stroke="#00d1ff" d="M681.89,-1375.3C725.69,-1365.32 786.95,-1351.36 826.55,-1342.34"/>
-<polygon fill="#00d1ff" stroke="#00d1ff" points="827.41,-1345.73 836.38,-1340.1 825.85,-1338.91 827.41,-1345.73"/>
-</g>
-<!-- proc~destroy_helper&#45;&gt;mpi_abort -->
-<g id="proc~~autotune_grid~~CallsGraph_edge95" class="edge">
-<title>proc~destroy_helper&#45;&gt;mpi_abort</title>
-<path fill="none" stroke="#00d1ff" d="M645.67,-1375.33C686.63,-1345.77 792.44,-1269.43 840.98,-1234.4"/>
-<polygon fill="#00d1ff" stroke="#00d1ff" points="843.29,-1237.05 849.35,-1228.36 839.2,-1231.38 843.29,-1237.05"/>
-</g>
-<!-- proc~destroy_helper&#45;&gt;proc~ncclgeterrorstring -->
-<g id="proc~~autotune_grid~~CallsGraph_edge97" class="edge">
-<title>proc~destroy_helper&#45;&gt;proc~ncclgeterrorstring</title>
-<path fill="none" stroke="#00d1ff" d="M707.98,-1399.4C717.57,-1401.87 727.12,-1404.82 736,-1408.35 776.37,-1424.4 817.97,-1453.2 842.91,-1472.04"/>
-<polygon fill="#00d1ff" stroke="#00d1ff" points="840.94,-1474.94 851.01,-1478.25 845.2,-1469.39 840.94,-1474.94"/>
-</g>
-<!-- ncclcommdestroy -->
-<g id="proc~~autotune_grid~~CallsGraph_node70" class="node">
-<title>ncclcommdestroy</title>
-<polygon fill="#777777" stroke="#777777" points="920.5,-1399.35 813.5,-1399.35 813.5,-1375.35 920.5,-1375.35 920.5,-1399.35"/>
-<text text-anchor="middle" x="867" y="-1384.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclcommdestroy</text>
-</g>
-<!-- proc~destroy_helper&#45;&gt;ncclcommdestroy -->
-<g id="proc~~autotune_grid~~CallsGraph_edge96" class="edge">
-<title>proc~destroy_helper&#45;&gt;ncclcommdestroy</title>
-<path fill="none" stroke="#00d1ff" d="M721.65,-1387.35C749.03,-1387.35 778.36,-1387.35 803.37,-1387.35"/>
-<polygon fill="#00d1ff" stroke="#00d1ff" points="803.45,-1390.85 813.45,-1387.35 803.45,-1383.85 803.45,-1390.85"/>
-</g>
-<!-- proc~destroy~7&#45;&gt;interface~int_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_edge99" class="edge">
-<title>proc~destroy~7&#45;&gt;interface~int_to_str</title>
-<path fill="none" stroke="#0078ff" d="M643.47,-1144.62C683.48,-1178.55 795.8,-1273.82 843.8,-1314.52"/>
-<polygon fill="#0078ff" stroke="#0078ff" points="841.83,-1317.44 851.72,-1321.24 846.36,-1312.1 841.83,-1317.44"/>
-</g>
-<!-- proc~destroy~7&#45;&gt;mpi_abort -->
-<g id="proc~~autotune_grid~~CallsGraph_edge100" class="edge">
-<title>proc~destroy~7&#45;&gt;mpi_abort</title>
-<path fill="none" stroke="#0078ff" d="M691.51,-1141.36C706.71,-1145.19 722.47,-1150.63 736,-1158.35 755.93,-1169.73 751.97,-1184.16 772,-1195.35 787.6,-1204.06 806.54,-1209.16 823.33,-1212.14"/>
-<polygon fill="#0078ff" stroke="#0078ff" points="823.03,-1215.64 833.45,-1213.74 824.12,-1208.73 823.03,-1215.64"/>
-</g>
-<!-- proc~destroy~7&#45;&gt;proc~cudageterrorstring -->
-<g id="proc~~autotune_grid~~CallsGraph_edge101" class="edge">
-<title>proc~destroy~7&#45;&gt;proc~cudageterrorstring</title>
-<path fill="none" stroke="#0078ff" d="M691.58,-1132.35C724.64,-1132.35 765.23,-1132.35 798.94,-1132.35"/>
-<polygon fill="#0078ff" stroke="#0078ff" points="799.16,-1135.85 809.16,-1132.35 799.16,-1128.85 799.16,-1135.85"/>
-</g>
-<!-- proc~destroy~7&#45;&gt;cudafree -->
-<g id="proc~~autotune_grid~~CallsGraph_edge98" class="edge">
-<title>proc~destroy~7&#45;&gt;cudafree</title>
-<path fill="none" stroke="#0078ff" d="M641.62,-1120.19C665.2,-1098.16 718.44,-1051.69 772,-1027.35 789.02,-1019.62 809.1,-1014.63 826.32,-1011.47"/>
-<polygon fill="#0078ff" stroke="#0078ff" points="827.35,-1014.85 836.63,-1009.73 826.18,-1007.95 827.35,-1014.85"/>
-</g>
-<!-- proc~mark_unused -->
-<g id="proc~~autotune_grid~~CallsGraph_node79" class="node">
-<title>proc~mark_unused</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node79"><a xlink:href="../proc/mark_unused.html" xlink:title="mark_unused">
-<polygon fill="#d9534f" stroke="#d9534f" points="909.5,-1186.35 824.5,-1186.35 824.5,-1162.35 909.5,-1162.35 909.5,-1186.35"/>
-<text text-anchor="middle" x="867" y="-1171.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mark_unused</text>
-</a>
-</g>
-</g>
-<!-- proc~destroy~7&#45;&gt;proc~mark_unused -->
-<g id="proc~~autotune_grid~~CallsGraph_edge102" class="edge">
-<title>proc~destroy~7&#45;&gt;proc~mark_unused</title>
-<path fill="none" stroke="#0078ff" d="M691.58,-1143.44C729.77,-1150.21 778.03,-1158.76 814.09,-1165.15"/>
-<polygon fill="#0078ff" stroke="#0078ff" points="813.94,-1168.68 824.39,-1166.98 815.16,-1161.79 813.94,-1168.68"/>
-</g>
-<!-- proc~execute~5&#45;&gt;interface~int_to_str -->
-<g id="proc~~autotune_grid~~CallsGraph_edge105" class="edge">
-<title>proc~execute~5&#45;&gt;interface~int_to_str</title>
-<path fill="none" stroke="#001dff" d="M641.09,-850.42C663.91,-874.02 713.09,-928.9 736,-985.35 778.55,-1090.18 721.94,-1135.89 772,-1237.35 787.93,-1269.63 818.8,-1297.87 840.82,-1315.21"/>
-<polygon fill="#001dff" stroke="#001dff" points="838.71,-1318.01 848.77,-1321.32 842.97,-1312.45 838.71,-1318.01"/>
-</g>
-<!-- proc~execute~5&#45;&gt;mpi_abort -->
-<g id="proc~~autotune_grid~~CallsGraph_edge106" class="edge">
-<title>proc~execute~5&#45;&gt;mpi_abort</title>
-<path fill="none" stroke="#001dff" d="M640.95,-850.48C663.52,-874.18 712.3,-929.23 736,-985.35 772.83,-1072.59 706.74,-1126.74 772,-1195.35 785.07,-1209.09 805,-1214.78 823.15,-1216.85"/>
-<polygon fill="#001dff" stroke="#001dff" points="823.03,-1220.35 833.28,-1217.67 823.6,-1213.38 823.03,-1220.35"/>
-</g>
-<!-- proc~execute~5&#45;&gt;proc~cudageterrorstring -->
-<g id="proc~~autotune_grid~~CallsGraph_edge107" class="edge">
-<title>proc~execute~5&#45;&gt;proc~cudageterrorstring</title>
-<path fill="none" stroke="#001dff" d="M640.06,-850.36C661.55,-874.27 709.16,-930.31 736,-985.35 761.53,-1037.7 729.63,-1071.39 772,-1111.35 779.65,-1118.57 789.22,-1123.51 799.3,-1126.85"/>
-<polygon fill="#001dff" stroke="#001dff" points="798.5,-1130.26 809.07,-1129.59 800.38,-1123.52 798.5,-1130.26"/>
-</g>
-<!-- culaunchkernel -->
-<g id="proc~~autotune_grid~~CallsGraph_node68" class="node">
-<title>culaunchkernel</title>
-<polygon fill="#777777" stroke="#777777" points="914.5,-766.35 819.5,-766.35 819.5,-742.35 914.5,-742.35 914.5,-766.35"/>
-<text text-anchor="middle" x="867" y="-751.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">culaunchkernel</text>
-</g>
-<!-- proc~execute~5&#45;&gt;culaunchkernel -->
-<g id="proc~~autotune_grid~~CallsGraph_edge103" class="edge">
-<title>proc~execute~5&#45;&gt;culaunchkernel</title>
-<path fill="none" stroke="#001dff" d="M652.73,-826.18C680.65,-812.26 728.7,-789.58 772,-775.35 783.91,-771.44 796.9,-768.02 809.33,-765.14"/>
-<polygon fill="#001dff" stroke="#001dff" points="810.14,-768.54 819.13,-762.94 808.61,-761.71 810.14,-768.54"/>
-</g>
-<!-- interface~cudamemcpyasync -->
-<g id="proc~~autotune_grid~~CallsGraph_node69" class="node">
-<title>interface~cudamemcpyasync</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node69"><a xlink:href="../interface/cudamemcpyasync.html" xlink:title="cudaMemcpyAsync">
-<polygon fill="#a7506f" stroke="#a7506f" points="924.5,-850.35 809.5,-850.35 809.5,-826.35 924.5,-826.35 924.5,-850.35"/>
-<text text-anchor="middle" x="867" y="-835.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMemcpyAsync</text>
-</a>
-</g>
-</g>
-<!-- proc~execute~5&#45;&gt;interface~cudamemcpyasync -->
-<g id="proc~~autotune_grid~~CallsGraph_edge104" class="edge">
-<title>proc~execute~5&#45;&gt;interface~cudamemcpyasync</title>
-<path fill="none" stroke="#001dff" d="M693.14,-838.35C726.06,-838.35 766.13,-838.35 799.4,-838.35"/>
-<polygon fill="#001dff" stroke="#001dff" points="799.49,-841.85 809.49,-838.35 799.49,-834.85 799.49,-841.85"/>
-</g>
-<!-- proc~get_contiguous_execution_blocks -->
-<g id="proc~~autotune_grid~~CallsGraph_node72" class="node">
-<title>proc~get_contiguous_execution_blocks</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node72"><a xlink:href="../proc/get_contiguous_execution_blocks.html" xlink:title="get_contiguous_execution_blocks">
-<polygon fill="#d9534f" stroke="#d9534f" points="962,-808.35 772,-808.35 772,-784.35 962,-784.35 962,-808.35"/>
-<text text-anchor="middle" x="867" y="-793.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_contiguous_execution_blocks</text>
-</a>
-</g>
-</g>
-<!-- proc~execute~5&#45;&gt;proc~get_contiguous_execution_blocks -->
-<g id="proc~~autotune_grid~~CallsGraph_edge108" class="edge">
-<title>proc~execute~5&#45;&gt;proc~get_contiguous_execution_blocks</title>
-<path fill="none" stroke="#001dff" d="M693.14,-826.99C722.33,-821.81 757.13,-815.64 787.84,-810.2"/>
-<polygon fill="#001dff" stroke="#001dff" points="788.85,-813.58 798.08,-808.39 787.62,-806.69 788.85,-813.58"/>
-</g>
-<!-- proc~get_aux_size~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_node71" class="node">
-<title>proc~get_aux_size~2</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node71"><a xlink:href="../proc/get_aux_size~2.html" xlink:title="abstract_backend%get_aux_size">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="959,-126.35 775,-126.35 775,-102.35 959,-102.35 959,-126.35"/>
-<text text-anchor="middle" x="867" y="-111.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend%get_aux_size</text>
-</a>
-</g>
-</g>
-<!-- proc~get_aux_size&#45;&gt;proc~get_aux_size~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge109" class="edge">
-<title>proc~get_aux_size&#45;&gt;proc~get_aux_size~2</title>
-<path fill="none" stroke="#3c00ff" d="M736.06,-114.35C745.61,-114.35 755.26,-114.35 764.76,-114.35"/>
-<polygon fill="#3c00ff" stroke="#3c00ff" points="764.99,-117.85 774.99,-114.35 764.99,-110.85 764.99,-117.85"/>
-</g>
-<!-- proc~is_same_ptr -->
-<g id="proc~~autotune_grid~~CallsGraph_node78" class="node">
-<title>proc~is_same_ptr</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node78"><a xlink:href="../proc/is_same_ptr.html" xlink:title="is_same_ptr">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="1086,-239.35 1010,-239.35 1010,-215.35 1086,-215.35 1086,-239.35"/>
-<text text-anchor="middle" x="1048" y="-224.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_same_ptr</text>
-</a>
-</g>
-</g>
-<!-- proc~is_null_ptr&#45;&gt;proc~is_same_ptr -->
-<g id="proc~~autotune_grid~~CallsGraph_edge110" class="edge">
-<title>proc~is_null_ptr&#45;&gt;proc~is_same_ptr</title>
-<path fill="none" stroke="#9500ff" d="M900,-227.35C927.65,-227.35 967.99,-227.35 999.42,-227.35"/>
-<polygon fill="#9500ff" stroke="#9500ff" points="999.7,-230.85 1009.7,-227.35 999.7,-223.85 999.7,-230.85"/>
-</g>
-<!-- proc~set_aux~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_node80" class="node">
-<title>proc~set_aux~2</title>
-<g id="a_proc~~autotune_grid~~CallsGraph_node80"><a xlink:href="../proc/set_aux~2.html" xlink:title="abstract_backend%set_aux">
-<polygon fill="#d9534f" stroke="#d9534f" points="945.5,-84.35 788.5,-84.35 788.5,-60.35 945.5,-60.35 945.5,-84.35"/>
-<text text-anchor="middle" x="867" y="-69.95" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend%set_aux</text>
-</a>
-</g>
-</g>
-<!-- proc~set_aux&#45;&gt;proc~set_aux~2 -->
-<g id="proc~~autotune_grid~~CallsGraph_edge111" class="edge">
-<title>proc~set_aux&#45;&gt;proc~set_aux~2</title>
-<path fill="none" stroke="#ff00b4" d="M722.67,-72.35C740.92,-72.35 760,-72.35 778.06,-72.35"/>
-<polygon fill="#ff00b4" stroke="#ff00b4" points="778.27,-75.85 788.27,-72.35 778.27,-68.85 778.27,-75.85"/>
-</g>
-<!-- proc~get_env_int32&#45;&gt;proc~get_log_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_edge113" class="edge">
-<title>proc~get_env_int32&#45;&gt;proc~get_log_enabled</title>
-<path fill="none" stroke="#00ffc4" d="M910.93,-965.72C928.37,-968.23 947.73,-973.74 962,-985.35 1014.83,-1028.33 1036.07,-1111.17 1043.51,-1150.95"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="1040.09,-1151.71 1045.25,-1160.96 1046.98,-1150.51 1040.09,-1151.71"/>
-</g>
-<!-- proc~get_env_int32&#45;&gt;proc~write_message -->
-<g id="proc~~autotune_grid~~CallsGraph_edge114" class="edge">
-<title>proc~get_env_int32&#45;&gt;proc~write_message</title>
-<path fill="none" stroke="#00ffc4" d="M910.87,-964.35C935.16,-964.35 965.81,-964.35 991.87,-964.35"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="991.98,-967.85 1001.98,-964.35 991.98,-960.85 991.98,-967.85"/>
-</g>
-<!-- proc~get_env_int32&#45;&gt;interface~get_env -->
-<g id="proc~~autotune_grid~~CallsGraph_edge112" class="edge">
-<title>proc~get_env_int32&#45;&gt;interface~get_env</title>
-<path fill="none" stroke="#00ffc4" d="M827.23,-976.37C782.5,-986.47 709.5,-999.37 665.67,-1004.9"/>
-<polygon fill="#00ffc4" stroke="#00ffc4" points="665.24,-1001.42 655.73,-1006.08 666.07,-1008.37 665.24,-1001.42"/>
-</g>
-<!-- proc~get_env_int8&#45;&gt;interface~get_env -->
-<g id="proc~~autotune_grid~~CallsGraph_edge115" class="edge">
-<title>proc~get_env_int8&#45;&gt;interface~get_env</title>
-<path fill="none" stroke="#00c4ff" d="M832.3,-892.38C813.89,-896.49 791.03,-901.7 772,-910.35 727.53,-930.56 683.28,-966.03 656.04,-987.95"/>
-<polygon fill="#00c4ff" stroke="#00c4ff" points="653.75,-985.3 648.15,-994.29 658.14,-990.76 653.75,-985.3"/>
-</g>
-<!-- proc~get_env_logical&#45;&gt;interface~get_env -->
-<g id="proc~~autotune_grid~~CallsGraph_edge116" class="edge">
-<title>proc~get_env_logical&#45;&gt;interface~get_env</title>
-<path fill="none" stroke="#004eff" d="M819.43,-1045.59C774.38,-1039.42 707.01,-1027.33 665.65,-1017.89"/>
-<polygon fill="#004eff" stroke="#004eff" points="666.26,-1014.44 655.73,-1015.55 664.66,-1021.25 666.26,-1014.44"/>
-</g>
-<!-- proc~get_env_string&#45;&gt;proc~get_log_enabled -->
-<g id="proc~~autotune_grid~~CallsGraph_edge118" class="edge">
-<title>proc~get_env_string&#45;&gt;proc~get_log_enabled</title>
-<path fill="none" stroke="#2700ff" d="M912.25,-1096.37C928.38,-1099.56 946.46,-1104.32 962,-1111.35 985.95,-1122.19 1009.83,-1140.44 1026.16,-1154.34"/>
-<polygon fill="#2700ff" stroke="#2700ff" points="1024.13,-1157.21 1033.97,-1161.15 1028.73,-1151.94 1024.13,-1157.21"/>
-</g>
-<!-- proc~get_env_string&#45;&gt;proc~write_message -->
-<g id="proc~~autotune_grid~~CallsGraph_edge119" class="edge">
-<title>proc~get_env_string&#45;&gt;proc~write_message</title>
-<path fill="none" stroke="#2700ff" d="M912.43,-1086.63C928.94,-1083.7 947.22,-1078.52 962,-1069.35 995.61,-1048.51 1021.82,-1009.57 1035.8,-985.42"/>
-<polygon fill="#2700ff" stroke="#2700ff" points="1038.87,-987.09 1040.71,-976.66 1032.77,-983.67 1038.87,-987.09"/>
-</g>
-<!-- proc~get_env_string&#45;&gt;interface~get_env -->
-<g id="proc~~autotune_grid~~CallsGraph_edge117" class="edge">
-<title>proc~get_env_string&#45;&gt;interface~get_env</title>
-<path fill="none" stroke="#2700ff" d="M822,-1090.82C806.06,-1088 788.05,-1083.62 772,-1078.35 727.77,-1063.82 678.58,-1040.46 650.96,-1023.93"/>
-<polygon fill="#2700ff" stroke="#2700ff" points="652.79,-1020.95 642.45,-1018.61 649.07,-1026.88 652.79,-1020.95"/>
-</g>
-</g>
-</svg>
-</div>                <script>
-                  var panprocautotune_gridCallsGraph = svgPanZoom('#procautotune_gridCallsGraph',
-                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
-                  );
-                </script>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
-          </div>
-          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-<p>Nodes of different colours represent the following: </p>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: Graph Key Pages: 1 -->
-<svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
-<title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
-<!-- Subroutine -->
-<g id="node1" class="node">
-<title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
-</g>
-<!-- Function -->
-<g id="node2" class="node">
-<title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
-</g>
-<!-- Interface -->
-<g id="node3" class="node">
-<title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
-</g>
-<!-- Type Bound Procedure -->
-<g id="node4" class="node">
-<title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
-</g>
-<!-- Unknown Procedure Type -->
-<g id="node5" class="node">
-<title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
-</g>
-<!-- Program -->
-<g id="node6" class="node">
-<title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
-</g>
-<!-- This Page&#39;s Entity -->
-<g id="node7" class="node">
-<title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
-</g>
-</g>
-</svg>
-
-<p>Solid arrows point from a procedure to one which it calls. Dashed 
-arrows point from an interface to procedures which implement that interface.
-This could include the module procedures in a generic interface or the
-implementation in a submodule of an interface in a parent module.
-</p>
- Where possible, edges connecting nodes are
-given different colours to make them easier to distinguish in
-large graphs.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-  <h3 class="card-title">Called by</h3>
-      </div>
-      <div class="card-body">
-  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: proc~~autotune_grid~~CalledByGraph Pages: 1 -->
-<svg id="procautotune_gridCalledByGraph" width="538pt" height="32pt"
- viewBox="0.00 0.00 538.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~autotune_grid~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
-<title>proc~~autotune_grid~~CalledByGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 534,-28 534,4 -4,4"/>
-<!-- proc~autotune_grid -->
-<g id="proc~~autotune_grid~~CalledByGraph_node1" class="node">
-<title>proc~autotune_grid</title>
-<polygon fill="none" stroke="black" points="530,-24 443,-24 443,0 530,0 530,-24"/>
-<text text-anchor="middle" x="486.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">autotune_grid</text>
-</g>
-<!-- proc~autotune_grid_decomposition -->
-<g id="proc~~autotune_grid~~CalledByGraph_node2" class="node">
-<title>proc~autotune_grid_decomposition</title>
-<g id="a_proc~~autotune_grid~~CalledByGraph_node2"><a xlink:href="../proc/autotune_grid_decomposition.html" xlink:title="autotune_grid_decomposition">
-<polygon fill="#d9534f" stroke="#d9534f" points="407,-24 236,-24 236,0 407,0 407,-24"/>
-<text text-anchor="middle" x="321.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid_decomposition</text>
-</a>
-</g>
-</g>
-<!-- proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid -->
-<g id="proc~~autotune_grid~~CalledByGraph_edge1" class="edge">
-<title>proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid</title>
-<path fill="none" stroke="#ff0000" d="M407.34,-12C415.94,-12 424.48,-12 432.59,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="432.61,-15.5 442.61,-12 432.61,-8.5 432.61,-15.5"/>
-</g>
-<!-- proc~create_cuda -->
-<g id="proc~~autotune_grid~~CalledByGraph_node3" class="node">
-<title>proc~create_cuda</title>
-<g id="a_proc~~autotune_grid~~CalledByGraph_node3"><a xlink:href="../proc/create_cuda.html" xlink:title="transpose_plan_cuda%create_cuda">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="200,-24 0,-24 0,0 200,0 200,-24"/>
-<text text-anchor="middle" x="100" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan_cuda%create_cuda</text>
-</a>
-</g>
-</g>
-<!-- proc~create_cuda&#45;&gt;proc~autotune_grid_decomposition -->
-<g id="proc~~autotune_grid~~CalledByGraph_edge2" class="edge">
-<title>proc~create_cuda&#45;&gt;proc~autotune_grid_decomposition</title>
-<path fill="none" stroke="#ff0000" d="M200.15,-12C208.64,-12 217.2,-12 225.65,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="225.88,-15.5 235.88,-12 225.88,-8.5 225.88,-15.5"/>
-</g>
-</g>
-</svg>
-</div>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
-          </div>
-          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-<p>Nodes of different colours represent the following: </p>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: Graph Key Pages: 1 -->
-<svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
-<title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
-<!-- Subroutine -->
-<g id="node1" class="node">
-<title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
-</g>
-<!-- Function -->
-<g id="node2" class="node">
-<title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
-</g>
-<!-- Interface -->
-<g id="node3" class="node">
-<title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
-</g>
-<!-- Type Bound Procedure -->
-<g id="node4" class="node">
-<title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
-</g>
-<!-- Unknown Procedure Type -->
-<g id="node5" class="node">
-<title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
-</g>
-<!-- Program -->
-<g id="node6" class="node">
-<title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
-</g>
-<!-- This Page&#39;s Entity -->
-<g id="node7" class="node">
-<title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
-</g>
-</g>
-</svg>
-
-<p>Solid arrows point from a procedure to one which it calls. Dashed 
-arrows point from an interface to procedures which implement that interface.
-This could include the module procedures in a generic interface or the
-implementation in a submodule of an interface in a parent module.
-</p>
- Where possible, edges connecting nodes are
-given different colours to make them easier to distinguish in
-large graphs.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     <br>
 
 
@@ -1955,9 +401,6 @@ large graphs.</div>
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

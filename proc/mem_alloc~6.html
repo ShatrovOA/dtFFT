@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,11 +52,6 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -76,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">8 statements</a>
+                 title=" 0.1% of total for procedures.">5 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_transpose_plan.F90"> Source File</a>
+              <a href="../src/dtfft_executor_vkfft_m.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_transpose_plan.f90.html'>dtfft_abstract_transpose_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_transpose_plan.html'>dtfft_abstract_transpose_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_vkfft_m.f90.html'>dtfft_executor_vkfft_m.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_executor_vkfft_m.html'>dtfft_executor_vkfft_m</a></li>
             <li class="breadcrumb-item active" aria-current="page">mem_alloc</li>
           </ol>
         </nav>
@@ -135,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine mem_alloc(self, comm, alloc_bytes, ptr, error_code)  
+    <h2>private  subroutine mem_alloc(alloc_bytes, ptr)  
 </h2>
     
 
-    <p>Allocates memory based on selected backend</p>
+    <p>Dummy method. Raises <code>error stop</code></p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_transpose_plan.html'>abstract_transpose_plan</a></p>
+    <p><a href='../type/vkfft_executor.html'>vkfft_executor</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -157,37 +151,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~107"></span>
-              class(<a href='../type/abstract_transpose_plan.html'>abstract_transpose_plan</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>self</strong></td>
-            <td>
-                <p>Transposition class</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-comm~30"></span>
-              type(MPI_Comm),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>comm</strong></td>
-            <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-alloc_bytes~10"></span>
+              <span class="anchor" id="variable-alloc_bytes~11"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -197,12 +161,12 @@
             <td>::</td>
             <td><strong>alloc_bytes</strong></td>
             <td>
-                
+                <p>Number of bytes to allocate</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ptr~31"></span>
+              <span class="anchor" id="variable-ptr~33"></span>
               type(c_ptr),
             </td>
 <td>intent(out)</td>
@@ -212,244 +176,12 @@
             <td>::</td>
             <td><strong>ptr</strong></td>
             <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-error_code~54"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>error_code</strong></td>
-            <td>
-                
+                <p>Allocated pointer</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-    <br>
-    <div class="card">
-      <div class="card-header">
-  <h3 class="card-title">Calls</h3>
-      </div>
-      <div class="card-body">
-  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: proc~~mem_alloc~6~~CallsGraph Pages: 1 -->
-<svg id="procmem_alloc6CallsGraph" width="604pt" height="242pt"
- viewBox="0.00 0.00 604.00 242.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~mem_alloc~6~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 238)">
-<title>proc~~mem_alloc~6~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-238 600,-238 600,4 -4,4"/>
-<!-- proc~mem_alloc~6 -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node1" class="node">
-<title>proc~mem_alloc~6</title>
-<polygon fill="none" stroke="black" points="211,-129 0,-129 0,-105 211,-105 211,-129"/>
-<text text-anchor="middle" x="105.5" y="-114.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_transpose_plan%mem_alloc</text>
-</g>
-<!-- proc~alloc_mem -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node2" class="node">
-<title>proc~alloc_mem</title>
-<g id="a_proc~~mem_alloc~6~~CallsGraph_node2"><a xlink:href="../proc/alloc_mem.html" xlink:title="alloc_mem">
-<polygon fill="#d9534f" stroke="#d9534f" points="318,-129 247,-129 247,-105 318,-105 318,-129"/>
-<text text-anchor="middle" x="282.5" y="-114.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">alloc_mem</text>
-</a>
-</g>
-</g>
-<!-- proc~mem_alloc~6&#45;&gt;proc~alloc_mem -->
-<g id="proc~~mem_alloc~6~~CallsGraph_edge1" class="edge">
-<title>proc~mem_alloc~6&#45;&gt;proc~alloc_mem</title>
-<path fill="none" stroke="#ff0000" d="M211.08,-117C220.01,-117 228.7,-117 236.74,-117"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="236.92,-120.5 246.92,-117 236.92,-113.5 236.92,-120.5"/>
-</g>
-<!-- cudamalloc -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node3" class="node">
-<title>cudamalloc</title>
-<polygon fill="#777777" stroke="#777777" points="456.5,-234 381.5,-234 381.5,-210 456.5,-210 456.5,-234"/>
-<text text-anchor="middle" x="419" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudamalloc</text>
-</g>
-<!-- proc~alloc_mem&#45;&gt;cudamalloc -->
-<g id="proc~~mem_alloc~6~~CallsGraph_edge2" class="edge">
-<title>proc~alloc_mem&#45;&gt;cudamalloc</title>
-<path fill="none" stroke="#ff0000" d="M290.57,-129.13C301.77,-147.32 325.3,-181.58 354,-201 359.34,-204.61 365.35,-207.64 371.49,-210.17"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="370.57,-213.57 381.17,-213.75 373,-207 370.57,-213.57"/>
-</g>
-<!-- mpi_allreduce -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node4" class="node">
-<title>mpi_allreduce</title>
-<polygon fill="#777777" stroke="#777777" points="463,-192 375,-192 375,-168 463,-168 463,-192"/>
-<text text-anchor="middle" x="419" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_allreduce</text>
-</g>
-<!-- proc~alloc_mem&#45;&gt;mpi_allreduce -->
-<g id="proc~~mem_alloc~6~~CallsGraph_edge3" class="edge">
-<title>proc~alloc_mem&#45;&gt;mpi_allreduce</title>
-<path fill="none" stroke="#ff0000" d="M301.16,-129.01C315.08,-138.1 335.2,-150.44 354,-159 358.3,-160.96 362.83,-162.82 367.42,-164.57"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="366.26,-167.87 376.86,-167.99 368.65,-161.29 366.26,-167.87"/>
-</g>
-<!-- nvshmem_malloc -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node5" class="node">
-<title>nvshmem_malloc</title>
-<polygon fill="#777777" stroke="#777777" points="472,-150 366,-150 366,-126 472,-126 472,-150"/>
-<text text-anchor="middle" x="419" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvshmem_malloc</text>
-</g>
-<!-- proc~alloc_mem&#45;&gt;nvshmem_malloc -->
-<g id="proc~~mem_alloc~6~~CallsGraph_edge4" class="edge">
-<title>proc~alloc_mem&#45;&gt;nvshmem_malloc</title>
-<path fill="none" stroke="#ff0000" d="M318.14,-122.41C329.74,-124.22 343.04,-126.3 356.08,-128.33"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="355.54,-131.79 365.96,-129.88 356.62,-124.87 355.54,-131.79"/>
-</g>
-<!-- proc~is_backend_nccl -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node6" class="node">
-<title>proc~is_backend_nccl</title>
-<g id="a_proc~~mem_alloc~6~~CallsGraph_node6"><a xlink:href="../proc/is_backend_nccl.html" xlink:title="is_backend_nccl">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="468.5,-108 369.5,-108 369.5,-84 468.5,-84 468.5,-108"/>
-<text text-anchor="middle" x="419" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nccl</text>
-</a>
-</g>
-</g>
-<!-- proc~alloc_mem&#45;&gt;proc~is_backend_nccl -->
-<g id="proc~~mem_alloc~6~~CallsGraph_edge5" class="edge">
-<title>proc~alloc_mem&#45;&gt;proc~is_backend_nccl</title>
-<path fill="none" stroke="#ff0000" d="M318.14,-111.59C330.66,-109.64 345.18,-107.37 359.2,-105.18"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="359.95,-108.61 369.29,-103.61 358.87,-101.69 359.95,-108.61"/>
-</g>
-<!-- proc~is_backend_nvshmem -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node7" class="node">
-<title>proc~is_backend_nvshmem</title>
-<g id="a_proc~~mem_alloc~6~~CallsGraph_node7"><a xlink:href="../proc/is_backend_nvshmem.html" xlink:title="is_backend_nvshmem">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="484,-66 354,-66 354,-42 484,-42 484,-66"/>
-<text text-anchor="middle" x="419" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nvshmem</text>
-</a>
-</g>
-</g>
-<!-- proc~alloc_mem&#45;&gt;proc~is_backend_nvshmem -->
-<g id="proc~~mem_alloc~6~~CallsGraph_edge6" class="edge">
-<title>proc~alloc_mem&#45;&gt;proc~is_backend_nvshmem</title>
-<path fill="none" stroke="#ff0000" d="M301.16,-104.99C315.08,-95.9 335.2,-83.56 354,-75 358.3,-73.04 362.83,-71.18 367.42,-69.43"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="368.65,-72.71 376.86,-66.01 366.26,-66.13 368.65,-72.71"/>
-</g>
-<!-- proc~is_null_ptr -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node8" class="node">
-<title>proc~is_null_ptr</title>
-<g id="a_proc~~mem_alloc~6~~CallsGraph_node8"><a xlink:href="../proc/is_null_ptr.html" xlink:title="is_null_ptr">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="452,-24 386,-24 386,0 452,0 452,-24"/>
-<text text-anchor="middle" x="419" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
-</a>
-</g>
-</g>
-<!-- proc~alloc_mem&#45;&gt;proc~is_null_ptr -->
-<g id="proc~~mem_alloc~6~~CallsGraph_edge7" class="edge">
-<title>proc~alloc_mem&#45;&gt;proc~is_null_ptr</title>
-<path fill="none" stroke="#ff0000" d="M290.57,-104.87C301.77,-86.68 325.3,-52.42 354,-33 360.67,-28.48 368.39,-24.88 376.11,-22.02"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="377.42,-25.27 385.8,-18.79 375.21,-18.63 377.42,-25.27"/>
-</g>
-<!-- proc~is_same_ptr -->
-<g id="proc~~mem_alloc~6~~CallsGraph_node9" class="node">
-<title>proc~is_same_ptr</title>
-<g id="a_proc~~mem_alloc~6~~CallsGraph_node9"><a xlink:href="../proc/is_same_ptr.html" xlink:title="is_same_ptr">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="596,-24 520,-24 520,0 596,0 596,-24"/>
-<text text-anchor="middle" x="558" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_same_ptr</text>
-</a>
-</g>
-</g>
-<!-- proc~is_null_ptr&#45;&gt;proc~is_same_ptr -->
-<g id="proc~~mem_alloc~6~~CallsGraph_edge8" class="edge">
-<title>proc~is_null_ptr&#45;&gt;proc~is_same_ptr</title>
-<path fill="none" stroke="#ff00ff" d="M452.12,-12C469.2,-12 490.54,-12 509.5,-12"/>
-<polygon fill="#ff00ff" stroke="#ff00ff" points="509.75,-15.5 519.75,-12 509.75,-8.5 509.75,-15.5"/>
-</g>
-</g>
-</svg>
-</div>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
-          </div>
-          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-<p>Nodes of different colours represent the following: </p>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: Graph Key Pages: 1 -->
-<svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
-<title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
-<!-- Subroutine -->
-<g id="node1" class="node">
-<title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
-</g>
-<!-- Function -->
-<g id="node2" class="node">
-<title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
-</g>
-<!-- Interface -->
-<g id="node3" class="node">
-<title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
-</g>
-<!-- Type Bound Procedure -->
-<g id="node4" class="node">
-<title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
-</g>
-<!-- Unknown Procedure Type -->
-<g id="node5" class="node">
-<title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
-</g>
-<!-- Program -->
-<g id="node6" class="node">
-<title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
-</g>
-<!-- This Page&#39;s Entity -->
-<g id="node7" class="node">
-<title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
-</g>
-</g>
-</svg>
-
-<p>Solid arrows point from a procedure to one which it calls. Dashed 
-arrows point from an interface to procedures which implement that interface.
-This could include the module procedures in a generic interface or the
-implementation in a submodule of an interface in a parent module.
-</p>
- Where possible, edges connecting nodes are
-given different colours to make them easier to distinguish in
-large graphs.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     <br>
 
 
@@ -505,9 +237,6 @@ large graphs.</div>
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

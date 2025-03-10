@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,11 +52,6 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -76,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">11 statements</a>
+                 title=" 0.4% of total for procedures.">39 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_transpose_handle_host.F90"> Source File</a>
+              <a href="../src/dtfft_plan.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_host.f90.html'>dtfft_transpose_handle_host.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_host.html'>dtfft_transpose_handle_host</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
             <li class="breadcrumb-item active" aria-current="page">transpose</li>
           </ol>
         </nav>
@@ -135,14 +129,18 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine transpose(self, send, recv)  
+    <h2>private  subroutine transpose(self, in, out, transpose_type, error_code)  
 </h2>
     
 
-    <p>Executes transposition</p>
+    <p>Performs single transposition</p>
+<div class="alert alert-info">
+<p class="alert-title h4">Note</p>
+<p>Buffers <code>in</code> and <code>out</code> cannot be the same</p>
+</div>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/transpose_handle_host.html'>transpose_handle_host</a></p>
+    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -157,8 +155,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~19"></span>
-              class(<a href='../type/transpose_handle_host.html'>transpose_handle_host</a>),
+              <span class="anchor" id="variable-self~36"></span>
+              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -167,172 +165,73 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Transposition class</p>
+                <p>Abstract plan</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-send~4"></span>
+              <span class="anchor" id="variable-in~14"></span>
               type(*),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(..)</td>
+            <td>
+                <p>Incoming buffer of any rank and kind. Note that this buffer
+will be modified in GPU build</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~14"></span>
+              type(*),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(..)</td>
+            <td>
+                <p>Resulting buffer of any rank and kind</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transpose_type~6"></span>
+              type(<a href='../type/dtfft_transpose_type_t.html'>dtfft_transpose_type_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>send</strong>(..)</td>
+            <td><strong>transpose_type</strong></td>
             <td>
-                <p>Incoming buffer of any rank and kind</p>
+                <p>Type of transposition.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-recv~4"></span>
-              type(*),
+              <span class="anchor" id="variable-error_code~23"></span>
+              integer(kind=int32),
             </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>recv</strong>(..)</td>
+            <td><strong>error_code</strong></td>
             <td>
-                <p>Resulting buffer of any rank and kind</p>
+                <p>Optional error code returned to user</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-    <br>
-    <div class="card">
-      <div class="card-header">
-  <h3 class="card-title">Calls</h3>
-      </div>
-      <div class="card-body">
-  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: proc~~transpose~~CallsGraph Pages: 1 -->
-<svg id="proctransposeCallsGraph" width="323pt" height="74pt"
- viewBox="0.00 0.00 323.00 74.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~transpose~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 70)">
-<title>proc~~transpose~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-70 319,-70 319,4 -4,4"/>
-<!-- proc~transpose -->
-<g id="proc~~transpose~~CallsGraph_node1" class="node">
-<title>proc~transpose</title>
-<polygon fill="none" stroke="black" points="197,-45 0,-45 0,-21 197,-21 197,-45"/>
-<text text-anchor="middle" x="98.5" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50">transpose_handle_host%transpose</text>
-</g>
-<!-- mpi_alltoall -->
-<g id="proc~~transpose~~CallsGraph_node2" class="node">
-<title>mpi_alltoall</title>
-<polygon fill="#777777" stroke="#777777" points="311,-66 237,-66 237,-42 311,-42 311,-66"/>
-<text text-anchor="middle" x="274" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_alltoall</text>
-</g>
-<!-- proc~transpose&#45;&gt;mpi_alltoall -->
-<g id="proc~~transpose~~CallsGraph_edge1" class="edge">
-<title>proc~transpose&#45;&gt;mpi_alltoall</title>
-<path fill="none" stroke="#ff0000" d="M197.15,-44.82C207.45,-46.07 217.55,-47.29 226.84,-48.41"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="226.61,-51.91 236.96,-49.64 227.45,-44.96 226.61,-51.91"/>
-</g>
-<!-- mpi_alltoallw -->
-<g id="proc~~transpose~~CallsGraph_node3" class="node">
-<title>mpi_alltoallw</title>
-<polygon fill="#777777" stroke="#777777" points="315,-24 233,-24 233,0 315,0 315,-24"/>
-<text text-anchor="middle" x="274" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_alltoallw</text>
-</g>
-<!-- proc~transpose&#45;&gt;mpi_alltoallw -->
-<g id="proc~~transpose~~CallsGraph_edge2" class="edge">
-<title>proc~transpose&#45;&gt;mpi_alltoallw</title>
-<path fill="none" stroke="#ff0000" d="M197.15,-21.18C205.93,-20.12 214.56,-19.07 222.66,-18.09"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="223.12,-21.56 232.63,-16.89 222.28,-14.61 223.12,-21.56"/>
-</g>
-</g>
-</svg>
-</div>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
-          </div>
-          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-<p>Nodes of different colours represent the following: </p>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: Graph Key Pages: 1 -->
-<svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
-<title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
-<!-- Subroutine -->
-<g id="node1" class="node">
-<title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
-</g>
-<!-- Function -->
-<g id="node2" class="node">
-<title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
-</g>
-<!-- Interface -->
-<g id="node3" class="node">
-<title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
-</g>
-<!-- Type Bound Procedure -->
-<g id="node4" class="node">
-<title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
-</g>
-<!-- Unknown Procedure Type -->
-<g id="node5" class="node">
-<title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
-</g>
-<!-- Program -->
-<g id="node6" class="node">
-<title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
-</g>
-<!-- This Page&#39;s Entity -->
-<g id="node7" class="node">
-<title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
-</g>
-</g>
-</svg>
-
-<p>Solid arrows point from a procedure to one which it calls. Dashed 
-arrows point from an interface to procedures which implement that interface.
-This could include the module procedures in a generic interface or the
-implementation in a submodule of an interface in a parent module.
-</p>
- Where possible, edges connecting nodes are
-given different colours to make them easier to distinguish in
-large graphs.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     <br>
 
 
@@ -388,9 +287,6 @@ large graphs.</div>
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

@@ -1019,7 +1019,8 @@ print*,'dtfft_destroy'
   end function check_create_args
 
   subroutine alloc_fft_plans(self, kinds)
-  !! Allocates `fft_executor` with required FFT class
+  !! Allocates [[abstract_executor]] with required FFT class
+  !! and populates [[fft_mapping]] with similar FFT ids
     class(dtfft_plan_t),              intent(inout) :: self
       !! Abstract plan
     type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)

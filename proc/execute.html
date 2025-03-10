@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,11 +52,6 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -76,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">16 statements</a>
+                 title=" 0.2% of total for procedures.">17 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_executor_fftw_m.F90"> Source File</a>
+              <a href="../src/dtfft_backend_cufftmp.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_fftw_m.f90.html'>dtfft_executor_fftw_m.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_backend_cufftmp.f90.html'>dtfft_backend_cufftmp.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_backend_cufftmp.html'>dtfft_backend_cufftmp</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -135,14 +129,27 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute(self, a, b, sign)  
+    <h2>private  subroutine execute(self, in, out, stream)  
 </h2>
-    
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+              </ul>
+            </li>
+        </ul>
+      </div>
+    </div>
 
-    <p>Executes FFTW3 plan</p>
+
+    <p>Executes cuFFTMp GPU Backend</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/fftw_executor.html'>fftw_executor</a></p>
+    <p><a href='../type/backend_cufftmp.html'>backend_cufftmp</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -158,61 +165,61 @@
         <tr>
             <td>
               <span class="anchor" id="variable-self~2"></span>
-              class(<a href='../type/fftw_executor.html'>fftw_executor</a>),
+              class(<a href='../type/backend_cufftmp.html'>backend_cufftmp</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFTW FFT Executor</p>
+                <p>cuFFTMp GPU Backend</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-a"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-in~2"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+                <p>Send pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~2"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+                <p>Recv pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~3"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>a</strong></td>
+            <td><strong>stream</strong></td>
             <td>
-                <p>Source pointer</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-b"></span>
-              type(c_ptr),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>b</strong></td>
-            <td>
-                <p>Target pointer</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-sign~2"></span>
-              integer(kind=int8),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>sign</strong></td>
-            <td>
-                <p>Sign of transform</p>
+                <p>Main execution CUDA stream</p>
             </td>
         </tr>
     </tbody>
@@ -273,9 +280,6 @@
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>
