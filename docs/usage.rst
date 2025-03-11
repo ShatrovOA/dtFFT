@@ -302,13 +302,14 @@ Configurations must be set prior to creating a plan to take effect. The availabl
   improve performance if the underlying 2D FFT implementation is suboptimal.
   In most cases, Z-slab is faster due to fewer transpositions.
 
+.. _dtfft_platform_conf:
+
 - **Execution platform** (``platform``)
 
   A :f:type:`dtfft_platform_t` value specifying the platform for executing ``dtFFT`` plans.
   By default, set to :f:var:`DTFFT_PLATFORM_HOST`, meaning execution occurs on the host (CPU).
   Users can set it to :f:var:`DTFFT_PLATFORM_CUDA` for GPU execution, provided the build supports CUDA
-  (``DTFFT_WITH_CUDA`` defined). The value can be overridden by the :ref:`DTFFT_PLATFORM<dtfft_platform_env>` environment variable,
-  which takes precedence if set.
+  (``DTFFT_WITH_CUDA`` defined).
 
   Available only in CUDA-enabled builds.
 
@@ -324,8 +325,7 @@ Configurations must be set prior to creating a plan to take effect. The availabl
 
   A :f:type:`dtfft_gpu_backend_t` value selecting the GPU backend for transposition when ``effort`` is :f:var:`DTFFT_ESTIMATE` or
   :f:var:`DTFFT_MEASURE` (see `Selecting plan effort`_). The default is :f:var:`DTFFT_GPU_BACKEND_NCCL` if NCCL is available
-  in the library build; otherwise, :f:var:`DTFFT_GPU_BACKEND_MPI_P2P`. This value can be overridden by the
-  :ref:`DTFFT_GPU_BACKEND<dtfft_gpu_backend_env>` environment variable, which takes precedence if set. Supported options include:
+  in the library build; otherwise, :f:var:`DTFFT_GPU_BACKEND_MPI_P2P`. Supported options include:
 
   - :f:var:`DTFFT_GPU_BACKEND_MPI_DATATYPE`: Backend using MPI datatypes.
   - :f:var:`DTFFT_GPU_BACKEND_MPI_P2P`: MPI peer-to-peer backend.
@@ -372,7 +372,8 @@ These settings allow fine-tuning of transposition strategies and GPU behavior.
 For example, disabling ``enable_mpi_backends`` mitigates memory leaks, while setting a custom ``stream`` integrates ``dtFFT``
 with existing CUDA workflows. Refer to the Fortran, C and C++ API pages for detailed parameter specifications.
 
-.. note:: Some of the configurations described here can be overridden by environment variables, as detailed in the :ref:`Environment Variables<environ_link>` section.
+.. note:: Almost all values can be overridden by setting the appropriate environment variable, which takes precedence if set.
+  Refer to :ref:`Environment Variables<environ_link>` section.
 
 Following example creates config object, disables Z-slab, enables MPI Backends and sets custom stream:
 
@@ -398,7 +399,7 @@ Following example creates config object, disables Z-slab, enables MPI Backends a
 
     ! Create and set custom CUDA stream
     ierr = cudaStreamCreate(my_stream)
-    config%stream = my_stream
+    config%stream = dtfft_stream_t(my_stream)
 
     ! Apply configuration
     call dtfft_set_config(config)
@@ -424,7 +425,7 @@ Following example creates config object, disables Z-slab, enables MPI Backends a
 
     // Create and set custom CUDA stream
     cudaStreamCreate(&my_stream);
-    config.stream = my_stream;
+    config.stream = (dtfft_stream_t)my_stream;
 
     // Apply configuration
     dtfft_set_config(config);
@@ -447,7 +448,7 @@ Following example creates config object, disables Z-slab, enables MPI Backends a
 
     // Create and set custom CUDA stream
     cudaStreamCreate(&my_stream);
-    config.set_stream(my_stream);
+    config.set_stream((dtfft_stream_t)my_stream);
 
     // Apply configuration
     dtfft::set_config(config);
@@ -522,7 +523,7 @@ The ``element_size`` can be obtained by :f:func:`get_element_size` which returns
 
 For 3D plans, :f:func:`get_local_sizes` does not detail the intermediate Y-direction layout.
 This information, useful for transpose-only plans or when using unsupported FFT libraries, can be retrieved via the ``pencil``
-interface (see `Pencil Decomposition`_ below). Pencil IDs start from 1 in C and Fortran.
+interface (see `Pencil Decomposition`_ below). Pencil IDs start from 1 in both C and Fortran.
 
 The ``dtFFT`` library provides functions to allocate and free memory tailored to the plan:
 
@@ -550,11 +551,14 @@ which is particularly beneficial for workloads with repeated communication patte
 
   .. code-tab:: fortran
 
-    ! Host version
     use iso_c_binding
     integer(int64) :: alloc_bytes
-    complex(real64), pointer :: a(:), b(:), aux(:)
     type(c_ptr) :: a_ptr, b_ptr, aux_ptr
+
+    ! Host version
+    complex(real64), pointer :: a(:), b(:), aux(:)
+    ! CUDA Fortran version
+    complex(real64), device, contiguous, pointer :: a(:), b(:), aux(:)
 
     alloc_bytes = alloc_size * element_size
 

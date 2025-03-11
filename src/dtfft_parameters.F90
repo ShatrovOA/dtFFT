@@ -327,6 +327,10 @@ public :: operator(/=)
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
   !! Invalid executor provided for selected platform
 
+
+  integer(int32),  parameter,  public  :: VARIABLE_NOT_SET = -111
+  !! Default value when environ is not set
+
 #ifdef DTFFT_WITH_CUDA
 
 !------------------------------------------------------------------------------------------------
@@ -354,7 +358,7 @@ public :: operator(/=)
   !! NCCL backend with overlapping data copying and unpacking
   type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_CUFFTMP = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_CUFFTMP)
   !! cuFFTMp backend
-  type(dtfft_gpu_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_gpu_backend_t(-1_int8)
+  type(dtfft_gpu_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_gpu_backend_t(VARIABLE_NOT_SET)
   type(dtfft_gpu_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED, DTFFT_GPU_BACKEND_NCCL_PIPELINED]
   type(dtfft_gpu_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_P2P, DTFFT_GPU_BACKEND_MPI_A2A, DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED]
   type(dtfft_gpu_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_GPU_BACKEND_NCCL, DTFFT_GPU_BACKEND_NCCL_PIPELINED]
@@ -401,7 +405,7 @@ public :: dtfft_platform_t
 
   ! type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HIP = dtfft_platform_t(3)
 
-  type(dtfft_platform_t), public, parameter :: PLATFORM_UNDEFINED = dtfft_platform_t(-1)
+  type(dtfft_platform_t), public, parameter :: PLATFORM_NOT_SET = dtfft_platform_t(VARIABLE_NOT_SET)
 
 #define MAKE_EQ_FUN(datatype, name)                         \
   pure elemental function name(left, right) result(res);    \

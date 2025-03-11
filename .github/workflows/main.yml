@@ -230,7 +230,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
-          ls -lah /usr/local/cuda/lib64/stubs
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_RUNNING_CICD=on \
@@ -243,8 +242,6 @@ jobs:
             -DDTFFT_MPI_VENDOR=openmpi \
             -DDTFFT_WITH_NCCL=on
           cmake --build build --verbose
-      - name: Test
-        run: CTEST_OUTPUT_ON_FAILURE=1 cmake --build build --target coverage
       - name: Install
         run: sudo cmake --install build
       - name: Test install

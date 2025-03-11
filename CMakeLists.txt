@@ -31,7 +31,6 @@ option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
 option(DTFFT_ENABLE_PERSISTENT_COMM "Enable MPI persistent calls" OFF)
 
 option(DTFFT_WITH_PROFILER "Build dtFFT with profiler support" OFF)
-option(DTFFT_WITH_CUSTOM_NCCL "Build dtFFT with custom NCCL Library" OFF)
 
 # Device libraries
 option(DTFFT_WITH_CUDA "Build dtFFT with CUDA support" OFF)
@@ -124,23 +123,20 @@ configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HE
 
 
 if(DTFFT_WITH_CUDA)
-  find_package(CUDAToolkit 9.0 REQUIRED)
+  find_package(CUDAToolkit 11.0 REQUIRED)
   target_link_libraries(dtfft PRIVATE CUDA::cuda_driver)
   target_link_libraries(dtfft PRIVATE CUDA::nvrtc)
   target_link_libraries(dtfft PUBLIC CUDA::cudart)
 
   if( CMAKE_Fortran_COMPILER_ID MATCHES NVHPC )
-    if (NOT NVHPC_CUDA_VERSION)
-      message(WARNING "NVHPC_CUDA_VERSION is not set. Will use default")
-    endif()
-
     # Get the directory two levels up
-    get_filename_component(PARENT_DIR "${CMAKE_Fortran_COMPILER}" DIRECTORY)  # /foo/bar
-    get_filename_component(PARENT_DIR "${PARENT_DIR}" DIRECTORY)  # /foo
-    get_filename_component(PARENT_DIR "${PARENT_DIR}" DIRECTORY)  # /foo
+    get_filename_component(PARENT_DIR "${CMAKE_Fortran_COMPILER}" DIRECTORY)  # /compilers/bin/
+    get_filename_component(PARENT_DIR "${PARENT_DIR}" DIRECTORY)  # /compilers
+    get_filename_component(PARENT_DIR "${PARENT_DIR}" DIRECTORY)  # /
     list(APPEND CMAKE_PREFIX_PATH "${PARENT_DIR}/cmake")
 
     set(WITH_HPC_SDK ON)
+    set(NVHPC_CUDA_VERSION "${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
   endif()
 
   set(NCCL_FOUND FALSE)
@@ -151,9 +147,6 @@ if(DTFFT_WITH_CUDA)
       if (DTFFT_WITH_NCCL)
         message(STATUS "DTFFT_WITH_NCCL overrides NVHPC default NCCL search")
         find_package(NCCL REQUIRED) # Use FindNCCL.cmake
-        if (NCCL_FOUND)
-          message(STATUS "Using custom NCCL from FindNCCL")
-        endif()
       endif()
 
       # If DTFFT_WITH_NCCL is OFF or manual search failed, try NVHPC
@@ -174,8 +167,6 @@ if(DTFFT_WITH_CUDA)
     # Non-NVHPC compiler: DTFFT_WITHOUT_NCCL ignored
     if (DTFFT_WITH_NCCL)
       find_package(NCCL REQUIRED) # Use FindNCCL.cmake
-    else()
-      message(STATUS "NCCL support disabled")
     endif()
   endif()
 
@@ -400,7 +391,7 @@ message(STATUS "Coverage                  : ${DTFFT_ENABLE_COVERAGE}")
 message(STATUS "Profiler                  : ${DTFFT_WITH_PROFILER}")
 message(STATUS "CUDA enabled              : ${DTFFT_WITH_CUDA}")
 if ( DTFFT_WITH_CUDA )
-message(STATUS "Custom NCCL enabled       : ${DTFFT_WITH_CUSTOM_NCCL}")
+message(STATUS "Custom NCCL enabled       : ${DTFFT_WITH_NCCL}")
 
 endif()
 if ( DTFFT_TRANSPOSE_ONLY )

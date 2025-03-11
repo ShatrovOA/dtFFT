@@ -10,13 +10,27 @@ The library supports both host and GPU environments, leveraging modern Fortran a
 Prerequisites
 =============
 
-Since ``dtFFT`` is primarely written in Fortran, a modern Fortran compiler (2008 standard or later) is required. The library has been successfully tested with:
+Since ``dtFFT`` is primarily written in Fortran, a modern Fortran compiler (2008 standard or later) is required. The library has been successfully tested with:
 
 - **GNU Fortran (gfortran)**: Version 12 and above
 - **Intel Fortran (ifort / ifx)**: Version 18 and above
 - **NVHPC Fortran (nvfortran)**: Version 24.5 and above
 
 Currently, ``dtFFT`` can only be built using CMake (version 3.20 or higher recommended). Ensure CMake is installed and available in your PATH before proceeding.
+
+**Requirements**:
+
+- **CMake**: Version 3.20 or higher
+- **Modern Fortran compiler**: 2008 standard or later
+- **MPI**: Message Passing Interface (MPI) implementation
+- **Caliper** (optional): For performance profiling and analysis
+
+**For CUDA support**:
+
+- **CUDA-aware MPI**: Required for GPU acceleration
+- **NCCL** (optional): NVIDIA Collective Communications Library (automatically linked if ``nvfortran`` is used)
+- **nvfortran** (optional): NVHPC Fortran compiler (enables additional features like NCCL and cuFFTMp)
+- **NVTX3** (optional): NVIDIA Tools Extension for profiling and debugging
 
 Configuration Options
 =====================
@@ -35,11 +49,7 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
    * - ``DTFFT_WITH_CUDA``
      - ``ON`` / ``OFF``
      - ``OFF``
-     - Enables CUDA support. Requires NVIDIA HPC SDK compilers (C/C++/Fortran) and ``nvcc`` in the PATH for the target CUDA version.
-   * - ``DTFFT_CUDA_CC_LIST``
-     - Valid CUDA CC list (e.g., ``70;80;90``)
-     - ``70;80;90``
-     - Specifies CUDA compute capabilities for CUDA Fortran compilation.
+     - Enables CUDA support. Requires ``nvcc`` in the PATH for the target CUDA version.
    * - ``DTFFT_WITH_FFTW``
      - ``ON`` / ``OFF``
      - ``OFF``
@@ -72,7 +82,7 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``ON``
      - Uses the Fortran ``mpi`` module instead of ``mpi_f08`` for MPI integration. This make possible to pass ``integer`` to ``comm``
-       parameter when creating plan, but can produce integer overflow when using CUDA build and big array sizes.
+       parameter when creating plan instead of ``type(MPI_Comm)``, but can produce integer overflow when using CUDA build and big array sizes.
    * - ``DTFFT_BUILD_C_CXX_API``
      - ``ON`` / ``OFF``
      - ``ON``
@@ -80,16 +90,25 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
    * - ``DTFFT_ENABLE_PERSISTENT_COMM``
      - ``ON`` / ``OFF``
      - ``OFF``
-     - Enables persistent MPI communications for multiple plan executions. Communications are initialized on the first call to :f:func:`execute` or :f:func:`transpose`, with pointers stored internally by MPI. 
+     - Enables persistent MPI communications for multiple plan executions.
+       Communications are initialized on the first call to :f:func:`execute` or :f:func:`transpose`, with pointers stored internally by MPI. 
        Users must ensure these pointers remain valid and are not freed prematurely.
    * - ``DTFFT_WITH_PROFILER``
      - ``ON`` / ``OFF``
      - ``OFF``
      - Enables profiling. Uses NVTX3 with CUDA support or Caliper otherwise (requires ``caliper_DIR`` if Caliper is used).
-   * - ``DTFFT_WITH_CUSTOM_NCCL``
+   * - ``DTFFT_WITH_NCCL``
      - ``ON`` / ``OFF``
      - ``OFF``
-     - Uses a custom NCCL build instead of the HPC SDK version. Requires the ``NCCL_ROOT`` environment variable to point to the custom NCCL directory.
+     - Requires the ``NCCL_ROOT`` environment variable to point to the custom NCCL directory.
+   * - ``DTFFT_WITHOUT_NCCL``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Disables use of NCCL shipped with HPC-SDK. NCCL Backends will be unavailable
+   * - ``DTFFT_WITHOUT_NVSHMEM``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Disables use of NVSHMEM-based backends shipped with HPC-SDK.
 
 Building the Library
 ====================
@@ -102,6 +121,9 @@ Building the Library
   cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/path/to/install -DDTFFT_WITH_CUDA=ON -DDTFFT_WITH_CUFFT=ON
 
 Replace ``/path/to/install`` with your target installation directory.
+
+.. note:: CUDA support in ``dtFFT`` does not replace the host version but extends it. For more details, refer to the guide 
+  :ref:`here<dtfft_platform_conf>` and the environment variable :ref:`DTFFT_PLATFORM<dtfft_platform_env>`.
 
 2. **Build the Library**:
    Compile the library using:

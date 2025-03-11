@@ -494,8 +494,6 @@ dtfft_config_t
 
     Default is ``.true.``
 
-    Unused. Reserved for future.
-
     .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
 Related Type functions
