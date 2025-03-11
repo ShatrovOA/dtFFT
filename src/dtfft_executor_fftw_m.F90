@@ -198,7 +198,6 @@ contains
     integer(int8),        intent(in)  :: sign                 !! Sign of transform
 
     if ( sign == FFT_FORWARD ) then
-      print*,transfer(a, int64),transfer(b, int64)
       call self%apply(self%plan_forward, a, b)
     else
       if ( associated( self%apply_inverse ) ) then

@@ -60,7 +60,7 @@
     <div class="container">
   <div class="row">
     <h1>create
-      <small>Function</small>
+      <small>Subroutine</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.1% of total for procedures.">106 statements</a>
+                 title=" 1.9% of total for procedures.">186 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_transpose_plan.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_handle_cuda.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_transpose_plan.f90.html'>dtfft_abstract_transpose_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_transpose_plan.html'>dtfft_abstract_transpose_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_cuda.f90.html'>dtfft_transpose_handle_cuda.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_cuda.html'>dtfft_transpose_handle_cuda</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,18 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  function create(self, dims, base_comm_, effort, base_dtype, base_storage, cart_comm, comms, pencils) result(error_code)  
+    <h2>private  subroutine create(self, helper, send, recv, base_storage, gpu_backend)  
 </h2>
     
 
-    <p>Creates transposition plans
-Number of dims in user defined cartesian communicator
-Temporary dims needed by MPI_Cart_get
-Temporary coordinates needed by MPI_Cart_get
-Temporary periods needed by MPI_Cart_get</p>
+    <p>Creates CUDA Transpose Handle</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_transpose_plan.html'>abstract_transpose_plan</a></p>
+    <p><a href='../type/transpose_handle_cuda.html'>transpose_handle_cuda</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -155,8 +151,8 @@ Temporary periods needed by MPI_Cart_get</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~62"></span>
-              class(<a href='../type/abstract_transpose_plan.html'>abstract_transpose_plan</a>),
+              <span class="anchor" id="variable-self~39"></span>
+              class(<a href='../type/transpose_handle_cuda.html'>transpose_handle_cuda</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -165,72 +161,57 @@ Temporary periods needed by MPI_Cart_get</p>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Transposition class</p>
+                <p>CUDA Transpose Handle</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dims~15"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-helper~4"></span>
+              type(<a href='../type/backend_helper.html'>backend_helper</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>dims</strong>(:)</td>
+            <td><strong>helper</strong></td>
             <td>
-                <p>Global sizes of the transform requested</p>
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_comm_"></span>
-              type(MPI_Comm),
+              <span class="anchor" id="variable-send"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>base_comm_</strong></td>
+            <td><strong>send</strong></td>
             <td>
-                <p>Base communicator</p>
+                <p>Send pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-effort~15"></span>
-              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
+              <span class="anchor" id="variable-recv"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>effort</strong></td>
+            <td><strong>recv</strong></td>
             <td>
-                <p><code>dtFFT</code> planner type of effort</p>
+                <p>Recv pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_dtype~9"></span>
-              type(MPI_Datatype),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>base_dtype</strong></td>
-            <td>
-                <p>Base MPI_Datatype</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-base_storage~13"></span>
+              <span class="anchor" id="variable-base_storage~18"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -245,59 +226,22 @@ Temporary periods needed by MPI_Cart_get</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-cart_comm~6"></span>
-              type(MPI_Comm),
+              <span class="anchor" id="variable-gpu_backend~5"></span>
+              type(<a href='../type/dtfft_gpu_backend_t.html'>dtfft_gpu_backend_t</a>),
             </td>
-<td>intent(out)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>cart_comm</strong></td>
+            <td><strong>gpu_backend</strong></td>
             <td>
-                <p>Cartesian communicator</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-comms~9"></span>
-              type(MPI_Comm),
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>comms</strong>(:)</td>
-            <td>
-                <p>Array of 1d communicators</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-pencils~9"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>pencils</strong>(:)</td>
-            <td>
-                <p>Data distributing meta</p>
+                <p>Backend type</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-error_code~44"></span>
-          integer(kind=int32)
-        </small>
-      </h3>
-      
     <br>
 
 

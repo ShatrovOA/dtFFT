@@ -35,7 +35,7 @@ public :: int_to_str, double_to_str
 public :: write_message, init_internal, get_log_enabled
 public :: get_env, get_iters_from_env, get_datatype_from_env
 public :: get_inverse_kind
-public :: get_platform_from_env
+public :: get_platform_from_env, get_z_slab_from_env
 
 public :: is_same_ptr, is_null_ptr
 public :: mem_alloc_host, mem_free_host
@@ -45,18 +45,31 @@ public :: count_unique
 public :: Comm_f2c
 public :: is_device_ptr
 public :: get_gpu_backend_from_env
+public :: get_mpi_enabled_from_env, get_nccl_enabled_from_env, get_nvshmem_enabled_from_env, get_pipe_enabled_from_env
 #endif
 #ifdef DTFFT_WITH_NVSHMEM
 public :: is_nvshmem_ptr
 #endif
 
-  logical,                    save  :: is_log_enabled = .false.
+  logical,                    save  :: is_init_called = .false.
+  !! Has [[init_internal]] already been called or not
+  logical,                    save  :: is_log_enabled
   !! Should we log messages to stdout or not
-  type(dtfft_platform_t),     save  :: platform_from_env = PLATFORM_UNDEFINED
+  type(dtfft_platform_t),     save  :: platform_from_env = PLATFORM_NOT_SET
   !! Platform obtained from environ
+  integer(int32),             save  :: z_slab_from_env
+  !! Should Z-slab be used if possible
 #ifdef DTFFT_WITH_CUDA
-  type(dtfft_gpu_backend_t),  save  :: gpu_backend_from_env = BACKEND_NOT_SET
+  type(dtfft_gpu_backend_t),  save  :: gpu_backend_from_env
   !! Backend obtained from environ
+  integer(int32),             save  :: mpi_enabled_from_env
+  !! Should we use MPI backends during autotune or not
+  integer(int32),             save  :: nccl_enabled_from_env
+  !! Should we use NCCL backends during autotune or not
+  integer(int32),             save  :: nvshmem_enabled_from_env
+  !! Should we use NVSHMEM backends during autotune or not
+  integer(int32),             save  :: pipe_enabled_from_env
+  !! Should we use pipelined backends during autotune or not
 #endif
   character(len=26), parameter :: UPPER_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   !! Upper case alphabet.
@@ -64,11 +77,13 @@ public :: is_nvshmem_ptr
   !! Lower case alphabet.
 
   interface int_to_str
+  !! Converts integer to string
     module procedure int_to_str_int8
     module procedure int_to_str_int32
   end interface int_to_str
 
   interface get_env
+  !! Obtains environment variable
     module procedure :: get_env_base
 #ifdef DTFFT_WITH_CUDA
     module procedure :: get_env_string
@@ -91,44 +106,54 @@ public :: string
   end interface string
 #endif
 
-  interface
+  interface mem_alloc_host
+  !! Allocates memory using C11 Standard alloc_align with 16 bytes alignment
     subroutine mem_alloc_host(alloc_size, ptr) bind(C)
     import
-      integer(c_size_t),  value :: alloc_size
-      type(c_ptr)               :: ptr
+      integer(c_size_t),  value :: alloc_size   !! Number of bytes to allocate
+      type(c_ptr)               :: ptr          !! Pointer to allocate
     end subroutine mem_alloc_host
+  end interface
 
+  interface mem_free_host
+  !! Frees memory allocated with [[mem_alloc_host]]
     subroutine mem_free_host(ptr) bind(C)
     import
-      type(c_ptr),        value :: ptr
+      type(c_ptr),        value :: ptr          !! Pointer to free
     end subroutine mem_free_host
+  end interface
 
 #ifdef DTFFT_WITH_CUDA
+  interface Comm_f2c
+  !! Converts Fortran communicator to C
     type(c_ptr) function Comm_f2c(fcomm) bind(C, name="Comm_f2c")
       import
-      integer(c_int), value :: fcomm
+      integer(c_int), value :: fcomm            !! Fortran communicator
     end function Comm_f2c
+  end interface
 
+  interface is_device_ptr
+  !! Checks if pointer can be accessed from device
     function is_device_ptr(ptr) result(bool) bind(C)
-    !! Checks if pointer can be accessed from device
     import
       type(c_ptr),    value :: ptr    !! Device pointer
       logical(c_bool)       :: bool   !! Result
     end function is_device_ptr
-#endif
   end interface
+#endif
 
 contains
 
 #ifdef DTFFT_WITH_CUDA
   type(string) function string_constructor(str)
-    character(len=*), intent(in)  :: str
+  !! Creates [[string]] object
+    character(len=*), intent(in)  :: str  !! String
     allocate( string_constructor%raw, source=str )
   end function string_constructor
 #endif
 
   integer(int32) function init_internal()
-  !! Checks if MPI is initialized and reads the environment variable to enable logging
+  !! Checks if MPI is initialized and loads environment variables
     integer(int32)    :: ierr             !! Error code
     logical           :: is_mpi_init      !! Is MPI initialized?
 
@@ -139,7 +164,11 @@ contains
       init_internal = DTFFT_ERROR_MPI_FINALIZED
       return
     endif
+    ! Processing environment variables once
+    if ( is_init_called ) return
+
     is_log_enabled = get_env("ENABLE_LOG", .false.)
+    z_slab_from_env = get_env("ENABLE_Z_SLAB", VARIABLE_NOT_SET, valid_values=[0, 1])
 
 #ifdef DTFFT_WITH_CUDA
     block
@@ -151,7 +180,7 @@ contains
 
       allocate( pltfrm_env, source=get_env("PLATFORM", "undefined", platforms) )
       if ( pltfrm_env == "undefined") then
-        platform_from_env = PLATFORM_UNDEFINED
+        platform_from_env = PLATFORM_NOT_SET
       else if ( pltfrm_env == "host" ) then
         platform_from_env = DTFFT_PLATFORM_HOST
       else if ( pltfrm_env == "cuda") then
@@ -199,100 +228,114 @@ contains
         deallocate( backends(i)%raw )
       enddo
     endblock
+
+    mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
+    nccl_enabled_from_env = get_env("ENABLE_NCCL", VARIABLE_NOT_SET, valid_values=[0, 1])
+    nvshmem_enabled_from_env = get_env("ENABLE_NVSHMEM", VARIABLE_NOT_SET, valid_values=[0, 1])
+    pipe_enabled_from_env = get_env("ENABLE_PIPE", VARIABLE_NOT_SET, valid_values=[0, 1])
 #endif
+    is_init_called = .true.
   end function init_internal
 
-  type(dtfft_platform_t) function get_platform_from_env()
+  pure type(dtfft_platform_t) function get_platform_from_env()
+  !! Returns execution platform set by environment variable
     get_platform_from_env = platform_from_env
   end function get_platform_from_env
 
+  pure integer(int32) function get_z_slab_from_env()
+  !! Returns Z-slab to be used set by environment variable
+    get_z_slab_from_env = z_slab_from_env
+  end function get_z_slab_from_env
+
 #ifdef DTFFT_WITH_CUDA
-  type(dtfft_gpu_backend_t) function get_gpu_backend_from_env()
+  pure type(dtfft_gpu_backend_t) function get_gpu_backend_from_env()
+  !! Returns GPU backend to use set by environment variable
     get_gpu_backend_from_env = gpu_backend_from_env
   end function get_gpu_backend_from_env
+
+  pure integer(int32) function get_mpi_enabled_from_env()
+  !! Returns usage of MPI Backends during autotune set by environment variable
+    get_mpi_enabled_from_env = mpi_enabled_from_env
+  end function get_mpi_enabled_from_env
+
+  pure integer(int32) function get_nccl_enabled_from_env()
+  !! Returns usage of NCCL Backends during autotune set by environment variable
+    get_nccl_enabled_from_env = nccl_enabled_from_env
+  end function get_nccl_enabled_from_env
+
+  pure integer(int32) function get_nvshmem_enabled_from_env()
+  !! Returns usage of NVSHMEM Backends during autotune set by environment variable
+    get_nvshmem_enabled_from_env = nvshmem_enabled_from_env
+  end function get_nvshmem_enabled_from_env
+
+  pure integer(int32) function get_pipe_enabled_from_env()
+  !! Returns usage of Pipelined Backends during autotune set by environment variable
+    get_pipe_enabled_from_env = pipe_enabled_from_env
+  end function get_pipe_enabled_from_env
 #endif
 
-  function get_env_base(name, full_name, is_external) result(env)
+  function get_env_base(name) result(env)
   !! Base function of obtaining dtFFT environment variable
-    character(len=*), intent(in)                :: name               !! Name of environment variable without prefix
-    character(len=:), intent(out),  allocatable, optional :: full_name          !! Prefixed environment variable name
-    logical,          intent(in),   optional    :: is_external
-    character(len=:), allocatable               :: env
-    integer(int32)                              :: env_val_len        !! Length of the environment variable
-    character(len=:), allocatable :: full_name_
-    logical :: is_external_
+    character(len=*), intent(in)    :: name         !! Name of environment variable without prefix
+    character(len=:), allocatable   :: full_name    !! Prefixed environment variable name
+    character(len=:), allocatable   :: env          !! Environment variable value
+    integer(int32)                  :: env_val_len  !! Length of the environment variable
 
-    is_external_ = .false.
-    if ( present(is_external) ) is_external_ = is_external
+    allocate( full_name, source="DTFFT_"//name )
 
-    if ( is_external_ ) then
-      allocate( full_name_, source=name )
-    else
-      allocate( full_name_, source="DTFFT_"//name )
-    endif
-    if ( present(full_name) ) allocate(full_name, source=full_name_)
-
-    call get_environment_variable(full_name_, length=env_val_len)
+    call get_environment_variable(full_name, length=env_val_len)
     allocate(character(env_val_len) :: env)
     if ( env_val_len == 0 ) then
-      deallocate(full_name_)
+      deallocate(full_name)
       return
     endif
-    call get_environment_variable(full_name_, env)
-    deallocate(full_name_)
+    call get_environment_variable(full_name, env)
+    deallocate(full_name)
   end function get_env_base
 
 #ifdef DTFFT_WITH_CUDA
-  function get_env_string(name, default, valid_values, is_lower) result(env)
+  function get_env_string(name, default, valid_values) result(env)
+  !! Obtains string environment variable
     character(len=*), intent(in)            :: name                 !! Name of environment variable without prefix
     character(len=*), intent(in)            :: default              !! Name of environment variable without prefix
-    type(string),     intent(in)            :: valid_values(:)
-    logical,          intent(in), optional  :: is_lower
-    character(len=:), allocatable           :: env
-    character(len=:), allocatable           :: full_name          !! Prefixed environment variable name
-    character(len=:), allocatable           :: env_val_str        !! String value of the environment variable
-    logical                                 :: is_correct         !! Is env value is correct
+    type(string),     intent(in)            :: valid_values(:)      !! List of valid variable values
+    character(len=:), allocatable           :: env                  !! Environment variable value
+    character(len=:), allocatable           :: env_val_str          !! String value of the environment variable
+    logical                                 :: is_correct           !! Is env value is correct
     integer(int32) :: i, j
-    logical :: is_lower_
 
-    ! env_val_str = get_env(name, full_name=full_name)
-    allocate( env_val_str, source=get_env(name, full_name=full_name) )
+    allocate( env_val_str, source=get_env(name) )
     if ( len(env_val_str) == 0 ) then
-      deallocate(env_val_str, full_name)
+      deallocate(env_val_str)
       allocate(env, source=default)
       return
     endif
-    is_lower_ = .true.
-    if(present(is_lower)) is_lower_ = is_lower
 
-    if( is_lower_ ) then
-      do i=1, len(env_val_str)
-        j = index(UPPER_ALPHABET, env_val_str(i:i))
-        if (j>0) env_val_str(i:i) = LOWER_ALPHABET(j:j)
-      enddo
-    endif
+    ! Converting to lowercase
+    do i=1, len(env_val_str)
+      j = index(UPPER_ALPHABET, env_val_str(i:i))
+      if (j>0) env_val_str(i:i) = LOWER_ALPHABET(j:j)
+    enddo
 
     is_correct = any([(env_val_str == valid_values(i)%raw, i=1,size(valid_values))])
 
     if ( is_correct ) then
       allocate( env, source=env_val_str )
-      deallocate(env_val_str, full_name)
+      deallocate(env_val_str)
       return
     endif
-    WRITE_ERROR("Invalid environment variable: "//full_name//", it has been ignored")
+    WRITE_ERROR("Invalid environment variable: `DTFFT_"//name//"`, it has been ignored")
     allocate(env, source=default)
-    deallocate(env_val_str, full_name)
+    deallocate(env_val_str)
   end function get_env_string
 #endif
 
-  integer(int32) function get_env_int32(name, default, valid_values, min_valid_value, is_external) result(env)
+  integer(int32) function get_env_int32(name, default, valid_values, min_valid_value) result(env)
   !! Base Integer function of obtaining dtFFT environment variable
     character(len=*), intent(in)            :: name               !! Name of environment variable without prefix
     integer(int32),   intent(in)            :: default            !! Default value in case env is not set or it has wrong value
     integer(int32),   intent(in), optional  :: valid_values(:)    !! List of valid values
     integer(int32),   intent(in), optional  :: min_valid_value    !! Mininum valid value. Usually 0 or 1
-    logical,          intent(in), optional  :: is_external
-    character(len=:), allocatable           :: full_name          !! Prefixed environment variable name
     character(len=:), allocatable           :: env_val_str        !! String value of the environment variable
     logical                                 :: is_correct         !! Is env value is correct
     integer(int32)                          :: env_val_passed     !! Value of the environment variable
@@ -303,11 +346,10 @@ contains
       error stop "dtFFT Internal error `get_env_int32`"
     endif
 
-    allocate( env_val_str, source=get_env(name, full_name=full_name, is_external=is_external) )
-    ! env_val_str = get_env(name, full_name=full_name, is_external=is_external)
+    allocate( env_val_str, source=get_env(name) )
 
     if ( len(env_val_str) == 0 ) then
-      deallocate(env_val_str, full_name)
+      deallocate(env_val_str)
       env = default
       return
     endif
@@ -321,12 +363,12 @@ contains
     endif
     if ( is_correct ) then
       env = env_val_passed
-      deallocate(env_val_str, full_name)
+      deallocate(env_val_str)
       return
     endif
-    WRITE_ERROR("Invalid environment variable: "//full_name//", it has been ignored")
+    WRITE_ERROR("Invalid environment variable: `DTFFT_"//name//"`, it has been ignored")
     env = default
-    deallocate(env_val_str, full_name)
+    deallocate(env_val_str)
   end function get_env_int32
 
   integer(int8) function get_env_int8(name, default, valid_values) result(env)
@@ -340,11 +382,10 @@ contains
     env = int(val, int8)
   end function get_env_int8
 
-  logical function get_env_logical(name, default, is_external) result(env)
+  logical function get_env_logical(name, default) result(env)
   !! Obtains logical environment variable
     character(len=*), intent(in) :: name                !! Name of environment variable without prefix
     logical,          intent(in) :: default             !! Default value in case env is not set or it has wrong value
-    logical,          intent(in), optional  :: is_external
     integer(int32) :: def, val
 
     if ( default ) then
@@ -353,7 +394,7 @@ contains
       def = 0
     endif
 
-    val = get_env(name, def, [0, 1], is_external=is_external)
+    val = get_env(name, def, [0, 1])
     env = val == 1
   end function get_env_logical
 
@@ -503,13 +544,15 @@ contains
     endselect
   end function get_inverse_kind
 
-  logical function is_null_ptr(ptr)
-    type(c_ptr),  intent(in) :: ptr
+  elemental logical function is_null_ptr(ptr)
+  !! Checks if pointer is NULL
+    type(c_ptr),  intent(in) :: ptr   !! Pointer to check
 
     is_null_ptr = is_same_ptr(ptr, c_null_ptr)
   end function is_null_ptr
 
-  logical function is_same_ptr(ptr1, ptr2)
+  elemental logical function is_same_ptr(ptr1, ptr2)
+  !! Checks if two pointer are the same
     type(c_ptr),  intent(in):: ptr1   !! First pointer
     type(c_ptr),  intent(in):: ptr2   !! Second pointer
 

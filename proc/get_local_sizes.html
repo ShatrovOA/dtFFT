@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">16 statements</a>
+                 title=" 0.3% of total for procedures.">31 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_pencil.F90"> Source File</a>
+              <a href="../src/dtfft_plan.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_pencil.f90.html'>dtfft_pencil.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_pencil.html'>dtfft_pencil</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
             <li class="breadcrumb-item active" aria-current="page">get_local_sizes</li>
           </ol>
         </nav>
@@ -129,12 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine get_local_sizes(pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)  
+    <h2>private  subroutine get_local_sizes(self, in_starts, in_counts, out_starts, out_counts, alloc_size, error_code)  
 </h2>
     
 
     <p>Obtain local starts and counts in <code>real</code> and <code>fourier</code> spaces</p>
 
+    <h3>Type Bound</h3>
+    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -149,17 +151,17 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-pencils~6"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
+              <span class="anchor" id="variable-self~76"></span>
+              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>pencils</strong>(:)</td>
+            <td><strong>self</strong></td>
             <td>
-                <p>Array of pencils</p>
+                <p>Abstract plan</p>
             </td>
         </tr>
         <tr>
@@ -174,7 +176,7 @@
             <td>::</td>
             <td><strong>in_starts</strong>(:)</td>
             <td>
-                <p>Start indexes in <code>real</code> space (0-based)</p>
+                <p>Starts of local portion of data in <code>real</code> space (0-based)</p>
             </td>
         </tr>
         <tr>
@@ -189,7 +191,7 @@
             <td>::</td>
             <td><strong>in_counts</strong>(:)</td>
             <td>
-                <p>Number of elements in <code>real</code> space</p>
+                <p>Number of elements of local portion of data in &lsquo;real&rsquo; space</p>
             </td>
         </tr>
         <tr>
@@ -204,7 +206,7 @@
             <td>::</td>
             <td><strong>out_starts</strong>(:)</td>
             <td>
-                <p>Start indexes in <code>fourier</code> space (0-based)</p>
+                <p>Starts of local portion of data in <code>fourier</code> space (0-based)</p>
             </td>
         </tr>
         <tr>
@@ -219,12 +221,12 @@
             <td>::</td>
             <td><strong>out_counts</strong>(:)</td>
             <td>
-                <p>Number of elements in <code>fourier</code> space</p>
+                <p>Number of elements of local portion of data in <code>fourier</code> space</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alloc_size~2"></span>
+              <span class="anchor" id="variable-alloc_size~4"></span>
               integer(kind=int64),
             </td>
 <td>intent(out),</td>
@@ -235,6 +237,21 @@
             <td><strong>alloc_size</strong></td>
             <td>
                 <p>Minimal number of elements required to execute plan</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~29"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Optional error code returned to user</p>
             </td>
         </tr>
     </tbody>

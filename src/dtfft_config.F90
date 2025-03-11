@@ -33,7 +33,7 @@ implicit none
 private
 public :: dtfft_config_t
 public :: dtfft_create_config, dtfft_set_config
-public :: get_z_slab_flag
+public :: get_z_slab
 public :: get_user_platform
 #ifdef DTFFT_WITH_CUDA
 public :: get_user_stream
@@ -214,15 +214,16 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine dtfft_set_config
 
-  logical function get_z_slab_flag()
+  pure logical function get_z_slab()
   !! Whether Z-slab optimization is enabled or not
-    get_z_slab_flag = is_z_slab_enabled
-  end function get_z_slab_flag
+    get_z_slab = is_z_slab_enabled
+    if ( get_z_slab_from_env() /= VARIABLE_NOT_SET ) get_z_slab = get_z_slab_from_env() == 1
+  end function get_z_slab
 
   type(dtfft_platform_t) function get_user_platform()
   !! Returns platform set by the user or default one
     get_user_platform = platform
-    if ( get_platform_from_env() /= PLATFORM_UNDEFINED ) get_user_platform = get_platform_from_env()
+    if ( get_platform_from_env() /= PLATFORM_NOT_SET ) get_user_platform = get_platform_from_env()
   end function get_user_platform
 
 #ifdef DTFFT_WITH_CUDA
@@ -247,23 +248,26 @@ contains
     endif
   end subroutine destroy_stream
 
-  type(dtfft_gpu_backend_t) function get_user_gpu_backend()
+  pure type(dtfft_gpu_backend_t) function get_user_gpu_backend()
   !! Returns GPU backend set by the user or default one
     get_user_gpu_backend = gpu_backend
     if ( get_gpu_backend_from_env() /= BACKEND_NOT_SET) get_user_gpu_backend = get_gpu_backend_from_env()
   end function get_user_gpu_backend
 
-  logical function get_pipelined_enabled()
+  pure logical function get_pipelined_enabled()
   !! Whether pipelined backends are enabled or not
     get_pipelined_enabled = is_pipelined_enabled
+    if ( get_pipe_enabled_from_env() /= VARIABLE_NOT_SET ) get_pipelined_enabled = get_pipe_enabled_from_env() == 1
   end function get_pipelined_enabled
 
   logical function get_mpi_enabled()
   !! Whether MPI backends are enabled or not
 #if !defined(DTFFT_WITH_NCCL) && !defined(DTFFT_WITH_NVSHMEM)
     get_mpi_enabled = .true.
+    ! Should not be .false. if only MPI backends are possible
 #else
     get_mpi_enabled = is_mpi_enabled
+    if ( get_mpi_enabled_from_env() /= VARIABLE_NOT_SET ) get_mpi_enabled = get_mpi_enabled_from_env() == 1
 #endif
   end function get_mpi_enabled
 
@@ -271,6 +275,7 @@ contains
   !! Whether NCCL backends are enabled or not
 #ifdef DTFFT_WITH_NCCL
     get_nccl_enabled = is_nccl_enabled
+    if ( get_nccl_enabled_from_env() /= VARIABLE_NOT_SET ) get_nccl_enabled = get_nccl_enabled_from_env() == 1
 #else
     get_nccl_enabled = .false.
 #endif
@@ -280,6 +285,7 @@ contains
   !! Whether nvshmem backends are enabled or not
 #ifdef DTFFT_WITH_NVSHMEM
     get_nvshmem_enabled = is_nvshmem_enabled
+    if ( get_nvshmem_enabled_from_env() /= VARIABLE_NOT_SET ) get_nvshmem_enabled = get_nvshmem_enabled_from_env() == 1
 #else
     get_nvshmem_enabled = .false.
 #endif

@@ -70,7 +70,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 6.0% of total for modules and submodules.">485 statements</a>
+                 title=" 6.0% of total for modules and submodules.">486 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -193,6 +193,7 @@
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-dtfft_error_not_nvshmem_ptr">DTFFT_ERROR_NOT_NVSHMEM_PTR</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-dtfft_error_invalid_platform">DTFFT_ERROR_INVALID_PLATFORM</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-dtfft_error_invalid_platform_executor_type">DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE</a>
+            <a class="list-group-item" href="../module/dtfft_parameters.html#variable-variable_not_set">VARIABLE_NOT_SET</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-dtfft_gpu_backend_mpi_datatype">DTFFT_GPU_BACKEND_MPI_DATATYPE</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-dtfft_gpu_backend_mpi_p2p">DTFFT_GPU_BACKEND_MPI_P2P</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-dtfft_gpu_backend_mpi_a2a">DTFFT_GPU_BACKEND_MPI_A2A</a>
@@ -205,7 +206,7 @@
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-null_stream">NULL_STREAM</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-dtfft_platform_host">DTFFT_PLATFORM_HOST</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-dtfft_platform_cuda">DTFFT_PLATFORM_CUDA</a>
-            <a class="list-group-item" href="../module/dtfft_parameters.html#variable-platform_undefined">PLATFORM_UNDEFINED</a>
+            <a class="list-group-item" href="../module/dtfft_parameters.html#variable-platform_not_set">PLATFORM_NOT_SET</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-valid_execute_types">VALID_EXECUTE_TYPES</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-valid_transpose_types">VALID_TRANSPOSE_TYPES</a>
             <a class="list-group-item" href="../module/dtfft_parameters.html#variable-valid_executors">VALID_EXECUTORS</a>
@@ -339,8 +340,8 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
                   <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
               </ul>
             </li>
@@ -1796,6 +1797,23 @@ parameter
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-variable_not_set"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>VARIABLE_NOT_SET</strong></td>
+<td> =</td>
+                <td>-111</td>
+            <td>
+                <p>Default value when environ is not set</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-dtfft_gpu_backend_mpi_datatype"></span>
               type(<a href='../type/dtfft_gpu_backend_t.html'>dtfft_gpu_backend_t</a>),
             </td>
@@ -1927,7 +1945,7 @@ parameter
             <td>::</td>
             <td><strong>BACKEND_NOT_SET</strong></td>
 <td> =</td>
-                <td>dtfft_gpu_backend_t(-1_int8)</td>
+                <td>dtfft_gpu_backend_t(VARIABLE_NOT_SET)</td>
             <td>
                 
             </td>
@@ -2002,7 +2020,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform_undefined"></span>
+              <span class="anchor" id="variable-platform_not_set"></span>
               type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
               <td>public,</td>
@@ -2010,9 +2028,9 @@ parameter
 parameter               
             </td>
             <td>::</td>
-            <td><strong>PLATFORM_UNDEFINED</strong></td>
+            <td><strong>PLATFORM_NOT_SET</strong></td>
 <td> =</td>
-                <td>dtfft_platform_t(-1)</td>
+                <td>dtfft_platform_t(VARIABLE_NOT_SET)</td>
             <td>
                 
             </td>
@@ -2326,7 +2344,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-major"></span>
+              <span class="anchor" id="variable-major~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -2341,7 +2359,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-minor"></span>
+              <span class="anchor" id="variable-minor~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -3374,7 +3392,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~9"></span>
+              <span class="anchor" id="variable-val~13"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -3418,7 +3436,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~10"></span>
+              <span class="anchor" id="variable-val~14"></span>
               type(c_ptr),
             </td>
 <td>intent(in)</td>
@@ -3475,7 +3493,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val"></span>
+              <span class="anchor" id="variable-val~5"></span>
               integer(kind=c_int32_t),
             </td>
               <td>public</td>
@@ -3524,7 +3542,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~2"></span>
+              <span class="anchor" id="variable-val~6"></span>
               integer(kind=c_int32_t),
             </td>
               <td>public</td>
@@ -3573,7 +3591,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~3"></span>
+              <span class="anchor" id="variable-val~7"></span>
               integer(kind=c_int32_t),
             </td>
               <td>public</td>
@@ -3622,7 +3640,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~4"></span>
+              <span class="anchor" id="variable-val~8"></span>
               integer(kind=c_int32_t),
             </td>
               <td>public</td>
@@ -3671,7 +3689,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~5"></span>
+              <span class="anchor" id="variable-val~9"></span>
               integer(kind=c_int32_t),
             </td>
               <td>public</td>
@@ -3720,7 +3738,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~6"></span>
+              <span class="anchor" id="variable-val~10"></span>
               integer(kind=c_int32_t),
             </td>
               <td>public</td>
@@ -3769,7 +3787,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~7"></span>
+              <span class="anchor" id="variable-val~11"></span>
               integer(kind=c_int32_t),
             </td>
               <td>public</td>
@@ -3818,7 +3836,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~13"></span>
+              <span class="anchor" id="variable-stream~27"></span>
               type(c_ptr),
             </td>
               <td>public</td>
@@ -3895,7 +3913,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~8"></span>
+              <span class="anchor" id="variable-val~12"></span>
               integer(kind=c_int32_t),
             </td>
               <td>public</td>
@@ -4439,7 +4457,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~50"></span>
+              <span class="anchor" id="variable-error_code~36"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -4709,7 +4727,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-gpu_backend~12"></span>
+              <span class="anchor" id="variable-gpu_backend~14"></span>
               type(<a href='../type/dtfft_gpu_backend_t.html'>dtfft_gpu_backend_t</a>),
             </td>
 <td>intent(in)</td>
@@ -4754,7 +4772,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~16"></span>
+              <span class="anchor" id="variable-stream~30"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
@@ -5657,7 +5675,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-major"></span>
+              <span class="anchor" id="variable-major~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -5672,7 +5690,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-minor"></span>
+              <span class="anchor" id="variable-minor~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -5852,7 +5870,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~9"></span>
+              <span class="anchor" id="variable-val~13"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -5897,7 +5915,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-val~10"></span>
+              <span class="anchor" id="variable-val~14"></span>
               type(c_ptr),
             </td>
 <td>intent(in)</td>

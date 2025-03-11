@@ -172,7 +172,7 @@ contains
             WRITE_WARN("Number of MPI processes in direction "//int_to_str(d)//" greater then number of physical points: "//int_to_str(comm_dims(d))//" > "//int_to_str(dims(d)))
           endif
         enddo
-        if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab_flag() ) then
+        if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab() ) then
           self%is_z_slab = .true.
         endif
       endblock
@@ -195,7 +195,7 @@ contains
       if ( ndims == 3 .and. cond1 ) then
         comm_dims(2) = 1
         comm_dims(3) = comm_size
-        self%is_z_slab = get_z_slab_flag()
+        self%is_z_slab = get_z_slab()
       else if (ndims == 3 .and. cond2 ) then
           comm_dims(2) = comm_size
           comm_dims(3) = 1

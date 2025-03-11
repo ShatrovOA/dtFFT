@@ -16,6 +16,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "dtfft_config.h"
+#include "dtfft.f03"
 !------------------------------------------------------------------------------------------------
 module dtfft_plan
 !! This module describes [[dtfft_plan_t]], [[dtfft_plan_c2c_t]], [[dtfft_plan_r2c_t]] and [[dtfft_plan_r2r_t]] types
@@ -428,7 +429,7 @@ contains
     CHECK_ERROR_AND_RETURN
 
     REGION_BEGIN("dtfft_destroy", COLOR_DESTROY)
-print*,'dtfft_destroy'
+
     if ( allocated(self%dims) ) deallocate(self%dims)
 
 #ifndef DTFFT_TRANSPOSE_ONLY
@@ -646,13 +647,11 @@ print*,'dtfft_destroy'
     else
       WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2))//"x"//int_to_str(self%dims(3)))
     endif
-#ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_HOST ) then
       WRITE_REPORT("  Execution platform   :  HOST")
     else
       WRITE_REPORT("  Execution platform   :  CUDA")
     endif
-#endif
     select type( self )
     class is ( dtfft_plan_c2c_t )
       WRITE_REPORT("  Plan type            :  Complex-to-Complex")
@@ -704,7 +703,7 @@ print*,'dtfft_destroy'
     integer(int32)  :: ierr     !! Error code
 
     ierr = DTFFT_SUCCESS
-    get_platform = PLATFORM_UNDEFINED
+    get_platform = PLATFORM_NOT_SET
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     if ( present( error_code ) ) error_code = ierr
     if ( ierr /= DTFFT_SUCCESS ) return
@@ -1107,13 +1106,14 @@ print*,'dtfft_destroy'
       !! Number of elements to be allocated
     character(len=100)                            :: debug_msg
       !! Logging allocation size
+    integer(int32) :: ierr
 
     if ( self%is_aux_alloc .or. present(aux) ) return
 
     alloc_size = self%get_alloc_size() * self%get_element_size()
     write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size, " bytes"
     WRITE_DEBUG(debug_msg)
-    self%aux_ptr = self%mem_alloc(alloc_size)
+    self%aux_ptr = self%mem_alloc(alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
     call c_f_pointer(self%aux_ptr, self%aux, [ alloc_size /  int(FLOAT_STORAGE_SIZE, int64) ])
     self%is_aux_alloc = .true.
   end subroutine check_aux
