@@ -42,9 +42,14 @@ use dtfft_parameters
 use dtfft_transpose_plan_host,        only: transpose_plan_host
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
+use dtfft_interface_cuda,             only: load_cuda
 use dtfft_interface_cuda_runtime
+use dtfft_interface_nvrtc,            only: load_nvrtc
 use dtfft_nvrtc_kernel,               only: clean_unused_cache
 use dtfft_transpose_plan_cuda,        only: transpose_plan_cuda
+#endif
+#ifdef DTFFT_WITH_NVSHMEM
+use dtfft_interface_nvshmem,          only: is_nvshmem_ptr
 #endif
 #include "dtfft_cuda.h"
 #include "dtfft_mpi.h"
@@ -54,9 +59,7 @@ implicit none
 private
 public :: dtfft_plan_t
 public :: dtfft_plan_c2c_t
-#ifndef DTFFT_TRANSPOSE_ONLY
 public :: dtfft_plan_r2c_t
-#endif
 public :: dtfft_plan_r2r_t
 
 
@@ -191,12 +194,6 @@ public :: dtfft_plan_r2r_t
   private
   end type dtfft_plan_c2c_t
 
-  interface dtfft_plan_c2c_t
-  !! C2C Plan Constructor
-    module procedure :: c2c_constructor
-  end interface dtfft_plan_c2c_t
-
-#ifndef DTFFT_TRANSPOSE_ONLY
   type, extends(dtfft_core_c2c) :: dtfft_plan_r2c_t
   !! R2C Plan
   private
@@ -205,12 +202,6 @@ public :: dtfft_plan_r2r_t
   private
   end type dtfft_plan_r2c_t
 
-  interface dtfft_plan_r2c_t
-  !! R2C Plan Constructor
-    module procedure :: r2c_constructor
-  end interface dtfft_plan_r2c_t
-#endif
-
   type, extends(dtfft_plan_t) :: dtfft_plan_r2r_t
   !! R2R Plan
   private
@@ -218,11 +209,6 @@ public :: dtfft_plan_r2r_t
   private
     procedure, pass(self),  public  :: create => create_r2r !! R2R Plan Constructor
   end type dtfft_plan_r2r_t
-
-  interface dtfft_plan_r2r_t
-  !! R2R Plan Constructor
-    module procedure :: r2r_constructor
-  end interface dtfft_plan_r2r_t
 
 contains
 
@@ -432,12 +418,10 @@ contains
 
     if ( allocated(self%dims) ) deallocate(self%dims)
 
-#ifndef DTFFT_TRANSPOSE_ONLY
     select type ( self )
     class is ( dtfft_plan_r2c_t )
       call self%real_pencil%destroy()
     endselect
-#endif
 
     if ( allocated(self%pencils) ) then
       do d = 1, self%ndims
@@ -521,23 +505,39 @@ contains
     integer(int8),              intent(in)    :: dim
       !! Required dimension:
       !!
-      !!   - 1 for XYZ layout
-      !!   - 2 for YXZ layout
-      !!   - 3 for ZXY layout
+      !!  - 0 for XYZ layout (real space, R2C only)
+      !!  - 1 for XYZ layout
+      !!  - 2 for YXZ layout
+      !!  - 3 for ZXY layout
       !!
       !! [//]: # (ListBreak)
     integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
+    integer(int8)   :: min_dim
 
     ierr = DTFFT_SUCCESS
-    get_pencil = dtfft_pencil_t(-1,-1,-1,-1)
+    ! get_pencil = dtfft_pencil_t(-1,-1,-1,-1)
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
-    if ( dim < 1 .or. dim > self%ndims ) ierr = DTFFT_ERROR_INVALID_DIM
+    select type (self)
+    class is ( dtfft_plan_r2c_t )
+      min_dim = 0
+    class default
+      min_dim = 1
+    endselect
+
+    if ( dim < min_dim .or. dim > self%ndims ) ierr = DTFFT_ERROR_INVALID_DIM
     CHECK_ERROR_AND_RETURN
 
-    get_pencil = self%pencils(dim)%make_public()
+    if ( dim == 0 ) then
+      select type (self)
+      class is ( dtfft_plan_r2c_t )
+        get_pencil = self%real_pencil%make_public()
+      endselect
+    else
+      get_pencil = self%pencils(dim)%make_public()
+    endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_pencil
 
@@ -554,10 +554,8 @@ contains
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
     select type (self)
-#ifndef DTFFT_TRANSPOSE_ONLY
     class is ( dtfft_plan_r2c_t )
       get_element_size = int(self%storage_size / 2, int64)
-#endif
     class default
       get_element_size = int(self%storage_size, int64)
     endselect
@@ -657,10 +655,8 @@ contains
       WRITE_REPORT("  Plan type            :  Complex-to-Complex")
     class is ( dtfft_plan_r2r_t )
       WRITE_REPORT("  Plan type            :  Real-to-Real")
-#ifndef DTFFT_TRANSPOSE_ONLY
     class is ( dtfft_plan_r2c_t )
       WRITE_REPORT("  Plan type            :  Real-to-Complex")
-#endif
     endselect
     if ( self%precision == DTFFT_SINGLE ) then
       WRITE_REPORT("  Plan precision       :  Single")
@@ -781,7 +777,7 @@ contains
     if ( is_backend_nvshmem(gpu_backend) ) then
 #ifdef DTFFT_WITH_NVSHMEM
       is_devptr = is_nvshmem_ptr(c_loc(in)) .and. is_nvshmem_ptr(c_loc(out))
-      if ( present(aux) ) is_devptr = is_devptr .and. is_device_ptr(c_loc(aux))
+      if ( present(aux) ) is_devptr = is_devptr .and. is_nvshmem_ptr(c_loc(aux))
       if ( .not. is_devptr ) error_code = DTFFT_ERROR_NOT_NVSHMEM_PTR
 #endif
     else
@@ -821,13 +817,11 @@ contains
     CHECK_ERROR_AND_RETURN
 
     select type ( self )
-#ifndef DTFFT_TRANSPOSE_ONLY
     class is (dtfft_plan_r2c_t)
       if (present( in_starts ) )    in_starts(1:self%ndims)   = self%real_pencil%starts(1:self%ndims)
       if (present( in_counts ) )    in_counts(1:self%ndims)   = self%real_pencil%counts(1:self%ndims)
       call get_local_sizes_private(self%pencils, out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size)
       if ( present( alloc_size ) ) alloc_size = max(int(product(self%real_pencil%counts), int64), 2 * alloc_size)
-#endif
     class default
       call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
     endselect
@@ -1080,12 +1074,10 @@ contains
     do dim = 1_int8, self%ndims
       do dim2 = 1_int8, dim - 1_int8
         if ( dim == dim2 ) cycle
-#ifndef DTFFT_TRANSPOSE_ONLY
         select type ( self )
         class is ( dtfft_plan_r2c_t )
           if ( dim == 1 ) cycle
         endselect
-#endif
         if ( self%pencils(dim)%counts(1) == self%pencils(dim2)%counts(1)                    &
              .and. product(self%pencils(dim)%counts) == product(self%pencils(dim2)%counts)  &
              .and. kinds_(dim) == kinds_(dim2) ) then
@@ -1169,28 +1161,6 @@ contains
     REGION_END("dtfft_create_r2r")
   end subroutine create_r2r
 
-  function r2r_constructor(dims, kinds, comm, precision, effort, executor, error_code) result(plan)
-  !! R2R Plan Constructor
-    integer(int32),                   intent(in)    :: dims(:)
-      !! Global dimensions of transform
-    type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)
-      !! Kinds of R2R transform
-    TYPE_MPI_COMM,          optional, intent(in)    :: comm
-      !! Communicator
-    type(dtfft_precision_t),optional, intent(in)    :: precision
-      !! Presicion of Transform
-    type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
-    type(dtfft_executor_t), optional, intent(in)    :: executor
-      !! Type of External FFT Executor
-    integer(int32),         optional, intent(out)   :: error_code
-      !! Optional Error Code returned to user
-    type(dtfft_plan_r2r_t)                          :: plan
-      !! R2R Plan
-
-    call plan%create(dims, kinds, comm, precision, effort, executor, error_code)
-  end function r2r_constructor
-
   subroutine create_generic_c2c(self, dims, comm, precision, effort, executor, error_code)
   !! C2C Generic Plan Constructor
     class(dtfft_core_c2c),            intent(inout) :: self
@@ -1216,16 +1186,13 @@ contains
 
     REGION_BEGIN("create_generic_c2c", COLOR_CREATE)
     allocate(fixed_dims, source=dims)
-#ifndef DTFFT_TRANSPOSE_ONLY
     select type ( self )
     class is (dtfft_plan_r2c_t)
       fixed_dims(1) = int(dims(1) / 2, int32) + 1
     endselect
-#endif
     CHECK_OPTIONAL_CALL( self%create_c2c_internal(fixed_dims, comm, precision, effort, executor) )
     deallocate( fixed_dims )
 
-#ifndef DTFFT_TRANSPOSE_ONLY
     select type ( self )
     class is (dtfft_plan_r2c_t)
       block
@@ -1239,54 +1206,11 @@ contains
         CHECK_OPTIONAL_CALL( self%fft(1)%fft%create(fft_rank, FFT_R2C, self%precision, real_pencil=self%real_pencil, complex_pencil=self%pencils(1)) )
       endblock
     endselect
-#endif
 
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
     self%is_created = .true.
     REGION_END("create_generic_c2c")
   end subroutine create_generic_c2c
-
-  function c2c_constructor(dims, comm, precision, effort, executor, error_code) result(plan)
-  !! C2C Plan Constructor
-    integer(int32),                   intent(in)    :: dims(:)
-      !! Global dimensions of transform
-    TYPE_MPI_COMM,          optional, intent(in)    :: comm
-      !! Communicator
-    type(dtfft_precision_t),optional, intent(in)    :: precision
-      !! Presicion of Transform
-    type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
-    type(dtfft_executor_t), optional, intent(in)    :: executor
-      !! Type of External FFT Executor
-    integer(int32),         optional, intent(out)   :: error_code
-      !! Optional Error Code returned to user
-    type(dtfft_plan_c2c_t)                          :: plan
-      !! Constructed plan
-
-    call plan%create(dims, comm, precision, effort, executor, error_code)
-  end function c2c_constructor
-
-#ifndef DTFFT_TRANSPOSE_ONLY
-  function r2c_constructor(dims, comm, precision, effort, executor, error_code) result(plan)
-  !! R2C Plan Constructor
-    integer(int32),                   intent(in)    :: dims(:)
-      !! Global dimensions of transform
-    TYPE_MPI_COMM,          optional, intent(in)    :: comm
-      !! Communicator
-    type(dtfft_precision_t),optional, intent(in)    :: precision
-      !! Presicion of Transform
-    type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
-    type(dtfft_executor_t), optional, intent(in)    :: executor
-      !! Type of External FFT Executor
-    integer(int32),         optional, intent(out)   :: error_code
-      !! Optional Error Code returned to user
-    type(dtfft_plan_r2c_t)                          :: plan
-      !! Constructed plan
-
-    call plan%create(dims, comm, precision, effort, executor, error_code)
-  end function r2c_constructor
-#endif
 
   integer(int32) function create_c2c_internal(self, dims, comm, precision, effort, executor)
   !! Creates plan for both C2C and R2C
@@ -1311,10 +1235,8 @@ contains
 
     if ( self%is_transpose_plan ) return
     select type ( self )
-#ifndef DTFFT_TRANSPOSE_ONLY
     class is (dtfft_plan_r2c_t)
       fft_start = 2
-#endif
     class default
       fft_start = 1
     endselect

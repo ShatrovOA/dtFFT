@@ -1,5 +1,4 @@
 #include <nvtx3/nvToolsExt.h>
-#include "cuda_runtime_api.h"
 
 void nvtxDomainCreate_c(const char* name, nvtxDomainHandle_t *domain)
 {

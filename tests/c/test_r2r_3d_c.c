@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   int32_t nx = 4, ny = 64, nz = 16;
   double *inout, *check, *aux;
   int comm_rank, comm_size;
-  int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
+  int32_t n[3] = {nz, ny, nx};
   dtfft_pencil_t pencils[3];
 
 
@@ -69,13 +69,10 @@ int main(int argc, char *argv[])
     dtfft_get_pencil(plan, i + 1, &pencils[i]);
   }
 
-  memcpy(in_counts, pencils[0].counts, 3 * sizeof(int32_t));
-  memcpy(out_counts, pencils[2].counts, 3 * sizeof(int32_t));
+  size_t in_size = pencils[0].size;
+  size_t out_size = pencils[2].size;
 
-  int64_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
-  int64_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
-
-  for (int i = 0; i < in_size; i++)
+  for (size_t i = 0; i < in_size; i++)
     inout[i] = check[i] = (double)(i) / (double)(in_size);
 
   double tf = 0.0 - MPI_Wtime();
@@ -94,7 +91,7 @@ int main(int argc, char *argv[])
 
   if ( executor != DTFFT_EXECUTOR_NONE ) {
     // Perform scaling. Scaling value may very depending on FFT type
-    for (int i = 0; i < out_size; i++)
+    for (size_t i = 0; i < out_size; i++)
       inout[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
   }
 
@@ -113,7 +110,7 @@ int main(int argc, char *argv[])
   tb += MPI_Wtime();
 
   double local_error = -1.0;
-  for (int i = 0; i < in_size; i++) {
+  for (size_t i = 0; i < in_size; i++) {
     double error = fabs(check[i] - inout[i]);
     local_error = error > local_error ? error : local_error;
   }

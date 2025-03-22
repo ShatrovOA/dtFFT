@@ -4,6 +4,8 @@
 [![dtfft workflow](https://github.com/ShatrovOA/dtFFT/actions/workflows/main.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/ShatrovOA/dtFFT/graph/badge.svg?token=6BI4AQVH7Z)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
+[![Documentation Status](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)
+[![Build and Deploy Documentation](https://github.com/ShatrovOA/dtFFT/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gh-pages.yml)
 
 ![Pencils](docs/images/pencils.png)
 

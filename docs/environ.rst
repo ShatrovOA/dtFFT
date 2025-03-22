@@ -6,6 +6,8 @@ Environment Variables
 
 This page lists all environment variables that can modify ``dtFFT`` behavior at runtime, offering users granular control over logging, performance measurement, and data transposition strategies.
 
+.. _dtfft_enable_log_env:
+
 DTFFT_ENABLE_LOG
 ================
 

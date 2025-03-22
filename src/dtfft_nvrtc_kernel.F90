@@ -523,13 +523,11 @@ contains
     if ( ierr /= 0 ) then
       block
         type(c_ptr) :: c_log
-        character(len=:), allocatable, target :: f_log
+        character(len=:), allocatable :: f_log
         integer(int32) :: global_rank
 
-        f_log = repeat(" ", 5000)
-        c_log = c_loc(f_log)
-
         NVRTC_CALL( "nvrtcGetProgramLog", nvrtcGetProgramLog(prog, c_log))
+        call string_c2f(c_log, f_log)
 
         call MPI_Comm_rank(comm, global_rank, mpi_ierr)
         if ( global_rank == 0 ) then
@@ -537,7 +535,7 @@ contains
           write(error_unit, "(a)") "CUDA Code:"
           write(error_unit, "(a)") code%raw
           write(error_unit, "(a)") "Compilation log:"
-          write(error_unit, "(a)") trim(f_log)
+          write(error_unit, "(a)") f_log
         endif
         call MPI_Abort(MPI_COMM_WORLD, ierr, mpi_ierr)
       endblock

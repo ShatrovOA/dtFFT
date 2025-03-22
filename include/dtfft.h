@@ -139,6 +139,10 @@ typedef enum {
   DTFFT_ERROR_FREE_FAILED = CONF_DTFFT_ERROR_FREE_FAILED,
 /** Invalid `alloc_bytes` provided */
   DTFFT_ERROR_INVALID_ALLOC_BYTES = CONF_DTFFT_ERROR_INVALID_ALLOC_BYTES,
+/** Failed to dynamically load library */
+  DTFFT_ERROR_DLOPEN_FAILED = CONF_DTFFT_ERROR_DLOPEN_FAILED,
+/** Failed to dynamically load symbol */
+  DTFFT_ERROR_DLSYM_FAILED = CONF_DTFFT_ERROR_DLSYM_FAILED,
 /** Invalid stream provided */
   DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM,
 /** Invalid GPU backend provided */
@@ -449,6 +453,9 @@ typedef struct {
 
 /** Local counts in natural Fortran order */
   int32_t counts[3];
+
+/** Total number of elements in a pencil */
+  size_t size;
 } dtfft_pencil_t;
 
 /**
@@ -457,6 +464,7 @@ typedef struct {
  *
  * @param[in]     plan            Plan handle
  * @param[in]     dim             Required dimension:
+ *                                  - 0 for XYZ layout (real space, R2C only)
  *                                  - 1 for XYZ layout
  *                                  - 2 for YXZ layout
  *                                  - 3 for ZXY layout
@@ -517,10 +525,10 @@ dtfft_report(dtfft_plan_t plan);
 
 #ifdef DTFFT_WITH_CUDA
 /**
- * @brief `dtFFT` stream representation. 
- * 
+ * @brief `dtFFT` stream representation.
+ *
  * @details For CUDA platform this should be casted from `cudaStream_t`.
- * 
+ *
  * **Example**
  * @code
  *  cudaStream_t stream;
@@ -641,7 +649,7 @@ typedef struct {
 #ifdef DTFFT_WITH_CUDA
 /**
  * @brief Selects platform to execute plan.
- * 
+ *
  * Default is `::DTFFT_PLATFORM_HOST`
  *
  * @details This option is only defined in a build with device support.

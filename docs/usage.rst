@@ -20,7 +20,7 @@ Almost all ``dtFFT`` functions return error codes to indicate whether execution 
 
 - **Fortran API**: Functions include an optional ``error_code`` parameter (type ``integer(int32)``), always positioned as the last argument.
   If omitted, errors must be checked through other means, such as program termination or runtime assertions.
-- **C API**: Functions return a value of type :c:type:`dtfft_error_code_t`, allowing direct inspection of the result.
+- **C API**: Functions return a value of type :cpp:type:`dtfft_error_code_t`, allowing direct inspection of the result.
 - **C++ API**: Functions return :cpp:type:`dtfft::ErrorCode`, typically used with exception handling or explicit checks.
 
 To simplify error checking, ``dtFFT`` provides predefined macros that wrap function calls and handle error codes automatically:
@@ -201,9 +201,8 @@ When the communicator passed during plan creation is ``MPI_COMM_WORLD`` with ``P
   - If both attempts fail, ``dtFFT`` constructs a 3D communicator by fixing the X-dimension split to 1 and using
     ``MPI_Dims_create(P, 2, dims)`` to balance the remaining ``P`` processes across Y and Z, resulting in ``NX × NY / P1 × NZ / P2``
     (where ``P1 × P2 = P``).
-  - If this 3D decomposition is not viable (e.g., ``NY < P1`` or ``NZ < P2``), ``dtFFT`` falls back to distributing the
-    Z-dimension across all ``P`` processes as ``NX × NY × NZ / P``, assigning each process a portion of ``NZ`` (rounded down),
-    with any remainder distributed to earlier ranks. This ensures a valid decomposition even when ``P > NZ``.
+  - If this 3D decomposition is not viable (e.g., ``NY < P1`` or ``NZ < P2``), ``dtFFT`` will continue, but warning message will be printed.
+    Make sure that :ref:`DTFFT_ENABLE_LOG<dtfft_enable_log_env>` is set in order to see it.
 
 User-Controlled Decomposition
 _____________________________
@@ -226,8 +225,9 @@ calls to the :f:func:`execute` method. This also enables the use of ``DTFFT_TRAN
 the :f:func:`transpose` method, while all other transpose types (e.g., ``DTFFT_TRANSPOSE_X_TO_Y``, ``DTFFT_TRANSPOSE_Y_TO_Z``)
 remain available to the user.
 
-This optimization can be disabled by passing the appropriate parameter in :f:type:`dtfft_config_t` (see configuration details below),
-but it cannot be forcibly enabled by passing an ``MPI_COMM_WORLD`` communicator if conditions for its applicability are not met.
+This optimization can be disabled by passing the appropriate parameter in :f:type:`dtfft_config_t` (see configuration details below) or by providing 
+:ref:`DTFFT_ENABLE_Z_SLAB<dtfft_enable_z_slab_env>` environment variable, but it cannot be forcibly enabled by passing an ``MPI_COMM_WORLD`` 
+communicator if conditions for its applicability are not met.
 
 ---------
 
@@ -600,10 +600,11 @@ Pencil Decomposition
 For detailed layout information in 3D plans (e.g., intermediate states like Y-direction distribution), use
 the :f:func:`get_pencil` method. This returns a ``dtfft_pencil_t`` structure containing:
 
-- **dim**: Aligned dimension ID (1 for X, 2 for Y, 3 for Z)
+- **dim**: Aligned dimension ID (1 for X, 2 for Y, 3 for Z).
 - **ndims**: Number of dimensions in the pencil (2 or 3)
-- **starts**: Local start indices in natural Fortran order (0-based, array of 3 elements)
-- **counts**: Local element counts in natural Fortran order (array of 3 elements, only first ``ndims`` elements are defined)
+- **starts**: Local start indices in natural Fortran order. (Allocatable array of size ``ndims``)
+- **counts**: Local element counts in natural Fortran order (Allocatable array of size ``ndims``)
+- **size**: Total number of elements in a pencil
 
 .. tabs::
 
@@ -645,7 +646,7 @@ In C++, the ``dtfft::Pencil`` class provides additional methods:
 - ``get_dim()``: Returns the aligned dimension ID
 - ``get_starts()``: Returns the start indices as a ``std::vector<int32_t>``
 - ``get_counts()``: Returns the element counts as a ``std::vector<int32_t>``
-- ``get_size()``: Returns the total number of elements (product of counts)
+- ``get_size()``: Returns the total number of elements.
 - ``c_struct()``: Returns the underlying C structure (``dtfft_pencil_t``)
 
 Plan properties

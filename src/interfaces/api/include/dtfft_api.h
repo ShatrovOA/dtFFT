@@ -90,8 +90,8 @@ int32_t
 dtfft_get_element_size_c(const void *, size_t*);
 
 extern
-void*
-dtfft_create_config_c();
+void
+dtfft_create_config_c(void*);
 
 extern
 int32_t

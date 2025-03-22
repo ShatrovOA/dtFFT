@@ -51,27 +51,29 @@ public :: fftw_executor
 
   abstract interface
     subroutine apply_interface(plan, in, out) bind(C)
+    !! Executes FFTW3 Plan
 #include "args_execute.i90"
     end subroutine apply_interface
 
     subroutine free_interface(plan) bind(C)
+    !! Destroys FFTW3 Plan
     import
       type(c_ptr), value :: plan
     end subroutine free_interface
 
     type(c_ptr) function create_c2c_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
-    import
+    !! Creates C2C FFTW3 Plan
 #include "args_create.i90"
       integer(C_INT), value :: sign
     end function create_c2c_plan
 
     type(c_ptr) function create_r2c_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
-    import
+    !! Creates R2C FFTW3 Plan
 #include "args_create.i90"
     end function create_r2c_plan
 
     type(c_ptr) function create_r2r_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kinds,flags) bind(C)
-    import
+    !! Creates R2R FFTW3 Plan
 #include "args_create.i90"
       integer(C_FFTW_R2R_KIND), intent(in) :: kinds(*)
     end function create_r2r_plan

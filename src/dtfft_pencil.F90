@@ -19,7 +19,6 @@
 #include "dtfft_config.h"
 module dtfft_pencil
 !! This module describes private [[pencil]] and public [[dtfft_pencil]] classes
-use iso_c_binding,    only: c_int8_t, c_int32_t
 use iso_fortran_env,  only: int8, int32, int64, real64, output_unit
 use dtfft_parameters
 use dtfft_utils
@@ -32,12 +31,20 @@ public :: dtfft_pencil_t
 public :: get_local_sizes
 public :: get_transpose_type
 
-  type, bind(C) :: dtfft_pencil_t
+  type :: dtfft_pencil_t
   !! Structure to hold pencil decomposition info
-    integer(c_int8_t)   :: dim        !! Aligned dimension id
-    integer(c_int8_t)   :: ndims      !! Number of dimensions
-    integer(c_int32_t)  :: starts(3)  !! Local starts, starting from 0 for both C and Fortran
-    integer(c_int32_t)  :: counts(3)  !! Local counts of data, in elements
+    integer(int8)               :: dim
+      !! Aligned dimension id
+    integer(int8)               :: ndims
+      !! Number of dimensions
+    integer(int32), allocatable :: starts(:)
+      !! Local starts, starting from 0 for both C and Fortran
+    integer(int32), allocatable :: counts(:)
+      !! Local counts of data, in elements
+    integer(int64)              :: size
+      !! Total number of elements in a pencil
+  contains
+    final :: destroy_pencil_t
   end type dtfft_pencil_t
 
   type :: pencil
@@ -180,12 +187,29 @@ contains
 
   type(dtfft_pencil_t) function make_public(self)
     class(pencil),  intent(in)  :: self                 !! Pencil
+    integer(int8) :: i  !! Counter
 
     make_public%dim = self%aligned_dim
     make_public%ndims = self%rank
-    make_public%counts(1:self%rank) = self%counts
-    make_public%starts(1:self%rank) = self%starts
+    if ( allocated(make_public%counts) ) deallocate( make_public%counts )
+    if ( allocated(make_public%starts) ) deallocate( make_public%starts )
+    allocate(make_public%counts(1:self%rank), source=self%counts)
+    allocate(make_public%starts(1:self%rank), source=self%starts)
+    make_public%size = 1_int64
+    do i = 1, make_public%ndims
+      make_public%size = make_public%size * int(make_public%counts(i), int64)
+    enddo
   end function make_public
+
+  subroutine destroy_pencil_t(self)
+    type(dtfft_pencil_t), intent(inout) :: self
+
+    if ( allocated(self%counts) ) deallocate( self%counts )
+    if ( allocated(self%starts) ) deallocate( self%starts )
+    self%dim = -1
+    self%ndims = -1
+    self%size = -1
+  end subroutine destroy_pencil_t
 
   subroutine get_local_sizes(pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
   !! Obtain local starts and counts in `real` and `fourier` spaces

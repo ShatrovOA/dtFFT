@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 #else
   executor = Executor::NONE;
 #endif
-executor = Executor::NONE;
+// executor = Executor::NONE;
 
   assign_device_to_process();
 
@@ -146,7 +146,7 @@ executor = Executor::NONE;
 
   if ( executor != Executor::NONE ) {
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-#pragma acc parallel loop deviceptr(d_inout) vector_length(256) async if(platform == Platform::CUDA)
+#pragma acc parallel loop deviceptr(d_inout) vector_length(256) async
     for (size_t i = 0; i < out_size; i++)
     {
       d_inout[i] /= (float) (8 * nx * ny * nz);

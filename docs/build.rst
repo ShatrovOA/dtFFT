@@ -109,6 +109,10 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Disables use of NVSHMEM-based backends shipped with HPC-SDK.
+   * - ``DTFFT_WITH_DEVICE_CHECKS``
+     - ``ON`` / ``OFF``
+     - ``ON``
+     - Enable error checking for all GPU libraries calls
 
 Building the Library
 ====================

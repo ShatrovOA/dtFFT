@@ -29,8 +29,6 @@
 
 #include <dtfft.h>
 #include <vector>
-#include <numeric>
-#include <functional>
 #include <stdexcept>
 #include <string>
 #include <cstdint>
@@ -69,21 +67,21 @@ class Version {
   public:
     /** dtFFT Major Version */
     static constexpr int32_t MAJOR = DTFFT_VERSION_MAJOR;
-  
+
     /** dtFFT Minor Version */
     static constexpr int32_t MINOR = DTFFT_VERSION_MINOR;
-  
+
     /** dtFFT Patch Version */
     static constexpr int32_t PATCH = DTFFT_VERSION_PATCH;
-  
+
     /** dtFFT Version Code. Can be used for version comparison */
     static constexpr int32_t CODE = DTFFT_VERSION_CODE;
-  
+
     /** @return Version Code defined during compilation */
     static int32_t get() noexcept { return dtfft_get_version(); }
-  
+
     /** @return Version Code based on input parameters */
-    static int32_t get(int32_t major, int32_t minor, int32_t patch) noexcept { return DTFFT_VERSION(major, minor, patch); }
+    static constexpr int32_t get(int32_t major, int32_t minor, int32_t patch) noexcept { return DTFFT_VERSION(major, minor, patch); }
   };
 
 /** This enum lists the different error codes that ``dtFFT`` can return. */
@@ -133,6 +131,10 @@ class Version {
   R2R_FFT_NOT_SUPPORTED = DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED,
 /** Internal call of Plan.mem_alloc failed */
   ALLOC_FAILED = DTFFT_ERROR_ALLOC_FAILED,
+/** Failed to dynamically load library */
+  DLOPEN_FAILED = DTFFT_ERROR_DLOPEN_FAILED,
+/** Failed to dynamically load symbol */
+  DLSYM_FAILED = DTFFT_ERROR_DLSYM_FAILED,
 /** Internal call of Plan.mem_free failed */
   FREE_FAILED = DTFFT_ERROR_FREE_FAILED,
 /** Invalid `alloc_bytes` provided */
@@ -330,7 +332,7 @@ class Version {
   class Exception : public std::exception {
   private:
     std::string s;
-  
+
   public:
     /**
      * @brief Basic exception constructor
@@ -341,12 +343,12 @@ class Version {
     Exception(std::string msg, const char* file, int line) {
       s = "dtFFT Exception: '" + std::move(msg) + "' at " + file + ":" + std::to_string(line);
     }
-  
+
     /** Exception explanation */
     const char* what() const noexcept override { return s.c_str(); }
   };
 
-  /** Class to handle Pencils 
+  /** Class to handle Pencils
    * @see Plan.get_pencil()
   */
   class Pencil {
@@ -374,9 +376,9 @@ class Version {
       Pencil() : is_created(false) {}
 
       /** Constructor used internally by Plan::get_pencil */
-      explicit Pencil(dtfft_pencil_t& c_pencil) : 
-        is_created(true), pencil(c_pencil), 
-        starts(create_vector(c_pencil.starts, c_pencil.ndims)), 
+      explicit Pencil(dtfft_pencil_t& c_pencil) :
+        is_created(true), pencil(c_pencil),
+        starts(create_vector(c_pencil.starts, c_pencil.ndims)),
         counts(create_vector(c_pencil.counts, c_pencil.ndims)) {}
 
     /** @return Number of dimensions in a pencil */
@@ -411,12 +413,12 @@ class Version {
         return counts;
       }
 
-      /** @return Total number of elements */
+      /** @return Total number of elements in a pencil */
       size_t get_size() const {
         if (!is_created) {
           DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
         }
-        return static_cast<size_t>(std::accumulate(counts.begin(), counts.end(), 1LL, std::multiplies<int64_t>()));
+        return pencil.size;
       }
 
     /** @return Underlying C structure */
@@ -457,7 +459,7 @@ class Version {
 #ifdef DTFFT_WITH_CUDA
 /**
  * @brief Sets platform to execute plan.
- * 
+ *
  * Default is Platform::HOST
  *
  * @details This option is only defined with device support build.
@@ -545,7 +547,7 @@ class Version {
     return static_cast<ErrorCode>(dtfft_set_config(config.c_struct()));
   }
 
-  /** Abstract plan for all dtFFT plans. 
+  /** Abstract plan for all dtFFT plans.
    * @details This class does not have any constructors. To create a plan user should use one of the inherited classes.
   */
   class Plan
@@ -584,6 +586,7 @@ class Version {
  * that is unavailable in dtFFT.
  *
  * @param[in]     dim             Required dimension:
+ *                                  - 0 for XYZ layout (real space, R2C only)
  *                                  - 1 for XYZ layout
  *                                  - 2 for YXZ layout
  *                                  - 3 for ZXY layout

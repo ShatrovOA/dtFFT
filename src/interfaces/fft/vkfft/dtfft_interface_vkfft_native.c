@@ -3,7 +3,6 @@
 
 #include "vkFFT.h"
 #include "mpi.h"
-#include "dtfft_config.h"
 
 #define VKFFT_CALL(call)                                          \
   do {                                                            \
@@ -26,8 +25,9 @@
   } while (0)
 
 
-void vkfft_create(const int8_t rank, const int *dims, const int32_t precision, const int how_many,
-                  const int8_t r2c, const int8_t c2r, const int8_t dct, const int8_t dst, cudaStream_t stream, VkFFTApplication **app_handle) {
+void vkfft_create(const int8_t rank, const int *dims, const int double_precision, const int how_many,
+                  const int8_t r2c, const int8_t c2r, const int8_t dct, const int8_t dst, cudaStream_t stream, VkFFTApplication **app_handle)
+{
   VkFFTConfiguration config = {};
   VkFFTApplication* app = (VkFFTApplication*)calloc(1, sizeof(VkFFTApplication));
 
@@ -37,7 +37,7 @@ void vkfft_create(const int8_t rank, const int *dims, const int32_t precision, c
   {
     config.size[dim] = dims[dim];
   }
-  config.doublePrecision = precision == CONF_DTFFT_DOUBLE ? 1 : 0;
+  config.doublePrecision = double_precision;
   config.numberBatches = how_many;
 
   CUdevice device;

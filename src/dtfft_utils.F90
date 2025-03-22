@@ -22,15 +22,12 @@ module dtfft_utils
 use iso_c_binding
 use iso_fortran_env,  only: int8, int32, int64, real64, output_unit, error_unit
 use dtfft_parameters
-#ifdef DTFFT_WITH_NVSHMEM
-use dtfft_interface_nvshmem
-#endif
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft_private.h"
 implicit none
 private
-public :: string_f2c
+public :: string_f2c, string_c2f
 public :: int_to_str, double_to_str
 public :: write_message, init_internal, get_log_enabled
 public :: get_env, get_iters_from_env, get_datatype_from_env
@@ -40,47 +37,54 @@ public :: get_platform_from_env, get_z_slab_from_env
 public :: is_same_ptr, is_null_ptr
 public :: mem_alloc_host, mem_free_host
 #ifdef DTFFT_WITH_CUDA
+public :: destroy_strings
 public :: astring_f2c
 public :: count_unique
 public :: Comm_f2c
 public :: is_device_ptr
 public :: get_gpu_backend_from_env
 public :: get_mpi_enabled_from_env, get_nccl_enabled_from_env, get_nvshmem_enabled_from_env, get_pipe_enabled_from_env
-#endif
-#ifdef DTFFT_WITH_NVSHMEM
-public :: is_nvshmem_ptr
+public :: load_library, load_symbol, unload_library, dynamic_load
 #endif
 
   logical,                    save  :: is_init_called = .false.
-  !! Has [[init_internal]] already been called or not
+    !! Has [[init_internal]] already been called or not
   logical,                    save  :: is_log_enabled
-  !! Should we log messages to stdout or not
+    !! Should we log messages to stdout or not
   type(dtfft_platform_t),     save  :: platform_from_env = PLATFORM_NOT_SET
-  !! Platform obtained from environ
+    !! Platform obtained from environ
   integer(int32),             save  :: z_slab_from_env
-  !! Should Z-slab be used if possible
+    !! Should Z-slab be used if possible
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_gpu_backend_t),  save  :: gpu_backend_from_env
-  !! Backend obtained from environ
+    !! Backend obtained from environ
   integer(int32),             save  :: mpi_enabled_from_env
-  !! Should we use MPI backends during autotune or not
+    !! Should we use MPI backends during autotune or not
   integer(int32),             save  :: nccl_enabled_from_env
-  !! Should we use NCCL backends during autotune or not
+    !! Should we use NCCL backends during autotune or not
   integer(int32),             save  :: nvshmem_enabled_from_env
-  !! Should we use NVSHMEM backends during autotune or not
+    !! Should we use NVSHMEM backends during autotune or not
   integer(int32),             save  :: pipe_enabled_from_env
-  !! Should we use pipelined backends during autotune or not
+    !! Should we use pipelined backends during autotune or not
 #endif
   character(len=26), parameter :: UPPER_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  !! Upper case alphabet.
+    !! Upper case alphabet.
   character(len=26), parameter :: LOWER_ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
-  !! Lower case alphabet.
+    !! Lower case alphabet.
 
   interface int_to_str
   !! Converts integer to string
     module procedure int_to_str_int8
     module procedure int_to_str_int32
   end interface int_to_str
+
+  interface is_null_ptr
+  !! Checks if pointer is NULL
+    module procedure is_null_ptr
+#ifdef DTFFT_WITH_CUDA
+    module procedure is_null_funptr
+#endif
+  end interface is_null_ptr
 
   interface get_env
   !! Obtains environment variable
@@ -97,13 +101,54 @@ public :: is_nvshmem_ptr
 public :: string
   type :: string
   !! Class used to create array of strings
-    character(len=:), allocatable :: raw                      !! String
+    character(len=:), allocatable :: raw  !! String
   end type string
 
   interface string
   !! Creates [[string]] object
     module procedure :: string_constructor
   end interface string
+
+  integer(c_int), parameter :: RTLD_LAZY = 1_c_int
+    !! Options to dlopen
+
+public :: dlopen, dlsym, dlclose
+  interface dlopen
+  !! Load and link a dynamic library or bundle
+    function dlopen(filename, mode) bind(C)
+    import
+      type(c_ptr)           :: dlopen       !! Handle to the library
+      character(c_char)     :: filename(*)  !! Name of the library
+      integer(c_int), value :: mode         !! options to dlopen
+    end function dlopen
+  end interface
+
+  interface dlsym
+  !! Get address of a symbol
+    function dlsym(handle, name) bind(C)
+    import
+      type(c_funptr)      :: dlsym          !! Address of the symbol
+      type(c_ptr),  value :: handle         !! Handle to the library
+      character(c_char)   :: name(*)        !! Name of the symbol
+    end function dlsym
+  end interface
+
+  interface dlclose
+  !! Close a dynamic library or bundle
+    function dlclose(handle) bind(C)
+    import
+      integer(c_int)      :: dlclose        !! Result of the operation
+      type(c_ptr), value  :: handle         !! Handle to the library
+    end function dlclose
+  end interface
+
+  interface dlerror
+  !! Get diagnostic information
+    function dlerror() bind(C)
+    import
+      type(c_ptr)  :: dlerror !! Error message
+    end function dlerror
+  end interface
 #endif
 
   interface mem_alloc_host
@@ -150,6 +195,18 @@ contains
     character(len=*), intent(in)  :: str  !! String
     allocate( string_constructor%raw, source=str )
   end function string_constructor
+
+  subroutine destroy_strings(strings)
+  !! Destroys array of [[string]] objects
+    type(string), intent(inout), allocatable :: strings(:)  !! Array of strings
+    integer(int32) :: i
+
+    if ( .not. allocated(strings) ) return
+    do i = 1, size(strings)
+      if ( allocated(strings(i)%raw) ) deallocate( strings(i)%raw )
+    end do
+    deallocate( strings )
+  end subroutine destroy_strings
 #endif
 
   integer(int32) function init_internal()
@@ -172,9 +229,10 @@ contains
 
 #ifdef DTFFT_WITH_CUDA
     block
-      type(string) :: platforms(2)
+      type(string), allocatable :: platforms(:)
       character(len=:), allocatable :: pltfrm_env
 
+      allocate( platforms(2) )
       platforms(1) = string("host")
       platforms(2) = string("cuda")
 
@@ -188,13 +246,15 @@ contains
       endif
 
       deallocate( platforms(1)%raw, platforms(2)%raw, pltfrm_env )
+      deallocate( platforms )
     endblock
 
     block
-      type(string) :: backends(7)
+      type(string), allocatable :: backends(:)
       character(len=:), allocatable :: bcknd_env
       integer(int32) :: i
 
+      allocate( backends(7) )
       backends(1) = string("mpi_dt")
       backends(2) = string("mpi_p2p")
       backends(3) = string("mpi_a2a")
@@ -227,6 +287,7 @@ contains
       do i = 1, size(backends)
         deallocate( backends(i)%raw )
       enddo
+      deallocate( backends )
     endblock
 
     mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
@@ -446,6 +507,16 @@ contains
     if(present( string_size )) string_size = j
   end subroutine string_f2c
 
+  subroutine string_c2f(cstring, string)
+  !! Convert C string to Fortran string
+    type(c_ptr)                     :: cstring  !! C string
+    character(len=:),   allocatable :: string   !! Fortran string
+    character(len=256), pointer     :: fstring  !! Temporary Fortran string
+
+    call c_f_pointer(cstring, fstring)
+    allocate( string, source=fstring(1:index(fstring, c_null_char) - 1) )
+  end subroutine string_c2f
+
 #ifdef DTFFT_WITH_CUDA
   subroutine astring_f2c(fstring, cstring, string_size)
   !! Convert Fortran string to C allocatable string
@@ -456,6 +527,84 @@ contains
     allocate(cstring( len_trim(fstring) + 1 ))
     call string_f2c(fstring, cstring, string_size)
   end subroutine astring_f2c
+
+  subroutine dl_error(message)
+  !! Writes error message to the error unit
+    character(len=*), intent(in)  :: message      !! Message to write
+    character(len=:), allocatable :: err_msg      !! Error string
+
+    call string_c2f(dlerror(), err_msg)
+    WRITE_ERROR(message//": "//err_msg)
+    deallocate( err_msg )
+  end subroutine dl_error
+
+  function load_library(name) result(lib_handle)
+  !! Dynamically loads library
+    character(len=*), intent(in)  :: name         !! Name of library to load
+    type(c_ptr)                   :: lib_handle   !! Loaded handle
+    character(c_char),  allocatable :: cname(:)   !! Temporary string
+
+    WRITE_DEBUG("Loading library: "//name)
+    call astring_f2c(name//c_null_char, cname)
+    lib_handle = dlopen(cname, RTLD_LAZY)
+    deallocate( cname )
+    if (is_null_ptr(lib_handle)) then
+      call dl_error("Failed to load library '"//name//"'")
+    endif
+  end function load_library
+
+  function load_symbol(handle, name) result(symbol_handle)
+  !! Dynamically loads symbol from library
+    type(c_ptr),      intent(in)  :: handle         !! Loaded handle
+    character(len=*), intent(in)  :: name           !! Name of function to load
+    type(c_funptr)                :: symbol_handle  !! Function pointer
+    character(c_char),  allocatable :: cname(:)     !! Temporary string
+
+    if ( is_null_ptr(handle) ) error stop "dtFFT Internal error: is_null_ptr(handle)"
+    WRITE_DEBUG("Loading symbol: "//name)
+    call astring_f2c(name//c_null_char, cname)
+    symbol_handle = dlsym(handle, cname)
+    deallocate(cname)
+    if (is_null_ptr(symbol_handle)) then
+      call dl_error("Failed to load symbol '"//name//"'")
+    endif
+  end function load_symbol
+
+  subroutine unload_library(handle)
+  !! Unloads library
+    type(c_ptr),      intent(in)  :: handle         !! Loaded handle
+    integer(int32)  :: ierr                         !! Error code
+
+    ierr = dlclose(handle)
+    if ( ierr /= 0 ) then
+      call dl_error("Failed to unload library")
+    endif
+  end subroutine unload_library
+
+  function dynamic_load(name, symbol_names, handle, symbols) result(error_code)
+    character(len=*), intent(in)  :: name             !! Name of library to load
+    type(string),     intent(in)  :: symbol_names(:)  !! Names of functions to load
+    type(c_ptr),      intent(out) :: handle           !! Loaded handle
+    type(c_funptr),   intent(out) :: symbols(:)       !! Function pointers
+    integer(int32)                :: error_code       !! Error code
+    integer(int32)                :: i                !! Loop index
+
+    error_code = DTFFT_SUCCESS
+
+    handle = load_library(name)
+    if ( is_null_ptr(handle) ) then
+      error_code = DTFFT_ERROR_DLOPEN_FAILED
+      return
+    endif
+
+    do i = 1, size(symbol_names)
+      symbols(i) = load_symbol(handle, symbol_names(i)%raw)
+      if ( is_null_ptr(symbols(i)) ) then
+        error_code = DTFFT_ERROR_DLSYM_FAILED
+        return
+      endif
+    end do
+  end function dynamic_load
 #endif
 
   function int_to_str_int32(n) result(string)
@@ -547,15 +696,21 @@ contains
   elemental logical function is_null_ptr(ptr)
   !! Checks if pointer is NULL
     type(c_ptr),  intent(in) :: ptr   !! Pointer to check
-
-    is_null_ptr = is_same_ptr(ptr, c_null_ptr)
+    is_null_ptr = .not.c_associated(ptr)
   end function is_null_ptr
+
+#ifdef DTFFT_WITH_CUDA
+  elemental logical function is_null_funptr(ptr)
+  !! Checks if pointer is NULL
+    type(c_funptr),  intent(in) :: ptr   !! Pointer to check
+    is_null_funptr = .not.c_associated(ptr)
+  end function is_null_funptr
+#endif
 
   elemental logical function is_same_ptr(ptr1, ptr2)
   !! Checks if two pointer are the same
     type(c_ptr),  intent(in):: ptr1   !! First pointer
     type(c_ptr),  intent(in):: ptr2   !! Second pointer
-
     is_same_ptr = c_associated(ptr1, ptr2)
   end function is_same_ptr
 
@@ -574,14 +729,5 @@ contains
     end do
     deallocate(y)
   end function count_unique
-#endif
-#ifdef DTFFT_WITH_NVSHMEM
-  function is_nvshmem_ptr(ptr) result(bool)
-  !! Checks if pointer is a symmetric nvshmem allocated pointer
-    type(c_ptr)   :: ptr    !! Device pointer
-    logical       :: bool   !! Result
-
-    bool = is_null_ptr( nvshmem_ptr(ptr, nvshmem_my_pe()) )
-  end function is_nvshmem_ptr
 #endif
 end module dtfft_utils

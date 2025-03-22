@@ -18,8 +18,8 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_3d
-use iso_fortran_env, only: R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit
-use iso_c_binding, only: c_size_t
+use iso_fortran_env, only: R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit, int64
+use iso_c_binding
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
@@ -34,8 +34,9 @@ implicit none
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
   integer(I4P) :: in_counts(3)
-  integer(c_size_t) :: alloc_size
+  integer(int64) :: alloc_size, element_size
   real(R8P) :: tf, tb
+  type(dtfft_pencil_t) :: real_pencil, cmplx_pencil
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -66,6 +67,19 @@ implicit none
   call plan%create([nx, ny, nz], executor=executor, effort=DTFFT_MEASURE)
 
   call plan%get_local_sizes(in_counts = in_counts, alloc_size=alloc_size)
+  element_size = plan%get_element_size()
+  call plan%report()
+
+  if ( element_size /= R8P ) error stop "element_size /= real64"
+
+  real_pencil = plan%get_pencil(0_I1P)
+  cmplx_pencil = plan%get_pencil(1_I1P)
+  if ( any(in_counts /= real_pencil%counts) ) error stop "in_counts /= real_pencil%counts"
+  if ( cmplx_pencil%counts(1) /= (nx / 2) + 1 ) error stop "cmplx_pencil%counts(1) /= (nx / 2) + 1"
+  if ( any(real_pencil%counts(2:) /= cmplx_pencil%counts(2:)) ) error stop "cmplx_pencil%counts(1) /= (nx / 2) + 1"
+  if ( comm_size == 1 ) then
+    if ( any(real_pencil%counts /= [nx, ny, nz]) ) error stop "real_pencil%counts /= [nx, ny, nz]"
+  endif
 
   allocate(in(alloc_size))
   allocate(check(1:in_counts(1), 1:in_counts(2), 1:in_counts(3)))

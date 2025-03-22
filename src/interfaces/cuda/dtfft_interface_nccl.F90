@@ -20,6 +20,7 @@ module dtfft_interface_nccl
 !! NCCL Interfaces
 use iso_c_binding
 use dtfft_parameters, only: dtfft_stream_t
+use dtfft_utils,      only: string_c2f
 implicit none
 private
 public :: ncclGetErrorString
@@ -236,11 +237,7 @@ contains
   !! Generates an error message.
     integer(c_int32_t), intent(in)    :: ncclResult_t       !! Completion status of a function.
     character(len=:),   allocatable   :: string             !! Error message
-    type(c_ptr)                       :: c_string
-    character(len=256), pointer       :: f_string
 
-    c_string = ncclGetErrorString_c(ncclResult_t)
-    call c_f_pointer(c_string, f_string)
-    allocate( string, source=f_string(1:index(f_string, c_null_char) - 1) )
+    call string_c2f(ncclGetErrorString_c(ncclResult_t), string)
   end function ncclGetErrorString
 end module dtfft_interface_nccl

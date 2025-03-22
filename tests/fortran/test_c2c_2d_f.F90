@@ -93,7 +93,7 @@ implicit none
 #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
-  plan = dtfft_plan_c2c_t([nx, ny], effort=DTFFT_MEASURE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%create([nx, ny], effort=DTFFT_MEASURE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
 

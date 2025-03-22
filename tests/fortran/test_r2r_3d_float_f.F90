@@ -77,7 +77,7 @@ implicit none
 
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
-  plan = dtfft_plan_r2r_t([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr)
+  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr)
   DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)

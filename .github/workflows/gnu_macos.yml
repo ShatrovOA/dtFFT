@@ -1,0 +1,74 @@
+name: GNU Macos
+
+on: [push]
+jobs:
+  openmpi:
+    name: GCC-12 + OpenMPI with persistent communications
+    runs-on: macos-latest
+    env:
+      CC: "gcc-12"
+      CXX: "g++-12"
+      FC: "gfortran-12"
+      DTFFT_ENABLE_LOG: "1"
+    steps:
+      - name: Get Requirements
+        run: |
+          brew install openmpi
+          brew install fftw
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_WITH_FFTW=on \
+            -DDTFFT_BUILD_SHARED=on \
+            -DDTFFT_MPI_VENDOR=openmpi \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_C_CXX_API=off
+          cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
+          cmake --build build
+
+  mpich:
+    name: macOS MPICH
+    runs-on: macos-latest
+    env:
+      CC: "gcc-14"
+      CXX: "g++-14"
+      FC: "gfortran-14"
+      DTFFT_ENABLE_LOG: "1"
+    steps:
+      - name: Get Requirements
+        run: |
+          brew install mpich
+          brew install ninja
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_BUILD_SHARED=on \
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_USE_MPI=on
+          cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
+          cmake --build build

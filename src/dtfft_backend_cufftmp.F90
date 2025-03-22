@@ -54,11 +54,11 @@ contains
 
   subroutine create(self, helper, tranpose_type, base_storage)
   !! Creates cuFFTMp GPU Backend
-    class(backend_cufftmp),       intent(inout) :: self       !! cuFFTMp GPU Backend
-    type(backend_helper),         intent(in)    :: helper     !! Backend helper
-    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
+    class(backend_cufftmp),       intent(inout) :: self               !! cuFFTMp GPU Backend
+    type(backend_helper),         intent(in)    :: helper             !! Backend helper
+    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type      !! Type of transpose to create
     integer(int8),                intent(in)    :: base_storage       !! Number of bytes to store single element
-    type(Box3D)                      :: inbox, outbox      !! Reshape boxes
+    type(Box3D)                      :: inbox, outbox                 !! Reshape boxes
     type(pencil), pointer :: in, out
     type(c_ptr) :: c_comm
 
