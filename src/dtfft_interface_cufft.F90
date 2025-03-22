@@ -18,13 +18,16 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_cufft
 !! cuFFT Interfaces
-use iso_c_binding,  only: c_int32_t, c_int, c_ptr, c_long_long, c_size_t
-use dtfft_parameters, only: dtfft_stream_t
+use iso_c_binding
+use iso_fortran_env
+use dtfft_parameters
+use dtfft_utils
 implicit none
 private
 public :: CUFFT_R2C, CUFFT_C2R, CUFFT_C2C
 public :: CUFFT_D2Z, CUFFT_Z2D, CUFFT_Z2Z
 public :: cufftGetErrorString
+public :: load_cufft
 
 
   integer(c_int), parameter,  public :: CUFFT_COMM_MPI = 0
@@ -64,168 +67,257 @@ public :: cufftReshapeHandle
     type(c_ptr) :: cptr
   end type cufftReshapeHandle
 
-public :: cufftPlanMany
-  interface cufftPlanMany
-  !! Creates a FFT plan configuration of dimension rank, with sizes specified in the array n.
-    function cufftPlanMany(plan, rank, n, inembed, istride, idist, onembed, ostride, odist, ffttype, batch) &
-      result(cufftResult)                                                                                   &
-      bind(C, name="cufftPlanMany")
+  abstract interface
+    function cufftPlanMany_interface(plan, rank, n, inembed, istride, idist, onembed, ostride, odist, ffttype, batch) &
+      result(cufftResult)
+    !! Creates a FFT plan configuration of dimension rank, with sizes specified in the array n.
     import
-      type(c_ptr)                       :: plan         !! Pointer to an uninitialized cufftHandle object.
-      integer(c_int),             value :: rank         !! Dimensionality of the transform (1, 2, or 3).
-      integer(c_int)                    :: n(*)         !! Array of size rank, describing the size of each dimension,
-                                                        !! n[0] being the size of the outermost 
-                                                        !! and n[rank-1] innermost (contiguous) dimension of a transform.
-      integer(c_int)                    :: inembed(*)   !! Pointer of size rank that indicates the storage dimensions of the input data in memory. 
-                                                        !! If set to NULL, all other advanced data layout parameters are ignored.
-      integer(c_int),             value :: istride      !! Indicates the distance between two successive input elements in the least 
-                                                        !! significant (i.e., innermost) dimension.
-      integer(c_int),             value :: idist        !! Indicates the distance between the first element of two consecutive signals 
-                                                        !! in a batch of the input data.
-      integer(c_int)                    :: onembed(*)   !! Pointer of size rank that indicates the storage dimensions of the output data in memory. 
-                                                        !! If set to NULL, all other advanced data layout parameters are ignored.
-      integer(c_int),             value :: ostride      !! Indicates the distance between two successive output elements in the output array 
-                                                        !! in the least significant (i.e., innermost) dimension.
-      integer(c_int),             value :: odist        !! Indicates the distance between the first element of two consecutive signals 
-                                                        !! in a batch of the output data.
-      integer(c_int),             value :: ffttype      !! The transform data type (e.g., CUFFT_R2C for single precision real to complex).
-      integer(c_int),             value :: batch        !! Batch size for this transform.
-      integer(c_int)                    :: cufftResult  !! The enumerated type cufftResult defines API call result codes.
-    end function cufftPlanMany
-  end interface
+      type(c_ptr)                       :: plan
+        !! Pointer to an uninitialized cufftHandle object.
+      integer(c_int),             value :: rank
+        !! Dimensionality of the transform (1, 2, or 3).
+      integer(c_int)                    :: n(*)
+        !! Array of size rank, describing the size of each dimension,
+        !! n[0] being the size of the outermost
+        !! and n[rank-1] innermost (contiguous) dimension of a transform.
+      integer(c_int)                    :: inembed(*)
+        !! Pointer of size rank that indicates the storage dimensions of the input data in memory.
+        !! If set to NULL, all other advanced data layout parameters are ignored.
+      integer(c_int),             value :: istride
+        !! Indicates the distance between two successive input elements in the least
+        !! significant (i.e., innermost) dimension.
+      integer(c_int),             value :: idist
+        !! Indicates the distance between the first element of two consecutive signals
+        !! in a batch of the input data.
+      integer(c_int)                    :: onembed(*)
+        !! Pointer of size rank that indicates the storage dimensions of the output data in memory.
+        !! If set to NULL, all other advanced data layout parameters are ignored.
+      integer(c_int),             value :: ostride
+        !! Indicates the distance between two successive output elements in the output array
+        !! in the least significant (i.e., innermost) dimension.
+      integer(c_int),             value :: odist
+        !! Indicates the distance between the first element of two consecutive signals
+        !! in a batch of the output data.
+      integer(c_int),             value :: ffttype
+        !! The transform data type (e.g., CUFFT_R2C for single precision real to complex).
+      integer(c_int),             value :: batch
+        !! Batch size for this transform.
+      integer(c_int)                    :: cufftResult
+        !! The enumerated type cufftResult defines API call result codes.
+    end function cufftPlanMany_interface
 
-public :: cufftXtExec
-  interface cufftXtExec
-  !! Executes any cuFFT transform regardless of precision and type.
-  !! In case of complex-to-real and real-to-complex transforms, the direction parameter is ignored.
-    function cufftXtExec(plan, input, output, direction) &
-      result(cufftResult)                                 &
-      bind(C, name="cufftXtExec")
+    function cufftXtExec_interface(plan, input, output, direction) &
+      result(cufftResult)
+    !! Executes any cuFFT transform regardless of precision and type.
+    !! In case of complex-to-real and real-to-complex transforms, the direction parameter is ignored.
     import
-      type(c_ptr),                value :: plan         !! cufftHandle returned by cufftCreate.
-      type(c_ptr),                value :: input        !! Pointer to the input data (in GPU memory) to transform.
-      type(c_ptr),                value :: output       !! Pointer to the output data (in GPU memory).
-      integer(c_int),             value :: direction    !! The transform direction: CUFFT_FORWARD or CUFFT_INVERSE. 
-                                                        !! Ignored for complex-to-real and real-to-complex transforms.
-      integer(c_int)                    :: cufftResult  !! The enumerated type cufftResult defines API call result codes.
-    end function cufftXtExec
-  end interface
+      type(c_ptr),                value :: plan
+        !! cufftHandle returned by cufftCreate.
+      type(c_ptr),                value :: input
+        !! Pointer to the input data (in GPU memory) to transform.
+      type(c_ptr),                value :: output
+        !! Pointer to the output data (in GPU memory).
+      integer(c_int),             value :: direction
+        !! The transform direction: CUFFT_FORWARD or CUFFT_INVERSE.
+        !! Ignored for complex-to-real and real-to-complex transforms.
+      integer(c_int)                    :: cufftResult
+        !! The enumerated type cufftResult defines API call result codes.
+    end function cufftXtExec_interface
 
-public :: cufftDestroy
-  interface cufftDestroy
-  !! Frees all GPU resources associated with a cuFFT plan and destroys the internal plan data structure.
-    function cufftDestroy(plan) &
-      result(cufftResult)        &
-      bind(C, name="cufftDestroy")
+    function cufftDestroy_interface(plan) &
+      result(cufftResult)
+    !! Frees all GPU resources associated with a cuFFT plan and destroys the internal plan data structure.
     import
       type(c_ptr), value :: plan         !! Object of the plan to be destroyed.
       integer(c_int)     :: cufftResult  !! The enumerated type cufftResult defines API call result codes.
-    end function cufftDestroy
-  end interface
+    end function cufftDestroy_interface
 
-public :: cufftSetStream
-  interface cufftSetStream
-  !! Associates a CUDA stream with a cuFFT plan.
-    function cufftSetStream(plan, stream) &
-      result(cufftResult)                 &
-      bind(C, name="cufftSetStream")
+    function cufftSetStream_interface(plan, stream) &
+      result(cufftResult)
+    !! Associates a CUDA stream with a cuFFT plan.
     import
-      type(c_ptr),          value :: plan         !! Object to associate with the stream.
-      type(dtfft_stream_t), value :: stream       !! A valid CUDA stream.
-      integer(c_int)              :: cufftResult  !! The enumerated type cufftResult defines API call result codes.
-    end function cufftSetStream
-  end interface
+      type(c_ptr),          value :: plan
+        !! Object to associate with the stream.
+      type(dtfft_stream_t), value :: stream
+        !! A valid CUDA stream.
+      integer(c_int)              :: cufftResult
+        !! The enumerated type cufftResult defines API call result codes.
+    end function cufftSetStream_interface
 
-public :: cufftMpCreateReshape
-  interface cufftMpCreateReshape
-  !! Initializes a reshape handle for future use. This function is not collective.
-    function cufftMpCreateReshape(reshapeHandle) &
-      result(cufftResult)                        &
-      bind(C, name="cufftMpCreateReshape")
+    function cufftMpCreateReshape_interface(reshapeHandle) &
+      result(cufftResult)
+    !! Initializes a reshape handle for future use. This function is not collective.
     import
-      type(cufftReshapeHandle) :: reshapeHandle  !! The reshape handle.
-      integer(c_int)           :: cufftResult    !! The enumerated type cufftResult defines API call result codes.
-    end function cufftMpCreateReshape
-  end interface
+      type(cufftReshapeHandle) :: reshapeHandle
+        !! The reshape handle.
+      integer(c_int)           :: cufftResult
+        !! The enumerated type cufftResult defines API call result codes.
+    end function cufftMpCreateReshape_interface
 
-public :: cufftMpAttachReshapeComm
-  interface cufftMpAttachReshapeComm
-  !! Attaches a communication handle to a reshape. This function is not collective.
-    function cufftMpAttachReshapeComm(reshapeHandle, commType, fcomm) &
-      result(cufftResult)                                             &
-      bind(C, name="cufftMpAttachReshapeComm")
+    function cufftMpAttachReshapeComm_interface(reshapeHandle, commType, fcomm) &
+      result(cufftResult)
+    !! Attaches a communication handle to a reshape. This function is not collective.
+    import
+      type(cufftReshapeHandle), value :: reshapeHandle
+        !! The reshape handle.
+      integer(c_int),           value :: commType
+        !! An enum describing the communication type of the handle.
+      type(c_ptr)                     :: fcomm
+        !! If commType is CUFFT_COMM_MPI, this should be a pointer to an MPI communicator.
+        !! The pointer should remain valid until destruction of the handle.
+        !! Otherwise, this should be NULL.
+      integer(c_int)                  :: cufftResult
+        !! The enumerated type cufftResult defines API call result codes.
+    end function cufftMpAttachReshapeComm_interface
+
+    function cufftMpGetReshapeSize_interface(reshapeHandle, workSize) &
+      result(cufftResult)
+    !! Returns the amount (in bytes) of workspace required to execute the handle.
+    import
+      type(cufftReshapeHandle), value :: reshapeHandle
+        !! The reshape handle.
+      integer(c_size_t)               :: workSize
+        !! The size, in bytes, of the workspace required during reshape execution.
+      integer(c_int)                  :: cufftResult
+        !! The enumerated type cufftResult defines API call result codes.
+    end function cufftMpGetReshapeSize_interface
+
+
+    function cufftMpMakeReshape_interface(reshapeHandle, elementSize, rank, lower_input, upper_input, lower_output, upper_output, strides_input, strides_output) &
+      result(cufftResult)
+    !! Creates a reshape intended to re-distribute a global array of 3D data.
+    import
+      type(cufftReshapeHandle), value :: reshapeHandle
+        !! The reshape handle.
+      integer(c_long_long),     value :: elementSize
+        !! The size of the individual elements, in bytes. Allowed values are 4, 8, and 16.
+      integer(c_int),           value :: rank
+        !! The length of the lower_input, upper_input, lower_output, upper_output, strides_input, and strides_output arrays. rank should be 3.
+      integer(c_long_long)            :: lower_input(*)
+        !! An array of length rank, representing the lower-corner of the portion of the global nx * ny * nz array owned by the current process in the input descriptor.
+      integer(c_long_long)            :: upper_input(*)
+        !! An array of length rank, representing the upper-corner of the portion of the global nx * ny * nz array owned by the current process in the input descriptor.
+      integer(c_long_long)            :: lower_output(*)
+        !! An array of length rank, representing the lower-corner of the portion of the global nx * ny * nz array owned by the current process in the output descriptor.
+      integer(c_long_long)            :: upper_output(*)
+        !! An array of length rank, representing the upper-corner of the portion of the global nx * ny * nz array owned by the current process in the output descriptor.
+      integer(c_long_long)            :: strides_input(*)
+        !! An array of length rank, representing the local data layout of the input descriptor in memory. All entries must be decreasing and positive.
+      integer(c_long_long)            :: strides_output(*)
+        !! An array of length rank, representing the local data layout of the output descriptor in memory. All entries must be decreasing and positive.
+      integer(c_int)                  :: cufftResult
+        !! The enumerated type cufftResult defines API call result codes.
+    end function cufftMpMakeReshape_interface
+
+    function cufftMpExecReshapeAsync_interface(reshapeHandle, dataOut, dataIn, workSpace, stream) &
+      result(cufftResult)
+    !! Executes the reshape, redistributing data_in into data_out using the workspace in workspace.
+    import
+      type(cufftReshapeHandle), value :: reshapeHandle
+        !! The reshape handle.
+      type(c_ptr),              value :: dataOut
+        !! A symmetric-heap pointer to the output data. This memory should be NVSHMEM allocated and identical on all processes.
+      type(c_ptr),              value :: dataIn
+        !! A symmetric-heap pointer to the input data. This memory should be NVSHMEM allocated and identical on all processes.
+      type(c_ptr),              value :: workSpace
+        !! A symmetric-heap pointer to the workspace data. This memory should be NVSHMEM allocated and identical on all processes.
+      type(dtfft_stream_t),     value :: stream
+        !! The CUDA stream in which to run the reshape operation.
+      integer(c_int)                  :: cufftResult
+        !! The enumerated type cufftResult defines API call result codes.
+    end function cufftMpExecReshapeAsync_interface
+
+    function cufftMpDestroyReshape_interface(reshapeHandle) &
+      result(cufftResult)
+    !! Destroys a reshape and all its associated data.
     import
       type(cufftReshapeHandle), value :: reshapeHandle  !! The reshape handle.
-      integer(c_int),           value :: commType       !! An enum describing the communication type of the handle.
-      type(c_ptr)                     :: fcomm          !! If commType is CUFFT_COMM_MPI, this should be a pointer to an MPI communicator. 
-                                                        !! The pointer should remain valid until destruction of the handle. 
-                                                        !! Otherwise, this should be NULL.
       integer(c_int)                  :: cufftResult    !! The enumerated type cufftResult defines API call result codes.
-    end function cufftMpAttachReshapeComm
+    end function cufftMpDestroyReshape_interface
   end interface
 
-public :: cufftMpGetReshapeSize
-  interface cufftMpGetReshapeSize
-  !! Returns the amount (in bytes) of workspace required to execute the handle.
-    function cufftMpGetReshapeSize(reshapeHandle, workSize) &
-      result(cufftResult)                                   &
-      bind(C, name="cufftMpGetReshapeSize")
-    import
-      type(cufftReshapeHandle), value :: reshapeHandle  !! The reshape handle.
-      integer(c_size_t)               :: workSize       !! The size, in bytes, of the workspace required during reshape execution.
-      integer(c_int)                  :: cufftResult    !! The enumerated type cufftResult defines API call result codes.
-    end function cufftMpGetReshapeSize
-  end interface
+  logical, save :: is_loaded = .false.
+    !! Flag indicating whether the library is loaded
+  type(c_ptr), save :: libcufft
+    !! Handle to the loaded library
 
-public :: cufftMpMakeReshape
-  interface cufftMpMakeReshape
-  !! Creates a reshape intended to re-distribute a global array of 3D data.
-    function cufftMpMakeReshape(reshapeHandle, elementSize, rank, lower_input, upper_input, lower_output, upper_output, strides_input, strides_output) &
-      result(cufftResult)                                                                                                                             &
-      bind(C, name="cufftMpMakeReshape")
-    import
-      type(cufftReshapeHandle), value :: reshapeHandle      !! The reshape handle.
-      integer(c_long_long),     value :: elementSize        !! The size of the individual elements, in bytes. Allowed values are 4, 8, and 16.
-      integer(c_int),           value :: rank               !! The length of the lower_input, upper_input, lower_output, upper_output, strides_input, and strides_output arrays. rank should be 3.
-      integer(c_long_long)            :: lower_input(*)     !! An array of length rank, representing the lower-corner of the portion of the global nx * ny * nz array owned by the current process in the input descriptor.
-      integer(c_long_long)            :: upper_input(*)     !! An array of length rank, representing the upper-corner of the portion of the global nx * ny * nz array owned by the current process in the input descriptor.
-      integer(c_long_long)            :: lower_output(*)    !! An array of length rank, representing the lower-corner of the portion of the global nx * ny * nz array owned by the current process in the output descriptor.
-      integer(c_long_long)            :: upper_output(*)    !! An array of length rank, representing the upper-corner of the portion of the global nx * ny * nz array owned by the current process in the output descriptor.
-      integer(c_long_long)            :: strides_input(*)   !! An array of length rank, representing the local data layout of the input descriptor in memory. All entries must be decreasing and positive.
-      integer(c_long_long)            :: strides_output(*)  !! An array of length rank, representing the local data layout of the output descriptor in memory. All entries must be decreasing and positive.
-      integer(c_int)                  :: cufftResult        !! The enumerated type cufftResult defines API call result codes.
-    end function cufftMpMakeReshape
-  end interface
+#ifdef DTFFT_WITH_NVSHMEM
+  character(len=*), parameter :: LIB_NAME = "libcufftMp.so"
+  integer(c_int),   parameter :: CUFFT_MAX_FUNCTIONS = 10
+#else
+  character(len=*), parameter :: LIB_NAME = "libcufft.so"
+  integer(c_int),   parameter :: CUFFT_MAX_FUNCTIONS = 4
+#endif
 
-public :: cufftMpExecReshapeAsync
-  interface cufftMpExecReshapeAsync
-  !! Executes the reshape, redistributing data_in into data_out using the workspace in workspace.
-    function cufftMpExecReshapeAsync(reshapeHandle, dataOut, dataIn, workSpace, stream) &
-      result(cufftResult)                                                               &
-      bind(C, name="cufftMpExecReshapeAsync")
-    import
-      type(cufftReshapeHandle), value :: reshapeHandle  !! The reshape handle.
-      type(c_ptr),              value :: dataOut        !! A symmetric-heap pointer to the output data. This memory should be NVSHMEM allocated and identical on all processes.
-      type(c_ptr),              value :: dataIn         !! A symmetric-heap pointer to the input data. This memory should be NVSHMEM allocated and identical on all processes.
-      type(c_ptr),              value :: workSpace      !! A symmetric-heap pointer to the workspace data. This memory should be NVSHMEM allocated and identical on all processes.
-      type(dtfft_stream_t),     value :: stream         !! The CUDA stream in which to run the reshape operation.
-      integer(c_int)                  :: cufftResult    !! The enumerated type cufftResult defines API call result codes.
-    end function cufftMpExecReshapeAsync
-  end interface
+  type(c_funptr), save :: cufftFunctions(CUFFT_MAX_FUNCTIONS)
+    !! Array of pointers to the cuFFT functions
 
-public :: cufftMpDestroyReshape
-  interface cufftMpDestroyReshape
-  !! Destroys a reshape and all its associated data.
-    function cufftMpDestroyReshape(reshapeHandle) &
-      result(cufftResult)                         &
-      bind(C, name="cufftMpDestroyReshape")
-    import
-      type(cufftReshapeHandle), value :: reshapeHandle  !! The reshape handle.
-      integer(c_int)                  :: cufftResult    !! The enumerated type cufftResult defines API call result codes.
-    end function cufftMpDestroyReshape
-  end interface
+  procedure(cufftPlanMany_interface),             pointer, public :: cufftPlanMany
+    !! Fortran pointer to the cufftPlanMany function
+  procedure(cufftXtExec_interface),               pointer, public :: cufftXtExec
+    !! Fortran pointer to the cufftXtExec function
+  procedure(cufftDestroy_interface),              pointer, public :: cufftDestroy
+    !! Fortran pointer to the cufftDestroy function
+  procedure(cufftSetStream_interface),            pointer, public :: cufftSetStream
+    !! Fortran pointer to the cufftSetStream function
+  procedure(cufftMpCreateReshape_interface),      pointer, public :: cufftMpCreateReshape
+    !! Fortran pointer to the cufftMpCreateReshape function
+  procedure(cufftMpAttachReshapeComm_interface),  pointer, public :: cufftMpAttachReshapeComm
+    !! Fortran pointer to the cufftMpAttachReshapeComm function
+  procedure(cufftMpGetReshapeSize_interface),     pointer, public :: cufftMpGetReshapeSize
+    !! Fortran pointer to the cufftMpGetReshapeSize function
+  procedure(cufftMpMakeReshape_interface),        pointer, public :: cufftMpMakeReshape
+    !! Fortran pointer to the cufftMpMakeReshape function
+  procedure(cufftMpExecReshapeAsync_interface),   pointer, public :: cufftMpExecReshapeAsync
+    !! Fortran pointer to the cufftMpExecReshapeAsync function
+  procedure(cufftMpDestroyReshape_interface),     pointer, public :: cufftMpDestroyReshape
+    !! Fortran pointer to the cufftMpDestroyReshape function
 
 contains
+
+  function load_cufft() result(error_code)
+  !! Loads the cuFFT library and needed symbols
+    integer(int32)  :: error_code !! Error code
+    type(string), allocatable :: func_names(:)
+
+    error_code = DTFFT_SUCCESS
+    if ( is_loaded ) return
+
+    allocate(func_names(CUFFT_MAX_FUNCTIONS))
+    func_names(1) = string("cufftPlanMany")
+    func_names(2) = string("cufftXtExec")
+    func_names(3) = string("cufftDestroy")
+    func_names(4) = string("cufftSetStream")
+#ifdef DTFFT_WITH_NVSHMEM
+    func_names(5) = string("cufftMpCreateReshape")
+    func_names(6) = string("cufftMpAttachReshapeComm")
+    func_names(7) = string("cufftMpGetReshapeSize")
+    func_names(8) = string("cufftMpMakeReshape")
+    func_names(9) = string("cufftMpExecReshapeAsync")
+    func_names(10) = string("cufftMpDestroyReshape")
+#endif
+
+    error_code = dynamic_load(LIB_NAME, func_names, libcufft, cufftFunctions)
+    call destroy_strings(func_names)
+    if ( error_code /= DTFFT_SUCCESS ) return
+
+    call c_f_procpointer(cufftFunctions(1), cufftPlanMany)
+    call c_f_procpointer(cufftFunctions(2), cufftXtExec)
+    call c_f_procpointer(cufftFunctions(3), cufftDestroy)
+    call c_f_procpointer(cufftFunctions(4), cufftSetStream)
+#ifdef DTFFT_WITH_NVSHMEM
+    call c_f_procpointer(cufftFunctions(5), cufftMpCreateReshape)
+    call c_f_procpointer(cufftFunctions(6), cufftMpAttachReshapeComm)
+    call c_f_procpointer(cufftFunctions(7), cufftMpGetReshapeSize)
+    call c_f_procpointer(cufftFunctions(8), cufftMpMakeReshape)
+    call c_f_procpointer(cufftFunctions(9), cufftMpExecReshapeAsync)
+    call c_f_procpointer(cufftFunctions(10), cufftMpDestroyReshape)
+#endif
+
+    is_loaded = .true.
+  end function load_cufft
+
+
 
   function cufftGetErrorString(error_code) result(string)
   !! Returns a string representation of the cuFFT error code.

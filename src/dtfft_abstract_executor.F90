@@ -183,7 +183,7 @@ contains
     endif
 
     call self%create_private(fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, create, r2r_kinds)
-    if ( is_null_ptr(self%plan_forward) .or. is_null_ptr(self%plan_backward) ) error stop "Failed to create FFT Executor"
+    if ( is_null_ptr(self%plan_forward) .or. is_null_ptr(self%plan_backward) ) return
     if( create == DTFFT_SUCCESS ) self%is_created = .true.
     deallocate( fft_sizes, inembed, onembed )
     PHASE_END("Creating FFT")

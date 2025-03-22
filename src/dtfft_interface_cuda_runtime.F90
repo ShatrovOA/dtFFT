@@ -20,12 +20,14 @@ module dtfft_interface_cuda_runtime
 !! CUDA Runtime Interfaces
 use iso_c_binding
 use dtfft_parameters, only: dtfft_stream_t
+use dtfft_utils
 implicit none
 private
 public :: cudaGetErrorString
 
 public :: dim3
   type, bind(C) :: dim3
+  !! Dimension specification type
     integer(c_int) :: x,y,z
   end type
 
@@ -160,7 +162,8 @@ public :: cudaMemcpyHostToHost,     &
 
 public :: cudaEvent
   type, bind(C) :: cudaEvent
-    type(c_ptr) :: event
+  !! CUDA event types
+    type(c_ptr) :: event  !! Handle
   end type cudaEvent
 
   integer(c_int), parameter, public :: cudaEventDisableTiming = 2
@@ -485,12 +488,8 @@ contains
   !! For unrecognized enumeration values, it returns "NVRTC_ERROR unknown"
     integer(c_int),   intent(in)  :: errcode     !! CUDA Runtime Compilation API result code.
     character(len=:), allocatable :: string         !! Result string
-    type(c_ptr)                   :: c_string       !! Pointer to C string
-    character(len=256), pointer   :: f_string       !! Pointer to Fortran string
 
-    c_string = cudaGetErrorString_c(errcode)
-    call c_f_pointer(c_string, f_string)
-    allocate( string, source=f_string(1:index(f_string, c_null_char) - 1) )
+    call string_c2f(cudaGetErrorString_c(errcode), string)
   end function cudaGetErrorString
 
 end module dtfft_interface_cuda_runtime

@@ -1,0 +1,597 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>cuLaunchKernel &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>cuLaunchKernel
+      <small>Function</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for procedures.">11 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_interface_cuda.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_interface_cuda.f90.html'>dtfft_interface_cuda.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_interface_cuda.html'>dtfft_interface_cuda</a></li>
+            <li class="breadcrumb-item active" aria-current="page">cuLaunchKernel</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>public  function cuLaunchKernel(func, in, out, blocks, threads, stream, args) result(cuResult)  
+</h2>
+    
+
+    <p>Launches a CUDA function CUfunction or a CUDA kernel CUkernel.</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-func~2"></span>
+              type(c_ptr)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>func</strong></td>
+            <td>
+                <p>Function CUfunction or Kernel CUkernel to launch</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~36"></span>
+              type(c_ptr)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+                <p>Input pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~36"></span>
+              type(c_ptr)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+                <p>Output pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-blocks~2"></span>
+              type(<a href='../type/dim3.html'>dim3</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>blocks</strong></td>
+            <td>
+                <p>Grid in blocks</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-threads~2"></span>
+              type(<a href='../type/dim3.html'>dim3</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>threads</strong></td>
+            <td>
+                <p>Thread block</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~20"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+                <p>Stream identifier</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-args~3"></span>
+              type(<a href='../type/kernelargs.html'>kernelArgs</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>Kernel parameters</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <h3>Return Value
+        <small>
+          <span class="anchor" id="variable-curesult~5"></span>
+          integer(kind=c_int)
+        </small>
+      </h3>
+      <p>Driver result code</p>
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~culaunchkernel~~CalledByGraph Pages: 1 -->
+<svg id="procculaunchkernelCalledByGraph" width="641pt" height="77pt"
+ viewBox="0.00 0.00 641.00 77.43" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~culaunchkernel~~CalledByGraph" class="graph" transform="scale(0.49 0.49) rotate(0) translate(4 154)">
+<title>proc~~culaunchkernel~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-154 1304,-154 1304,4 -4,4"/>
+<!-- proc~culaunchkernel -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node1" class="node">
+<title>proc~culaunchkernel</title>
+<polygon fill="none" stroke="black" points="1300,-87 1202,-87 1202,-63 1300,-63 1300,-87"/>
+<text text-anchor="middle" x="1251" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50">cuLaunchKernel</text>
+</g>
+<!-- proc~execute~9 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node2" class="node">
+<title>proc~execute~9</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node2"><a xlink:href="../proc/execute~9.html" xlink:title="nvrtc_kernel%execute">
+<polygon fill="#d9534f" stroke="#d9534f" points="1166,-87 1036,-87 1036,-63 1166,-63 1166,-87"/>
+<text text-anchor="middle" x="1101" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvrtc_kernel%execute</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~9&#45;&gt;proc~culaunchkernel -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge1" class="edge">
+<title>proc~execute~9&#45;&gt;proc~culaunchkernel</title>
+<path fill="none" stroke="#ff0000" d="M1166.05,-75C1174.61,-75 1183.34,-75 1191.79,-75"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1191.92,-78.5 1201.92,-75 1191.92,-71.5 1191.92,-78.5"/>
+</g>
+<!-- proc~execute_mpi -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node3" class="node">
+<title>proc~execute_mpi</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node3"><a xlink:href="../proc/execute_mpi.html" xlink:title="backend_mpi%execute_mpi">
+<polygon fill="#d9534f" stroke="#d9534f" points="985.5,-150 824.5,-150 824.5,-126 985.5,-126 985.5,-150"/>
+<text text-anchor="middle" x="905" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_mpi%execute_mpi</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_mpi&#45;&gt;proc~execute~9 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge2" class="edge">
+<title>proc~execute_mpi&#45;&gt;proc~execute~9</title>
+<path fill="none" stroke="#ff0000" d="M967.35,-125.95C978.32,-123.33 989.57,-120.33 1000,-117 1022.25,-109.9 1046.42,-99.82 1065.42,-91.32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1066.91,-94.48 1074.57,-87.16 1064.02,-88.11 1066.91,-94.48"/>
+</g>
+<!-- proc~execute_nccl -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node4" class="node">
+<title>proc~execute_nccl</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node4"><a xlink:href="../proc/execute_nccl.html" xlink:title="backend_nccl%execute_nccl">
+<polygon fill="#d9534f" stroke="#d9534f" points="987,-108 823,-108 823,-84 987,-84 987,-108"/>
+<text text-anchor="middle" x="905" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_nccl%execute_nccl</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_nccl&#45;&gt;proc~execute~9 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge3" class="edge">
+<title>proc~execute_nccl&#45;&gt;proc~execute~9</title>
+<path fill="none" stroke="#ff0000" d="M987.15,-87.22C1000.01,-85.82 1013.26,-84.39 1025.95,-83.02"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1026.42,-86.49 1035.99,-81.93 1025.67,-79.53 1026.42,-86.49"/>
+</g>
+<!-- proc~execute~6 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node5" class="node">
+<title>proc~execute~6</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node5"><a xlink:href="../proc/execute~6.html" xlink:title="transpose_handle_cuda%execute">
+<polygon fill="#d9534f" stroke="#d9534f" points="1000,-66 810,-66 810,-42 1000,-42 1000,-66"/>
+<text text-anchor="middle" x="905" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_handle_cuda%execute</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~6&#45;&gt;proc~execute~9 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge4" class="edge">
+<title>proc~execute~6&#45;&gt;proc~execute~9</title>
+<path fill="none" stroke="#ff0000" d="M1000.16,-64.19C1008.74,-65.12 1017.35,-66.05 1025.72,-66.96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1025.47,-70.45 1035.79,-68.05 1026.22,-63.49 1025.47,-70.45"/>
+</g>
+<!-- proc~execute~7 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node6" class="node">
+<title>proc~execute~7</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node6"><a xlink:href="../proc/execute~7.html" xlink:title="abstract_backend%execute">
+<polygon fill="#d9534f" stroke="#d9534f" points="984.5,-24 825.5,-24 825.5,0 984.5,0 984.5,-24"/>
+<text text-anchor="middle" x="905" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend%execute</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~7&#45;&gt;proc~execute~9 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge5" class="edge">
+<title>proc~execute~7&#45;&gt;proc~execute~9</title>
+<path fill="none" stroke="#ff0000" d="M967.35,-24.05C978.32,-26.67 989.57,-29.67 1000,-33 1022.25,-40.1 1046.42,-50.18 1065.42,-58.68"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1064.02,-61.89 1074.57,-62.84 1066.91,-55.52 1064.02,-61.89"/>
+</g>
+<!-- proc~execute_cuda -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node7" class="node">
+<title>proc~execute_cuda</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node7"><a xlink:href="../proc/execute_cuda.html" xlink:title="transpose_plan_cuda%execute_cuda">
+<polygon fill="#d9534f" stroke="#d9534f" points="774,-87 566,-87 566,-63 774,-63 774,-87"/>
+<text text-anchor="middle" x="670" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan_cuda%execute_cuda</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_cuda&#45;&gt;proc~execute~6 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge6" class="edge">
+<title>proc~execute_cuda&#45;&gt;proc~execute~6</title>
+<path fill="none" stroke="#00ffff" d="M774.21,-65.7C782.61,-64.94 791.1,-64.18 799.5,-63.42"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="800.05,-66.88 809.7,-62.5 799.42,-59.91 800.05,-66.88"/>
+</g>
+<!-- proc~run_autotune_backend -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node8" class="node">
+<title>proc~run_autotune_backend</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node8"><a xlink:href="../proc/run_autotune_backend.html" xlink:title="run_autotune_backend">
+<polygon fill="#d9534f" stroke="#d9534f" points="737.5,-45 602.5,-45 602.5,-21 737.5,-21 737.5,-45"/>
+<text text-anchor="middle" x="670" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_autotune_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~run_autotune_backend&#45;&gt;proc~execute~6 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge7" class="edge">
+<title>proc~run_autotune_backend&#45;&gt;proc~execute~6</title>
+<path fill="none" stroke="#00ffff" d="M737.77,-39.02C757.16,-40.77 778.8,-42.72 799.9,-44.62"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="799.6,-48.1 809.88,-45.52 800.23,-41.13 799.6,-48.1"/>
+</g>
+<!-- proc~autotune_grid~2 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node9" class="node">
+<title>proc~autotune_grid~2</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node9"><a xlink:href="../proc/autotune_grid~2.html" xlink:title="autotune_grid">
+<polygon fill="#d9534f" stroke="#d9534f" points="530,-25 443,-25 443,-1 530,-1 530,-25"/>
+<text text-anchor="middle" x="486.5" y="-10.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid</text>
+</a>
+</g>
+</g>
+<!-- proc~autotune_grid~2&#45;&gt;proc~run_autotune_backend -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge8" class="edge">
+<title>proc~autotune_grid~2&#45;&gt;proc~run_autotune_backend</title>
+<path fill="none" stroke="#00ffff" d="M530.05,-17.69C548.6,-19.73 570.92,-22.19 592.2,-24.54"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="591.89,-28.02 602.21,-25.64 592.65,-21.07 591.89,-28.02"/>
+</g>
+<!-- proc~create_cuda -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node10" class="node">
+<title>proc~create_cuda</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node10"><a xlink:href="../proc/create_cuda.html" xlink:title="transpose_plan_cuda%create_cuda">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="200,-45 0,-45 0,-21 200,-21 200,-45"/>
+<text text-anchor="middle" x="100" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan_cuda%create_cuda</text>
+</a>
+</g>
+</g>
+<!-- proc~create_cuda&#45;&gt;proc~run_autotune_backend -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge9" class="edge">
+<title>proc~create_cuda&#45;&gt;proc~run_autotune_backend</title>
+<path fill="none" stroke="#00ffff" d="M200.16,-33.82C212.24,-33.89 224.4,-33.96 236,-34 366.67,-34.48 399.33,-34.47 530,-34 550.13,-33.93 571.9,-33.8 592.1,-33.65"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="592.21,-37.15 602.19,-33.58 592.16,-30.15 592.21,-37.15"/>
+</g>
+<!-- proc~autotune_grid_decomposition~2 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_node11" class="node">
+<title>proc~autotune_grid_decomposition~2</title>
+<g id="a_proc~~culaunchkernel~~CalledByGraph_node11"><a xlink:href="../proc/autotune_grid_decomposition~2.html" xlink:title="autotune_grid_decomposition">
+<polygon fill="#d9534f" stroke="#d9534f" points="407,-25 236,-25 236,-1 407,-1 407,-25"/>
+<text text-anchor="middle" x="321.5" y="-10.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid_decomposition</text>
+</a>
+</g>
+</g>
+<!-- proc~create_cuda&#45;&gt;proc~autotune_grid_decomposition~2 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge11" class="edge">
+<title>proc~create_cuda&#45;&gt;proc~autotune_grid_decomposition~2</title>
+<path fill="none" stroke="#ff0000" d="M200.15,-23.97C208.64,-23.19 217.2,-22.41 225.65,-21.64"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="226.24,-25.1 235.88,-20.71 225.6,-18.13 226.24,-25.1"/>
+</g>
+<!-- proc~autotune_grid_decomposition~2&#45;&gt;proc~autotune_grid~2 -->
+<g id="proc~~culaunchkernel~~CalledByGraph_edge10" class="edge">
+<title>proc~autotune_grid_decomposition~2&#45;&gt;proc~autotune_grid~2</title>
+<path fill="none" stroke="#ff0000" d="M407.34,-13C415.94,-13 424.48,-13 432.59,-13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="432.61,-16.5 442.61,-13 432.61,-9.5 432.61,-16.5"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocculaunchkernelCalledByGraph = svgPanZoom('#procculaunchkernelCalledByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

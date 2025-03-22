@@ -18,6 +18,7 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,6 +54,11 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -69,42 +75,108 @@
 			   <tr>
                  <td><a href='../interface/apply_interface.html'>apply_interface</a></td>
                  <td><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></td>
-                 <td></td>
+                 <td><p>Executes FFTW3 Plan</p></td>
                </tr>
 			   <tr>
                  <td><a href='../interface/create_c2c_plan.html'>create_c2c_plan</a></td>
                  <td><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></td>
-                 <td></td>
+                 <td><p>Creates C2C FFTW3 Plan</p></td>
                </tr>
 			   <tr>
-                 <td><a href='../interface/create_interface.html'>create_interface</a></td>
+                 <td><a href='../interface/create_interface~2.html'>create_interface</a></td>
                  <td><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></td>
                  <td><p>Creates FFT plan</p></td>
                </tr>
 			   <tr>
                  <td><a href='../interface/create_r2c_plan.html'>create_r2c_plan</a></td>
                  <td><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></td>
-                 <td></td>
+                 <td><p>Creates R2C FFTW3 Plan</p></td>
                </tr>
 			   <tr>
                  <td><a href='../interface/create_r2r_plan.html'>create_r2r_plan</a></td>
                  <td><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></td>
-                 <td></td>
+                 <td><p>Creates R2R FFTW3 Plan</p></td>
                </tr>
 			   <tr>
-                 <td><a href='../interface/destroy_interface.html'>destroy_interface</a></td>
+                 <td><a href='../interface/cufftdestroy_interface.html'>cufftDestroy_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Frees all GPU resources associated with a cuFFT plan and destroys the internal plan data structure.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftmpattachreshapecomm_interface.html'>cufftMpAttachReshapeComm_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Attaches a communication handle to a reshape. This function is not collective.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftmpcreatereshape_interface.html'>cufftMpCreateReshape_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Initializes a reshape handle for future use. This function is not collective.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftmpdestroyreshape_interface.html'>cufftMpDestroyReshape_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Destroys a reshape and all its associated data.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftmpexecreshapeasync_interface.html'>cufftMpExecReshapeAsync_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Executes the reshape, redistributing data_in into data_out using the workspace in workspace.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftmpgetreshapesize_interface.html'>cufftMpGetReshapeSize_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Returns the amount (in bytes) of workspace required to execute the handle.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftmpmakereshape_interface.html'>cufftMpMakeReshape_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Creates a reshape intended to re-distribute a global array of 3D data.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftplanmany_interface.html'>cufftPlanMany_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Creates a FFT plan configuration of dimension rank, with sizes specified in the array n.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftsetstream_interface.html'>cufftSetStream_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Associates a CUDA stream with a cuFFT plan.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cufftxtexec_interface.html'>cufftXtExec_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cufft.html'>dtfft_interface_cufft</a></td>
+                 <td><p>Executes any cuFFT transform regardless of precision and type.
+In case of complex-to-real and real-to-complex transforms, the direction parameter is ignored.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cumodulegetfunction_interface.html'>cuModuleGetFunction_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cuda.html'>dtfft_interface_cuda</a></td>
+                 <td><p>Returns a function handle.</p><a href="../interface/cumodulegetfunction_interface.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cumoduleloaddataex_interface.html'>cuModuleLoadDataEx_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cuda.html'>dtfft_interface_cuda</a></td>
+                 <td><p>Load a module&rsquo;s data with options.</p><a href="../interface/cumoduleloaddataex_interface.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cumoduleunload_interface.html'>cuModuleUnload_interface</a></td>
+                 <td><a href='../module/dtfft_interface_cuda.html'>dtfft_interface_cuda</a></td>
+                 <td><p>Unloads a module.</p><a href="../interface/cumoduleunload_interface.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/destroy_interface~2.html'>destroy_interface</a></td>
                  <td><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></td>
                  <td><p>Destroys plan</p></td>
                </tr>
 			   <tr>
-                 <td><a href='../interface/execute_interface.html'>execute_interface</a></td>
+                 <td><a href='../interface/execute_interface~2.html'>execute_interface</a></td>
                  <td><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></td>
                  <td><p>Executes plan</p></td>
                </tr>
 			   <tr>
                  <td><a href='../interface/free_interface.html'>free_interface</a></td>
                  <td><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></td>
-                 <td></td>
+                 <td><p>Destroys FFTW3 Plan</p></td>
                </tr>
 			   <tr>
                  <td><a href='../interface/mem_alloc_interface.html'>mem_alloc_interface</a></td>
@@ -115,6 +187,88 @@
                  <td><a href='../interface/mem_free_interface.html'>mem_free_interface</a></td>
                  <td><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></td>
                  <td><p>Frees aligned memory</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvrtccompileprogram_interface.html'>nvrtcCompileProgram_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></td>
+                 <td><p>Compiles the given program.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvrtccreateprogram_interface.html'>nvrtcCreateProgram_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></td>
+                 <td><p>Creates an instance of nvrtcProgram with the given input parameters, 
+and sets the output parameter prog with it.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvrtcdestroyprogram_interface.html'>nvrtcDestroyProgram_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></td>
+                 <td><p>Destroys the given program.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvrtcgetcubin_interface.html'>nvrtcGetCUBIN_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></td>
+                 <td><p>Stores the cubin generated by the previous compilation of <code>prog</code> in the memory pointed by <code>cubin</code>.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvrtcgetcubinsize_interface.html'>nvrtcGetCUBINSize_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></td>
+                 <td><p>Sets the value of <code>cubinSizeRet</code> with the size of the cubin generated by the previous compilation of <code>prog</code>.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvrtcgeterrorstring_interface.html'>nvrtcGetErrorString_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></td>
+                 <td><p>Helper function that returns a string describing the given nvrtcResult code
+For unrecognized enumeration values, it returns &ldquo;NVRTC_ERROR unknown&rdquo;</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvrtcgetprogramlog_interface.html'>nvrtcGetProgramLog_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></td>
+                 <td><p>Stores the log generated by the previous compilation of prog in the memory pointed by log</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvshmem_free_interface.html'>nvshmem_free_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvshmem.html'>dtfft_interface_nvshmem</a></td>
+                 <td><p>Frees symmetric memory allocated by nvshmem_malloc.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvshmem_malloc_interface.html'>nvshmem_malloc_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvshmem.html'>dtfft_interface_nvshmem</a></td>
+                 <td><p>Allocates symmetric memory in the NVSHMEM heap.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvshmem_my_pe_interface.html'>nvshmem_my_pe_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvshmem.html'>dtfft_interface_nvshmem</a></td>
+                 <td><p>Returns the PE (Processing Element) number of the calling thread.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvshmem_ptr_interface.html'>nvshmem_ptr_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvshmem.html'>dtfft_interface_nvshmem</a></td>
+                 <td><p>Returns a pointer to a symmetric memory location on a specified PE.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvshmemx_float_alltoall_on_stream_interface.html'>nvshmemx_float_alltoall_on_stream_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvshmem.html'>dtfft_interface_nvshmem</a></td>
+                 <td><p>Performs an all-to-all exchange of floating-point data on the specified stream.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/nvshmemx_sync_all_on_stream_interface.html'>nvshmemx_sync_all_on_stream_interface</a></td>
+                 <td><a href='../module/dtfft_interface_nvshmem.html'>dtfft_interface_nvshmem</a></td>
+                 <td><p>Synchronizes all PEs (Processing Elements) on the specified stream.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/vkfft_create_interface.html'>vkfft_create_interface</a></td>
+                 <td><a href='../module/dtfft_interface_vkfft_m.html'>dtfft_interface_vkfft_m</a></td>
+                 <td><p>Creates FFT plan via vkFFT Interface</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/vkfft_destroy_interface.html'>vkfft_destroy_interface</a></td>
+                 <td><a href='../module/dtfft_interface_vkfft_m.html'>dtfft_interface_vkfft_m</a></td>
+                 <td><p>Destroys vkFFT plan</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/vkfft_execute_interface.html'>vkfft_execute_interface</a></td>
+                 <td><a href='../module/dtfft_interface_vkfft_m.html'>dtfft_interface_vkfft_m</a></td>
+                 <td><p>Executes vkFFT plan</p></td>
                </tr>
 			 </tbody></table>
         </div>
@@ -158,6 +312,9 @@
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

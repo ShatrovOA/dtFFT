@@ -47,24 +47,24 @@ public :: abstract_backend, backend_helper
     type(ncclComm)              :: nccl_comm                    !! NCCL communicator
 #endif
 #ifdef NCCL_HAVE_COMM_REGISTER
-    logical                     :: should_register
-    type(c_ptr),    allocatable :: nccl_register(:,:)
-    integer(int32)              :: nccl_register_size       !! Number of elements in `nccl_register`
+    logical                     :: should_register              !! If NCCL buffer should be registered
+    type(c_ptr),    allocatable :: nccl_register(:,:)           !! NCCL register cache
+    integer(int32)              :: nccl_register_size           !! Number of elements in `nccl_register`
 #endif
     TYPE_MPI_COMM,  allocatable :: comms(:)                     !! MPI communicators
     integer(int32), allocatable :: comm_mappings(:,:)           !! Mapping of 1d comm ranks to global comm
-    type(dtfft_transpose_type_t):: tranpose_type
-    type(pencil),   pointer     :: pencils(:)
+    type(dtfft_transpose_type_t):: tranpose_type                !! Type of transpose to create
+    type(pencil),   pointer     :: pencils(:)                   !! Pencils
   contains
-    procedure,  pass(self) :: create => create_helper
-    procedure,  pass(self) :: destroy => destroy_helper
+    procedure,  pass(self) :: create => create_helper           !! Creates helper
+    procedure,  pass(self) :: destroy => destroy_helper         !! Destroys helper
   end type backend_helper
 
   type, abstract :: abstract_backend
   !! The most Abstract GPU Backend
-    type(dtfft_gpu_backend_t)         :: gpu_backend
-    logical                           :: is_selfcopy
-    logical                           :: is_pipelined
+    type(dtfft_gpu_backend_t)         :: gpu_backend            !! Backend type
+    logical                           :: is_selfcopy            !! If backend is self-copying
+    logical                           :: is_pipelined           !! If backend is pipelined
     real(real32),             pointer :: aux(:)                 !! Auxiliary buffer used in pipelined algorithm
     integer(int64)                    :: aux_size               !! Number of bytes required by aux buffer
     integer(int64)                    :: send_recv_buffer_size  !! Number of float elements used in ``c_f_pointer``
@@ -92,45 +92,45 @@ public :: abstract_backend, backend_helper
     procedure,      non_overridable,              pass(self)  :: destroy          !! Destroys Abstract GPU Backend
     procedure,      non_overridable,              pass(self)  :: get_aux_size     !! Returns number of bytes required by aux buffer
     procedure,      non_overridable,              pass(self)  :: set_aux          !! Sets Auxiliary buffer
-    procedure,      non_overridable,              pass(self)  :: set_unpack_kernel
+    procedure,      non_overridable,              pass(self)  :: set_unpack_kernel!! Sets unpack kernel for pipelined backend
     procedure(createInterface),       deferred,   pass(self)  :: create_private   !! Creates overring class
     procedure(executeInterface),      deferred,   pass(self)  :: execute_private  !! Executes GPU Backend
     procedure(destroyInterface),      deferred,   pass(self)  :: destroy_private  !! Destroys overring class
   end type abstract_backend
 
   interface
-  subroutine createInterface(self, helper, tranpose_type, base_storage)
-  !! Creates overring class
-  import
-    class(abstract_backend),      intent(inout) :: self       !! Abstract GPU Backend
-    type(backend_helper),         intent(in)    :: helper     !! Backend helper
-    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
-    integer(int8),                intent(in)    :: base_storage   !! Number of bytes to store single element
-  end subroutine createInterface
+    subroutine createInterface(self, helper, tranpose_type, base_storage)
+    !! Creates overring class
+    import
+      class(abstract_backend),      intent(inout) :: self           !! Abstract GPU Backend
+      type(backend_helper),         intent(in)    :: helper         !! Backend helper
+      type(dtfft_transpose_type_t), intent(in)    :: tranpose_type  !! Type of transpose to create
+      integer(int8),                intent(in)    :: base_storage   !! Number of bytes to store single element
+    end subroutine createInterface
 
-  subroutine executeInterface(self, in, out, stream)
-  !! Executes GPU Backend
-  import
-    class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
-    real(real32),     target,   intent(inout) :: in(:)      !! Send pointer
-    real(real32),     target,   intent(inout) :: out(:)     !! Recv pointer
-    type(dtfft_stream_t),       intent(in)    :: stream     !! Main execution CUDA stream
-  end subroutine executeInterface
+    subroutine executeInterface(self, in, out, stream)
+    !! Executes GPU Backend
+    import
+      class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
+      real(real32),     target,   intent(inout) :: in(:)      !! Send pointer
+      real(real32),     target,   intent(inout) :: out(:)     !! Recv pointer
+      type(dtfft_stream_t),       intent(in)    :: stream     !! Main execution CUDA stream
+    end subroutine executeInterface
 
-  subroutine destroyInterface(self)
-  !! Destroys overring class
-  import
-    class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
-  end subroutine destroyInterface
-end interface
+    subroutine destroyInterface(self)
+    !! Destroys overring class
+    import
+      class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
+    end subroutine destroyInterface
+  end interface
 
 contains
 
   subroutine create(self, gpu_backend, tranpose_type, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
   !! Creates Abstract GPU Backend
     class(abstract_backend),      intent(inout) :: self           !! Abstract GPU Backend
-    type(dtfft_gpu_backend_t),    intent(in)    :: gpu_backend
-    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
+    type(dtfft_gpu_backend_t),    intent(in)    :: gpu_backend    !! Backend type
+    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type  !! Type of transpose to create
     type(backend_helper),         intent(in)    :: helper         !! Backend helper
     integer(int8),                intent(in)    :: comm_id        !! Id of communicator to use
     integer(int32),               intent(in)    :: send_displs(:) !! Send data displacements, in original elements
@@ -213,20 +213,14 @@ contains
     if( self%self_copy_elements > 0 ) then
       if ( self%is_pipelined ) then
     ! Tranposed data is actually located in aux buffer for pipelined algorithm
-        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(in( self%self_recv_displ ),
-                                                      self%aux( self%self_send_displ ),
-                                                      self%self_copy_elements,
-                                                      cudaMemcpyDeviceToDevice, self%copy_stream) )
+        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(in( self%self_recv_displ ), self%aux( self%self_send_displ ), self%self_copy_elements, cudaMemcpyDeviceToDevice, self%copy_stream) )
 #ifdef __DEBUG
         CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
         ! Data can be unpacked in same stream as `cudaMemcpyAsync`
         call self%unpack_kernel%execute(in, out, self%copy_stream, self%comm_rank + 1)
       else
-        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out( self%self_recv_displ ),
-                                                      in( self%self_send_displ ),
-                                                      self%self_copy_elements,
-                                                      cudaMemcpyDeviceToDevice, self%copy_stream) )
+        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_elements, cudaMemcpyDeviceToDevice, self%copy_stream) )
       endif
     endif
 #ifdef __DEBUG
@@ -287,11 +281,12 @@ contains
   end subroutine set_unpack_kernel
 
   subroutine create_helper(self, base_comm, comms, is_nccl_needed, pencils)
+  !! Creates helper
     class(backend_helper),  intent(inout) :: self                 !! Backend helper
     TYPE_MPI_COMM,          intent(in)    :: base_comm            !! MPI communicator
     TYPE_MPI_COMM,          intent(in)    :: comms(:)             !! 1D Communicators
     logical,                intent(in)    :: is_nccl_needed       !! If nccl communicator will be needed
-    type(pencil), target,   intent(in)    :: pencils(:)
+    type(pencil), target,   intent(in)    :: pencils(:)           !! Pencils
     integer :: i, n_comms
 
     call self%destroy()
@@ -310,7 +305,7 @@ contains
 
 #ifdef DTFFT_WITH_NCCL
     block
-      type(ncclUniqueId)  :: id           !! NCCL unique id
+      type(ncclUniqueId)  :: id           ! NCCL unique id
       integer(int32) :: max_size, comm_size, comm_rank, ierr
 
       max_size = -1
@@ -348,6 +343,7 @@ contains
   end subroutine create_helper
 
   subroutine destroy_helper(self)
+  !! Destroys helper
     class(backend_helper),  intent(inout) :: self                 !! Backend helper
 
     if ( allocated( self%comms ) )          deallocate(self%comms)

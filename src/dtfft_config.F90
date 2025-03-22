@@ -44,9 +44,9 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
 
 
   logical,                    save  :: is_z_slab_enabled = .true.
-  !! Should we use z-slab decomposition or not
+    !! Should we use z-slab decomposition or not
   type(dtfft_platform_t),     save  :: platform = DTFFT_PLATFORM_HOST
-  !! Default platform
+    !! Default platform
 
 #ifdef DTFFT_WITH_CUDA
 # ifdef DTFFT_WITH_NCCL
@@ -54,29 +54,31 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
 # else
   type(dtfft_gpu_backend_t),  parameter :: DEFAULT_GPU_BACKEND = DTFFT_GPU_BACKEND_MPI_P2P
 # endif
+    !! Default GPU backend
 
   type(dtfft_stream_t),       save  :: main_stream
-  !! Default dtFFT CUDA stream
+    !! Default dtFFT CUDA stream
   type(dtfft_stream_t),       save  :: custom_stream
-  !! CUDA stream set by the user
+    !! CUDA stream set by the user
   logical,                    save  :: is_stream_created = .false.
-  !! Is the default stream created?
+    !! Is the default stream created?
   logical,                    save  :: is_custom_stream = .false.
-  !! Is the custom stream provided by the user?
+    !! Is the custom stream provided by the user?
   logical,                    save  :: is_pipelined_enabled = .true.
-  !! Should we use pipelined backends or not
+    !! Should we use pipelined backends or not
   logical,                    save  :: is_mpi_enabled = .false.
-  !! Should we use MPI backends or not
+    !! Should we use MPI backends or not
   logical,                    save  :: is_nccl_enabled = .true.
-  !! Should we use NCCL backends or not
+    !! Should we use NCCL backends or not
   logical,                    save  :: is_nvshmem_enabled = .true.
-  !! Should we use NCCL backends or not
+    !! Should we use NCCL backends or not
   type(dtfft_gpu_backend_t),  save  :: gpu_backend = DEFAULT_GPU_BACKEND
-  !! Default GPU backend
+    !! Default GPU backend
 #endif
 
 
   type, bind(C) :: dtfft_config_t
+  !! Type that can be used to set additional configuration parameters to ``dtFFT``
     logical(c_bool)           :: enable_z_slab
     !! Should dtFFT use Z-slab optimization or not.
     !!
@@ -147,13 +149,15 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
   end type dtfft_config_t
 
   interface dtfft_config_t
+  !! Interface to create a new configuration
     module procedure config_constructor
   end interface dtfft_config_t
 
 contains
 
   subroutine dtfft_create_config(config) bind(C, name="dtfft_create_config_c")
-    type(dtfft_config_t), intent(out) :: config
+  !! Creates a new configuration with default values
+    type(dtfft_config_t), intent(out) :: config !! Configuration to create
 
     config%enable_z_slab = .true.
 #ifdef DTFFT_WITH_CUDA
@@ -168,14 +172,16 @@ contains
   end subroutine dtfft_create_config
 
   function config_constructor() result(config)
-    type(dtfft_config_t) :: config
+  !! Creates a new configuration with default values
+    type(dtfft_config_t) :: config    !! Configuration to create
 
     call dtfft_create_config(config)
   end function config_constructor
 
   subroutine dtfft_set_config(config, error_code)
-    type(dtfft_config_t),     intent(in)  :: config
-    integer(int32), optional, intent(out) :: error_code
+  !! Sets configuration parameters
+    type(dtfft_config_t),     intent(in)  :: config     !! Configuration to set
+    integer(int32), optional, intent(out) :: error_code !! Error code
 
     is_z_slab_enabled = config%enable_z_slab
 

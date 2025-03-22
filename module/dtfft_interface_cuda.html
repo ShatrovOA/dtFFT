@@ -17,6 +17,7 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -52,6 +53,11 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -70,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.7% of total for modules and submodules.">58 statements</a>
+                 title=" 1.1% of total for modules and submodules.">91 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -102,7 +108,23 @@
         <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#variable-cumoduleloaddataex">cuModuleLoadDataEx</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#variable-cumoduleunload">cuModuleUnload</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#variable-cumodulegetfunction">cuModuleGetFunction</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#variable-is_loaded~5">is_loaded</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#variable-libcuda">libcuda</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#variable-cufunctions">cuFunctions</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -116,15 +138,25 @@
       </a>
       <div id="inters-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#interface-cumoduleloaddataex">cuModuleLoadDataEx</a>
-            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#interface-cumoduleunload">cuModuleUnload</a>
-            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#interface-cumodulegetfunction">cuModuleGetFunction</a>
-            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#interface-culaunchkernel">cuLaunchKernel</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#interface-run_cuda_kernel">run_cuda_kernel</a>
         </div>
       </div>
     </div>
 
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#absints-0"
+         aria-expanded="false" aria-controls="absints-0">
+         <h4 class="card-header bg-primary text-white">Abstract Interfaces</h4>
+      </a>
+      <div id="absints-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#interface-cumoduleloaddataex_interface">cuModuleLoadDataEx_interface</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#interface-cumoduleunload_interface">cuModuleUnload_interface</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#interface-cumodulegetfunction_interface">cuModuleGetFunction_interface</a>
+        </div>
+      </div>
+    </div>
+
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#types-0"
          aria-expanded="false" aria-controls="types-0">
@@ -137,7 +169,19 @@
       </div>
     </div>
 
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#proc-load_cuda">load_cuda</a>
+            <a class="list-group-item" href="../module/dtfft_interface_cuda.html#proc-culaunchkernel">cuLaunchKernel</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -154,6 +198,7 @@
 
     <div class="col-md-9" id='text'>
       <p>CUDA Driver Interfaces</p>
+<p>CUDA Driver is loaded at runtime via dynamic loading.</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -161,40 +206,932 @@
             <li class="list-group-item">
               <ul class="list-inline">
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
-                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
                   <li class="list-inline-item"><a href='dtfft_interface_cuda_runtime.html'>dtfft_interface_cuda_runtime</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
               </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_interface_cuda~~UsesGraph Pages: 1 -->
+<svg id="moduledtfft_interface_cudaUsesGraph" width="641pt" height="151pt"
+ viewBox="0.00 0.00 641.00 151.49" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_interface_cuda~~UsesGraph" class="graph" transform="scale(0.92 0.92) rotate(0) translate(4 160.02)">
+<title>module~~dtfft_interface_cuda~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-160.02 690,-160.02 690,4 -4,4"/>
+<!-- module~dtfft_interface_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_node1" class="node">
+<title>module~dtfft_interface_cuda</title>
+<polygon fill="none" stroke="black" points="686,-132 567,-132 567,-108 686,-108 686,-132"/>
+<text text-anchor="middle" x="626.5" y="-117.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_interface_cuda</text>
+</g>
+<!-- iso_c_binding -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_module~~dtfft_interface_cuda~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-108 5,-108 5,-84 89,-84 89,-108"/>
+<text text-anchor="middle" x="47" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge1" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M579.67,-132.11C564.31,-135.65 547.02,-139.08 531,-141 376.95,-159.46 333.85,-164.82 182,-133"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~dtfft_interface_cuda~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-24 0,-24 0,0 94,0 94,-24"/>
+<text text-anchor="middle" x="47" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge2" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M595.77,-107.92C561.14,-94.39 501.91,-72.93 449,-62"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-62C394.01,-51.05 382.42,-40.62 329,-32 251.73,-19.53 161.25,-14.83 104.28,-13.07"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="104.14,-9.56 94.04,-12.77 103.93,-16.56 104.14,-9.56"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_node4" class="node">
+<title>module~dtfft_interface_cuda_runtime</title>
+<g id="a_module~~dtfft_interface_cuda~~UsesGraph_node4"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
+<polygon fill="#337ab7" stroke="#337ab7" points="531,-132 365,-132 365,-108 531,-108 531,-132"/>
+<text text-anchor="middle" x="448" y="-117.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge3" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M566.73,-120C558.51,-120 549.91,-120 541.26,-120"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="541.09,-116.5 531.09,-120 541.09,-123.5 541.09,-116.5"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_node5" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_module~~dtfft_interface_cuda~~UsesGraph_node5"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-105 130,-105 130,-81 232,-81 232,-105"/>
+<text text-anchor="middle" x="181" y="-90.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-62C442,-61.05 318.82,-76.04 242.19,-85.51"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="241.65,-82.05 232.16,-86.75 242.51,-88.99 241.65,-82.05"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_node6" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_module~~dtfft_interface_cuda~~UsesGraph_node6"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-65 268,-65 268,-41 329,-41 329,-65"/>
+<text text-anchor="middle" x="298.5" y="-50.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-62C410.92,-55.17 369.08,-53.16 339.2,-52.72"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="339.19,-49.22 329.15,-52.63 339.12,-56.22 339.19,-49.22"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge6" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M297.5,-131C246.2,-128.98 232.25,-143.53 182,-133"/>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M180,-133C151.62,-127.05 120.36,-118.39 95.38,-110.94"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="96.38,-107.58 85.79,-108.04 94.35,-114.28 96.38,-107.58"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge7" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M364.75,-129.46C343.51,-130.99 320.67,-131.83 299.5,-131"/>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M297.5,-131C268.52,-129.86 237.39,-119 214.75,-109.18"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="216.16,-105.98 205.6,-105.07 213.29,-112.36 216.16,-105.98"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M420.29,-107.87C396.48,-97.05 361.45,-81.14 335.23,-69.23"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="336.56,-65.99 326.01,-65.04 333.67,-72.37 336.56,-65.99"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge9" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M129.72,-94.14C119.77,-94.37 109.31,-94.61 99.33,-94.83"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="99.06,-91.34 89.14,-95.07 99.21,-98.34 99.06,-91.34"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M153.5,-80.95C145.67,-76.94 137.26,-72.16 130,-67 112.06,-54.25 112.26,-45.29 94,-33 91.9,-31.58 89.68,-30.22 87.41,-28.92"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="88.94,-25.76 78.46,-24.18 85.67,-31.95 88.94,-25.76"/>
+</g>
+<!-- mpi_f08 -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_node7" class="node">
+<title>mpi_f08</title>
+<g id="a_module~~dtfft_interface_cuda~~UsesGraph_node7"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-66 19.5,-66 19.5,-42 74.5,-42 74.5,-66"/>
+<text text-anchor="middle" x="47" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M139.32,-80.98C121.71,-75.78 101.28,-69.74 84.21,-64.7"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="85.17,-61.33 74.59,-61.86 83.19,-68.05 85.17,-61.33"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge12" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M180,-53C161.82,-53.07 119.21,-67.99 87.29,-80.24"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="85.82,-77.06 77.76,-83.94 88.35,-83.58 85.82,-77.06"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M267.59,-52.94C244.27,-52.91 211.08,-52.89 182,-53"/>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M180,-53C162.17,-53.07 120.55,-39.24 88.77,-27.62"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="89.86,-24.29 79.27,-24.11 87.43,-30.86 89.86,-24.29"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M267.76,-63.3C255.28,-67.62 240.5,-72.74 226.75,-77.5"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="225.28,-74.31 216.98,-80.89 227.57,-80.92 225.28,-74.31"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_interface_cuda~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M180,-53C147.87,-53.12 111.35,-53.41 84.88,-53.64"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="84.51,-50.15 74.55,-53.74 84.58,-57.15 84.51,-50.15"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_interface_cudaUsesGraph = svgPanZoom('#moduledtfft_interface_cudaUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
             </li>
         </ul>
       </div>
     </div>
 
-      
+          <div class="card">
+      <h3 class="card-header card-title bg-light">Used by</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_interface_cuda~~UsedByGraph Pages: 1 -->
+<svg id="moduledtfft_interface_cudaUsedByGraph" width="641pt" height="202pt"
+ viewBox="0.00 0.00 641.00 202.30" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_interface_cuda~~UsedByGraph" class="graph" transform="scale(0.54 0.54) rotate(0) translate(4 371.88)">
+<title>module~~dtfft_interface_cuda~~UsedByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-371.88 1187,-371.88 1187,4 -4,4"/>
+<!-- module~dtfft_interface_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node1" class="node">
+<title>module~dtfft_interface_cuda</title>
+<polygon fill="none" stroke="black" points="119,-50 0,-50 0,-26 119,-26 119,-50"/>
+<text text-anchor="middle" x="59.5" y="-35.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_interface_cuda</text>
+</g>
+<!-- module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node2" class="node">
+<title>module~dtfft_nvrtc_kernel</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node2"><a xlink:href="../module/dtfft_nvrtc_kernel.html" xlink:title="dtfft_nvrtc_kernel">
+<polygon fill="#337ab7" stroke="#337ab7" points="261,-50 155,-50 155,-26 261,-26 261,-50"/>
+<text text-anchor="middle" x="208" y="-35.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_nvrtc_kernel</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge1" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M154.94,-38C146.6,-38 137.87,-38 129.22,-38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="129.13,-34.5 119.13,-38 129.13,-41.5 129.13,-34.5"/>
+</g>
+<!-- module~dtfft_plan -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node3" class="node">
+<title>module~dtfft_plan</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node3"><a xlink:href="../module/dtfft_plan.html" xlink:title="dtfft_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="1091,-307 1028,-307 1028,-283 1091,-283 1091,-307"/>
+<text text-anchor="middle" x="1059.5" y="-292.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_interface_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge2" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M915,-356C747.57,-381.35 703.33,-356 534,-356 534,-356 534,-356 363,-356 198.87,-356 96.78,-130.85 68.53,-59.45"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="71.77,-58.14 64.89,-50.08 65.24,-60.67 71.77,-58.14"/>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge6" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1052.35,-282.7C1023.47,-226.87 895.36,0 720.5,0 720.5,0 720.5,0 532,0 440.75,0 335.99,-15.14 271.14,-26.31"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="270.34,-22.9 261.09,-28.07 271.54,-29.79 270.34,-22.9"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node4" class="node">
+<title>module~dtfft_transpose_plan_cuda</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node4"><a xlink:href="../module/dtfft_transpose_plan_cuda.html" xlink:title="dtfft_transpose_plan_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="992,-286 840,-286 840,-262 992,-262 992,-286"/>
+<text text-anchor="middle" x="916" y="-271.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge11" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_cuda</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1027.8,-290.44C1019.98,-289.28 1011.18,-287.98 1002.06,-286.62"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="1002.47,-283.15 992.06,-285.14 1001.44,-290.07 1002.47,-283.15"/>
+</g>
+<!-- module~dtfft_abstract_transpose_plan -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node7" class="node">
+<title>module~dtfft_abstract_transpose_plan</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node7"><a xlink:href="../module/dtfft_abstract_transpose_plan.html" xlink:title="dtfft_abstract_transpose_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="804,-328 635,-328 635,-304 804,-304 804,-328"/>
+<text text-anchor="middle" x="719.5" y="-313.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_transpose_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_abstract_transpose_plan -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge18" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_abstract_transpose_plan</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M1042.63,-307.05C1029.63,-316.41 1010.44,-329.08 992,-337 960.41,-350.57 951,-350.85 917,-356"/>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M915,-356C888.03,-360.08 820.08,-343.83 772.13,-330.83"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="772.79,-327.38 762.22,-328.11 770.94,-334.13 772.79,-327.38"/>
+</g>
+<!-- module~dtfft_transpose_plan_host -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node13" class="node">
+<title>module~dtfft_transpose_plan_host</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node13"><a xlink:href="../module/dtfft_transpose_plan_host.html" xlink:title="dtfft_transpose_plan_host">
+<polygon fill="#337ab7" stroke="#337ab7" points="990,-328 842,-328 842,-304 990,-304 990,-328"/>
+<text text-anchor="middle" x="916" y="-313.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan_host</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_host -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge25" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_host</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M1027.8,-299.56C1019.38,-300.81 1009.84,-302.22 999.98,-303.69"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="999.41,-300.23 990.03,-305.16 1000.44,-307.16 999.41,-300.23"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_interface_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge3" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M906.09,-261.99C888.63,-239.1 847.77,-188.7 804,-157 640.28,-38.42 566.74,-50.88 365,-38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M363,-38C316.96,-33.28 307.05,-21.69 261,-17 214.13,-12.23 201.83,-11.86 155,-17 142.08,-18.42 128.34,-20.9 115.46,-23.66"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="114.34,-20.33 105.35,-25.93 115.87,-27.16 114.34,-20.33"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge8" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M363,-38C332.82,-36.07 299.25,-35.85 271.17,-36.2"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="271.04,-32.7 261.09,-36.35 271.14,-39.7 271.04,-32.7"/>
+</g>
+<!-- module~dtfft_abstract_backend -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node6" class="node">
+<title>module~dtfft_abstract_backend</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node6"><a xlink:href="../module/dtfft_abstract_backend.html" xlink:title="dtfft_abstract_backend">
+<polygon fill="#337ab7" stroke="#337ab7" points="431,-210 297,-210 297,-186 431,-186 431,-210"/>
+<text text-anchor="middle" x="364" y="-195.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_backend</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge17" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M839.86,-282.74C749.37,-290.73 593.73,-296.3 467,-259 437.34,-250.27 407.46,-230.87 387.78,-216.27"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="389.82,-213.43 379.74,-210.16 385.58,-219 389.82,-213.43"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_abstract_transpose_plan -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge19" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_abstract_transpose_plan</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M859.26,-286.04C836.48,-290.96 809.94,-296.69 786.22,-301.81"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="785.28,-298.43 776.24,-303.96 786.76,-305.27 785.28,-298.43"/>
+</g>
+<!-- module~dtfft_transpose_handle_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node9" class="node">
+<title>module~dtfft_transpose_handle_cuda</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node9"><a xlink:href="../module/dtfft_transpose_handle_cuda.html" xlink:title="dtfft_transpose_handle_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="802.5,-190 636.5,-190 636.5,-166 802.5,-166 802.5,-190"/>
+<text text-anchor="middle" x="719.5" y="-175.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_handle_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_transpose_handle_cuda -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge21" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_transpose_handle_cuda</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M890.37,-261.84C855.88,-244.82 793.07,-213.82 754.25,-194.66"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="755.45,-191.35 744.93,-190.06 752.35,-197.62 755.45,-191.35"/>
+</g>
+<!-- module~dtfft -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node5" class="node">
+<title>module~dtfft</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node5"><a xlink:href="../module/dtfft.html" xlink:title="dtfft">
+<polygon fill="#337ab7" stroke="#337ab7" points="1182,-328 1128,-328 1128,-304 1182,-304 1182,-328"/>
+<text text-anchor="middle" x="1155" y="-313.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge9" class="edge">
+<title>module~dtfft&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1127.96,-310.15C1119.54,-308.26 1110.01,-306.12 1100.81,-304.05"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1101.56,-300.64 1091.04,-301.86 1100.03,-307.47 1101.56,-300.64"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge4" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M351.42,-185.97C325,-158.52 260.05,-91.04 227.8,-57.53"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="230.17,-54.94 220.71,-50.17 225.12,-59.8 230.17,-54.94"/>
+</g>
+<!-- module~dtfft_abstract_transpose_plan&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge5" class="edge">
+<title>module~dtfft_abstract_transpose_plan&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M532,-316C420.6,-297.11 379.3,-296.42 297,-219 249.28,-174.11 224.26,-97.89 214.28,-60.31"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="217.61,-59.2 211.76,-50.37 210.83,-60.93 217.61,-59.2"/>
+</g>
+<!-- module~dtfft_abstract_transpose_plan&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge12" class="edge">
+<title>module~dtfft_abstract_transpose_plan&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M634.88,-321.9C603.1,-322.6 566.69,-321.54 534,-316"/>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M532,-316C501.64,-310.85 493.27,-308.07 467,-292 433.45,-271.47 401.2,-238.88 382.24,-217.97"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="384.68,-215.45 375.42,-210.31 379.46,-220.11 384.68,-215.45"/>
+</g>
+<!-- module~dtfft_api -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node8" class="node">
+<title>module~dtfft_api</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node8"><a xlink:href="../module/dtfft_api.html" xlink:title="dtfft_api">
+<polygon fill="#337ab7" stroke="#337ab7" points="1183,-286 1127,-286 1127,-262 1183,-262 1183,-286"/>
+<text text-anchor="middle" x="1155" y="-271.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_api&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge10" class="edge">
+<title>module~dtfft_api&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1126.96,-280.07C1118.81,-281.9 1109.68,-283.96 1100.86,-285.94"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1100.09,-282.52 1091.1,-288.13 1101.62,-289.35 1100.09,-282.52"/>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge7" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M705.39,-165.72C684.6,-147.05 642.03,-111.9 599,-95 472.81,-45.44 431.06,-72.21 297,-52 288.64,-50.74 279.85,-49.38 271.18,-48.02"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="271.52,-44.53 261.09,-46.43 270.43,-51.45 271.52,-44.53"/>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge16" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M636.07,-182.66C577.17,-186 498.52,-190.45 441.11,-193.69"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="440.8,-190.21 431.01,-194.27 441.19,-197.19 440.8,-190.21"/>
+</g>
+<!-- module~dtfft_backend_cufftmp -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node10" class="node">
+<title>module~dtfft_backend_cufftmp</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node10"><a xlink:href="../module/dtfft_backend_cufftmp.html" xlink:title="dtfft_backend_cufftmp">
+<polygon fill="#337ab7" stroke="#337ab7" points="599,-170 467,-170 467,-146 599,-146 599,-170"/>
+<text text-anchor="middle" x="533" y="-155.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_cufftmp</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_cufftmp -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge22" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_cufftmp</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M636.23,-169.08C627.23,-168.11 618.09,-167.12 609.18,-166.15"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="609.54,-162.67 599.22,-165.07 608.79,-169.63 609.54,-162.67"/>
+</g>
+<!-- module~dtfft_backend_mpi -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node11" class="node">
+<title>module~dtfft_backend_mpi</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node11"><a xlink:href="../module/dtfft_backend_mpi.html" xlink:title="dtfft_backend_mpi">
+<polygon fill="#337ab7" stroke="#337ab7" points="588.5,-128 477.5,-128 477.5,-104 588.5,-104 588.5,-128"/>
+<text text-anchor="middle" x="533" y="-113.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_mpi</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_mpi -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge23" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_mpi</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M684.04,-165.99C660.2,-157.73 627.72,-146.56 599,-137 593.38,-135.13 587.47,-133.19 581.61,-131.27"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="582.44,-127.86 571.85,-128.1 580.27,-134.52 582.44,-127.86"/>
+</g>
+<!-- module~dtfft_backend_nccl -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_node12" class="node">
+<title>module~dtfft_backend_nccl</title>
+<g id="a_module~~dtfft_interface_cuda~~UsedByGraph_node12"><a xlink:href="../module/dtfft_backend_nccl.html" xlink:title="dtfft_backend_nccl">
+<polygon fill="#337ab7" stroke="#337ab7" points="589,-250 477,-250 477,-226 589,-226 589,-250"/>
+<text text-anchor="middle" x="533" y="-235.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_nccl</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_nccl -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge24" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_nccl</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M681.16,-190.14C652.18,-199.57 611.84,-212.69 580.72,-222.81"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="579.39,-219.56 570.97,-225.98 581.56,-226.21 579.39,-219.56"/>
+</g>
+<!-- module~dtfft_backend_cufftmp&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge13" class="edge">
+<title>module~dtfft_backend_cufftmp&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M481.89,-170C464.06,-174.27 443.79,-179.13 425.2,-183.58"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="424.27,-180.2 415.36,-185.94 425.9,-187.01 424.27,-180.2"/>
+</g>
+<!-- module~dtfft_backend_mpi&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge14" class="edge">
+<title>module~dtfft_backend_mpi&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M489.86,-128.07C482.14,-130.72 474.24,-133.72 467,-137 439.95,-149.27 411.07,-167.03 390.97,-180.22"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="388.78,-177.48 382.39,-185.93 392.65,-183.3 388.78,-177.48"/>
+</g>
+<!-- module~dtfft_backend_nccl&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge15" class="edge">
+<title>module~dtfft_backend_nccl&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M481.89,-226C464.06,-221.73 443.79,-216.87 425.2,-212.42"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="425.9,-208.99 415.36,-210.06 424.27,-215.8 425.9,-208.99"/>
+</g>
+<!-- module~dtfft_transpose_plan_host&#45;&gt;module~dtfft_abstract_transpose_plan -->
+<g id="module~~dtfft_interface_cuda~~UsedByGraph_edge20" class="edge">
+<title>module~dtfft_transpose_plan_host&#45;&gt;module~dtfft_abstract_transpose_plan</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M841.75,-316C832.73,-316 823.42,-316 814.16,-316"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="814.14,-312.5 804.14,-316 814.14,-319.5 814.14,-312.5"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_interface_cudaUsedByGraph = svgPanZoom('#moduledtfft_interface_cudaUsedByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsedByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsedByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
       <br>
 
 
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cumoduleloaddataex"></span>
+              procedure(<a href='../interface/cumoduleloaddataex_interface.html'>cuModuleLoadDataEx_interface</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>cuModuleLoadDataEx</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Fortran pointer to the cuModuleLoadDataEx function</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cumoduleunload"></span>
+              procedure(<a href='../interface/cumoduleunload_interface.html'>cuModuleUnload_interface</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>cuModuleUnload</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Fortran pointer to the cuModuleUnload function</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cumodulegetfunction"></span>
+              procedure(<a href='../interface/cumodulegetfunction_interface.html'>cuModuleGetFunction_interface</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>cuModuleGetFunction</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Fortran pointer to the cuModuleGetFunction function</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_loaded~5"></span>
+              logical,
+            </td>
+              <td>private,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>is_loaded</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                <p>Flag indicating whether the library is loaded</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-libcuda"></span>
+              type(c_ptr),
+            </td>
+              <td>private,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>libcuda</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Handle to the loaded library</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cufunctions"></span>
+              type(c_funptr),
+            </td>
+              <td>private,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>cuFunctions</strong>(4)</td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Array of pointers to the CUDA functions</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
 
 
         <section>
           <h2>Interfaces</h2>
               <div class="card">
     <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-cumoduleloaddataex"></span>
-      <h3>public        interface <a href='../interface/cumoduleloaddataex.html'>cuModuleLoadDataEx</a> 
+      <span class="anchor" id="interface-run_cuda_kernel"></span>
+      <h3>private        interface <a href='../interface/run_cuda_kernel.html'>run_cuda_kernel</a> 
       </h3>
     </div>
       <div class="card-body">
-        <p>Load a module&rsquo;s data with options.</p>
-<p>Takes a pointer image and loads the corresponding module module into the current context. 
-The image may be a cubin or fatbin as output by nvcc, or a NULL-terminated PTX, either as output by nvcc or hand-written.</p>
+        <p>Launches a CUDA function CUfunction or a CUDA kernel CUkernel.</p>
       </div>
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private  function cuModuleLoadDataEx(mod, image, numOptions, options, optionValues) result(cuResult) bind(C, name="cuModuleLoadDataEx")  
+    private  function run_cuda_kernel(func, in, out, blocks, threads, stream, args, funptr) result(cuResult) bind(C, name="run_cuda_kernel")  
 
     </h3>
-  
+  <p>Wrapper around <code>cuLaunchKernel</code>, since I have to idea how to pass array of pointers to <code>cuLaunchKernel</code>.</p>
+<p>Launches a CUDA function CUfunction or a CUDA kernel CUkernel.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-func"></span>
+              type(c_ptr),
+            </td>
+<td></td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>func</strong></td>
+            <td>
+                <p>Function CUfunction or Kernel CUkernel to launch</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~35"></span>
+              type(c_ptr),
+            </td>
+<td></td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+                <p>Input pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~35"></span>
+              type(c_ptr),
+            </td>
+<td></td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+                <p>Output pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-blocks"></span>
+              type(<a href='../type/dim3.html'>dim3</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>blocks</strong></td>
+            <td>
+                <p>Grid in blocks</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-threads"></span>
+              type(<a href='../type/dim3.html'>dim3</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>threads</strong></td>
+            <td>
+                <p>Thread block</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~19"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td></td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+                <p>Stream identifier</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-args~2"></span>
+              type(<a href='../type/kernelargs.html'>kernelArgs</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>Kernel parameters</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-funptr"></span>
+              type(c_funptr),
+            </td>
+<td></td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>funptr</strong></td>
+            <td>
+                <p>Pointer to <code>cuLaunchKernel</code></p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=c_int)</small>
+    </h4>
+    <p>Driver result code</p>
+
+          </li>
+    </ul>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Abstract Interfaces</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="interface-cumoduleloaddataex_interface"></span><h3>abstract interface
+        
+    </h3></div>
+    <ul class="list-group">
+      <li class="list-group-item">
+            <h3>
+    private  function cuModuleLoadDataEx_interface(mod, image, numOptions, options, optionValues) result(cuResult)  
+
+    </h3>
+  <p>Load a module&rsquo;s data with options.</p>
+<p>Takes a pointer image and loads the corresponding module module into the current context. 
+The image may be a cubin or fatbin as output by nvcc, or a NULL-terminated PTX, either as output by nvcc or hand-written.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -254,7 +1191,7 @@ The image may be a cubin or fatbin as output by nvcc, or a NULL-terminated PTX, 
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-options~2"></span>
+              <span class="anchor" id="variable-options~3"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -291,29 +1228,24 @@ The image may be a cubin or fatbin as output by nvcc, or a NULL-terminated PTX, 
     </h4>
     <p>Driver result code</p>
 
-          </li>
+      </li>
     </ul>
   </div>
 
               <div class="card">
-    <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-cumoduleunload"></span>
-      <h3>public        interface <a href='../interface/cumoduleunload.html'>cuModuleUnload</a> 
-      </h3>
-    </div>
-      <div class="card-body">
-        <p>Unloads a module.</p>
+    <div class="card-header codesum"><span class="anchor" id="interface-cumoduleunload_interface"></span><h3>abstract interface
+        
+    </h3></div>
+    <ul class="list-group">
+      <li class="list-group-item">
+            <h3>
+    private  function cuModuleUnload_interface(hmod) result(cuResult)  
+
+    </h3>
+  <p>Unloads a module.</p>
 <p>Unloads a module <code>hmod</code> from the current context. 
 Attempting to unload a module which was obtained from the Library Management API 
 such as <code>cuLibraryGetModule</code> will return <code>CUDA_ERROR_NOT_PERMITTED</code>.</p>
-      </div>
-    <ul class="list-group">
-          <li class="list-group-item">
-                <h3>
-    private  function cuModuleUnload(hmod) result(cuResult) bind(C, name="cuModuleUnload")  
-
-    </h3>
-  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -350,28 +1282,23 @@ such as <code>cuLibraryGetModule</code> will return <code>CUDA_ERROR_NOT_PERMITT
     </h4>
     <p>Driver result code</p>
 
-          </li>
+      </li>
     </ul>
   </div>
 
               <div class="card">
-    <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-cumodulegetfunction"></span>
-      <h3>        interface
-      </h3>
-    </div>
-      <div class="card-body">
-        <p>Returns a function handle.</p>
-<p>Returns in <code>hfunc</code> the handle of the function of name name located in module hmod.
-If no function of that name exists, <code>cuModuleGetFunction</code> returns <code>CUDA_ERROR_NOT_FOUND</code>.</p>
-      </div>
+    <div class="card-header codesum"><span class="anchor" id="interface-cumodulegetfunction_interface"></span><h3>abstract interface
+        
+    </h3></div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  function cuModuleGetFunction(hfunc, hmod, name) result(cuResult) bind(C, name="cuModuleGetFunction")  
+      <li class="list-group-item">
+            <h3>
+    private  function cuModuleGetFunction_interface(hfunc, hmod, name) result(cuResult)  
 
     </h3>
-  
+  <p>Returns a function handle.</p>
+<p>Returns in <code>hfunc</code> the handle of the function of name name located in module hmod.
+If no function of that name exists, <code>cuModuleGetFunction</code> returns <code>CUDA_ERROR_NOT_FOUND</code>.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -416,7 +1343,7 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-name~8"></span>
+              <span class="anchor" id="variable-name~12"></span>
               character(len=c_char)
             </td>
 <td></td>
@@ -438,160 +1365,12 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
     </h4>
     <p>Driver result code</p>
 
-        </li>
-    </ul>
-  </div>
-
-              <div class="card">
-    <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-culaunchkernel"></span>
-      <h3>public        interface <a href='../interface/culaunchkernel.html'>cuLaunchKernel</a> 
-      </h3>
-    </div>
-      <div class="card-body">
-        <p>Launches a CUDA function CUfunction or a CUDA kernel CUkernel.</p>
-      </div>
-    <ul class="list-group">
-          <li class="list-group-item">
-                <h3>
-    private  function cuLaunchKernel(func, in, out, blocks, threads, stream, args) result(cuResult) bind(C, name="run_cuda_kernel")  
-
-    </h3>
-  <p>Wrapper around <code>cuLaunchKernel</code>, since I have to idea how to pass array of pointers to <code>cuLaunchKernel</code>.</p>
-<p>Launches a CUDA function CUfunction or a CUDA kernel CUkernel.</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-func"></span>
-              type(c_ptr),
-            </td>
-<td></td>
-              <td></td>            <td>
-              value
-            </td>
-            <td>::</td>
-            <td><strong>func</strong></td>
-            <td>
-                <p>Function CUfunction or Kernel CUkernel to launch</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-in"></span>
-              type(c_ptr),
-            </td>
-<td></td>
-              <td></td>            <td>
-              value
-            </td>
-            <td>::</td>
-            <td><strong>in</strong></td>
-            <td>
-                <p>Input pointer</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-out"></span>
-              type(c_ptr),
-            </td>
-<td></td>
-              <td></td>            <td>
-              value
-            </td>
-            <td>::</td>
-            <td><strong>out</strong></td>
-            <td>
-                <p>Output pointer</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-blocks"></span>
-              type(<a href='../type/dim3.html'>dim3</a>)
-            </td>
-<td></td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>blocks</strong></td>
-            <td>
-                <p>Grid in blocks</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-threads"></span>
-              type(<a href='../type/dim3.html'>dim3</a>)
-            </td>
-<td></td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>threads</strong></td>
-            <td>
-                <p>Thread block</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-stream~3"></span>
-              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
-            </td>
-<td></td>
-              <td></td>            <td>
-              value
-            </td>
-            <td>::</td>
-            <td><strong>stream</strong></td>
-            <td>
-                <p>Stream identifier</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-args"></span>
-              type(<a href='../type/kernelargs.html'>kernelArgs</a>)
-            </td>
-<td></td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>args</strong></td>
-            <td>
-                <p>Kernel parameters</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-    <h4>
-    Return Value
-    <small>integer(kind=c_int)</small>
-    </h4>
-    <p>Driver result code</p>
-
-          </li>
+      </li>
     </ul>
   </div>
 
         </section>
         <br>
-
 
         <section>
           <h2>Derived Types</h2>
@@ -605,7 +1384,7 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
       </h3>
     </div>
     <div class="card-body">
-      
+      <p>Arguments passed to nvrtc-compiled kernels</p>
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -632,7 +1411,7 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
 <td> =</td>
                 <td>0</td>
             <td>
-
+<p>Number of integers provided</p>
             </td>
         </tr>
         <tr>
@@ -649,7 +1428,7 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
                 <td></td>
                 <td></td>
             <td>
-
+<p>Integer array</p>
             </td>
         </tr>
         <tr>
@@ -666,7 +1445,7 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
 <td> =</td>
                 <td>0</td>
             <td>
-
+<p>Number of pointers provided</p>
             </td>
         </tr>
         <tr>
@@ -683,7 +1462,7 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
                 <td></td>
                 <td></td>
             <td>
-
+<p>Pointer array</p>
             </td>
         </tr>
     </tbody>
@@ -698,6 +1477,163 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
         </section>
         <br>
 
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-load_cuda"></span> <h3>public  function <a href='../proc/load_cuda.html'>load_cuda</a>() result(error_code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Loads the CUDA Driver library and needed symbols</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+    <h4>
+    Return Value
+    <small>integer(kind=int32)</small>
+    </h4>
+    <p>Error code</p>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-culaunchkernel"></span> <h3>public  function <a href='../proc/culaunchkernel.html'>cuLaunchKernel</a>(func, in, out, blocks, threads, stream, args) result(cuResult)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Launches a CUDA function CUfunction or a CUDA kernel CUkernel.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-func~2"></span>
+              type(c_ptr)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>func</strong></td>
+            <td>
+<p>Function CUfunction or Kernel CUkernel to launch</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~36"></span>
+              type(c_ptr)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+<p>Input pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~36"></span>
+              type(c_ptr)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+<p>Output pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-blocks~2"></span>
+              type(<a href='../type/dim3.html'>dim3</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>blocks</strong></td>
+            <td>
+<p>Grid in blocks</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-threads~2"></span>
+              type(<a href='../type/dim3.html'>dim3</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>threads</strong></td>
+            <td>
+<p>Thread block</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~20"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>Stream identifier</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-args~3"></span>
+              type(<a href='../type/kernelargs.html'>kernelArgs</a>)
+            </td>
+<td></td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+<p>Kernel parameters</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=c_int)</small>
+    </h4>
+    <p>Driver result code</p>
+
+    </div>
+  </div>
+
+        </section>
+        <br>
 
 
 
@@ -744,6 +1680,9 @@ If no function of that name exists, <code>cuModuleGetFunction</code> returns <co
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

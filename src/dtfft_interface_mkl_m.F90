@@ -18,7 +18,8 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_mkl_m
 !! This module creates C interface with MKL library
-use iso_c_binding, only: c_long, c_int, c_ptr, c_f_pointer, c_null_char, c_size_t
+use iso_c_binding,  only: c_long, c_int, c_ptr, c_f_pointer, c_null_char, c_size_t
+use dtfft_utils,    only: string_c2f
 implicit none
 private
 
@@ -138,11 +139,7 @@ contains
   !! Generates an error message.
     integer(c_long),    intent(in)  :: error_code       !! Completion status of a function.
     character(len=:),   allocatable :: string           !! Error message
-    type(c_ptr)                     :: c_string
-    character(len=256), pointer     :: f_string
 
-    c_string = DftiErrorMessage_c(error_code)
-    call c_f_pointer(c_string, f_string)
-    allocate( string, source=f_string(1:index(f_string, c_null_char) - 1) )
+    call string_c2f(DftiErrorMessage_c(error_code), string)
   end function DftiErrorMessage
 end module dtfft_interface_mkl_m

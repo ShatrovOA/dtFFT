@@ -55,9 +55,12 @@ public :: alloc_mem, free_mem
   !! The most Abstract Transpose Plan
 #ifdef DTFFT_WITH_CUDA
     type(dtfft_gpu_backend_t)     :: gpu_backend = DTFFT_GPU_BACKEND_MPI_DATATYPE
+      !! GPU backend
     type(backend_helper)          :: helper
+      !! Backend helper
 #endif
-    logical :: is_z_slab  !! Z-slab optimization flag (for 3D transforms)
+    logical :: is_z_slab  
+      !! Z-slab optimization flag (for 3D transforms)
   contains
     procedure,                            pass(self),           public  :: create           !! Create transposition plan
     procedure,                            pass(self),           public  :: execute          !! Executes transposition
@@ -111,23 +114,25 @@ contains
 
   function create(self, dims, base_comm_, effort, base_dtype, base_storage, cart_comm, comms, pencils) result(error_code)
   !! Creates transposition plans
-    class(abstract_transpose_plan), intent(inout) :: self                 !! Transposition class
-    integer(int32),                 intent(in)    :: dims(:)              !! Global sizes of the transform requested
-    TYPE_MPI_COMM,                  intent(in)    :: base_comm_           !! Base communicator
-    type(dtfft_effort_t),           intent(in)    :: effort               !! ``dtFFT`` planner type of effort
-    TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !! Base MPI_Datatype
-    integer(int8),                  intent(in)    :: base_storage         !! Number of bytes needed to store single element
-    TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
-    TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
-    type(pencil),                   intent(out)   :: pencils(:)           !! Data distributing meta
-    integer(int32)                                :: error_code
-    integer(int32),               allocatable     :: transposed_dims(:,:) !! Global counts in transposed coordinates
-    logical :: cond1, cond2
-
-    integer(int32),  allocatable :: comm_dims(:)
-    integer(int8) :: ndims
-    integer(int32) :: comm_size, top_type, ierr
-    logical :: is_custom_cart_comm
+    class(abstract_transpose_plan), intent(inout) :: self           !! Transposition class
+    integer(int32),                 intent(in)    :: dims(:)        !! Global sizes of the transform requested
+    TYPE_MPI_COMM,                  intent(in)    :: base_comm_     !! Base communicator
+    type(dtfft_effort_t),           intent(in)    :: effort         !! ``dtFFT`` planner type of effort
+    TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype     !! Base MPI_Datatype
+    integer(int8),                  intent(in)    :: base_storage   !! Number of bytes needed to store single element
+    TYPE_MPI_COMM,                  intent(out)   :: cart_comm      !! Cartesian communicator
+    TYPE_MPI_COMM,                  intent(out)   :: comms(:)       !! Array of 1d communicators
+    type(pencil),                   intent(out)   :: pencils(:)     !! Data distributing meta
+    integer(int32)                                :: error_code     !! Error code
+    integer(int32),   allocatable   :: transposed_dims(:,:) !! Global counts in transposed coordinates
+    logical           :: cond1    !! First condition for Z-slab optimization
+    logical           :: cond2    !! Second condition for Z-slab optimization
+    integer(int32),   allocatable   :: comm_dims(:)   !! Dims in cartesian communicator
+    integer(int8)     :: ndims      !! Number of dimensions
+    integer(int32)    :: comm_size  !! Number of MPI processes
+    integer(int32)    :: top_type   !! Topology type
+    integer(int32)    :: ierr       !! Error code
+    logical           :: is_custom_cart_comm  !! Custom cartesian communicator provided by user
 
     call MPI_Comm_size(base_comm_, comm_size, ierr)
     call MPI_Topo_test(base_comm_, top_type, ierr)
@@ -140,10 +145,10 @@ contains
     if ( top_type == MPI_CART ) then
       is_custom_cart_comm = .true.
       block
-        integer(int32)                 :: grid_ndims           !! Number of dims in user defined cartesian communicator
-        integer(int32),  allocatable   :: temp_dims(:)         !! Temporary dims needed by MPI_Cart_get
-        integer(int32),  allocatable   :: temp_coords(:)       !! Temporary coordinates needed by MPI_Cart_get
-        logical,         allocatable   :: temp_periods(:)      !! Temporary periods needed by MPI_Cart_get
+        integer(int32)                 :: grid_ndims           ! Number of dims in user defined cartesian communicator
+        integer(int32),  allocatable   :: temp_dims(:)         ! Temporary dims needed by MPI_Cart_get
+        integer(int32),  allocatable   :: temp_coords(:)       ! Temporary coordinates needed by MPI_Cart_get
+        logical,         allocatable   :: temp_periods(:)      ! Temporary periods needed by MPI_Cart_get
         integer(int8) :: d
 
         call MPI_Cartdim_get(base_comm_, grid_ndims, ierr)
@@ -243,9 +248,9 @@ contains
 
   subroutine execute(self, in, out, transpose_type)
   !! Executes single transposition
-    class(abstract_transpose_plan), intent(inout) :: self         !! Transposition class
-    type(*),                        intent(inout) :: in(..)       !! Incoming buffer of any rank and kind
-    type(*),                        intent(inout) :: out(..)      !! Resulting buffer of any rank and kind
+    class(abstract_transpose_plan), intent(inout) :: self           !! Transposition class
+    type(*),                        intent(inout) :: in(..)         !! Incoming buffer of any rank and kind
+    type(*),                        intent(inout) :: out(..)        !! Resulting buffer of any rank and kind
     type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !! Type of transpose
 
     PHASE_BEGIN('Transpose '//TRANSPOSE_NAMES(transpose_type%val), COLOR_TRANSPOSE_PALLETTE(transpose_type%val))
@@ -255,37 +260,39 @@ contains
 
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_gpu_backend_t) function get_gpu_backend(self)
-    class(abstract_transpose_plan), intent(in)    :: self         !! Transposition class
+  !! Returns plan GPU backend
+    class(abstract_transpose_plan), intent(in)    :: self           !! Transposition class
     get_gpu_backend = self%gpu_backend
   end function get_gpu_backend
 
   subroutine mem_alloc(self, comm, alloc_bytes, ptr, error_code)
     !! Allocates memory based on selected backend
-    class(abstract_transpose_plan), intent(inout) :: self            !! Transposition class
-    TYPE_MPI_COMM,                  intent(in)    :: comm
-    integer(int64),                 intent(in)    :: alloc_bytes
-    type(c_ptr),                    intent(out)   :: ptr
-    integer(int32),                 intent(out)   :: error_code
+    class(abstract_transpose_plan), intent(inout) :: self           !! Transposition class
+    TYPE_MPI_COMM,                  intent(in)    :: comm           !! MPI communicator
+    integer(int64),                 intent(in)    :: alloc_bytes    !! Number of bytes to allocate
+    type(c_ptr),                    intent(out)   :: ptr            !! Pointer to the allocated memory
+    integer(int32),                 intent(out)   :: error_code     !! Error code
 
     call alloc_mem(self%helper, self%gpu_backend, comm, alloc_bytes, ptr, error_code)
   end subroutine mem_alloc
 
   subroutine mem_free(self, ptr, error_code)
-    class(abstract_transpose_plan), intent(inout) :: self            !! Transposition class
-    type(c_ptr),                    intent(in)    :: ptr
-    integer(int32),                 intent(out)   :: error_code
+  !! Frees memory allocated with mem_alloc
+    class(abstract_transpose_plan), intent(inout) :: self           !! Transposition class
+    type(c_ptr),                    intent(in)    :: ptr            !! Pointer to the memory to free
+    integer(int32),                 intent(out)   :: error_code     !! Error code
 
     call free_mem(self%helper, self%gpu_backend, ptr, error_code)
   end subroutine mem_free
 
   subroutine alloc_mem(helper, gpu_backend, comm, alloc_bytes, ptr, error_code)
   !! Allocates memory based on ``gpu_backend``
-    type(backend_helper),           intent(inout) :: helper
-    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend
-    TYPE_MPI_COMM,                  intent(in)    :: comm
-    integer(int64),                 intent(in)    :: alloc_bytes
-    type(c_ptr),                    intent(out)   :: ptr
-    integer(int32),                 intent(out)   :: error_code
+    type(backend_helper),           intent(inout) :: helper         !! Backend helper
+    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend    !! GPU backend
+    TYPE_MPI_COMM,                  intent(in)    :: comm           !! MPI communicator
+    integer(int64),                 intent(in)    :: alloc_bytes    !! Number of bytes to allocate
+    type(c_ptr),                    intent(out)   :: ptr            !! Pointer to the allocated memory
+    integer(int32),                 intent(out)   :: error_code     !! Error code
     integer(int32)  :: ierr
 
     error_code = DTFFT_SUCCESS
@@ -342,10 +349,10 @@ contains
 
   subroutine free_mem(helper, gpu_backend, ptr, error_code)
   !! Frees memory based on ``gpu_backend``
-    type(backend_helper),           intent(inout) :: helper
-    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend
-    type(c_ptr),                    intent(in)    :: ptr
-    integer(int32),                 intent(out)   :: error_code
+    type(backend_helper),           intent(inout) :: helper         !! Backend helper
+    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend    !! GPU backend
+    type(c_ptr),                    intent(in)    :: ptr            !! Pointer to the memory to free
+    integer(int32),                 intent(out)   :: error_code     !! Error code
     integer(int32)  :: ierr
 
     error_code = DTFFT_SUCCESS

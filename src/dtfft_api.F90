@@ -45,6 +45,15 @@ private
     class(dtfft_plan_t),  allocatable :: p                         !! Actual Fortran plan
   end type dtfft_plan_c
 
+  type, bind(C) :: dtfft_pencil_c
+  !! Structure to hold pencil decomposition info
+    integer(c_int8_t)   :: dim        !! Aligned dimension id
+    integer(c_int8_t)   :: ndims      !! Number of dimensions
+    integer(c_int32_t)  :: starts(3)  !! Local starts, starting from 0 for both C and Fortran
+    integer(c_int32_t)  :: counts(3)  !! Local counts of data, in elements
+    integer(c_size_t)   :: size       !! Total number of elements in a pencil
+  end type dtfft_pencil_c
+
 contains
 
   pure TYPE_MPI_COMM function get_comm(c_comm)
@@ -262,14 +271,20 @@ contains
     bind(C)
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     integer(c_int8_t),  intent(in)                :: dim                  !! Dimension requested
-    type(dtfft_pencil_t)                          :: pencil               !! Pencil pointer
+    type(dtfft_pencil_c)                          :: pencil               !! Pencil pointer
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
                                                                           !! defines API call result codes.
     type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(dtfft_pencil_t) :: pencil_
 
     CHECK_PLAN_CREATED(plan_ptr)
     call c_f_pointer(plan_ptr, plan)
-    pencil = plan%p%get_pencil(dim, error_code)
+    pencil_ = plan%p%get_pencil(dim, error_code)
+    pencil%dim = pencil_%dim
+    pencil%ndims = pencil_%ndims
+    pencil%size = pencil_%size
+    pencil%starts(1:pencil%ndims) = pencil_%starts(:)
+    pencil%counts(1:pencil%ndims) = pencil_%counts(:)
   end function dtfft_get_pencil_c
 
   function dtfft_get_element_size_c(plan_ptr, element_size)                                                         &

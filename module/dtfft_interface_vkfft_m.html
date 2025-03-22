@@ -17,6 +17,7 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -52,6 +53,11 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -70,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.4% of total for modules and submodules.">35 statements</a>
+                 title=" 0.9% of total for modules and submodules.">72 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -102,6 +108,18 @@
         <div id="sidebar">
       <h3>Contents</h3>
   
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#variable-cuda_wrapper">cuda_wrapper</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -110,22 +128,44 @@
   
   
       <div class="card mb-4">
-      <a data-bs-toggle="collapse" href="#inters-0"
-         aria-expanded="false" aria-controls="inters-0">
-         <h4 class="card-header bg-primary text-white">Interfaces</h4>
+      <a data-bs-toggle="collapse" href="#absints-0"
+         aria-expanded="false" aria-controls="absints-0">
+         <h4 class="card-header bg-primary text-white">Abstract Interfaces</h4>
       </a>
-      <div id="inters-0" class="collapse">
+      <div id="absints-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#interface-vkfft_create">vkfft_create</a>
-            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#interface-vkfft_execute">vkfft_execute</a>
-            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#interface-vkfft_destroy">vkfft_destroy</a>
+            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#interface-vkfft_create_interface">vkfft_create_interface</a>
+            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#interface-vkfft_execute_interface">vkfft_execute_interface</a>
+            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#interface-vkfft_destroy_interface">vkfft_destroy_interface</a>
         </div>
       </div>
     </div>
 
-  
-  
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#types-0"
+         aria-expanded="false" aria-controls="types-0">
+         <h4 class="card-header bg-primary text-white">Derived Types</h4>
+      </a>
+      <div id="types-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#type-vkfft_wrapper">vkfft_wrapper</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#proc-load_vkfft">load_vkfft</a>
+            <a class="list-group-item" href="../module/dtfft_interface_vkfft_m.html#proc-load">load</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -141,7 +181,8 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      
+      <p>This module creates interface with VkFFT library</p>
+<p>VkFFT is loaded at runtime via dynamic loading.</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -149,31 +190,432 @@
             <li class="list-group-item">
               <ul class="list-inline">
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
                   <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
               </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_interface_vkfft_m~~UsesGraph Pages: 1 -->
+<svg id="moduledtfft_interface_vkfft_mUsesGraph" width="505pt" height="124pt"
+ viewBox="0.00 0.00 505.00 124.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 120)">
+<title>module~~dtfft_interface_vkfft_m~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-120 501,-120 501,4 -4,4"/>
+<!-- module~dtfft_interface_vkfft_m -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_node1" class="node">
+<title>module~dtfft_interface_vkfft_m</title>
+<polygon fill="none" stroke="black" points="497,-85 365,-85 365,-61 497,-61 497,-85"/>
+<text text-anchor="middle" x="431" y="-70.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_interface_vkfft_m</text>
+</g>
+<!-- iso_c_binding -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-116 5,-116 5,-92 89,-92 89,-116"/>
+<text text-anchor="middle" x="47" y="-101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_vkfft_m&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge1" class="edge">
+<title>module~dtfft_interface_vkfft_m&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-113C246.27,-116.2 233.27,-110.4 182,-113"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-24 0,-24 0,0 94,0 94,-24"/>
+<text text-anchor="middle" x="47" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_vkfft_m&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge2" class="edge">
+<title>module~dtfft_interface_vkfft_m&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M395.47,-60.99C356.36,-48.01 290.46,-27.96 232,-19 189.58,-12.5 141.05,-10.89 104.48,-10.83"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="104.01,-7.33 94.02,-10.86 104.03,-14.33 104.01,-7.33"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_node4" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsesGraph_node4"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-85 130,-85 130,-61 232,-61 232,-85"/>
+<text text-anchor="middle" x="181" y="-70.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_vkfft_m&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge3" class="edge">
+<title>module~dtfft_interface_vkfft_m&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M403.7,-85.07C377.82,-95.98 336.87,-110.67 299.5,-113"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-113C281.92,-113.97 246.09,-100.61 218.43,-89.07"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="219.61,-85.77 209.04,-85.09 216.88,-92.22 219.61,-85.77"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_node5" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsesGraph_node5"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-85 268,-85 268,-61 329,-61 329,-85"/>
+<text text-anchor="middle" x="298.5" y="-70.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_vkfft_m&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_interface_vkfft_m&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M364.75,-73C356.07,-73 347.38,-73 339.31,-73"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="339.11,-69.5 329.11,-73 339.11,-76.5 339.11,-69.5"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M129.72,-84.81C119.67,-87.17 109.09,-89.65 99.02,-92.02"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="98.07,-88.65 89.14,-94.34 99.67,-95.46 98.07,-88.65"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge6" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M154.05,-60.87C137,-52.92 114.19,-42.3 94,-33 90.79,-31.52 87.46,-29.99 84.12,-28.46"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="85.32,-25.16 74.77,-24.18 82.41,-31.53 85.32,-25.16"/>
+</g>
+<!-- mpi_f08 -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_node6" class="node">
+<title>mpi_f08</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsesGraph_node6"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-66 19.5,-66 19.5,-42 74.5,-42 74.5,-66"/>
+<text text-anchor="middle" x="47" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge7" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M129.72,-65.76C114.74,-63.61 98.61,-61.29 84.68,-59.28"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="84.9,-55.78 74.5,-57.81 83.9,-62.7 84.9,-55.78"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M274.83,-85.14C252.09,-96.27 215.7,-111.29 182,-113"/>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-113C153.3,-114.36 123.6,-112.62 99.14,-110.32"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="99.3,-106.82 89,-109.31 98.61,-113.79 99.3,-106.82"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge9" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M271.1,-60.97C248.12,-51.21 213.61,-38.23 182,-33"/>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-33C155.17,-28.89 127.69,-24.49 104.26,-20.79"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="104.57,-17.3 94.14,-19.2 103.48,-24.21 104.57,-17.3"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M267.76,-73C259.97,-73 251.3,-73 242.53,-73"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="242.25,-69.5 232.25,-73 242.25,-76.5 242.25,-69.5"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_interface_vkfft_m~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-33C147.62,-27.64 110.73,-34.61 84.19,-41.93"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="83.19,-38.57 74.56,-44.72 85.14,-45.3 83.19,-38.57"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
             </li>
         </ul>
       </div>
     </div>
 
-      
+          <div class="card">
+      <h3 class="card-header card-title bg-light">Used by</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_interface_vkfft_m~~UsedByGraph Pages: 1 -->
+<svg id="moduledtfft_interface_vkfft_mUsedByGraph" width="497pt" height="74pt"
+ viewBox="0.00 0.00 497.00 74.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 70)">
+<title>module~~dtfft_interface_vkfft_m~~UsedByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-70 493,-70 493,4 -4,4"/>
+<!-- module~dtfft_interface_vkfft_m -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_node1" class="node">
+<title>module~dtfft_interface_vkfft_m</title>
+<polygon fill="none" stroke="black" points="132,-45 0,-45 0,-21 132,-21 132,-45"/>
+<text text-anchor="middle" x="66" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_interface_vkfft_m</text>
+</g>
+<!-- module~dtfft_executor_vkfft_m -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_node2" class="node">
+<title>module~dtfft_executor_vkfft_m</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsedByGraph_node2"><a xlink:href="../module/dtfft_executor_vkfft_m.html" xlink:title="dtfft_executor_vkfft_m">
+<polygon fill="#337ab7" stroke="#337ab7" points="298,-45 168,-45 168,-21 298,-21 298,-45"/>
+<text text-anchor="middle" x="233" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_vkfft_m</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_executor_vkfft_m&#45;&gt;module~dtfft_interface_vkfft_m -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_edge1" class="edge">
+<title>module~dtfft_executor_vkfft_m&#45;&gt;module~dtfft_interface_vkfft_m</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M167.73,-33C159.44,-33 150.88,-33 142.42,-33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="142.18,-29.5 132.18,-33 142.18,-36.5 142.18,-29.5"/>
+</g>
+<!-- module~dtfft_plan -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_node3" class="node">
+<title>module~dtfft_plan</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsedByGraph_node3"><a xlink:href="../module/dtfft_plan.html" xlink:title="dtfft_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="397,-45 334,-45 334,-21 397,-21 397,-45"/>
+<text text-anchor="middle" x="365.5" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_executor_vkfft_m -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_edge2" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_executor_vkfft_m</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M333.9,-33C326.08,-33 317.31,-33 308.31,-33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="308.09,-29.5 298.09,-33 308.09,-36.5 308.09,-29.5"/>
+</g>
+<!-- module~dtfft -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_node4" class="node">
+<title>module~dtfft</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsedByGraph_node4"><a xlink:href="../module/dtfft.html" xlink:title="dtfft">
+<polygon fill="#337ab7" stroke="#337ab7" points="488,-66 434,-66 434,-42 488,-42 488,-66"/>
+<text text-anchor="middle" x="461" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_edge3" class="edge">
+<title>module~dtfft&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M433.96,-48.15C425.54,-46.26 416.01,-44.12 406.81,-42.05"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="407.56,-38.64 397.04,-39.86 406.03,-45.47 407.56,-38.64"/>
+</g>
+<!-- module~dtfft_api -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_node5" class="node">
+<title>module~dtfft_api</title>
+<g id="a_module~~dtfft_interface_vkfft_m~~UsedByGraph_node5"><a xlink:href="../module/dtfft_api.html" xlink:title="dtfft_api">
+<polygon fill="#337ab7" stroke="#337ab7" points="489,-24 433,-24 433,0 489,0 489,-24"/>
+<text text-anchor="middle" x="461" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_api&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_interface_vkfft_m~~UsedByGraph_edge4" class="edge">
+<title>module~dtfft_api&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M432.96,-18.07C424.81,-19.9 415.68,-21.96 406.86,-23.94"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="406.09,-20.52 397.1,-26.13 407.62,-27.35 406.09,-20.52"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsedByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsedByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
       <br>
 
+
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cuda_wrapper"></span>
+              type(<a href='../type/vkfft_wrapper.html'>vkfft_wrapper</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              save, target
+            </td>
+            <td>::</td>
+            <td><strong>cuda_wrapper</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>VkFFT Wrapper for CUDA platform</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
 
 
 
         <section>
-          <h2>Interfaces</h2>
+          <h2>Abstract Interfaces</h2>
               <div class="card">
-    <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-vkfft_create"></span>
-      <h3>        interface
-      </h3>
-    </div>
+    <div class="card-header codesum"><span class="anchor" id="interface-vkfft_create_interface"></span><h3>abstract interface
+        
+    </h3></div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  subroutine vkfft_create(rank, dims, precision, how_many, r2c, c2r, dct, dst, stream, app_handle) bind(C)  
+      <li class="list-group-item">
+            <h3>
+    private  subroutine vkfft_create_interface(rank, dims, double_precision, how_many, r2c, c2r, dct, dst, stream, app_handle) bind(C)  
 
     </h3>
   <p>Creates FFT plan via vkFFT Interface</p>
@@ -191,7 +633,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rank"></span>
+              <span class="anchor" id="variable-rank~9"></span>
               integer(kind=c_int8_t),
             </td>
 <td></td>
@@ -206,7 +648,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dims"></span>
+              <span class="anchor" id="variable-dims~11"></span>
               integer(kind=c_int)
             </td>
 <td></td>
@@ -221,22 +663,22 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-precision~4"></span>
-              integer(kind=c_int32_t),
+              <span class="anchor" id="variable-double_precision~2"></span>
+              integer(kind=c_int),
             </td>
 <td></td>
               <td></td>            <td>
               value
             </td>
             <td>::</td>
-            <td><strong>precision</strong></td>
+            <td><strong>double_precision</strong></td>
             <td>
                 <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-how_many~5"></span>
+              <span class="anchor" id="variable-how_many~2"></span>
               integer(kind=c_int),
             </td>
 <td></td>
@@ -251,7 +693,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-r2c"></span>
+              <span class="anchor" id="variable-r2c~2"></span>
               integer(kind=c_int8_t),
             </td>
 <td></td>
@@ -281,7 +723,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dct"></span>
+              <span class="anchor" id="variable-dct~2"></span>
               integer(kind=c_int8_t),
             </td>
 <td></td>
@@ -296,7 +738,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dst"></span>
+              <span class="anchor" id="variable-dst~2"></span>
               integer(kind=c_int8_t),
             </td>
 <td></td>
@@ -311,7 +753,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~7"></span>
+              <span class="anchor" id="variable-stream~8"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td></td>
@@ -343,20 +785,18 @@
   </table>
 
 
-        </li>
+      </li>
     </ul>
   </div>
 
               <div class="card">
-    <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-vkfft_execute"></span>
-      <h3>        interface
-      </h3>
-    </div>
+    <div class="card-header codesum"><span class="anchor" id="interface-vkfft_execute_interface"></span><h3>abstract interface
+        
+    </h3></div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  subroutine vkfft_execute(app_handle, in, out, sign) bind(C)  
+      <li class="list-group-item">
+            <h3>
+    private  subroutine vkfft_execute_interface(app_handle, in, out, sign) bind(C)  
 
     </h3>
   <p>Executes vkFFT plan</p>
@@ -389,7 +829,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~6"></span>
+              <span class="anchor" id="variable-in~25"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -404,7 +844,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~6"></span>
+              <span class="anchor" id="variable-out~25"></span>
               type(c_ptr),
             </td>
 <td></td>
@@ -436,20 +876,18 @@
   </table>
 
 
-        </li>
+      </li>
     </ul>
   </div>
 
               <div class="card">
-    <div class="card-header bg-light codesum">
-      <span class="anchor" id="interface-vkfft_destroy"></span>
-      <h3>        interface
-      </h3>
-    </div>
+    <div class="card-header codesum"><span class="anchor" id="interface-vkfft_destroy_interface"></span><h3>abstract interface
+        
+    </h3></div>
     <ul class="list-group">
-        <li class="list-group-item">
-              <h3>
-    public  subroutine vkfft_destroy(app_handle) bind(C)  
+      <li class="list-group-item">
+            <h3>
+    private  subroutine vkfft_destroy_interface(app_handle) bind(C)  
 
     </h3>
   <p>Destroys vkFFT plan</p>
@@ -484,15 +922,261 @@
   </table>
 
 
-        </li>
+      </li>
     </ul>
   </div>
 
         </section>
         <br>
 
+        <section>
+          <h2>Derived Types</h2>
+              <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-vkfft_wrapper"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/vkfft_wrapper.html'>vkfft_wrapper</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      <p>VkFFT Wrapper</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-create~3"></span>
+              procedure(<a href='../interface/vkfft_create_interface.html'>vkfft_create_interface</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer, nopass
+            </td>
+            <td>::</td>
+            <td><strong>create</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Fortran Pointer to vkFFT create function</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-execute~2"></span>
+              procedure(<a href='../interface/vkfft_execute_interface.html'>vkfft_execute_interface</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer, nopass
+            </td>
+            <td>::</td>
+            <td><strong>execute</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Fortran Pointer to vkFFT execute function</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-destroy~3"></span>
+              procedure(<a href='../interface/vkfft_destroy_interface.html'>vkfft_destroy_interface</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer, nopass
+            </td>
+            <td>::</td>
+            <td><strong>destroy</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Fortran Pointer to vkFFT destroy function</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_loaded~3"></span>
+              logical,
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_loaded</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>Is VkFFT library loaded</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lib_handle"></span>
+              type(c_ptr),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lib_handle</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Handle to the loaded library</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-vkfft_functions"></span>
+              type(c_funptr),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>vkfft_functions</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Array of VkFFT functions</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
 
 
+
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-load_vkfft"></span> <h3>public  function <a href='../proc/load_vkfft.html'>load_vkfft</a>(platform)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Loads VkFFT library based on the platform</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-platform~2"></span>
+              type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>platform</strong></td>
+            <td>
+<p>Platform to load VkFFT library for</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int32)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-load"></span> <h3>private  function <a href='../proc/load.html'>load</a>(wrapper, suffix) result(error_code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Loads VkFFT library</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-wrapper~2"></span>
+              class(<a href='../type/vkfft_wrapper.html'>vkfft_wrapper</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>wrapper</strong></td>
+            <td>
+<p>VkFFT Wrapper</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-suffix"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>suffix</strong></td>
+            <td>
+<p>Suffix for the library name</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int32)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+        </section>
+        <br>
 
 
 
@@ -539,6 +1223,9 @@
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

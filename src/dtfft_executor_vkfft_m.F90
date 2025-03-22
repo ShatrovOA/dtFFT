@@ -25,15 +25,19 @@ use iso_fortran_env,                only: int8, int32, int64
 use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_interface_vkfft_m
-use dtfft_config,                   only: get_user_stream
+use dtfft_config,                   only: get_user_stream, get_user_platform
 implicit none
 private
+#include "dtfft_private.h"
 public :: vkfft_executor
 
   type, extends(abstract_executor) :: vkfft_executor
   !! vkFFT FFT Executor
   private
-    logical :: is_inverse_required
+    type(vkfft_wrapper), pointer  :: wrapper => null()
+      !! VkFFT Wrapper
+    logical                       :: is_inverse_required
+      !! Should be create separate inverse FFT Plan or not
   contains
     procedure, pass(self)  :: create_private => create      !! Creates FFT plan via vkFFT Interface
     procedure, pass(self)  :: execute_private => execute    !! Executes vkFFT plan
@@ -58,13 +62,26 @@ contains
     integer(int32),                   intent(in)    :: onembed(:)     !! Storage dimensions of the output data in memory.
     integer(int32),                   intent(inout) :: error_code     !! Error code to be returned to user
     type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !! Kinds of r2r transform
-    integer(c_int8_t) :: r2c, dct, dst
-    integer(c_int)    :: knd, i, dims(2)
+    integer(c_int8_t)       :: r2c              !! Is R2C transform required
+    integer(c_int8_t)       :: dct              !! Is DCT transform required
+    integer(c_int8_t)       :: dst              !! Is DST transform required
+    integer(c_int)          :: knd              !! Kind of r2r transform
+    integer(c_int)          :: i                !! Loop index
+    integer(c_int)          :: dims(2)          !! Dimensions of transform
+    integer(c_int)          :: double_precision !! Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE
+    type(dtfft_platform_t)  :: platfrom         !! Platform of the executor
 
     error_code = DTFFT_SUCCESS
     do i = 1, fft_rank
       dims(i) = fft_sizes(fft_rank - i + 1)
     enddo
+
+    platfrom = get_user_platform()
+    CHECK_CALL( load_vkfft(platfrom), error_code )
+
+    if ( platfrom == DTFFT_PLATFORM_CUDA ) then
+      self%wrapper => cuda_wrapper
+    endif
 
     r2c = 0
     dct = 0
@@ -101,9 +118,14 @@ contains
         dst = 4
       endselect
     endselect
-    call vkfft_create(fft_rank, dims, precision%val, how_many, r2c, int(0, int8), dct, dst, get_user_stream(), self%plan_forward)
+    if ( precision == DTFFT_DOUBLE ) then
+      double_precision = 1
+    else
+      double_precision = 0
+    endif
+    call self%wrapper%create(fft_rank, dims, double_precision, how_many, r2c, int(0, int8), dct, dst, get_user_stream(), self%plan_forward)
     if ( self%is_inverse_required ) then
-      call vkfft_create(fft_rank, dims, precision%val, how_many, int(0, int8), r2c, dct, dst, get_user_stream(), self%plan_backward)
+      call self%wrapper%create(fft_rank, dims, double_precision, how_many, int(0, int8), r2c, dct, dst, get_user_stream(), self%plan_backward)
     endif
   end subroutine create
 
@@ -115,9 +137,9 @@ contains
     integer(int8),          intent(in)      :: sign           !! Sign of transform
 
     if ( self%is_inverse_required .and. sign == FFT_BACKWARD ) then
-      call vkfft_execute(self%plan_backward, a, b, sign)
+      call self%wrapper%execute(self%plan_backward, a, b, sign)
     else
-      call vkfft_execute(self%plan_forward, a, b, sign)
+      call self%wrapper%execute(self%plan_forward, a, b, sign)
     endif
   end subroutine execute
 
@@ -125,9 +147,9 @@ contains
   !! Destroys vkFFT plan
     class(vkfft_executor), intent(inout)    :: self           !! vkFFT FFT Executor
 
-    call vkfft_destroy(self%plan_forward)
+    call self%wrapper%destroy(self%plan_forward)
     if ( self%is_inverse_required ) then
-      call vkfft_destroy(self%plan_backward)
+      call self%wrapper%destroy(self%plan_backward)
     endif
   end subroutine destroy
 

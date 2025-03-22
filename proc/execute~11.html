@@ -17,6 +17,7 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -52,6 +53,11 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -70,20 +76,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">11 statements</a>
+                 title=" 0.1% of total for procedures.">10 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_executor_vkfft_m.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_vkfft_m.f90.html'>dtfft_executor_vkfft_m.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_executor_vkfft_m.html'>dtfft_executor_vkfft_m</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -133,10 +139,10 @@
 </h2>
     
 
-    <p>Executes vkFFT plan</p>
+    <p>Executes plan</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/vkfft_executor.html'>vkfft_executor</a></p>
+    <p><a href='../type/abstract_executor.html'>abstract_executor</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +157,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~86"></span>
-              class(<a href='../type/vkfft_executor.html'>vkfft_executor</a>),
+              <span class="anchor" id="variable-self~108"></span>
+              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -161,42 +167,42 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>vkFFT FFT Executor</p>
+                <p>FFT Executor</p>
             </td>
         </tr>
         <tr>
             <td>
               <span class="anchor" id="variable-a~10"></span>
-              type(c_ptr),
+              type(*),
             </td>
-<td>intent(in)</td>
+<td>intent(inout),</td>
               <td></td>            <td>
-              
+              target
             </td>
             <td>::</td>
-            <td><strong>a</strong></td>
+            <td><strong>a</strong>(..)</td>
             <td>
-                <p>Source pointer</p>
+                <p>Source buffer</p>
             </td>
         </tr>
         <tr>
             <td>
               <span class="anchor" id="variable-b~11"></span>
-              type(c_ptr),
+              type(*),
             </td>
-<td>intent(in)</td>
+<td>intent(inout),</td>
               <td></td>            <td>
-              
+              target
             </td>
             <td>::</td>
-            <td><strong>b</strong></td>
+            <td><strong>b</strong>(..)</td>
             <td>
-                <p>Target pointer</p>
+                <p>Target buffer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-sign~8"></span>
+              <span class="anchor" id="variable-sign~10"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -212,6 +218,209 @@
     </tbody>
   </table>
 
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute~11~~CallsGraph Pages: 1 -->
+<svg id="procexecute11CallsGraph" width="641pt" height="122pt"
+ viewBox="0.00 0.00 641.00 121.92" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute~11~~CallsGraph" class="graph" transform="scale(0.9 0.9) rotate(0) translate(4 132)">
+<title>proc~~execute~11~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-132 711,-132 711,4 -4,4"/>
+<!-- proc~execute~11 -->
+<g id="proc~~execute~11~~CallsGraph_node1" class="node">
+<title>proc~execute~11</title>
+<polygon fill="none" stroke="black" points="160,-86 0,-86 0,-62 160,-62 160,-86"/>
+<text text-anchor="middle" x="80" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_executor%execute</text>
+</g>
+<!-- execute_private -->
+<g id="proc~~execute~11~~CallsGraph_node2" class="node">
+<title>execute_private</title>
+<polygon fill="#777777" stroke="#777777" points="318.5,-128 221.5,-128 221.5,-104 318.5,-104 318.5,-128"/>
+<text text-anchor="middle" x="270" y="-113.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_private</text>
+</g>
+<!-- proc~execute~11&#45;&gt;execute_private -->
+<g id="proc~~execute~11~~CallsGraph_edge1" class="edge">
+<title>proc~execute~11&#45;&gt;execute_private</title>
+<path fill="none" stroke="#ff0000" d="M134.87,-86.04C158.81,-91.38 187.02,-97.69 211.38,-103.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="210.68,-106.56 221.2,-105.32 212.21,-99.73 210.68,-106.56"/>
+</g>
+<!-- proc~pop_nvtx_domain_range -->
+<g id="proc~~execute~11~~CallsGraph_node3" class="node">
+<title>proc~pop_nvtx_domain_range</title>
+<g id="a_proc~~execute~11~~CallsGraph_node3"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="341.5,-86 198.5,-86 198.5,-62 341.5,-62 341.5,-86"/>
+<text text-anchor="middle" x="270" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~11&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="proc~~execute~11~~CallsGraph_edge2" class="edge">
+<title>proc~execute~11&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#ff0000" d="M160.18,-74C169.47,-74 178.95,-74 188.26,-74"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="188.27,-77.5 198.27,-74 188.27,-70.5 188.27,-77.5"/>
+</g>
+<!-- proc~push_nvtx_domain_range -->
+<g id="proc~~execute~11~~CallsGraph_node4" class="node">
+<title>proc~push_nvtx_domain_range</title>
+<g id="a_proc~~execute~11~~CallsGraph_node4"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="344,-44 196,-44 196,-20 344,-20 344,-44"/>
+<text text-anchor="middle" x="270" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~11&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="proc~~execute~11~~CallsGraph_edge3" class="edge">
+<title>proc~execute~11&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#ff0000" d="M134.87,-61.96C156.8,-57.07 182.32,-51.37 205.17,-46.26"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="206.12,-49.63 215.12,-44.04 204.6,-42.8 206.12,-49.63"/>
+</g>
+<!-- proc~astring_f2c -->
+<g id="proc~~execute~11~~CallsGraph_node5" class="node">
+<title>proc~astring_f2c</title>
+<g id="a_proc~~execute~11~~CallsGraph_node5"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="607,-44 536,-44 536,-20 607,-20 607,-44"/>
+<text text-anchor="middle" x="571.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
+<g id="proc~~execute~11~~CallsGraph_edge4" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#0000ff" d="M344.29,-32.76C356.22,-32.86 368.46,-32.95 380,-33 433.33,-33.24 446.67,-33.38 500,-33 508.27,-32.94 517.08,-32.84 525.57,-32.73"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="525.77,-36.23 535.72,-32.59 525.67,-29.23 525.77,-36.23"/>
+</g>
+<!-- proc~create_nvtx_domain -->
+<g id="proc~~execute~11~~CallsGraph_node6" class="node">
+<title>proc~create_nvtx_domain</title>
+<g id="a_proc~~execute~11~~CallsGraph_node6"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
+<polygon fill="#d9534f" stroke="#d9534f" points="500,-24 380,-24 380,0 500,0 500,-24"/>
+<text text-anchor="middle" x="440" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
+<g id="proc~~execute~11~~CallsGraph_edge5" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
+<path fill="none" stroke="#0000ff" d="M344.2,-23.29C352.69,-22.28 361.32,-21.25 369.75,-20.24"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="370.4,-23.69 379.91,-19.03 369.57,-16.74 370.4,-23.69"/>
+</g>
+<!-- proc~string_f2c -->
+<g id="proc~~execute~11~~CallsGraph_node7" class="node">
+<title>proc~string_f2c</title>
+<g id="a_proc~~execute~11~~CallsGraph_node7"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="707,-44 643,-44 643,-20 707,-20 707,-44"/>
+<text text-anchor="middle" x="675" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
+<g id="proc~~execute~11~~CallsGraph_edge6" class="edge">
+<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
+<path fill="none" stroke="#ff0000" d="M607.15,-32C615.39,-32 624.27,-32 632.78,-32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="632.91,-35.5 642.91,-32 632.91,-28.5 632.91,-35.5"/>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
+<g id="proc~~execute~11~~CallsGraph_edge7" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#00ffff" d="M500.07,-21.12C508.79,-22.47 517.66,-23.84 526.02,-25.13"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="525.51,-28.59 535.93,-26.66 526.58,-21.68 525.51,-28.59"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute11CallsGraph = svgPanZoom('#procexecute11CallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <br>
 
 
@@ -267,6 +476,9 @@
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

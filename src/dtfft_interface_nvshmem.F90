@@ -19,10 +19,14 @@
 module dtfft_interface_nvshmem
 !! NVSHMEM Interfaces
 use iso_c_binding
-use dtfft_parameters, only: dtfft_stream_t
+use iso_fortran_env
+use dtfft_parameters
+use dtfft_utils
 implicit none
 private
 public :: nvshmem_team_t
+public :: is_nvshmem_ptr
+public :: load_nvshmem
 
 
   type, bind(C) :: nvshmem_team_t
@@ -32,65 +36,109 @@ public :: nvshmem_team_t
 
   type(nvshmem_team_t), parameter, public :: NVSHMEM_TEAM_WORLD = nvshmem_team_t(0)
 
-public :: nvshmem_malloc
-  interface nvshmem_malloc
-  !! Allocates symmetric memory in the NVSHMEM heap.
-    function nvshmem_malloc(size) bind(C)
+  abstract interface
+    function nvshmem_malloc_interface(size) result(ptr) bind(C)
+    !! Allocates symmetric memory in the NVSHMEM heap.
       import
-      type(c_ptr)               :: nvshmem_malloc  !! Pointer to the allocated memory.
-      integer(c_size_t), value :: size            !! Size of the allocation in bytes.
-    end function nvshmem_malloc
-  end interface
+      type(c_ptr)               :: ptr  !! Pointer to the allocated memory.
+      integer(c_size_t), value  :: size            !! Size of the allocation in bytes.
+    end function nvshmem_malloc_interface
 
-public :: nvshmem_free
-  interface nvshmem_free
-  !! Frees symmetric memory allocated by nvshmem_malloc.
-    subroutine nvshmem_free(ptr) bind(C)
+    subroutine nvshmem_free_interface(ptr) bind(C)
+    !! Frees symmetric memory allocated by nvshmem_malloc.
       import
       type(c_ptr), value :: ptr  !! Pointer to the memory to free.
-    end subroutine nvshmem_free
-  end interface
+    end subroutine nvshmem_free_interface
 
-public :: nvshmemx_sync_all_on_stream
-  interface nvshmemx_sync_all_on_stream
-  !! Synchronizes all PEs (Processing Elements) on the specified stream.
-    subroutine nvshmemx_sync_all_on_stream(stream) bind(C)
+
+    subroutine nvshmemx_sync_all_on_stream_interface(stream) bind(C)
+    !! Synchronizes all PEs (Processing Elements) on the specified stream.
       import
       type(dtfft_stream_t), intent(in), value :: stream  !! CUDA stream for synchronization.
-    end subroutine nvshmemx_sync_all_on_stream
-  end interface
+    end subroutine nvshmemx_sync_all_on_stream_interface
 
-public :: nvshmemx_float_alltoall_on_stream
-  interface nvshmemx_float_alltoall_on_stream
-  !! Performs an all-to-all exchange of floating-point data on the specified stream.
-    function nvshmemx_float_alltoall_on_stream(team, dest, source, nelems, stream) bind(C)
+    function nvshmemx_float_alltoall_on_stream_interface(team, dest, source, nelems, stream) result(ierr) bind(C)
+    !! Performs an all-to-all exchange of floating-point data on the specified stream.
       import
-      integer(c_int)                        :: nvshmemx_float_alltoall_on_stream  !! Completion status.
-      type(nvshmem_team_t), intent(in), value :: team  !! NVSHMEM team.
+      integer(c_int)                          :: ierr  !! Completion status.
+      type(nvshmem_team_t), intent(in), value :: team   !! NVSHMEM team.
       type(c_ptr),                      value :: dest   !! Destination buffer.
       type(c_ptr),                      value :: source !! Source buffer.
       integer(c_size_t),    intent(in), value :: nelems !! Number of elements to exchange.
       type(dtfft_stream_t), intent(in), value :: stream !! CUDA stream for the operation.
-    end function nvshmemx_float_alltoall_on_stream
-  end interface
+    end function nvshmemx_float_alltoall_on_stream_interface
 
-public :: nvshmem_ptr
-  interface nvshmem_ptr
-  !! Returns a pointer to a symmetric memory location on a specified PE.
-    function nvshmem_ptr(ptr, pe) bind(C)
+    function nvshmem_ptr_interface(ptr, pe) result(pe_ptr) bind(C)
+    !! Returns a pointer to a symmetric memory location on a specified PE.
       import
-      type(c_ptr)               :: nvshmem_ptr  !! Pointer to the symmetric memory on the specified PE.
+      type(c_ptr)               :: pe_ptr  !! Pointer to the symmetric memory on the specified PE.
       type(c_ptr),    value     :: ptr          !! Local pointer to the symmetric memory.
       integer(c_int), value     :: pe           !! PE (Processing Element) number.
-    end function nvshmem_ptr
+    end function nvshmem_ptr_interface
+
+    function nvshmem_my_pe_interface() result(pe) bind(C)
+    !! Returns the PE (Processing Element) number of the calling thread.
+      import
+      integer(c_int) :: pe  !! PE number of the calling thread.
+    end function nvshmem_my_pe_interface
   end interface
 
-public :: nvshmem_my_pe
-  interface nvshmem_my_pe
-  !! Returns the PE (Processing Element) number of the calling thread.
-    function nvshmem_my_pe() bind(C)
-      import
-      integer(c_int) :: nvshmem_my_pe  !! PE number of the calling thread.
-    end function nvshmem_my_pe
-  end interface
+  logical, save :: is_loaded = .false.
+    !! Flag indicating whether the library is loaded
+  type(c_ptr), save :: libnvshmem
+    !! Handle to the loaded library
+  type(c_funptr), save :: nvshmemFunctions(6)
+    !! Array of pointers to the NVSHMEM functions
+
+  procedure(nvshmem_malloc_interface),              pointer, public :: nvshmem_malloc
+    !! Fortran pointer to the nvshmem_malloc function
+  procedure(nvshmem_free_interface),                pointer, public :: nvshmem_free
+    !! Fortran pointer to the nvshmem_free function
+  procedure(nvshmemx_sync_all_on_stream_interface), pointer, public :: nvshmemx_sync_all_on_stream
+    !! Fortran pointer to the nvshmemx_sync_all_on_stream function
+  procedure(nvshmemx_float_alltoall_on_stream_interface), pointer, public :: nvshmemx_float_alltoall_on_stream
+    !! Fortran pointer to the nvshmemx_float_alltoall_on_stream function
+  procedure(nvshmem_ptr_interface),                 pointer, public :: nvshmem_ptr
+    !! Fortran pointer to the nvshmem_ptr function
+  procedure(nvshmem_my_pe_interface),               pointer, public :: nvshmem_my_pe
+    !! Fortran pointer to the nvshmem_my_pe function
+contains
+
+  function load_nvshmem() result(error_code)
+  !! Loads the NVSHMEM library and needed symbols
+    integer(int32)  :: error_code !! Error code
+    type(string), allocatable :: func_names(:)
+
+    error_code = DTFFT_SUCCESS
+    if ( is_loaded ) return
+
+    allocate(func_names(6))
+    func_names(1) = string("nvshmem_malloc")
+    func_names(2) = string("nvshmem_free")
+    func_names(3) = string("nvshmemx_sync_all_on_stream")
+    func_names(4) = string("nvshmemx_float_alltoall_on_stream")
+    func_names(5) = string("nvshmem_ptr")
+    func_names(6) = string("nvshmem_my_pe")
+
+    error_code = dynamic_load("libnvshmem_host.so", func_names, libnvshmem, nvshmemFunctions)
+    call destroy_strings(func_names)
+    if ( error_code /= DTFFT_SUCCESS ) return
+
+    call c_f_procpointer(nvshmemFunctions(1), nvshmem_malloc)
+    call c_f_procpointer(nvshmemFunctions(2), nvshmem_free)
+    call c_f_procpointer(nvshmemFunctions(3), nvshmemx_sync_all_on_stream)
+    call c_f_procpointer(nvshmemFunctions(4), nvshmemx_float_alltoall_on_stream)
+    call c_f_procpointer(nvshmemFunctions(5), nvshmem_ptr)
+    call c_f_procpointer(nvshmemFunctions(6), nvshmem_my_pe)
+
+    is_loaded = .true.
+  end function load_nvshmem
+
+  function is_nvshmem_ptr(ptr) result(bool)
+  !! Checks if pointer is a symmetric nvshmem allocated pointer
+    type(c_ptr)   :: ptr    !! Device pointer
+    logical       :: bool   !! Result
+
+    bool = is_null_ptr( nvshmem_ptr(ptr, nvshmem_my_pe()) )
+  end function is_nvshmem_ptr
 end module dtfft_interface_nvshmem
