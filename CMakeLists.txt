@@ -237,27 +237,6 @@ endif()
 
 target_link_libraries(dtfft PUBLIC MPI::MPI_Fortran)
 
-set(DTFFT_MODULE_DIR ${PROJECT_BINARY_DIR}/modules)
-set_target_properties(dtfft PROPERTIES Fortran_MODULE_DIRECTORY ${DTFFT_MODULE_DIR})
-set_target_properties(dtfft PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
-set(DTFFT_HEADER_DIR "${PROJECT_SOURCE_DIR}/include")
-SET(DTFFT_HEADERS "${DTFFT_HEADER_DIR}/dtfft.f03")
-
-if(DTFFT_BUILD_C_CXX_API)
-  set(DTFFT_HEADERS "${DTFFT_HEADERS};${DTFFT_HEADER_DIR}/dtfft.h;${DTFFT_HEADER_DIR}/dtfft.hpp;${DTFFT_CONF_HEADER}")
-  target_link_libraries(dtfft PUBLIC MPI::MPI_CXX)
-endif()
-set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
-target_include_directories(dtfft PUBLIC
-  $<BUILD_INTERFACE:${DTFFT_MODULE_DIR}>
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
-  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  $<$<COMPILE_LANGUAGE:Fortran>:$<INSTALL_INTERFACE:include/modules>>
-  $<INSTALL_INTERFACE:include>
-)
-
-
 if ( DTFFT_WITH_PROFILER )
   target_compile_definitions(dtfft PRIVATE DTFFT_WITH_PROFILER)
   if ( DTFFT_WITH_CUDA )
@@ -327,6 +306,44 @@ if( CMAKE_CXX_COMPILER_ID MATCHES GNU )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra")
 endif()
 
+math(EXPR DTFFT_VERSION_CODE
+    "${PROJECT_VERSION_MAJOR} * 100000 + ${PROJECT_VERSION_MINOR} * 1000 + ${PROJECT_VERSION_PATCH}"
+  )
+
+if ( NCCL_FOUND )
+  SET(DTFFT_WITH_NCCL ON)
+else()
+  SET(DTFFT_WITH_NCCL OFF)
+endif()
+if ( USE_NVSHMEM )
+  SET(DTFFT_WITH_NVSHMEM ON)
+else()
+  SET(DTFFT_WITH_NVSHMEM OFF)
+endif()
+set ( DTFFT_VERSION "(X) * 100000 + (Y) * 1000 + (Z)" )
+set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
+configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HEADER}" )
+
+set(DTFFT_MODULE_DIR ${PROJECT_BINARY_DIR}/modules)
+set_target_properties(dtfft PROPERTIES Fortran_MODULE_DIRECTORY ${DTFFT_MODULE_DIR})
+set_target_properties(dtfft PROPERTIES VERSION ${CMAKE_PROJECT_VERSION})
+set(DTFFT_HEADER_DIR "${PROJECT_SOURCE_DIR}/include")
+SET(DTFFT_HEADERS "${DTFFT_HEADER_DIR}/dtfft.f03")
+
+if(DTFFT_BUILD_C_CXX_API)
+  set(DTFFT_HEADERS "${DTFFT_HEADERS};${DTFFT_HEADER_DIR}/dtfft.h;${DTFFT_HEADER_DIR}/dtfft.hpp;${DTFFT_CONF_HEADER}")
+  target_link_libraries(dtfft PUBLIC MPI::MPI_CXX)
+endif()
+set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
+target_include_directories(dtfft PUBLIC
+  $<BUILD_INTERFACE:${DTFFT_MODULE_DIR}>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<$<COMPILE_LANGUAGE:Fortran>:$<INSTALL_INTERFACE:include/modules>>
+  $<INSTALL_INTERFACE:include>
+)
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
@@ -372,23 +389,6 @@ install(FILES
 install(DIRECTORY ${DTFFT_MODULE_DIR}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.mod")
-
-math(EXPR DTFFT_VERSION_CODE
-    "${PROJECT_VERSION_MAJOR} * 100000 + ${PROJECT_VERSION_MINOR} * 1000 + ${PROJECT_VERSION_PATCH}"
-  )
-if ( NCCL_FOUND )
-  SET(DTFFT_WITH_NCCL ON)
-else()
-  SET(DTFFT_WITH_NCCL OFF)
-endif()
-if ( USE_NVSHMEM )
-  SET(DTFFT_WITH_NVSHMEM ON)
-else()
-  SET(DTFFT_WITH_NVSHMEM OFF)
-endif()
-set ( DTFFT_VERSION "(X) * 100000 + (Y) * 1000 + (Z)" )
-set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
-configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HEADER}" )
 
 add_subdirectory(src)
 if(DTFFT_BUILD_TESTS)
