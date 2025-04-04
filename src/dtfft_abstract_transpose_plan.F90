@@ -19,15 +19,15 @@
 #include "dtfft_config.h"
 module dtfft_abstract_transpose_plan
 !! This module describes Abstraction for all Tranpose plans: [[abstract_transpose_plan]]
-use iso_c_binding,      only: c_ptr, c_null_ptr
-use iso_fortran_env,    only: int8, int32, int64, error_unit, output_unit
+use iso_c_binding
+use iso_fortran_env
 use dtfft_config
-use dtfft_pencil,       only: pencil
+use dtfft_pencil,       only: pencil, get_local_sizes
 use dtfft_parameters
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
 use dtfft_abstract_backend, only: backend_helper
-#ifdef NCCL_HAVE_COMM_REGISTER
+#ifdef NCCL_HAVE_COMMREGISTER
 use dtfft_abstract_backend, only: NCCL_REGISTER_PREALLOC_SIZE
 #endif
 use dtfft_nvrtc_kernel,     only: DEF_TILE_SIZE
@@ -54,13 +54,15 @@ public :: alloc_mem, free_mem
   type, abstract :: abstract_transpose_plan
   !! The most Abstract Transpose Plan
 #ifdef DTFFT_WITH_CUDA
-    type(dtfft_gpu_backend_t)     :: gpu_backend = DTFFT_GPU_BACKEND_MPI_DATATYPE
+    type(dtfft_backend_t)         :: backend = DTFFT_BACKEND_MPI_DATATYPE
       !! GPU backend
     type(backend_helper)          :: helper
       !! Backend helper
 #endif
-    logical :: is_z_slab  
+    logical         :: is_z_slab
       !! Z-slab optimization flag (for 3D transforms)
+    integer(int64)  :: min_buffer_size  
+      !! Minimal buffer size for transposition
   contains
     procedure,                            pass(self),           public  :: create           !! Create transposition plan
     procedure,                            pass(self),           public  :: execute          !! Executes transposition
@@ -68,14 +70,14 @@ public :: alloc_mem, free_mem
     procedure(execute_interface),         pass(self), deferred          :: execute_private  !! Executes overriding class
     procedure(destroy_interface),         pass(self), deferred, public  :: destroy          !! Destroys overriding class
 #ifdef DTFFT_WITH_CUDA
-    procedure,   non_overridable,         pass(self),           public  :: get_gpu_backend  !! Returns backend id
+    procedure,   non_overridable,         pass(self),           public  :: get_backend  !! Returns backend id
     procedure,   non_overridable,         pass(self),           public  :: mem_alloc        !! Allocates memory based on selected backend
     procedure,   non_overridable,         pass(self),           public  :: mem_free         !! Frees memory allocated with mem_alloc
 #endif
   end type abstract_transpose_plan
 
 
-  interface
+  abstract interface
     function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
     !! Creates transposition plans
     import
@@ -98,9 +100,9 @@ public :: alloc_mem, free_mem
     !! Executes single transposition
     import
       class(abstract_transpose_plan), intent(inout) :: self           !! Transposition class
-      type(*),              target,   intent(inout) :: in(..)         !! Incoming buffer of any rank and kind
-      type(*),              target,   intent(inout) :: out(..)        !! Resulting buffer of any rank and kind
-      type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !! Type of transpose
+      real(real32),                   intent(inout) :: in(:)          !! Incoming buffer
+      real(real32),                   intent(inout) :: out(:)         !! Resulting buffer
+      type(dtfft_transpose_t),        intent(in)    :: transpose_type !! Type of transpose
     end subroutine execute_interface
 
     subroutine destroy_interface(self)
@@ -242,6 +244,9 @@ contains
     error_code = self%create_private(dims, transposed_dims, base_comm_, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
     if ( error_code /= DTFFT_SUCCESS ) return
 
+    call get_local_sizes(pencils, alloc_size=self%min_buffer_size)
+    self%min_buffer_size = self%min_buffer_size * (int(base_storage, int64) / FLOAT_STORAGE_SIZE)
+
     deallocate( transposed_dims )
     deallocate( comm_dims )
   end function create
@@ -249,21 +254,26 @@ contains
   subroutine execute(self, in, out, transpose_type)
   !! Executes single transposition
     class(abstract_transpose_plan), intent(inout) :: self           !! Transposition class
-    type(*),                        intent(inout) :: in(..)         !! Incoming buffer of any rank and kind
-    type(*),                        intent(inout) :: out(..)        !! Resulting buffer of any rank and kind
-    type(dtfft_transpose_type_t),   intent(in)    :: transpose_type !! Type of transpose
+    type(c_ptr),                    intent(in)    :: in             !! Incoming pointer
+    type(c_ptr),                    intent(in)    :: out            !! Result pointer
+    type(dtfft_transpose_t),        intent(in)    :: transpose_type !! Type of transpose
+    real(real32),   pointer :: pin(:)
+    real(real32),   pointer :: pout(:)
+
+    call c_f_pointer(in, pin, [self%min_buffer_size])
+    call c_f_pointer(out, pout, [self%min_buffer_size])
 
     PHASE_BEGIN('Transpose '//TRANSPOSE_NAMES(transpose_type%val), COLOR_TRANSPOSE_PALLETTE(transpose_type%val))
-    call self%execute_private(in, out, transpose_type)
+    call self%execute_private(pin, pout, transpose_type)
     PHASE_END('Transpose '//TRANSPOSE_NAMES(transpose_type%val))
   end subroutine execute
 
 #ifdef DTFFT_WITH_CUDA
-  type(dtfft_gpu_backend_t) function get_gpu_backend(self)
+  type(dtfft_backend_t) function get_backend(self)
   !! Returns plan GPU backend
     class(abstract_transpose_plan), intent(in)    :: self           !! Transposition class
-    get_gpu_backend = self%gpu_backend
-  end function get_gpu_backend
+    get_backend = self%backend
+  end function get_backend
 
   subroutine mem_alloc(self, comm, alloc_bytes, ptr, error_code)
     !! Allocates memory based on selected backend
@@ -273,7 +283,7 @@ contains
     type(c_ptr),                    intent(out)   :: ptr            !! Pointer to the allocated memory
     integer(int32),                 intent(out)   :: error_code     !! Error code
 
-    call alloc_mem(self%helper, self%gpu_backend, comm, alloc_bytes, ptr, error_code)
+    call alloc_mem(self%helper, self%backend, comm, alloc_bytes, ptr, error_code)
   end subroutine mem_alloc
 
   subroutine mem_free(self, ptr, error_code)
@@ -282,55 +292,64 @@ contains
     type(c_ptr),                    intent(in)    :: ptr            !! Pointer to the memory to free
     integer(int32),                 intent(out)   :: error_code     !! Error code
 
-    call free_mem(self%helper, self%gpu_backend, ptr, error_code)
+    call free_mem(self%helper, self%backend, ptr, error_code)
   end subroutine mem_free
 
-  subroutine alloc_mem(helper, gpu_backend, comm, alloc_bytes, ptr, error_code)
-  !! Allocates memory based on ``gpu_backend``
-    type(backend_helper),           intent(inout) :: helper         !! Backend helper
-    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend    !! GPU backend
-    TYPE_MPI_COMM,                  intent(in)    :: comm           !! MPI communicator
-    integer(int64),                 intent(in)    :: alloc_bytes    !! Number of bytes to allocate
-    type(c_ptr),                    intent(out)   :: ptr            !! Pointer to the allocated memory
-    integer(int32),                 intent(out)   :: error_code     !! Error code
+  subroutine alloc_mem(helper, backend, comm, alloc_bytes, ptr, error_code)
+  !! Allocates memory based on ``backend``
+    type(backend_helper),   intent(inout) :: helper         !! Backend helper
+    type(dtfft_backend_t),  intent(in)    :: backend        !! GPU backend
+    TYPE_MPI_COMM,          intent(in)    :: comm           !! MPI communicator
+    integer(int64),         intent(in)    :: alloc_bytes    !! Number of bytes to allocate
+    type(c_ptr),            intent(out)   :: ptr            !! Pointer to the allocated memory
+    integer(int32),         intent(out)   :: error_code     !! Error code
     integer(int32)  :: ierr
+    integer(int64)  :: free_mem, total_mem, min_mem, max_mem, min_free_mem, max_free_mem
 
     error_code = DTFFT_SUCCESS
     ierr = cudaSuccess
-
-    if ( is_backend_nccl(gpu_backend) ) then
+    CUDA_CALL( "cudaMemGetInfo", cudaMemGetInfo(free_mem, total_mem) )
+#ifdef __DEBUG
+    call MPI_Allreduce(alloc_bytes, max_mem, 1, MPI_INTEGER8, MPI_MAX, comm, ierr)
+    call MPI_Allreduce(alloc_bytes, min_mem, 1, MPI_INTEGER8, MPI_MIN, comm, ierr)
+    call MPI_Allreduce(free_mem, max_free_mem, 1, MPI_INTEGER8, MPI_MAX, comm, ierr)
+    call MPI_Allreduce(free_mem, min_free_mem, 1, MPI_INTEGER8, MPI_MIN, comm, ierr)
+    WRITE_DEBUG("Allocating min/max "//int_to_str(min_mem)//"/"//int_to_str(max_mem)//" bytes for backend: '"//dtfft_get_backend_string(backend)//"'; free memory: "//int_to_str(min_free_mem)//"/"//int_to_str(max_free_mem))
+#endif
+    if ( alloc_bytes > free_mem ) then
+      error_code = DTFFT_ERROR_ALLOC_FAILED
+      return
+    endif
+    if ( is_backend_nccl(backend) ) then
 #ifdef DTFFT_WITH_NCCL
 # ifdef NCCL_HAVE_MEMALLOC
       ierr = ncclMemAlloc(ptr, alloc_bytes)
 # else
       ierr = cudaMalloc(ptr, alloc_bytes)
 # endif
-# ifdef NCCL_HAVE_COMM_REGISTER
+# ifdef NCCL_HAVE_COMMREGISTER
       if ( ierr == cudaSuccess .and. helper%should_register) then
         block
           type(c_ptr), allocatable :: temp(:,:)
           type(c_ptr) :: handle
 
-          if ( size(helper%nccl_register, dim=1) == helper%nccl_register_size ) then
-            allocate( temp(helper%nccl_register_size, 2) )
-            temp(:,:) = helper%nccl_register(:,:)
+          if ( size(helper%nccl_register, dim=2) == helper%nccl_register_size ) then
+            allocate( temp(2, helper%nccl_register_size + NCCL_REGISTER_PREALLOC_SIZE), source=helper%nccl_register )
             deallocate( helper%nccl_register )
-            allocate( helper%nccl_register(helper%nccl_register_size + NCCL_REGISTER_PREALLOC_SIZE, 2) )
-            helper%nccl_register(:helper%nccl_register_size,:) = temp(:,:)
-            deallocate( temp )
+            call move_alloc(temp, helper%nccl_register)
           endif
           helper%nccl_register_size = helper%nccl_register_size + 1
 
           NCCL_CALL( "ncclCommRegister", ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes, handle) )
-          helper%nccl_register(helper%nccl_register_size, 1) = ptr
-          helper%nccl_register(helper%nccl_register_size, 2) = handle
+          helper%nccl_register(1, helper%nccl_register_size) = ptr
+          helper%nccl_register(2, helper%nccl_register_size) = handle
         endblock
       endif
 # endif
 #else
-      error stop "not DTFFT_WITH_NCCL"
+      INTERNAL_ERROR("not DTFFT_WITH_NCCL")
 #endif
-    else if ( is_backend_nvshmem(gpu_backend) ) then
+    else if ( is_backend_nvshmem(backend) ) then
 #ifdef DTFFT_WITH_NVSHMEM
       block
         integer(int64)  :: max_alloc_bytes
@@ -339,7 +358,7 @@ contains
         if ( is_null_ptr(ptr) ) error_code = DTFFT_ERROR_ALLOC_FAILED
       endblock
 #else
-      error stop "not DTFFT_WITH_NVSHMEM"
+      INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
 #endif
     else
       ierr = cudaMalloc(ptr, alloc_bytes)
@@ -347,27 +366,27 @@ contains
     if ( ierr /= cudaSuccess ) error_code = DTFFT_ERROR_ALLOC_FAILED
   end subroutine alloc_mem
 
-  subroutine free_mem(helper, gpu_backend, ptr, error_code)
-  !! Frees memory based on ``gpu_backend``
+  subroutine free_mem(helper, backend, ptr, error_code)
+  !! Frees memory based on ``backend``
     type(backend_helper),           intent(inout) :: helper         !! Backend helper
-    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend    !! GPU backend
+    type(dtfft_backend_t),          intent(in)    :: backend        !! GPU backend
     type(c_ptr),                    intent(in)    :: ptr            !! Pointer to the memory to free
     integer(int32),                 intent(out)   :: error_code     !! Error code
     integer(int32)  :: ierr
 
     error_code = DTFFT_SUCCESS
     ierr = cudaSuccess
-    if ( is_backend_nccl(gpu_backend) ) then
-#ifdef NCCL_HAVE_COMM_REGISTER
+    if ( is_backend_nccl(backend) ) then
+#ifdef NCCL_HAVE_COMMREGISTER
       if ( helper%should_register ) then
         block
           integer(int32) :: i
 
-          do i = 1, size(helper%nccl_register, dim=1)
-            if ( .not. is_same_ptr(ptr, helper%nccl_register(i, 1)) ) cycle
-            NCCL_CALL( "ncclCommDeregister", ncclCommDeregister(helper%nccl_comm, helper%nccl_register(i, 2)) )
-            helper%nccl_register(i, 1) = c_null_ptr
-            helper%nccl_register(i, 2) = c_null_ptr
+          do i = 1, size(helper%nccl_register, dim=2)
+            if ( .not. is_same_ptr(ptr, helper%nccl_register(1, i)) ) cycle
+            NCCL_CALL( "ncclCommDeregister", ncclCommDeregister(helper%nccl_comm, helper%nccl_register(2, i)) )
+            helper%nccl_register(1, i) = c_null_ptr
+            helper%nccl_register(2, i) = c_null_ptr
             helper%nccl_register_size = helper%nccl_register_size - 1
           enddo
         endblock
@@ -380,13 +399,13 @@ contains
       ierr = cudaFree(ptr)
 # endif
 #else
-  error stop "not DTFFT_WITH_NCCL"
+      INTERNAL_ERROR("not DTFFT_WITH_NCCL")
 #endif
-    else if ( is_backend_nvshmem(gpu_backend) ) then
+    else if ( is_backend_nvshmem(backend) ) then
 #ifdef DTFFT_WITH_NVSHMEM
       call nvshmem_free(ptr)
 #else
-      error stop "not DTFFT_WITH_NVSHMEM"
+      INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
 #endif
     else
       ierr = cudaFree(ptr)
@@ -411,7 +430,7 @@ contains
 
     allocate(periods(ndims), source = .false.)
     call MPI_Cart_create(old_comm, int(ndims, int32), comm_dims, periods, .false., comm, ierr)
-    if ( DTFFT_GET_MPI_VALUE(comm) == DTFFT_GET_MPI_VALUE(MPI_COMM_NULL) ) error stop "comm == MPI_COMM_NULL"
+    if ( DTFFT_GET_MPI_VALUE(comm) == DTFFT_GET_MPI_VALUE(MPI_COMM_NULL) ) INTERNAL_ERROR("comm == MPI_COMM_NULL")
 
     allocate( remain_dims(ndims), source = .false. )
     do dim = 1, ndims

@@ -43,7 +43,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
   integer(I4P) :: host_rank, host_size, num_devices
-  type(dtfft_gpu_backend_t) :: backend_to_use, actual_backend_used
+  type(dtfft_backend_t) :: backend_to_use, actual_backend_used
 #endif
   type(dtfft_config_t) :: conf
 
@@ -66,8 +66,8 @@ implicit none
   call dtfft_create_config(conf)
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  backend_to_use = DTFFT_GPU_BACKEND_NCCL_PIPELINED
-  conf%gpu_backend = backend_to_use
+  backend_to_use = DTFFT_BACKEND_NCCL_PIPELINED
+  conf%backend = backend_to_use
 
   CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(stream) )
   conf%stream = dtfft_stream_t(stream)
@@ -83,9 +83,9 @@ implicit none
   DTFFT_CHECK(ierr)
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  actual_backend_used = plan%get_gpu_backend(error_code=ierr);  DTFFT_CHECK(ierr)
+  actual_backend_used = plan%get_backend(error_code=ierr);  DTFFT_CHECK(ierr)
   if(comm_rank == 0) then
-    write(output_unit, '(a)') "Using backend: "//dtfft_get_gpu_backend_string(actual_backend_used)
+    write(output_unit, '(a)') "Using backend: "//dtfft_get_backend_string(actual_backend_used)
   endif
   if ( comm_size > 1 .and. actual_backend_used /= backend_to_use ) then
     error stop "Invalid backend: actual_backend_used /= backend_to_use"

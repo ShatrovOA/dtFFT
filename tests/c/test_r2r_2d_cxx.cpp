@@ -23,6 +23,8 @@
 #include <iostream>
 #include <complex>
 #include <vector>
+#include <cstring>
+#include <cstdlib>
 
 #include "test_utils.h"
 
@@ -49,17 +51,27 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
-// #ifdef DTFFT_WITH_FFTW
-//   dtfft_executor_t executor = DTFFT_EXECUTOR_FFTW3;
-// #elif defined(DTFFT_WITH_VKFFT)
-//   dtfft_executor_t executor = DTFFT_EXECUTOR_VKFFT;
-// #else
   Executor executor = Executor::NONE;
-// #endif
+#ifdef DTFFT_WITH_FFTW
+  executor = Executor::FFTW3;
+#endif
+#ifdef DTFFT_WITH_CUDA
+  char* platform_env = std::getenv("DTFFT_PLATFORM");
+
+  if ( platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0 )
+  {
+    if(comm_rank == 0) {
+      cout << "CUDA Platform detected.\n";
+      cout << "This test is not designed to run on CUDA.\n";
+    }
+    MPI_Finalize();
+    exit(0);
+  }
+#endif
 
   // Create plan
   vector<int32_t> dims = {ny, nx};
-  vector<dtfft::R2RKind> kinds = {};
+  vector<dtfft::R2RKind> kinds = {dtfft::R2RKind::DCT_3, dtfft::R2RKind::DCT_3};
   dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, executor);
   size_t alloc_size;
   DTFFT_CXX_CALL( plan.get_alloc_size(&alloc_size) )
@@ -74,7 +86,7 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), dtfft::ExecuteType::FORWARD) );
+  DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), dtfft::Execute::FORWARD) );
   tf += MPI_Wtime();
 
   Pencil out_pencil;
@@ -88,7 +100,7 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan.execute(out.data(), in.data(), dtfft::ExecuteType::BACKWARD) )
+  DTFFT_CXX_CALL( plan.execute(out.data(), in.data(), dtfft::Execute::BACKWARD) )
   tb += MPI_Wtime();
 
   double local_error = -1.0;
@@ -97,7 +109,7 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
-  report_double(&nx, &ny, nullptr, local_error, tf, tb);
+  reportDouble(&tf,&tb, &local_error, &nx, &ny, nullptr);
 
   DTFFT_CXX_CALL( plan.destroy() )
 

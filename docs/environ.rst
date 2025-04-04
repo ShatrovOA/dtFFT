@@ -99,7 +99,7 @@ Accepted Values
 
 .. _dtfft_gpu_backend_env:
 
-DTFFT_GPU_BACKEND
+DTFFT_BACKEND
 =================
 
 Specifies the GPU backend used by ``dtFFT`` for data transposition and communication when executing plans on a CUDA device.
@@ -109,7 +109,7 @@ taking precedence over API configuration.
 Purpose
 -------
 
-The ``DTFFT_GPU_BACKEND`` variable enables users to select a specific GPU backend for optimizing data movement and computation in ``dtFFT`` plans.
+The ``DTFFT_BACKEND`` variable enables users to select a specific GPU backend for optimizing data movement and computation in ``dtFFT`` plans.
 Different backends offer varying performance characteristics depending on the system configuration, workload, and MPI implementation,
 allowing fine-tuned control over GPU execution without modifying code.
 

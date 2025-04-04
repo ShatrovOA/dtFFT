@@ -109,7 +109,7 @@ dtfft_set_stream_c(const dtfft_stream_t*);
 
 extern
 int32_t
-dtfft_set_gpu_backend_c(const int32_t*);
+dtfft_set_backend_c(const int32_t*);
 
 extern
 int32_t
@@ -117,7 +117,7 @@ dtfft_get_stream_c(const void*, dtfft_stream_t*);
 
 extern
 int32_t
-dtfft_get_gpu_backend_c(const void*, int32_t*);
+dtfft_get_backend_c(const void*, int32_t*);
 
 extern
 int32_t
@@ -125,7 +125,7 @@ dtfft_get_platform_c(const void*, int32_t*);
 
 extern
 void
-dtfft_get_gpu_backend_string_c(const int32_t*, char*, size_t*);
+dtfft_get_backend_string_c(const int32_t*, char*, size_t*);
 
 #endif
 

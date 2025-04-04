@@ -20,14 +20,14 @@ Almost all ``dtFFT`` functions return error codes to indicate whether execution 
 
 - **Fortran API**: Functions include an optional ``error_code`` parameter (type ``integer(int32)``), always positioned as the last argument.
   If omitted, errors must be checked through other means, such as program termination or runtime assertions.
-- **C API**: Functions return a value of type :cpp:type:`dtfft_error_code_t`, allowing direct inspection of the result.
+- **C API**: Functions return a value of type :cpp:type:`dtfft_error_t`, allowing direct inspection of the result.
 - **C++ API**: Functions return :cpp:type:`dtfft::ErrorCode`, typically used with exception handling or explicit checks.
 
 To simplify error checking, ``dtFFT`` provides predefined macros that wrap function calls and handle error codes automatically:
 
 - **Fortran**: The ``DTFFT_CHECK`` macro, defined in ``dtfft.f03``, checks the ``error_code`` and halts execution with an informative message
   if an error occurs. Include this header with ``#include "dtfft.f03"`` to use it.
-- **C**: The ``DTFFT_CALL`` macro wraps function calls, checks the returned :c:type:`dtfft_error_code_t`,
+- **C**: The ``DTFFT_CALL`` macro wraps function calls, checks the returned :c:type:`dtfft_error_t`,
   and triggers an appropriate response (printing an error message and exiting) if the call fails.
 - **C++**: The ``DTFFT_CXX_CALL`` macro similarly wraps calls, throws C++ exception and displays an error message.
 
@@ -62,7 +62,7 @@ Below is an example demonstrating error handling with these macros:
 
     ...
 
-    DTFFT_CXX_CALL( plan.execute(a, b, dtfft::ExecuteType::FORWARD, nullptr) );
+    DTFFT_CXX_CALL( plan.execute(a, b, dtfft::Execute::FORWARD, nullptr) );
 
 
 Error codes are defined in the API sections (e.g., :f:var:`DTFFT_SUCCESS`, :f:var:`DTFFT_ERROR_INVALID_TRANSPOSE_TYPE`). Refer to the Fortran, C, and C++ API documentation for a complete list and detailed descriptions.
@@ -321,19 +321,19 @@ Configurations must be set prior to creating a plan to take effect. The availabl
 
   Available only in CUDA-enabled builds.
 
-- **GPU Backend** (``gpu_backend``)
+- **GPU Backend** (``backend``)
 
-  A :f:type:`dtfft_gpu_backend_t` value selecting the GPU backend for transposition when ``effort`` is :f:var:`DTFFT_ESTIMATE` or
-  :f:var:`DTFFT_MEASURE` (see `Selecting plan effort`_). The default is :f:var:`DTFFT_GPU_BACKEND_NCCL` if NCCL is available
-  in the library build; otherwise, :f:var:`DTFFT_GPU_BACKEND_MPI_P2P`. Supported options include:
+  A :f:type:`dtfft_backend_t` value selecting the GPU backend for transposition when ``effort`` is :f:var:`DTFFT_ESTIMATE` or
+  :f:var:`DTFFT_MEASURE` (see `Selecting plan effort`_). The default is :f:var:`DTFFT_BACKEND_NCCL` if NCCL is available
+  in the library build; otherwise, :f:var:`DTFFT_BACKEND_MPI_P2P`. Supported options include:
 
-  - :f:var:`DTFFT_GPU_BACKEND_MPI_DATATYPE`: Backend using MPI datatypes.
-  - :f:var:`DTFFT_GPU_BACKEND_MPI_P2P`: MPI peer-to-peer backend.
-  - :f:var:`DTFFT_GPU_BACKEND_MPI_A2A`: MPI backend using ``MPI_Alltoallv``.
-  - :f:var:`DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED`: Pipelined MPI peer-to-peer backend.
-  - :f:var:`DTFFT_GPU_BACKEND_NCCL`: NCCL backend.
-  - :f:var:`DTFFT_GPU_BACKEND_NCCL_PIPELINED`: Pipelined NCCL backend.
-  - :f:var:`DTFFT_GPU_BACKEND_CUFFTMP`: cuFFTMp backend.
+  - :f:var:`DTFFT_BACKEND_MPI_DATATYPE`: Backend using MPI datatypes.
+  - :f:var:`DTFFT_BACKEND_MPI_P2P`: MPI peer-to-peer backend.
+  - :f:var:`DTFFT_BACKEND_MPI_A2A`: MPI backend using ``MPI_Alltoallv``.
+  - :f:var:`DTFFT_BACKEND_MPI_P2P_PIPELINED`: Pipelined MPI peer-to-peer backend.
+  - :f:var:`DTFFT_BACKEND_NCCL`: NCCL backend.
+  - :f:var:`DTFFT_BACKEND_NCCL_PIPELINED`: Pipelined NCCL backend.
+  - :f:var:`DTFFT_BACKEND_CUFFTMP`: cuFFTMp backend.
 
   Available only in CUDA-enabled builds.
 
@@ -539,7 +539,7 @@ C11 ``aligned_alloc`` (16-byte alignment) for transpose-only plans.
 GPU Version
 -----------
 
-Allocates memory based on the :f:type:`dtfft_gpu_backend_t`. Uses ``ncclMemAlloc`` for NCCL (if available), ``nvshmem_malloc`` for NVSHMEM-based
+Allocates memory based on the :f:type:`dtfft_backend_t`. Uses ``ncclMemAlloc`` for NCCL (if available), ``nvshmem_malloc`` for NVSHMEM-based
 backends or ``cudaMalloc`` otherwise. Future versions may support HIP-based allocations.
 
 If NCCL is used and supports buffer registration via ``ncclCommRegister``, and the environment variable 
@@ -661,7 +661,7 @@ particularly useful for debugging or integrating with custom workflows. The foll
   as configured via :f:type:`dtfft_config_t` (see `Setting Additional Configurations`_).
   This helps users confirm if the optimization is applied, especially when troubleshooting performance or compatibility issues.
 
-- :f:func:`get_gpu_backend`:
+- :f:func:`get_backend`:
   Retrieves the GPU backend (e.g., NCCL, MPI P2P) selected during plan creation or autotuning with ``DTFFT_PATIENT`` effort (see `Selecting plan effort`_).
 
   Available only in CUDA-enabled builds, this method allows users to verify the transposition strategy chosen for GPU execution.
@@ -719,7 +719,7 @@ The signature is as follows:
       dtfft::Plan::transpose(
           void *in,
           void *out,
-          const dtfft::TransposeType transpose_type);
+          const dtfft::Transpose transpose_type);
 
 Description
 ___________
@@ -751,7 +751,7 @@ except when operating on a single GPU, where it remains unchanged.
 GPU Backend-Specific Behavior
 _____________________________
 
-- **MPI-Based Backends** (:f:var:`DTFFT_GPU_BACKEND_MPI_P2P` and :f:var:`DTFFT_GPU_BACKEND_MPI_A2A`):
+- **MPI-Based Backends** (:f:var:`DTFFT_BACKEND_MPI_P2P` and :f:var:`DTFFT_BACKEND_MPI_A2A`):
 
   After local transposition, redistributes data using CUDA-aware MPI. Data destined for the same GPU ("self" data) is
   copied via ``cudaMemcpyAsync``.
@@ -763,7 +763,7 @@ _____________________________
   For **MPI All-to-All** (``MPI_A2A``), it performs a single ``MPI_Ialltoallv`` call (or ``MPI_Alltoallv_init`` with ``MPI_Start``
   if built with ``DTFFT_ENABLE_PERSISTENT_COMM`` and supported by MPI), completing with ``MPI_Wait``; an nvRTC kernel then unpacks the data.
 
-- **Pipelined MPI Peer-to-Peer** (:f:var:`DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED`):
+- **Pipelined MPI Peer-to-Peer** (:f:var:`DTFFT_BACKEND_MPI_P2P_PIPELINED`):
 
   After local transposition, redistributes data similarly to ``MPI_P2P`` using CUDA-aware MPI with non-blocking ``MPI_Irecv`` and
   ``MPI_Isend`` calls (or ``MPI_Recv_init`` and ``MPI_Send_init`` with ``MPI_Startall`` if built with ``DTFFT_ENABLE_PERSISTENT_COMM``).
@@ -774,20 +774,20 @@ _____________________________
   This results in *N* nvRTC kernels (one per process) instead of a single kernel unpacking all data, enabling pipelining of
   communication and computation to reduce latency.
 
-- **NCCL-Based Backends** (:f:var:`DTFFT_GPU_BACKEND_NCCL` and :f:var:`DTFFT_GPU_BACKEND_NCCL_PIPELINED`):
+- **NCCL-Based Backends** (:f:var:`DTFFT_BACKEND_NCCL` and :f:var:`DTFFT_BACKEND_NCCL_PIPELINED`):
 
   After local transposition, redistributes data using the NCCL library for GPU-to-GPU communication.
 
-  For **NCCL** (``DTFFT_GPU_BACKEND_NCCL``), it executes a cycle of ``ncclSend`` and ``ncclRecv`` calls within ``ncclGroupStart``
+  For **NCCL** (``DTFFT_BACKEND_NCCL``), it executes a cycle of ``ncclSend`` and ``ncclRecv`` calls within ``ncclGroupStart``
   and ``ncclGroupEnd`` to perform point-to-point exchanges between all processes, including "self" data. Once communication completes,
   an nvRTC kernel unpacks all data at once, similar to ``MPI_P2P``.
 
-  For **Pipelined NCCL** (:f:var:`DTFFT_GPU_BACKEND_NCCL_PIPELINED`), it copies "self" data using ``cudaMemcpyAsync`` and immediately
+  For **Pipelined NCCL** (:f:var:`DTFFT_BACKEND_NCCL_PIPELINED`), it copies "self" data using ``cudaMemcpyAsync`` and immediately
   unpacks it with an nvRTC kernel in a parallel stream created by ``dtFFT``. Concurrently, in main stream, it runs
   the same ``ncclSend`` / ``ncclRecv`` cycle (within ``ncclGroupStart`` and ``ncclGroupEnd``) for data exchange with other
   processes, excluding "self" data. After communication completes, an nvRTC kernel unpacks the data received from all other processes.
 
-- **cuFFTMp** (:f:var:`DTFFT_GPU_BACKEND_CUFFTMP`):
+- **cuFFTMp** (:f:var:`DTFFT_BACKEND_CUFFTMP`):
 
   After local transposition from the ``in`` buffer to the ``out`` buffer using an nvRTC kernel,
   redistributes data using the cuFFTMp library by calling ``cufftMpExecReshapeAsync``.
@@ -804,9 +804,9 @@ _____________________________
 
 .. note::
 
-  Pipelined backends (:f:var:`DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED` and :f:var:`DTFFT_GPU_BACKEND_NCCL_PIPELINED`) require an
+  Pipelined backends (:f:var:`DTFFT_BACKEND_MPI_P2P_PIPELINED` and :f:var:`DTFFT_BACKEND_NCCL_PIPELINED`) require an
   additional ``aux`` buffer, which is managed internally by ``dtFFT`` and inaccessible to the user.
-  Similarly, :f:var:`DTFFT_GPU_BACKEND_CUFFTMP` may require an ``aux`` buffer if ``cufftMpGetReshapeSize`` returns a value greater than 0,
+  Similarly, :f:var:`DTFFT_BACKEND_CUFFTMP` may require an ``aux`` buffer if ``cufftMpGetReshapeSize`` returns a value greater than 0,
   such as when the environment variable ``CUFFT_RESHAPE_USE_PACKING=1`` is set.
 
   In all other cases, transposition requires only the ``in`` and ``out`` buffers.
@@ -845,13 +845,13 @@ Below is an example of transposing data from X to Y and back:
   .. code-tab:: c++
 
     // Assuming plan is created and buffers `a` and `b` are allocated.
-    DTFFT_CXX_CALL( plan.transpose(a, b, dtfft::TransposeType::X_TO_Y) )
+    DTFFT_CXX_CALL( plan.transpose(a, b, dtfft::Transpose::X_TO_Y) )
 
     // Process Y-aligned data in buffer `b`
     // ... (e.g., apply scaling or analysis)
 
     // Reverse transposition
-    DTFFT_CXX_CALL( plan.transpose(b, a, dtfft::TransposeType::Y_TO_X) )
+    DTFFT_CXX_CALL( plan.transpose(b, a, dtfft::Transpose::Y_TO_X) )
 
 Execute
 -------
@@ -890,7 +890,7 @@ The signature is as follows:
       dtfft::Plan::execute(
           void *in,
           void *out,
-          const dtfft::ExecuteType execute_type,
+          const dtfft::Execute execute_type,
           void *aux=nullptr);
 
 Description
@@ -992,13 +992,13 @@ Below is an example of executing a plan forward and backward:
   .. code-tab:: c++
 
     // Assuming a 3D FFT plan is created and buffers `a`, `b`, and `aux` are allocated
-    DTFFT_CXX_CALL( plan.execute(a, b, dtfft::ExecuteType::FORWARD, aux) )
+    DTFFT_CXX_CALL( plan.execute(a, b, dtfft::Execute::FORWARD, aux) )
 
     // Process Fourier-space data in buffer `b`
     // ... (e.g., apply filtering)
 
     // Backward execution
-    DTFFT_CXX_CALL( plan.execute(b, a, dtfft::ExecuteType::BACKWARD, aux) )
+    DTFFT_CXX_CALL( plan.execute(b, a, dtfft::Execute::BACKWARD, aux) )
 
 GPU Notes
 ---------
@@ -1229,13 +1229,13 @@ creating a plan, allocating memory, executing forward and backward transformatio
       DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&aux) );
 
       // Forward execution
-      DTFFT_CXX_CALL( plan.execute(a, b, ExecuteType::FORWARD, aux) );
+      DTFFT_CXX_CALL( plan.execute(a, b, Execute::FORWARD, aux) );
 
       // Process Fourier-space data in buffer `b` (e.g., apply filtering)
       // ...
 
       // Backward execution
-      DTFFT_CXX_CALL( plan.execute(b, a, ExecuteType::BACKWARD, aux) );
+      DTFFT_CXX_CALL( plan.execute(b, a, Execute::BACKWARD, aux) );
 
       // Free memory
       DTFFT_CXX_CALL( plan.mem_free(a) );

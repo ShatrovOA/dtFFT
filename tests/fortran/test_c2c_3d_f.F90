@@ -45,7 +45,7 @@ implicit none
   real(R8P) :: ts, tf, tb
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
-  type(dtfft_gpu_backend_t) :: selected_backend
+  type(dtfft_backend_t) :: selected_backend
 #endif
   type(dtfft_config_t) :: conf
 
@@ -93,13 +93,13 @@ implicit none
     ! print*,'setting device',comm_rank,my_device
     call acc_set_device_num(my_device, acc_device_nvidia)
 
-    conf%gpu_backend = DTFFT_GPU_BACKEND_MPI_A2A
+    conf%backend = DTFFT_BACKEND_MPI_A2A
     conf%platform = DTFFT_PLATFORM_CUDA
   endblock
 #endif
 
   call dtfft_set_config(conf)
-  ! Setting effort=DTFFT_PATIENT will ignore value of `conf%gpu_backend` and will run autotune to find best backend
+  ! Setting effort=DTFFT_PATIENT will ignore value of `conf%backend` and will run autotune to find best backend
   ! Fastest backend will be selected
   call plan%create([nx, ny, nz], executor=executor, effort=DTFFT_PATIENT, error_code=ierr)
   DTFFT_CHECK(ierr)
@@ -110,9 +110,9 @@ implicit none
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   call plan%get_stream(stream, error_code=ierr); DTFFT_CHECK(ierr)
-  selected_backend = plan%get_gpu_backend(error_code=ierr); DTFFT_CHECK(ierr)
+  selected_backend = plan%get_backend(error_code=ierr); DTFFT_CHECK(ierr)
   if(comm_rank == 0) then
-    write(output_unit, '(a)') "Selected backend: '"//dtfft_get_gpu_backend_string(selected_backend)//"'"
+    write(output_unit, '(a)') "Selected backend: '"//dtfft_get_backend_string(selected_backend)//"'"
   endif
 #endif
 

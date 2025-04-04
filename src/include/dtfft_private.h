@@ -53,17 +53,7 @@ extern "C" {
 #define CONCAT(a,b) PASTE(a,b)
 #endif
 
-#define GET_SYMBOL_NO_PROC(handle, name, ptr)   \
-  ptr = load_symbol(handle, name);              \
-  if ( is_null_ptr(ptr) ) then;                 \
-    call unload_library(handle);                \
-    error_code = DTFFT_ERROR_DLSYM_FAILED;      \
-    return;                                     \
-  endif
-
-#define GET_SYMBOL(handle, name, ptr, proc)     \
-  GET_SYMBOL_NO_PROC(handle, name, ptr);        \
-  call c_f_procpointer(ptr, proc)
+#define INTERNAL_ERROR(message) error stop "dtFFT Internal Error: "//message
 
 #ifdef __cplusplus
 }

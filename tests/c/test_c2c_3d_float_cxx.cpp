@@ -24,6 +24,8 @@
 #include <complex>
 #include <vector>
 #include <numeric>
+#include <cstring>
+#include <cstdlib>
 #include "test_utils.h"
 
 using namespace std;
@@ -47,13 +49,18 @@ int main(int argc, char *argv[])
     cout << "Nx = " << nx << ", Ny = " << ny << ", Nz = " << nz << endl;
     cout << "Number of processors: " << comm_size               << endl;
     cout << "----------------------------------------"          << endl;
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA)
     cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
 #endif
   }
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  MPI_Finalize();
-  return 0;
+#if defined(DTFFT_WITH_CUDA)
+  char* platform_env = std::getenv("DTFFT_PLATFORM");
+
+  if ( platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0 )
+  {
+      MPI_Finalize();
+      return 0;
+  }
 #endif
 
   // Create plan
@@ -68,13 +75,11 @@ int main(int argc, char *argv[])
   MPI_Dims_create(comm_size, 2, comm_dims);
   MPI_Cart_create(MPI_COMM_WORLD, 2, comm_dims, comm_periods, 1, &grid_comm);
 
-  Executor executor;
+  Executor executor = Executor::NONE;
 #if defined (DTFFT_WITH_FFTW)
   executor = Executor::FFTW3;
 #elif defined (DTFFT_WITH_MKL)
   executor = Executor::MKL;
-#else
-  executor = Executor::NONE;
 #endif
 
   Config conf;
@@ -107,13 +112,13 @@ int main(int argc, char *argv[])
 
   if ( executor == Executor::NONE ) {
     if ( is_z_slab ) {
-      DTFFT_CXX_CALL( plan->transpose(in.data(), out.data(), TransposeType::X_TO_Z) )
+      DTFFT_CXX_CALL( plan->transpose(in.data(), out.data(), Transpose::X_TO_Z) )
     } else {
-      DTFFT_CXX_CALL( plan->transpose(in.data(), aux.data(), TransposeType::X_TO_Y) )
-      DTFFT_CXX_CALL( plan->transpose(aux.data(), out.data(), TransposeType::Y_TO_Z) )
+      DTFFT_CXX_CALL( plan->transpose(in.data(), aux.data(), Transpose::X_TO_Y) )
+      DTFFT_CXX_CALL( plan->transpose(aux.data(), out.data(), Transpose::Y_TO_Z) )
     }
   } else {
-    DTFFT_CXX_CALL( plan->execute(in.data(), out.data(), ExecuteType::FORWARD, aux.data()) )
+    DTFFT_CXX_CALL( plan->execute(in.data(), out.data(), Execute::FORWARD, aux.data()) )
   }
 
   tf += MPI_Wtime();
@@ -121,23 +126,16 @@ int main(int argc, char *argv[])
   std::fill(in.begin(), in.end(), complex<float>{-1., -1.});
 
   if ( executor != Executor::NONE ) {
-    float scaler = 1. / (float) (nx * ny * nz);
-    for ( auto & element: out) {
-      element *= scaler;
-    }
+    scaleComplexFloatHost(out.data(), alloc_size, nx * ny * nz);
   }
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), ExecuteType::BACKWARD, aux.data()) )
+  DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), Execute::BACKWARD, aux.data()) )
   tb += MPI_Wtime();
 
-  float local_error = -1.0;
-  for (size_t i = 0; i < in_size; i++) {
-    float error = abs(complex<float>(in[i] - check[i]));
-    local_error = error > local_error ? error : local_error;
-  }
+  float local_error = checkComplexFloat(check.data(), in.data(), in_size);
+  reportSingle(&tf, &tb, &local_error, &nx, &ny, &nz);
 
-  report_float(&nx, &ny, &nz, local_error, tf, tb);
   DTFFT_CXX_CALL( plan->destroy() )
 
   MPI_Finalize();

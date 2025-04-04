@@ -17,13 +17,13 @@ function(check_nccl_features NCCL_INCLUDE_DIRS NCCL_LIBRARIES CUDA_INCLUDE_DIRS 
   set(CMAKE_REQUIRED_INCLUDES ${NCCL_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS})
   set(CMAKE_REQUIRED_LIBRARIES ${NCCL_LIBRARIES} "${CUDA_LIBRARY_DIR}/libcudart.so")
 
-  include(CheckSymbolExists)
+  include(CheckCXXSymbolExists)
   # Check if NCCL_VERSION_CODE is defined
-  check_symbol_exists(NCCL_VERSION_CODE "nccl.h" NCCL_VERSION_DEFINED)
+  check_cxx_symbol_exists(NCCL_VERSION_CODE "nccl.h" NCCL_VERSION_DEFINED)
   # Check if ncclMemAlloc is available
-  check_symbol_exists(ncclMemAlloc "nccl.h" NCCL_HAVE_MEMALLOC)
+  check_cxx_symbol_exists(ncclMemAlloc "nccl.h" NCCL_HAVE_MEMALLOC)
   # Check if ncclCommRegister is available
-  check_symbol_exists(ncclCommRegister "nccl.h" NCCL_HAVE_COMMREGISTER)
+  check_cxx_symbol_exists(ncclCommRegister "nccl.h" NCCL_HAVE_COMMREGISTER)
 
   if (NCCL_VERSION_DEFINED)
     # Generate a temporary C++ file to extract NCCL version
@@ -50,14 +50,6 @@ function(check_nccl_features NCCL_INCLUDE_DIRS NCCL_LIBRARIES CUDA_INCLUDE_DIRS 
     endif()
   else()
     message(STATUS "NCCL_VERSION_CODE not defined in nccl.h")
-  endif()
-
-  # Report NCCL capabilities
-  if (NCCL_HAVE_MEMALLOC)
-    message(STATUS "NCCL supports ncclMemAlloc")
-  endif()
-  if (NCCL_HAVE_COMMREGISTER)
-    message(STATUS "NCCL supports ncclCommRegister")
   endif()
 
   # Cache results for reuse

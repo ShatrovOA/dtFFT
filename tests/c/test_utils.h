@@ -7,88 +7,30 @@
 #include <dtfft.h>
 #include <float.h>
 
-void print_timers(double time)
-{
-  double t_sum, t_min, t_max;
-  int comm_size, comm_rank;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-  MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+void scaleFloatHost(void* buffer, size_t count, size_t scale);
+void scaleDoubleHost(void* buffer, size_t count, size_t scale);
+void scaleComplexFloatHost(void* buffer, size_t count, size_t scale);
+void scaleComplexDoubleHost(void* buffer, size_t count, size_t scale);
 
+float checkFloat(void *check, void *buf, size_t buf_size);
+double checkDouble(void *check, void *buf, size_t buf_size);
+float checkComplexFloat(void *check, void *buf, size_t buf_size);
+double checkComplexDouble(void *check, void *buf, size_t buf_size);
 
-  MPI_Reduce(&time, &t_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-  MPI_Reduce(&time, &t_min, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-  MPI_Reduce(&time, &t_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+void reportSingle(double *time_forward, double *time_backward, float *local_error,
+  const int32_t *nx, const int32_t *ny, const int32_t *nz);
+void reportDouble(double *time_forward, double *time_backward, double *local_error,
+    const int32_t *nx, const int32_t *ny, const int32_t *nz);
 
-  if(comm_rank == 0)
-  {
-    printf("  avg: %f\n", t_sum / (double) comm_size);
-    printf("  min: %f\n", t_min);
-    printf("  max: %f\n", t_max);
-    printf("----------------------------------------\n");
-  }
-}
+void attach_gpu_to_process();
 
-void report_execution_time(double time_forward, double time_backward)
-{
-  int comm_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+#if defined(DTFFT_WITH_CUDA)
 
-  if(comm_rank == 0)
-  {
-    printf("----------------------------------------\n");
-    printf("|          Forward execution           |\n");
-    printf("----------------------------------------\n");
-  }
-  print_timers(time_forward);
-  if(comm_rank == 0)
-  {
-    printf("|         Backward execution           |\n");
-    printf("----------------------------------------\n");
-  }
-  print_timers(time_backward);
-}
-
-
-
-void report_private(double local_error, double errthr, double time_forward, double time_backward) {
-
-  int comm_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-
-  double global_error;
-  MPI_Allreduce(&local_error, &global_error, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-
-  if(comm_rank == 0) {
-    if(global_error < errthr && global_error >= 0.) {
-      printf("************************************\n");
-      printf("           Test PASSED!\n");
-      printf("************************************\n");
-    } else {
-      fprintf(stderr, "Test FAILED, error = %e, threshold = %e\n", global_error, errthr);
-      MPI_Abort(MPI_COMM_WORLD, -1);
-    }
-  }
-  report_execution_time(time_forward, time_backward);
-}
-
-void report_float(const int32_t *nx, const int32_t *ny, const int32_t *nz, float local_error, double time_forward, double time_backward) {
-  int32_t temp = (*nx) * (*ny);
-  if (nz) temp *= (*nz);
-  float errthr = 5.0f * logf((float) temp) / logf(2.0f) * FLT_EPSILON;
-  report_private((double)local_error, (double)errthr, time_forward, time_backward);
-}
-
-void report_double(const int32_t *nx, const int32_t *ny, const int32_t *nz, double local_error, double time_forward, double time_backward) {
-  int32_t temp = (*nx) * (*ny);
-  if (nz) temp *= (*nz);
-  double errthr = 5.0 * log((double) temp) / log(2.0) * DBL_EPSILON;
-  report_private(local_error, errthr, time_forward, time_backward);
-}
-
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-#include <cuda_runtime_api.h>
-
+#include <cuda_runtime.h>
 
 #define CUDA_SAFE_CALL(call) do {                                         \
   cudaError_t err = call;                                                 \
@@ -97,24 +39,16 @@ void report_double(const int32_t *nx, const int32_t *ny, const int32_t *nz, doub
               __FILE__, __LINE__, cudaGetErrorString(err) );              \
       MPI_Abort(MPI_COMM_WORLD, err);                                     \
   } } while (0);
+
+void scaleFloat(void* buffer, size_t count, size_t scale, cudaStream_t stream);
+void scaleDouble(void* buffer, size_t count, size_t scale, cudaStream_t stream);
+void scaleComplexFloat(void* buffer, size_t count, size_t scale, cudaStream_t stream);
+void scaleComplexDouble(void* buffer, size_t count, size_t scale, cudaStream_t stream);
 #endif
 
-void assign_device_to_process() {
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  int num_devices;
-  CUDA_SAFE_CALL( cudaGetDeviceCount(&num_devices) )
-  MPI_Comm local_comm;
-  MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &local_comm);
-  int local_rank, local_size;
-  MPI_Comm_rank(local_comm, &local_rank);
-  MPI_Comm_size(local_comm, &local_size);
-  MPI_Comm_free(&local_comm);
-  if ( num_devices >= local_size ) {
-    CUDA_SAFE_CALL( cudaSetDevice(local_rank) );
-  }
+#ifdef __cplusplus
+} // extern "C"
 #endif
-}
-
 
 #endif
 

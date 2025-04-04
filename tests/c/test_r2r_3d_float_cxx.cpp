@@ -29,10 +29,6 @@
 
 #include "test_utils.h"
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-#include <cuda_runtime.h>
-#endif
-
 using namespace std;
 using namespace dtfft;
 
@@ -61,28 +57,39 @@ int main(int argc, char *argv[])
   }
 
 
-  Executor executor;
+  Executor executor = Executor::NONE;
 #ifdef DTFFT_WITH_FFTW
   executor = Executor::FFTW3;
-#elif defined(DTFFT_WITH_VKFFT)
-  executor = Executor::VKFFT;
-#else
-  executor = Executor::NONE;
 #endif
-// executor = Executor::NONE;
+#ifdef DTFFT_WITH_CUDA
+  char* platform_env = std::getenv("DTFFT_PLATFORM");
 
-  assign_device_to_process();
+  bool running_cuda = platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0;
+
+  if ( running_cuda )
+  {
+# if defined(DTFFT_WITH_VKFFT)
+    executor = Executor::VKFFT;
+# else
+    executor = Executor::NONE;
+# endif
+  }
+#endif
+
+  attach_gpu_to_process();
 
   Config conf;
   conf.set_enable_z_slab(false);
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA)
   cudaStream_t stream;
-  CUDA_SAFE_CALL( cudaStreamCreate(&stream) );
-  conf.set_stream((dtfft_stream_t)stream);
+  if ( running_cuda )
+  {
+    CUDA_SAFE_CALL( cudaStreamCreate(&stream) );
+    conf.set_stream((dtfft_stream_t)stream);
+  }
   conf.set_enable_mpi_backends(true);
   conf.set_enable_nvshmem_backends(false);
-  // conf.set_gpu_backend(GPUBackend::NCCL_PIPELINED);
   conf.set_platform(Platform::CUDA);
 #endif
 
@@ -97,14 +104,11 @@ int main(int argc, char *argv[])
   int32_t out_sizes[ndims];
   size_t alloc_size;
 
-  DTFFT_CXX_CALL( plan.report()  );
-  DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_sizes, nullptr, out_sizes, &alloc_size) );
+  DTFFT_CXX_CALL( plan.report() )
+  DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_sizes, nullptr, out_sizes, &alloc_size) )
 
   size_t in_size = std::accumulate(in_sizes, in_sizes + 3, 1, multiplies<int>());
   size_t out_size = std::accumulate(out_sizes, out_sizes + 3, 1, multiplies<int>());
-  float *inout = new float[alloc_size];
-  float *check = new float[alloc_size];
-
   size_t el_size;
   DTFFT_CXX_CALL( plan.get_element_size(&el_size) );
 
@@ -112,93 +116,98 @@ int main(int argc, char *argv[])
     DTFFT_THROW_EXCEPTION("el_size != sizeof(float)")
   }
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  Platform platform;
-  DTFFT_CXX_CALL( plan.get_platform(&platform) )
-
-  float *d_inout, *d_aux;
-
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&d_inout) )
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&d_aux) )
-#else
-  float *aux = new float[alloc_size];
-#endif
+  float *inout, *aux;
+  float *check = new float[in_size];
 
   for (size_t i = 0; i < in_size; i++)
   {
-    inout[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-    check[i] = inout[i];
+    check[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
   }
 
-  double tf = 0.0 - MPI_Wtime();
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  if ( platform == Platform::CUDA ) {
-    CUDA_SAFE_CALL( cudaMemcpyAsync(d_inout, inout, alloc_size * el_size, cudaMemcpyHostToDevice, stream) );
-  } else {
-    std::memcpy(d_inout, inout, alloc_size * el_size);
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&inout) )
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&aux) )
+
+#if defined(DTFFT_WITH_CUDA)
+  Platform platform;
+  DTFFT_CXX_CALL( plan.get_platform(&platform) )
+
+  if ( running_cuda && platform != Platform::CUDA ) {
+    DTFFT_THROW_EXCEPTION("running_cuda && platform != Platform::CUDA")
   }
-  DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, ExecuteType::FORWARD, d_aux) )
-  CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
+
+  if ( running_cuda ) {
+    CUDA_SAFE_CALL( cudaMemcpyAsync(inout, check, in_size * el_size, cudaMemcpyHostToDevice, stream) );
+    CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
+  } else {
+    std::memcpy(inout, check, in_size * el_size);
+  }
 #else
-  DTFFT_CXX_CALL( plan.execute(inout, inout, ExecuteType::FORWARD, aux) )
+  std::memcpy(inout, check, in_size * el_size);
+#endif
+
+  double tf = 0.0 - MPI_Wtime();
+
+  DTFFT_CXX_CALL( plan.execute(inout, inout, Execute::FORWARD, aux) )
+#if defined(DTFFT_WITH_CUDA)
+  if ( running_cuda ) {
+    CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
+  }
 #endif
   tf += MPI_Wtime();
 
   if ( executor != Executor::NONE ) {
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-#pragma acc parallel loop deviceptr(d_inout) vector_length(256) async
-    for (size_t i = 0; i < out_size; i++)
-    {
-      d_inout[i] /= (float) (8 * nx * ny * nz);
-    }
-    // Clearing host buffer
-    for (size_t i = 0; i < in_size; i++)
-    {
-      inout[i] = (float)(-1);
-    }
-#pragma acc wait
+    size_t scale_value = 8 * nx * ny * nz;
+#if defined(DTFFT_WITH_CUDA)
+  if ( running_cuda ) {
+    scaleFloat(inout, out_size, scale_value, stream);
+    CUDA_SAFE_CALL(  cudaStreamSynchronize(stream) )
+  } else {
+    scaleFloatHost(inout, out_size, scale_value);
+  }
 #else
-    for (size_t i = 0; i < out_size; i++)
-    {
-      inout[i] /= (float) (8 * nx * ny * nz);
-    }
+  scaleFloatHost(inout, out_size, scale_value);
 #endif
   }
 
   double tb = 0.0 - MPI_Wtime();
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  DTFFT_CXX_CALL( plan.execute(d_inout, d_inout, ExecuteType::BACKWARD, d_aux) )
+  DTFFT_CXX_CALL( plan.execute(inout, inout, Execute::BACKWARD, aux) )
+#if defined(DTFFT_WITH_CUDA)
   if ( platform == Platform::CUDA ) {
-    CUDA_SAFE_CALL( cudaMemcpyAsync(inout, d_inout, alloc_size * el_size, cudaMemcpyDeviceToHost, stream) );
     CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
-  } else {
-    std::memcpy(inout, d_inout, alloc_size * el_size);
   }
-#else
-  DTFFT_CXX_CALL( plan.execute(inout, inout, ExecuteType::BACKWARD, aux) )
 #endif
   tb += MPI_Wtime();
 
-  float local_error = -1.0;
-  for (size_t i = 0; i < in_size; i++) {
-    float error = abs(inout[i] - check[i]);
-    local_error = error > local_error ? error : local_error;
+
+  float local_error;
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == dtfft::Platform::CUDA ) {
+    float *test = new float[in_size];
+
+    CUDA_SAFE_CALL( cudaMemcpy(test, inout, el_size * in_size, cudaMemcpyDeviceToHost) )
+    local_error = checkFloat(check, test, in_size);
+    delete[] test;
+  } else {
+    local_error = checkFloat(check, inout, in_size);
   }
-
-  report_float(&nx, &ny, &nz, local_error, tf, tb);
-
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  DTFFT_CXX_CALL( plan.mem_free(d_inout) )
-  DTFFT_CXX_CALL( plan.mem_free(d_aux) )
-
-  CUDA_SAFE_CALL( cudaStreamDestroy(stream) );
 #else
-  delete[] aux;
+  local_error = checkFloat(check, inout, in_size);
+#endif
+
+  reportSingle(&tf, &tb, &local_error, &nx, &ny, &nz);
+
+
+  DTFFT_CXX_CALL( plan.mem_free(inout) )
+  DTFFT_CXX_CALL( plan.mem_free(aux) )
+
+#if defined(DTFFT_WITH_CUDA)
+  if ( running_cuda ) {
+    CUDA_SAFE_CALL( cudaStreamDestroy(stream) );
+  }
 #endif
 
   DTFFT_CXX_CALL( plan.destroy() )
 
-  delete[] inout;
   delete[] check;
 
   MPI_Finalize();

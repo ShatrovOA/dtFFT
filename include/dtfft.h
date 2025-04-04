@@ -23,7 +23,7 @@
  * @date 2024
  * @brief File containing C API functions of dtFFT Library
  */
-
+// #define DTFFT_WITH_CUDA
 #ifndef DTFFT_H
 #define DTFFT_H
 
@@ -33,7 +33,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <stdint.h>
+#include <stdint.h>  // int8_t, int32_t, uint8_t
 #include <stdbool.h> // bool
 #include <stdio.h>   // fprintf, stderr, size_t
 
@@ -65,7 +65,7 @@ dtfft_get_version();
  */
 #define DTFFT_CALL(call)                                                      \
 do {                                                                          \
-    dtfft_error_code_t ierr = call;                                           \
+    dtfft_error_t ierr = call;                                                \
     if( ierr != DTFFT_SUCCESS ) {                                             \
         fprintf(stderr, "dtFFT error in file '%s:%i': %s.\n",                 \
                 __FILE__, __LINE__, dtfft_get_error_string( ierr ));          \
@@ -161,17 +161,17 @@ typedef enum {
   DTFFT_ERROR_INVALID_PLATFORM = CONF_DTFFT_ERROR_INVALID_PLATFORM,
 /** Invalid executor provided for selected platform */
   DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
-} dtfft_error_code_t;
+} dtfft_error_t;
 
 
 /** This enum lists valid `execute_type` parameters that can be passed to `::dtfft_execute`. */
 typedef enum {
 /** Perform XYZ --> YXZ --> ZXY plan execution (Forward) */
-  DTFFT_EXECUTE_FORWARD = CONF_DTFFT_TRANSPOSE_OUT,
+  DTFFT_EXECUTE_FORWARD = CONF_DTFFT_EXECUTE_FORWARD,
 
 /** Perform ZXY --> YXZ --> XYZ plan execution (Backward) */
-  DTFFT_EXECUTE_BACKWARD = CONF_DTFFT_TRANSPOSE_IN
-} dtfft_execute_type_t;
+  DTFFT_EXECUTE_BACKWARD = CONF_DTFFT_EXECUTE_BACKWARD
+} dtfft_execute_t;
 
 
 /** This enum lists valid transpose_type parameters that can be passed to `::dtfft_transpose`. */
@@ -197,7 +197,7 @@ typedef enum {
  * @note This value is valid to pass only in 3D Plan and value returned by `::dtfft_get_z_slab_enabled` must be `true`
  */
   DTFFT_TRANSPOSE_Z_TO_X = CONF_DTFFT_TRANSPOSE_Z_TO_X
-} dtfft_transpose_type_t;
+} dtfft_transpose_t;
 
 
 /** This enum lists valid `precision` values that can be passed while creating plan. */
@@ -288,7 +288,7 @@ typedef enum {
  *
  * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_create_plan_r2r(
   const int8_t ndims,
   const int32_t *dims,
@@ -312,7 +312,7 @@ dtfft_create_plan_r2r(
  *
  * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_create_plan_c2c(
   const int8_t ndims,
   const int32_t *dims,
@@ -323,7 +323,7 @@ dtfft_create_plan_c2c(
   dtfft_plan_t *plan);
 
 
-#ifndef DTFFT_TRANSPOSE_ONLY
+#if !defined(DTFFT_TRANSPOSE_ONLY)
 /** Real-to-Complex Plan constructor.
  *
  * @param[in]      ndims                  Number of dimensions: 2 or 3
@@ -339,7 +339,7 @@ dtfft_create_plan_c2c(
  * @note Parameter `executor` cannot be `::DTFFT_EXECUTOR_NONE`. Use C2C plan instead.
  * @note This function is only present in the API when ``dtFFT`` was compiled with any external FFT.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_create_plan_r2c(
   const int8_t ndims,
   const int32_t *dims,
@@ -358,7 +358,7 @@ dtfft_create_plan_r2c(
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_get_z_slab_enabled(dtfft_plan_t plan, bool *is_z_slab_enabled);
 
 
@@ -374,8 +374,8 @@ dtfft_get_z_slab_enabled(dtfft_plan_t plan, bool *is_z_slab_enabled);
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
-dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_type_t execute_type, void *aux);
+dtfft_error_t
+dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_t execute_type, void *aux);
 
 
 /** @brief Transpose data in single dimension, e.g. X align -> Y align
@@ -388,8 +388,8 @@ dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_type_t
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
-dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_type_t transpose_type);
+dtfft_error_t
+dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_t transpose_type);
 
 
 /** @brief Plan Destructor.
@@ -398,7 +398,7 @@ dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_ty
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_destroy(dtfft_plan_t *plan);
 
 
@@ -413,7 +413,7 @@ dtfft_destroy(dtfft_plan_t *plan);
  *                                 Size of each element in bytes can be obtained by calling `::dtfft_get_element_size`.
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts, int32_t *out_starts, int32_t *out_counts, size_t *alloc_size);
 
 
@@ -424,7 +424,7 @@ dtfft_get_local_sizes(dtfft_plan_t plan, int32_t *in_starts, int32_t *in_counts,
  *                                 Size of each element in bytes can be obtained by calling `::dtfft_get_element_size`.
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_get_alloc_size(dtfft_plan_t plan, size_t *alloc_size);
 
 
@@ -435,7 +435,7 @@ dtfft_get_alloc_size(dtfft_plan_t plan, size_t *alloc_size);
  * @return Error string explaining error.
  */
 const char *
-dtfft_get_error_string(const dtfft_error_code_t error_code);
+dtfft_get_error_string(const dtfft_error_t error_code);
 
 
 /** Structure to hold pencil decomposition info
@@ -472,7 +472,7 @@ typedef struct {
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil);
 
 
@@ -484,7 +484,7 @@ dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil);
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_get_element_size(dtfft_plan_t plan, size_t *element_size);
 
 
@@ -497,7 +497,7 @@ dtfft_get_element_size(dtfft_plan_t plan, size_t *element_size);
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_mem_alloc(dtfft_plan_t plan, size_t alloc_bytes, void** ptr);
 
 
@@ -509,7 +509,7 @@ dtfft_mem_alloc(dtfft_plan_t plan, size_t alloc_bytes, void** ptr);
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_mem_free(dtfft_plan_t plan, void *ptr);
 
 /**
@@ -519,7 +519,7 @@ dtfft_mem_free(dtfft_plan_t plan, void *ptr);
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  **/
-dtfft_error_code_t
+dtfft_error_t
 dtfft_report(dtfft_plan_t plan);
 
 
@@ -547,34 +547,34 @@ typedef enum {
 } dtfft_platform_t;
 
 
-/** This enum lists the different available backend options.
- * @see dtfft_get_gpu_backend_string, dtfft_get_gpu_backend
+/** This enum lists the different available GPU backend options.
+ * @see dtfft_get_backend_string, dtfft_get_backend
 */
 typedef enum {
 /** @brief Backend that uses MPI datatypes
  * @details Not really recommended to use, since it is a million times slower than other backends.
  * It is present here just to show how slow MPI Datatypes are for GPU usage.
  */
-  DTFFT_GPU_BACKEND_MPI_DATATYPE = CONF_DTFFT_GPU_BACKEND_MPI_DATATYPE,
+  DTFFT_BACKEND_MPI_DATATYPE = CONF_DTFFT_BACKEND_MPI_DATATYPE,
 
 /** MPI peer-to-peer algorithm */
-  DTFFT_GPU_BACKEND_MPI_P2P = CONF_DTFFT_GPU_BACKEND_MPI_P2P,
+  DTFFT_BACKEND_MPI_P2P = CONF_DTFFT_BACKEND_MPI_P2P,
 
 /** MPI peer-to-peer algorithm with overlapping data copying and unpacking */
-  DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED = CONF_DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED,
+  DTFFT_BACKEND_MPI_P2P_PIPELINED = CONF_DTFFT_BACKEND_MPI_P2P_PIPELINED,
 
 /** MPI backend using MPI_Alltoallv */
-  DTFFT_GPU_BACKEND_MPI_A2A = CONF_DTFFT_GPU_BACKEND_MPI_A2A,
+  DTFFT_BACKEND_MPI_A2A = CONF_DTFFT_BACKEND_MPI_A2A,
 
 /** NCCL backend */
-  DTFFT_GPU_BACKEND_NCCL = CONF_DTFFT_GPU_BACKEND_NCCL,
+  DTFFT_BACKEND_NCCL = CONF_DTFFT_BACKEND_NCCL,
 
 /** NCCL backend with overlapping data copying and unpacking */
-  DTFFT_GPU_BACKEND_NCCL_PIPELINED = CONF_DTFFT_GPU_BACKEND_NCCL_PIPELINED,
+  DTFFT_BACKEND_NCCL_PIPELINED = CONF_DTFFT_BACKEND_NCCL_PIPELINED,
 
 /** cuFFTMp backend */
-  DTFFT_GPU_BACKEND_CUFFTMP = CONF_DTFFT_GPU_BACKEND_CUFFTMP
-} dtfft_gpu_backend_t;
+  DTFFT_BACKEND_CUFFTMP = CONF_DTFFT_BACKEND_CUFFTMP
+} dtfft_backend_t;
 
 
 /**
@@ -587,7 +587,7 @@ typedef enum {
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_get_stream(dtfft_plan_t plan, dtfft_stream_t *stream);
 
 
@@ -595,15 +595,15 @@ dtfft_get_stream(dtfft_plan_t plan, dtfft_stream_t *stream);
  * @brief Returns selected GPU backend during autotune if `effort` is `::DTFFT_PATIENT`.
  *
  * If `effort` passed to any create function is `::DTFFT_ESTIMATE` or `::DTFFT_MEASURE`
- * returns value set by `::dtfft_set_config` or default value, which is `::DTFFT_GPU_BACKEND_NCCL`.
+ * returns value set by `::dtfft_set_config` or default value, which is `::DTFFT_BACKEND_NCCL`.
  *
  * @param[in]        plan           Plan handle
- * @param[out]       gpu_backend     Selected backend
+ * @param[out]       backend     Selected backend
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
-dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *gpu_backend);
+dtfft_error_t
+dtfft_get_backend(dtfft_plan_t plan, dtfft_backend_t *backend);
 
 
 /**
@@ -614,19 +614,19 @@ dtfft_get_gpu_backend(dtfft_plan_t plan, dtfft_gpu_backend_t *gpu_backend);
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_get_platform(dtfft_plan_t plan, dtfft_platform_t *platform);
 
 
 /**
  * @brief Returns null terminated string with name of backend provided as argument.
  *
- * @param[in]         gpu_backend    Backend to represent
+ * @param[in]         backend    Backend to represent
  *
  * @return Character representation of backend.
  */
 const char *
-dtfft_get_gpu_backend_string(const dtfft_gpu_backend_t gpu_backend);
+dtfft_get_backend_string(const dtfft_backend_t backend);
 #endif
 
 
@@ -671,9 +671,9 @@ typedef struct {
 /**
  * @brief Backend that will be used by dtFFT when `effort` is `::DTFFT_ESTIMATE` or `::DTFFT_MEASURE`.
  *
- * @details Default is `::DTFFT_GPU_BACKEND_NCCL`
+ * @details Default is `::DTFFT_BACKEND_NCCL`
  */
-  dtfft_gpu_backend_t gpu_backend;
+  dtfft_backend_t backend;
 
 /**
  * @brief Should MPI GPU Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
@@ -724,7 +724,7 @@ typedef struct {
  * @param[out]  config  Config to set default values into
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_create_config(dtfft_config_t *config);
 
 /**
@@ -733,7 +733,7 @@ dtfft_create_config(dtfft_config_t *config);
  * @param[in]   config  Config to set
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
-dtfft_error_code_t
+dtfft_error_t
 dtfft_set_config(dtfft_config_t config);
 
 

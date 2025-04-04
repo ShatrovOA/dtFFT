@@ -16,11 +16,11 @@ Predefined Macros
 Enumerators
 ===========
 
-.. doxygenenum:: dtfft::ErrorCode
+.. doxygenenum:: dtfft::Error
 
-.. doxygenenum:: dtfft::ExecuteType
+.. doxygenenum:: dtfft::Execute
 
-.. doxygenenum:: dtfft::TransposeType
+.. doxygenenum:: dtfft::Transpose
 
 .. doxygenenum:: dtfft::Precision
 
@@ -30,14 +30,14 @@ Enumerators
 
 .. doxygenenum:: dtfft::R2RKind
 
-.. doxygenenum:: dtfft::GPUBackend
+.. doxygenenum:: dtfft::Backend
 
 .. doxygenenum:: dtfft::Platform
 
 Functions
 =========
 
-.. doxygenfunction:: dtfft::get_gpu_backend_string
+.. doxygenfunction:: dtfft::get_backend_string
 
 .. doxygenfunction:: dtfft::get_error_string
 

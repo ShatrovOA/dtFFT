@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.23)
 project(dtfft VERSION 2.0.0
               DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
@@ -47,9 +47,6 @@ option(DTFFT_WITHOUT_NVSHMEM "Build dtFFT without NVSHMEM-enabled backends.
 option(DTFFT_WITH_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
 
 
-set(DTFFT_RUNNING_CICD OFF CACHE STRING "Running tests in GitHub actions")
-
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 
 find_package(MPI REQUIRED)
@@ -65,6 +62,12 @@ else()
     message(FATAL_ERROR "Neither `mpi_f08` nor `mpi` modules were found.." )
   endif()
   add_compile_definitions(DTFFT_USE_MPI)
+endif()
+
+if ( DTFFT_USE_MPI )
+  set(mpi_mod "mpi")
+else()
+  set(mpi_mod "mpi_f08")
 endif()
 
 
@@ -86,12 +89,14 @@ endif()
 include(CheckMPIFeatures)
 
 if ( DTFFT_ENABLE_PERSISTENT_COMM )
-
-  check_persistent_collectives(${MPI_Fortran_MODULE_DIR} ${MPI_Fortran_LIBRARIES})
-
+  check_persistent_collectives(${MPI_Fortran_MODULE_DIR} "${MPI_Fortran_LIBRARIES}" ${mpi_mod})
+  
+  # Preprocessor used for gpu p2p algorithms, e.g. MPI_Send_init
+  target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:ENABLE_PERSISTENT_COMM>)
   if ( HAVE_PERSISTENT_COLLECTIVES )
     message(STATUS "Persistent communications ENABLED")
-    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_HAVE_PERSISTENT_COLLECTIVES>)
+    # This preprocessor is used for collective persistent functions, e.g. MPI_Alltoall_init
+    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:ENABLE_PERSISTENT_COLLECTIVES>)
   else()
     message(WARNING "MPI implementation do not support collective persistent functions")
   endif()
@@ -109,18 +114,9 @@ if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
 endif()
 
 
-math(EXPR DTFFT_VERSION_CODE
-  "${PROJECT_VERSION_MAJOR} * 100000 + ${PROJECT_VERSION_MINOR} * 1000 + ${PROJECT_VERSION_PATCH}"
-)
-
-set ( DTFFT_VERSION "(X) * 100000 + (Y) * 1000 + (Z)" )
-set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
-configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HEADER}" )
-
-
 if(DTFFT_WITH_CUDA)
   find_package(CUDAToolkit 11.0 REQUIRED)
-  # target_link_libraries(dtfft PRIVATE CUDA::cuda_driver)
+  # Not linking CUDA::nvrtc due to implicit link of cuda_driver by cmake
   # target_link_libraries(dtfft PRIVATE CUDA::nvrtc)
   target_link_libraries(dtfft PRIVATE CUDA::cudart)
   target_link_libraries(dtfft PRIVATE ${CMAKE_DL_LIBS})
@@ -179,12 +175,12 @@ if(DTFFT_WITH_CUDA)
                         "${CUDAToolkit_INCLUDE_DIRS}" "${CUDAToolkit_LIBRARY_DIR}")
 
     set(USE_NCCL ON)
-    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_WITH_NCCL>)
+    # target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_WITH_NCCL>)
     if ( NCCL_HAVE_MEMALLOC )
       target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:NCCL_HAVE_MEMALLOC>)
     endif()
     if ( NCCL_HAVE_COMMREGISTER )
-      target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:NCCL_HAVE_COMM_REGISTER>)
+      target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:NCCL_HAVE_COMMREGISTER>)
     endif()
     # target_include_directories(dtfft PRIVATE ${NCCL_INCLUDE_DIRS})
     target_link_libraries(dtfft PRIVATE ${NCCL_LIBRARIES})
@@ -202,13 +198,39 @@ if(DTFFT_WITH_CUDA)
     target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=int32;ADDR_KIND=int32>)
   endif()
 
+  set(USE_NVSHMEM OFF)
   if( WITH_HPC_SDK AND NOT DTFFT_WITHOUT_NVSHMEM)
-    # find_package(NVHPC REQUIRED COMPONENTS MATH)
+    find_package(NVHPC REQUIRED COMPONENTS MATH)
+    # if ( TARGET NVHPC::NVSHMEM_COMPAT )
+    #   get_target_property(NVSHMEM_LIBS NVHPC::NVSHMEM_COMPAT INTERFACE_LINK_LIBRARIES)
+    # else()
+    #   get_target_property(NVSHMEM_LIBS NVHPC::NVSHMEM INTERFACE_LINK_LIBRARIES)
+    # endif()
+    # get_target_property(cufftmp_libs NVHPC::CUFFTMP INTERFACE_LINK_LIBRARIES)
+    # foreach(lib ${cufftmp_libs})
+    #   message(STATUS "${lib}")
+    # endforeach()
+    
+
+    # Get nvshmem_device.a and link it directly
+    # message(STATUS "NVSHMEM_LIBS = ${NVSHMEM_LIBS}")
+    # foreach(lib ${NVSHMEM_LIBS})
+
+    #   if ( lib MATCHES "nvshmem_host" )
+    #     target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:NVSHMEM_HOST_LIB="${lib}">)
+    #   endif()
+    #   if ( lib MATCHES "nvshmem_device" )
+    #     message(STATUS "linking ${lib}")
+    #     target_link_libraries(dtfft PRIVATE ${lib})
+    #   endif()
+    # endforeach()
 
     set(USE_NVSHMEM ON)
-    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran,C>:DTFFT_WITH_NVSHMEM>)
-    # target_link_libraries(dtfft PRIVATE NVHPC::CUFFTMP)
-    # target_link_libraries(dtfft PRIVATE CUDA::nvml)
+    # target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran,C>:DTFFT_WITH_NVSHMEM>)
+    target_link_libraries(dtfft PRIVATE NVHPC::CUFFTMP)
+    if ( CMAKE_Fortran_COMPILER_VERSION LESS "24.7")
+      target_link_libraries(dtfft PRIVATE CUDA::nvml)
+    endif()
   endif()
 endif()
 
@@ -293,7 +315,7 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATC
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -march=native")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
   set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mnobounds")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C")
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast")
 endif()
 
@@ -351,6 +373,23 @@ install(DIRECTORY ${DTFFT_MODULE_DIR}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.mod")
 
+math(EXPR DTFFT_VERSION_CODE
+    "${PROJECT_VERSION_MAJOR} * 100000 + ${PROJECT_VERSION_MINOR} * 1000 + ${PROJECT_VERSION_PATCH}"
+  )
+if ( NCCL_FOUND )
+  SET(DTFFT_WITH_NCCL ON)
+else()
+  SET(DTFFT_WITH_NCCL OFF)
+endif()
+if ( USE_NVSHMEM )
+  SET(DTFFT_WITH_NVSHMEM ON)
+else()
+  SET(DTFFT_WITH_NVSHMEM OFF)
+endif()
+set ( DTFFT_VERSION "(X) * 100000 + (Y) * 1000 + (Z)" )
+set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
+configure_file( ${PROJECT_SOURCE_DIR}/include/dtfft_config.h.in "${DTFFT_CONF_HEADER}" )
+
 add_subdirectory(src)
 if(DTFFT_BUILD_TESTS)
   enable_testing()
@@ -358,29 +397,31 @@ if(DTFFT_BUILD_TESTS)
 endif()
 
 message(STATUS "dtFFT configuration summary:")
-message(STATUS "Version                   : ${dtfft_VERSION}")
-message(STATUS "Build type                : ${CMAKE_BUILD_TYPE}")
-message(STATUS "Compiler                  : ${CMAKE_Fortran_COMPILER_ID} ${CMAKE_Fortran_COMPILER_VERSION}")
-message(STATUS "Install dir               : ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "Build shared libs         : ${DTFFT_BUILD_SHARED}")
-message(STATUS "Use `mpi` module          : ${DTFFT_USE_MPI}")
-message(STATUS "Build C/C++ API:          : ${DTFFT_BUILD_C_CXX_API}")
-message(STATUS "Build tests               : ${DTFFT_BUILD_TESTS}")
-message(STATUS "Coverage                  : ${DTFFT_ENABLE_COVERAGE}")
-message(STATUS "Profiler                  : ${DTFFT_WITH_PROFILER}")
-message(STATUS "CUDA enabled              : ${DTFFT_WITH_CUDA}")
+message(STATUS "Version                    : ${dtfft_VERSION}")
+message(STATUS "Build type                 : ${CMAKE_BUILD_TYPE}")
+message(STATUS "Compiler                   : ${CMAKE_Fortran_COMPILER_ID} ${CMAKE_Fortran_COMPILER_VERSION}")
+message(STATUS "Install dir                : ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Build shared libs          : ${DTFFT_BUILD_SHARED}")
+message(STATUS "Use `mpi` module           : ${DTFFT_USE_MPI}")
+message(STATUS "Build C/C++ API:           : ${DTFFT_BUILD_C_CXX_API}")
+message(STATUS "Build tests                : ${DTFFT_BUILD_TESTS}")
+message(STATUS "Coverage                   : ${DTFFT_ENABLE_COVERAGE}")
+message(STATUS "Profiler                   : ${DTFFT_WITH_PROFILER}")
+message(STATUS "CUDA enabled               : ${DTFFT_WITH_CUDA}")
 if ( DTFFT_WITH_CUDA )
-message(STATUS "Custom NCCL enabled       : ${DTFFT_WITH_NCCL}")
-
+  message(STATUS "NCCL enabled               : ${DTFFT_WITH_NCCL}")
+  if ( WITH_HPC_SDK )
+    message(STATUS "NVSHMEM enabled            : ${DTFFT_WITH_NVSHMEM}")
+  endif()
 endif()
+
 if ( DTFFT_TRANSPOSE_ONLY )
   message(STATUS "Building transpose only interface")
 else()
+  message(STATUS "FFTW3 enabled              : ${DTFFT_WITH_FFTW}")
+  message(STATUS "MKL enabled                : ${DTFFT_WITH_MKL}")
   if ( DTFFT_WITH_CUDA )
-    message(STATUS "cuFFT enabled             : ${DTFFT_WITH_CUFFT}")
-    message(STATUS "VkFFT enabled             : ${DTFFT_WITH_VKFFT}")
-  else()
-    message(STATUS "FFTW3 enabled             : ${DTFFT_WITH_FFTW}")
-    message(STATUS "MKL enabled               : ${DTFFT_WITH_MKL}")
+    message(STATUS "cuFFT enabled              : ${DTFFT_WITH_CUFFT}")
+    message(STATUS "VkFFT enabled              : ${DTFFT_WITH_VKFFT}")
   endif()
 endif()

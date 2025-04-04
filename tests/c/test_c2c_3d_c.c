@@ -21,6 +21,7 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -53,23 +54,36 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_executor_t executor;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #ifdef DTFFT_WITH_MKL
   executor = DTFFT_EXECUTOR_MKL;
 #elif defined (DTFFT_WITH_FFTW)
   executor = DTFFT_EXECUTOR_FFTW3;
-#elif defined (DTFFT_WITH_VKFFT)
+#endif
+#ifdef DTFFT_WITH_CUDA
+  char* platform_env = getenv("DTFFT_PLATFORM");
+
+  if ( platform_env == NULL || strcmp(platform_env, "cuda") == 0 )
+  {
+# if defined (DTFFT_WITH_VKFFT)
   executor = DTFFT_EXECUTOR_VKFFT;
-#else
+# elif defined (DTFFT_WITH_CUFFT)
+  executor = DTFFT_EXECUTOR_CUFFT;
+# else
   executor = DTFFT_EXECUTOR_NONE;
+# endif
+  }
 #endif
 
-  assign_device_to_process();
+  attach_gpu_to_process();
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA)
   dtfft_config_t conf;
   dtfft_create_config(&conf);
   conf.platform = DTFFT_PLATFORM_CUDA;
+  // We want to use managed memory here.
+  // Disabling symmetric heap possibilities.
+  conf.enable_nvshmem_backends = false;
   dtfft_set_config(conf);
 #endif
 
@@ -87,10 +101,18 @@ int main(int argc, char *argv[])
 
   check = (dtfft_complex*) malloc(sizeof(dtfft_complex) * in_size);
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  CUDA_SAFE_CALL( cudaMallocManaged((void**)&in, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
-  CUDA_SAFE_CALL( cudaMallocManaged((void**)&out, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
-  CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
+#if defined(DTFFT_WITH_CUDA)
+  dtfft_platform_t platform;
+  DTFFT_CALL( dtfft_get_platform(plan, &platform) )
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaMallocManaged((void**)&in, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
+    CUDA_SAFE_CALL( cudaMallocManaged((void**)&out, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
+    CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
+  } else {
+    DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&in) )
+    DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&out) )
+    DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&aux) )
+  }
 #else
   DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&in) )
   DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&out) )
@@ -98,8 +120,8 @@ int main(int argc, char *argv[])
 #endif
 
   for (i = 0; i < in_size; i++) {
-    in[i][0] = check[i][0] = 1.0;
-    in[i][1] = check[i][1] = 3.0;
+    in[i][0] = check[i][0] = (double)rand() / (double)(RAND_MAX);
+    in[i][1] = check[i][1] = (double)rand() / (double)(RAND_MAX);
   }
 
   double tf = 0.0 - MPI_Wtime();
@@ -116,8 +138,10 @@ int main(int argc, char *argv[])
   } else {
     DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, aux) )
   }
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  }
 #endif
   tf += MPI_Wtime();
 
@@ -127,39 +151,25 @@ int main(int argc, char *argv[])
   }
 
   if ( executor != DTFFT_EXECUTOR_NONE ) {
-    for (i = 0; i < out_size; i++) {
-      out[i][0] /= (double) (nx * ny * nz);
-      out[i][1] /= (double) (nx * ny * nz);
-    }
+    scaleComplexDoubleHost(out, out_size, nx * ny * nz);
   }
+
   double tb = 0.0 - MPI_Wtime();
   DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, aux) )
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  #if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  }
 #endif
   tb += MPI_Wtime();
 
-  double local_error = -1.0;
-  for (i = 0; i < in_size; i++) {
-    double real_error = fabs(check[i][0] - in[i][0]);
-    double cmplx_error = fabs(check[i][1] - in[i][1]);
-    double error = fmax(real_error, cmplx_error);
-    local_error = error > local_error ? error : local_error;
-  }
-
-  report_double(&nx, &ny, &nz, local_error, tf, tb);
+  double local_error = checkComplexDouble(check, in, in_size);
+  reportDouble(&tf, &tb, &local_error, &nx, &ny, &nz);
 
   free(check);
-
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  CUDA_SAFE_CALL( cudaFree(in) )
-  CUDA_SAFE_CALL( cudaFree(out) )
-  CUDA_SAFE_CALL( cudaFree(aux) )
-#else
   DTFFT_CALL( dtfft_mem_free(plan, in) )
   DTFFT_CALL( dtfft_mem_free(plan, out) )
   DTFFT_CALL( dtfft_mem_free(plan, aux) )
-#endif
 
   DTFFT_CALL( dtfft_destroy(&plan) )
 

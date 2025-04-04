@@ -22,6 +22,8 @@
 #include <math.h>
 #include <iostream>
 #include <complex>
+#include <cstring>
+#include <cstdlib>
 #include <vector>
 #include "test_utils.h"
 
@@ -30,8 +32,8 @@ using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
-#if defined(DTFFT_TRANSPOSE_ONLY) || defined(DTFFT_WITH_CUDA)
-  return 0;
+#if defined(DTFFT_TRANSPOSE_ONLY)
+  cout << "FFT Support is disabled in this build, skipping test" << endl;
 #else
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -49,13 +51,34 @@ int main(int argc, char *argv[])
     cout << "Nx = " << nx << ", Ny = " << ny           << endl;
     cout << "Number of processors: " << comm_size      << endl;
     cout << "----------------------------------------" << endl;
+#if defined(DTFFT_WITH_CUDA)
+    cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
+#endif
   }
+
+#if defined(DTFFT_WITH_CUDA)
+  char* platform_env = std::getenv("DTFFT_PLATFORM");
+
+  if ( platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0 )
+  {
+      MPI_Finalize();
+      return 0;
+  }
+#endif
 
   Executor executor;
 #ifdef DTFFT_WITH_MKL
   executor = Executor::MKL;
 #elif defined(DTFFT_WITH_FFTW )
   executor = Executor::FFTW3;
+#else
+# if !defined(DTFFT_WITH_CUDA)
+  if(comm_rank == 0) {
+    cout << "Missing HOST FFT Executor\n";
+  }
+  MPI_Finalize();
+  return 0;
+# endif
 #endif
 
   // Create plan
@@ -63,7 +86,7 @@ int main(int argc, char *argv[])
   dtfft::PlanR2C *plan;
   try {
     plan = new dtfft::PlanR2C(dims, executor);
-  } catch (const runtime_error& err) {
+  } catch (const dtfft::Exception& err) {
     cerr << err.what() << endl;
     MPI_Abort(MPI_COMM_WORLD, -1);
     return -1;
@@ -76,7 +99,7 @@ int main(int argc, char *argv[])
   size_t in_size = in_counts[0] * in_counts[1];
 
   vector<double> in(alloc_size), check(in_size);
-  vector<complex<double>> out(alloc_size);
+  vector<complex<double>> out(alloc_size / 2);
 
   for (size_t i = 0; i < in_size; i++) {
     in[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -84,7 +107,7 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan->execute(in.data(), out.data(), ExecuteType::FORWARD) );
+  DTFFT_CXX_CALL( plan->execute(in.data(), out.data(), Execute::FORWARD) );
   tf += MPI_Wtime();
 
   for ( auto & element: in) {
@@ -97,16 +120,11 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), ExecuteType::BACKWARD) );
+  DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), Execute::BACKWARD) );
   tb += MPI_Wtime();
 
-  double local_error = -1.0;
-  for (size_t i = 0; i < in_size; i++) {
-    double error = abs(in[i] - check[i]);
-    local_error = error > local_error ? error : local_error;
-  }
-
-  report_double(&nx, &ny, nullptr, local_error, tf, tb);
+  double local_error = checkDouble(check.data(), in.data(), in_size);
+  reportDouble(&tf, &tb, &local_error, &nx, &ny, nullptr );
 
   DTFFT_CXX_CALL( plan->destroy() );
 
@@ -114,5 +132,5 @@ int main(int argc, char *argv[])
 
   MPI_Finalize();
   return 0;
-#endif // DTFFT_TRANSPOSE_ONLY
+#endif
 }

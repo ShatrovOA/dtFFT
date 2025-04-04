@@ -1,22 +1,36 @@
 include(CheckFortranSourceCompiles)
 
 # Function to check support for MPI persistent collectives
-function(check_persistent_collectives MPI_INCLUDES MPI_LIBS)
+function(check_persistent_collectives MPI_INCLUDES MPI_LIBS MPI_MOD)
   # Set required includes and libraries for MPI
   set(CMAKE_REQUIRED_INCLUDES ${MPI_INCLUDES})
   set(CMAKE_REQUIRED_LIBRARIES ${MPI_LIBS})
 
   # Check if compiler supports MPI_Alltoall_init (persistent collectives)
+  if( MPI_MOD STREQUAL "mpi")
+    check_fortran_source_compiles(
+      "program test
+      use mpi
+      implicit none
+      integer :: send, recv, ierr, request
+      call MPI_Alltoall_init(send, 1, MPI_INTEGER, recv, 1, MPI_INTEGER, MPI_COMM_WORLD, MPI_INFO_NULL, request, ierr)
+      end program"
+      HAVE_PERSISTENT_COLLECTIVES
+      SRC_EXT .F90
+    )
+  else()
   check_fortran_source_compiles(
     "program test
-    use mpi
+    use mpi_f08
     implicit none
-    integer :: send, recv, ierr, request
+    integer :: send, recv, ierr
+    type(MPI_Request) :: request
     call MPI_Alltoall_init(send, 1, MPI_INTEGER, recv, 1, MPI_INTEGER, MPI_COMM_WORLD, MPI_INFO_NULL, request, ierr)
     end program"
     HAVE_PERSISTENT_COLLECTIVES
     SRC_EXT .F90
   )
+  endif()
   set(HAVE_PERSISTENT_COLLECTIVES ${HAVE_PERSISTENT_COLLECTIVES} PARENT_SCOPE)
 
   # Reset required includes and libraries to avoid affecting other checks

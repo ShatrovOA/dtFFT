@@ -88,7 +88,7 @@ implicit none
   conf = dtfft_config_t()
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
+  conf%backend = DTFFT_BACKEND_NCCL
   conf%platform = DTFFT_PLATFORM_CUDA
 #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)

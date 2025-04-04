@@ -1,9 +1,15 @@
 file(GLOB TEST_SOURCES "fortran/*_f.F90")
 
 if(DTFFT_BUILD_SHARED)
-  add_library(test_utils SHARED fortran/test_utils.F90)
+  add_library(test_utils SHARED)
 else()
-  add_library(test_utils STATIC fortran/test_utils.F90)
+  add_library(test_utils STATIC)
+endif()
+target_sources(test_utils PRIVATE test_utils.F90)
+if ( DTFFT_WITH_CUDA )
+  enable_language(CUDA)
+  target_sources(test_utils PRIVATE cuda_utils.cu)
+  set_target_properties(test_utils PROPERTIES CUDA_ARCHITECTURES all-major)
 endif()
 target_link_libraries(test_utils PUBLIC dtfft)
 
@@ -36,13 +42,14 @@ foreach(test ${TEST_SOURCES})
   # target_link_libraries(${test_name} PRIVATE m)
 
   if ( DTFFT_WITH_CUDA )
+    target_link_libraries(${test_name} PRIVATE CUDA::cudart)
     if ( CMAKE_Fortran_COMPILER_ID MATCHES NVHPC )
       target_compile_options(${test_name}
         PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
       target_link_options(${test_name}
         PUBLIC $<$<LINK_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
     else()
-      target_link_libraries(${test_name} PRIVATE CUDA::cudart)
+      
     endif()
 
     if ( CMAKE_C_COMPILER_ID MATCHES NVHPC AND CMAKE_CXX_COMPILER_ID MATCHES NVHPC)
@@ -53,6 +60,10 @@ foreach(test ${TEST_SOURCES})
     else()
       target_link_libraries(${test_name} PRIVATE CUDA::cudart)
     endif()
+  endif()
+
+  if ( DTFFT_RUNNING_CICD )
+    target_compile_definitions(${test_name} PRIVATE DTFFT_RUNNING_CICD)
   endif()
 
   foreach(nproc RANGE 1 ${TESTS_MAX_PROC} 1)

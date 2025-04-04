@@ -19,7 +19,7 @@
 #include "dtfft_config.h"
 module dtfft_transpose_handle_host
 !! This module describes [[transpose_handle_host]] class
-use iso_fortran_env,  only: int8, int32
+use iso_fortran_env
 use dtfft_parameters
 use dtfft_pencil,     only: pencil, get_transpose_type
 #include "dtfft_mpi.h"
@@ -49,14 +49,14 @@ public :: transpose_handle_host
     logical                         :: is_even                !! Is decomposition even
     type(handle_t)                  :: send                   !! Handle to send data
     type(handle_t)                  :: recv                   !! Handle to recieve data
-#if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)
+#if defined(ENABLE_PERSISTENT_COLLECTIVES)
     TYPE_MPI_REQUEST                :: request                !! Request for persistent communication
     logical                         :: is_request_created     !! Is request created
 #endif
   contains
   private
     procedure, pass(self),  public  :: create                 !! Initializes class
-    procedure, pass(self),  public  :: transpose              !! Performs MPI_Alltoall(w)
+    procedure, pass(self),  public  :: execute              !! Performs MPI_Alltoall(w)
     procedure, pass(self),  public  :: destroy                !! Destroys class
     procedure, pass(self)           :: create_transpose_2d    !! Creates two-dimensional transposition datatypes
     procedure, pass(self)           :: create_transpose_XY    !! Creates three-dimensional X --> Y, Y --> X transposition datatypes
@@ -109,14 +109,14 @@ contains
     integer(int32),               allocatable   :: send_counts(:,:)   !! Each processor should know how much data each processor sends
     integer(int32)                              :: i                  !! Counter
     integer(int32)                              :: ierr               !! Error code
-    type(dtfft_transpose_type_t)                :: transpose_type       !! Transpose plan id
+    type(dtfft_transpose_t)                     :: transpose_type     !! Transpose plan id
 
     self%comm = comm
     call MPI_Comm_size(self%comm, comm_size, ierr)
     self%is_even = send%is_even .and. recv%is_even
     n_neighbors = comm_size;  if ( self%is_even ) n_neighbors = 1
 
-#if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)
+#if defined(ENABLE_PERSISTENT_COLLECTIVES)
     self%is_request_created = .false.
 #endif
 
@@ -156,14 +156,14 @@ contains
     deallocate(recv_counts, send_counts)
   end subroutine create
 
-  subroutine transpose(self, send, recv)
+  subroutine execute(self, send, recv)
   !! Executes transposition
     class(transpose_handle_host), intent(inout) :: self         !! Transposition class
-    type(*),                      intent(in)    :: send(..)     !! Incoming buffer of any rank and kind
-    type(*),                      intent(inout) :: recv(..)     !! Resulting buffer of any rank and kind
+    real(real32),                 intent(in)    :: send(:)      !! Incoming buffer
+    real(real32),                 intent(inout) :: recv(:)      !! Resulting buffer
     integer(int32)                              :: ierr         !! Error code
 
-#if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)
+#if defined(ENABLE_PERSISTENT_COLLECTIVES)
     if ( .not. self%is_request_created ) then
       if ( self%is_even ) then
         call MPI_Alltoall_init(send, 1, self%send%dtypes(1), recv, 1, self%recv%dtypes(1), self%comm, MPI_INFO_NULL, self%request, ierr)
@@ -183,7 +183,7 @@ contains
                          recv, self%recv%counts, self%recv%displs, self%recv%dtypes, self%comm, ierr)
     endif
 #endif
-  end subroutine transpose
+  end subroutine execute
 
   subroutine destroy(self)
   !! Destroys `transpose_handle_host` class
@@ -191,7 +191,7 @@ contains
 
     call self%send%destroy()
     call self%recv%destroy()
-#if defined(DTFFT_ENABLE_PERSISTENT_COMM) && defined(DTFFT_HAVE_PERSISTENT_COLLECTIVES)
+#if defined(ENABLE_PERSISTENT_COLLECTIVES)
     block
       integer(int32)                       :: ierr
 

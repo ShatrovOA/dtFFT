@@ -25,7 +25,7 @@ use iso_fortran_env,  only: int8, int32, int64, real32, real64
 #include "dtfft_private.h"
 implicit none
 private
-public :: dtfft_execute_type_t, dtfft_transpose_type_t
+public :: dtfft_execute_t, dtfft_transpose_t
 public :: dtfft_executor_t, dtfft_effort_t
 public :: dtfft_precision_t, dtfft_r2r_kind_t
 public :: is_valid_execute_type, is_valid_transpose_type
@@ -37,8 +37,8 @@ public :: dtfft_get_version
 public :: is_host_executor, is_cuda_executor
 public :: is_valid_platform
 #ifdef DTFFT_WITH_CUDA
-public :: dtfft_gpu_backend_t
-public :: dtfft_get_gpu_backend_string
+public :: dtfft_backend_t
+public :: dtfft_get_backend_string
 public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl, is_backend_nvshmem
 public :: dtfft_stream_t, get_cuda_stream
 #endif
@@ -54,49 +54,49 @@ public :: dtfft_stream_t, get_cuda_stream
 
   interface dtfft_get_version
   !! Get dtFFT version
-    module procedure dtfft_get_version_current  !! Get current version
-    module procedure dtfft_get_version_required !! Get required version
+    module procedure :: dtfft_get_version_current  !! Get current version
+    module procedure :: dtfft_get_version_required !! Get required version
   end interface dtfft_get_version
 
 !------------------------------------------------------------------------------------------------
 ! Execute types
 !------------------------------------------------------------------------------------------------
-  type, bind(C) :: dtfft_execute_type_t
+  type, bind(C) :: dtfft_execute_t
   !! Type that is used during call to `execute` method
     integer(c_int32_t) :: val !! Internal value
-  end type dtfft_execute_type_t
+  end type dtfft_execute_t
 
-  type(dtfft_execute_type_t), parameter, public :: DTFFT_EXECUTE_FORWARD = dtfft_execute_type_t(CONF_DTFFT_TRANSPOSE_OUT)
-    !! Transpose out of "real" space to Fourier space
-  type(dtfft_execute_type_t), parameter, public :: DTFFT_EXECUTE_BACKWARD  = dtfft_execute_type_t(CONF_DTFFT_TRANSPOSE_IN)
-    !! Transpose into "real" space from Fourier space
-  type(dtfft_execute_type_t), parameter :: VALID_EXECUTE_TYPES(*) = [DTFFT_EXECUTE_FORWARD, DTFFT_EXECUTE_BACKWARD]
+  type(dtfft_execute_t), parameter, public :: DTFFT_EXECUTE_FORWARD = dtfft_execute_t(CONF_DTFFT_EXECUTE_FORWARD)
+    !! Perform XYZ --> YXZ --> ZXY plan execution (Forward)
+  type(dtfft_execute_t), parameter, public :: DTFFT_EXECUTE_BACKWARD  = dtfft_execute_t(CONF_DTFFT_EXECUTE_BACKWARD)
+    !! Perform ZXY --> YXZ --> XYZ plan execution (Backward)
+  type(dtfft_execute_t), parameter :: VALID_EXECUTE_TYPES(*) = [DTFFT_EXECUTE_FORWARD, DTFFT_EXECUTE_BACKWARD]
     !! Valid execute types
 
 !------------------------------------------------------------------------------------------------
 ! Transpose types
 !------------------------------------------------------------------------------------------------
-  type, bind(C) :: dtfft_transpose_type_t
+  type, bind(C) :: dtfft_transpose_t
   !! Type that is used during call to [[dtfft_plan_t(type):transpose]] method
     integer(c_int32_t) :: val !! Internal value
-  end type dtfft_transpose_type_t
+  end type dtfft_transpose_t
 
-  type(dtfft_transpose_type_t), parameter,  public :: DTFFT_TRANSPOSE_X_TO_Y = dtfft_transpose_type_t(CONF_DTFFT_TRANSPOSE_X_TO_Y)
+  type(dtfft_transpose_t), parameter,  public :: DTFFT_TRANSPOSE_X_TO_Y = dtfft_transpose_t(CONF_DTFFT_TRANSPOSE_X_TO_Y)
     !! Perform single transposition, from X aligned to Y aligned
-  type(dtfft_transpose_type_t), parameter,  public :: DTFFT_TRANSPOSE_Y_TO_X = dtfft_transpose_type_t(CONF_DTFFT_TRANSPOSE_Y_TO_X)
+  type(dtfft_transpose_t), parameter,  public :: DTFFT_TRANSPOSE_Y_TO_X = dtfft_transpose_t(CONF_DTFFT_TRANSPOSE_Y_TO_X)
     !! Perform single transposition, from Y aligned to X aligned
-  type(dtfft_transpose_type_t), parameter,  public :: DTFFT_TRANSPOSE_X_TO_Z = dtfft_transpose_type_t(CONF_DTFFT_TRANSPOSE_X_TO_Z)
+  type(dtfft_transpose_t), parameter,  public :: DTFFT_TRANSPOSE_X_TO_Z = dtfft_transpose_t(CONF_DTFFT_TRANSPOSE_X_TO_Z)
     !! Perform single transposition, from X aligned to Z aligned
-  type(dtfft_transpose_type_t), parameter,  public :: DTFFT_TRANSPOSE_Y_TO_Z = dtfft_transpose_type_t(CONF_DTFFT_TRANSPOSE_Y_TO_Z)
+  type(dtfft_transpose_t), parameter,  public :: DTFFT_TRANSPOSE_Y_TO_Z = dtfft_transpose_t(CONF_DTFFT_TRANSPOSE_Y_TO_Z)
     !! Perform single transposition, from Y aligned to Z aligned
-  type(dtfft_transpose_type_t), parameter,  public :: DTFFT_TRANSPOSE_Z_TO_Y = dtfft_transpose_type_t(CONF_DTFFT_TRANSPOSE_Z_TO_Y)
+  type(dtfft_transpose_t), parameter,  public :: DTFFT_TRANSPOSE_Z_TO_Y = dtfft_transpose_t(CONF_DTFFT_TRANSPOSE_Z_TO_Y)
     !! Perform single transposition, from Z aligned to Y aligned
-  type(dtfft_transpose_type_t), parameter,  public :: DTFFT_TRANSPOSE_Z_TO_X = dtfft_transpose_type_t(CONF_DTFFT_TRANSPOSE_Z_TO_X)
+  type(dtfft_transpose_t), parameter,  public :: DTFFT_TRANSPOSE_Z_TO_X = dtfft_transpose_t(CONF_DTFFT_TRANSPOSE_Z_TO_X)
     !! Perform single transposition, from Z aligned to X aligned
-  type(dtfft_transpose_type_t), parameter :: VALID_TRANSPOSE_TYPES(*) = [DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Y_TO_Z, DTFFT_TRANSPOSE_Z_TO_Y, DTFFT_TRANSPOSE_X_TO_Z, DTFFT_TRANSPOSE_Z_TO_X]
+  type(dtfft_transpose_t), parameter :: VALID_TRANSPOSE_TYPES(*) = [DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Y_TO_Z, DTFFT_TRANSPOSE_Z_TO_Y, DTFFT_TRANSPOSE_X_TO_Z, DTFFT_TRANSPOSE_Z_TO_X]
     !! Types of transpose that are valid to pass to `transpose` method
   character(len=*), parameter,  public :: TRANSPOSE_NAMES(-3:3) = ["Z2X", "Z2Y", "Y2X", "NUL", "X2Y", "Y2Z", "X2Z"]
-    !! String representation of `dtfft_transpose_type_t`
+    !! String representation of `dtfft_transpose_t`
 
 !------------------------------------------------------------------------------------------------
 ! External FFT executor types
@@ -205,33 +205,33 @@ public :: dtfft_stream_t, get_cuda_stream
   type(dtfft_r2r_kind_t),   parameter,  public :: DTFFT_DST_4 = dtfft_r2r_kind_t(CONF_DTFFT_DST_4)
     !! DST-IV (Logical N=2*n, inverse is `DTFFT_DST_4`)
   type(dtfft_r2r_kind_t),   parameter :: VALID_R2R_KINDS(*) = [DTFFT_DCT_1, DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_4, DTFFT_DST_1, DTFFT_DST_2, DTFFT_DST_3, DTFFT_DST_4]
-
+    !! Array of valid R2R kinds
 
 public :: operator(==)
   interface operator(==)
-    module procedure execute_type_eq    !! Check if two `dtfft_execute_type_t` are equal
-    module procedure transpose_type_eq  !! Check if two `dtfft_transpose_type_t` are equal
+    module procedure execute_type_eq    !! Check if two `dtfft_execute_t` are equal
+    module procedure transpose_type_eq  !! Check if two `dtfft_transpose_t` are equal
     module procedure executor_eq        !! Check if two `dtfft_executor_t` are equal
     module procedure effort_eq          !! Check if two `dtfft_effort_t` are equal
     module procedure precision_eq       !! Check if two `dtfft_precision_t` are equal
     module procedure r2r_kind_eq        !! Check if two `dtfft_r2r_kind_t` are equal
     module procedure platform_eq        !! Check if two `dtfft_platform_t` are equal
 #ifdef DTFFT_WITH_CUDA
-    module procedure gpu_backend_eq     !! Check if two `dtfft_gpu_backend_t` are equal
+    module procedure gpu_backend_eq     !! Check if two `dtfft_backend_t` are equal
 #endif
   end interface
 
 public :: operator(/=)
   interface operator(/=)
-    module procedure execute_type_ne    !! Check if two `dtfft_execute_type_t` are not equal
-    module procedure transpose_type_ne  !! Check if two `dtfft_transpose_type_t` are not equal
+    module procedure execute_type_ne    !! Check if two `dtfft_execute_t` are not equal
+    module procedure transpose_type_ne  !! Check if two `dtfft_transpose_t` are not equal
     module procedure executor_ne        !! Check if two `dtfft_executor_t` are not equal
     module procedure effort_ne          !! Check if two `dtfft_effort_t` are not equal
     module procedure precision_ne       !! Check if two `dtfft_precision_t` are not equal
     module procedure r2r_kind_ne        !! Check if two `dtfft_r2r_kind_t` are not equal
     module procedure platform_ne        !! Check if two `dtfft_platform_t` are not equal
 #ifdef DTFFT_WITH_CUDA
-    module procedure gpu_backend_ne     !! Check if two `dtfft_gpu_backend_t` are not equal
+    module procedure gpu_backend_ne     !! Check if two `dtfft_backend_t` are not equal
 #endif
   end interface
 
@@ -362,48 +362,48 @@ public :: operator(/=)
 !------------------------------------------------------------------------------------------------
 ! GPU Backends that are responsible for transfering data across GPUs
 !------------------------------------------------------------------------------------------------
-  type, bind(C) :: dtfft_gpu_backend_t
+  type, bind(C) :: dtfft_backend_t
   !! Type that specifies various GPU Backend present in dtFFT
     integer(c_int32_t) :: val !! Internal value
-  end type dtfft_gpu_backend_t
+  end type dtfft_backend_t
 
 
-  type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_MPI_DATATYPE = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_MPI_DATATYPE)
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_DATATYPE = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_DATATYPE)
     !! Backend that uses MPI datatypes
     !! Not really recommended to use, since it is a million times slower than other backends
     !! Left here just to show how slow MPI Datatypes are for GPU usage
-  type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_MPI_P2P = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_MPI_P2P)
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P)
     !! MPI peer-to-peer algorithm
-  type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_MPI_A2A = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_MPI_A2A)
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_A2A = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_A2A)
     !! MPI backend using MPI_Alltoallv
-  type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_NCCL = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_NCCL)
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_NCCL = dtfft_backend_t(CONF_DTFFT_BACKEND_NCCL)
     !! NCCL backend
-  type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED)
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_PIPELINED)
     !! MPI peer-to-peer algorithm with overlapping data copying and unpacking
-  type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_NCCL_PIPELINED = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_NCCL_PIPELINED)
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_NCCL_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_NCCL_PIPELINED)
     !! NCCL backend with overlapping data copying and unpacking
-  type(dtfft_gpu_backend_t),  parameter,  public  :: DTFFT_GPU_BACKEND_CUFFTMP = dtfft_gpu_backend_t(CONF_DTFFT_GPU_BACKEND_CUFFTMP)
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_CUFFTMP = dtfft_backend_t(CONF_DTFFT_BACKEND_CUFFTMP)
     !! cuFFTMp backend
-  type(dtfft_gpu_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_gpu_backend_t(VARIABLE_NOT_SET)
+  type(dtfft_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_backend_t(VARIABLE_NOT_SET)
     !! Backend is not used
-  type(dtfft_gpu_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED, DTFFT_GPU_BACKEND_NCCL_PIPELINED]
+  type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED]
     !! List of pipelined backends
-  type(dtfft_gpu_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_P2P, DTFFT_GPU_BACKEND_MPI_A2A, DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED]
+  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED]
     !! List of MPI backends
-  type(dtfft_gpu_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_GPU_BACKEND_NCCL, DTFFT_GPU_BACKEND_NCCL_PIPELINED]
+  type(dtfft_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_BACKEND_NCCL, DTFFT_BACKEND_NCCL_PIPELINED]
     !! List of NCCL backends
-  type(dtfft_gpu_backend_t),  parameter :: NVSHMEM_BACKENDS(*) = [DTFFT_GPU_BACKEND_CUFFTMP]
+  type(dtfft_backend_t),  parameter :: NVSHMEM_BACKENDS(*) = [DTFFT_BACKEND_CUFFTMP]
     !! List of NVSHMEM-based backends
-  type(dtfft_gpu_backend_t),  parameter,  public :: VALID_GPU_BACKENDS(*) = [DTFFT_GPU_BACKEND_MPI_DATATYPE         &
-                                                                             ,DTFFT_GPU_BACKEND_MPI_P2P             &
-                                                                             ,DTFFT_GPU_BACKEND_MPI_A2A             &
-                                                                             ,DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED   &
+  type(dtfft_backend_t),  parameter,  public :: VALID_GPU_BACKENDS(*) = [DTFFT_BACKEND_MPI_DATATYPE         &
+                                                                             ,DTFFT_BACKEND_MPI_P2P             &
+                                                                             ,DTFFT_BACKEND_MPI_A2A             &
+                                                                             ,DTFFT_BACKEND_MPI_P2P_PIPELINED   &
 #ifdef DTFFT_WITH_NCCL
-                                                                             ,DTFFT_GPU_BACKEND_NCCL_PIPELINED      &
-                                                                             ,DTFFT_GPU_BACKEND_NCCL                &
+                                                                             ,DTFFT_BACKEND_NCCL_PIPELINED      &
+                                                                             ,DTFFT_BACKEND_NCCL                &
 #endif
 #ifdef DTFFT_WITH_NVSHMEM
-                                                                             ,DTFFT_GPU_BACKEND_CUFFTMP             &
+                                                                             ,DTFFT_BACKEND_CUFFTMP             &
 #endif
                                                                              ]
     !! List of valid GPU backends
@@ -466,8 +466,8 @@ public :: dtfft_platform_t
 
 contains
 
-MAKE_EQ_FUN(dtfft_execute_type_t, execute_type_eq)
-MAKE_EQ_FUN(dtfft_transpose_type_t, transpose_type_eq)
+MAKE_EQ_FUN(dtfft_execute_t, execute_type_eq)
+MAKE_EQ_FUN(dtfft_transpose_t, transpose_type_eq)
 MAKE_EQ_FUN(dtfft_executor_t, executor_eq)
 MAKE_EQ_FUN(dtfft_effort_t, effort_eq)
 MAKE_EQ_FUN(dtfft_precision_t, precision_eq)
@@ -475,16 +475,16 @@ MAKE_EQ_FUN(dtfft_r2r_kind_t, r2r_kind_eq)
 MAKE_EQ_FUN(dtfft_platform_t, platform_eq)
 
 
-MAKE_NE_FUN(dtfft_execute_type_t, execute_type_ne)
-MAKE_NE_FUN(dtfft_transpose_type_t, transpose_type_ne)
+MAKE_NE_FUN(dtfft_execute_t, execute_type_ne)
+MAKE_NE_FUN(dtfft_transpose_t, transpose_type_ne)
 MAKE_NE_FUN(dtfft_executor_t, executor_ne)
 MAKE_NE_FUN(dtfft_effort_t, effort_ne)
 MAKE_NE_FUN(dtfft_precision_t, precision_ne)
 MAKE_NE_FUN(dtfft_r2r_kind_t, r2r_kind_ne)
 MAKE_NE_FUN(dtfft_platform_t, platform_ne)
 
-MAKE_VALID_FUN_DTYPE(dtfft_execute_type_t, is_valid_execute_type, VALID_EXECUTE_TYPES)
-MAKE_VALID_FUN_DTYPE(dtfft_transpose_type_t, is_valid_transpose_type, VALID_TRANSPOSE_TYPES)
+MAKE_VALID_FUN_DTYPE(dtfft_execute_t, is_valid_execute_type, VALID_EXECUTE_TYPES)
+MAKE_VALID_FUN_DTYPE(dtfft_transpose_t, is_valid_transpose_type, VALID_TRANSPOSE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_valid_executor, VALID_EXECUTORS)
 MAKE_VALID_FUN_DTYPE(dtfft_effort_t, is_valid_effort, VALID_EFFORTS)
 MAKE_VALID_FUN_DTYPE(dtfft_precision_t, is_valid_precision, VALID_PRECISIONS)
@@ -507,7 +507,7 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     integer(int32), intent(in) :: minor !! Minor version
     integer(int32), intent(in) :: patch !! Patch version
 
-    dtfft_get_version_required = CONF_DTFFT_VERSION(major, minor, patch)
+    dtfft_get_version_required = CONF_DTFFT_VERSION(major,minor,patch)
   end function dtfft_get_version_required
 
   pure function dtfft_get_error_string(error_code) result(error_string)
@@ -592,40 +592,40 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
   end function dtfft_get_error_string
 
 #ifdef DTFFT_WITH_CUDA
-  MAKE_EQ_FUN(dtfft_gpu_backend_t, gpu_backend_eq)
-  MAKE_NE_FUN(dtfft_gpu_backend_t, gpu_backend_ne)
-  MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_valid_gpu_backend, VALID_GPU_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_backend_mpi, MPI_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_backend_nccl, NCCL_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_gpu_backend_t, is_backend_nvshmem, NVSHMEM_BACKENDS)
+  MAKE_EQ_FUN(dtfft_backend_t, gpu_backend_eq)
+  MAKE_NE_FUN(dtfft_backend_t, gpu_backend_ne)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_valid_gpu_backend, VALID_GPU_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_mpi, MPI_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nccl, NCCL_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nvshmem, NVSHMEM_BACKENDS)
 
-  function dtfft_get_gpu_backend_string(gpu_backend) result(string)
+  function dtfft_get_backend_string(backend) result(string)
   !! Gets the string description of a GPU backend
-    type(dtfft_gpu_backend_t),  intent(in)  :: gpu_backend  !! GPU backend
-    character(len=:),           allocatable :: string       !! Backend string
+    type(dtfft_backend_t),  intent(in)  :: backend    !! GPU backend
+    character(len=:),       allocatable :: string     !! Backend string
 
-    select case ( gpu_backend%val )
-    case ( DTFFT_GPU_BACKEND_MPI_DATATYPE%val )
-      allocate(string, source="DTFFT_GPU_BACKEND_MPI_DATATYPE")
-    case ( DTFFT_GPU_BACKEND_MPI_P2P%val )
-      allocate(string, source="DTFFT_GPU_BACKEND_MPI_P2P")
-    case ( DTFFT_GPU_BACKEND_MPI_A2A%val )
-      allocate(string, source="DTFFT_GPU_BACKEND_MPI_A2A")
-    case ( DTFFT_GPU_BACKEND_NCCL%val )
-      allocate(string, source="DTFFT_GPU_BACKEND_NCCL")
-    case ( DTFFT_GPU_BACKEND_CUFFTMP%val )
-      allocate(string, source="DTFFT_GPU_BACKEND_CUFFTMP")
-    case ( DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED%val )
-      allocate(string, source="DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED")
-    case ( DTFFT_GPU_BACKEND_NCCL_PIPELINED%val )
-      allocate(string, source="DTFFT_GPU_BACKEND_NCCL_PIPELINED")
+    select case ( backend%val )
+    case ( DTFFT_BACKEND_MPI_DATATYPE%val )
+      allocate(string, source="DTFFT_BACKEND_MPI_DATATYPE")
+    case ( DTFFT_BACKEND_MPI_P2P%val )
+      allocate(string, source="DTFFT_BACKEND_MPI_P2P")
+    case ( DTFFT_BACKEND_MPI_A2A%val )
+      allocate(string, source="DTFFT_BACKEND_MPI_A2A")
+    case ( DTFFT_BACKEND_NCCL%val )
+      allocate(string, source="DTFFT_BACKEND_NCCL")
+    case ( DTFFT_BACKEND_CUFFTMP%val )
+      allocate(string, source="DTFFT_BACKEND_CUFFTMP")
+    case ( DTFFT_BACKEND_MPI_P2P_PIPELINED%val )
+      allocate(string, source="DTFFT_BACKEND_MPI_P2P_PIPELINED")
+    case ( DTFFT_BACKEND_NCCL_PIPELINED%val )
+      allocate(string, source="DTFFT_BACKEND_NCCL_PIPELINED")
     case ( BACKEND_NOT_SET%val )
-      allocate(string, source="Backend is not set, executing on 1 process" )
+      allocate(string, source="None" )
     case default
       allocate(string, source="Unknown backend")
     endselect
-  end function dtfft_get_gpu_backend_string
+  end function dtfft_get_backend_string
 
   function stream_from_int64(val) result(stream)
   !! Creates [[dtfft_stream_t]] from integer(cuda_stream_kind)

@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     local_error = error > local_error ? error : local_error;
   }
 
-  report_double(&nx, &ny, &nz, local_error, tf, tb);
+  reportDouble(&tf, &tb, &local_error, &nx, &ny, &nz);
 
   DTFFT_CALL( dtfft_mem_free(plan, inout) )
   DTFFT_CALL( dtfft_mem_free(plan, aux) )

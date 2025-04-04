@@ -42,7 +42,7 @@ public :: astring_f2c
 public :: count_unique
 public :: Comm_f2c
 public :: is_device_ptr
-public :: get_gpu_backend_from_env
+public :: get_backend_from_env
 public :: get_mpi_enabled_from_env, get_nccl_enabled_from_env, get_nvshmem_enabled_from_env, get_pipe_enabled_from_env
 public :: load_library, load_symbol, unload_library, dynamic_load
 #endif
@@ -56,7 +56,7 @@ public :: load_library, load_symbol, unload_library, dynamic_load
   integer(int32),             save  :: z_slab_from_env
     !! Should Z-slab be used if possible
 #ifdef DTFFT_WITH_CUDA
-  type(dtfft_gpu_backend_t),  save  :: gpu_backend_from_env
+  type(dtfft_backend_t),      save  :: backend_from_env
     !! Backend obtained from environ
   integer(int32),             save  :: mpi_enabled_from_env
     !! Should we use MPI backends during autotune or not
@@ -76,6 +76,7 @@ public :: load_library, load_symbol, unload_library, dynamic_load
   !! Converts integer to string
     module procedure int_to_str_int8
     module procedure int_to_str_int32
+    module procedure int_to_str_int64
   end interface int_to_str
 
   interface is_null_ptr
@@ -110,20 +111,21 @@ public :: string
   end interface string
 
   integer(c_int), parameter :: RTLD_LAZY = 1_c_int
-    !! Options to dlopen
+    !! Each external function reference is bound the first time the function is called.
+  integer(c_int), parameter :: RTLD_NOW  = 2_c_int
+    !! All external function references are bound when the library is loaded.
 
-public :: dlopen, dlsym, dlclose
-  interface dlopen
+  interface
   !! Load and link a dynamic library or bundle
     function dlopen(filename, mode) bind(C)
     import
       type(c_ptr)           :: dlopen       !! Handle to the library
       character(c_char)     :: filename(*)  !! Name of the library
-      integer(c_int), value :: mode         !! options to dlopen
+      integer(c_int), value :: mode         !! Options to dlopen
     end function dlopen
   end interface
 
-  interface dlsym
+  interface
   !! Get address of a symbol
     function dlsym(handle, name) bind(C)
     import
@@ -133,7 +135,7 @@ public :: dlopen, dlsym, dlclose
     end function dlsym
   end interface
 
-  interface dlclose
+  interface
   !! Close a dynamic library or bundle
     function dlclose(handle) bind(C)
     import
@@ -142,7 +144,7 @@ public :: dlopen, dlsym, dlclose
     end function dlclose
   end interface
 
-  interface dlerror
+  interface
   !! Get diagnostic information
     function dlerror() bind(C)
     import
@@ -151,7 +153,7 @@ public :: dlopen, dlsym, dlclose
   end interface
 #endif
 
-  interface mem_alloc_host
+  interface
   !! Allocates memory using C11 Standard alloc_align with 16 bytes alignment
     subroutine mem_alloc_host(alloc_size, ptr) bind(C)
     import
@@ -160,7 +162,7 @@ public :: dlopen, dlsym, dlclose
     end subroutine mem_alloc_host
   end interface
 
-  interface mem_free_host
+  interface
   !! Frees memory allocated with [[mem_alloc_host]]
     subroutine mem_free_host(ptr) bind(C)
     import
@@ -169,7 +171,7 @@ public :: dlopen, dlsym, dlclose
   end interface
 
 #ifdef DTFFT_WITH_CUDA
-  interface Comm_f2c
+  interface
   !! Converts Fortran communicator to C
     type(c_ptr) function Comm_f2c(fcomm) bind(C, name="Comm_f2c")
       import
@@ -177,7 +179,7 @@ public :: dlopen, dlsym, dlclose
     end function Comm_f2c
   end interface
 
-  interface is_device_ptr
+  interface
   !! Checks if pointer can be accessed from device
     function is_device_ptr(ptr) result(bool) bind(C)
     import
@@ -245,8 +247,8 @@ contains
         platform_from_env = DTFFT_PLATFORM_CUDA
       endif
 
-      deallocate( platforms(1)%raw, platforms(2)%raw, pltfrm_env )
-      deallocate( platforms )
+      deallocate( pltfrm_env )
+      call destroy_strings(platforms)
     endblock
 
     block
@@ -263,31 +265,28 @@ contains
       backends(6) = string("nccl_pipe")
       backends(7) = string("cufftmp")
 
-      allocate( bcknd_env, source=get_env("GPU_BACKEND", "undefined", backends) )
+      allocate( bcknd_env, source=get_env("BACKEND", "undefined", backends) )
       select case ( bcknd_env )
       case ( "undefined" )
-        gpu_backend_from_env = BACKEND_NOT_SET
+        backend_from_env = BACKEND_NOT_SET
       case ( "mpi_dt" )
-        gpu_backend_from_env = DTFFT_GPU_BACKEND_MPI_DATATYPE
+        backend_from_env = DTFFT_BACKEND_MPI_DATATYPE
       case ( "mpi_p2p" )
-        gpu_backend_from_env = DTFFT_GPU_BACKEND_MPI_P2P
+        backend_from_env = DTFFT_BACKEND_MPI_P2P
       case ( "mpi_a2a" )
-        gpu_backend_from_env = DTFFT_GPU_BACKEND_MPI_A2A
+        backend_from_env = DTFFT_BACKEND_MPI_A2A
       case ( "mpi_p2p_pipe" )
-        gpu_backend_from_env = DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED
+        backend_from_env = DTFFT_BACKEND_MPI_P2P_PIPELINED
       case ( "nccl" )
-        gpu_backend_from_env = DTFFT_GPU_BACKEND_NCCL
+        backend_from_env = DTFFT_BACKEND_NCCL
       case ( "nccl_pipe" )
-        gpu_backend_from_env = DTFFT_GPU_BACKEND_NCCL_PIPELINED
+        backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
       case ( "cufftmp" )
-        gpu_backend_from_env = DTFFT_GPU_BACKEND_CUFFTMP
+        backend_from_env = DTFFT_BACKEND_CUFFTMP
       endselect
 
       deallocate( bcknd_env )
-      do i = 1, size(backends)
-        deallocate( backends(i)%raw )
-      enddo
-      deallocate( backends )
+      call destroy_strings(backends)
     endblock
 
     mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
@@ -309,10 +308,10 @@ contains
   end function get_z_slab_from_env
 
 #ifdef DTFFT_WITH_CUDA
-  pure type(dtfft_gpu_backend_t) function get_gpu_backend_from_env()
+  pure type(dtfft_backend_t) function get_backend_from_env()
   !! Returns GPU backend to use set by environment variable
-    get_gpu_backend_from_env = gpu_backend_from_env
-  end function get_gpu_backend_from_env
+  get_backend_from_env = backend_from_env
+  end function get_backend_from_env
 
   pure integer(int32) function get_mpi_enabled_from_env()
   !! Returns usage of MPI Backends during autotune set by environment variable
@@ -404,7 +403,7 @@ contains
     if ( ( present(valid_values).and.present(min_valid_value) )           &
       .or.(.not.present(valid_values).and..not.present(min_valid_value))  &
     ) then
-      error stop "dtFFT Internal error `get_env_int32`"
+      INTERNAL_ERROR("`get_env_int32`")
     endif
 
     allocate( env_val_str, source=get_env(name) )
@@ -560,8 +559,8 @@ contains
     type(c_funptr)                :: symbol_handle  !! Function pointer
     character(c_char),  allocatable :: cname(:)     !! Temporary string
 
-    if ( is_null_ptr(handle) ) error stop "dtFFT Internal error: is_null_ptr(handle)"
-    WRITE_DEBUG("Loading symbol: "//name)
+    if ( is_null_ptr(handle) ) INTERNAL_ERROR("is_null_ptr(handle)")
+
     call astring_f2c(name//c_null_char, cname)
     symbol_handle = dlsym(handle, cname)
     deallocate(cname)
@@ -582,6 +581,7 @@ contains
   end subroutine unload_library
 
   function dynamic_load(name, symbol_names, handle, symbols) result(error_code)
+  !! Dynamically loads library and its symbols
     character(len=*), intent(in)  :: name             !! Name of library to load
     type(string),     intent(in)  :: symbol_names(:)  !! Names of functions to load
     type(c_ptr),      intent(out) :: handle           !! Loaded handle
@@ -600,22 +600,14 @@ contains
     do i = 1, size(symbol_names)
       symbols(i) = load_symbol(handle, symbol_names(i)%raw)
       if ( is_null_ptr(symbols(i)) ) then
+        call unload_library(handle)
+        symbols(1:i) = c_null_funptr
         error_code = DTFFT_ERROR_DLSYM_FAILED
         return
       endif
     end do
   end function dynamic_load
 #endif
-
-  function int_to_str_int32(n) result(string)
-  !! Convert 32-bit integer to string
-    integer(int32),   intent(in)  :: n            !! Integer to convert
-    character(len=:), allocatable :: string       !! Resulting string
-    character(len=11)             :: temp         !! Temporary string
-
-    write(temp, '(I11)') n
-    allocate( string, source= trim(adjustl(temp)))
-  end function int_to_str_int32
 
   function int_to_str_int8(n) result(string)
   !! Convert 8-bit integer to string
@@ -624,8 +616,28 @@ contains
     character(len=3)              :: temp         !! Temporary string
 
     write(temp, '(I3)') n
-    allocate( string, source= trim(adjustl(temp)))
+    allocate( string, source= trim(adjustl(temp)) )
   end function int_to_str_int8
+
+  function int_to_str_int32(n) result(string)
+  !! Convert 32-bit integer to string
+    integer(int32),   intent(in)  :: n            !! Integer to convert
+    character(len=:), allocatable :: string       !! Resulting string
+    character(len=11)             :: temp         !! Temporary string
+
+    write(temp, '(I11)') n
+    allocate( string, source= trim(adjustl(temp)) )
+  end function int_to_str_int32
+
+  function int_to_str_int64(n) result(string)
+  !! Convert 64-bit integer to string
+    integer(int64),   intent(in)  :: n            !! Integer to convert
+    character(len=:), allocatable :: string       !! Resulting string
+    character(len=20)             :: temp         !! Temporary string
+
+    write(temp, '(I20)') n
+    allocate( string, source= trim(adjustl(temp)) )
+  end function int_to_str_int64
 
   function double_to_str(n) result(string)
   !! Convert double to string

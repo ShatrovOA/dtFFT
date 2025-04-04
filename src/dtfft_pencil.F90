@@ -18,12 +18,11 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_pencil
-!! This module describes private [[pencil]] and public [[dtfft_pencil]] classes
+!! This module describes private [[pencil]] and public [[dtfft_pencil_t]] classes
 use iso_fortran_env,  only: int8, int32, int64, real64, output_unit
 use dtfft_parameters
 use dtfft_utils
 #include "dtfft_mpi.h"
-#include "dtfft_cuda.h"
 implicit none
 private
 public :: pencil
@@ -186,6 +185,7 @@ contains
 !   end subroutine output
 
   type(dtfft_pencil_t) function make_public(self)
+  !! Creates public object that users can use to create own FFT backends
     class(pencil),  intent(in)  :: self                 !! Pencil
     integer(int8) :: i  !! Counter
 
@@ -202,7 +202,8 @@ contains
   end function make_public
 
   subroutine destroy_pencil_t(self)
-    type(dtfft_pencil_t), intent(inout) :: self
+  !! Destroys pencil
+    type(dtfft_pencil_t), intent(inout) :: self !! Public pencil
 
     if ( allocated(self%counts) ) deallocate( self%counts )
     if ( allocated(self%starts) ) deallocate( self%starts )
@@ -234,9 +235,9 @@ contains
   !! Determines transpose ID based on pencils
     type(pencil),     intent(in)  :: send           !! Send pencil
     type(pencil),     intent(in)  :: recv           !! Receive pencil
-    type(dtfft_transpose_type_t)  :: transpose_type   !! Transpose ID
+    type(dtfft_transpose_t)       :: transpose_type !! Transpose ID
 
-    transpose_type = dtfft_transpose_type_t(0)
+    transpose_type = dtfft_transpose_t(0)
     if (send%aligned_dim == 1 .and. recv%aligned_dim == 2) then
       transpose_type = DTFFT_TRANSPOSE_X_TO_Y
     else if (recv%aligned_dim == 1 .and. send%aligned_dim == 2) then

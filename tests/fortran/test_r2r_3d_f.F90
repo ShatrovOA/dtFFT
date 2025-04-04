@@ -80,7 +80,7 @@ implicit none
   conf = dtfft_config_t()
   conf%enable_z_slab = .false.
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  conf%gpu_backend = DTFFT_GPU_BACKEND_MPI_P2P
+  conf%backend = DTFFT_BACKEND_MPI_P2P
   conf%platform = DTFFT_PLATFORM_CUDA
 #endif
 

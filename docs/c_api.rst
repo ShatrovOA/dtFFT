@@ -25,15 +25,15 @@ Predefined Macros
 Enumerators
 ===========
 
-.. doxygenenum:: dtfft_error_code_t
+.. doxygenenum:: dtfft_error_t
 
 ---------
 
-.. doxygenenum:: dtfft_execute_type_t
+.. doxygenenum:: dtfft_execute_t
 
 ---------
 
-.. doxygenenum:: dtfft_transpose_type_t
+.. doxygenenum:: dtfft_transpose_t
 
 ---------
 
@@ -53,7 +53,7 @@ Enumerators
 
 ---------
 
-.. doxygenenum:: dtfft_gpu_backend_t
+.. doxygenenum:: dtfft_backend_t
 
 ---------
 
@@ -90,7 +90,7 @@ Functions
 
 ---------
 
-.. doxygenfunction:: dtfft_get_gpu_backend_string
+.. doxygenfunction:: dtfft_get_backend_string
 
 ---------
 
@@ -170,7 +170,7 @@ Plan information
 
 ---------
 
-.. doxygenfunction:: dtfft_get_gpu_backend
+.. doxygenfunction:: dtfft_get_backend
 
 ---------
 

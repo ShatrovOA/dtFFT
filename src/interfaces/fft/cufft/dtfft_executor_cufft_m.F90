@@ -30,6 +30,7 @@ use dtfft_utils,                    only: int_to_str
 use dtfft_config,                   only: get_user_stream
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: cufft_executor
@@ -63,6 +64,7 @@ contains
     type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !! Kinds of r2r transform
     integer(c_int)                                  :: cufft_type, rnk
 
+    ! CHECK_CALL( load_cufft(), error_code )
     rnk = int(fft_rank, c_int)
     select case (fft_type)
     case (FFT_C2C)
@@ -136,13 +138,13 @@ contains
     integer(int64),           intent(in)  :: alloc_bytes  !! Number of bytes to allocate
     type(c_ptr),              intent(out) :: ptr          !! Allocated pointer
 
-    error stop "mem_alloc for cuFFT called"
+    INTERNAL_ERROR("mem_alloc for cuFFT called")
   end subroutine mem_alloc
 
   subroutine mem_free(ptr)
   !! Dummy method. Raises `error stop`
     type(c_ptr),               intent(in)   :: ptr        !! Pointer to free
 
-    error stop "mem_free for cuFFT called"
+    INTERNAL_ERROR("mem_free for cuFFT called")
   end subroutine mem_free
 end module dtfft_executor_cufft_m

@@ -81,7 +81,7 @@ implicit none
 
   conf = dtfft_config_t()
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
+  conf%backend = DTFFT_BACKEND_NCCL
   conf%platform = DTFFT_PLATFORM_CUDA
 #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
@@ -93,12 +93,12 @@ implicit none
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   block
-    type(dtfft_gpu_backend_t) :: selected_backend
+    type(dtfft_backend_t) :: selected_backend
 
-    selected_backend = plan%get_gpu_backend(error_code=ierr)
+    selected_backend = plan%get_backend(error_code=ierr)
     DTFFT_CHECK(ierr)
     if(comm_rank == 0) then
-      write(output_unit, '(a)') "Using backend: "//dtfft_get_gpu_backend_string(selected_backend)
+      write(output_unit, '(a)') "Using backend: "//dtfft_get_backend_string(selected_backend)
     endif
   endblock
 #endif

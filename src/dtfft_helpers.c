@@ -2,6 +2,7 @@
 #include "dtfft_private.h"
 #include <stdbool.h>
 #include <stdlib.h>
+#include <dlfcn.h>
 
 
 void mem_alloc_host(size_t alloc_size, void **ptr) {

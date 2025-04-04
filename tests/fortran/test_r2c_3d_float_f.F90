@@ -105,7 +105,7 @@ implicit none
 #endif
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
+  conf%backend = DTFFT_BACKEND_NCCL
   conf%platform = DTFFT_PLATFORM_CUDA
 #endif
 

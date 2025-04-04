@@ -48,13 +48,13 @@
  *
  * **Example**
  * @code
- * DTFFT_CXX_CALL( plan.execute(a, b, dtfft::ExecuteType::FORWARD) )
+ * DTFFT_CXX_CALL( plan.execute(a, b, dtfft::Execute::FORWARD) )
  * @endcode
  */
 #define DTFFT_CXX_CALL( call )                                \
   do {                                                        \
-    dtfft::ErrorCode ierr = call;                             \
-    if ( ierr != dtfft::ErrorCode::SUCCESS ) {                \
+    dtfft::Error ierr = call;                                 \
+    if ( ierr != dtfft::Error::SUCCESS ) {                    \
       DTFFT_THROW_EXCEPTION( dtfft::get_error_string(ierr) )  \
     }                                                         \
   } while(false);
@@ -85,7 +85,7 @@ class Version {
   };
 
 /** This enum lists the different error codes that ``dtFFT`` can return. */
-  enum class ErrorCode {
+  enum class Error {
 
 /** Successful execution */
   SUCCESS = DTFFT_SUCCESS,
@@ -164,22 +164,22 @@ class Version {
  * @param[in] error_code Error code to convert to string
  * @return String representation of `error_code`
  */
-  inline std::string get_error_string(ErrorCode error_code) noexcept {
-    const char* error_str = dtfft_get_error_string(static_cast<dtfft_error_code_t>(error_code));
+  inline std::string get_error_string(Error error_code) noexcept {
+    const char* error_str = dtfft_get_error_string(static_cast<dtfft_error_t>(error_code));
     return std::string(error_str);
   }
 
 /** This enum lists valid `execute_type` parameters that can be passed to Plan.execute. */
-  enum class ExecuteType {
-/** Perform XYZ --> YXZ --> ZXY plan execution (Forward)*/
+  enum class Execute {
+/** Perform XYZ --> YXZ --> ZXY plan execution (Forward) */
     FORWARD = DTFFT_EXECUTE_FORWARD,
 
-/** Perform ZXY --> YXZ --> XYZ plan execution (Backward)*/
+/** Perform ZXY --> YXZ --> XYZ plan execution (Backward) */
     BACKWARD = DTFFT_EXECUTE_BACKWARD
   };
 
 /** This enum lists valid `transpose_type` parameters that can be passed to Plan.transpose */
-  enum class TransposeType {
+  enum class Transpose {
 /** Transpose from Fortran X aligned to Fortran Y aligned */
     X_TO_Y = DTFFT_TRANSPOSE_X_TO_Y,
 
@@ -279,43 +279,43 @@ class Version {
  *
  * @note This enum is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-  enum class GPUBackend {
+  enum class Backend {
 
 /** Backend that uses MPI datatypes
  * @details Not really recommended to use, since it is a million times slower than other backends.
  * It is present here just to show how slow MPI Datatypes are for GPU usage
  */
-    MPI_DATATYPE = DTFFT_GPU_BACKEND_MPI_DATATYPE,
+    MPI_DATATYPE = DTFFT_BACKEND_MPI_DATATYPE,
 
 /** MPI peer-to-peer algorithm */
-    MPI_P2P = DTFFT_GPU_BACKEND_MPI_P2P,
+    MPI_P2P = DTFFT_BACKEND_MPI_P2P,
 
 /** MPI peer-to-peer algorithm with overlapping data copying and unpacking */
-    MPI_P2P_PIPELINED = DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED,
+    MPI_P2P_PIPELINED = DTFFT_BACKEND_MPI_P2P_PIPELINED,
 
 /** MPI backend using MPI_Alltoallv */
-    MPI_A2A = DTFFT_GPU_BACKEND_MPI_A2A,
+    MPI_A2A = DTFFT_BACKEND_MPI_A2A,
 
 /** NCCL backend */
-    NCCL = DTFFT_GPU_BACKEND_NCCL,
+    NCCL = DTFFT_BACKEND_NCCL,
 
 /** NCCL backend with overlapping data copying and unpacking */
-    NCCL_PIPELINED = DTFFT_GPU_BACKEND_NCCL_PIPELINED,
+    NCCL_PIPELINED = DTFFT_BACKEND_NCCL_PIPELINED,
 
 /** cuFFTMp backend */
-    CUFFTMP = DTFFT_GPU_BACKEND_CUFFTMP
+    CUFFTMP = DTFFT_BACKEND_CUFFTMP
   };
 
 /**
  * @brief Returns string with name of backend provided as argument.
  *
- * @param[in]       gpu_backend   Backend to represent
+ * @param[in]       backend   Backend to represent
  *
- * @return String representation of `gpu_backend`.
+ * @return String representation of `backend`.
  * @note This function is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-  std::string get_gpu_backend_string(const GPUBackend gpu_backend) {
-    const char *gpu_str = dtfft_get_gpu_backend_string( static_cast<dtfft_gpu_backend_t>(gpu_backend));
+  std::string get_backend_string(const Backend backend) {
+    const char *gpu_str = dtfft_get_backend_string( static_cast<dtfft_backend_t>(backend));
     return std::string(gpu_str);
   }
 
@@ -364,7 +364,7 @@ class Version {
       std::vector<int32_t> counts;
 
       /** Creates vector from underlying struct pointer */
-      std::vector<int32_t> create_vector(const int32_t values[], uint8_t size) const noexcept {
+      inline std::vector<int32_t> create_vector(const int32_t values[], uint8_t size) const noexcept {
         std::vector<int32_t> vec;
         vec.reserve(size);
         std::copy(values, values + size, std::back_inserter(vec));
@@ -382,49 +382,49 @@ class Version {
         counts(create_vector(c_pencil.counts, c_pencil.ndims)) {}
 
     /** @return Number of dimensions in a pencil */
-      uint8_t get_ndims() const {
+      inline uint8_t get_ndims() const {
         if ( !is_created ) {
-          DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
+          DTFFT_THROW_EXCEPTION(get_error_string(Error::INVALID_USAGE));
         }
         return pencil.ndims;
       }
 
     /** @return Aligned dimension id starting from 1 */
-      uint8_t get_dim() const {
+      inline uint8_t get_dim() const {
         if ( !is_created ) {
-          DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
+          DTFFT_THROW_EXCEPTION(get_error_string(Error::INVALID_USAGE));
         }
         return pencil.dim;
       }
 
     /** @return Local starts in natural Fortran order */
-      const std::vector<int32_t>& get_starts() const {
+      inline const std::vector<int32_t>& get_starts() const {
         if ( !is_created ) {
-          DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
+          DTFFT_THROW_EXCEPTION(get_error_string(Error::INVALID_USAGE));
         }
         return starts;
       }
 
     /** @return Local counts in natural Fortran order */
-      const std::vector<int32_t>& get_counts() const {
+      inline const std::vector<int32_t>& get_counts() const {
         if ( !is_created ) {
-          DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
+          DTFFT_THROW_EXCEPTION(get_error_string(Error::INVALID_USAGE));
         }
         return counts;
       }
 
       /** @return Total number of elements in a pencil */
-      size_t get_size() const {
+      inline size_t get_size() const {
         if (!is_created) {
-          DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
+          DTFFT_THROW_EXCEPTION(get_error_string(Error::INVALID_USAGE));
         }
         return pencil.size;
       }
 
     /** @return Underlying C structure */
-      const dtfft_pencil_t& c_struct() const {
+      inline const dtfft_pencil_t& c_struct() const {
         if ( !is_created ) {
-          DTFFT_THROW_EXCEPTION(get_error_string(ErrorCode::INVALID_USAGE));
+          DTFFT_THROW_EXCEPTION(get_error_string(Error::INVALID_USAGE));
         }
         return pencil;
       }
@@ -441,7 +441,7 @@ class Version {
     public:
       /** Creates and sets default configuration values */
       Config() {
-        DTFFT_CXX_CALL( static_cast<ErrorCode>(dtfft_create_config(&config)) );
+        DTFFT_CXX_CALL( static_cast<Error>(dtfft_create_config(&config)) );
       }
 
 /**
@@ -449,7 +449,7 @@ class Version {
  *
  * @details Default is `true`
  *
- * One should consider disabling Z-slab optimization in order to resolve `ErrorCode::VKFFT_R2R_2D_PLAN` error
+ * One should consider disabling Z-slab optimization in order to resolve `Error::VKFFT_R2R_2D_PLAN` error
  * OR when underlying FFT implementation of 2D plan is too slow.
  *
  * In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
@@ -482,10 +482,10 @@ class Version {
 /**
  * @brief Sets GPU Backend that will be used by dtFFT when `effort` is Effort::ESTIMATE or Effort::MEASURE.
  *
- * @details Default is GPUBackend::NCCL
+ * @details Default is Backend::NCCL
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_gpu_backend(GPUBackend gpu_backend) noexcept {config.gpu_backend = static_cast<dtfft_gpu_backend_t>(gpu_backend); }
+      inline void set_backend(Backend backend) noexcept {config.backend = static_cast<dtfft_backend_t>(backend); }
 
 /**
  * @brief Sets whether MPI GPU Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
@@ -540,11 +540,11 @@ class Version {
 
 /** @brief Sets configuration values to dtFFT. Must be called before plan creation to take effect.
  *
- * @return ErrorCode::SUCCESS if the call was successful, error code otherwise
+ * @return Error::SUCCESS if the call was successful, error code otherwise
  * @see Config
  */
-  inline ErrorCode set_config(Config config) noexcept {
-    return static_cast<ErrorCode>(dtfft_set_config(config.c_struct()));
+  inline Error set_config(Config config) noexcept {
+    return static_cast<Error>(dtfft_set_config(config.c_struct()));
   }
 
   /** Abstract plan for all dtFFT plans.
@@ -559,27 +559,27 @@ class Version {
     public:
 
 /** @brief Checks if plan is using Z-slab optimization.
- * If `true` then flags TransposeType::X_TO_Z and TransposeType::Z_TO_X will be valid to pass to Plan.transpose method.
+ * If `true` then flags Transpose::X_TO_Z and Transpose::Z_TO_X will be valid to pass to Plan.transpose method.
  *
  * @param[out]     is_z_slab_enabled       Boolean value if Z-slab is used.
  *
- * @return ErrorCode::SUCCESS if call was without error, error code otherwise
+ * @return Error::SUCCESS if call was without error, error code otherwise
  */
       inline
-      ErrorCode
+      Error
       get_z_slab_enabled(bool *is_z_slab_enabled) const noexcept
       {
-        return static_cast<ErrorCode>(dtfft_get_z_slab_enabled(_plan, is_z_slab_enabled));
+        return static_cast<Error>(dtfft_get_z_slab_enabled(_plan, is_z_slab_enabled));
       }
 
 /**
  * @brief Prints plan-related information to stdout
  *
- * @return ErrorCode::SUCCESS if call was without error, error code otherwise
+ * @return Error::SUCCESS if call was without error, error code otherwise
  */
       inline
-      ErrorCode
-      report() const noexcept { return static_cast<ErrorCode>(dtfft_report(_plan)); }
+      Error
+      report() const noexcept { return static_cast<Error>(dtfft_report(_plan)); }
 
 /**
  * @brief Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation,
@@ -592,15 +592,15 @@ class Version {
  *                                  - 3 for ZXY layout
  * @param[out]    pencil          Pencil class
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode
+      Error
       get_pencil(const int8_t dim, Pencil& pencil) const noexcept
       {
         dtfft_pencil_t c_pencil;
-        const ErrorCode error_code = static_cast<ErrorCode>(dtfft_get_pencil(_plan, dim, &c_pencil));
-        if ( error_code == ErrorCode::SUCCESS ) {
+        const Error error_code = static_cast<Error>(dtfft_get_pencil(_plan, dim, &c_pencil));
+        if ( error_code == Error::SUCCESS ) {
           pencil = Pencil(c_pencil);
         }
         return error_code;
@@ -613,15 +613,15 @@ class Version {
  * @param[in]      execute_type         Type of execution
  * @param[inout]   aux                  Optional auxiliary pointer
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  * @note
  */
       inline
-      ErrorCode
-      execute(void *in, void *out, const ExecuteType execute_type, void *aux=nullptr) const noexcept
+      Error
+      execute(void *in, void *out, const Execute execute_type, void *aux=nullptr) const noexcept
       {
-        dtfft_error_code_t error_code = dtfft_execute(_plan, in, out, static_cast<dtfft_execute_type_t>(execute_type), aux);
-        return static_cast<ErrorCode>(error_code);
+        dtfft_error_t error_code = dtfft_execute(_plan, in, out, static_cast<dtfft_execute_t>(execute_type), aux);
+        return static_cast<Error>(error_code);
       }
 
 
@@ -632,14 +632,14 @@ class Version {
  * @param[out]     out                   Transposed pointer
  * @param[in]      transpose_type        Type of transpose to perform.
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode
-      transpose(void *in, void *out, const TransposeType transpose_type) const noexcept
+      Error
+      transpose(void *in, void *out, const Transpose transpose_type) const noexcept
       {
-        dtfft_error_code_t error_code = dtfft_transpose(_plan, in, out, static_cast<dtfft_transpose_type_t>(transpose_type));
-        return static_cast<ErrorCode>(error_code);
+        dtfft_error_t error_code = dtfft_transpose(_plan, in, out, static_cast<dtfft_transpose_t>(transpose_type));
+        return static_cast<Error>(error_code);
       }
 
 
@@ -648,12 +648,12 @@ class Version {
  * @param[out]     alloc_size       Minimum number of elements to be allocated for `in`, `out` or `aux` buffers.
  *                                    Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode
+      Error
       get_alloc_size(size_t *alloc_size) const noexcept
-      {return static_cast<ErrorCode>(dtfft_get_alloc_size(_plan, alloc_size));}
+      {return static_cast<Error>(dtfft_get_alloc_size(_plan, alloc_size));}
 
 
 /** @brief Get grid decomposition information. Results may differ on different MPI processes
@@ -665,10 +665,10 @@ class Version {
  * @param[out]   alloc_size             Minimum number of elements to be allocated for `in`, `out` or `aux` buffers.
  *                                      Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode
+      Error
       get_local_sizes(
         std::vector<int32_t>&in_starts,
         std::vector<int32_t>&in_counts,
@@ -687,17 +687,17 @@ class Version {
  * @param[out]   alloc_size             Minimum number of elements needs to be allocated for `in`, `out` or `aux` buffers.
  *                                      Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode
+      Error
       get_local_sizes(
         int32_t *in_starts=nullptr,
         int32_t *in_counts=nullptr,
         int32_t *out_starts=nullptr,
         int32_t *out_counts=nullptr,
         size_t *alloc_size=nullptr) const noexcept
-      {return static_cast<ErrorCode>(dtfft_get_local_sizes(_plan, in_starts, in_counts, out_starts, out_counts, alloc_size));}
+      {return static_cast<Error>(dtfft_get_local_sizes(_plan, in_starts, in_counts, out_starts, out_counts, alloc_size));}
 
 
 /**
@@ -705,12 +705,12 @@ class Version {
  *
  * @param[out]    element_size    Size of element in bytes
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode
+      Error
       get_element_size(size_t *element_size) const noexcept
-      {return static_cast<ErrorCode>(dtfft_get_element_size(_plan, element_size));}
+      {return static_cast<Error>(dtfft_get_element_size(_plan, element_size));}
 
 
 /**
@@ -719,12 +719,12 @@ class Version {
  * @param[in]     alloc_bytes     Number of bytes to allocate
  * @param[out]    ptr             Allocated pointer
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode
+      Error
       mem_alloc(size_t alloc_bytes, void **ptr) const noexcept
-      {return static_cast<ErrorCode>(dtfft_mem_alloc(_plan, alloc_bytes, ptr));}
+      {return static_cast<Error>(dtfft_mem_alloc(_plan, alloc_bytes, ptr));}
 
 
 /**
@@ -732,22 +732,22 @@ class Version {
  *
  * @param[inout]  ptr             Allocated pointer
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode
+      Error
       mem_free(void *ptr) const noexcept
-      {return static_cast<ErrorCode>(dtfft_mem_free(_plan, ptr));}
+      {return static_cast<Error>(dtfft_mem_free(_plan, ptr));}
 
 
 /** @brief Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  */
       inline
-      ErrorCode destroy() noexcept
+      Error destroy() noexcept
       {
-        return static_cast<ErrorCode>(dtfft_destroy(&_plan));
+        return static_cast<Error>(dtfft_destroy(&_plan));
       }
 
 
@@ -759,31 +759,31 @@ class Version {
  *
  * @param[out]     stream         CUDA stream associated with plan
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
       inline
-      ErrorCode
+      Error
       get_stream(dtfft_stream_t *stream) const noexcept
-      {return static_cast<ErrorCode>(dtfft_get_stream(_plan, stream));}
+      {return static_cast<Error>(dtfft_get_stream(_plan, stream));}
 
 /**
  * @brief Returns selected GPU backend during autotune if `effort` is Effort::PATIENT.
  *
  * If `effort` passed to any create function is Effort::ESTIMATE or Effort::MEASURE
- * returns value set by Config.set_gpu_backend followed by set_config() or default value, which is GPUBackend::NCCL.
+ * returns value set by Config.set_backend followed by set_config() or default value, which is Backend::NCCL.
  *
- * @return ErrorCode::SUCCESS on success or error code on failure.
+ * @return Error::SUCCESS on success or error code on failure.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
       inline
-      ErrorCode
-      get_gpu_backend(GPUBackend *gpu_backend) const noexcept
+      Error
+      get_backend(Backend *backend) const noexcept
       {
-        dtfft_gpu_backend_t gpu_backend_;
-        dtfft_error_code_t error_code = dtfft_get_gpu_backend(_plan, &gpu_backend_);
-        *gpu_backend = static_cast<GPUBackend>(gpu_backend_);
-        return static_cast<ErrorCode>(error_code);
+        dtfft_backend_t backend_;
+        dtfft_error_t error_code = dtfft_get_backend(_plan, &backend_);
+        *backend = static_cast<Backend>(backend_);
+        return static_cast<Error>(error_code);
       }
 
 /**
@@ -792,13 +792,13 @@ class Version {
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
       inline
-      ErrorCode
+      Error
       get_platform(Platform *platform) const noexcept
       {
         dtfft_platform_t platform_;
-        dtfft_error_code_t error_code = dtfft_get_platform(_plan, &platform_);
+        dtfft_error_t error_code = dtfft_get_platform(_plan, &platform_);
         *platform = static_cast<Platform>(platform_);
-        return static_cast<ErrorCode>(error_code);
+        return static_cast<Error>(error_code);
       }
 #endif
 
@@ -872,11 +872,11 @@ class Version {
         const Effort effort=Effort::ESTIMATE,
         const Executor executor=Executor::NONE
       ){
-        dtfft_error_code_t error_code = dtfft_create_plan_c2c(ndims, dims, comm,
+        dtfft_error_t error_code = dtfft_create_plan_c2c(ndims, dims, comm,
           static_cast<dtfft_precision_t>(precision),
           static_cast<dtfft_effort_t>(effort),
           static_cast<dtfft_executor_t>(executor), &_plan);
-        DTFFT_CXX_CALL( static_cast<ErrorCode>(error_code) )
+        DTFFT_CXX_CALL( static_cast<Error>(error_code) )
       }
   };
 
@@ -933,11 +933,11 @@ class Version {
         const Precision precision=Precision::DOUBLE,
         const Effort effort=Effort::ESTIMATE
       ){
-        dtfft_error_code_t error_code = dtfft_create_plan_r2c(ndims, dims, comm,
+        dtfft_error_t error_code = dtfft_create_plan_r2c(ndims, dims, comm,
           static_cast<dtfft_precision_t>(precision),
           static_cast<dtfft_effort_t>(effort),
           static_cast<dtfft_executor_t>(executor), &_plan);
-        DTFFT_CXX_CALL( static_cast<ErrorCode>(error_code) )
+        DTFFT_CXX_CALL( static_cast<Error>(error_code) )
       }
   };
 #endif
@@ -1008,11 +1008,11 @@ class Version {
         const Effort effort=Effort::ESTIMATE,
         const Executor executor=Executor::NONE
       ) {
-        dtfft_error_code_t error_code = dtfft_create_plan_r2r(ndims, dims, (dtfft_r2r_kind_t*)(kinds), comm,
+        dtfft_error_t error_code = dtfft_create_plan_r2r(ndims, dims, (dtfft_r2r_kind_t*)(kinds), comm,
           static_cast<dtfft_precision_t>(precision),
           static_cast<dtfft_effort_t>(effort),
           static_cast<dtfft_executor_t>(executor), &_plan);
-        DTFFT_CXX_CALL( static_cast<ErrorCode>(error_code) )
+        DTFFT_CXX_CALL( static_cast<Error>(error_code) )
       }
   };
 }

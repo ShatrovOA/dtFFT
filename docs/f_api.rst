@@ -161,10 +161,10 @@ All error codes that ``dtFFT`` can return are listed below.
 Basic types
 ===========
 
-dtfft_execute_type_t
+dtfft_execute_t
 ---------------------
 
-.. f:type:: dtfft_execute_type_t
+.. f:type:: dtfft_execute_t
 
   Enumerated type used to specify the direction of execution in the :f:func:`execute` method.
 
@@ -181,10 +181,10 @@ _____________________
 
 ------
 
-dtfft_transpose_type_t
+dtfft_transpose_t
 -----------------------
 
-.. f:type:: dtfft_transpose_type_t
+.. f:type:: dtfft_transpose_t
 
   Enumerated type used to specify the transposition direction in the :f:func:`transpose` method.
 
@@ -344,10 +344,10 @@ _____________________
 
 ------
 
-dtfft_gpu_backend_t
+dtfft_backend_t
 -----------------------
 
-.. f:type:: dtfft_gpu_backend_t
+.. f:type:: dtfft_backend_t
 
   Type that specifies various GPU Backend present in ``dtFFT``
 
@@ -356,47 +356,47 @@ dtfft_gpu_backend_t
 Type Parameters
 _____________________
 
-.. f:variable:: DTFFT_GPU_BACKEND_MPI_DATATYPE
+.. f:variable:: DTFFT_BACKEND_MPI_DATATYPE
 
   Backend that uses MPI datatypes.
 
   Not really recommended to use, since it is a million times slower than other backends.
   It is present here just to show how slow MPI Datatypes are for GPU usage
 
-.. f:variable:: DTFFT_GPU_BACKEND_MPI_P2P
+.. f:variable:: DTFFT_BACKEND_MPI_P2P
 
   MPI peer-to-peer algorithm
 
-.. f:variable:: DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED
+.. f:variable:: DTFFT_BACKEND_MPI_P2P_PIPELINED
 
   MPI peer-to-peer algorithm with overlapping data copying and unpacking
 
-.. f:variable:: DTFFT_GPU_BACKEND_MPI_A2A
+.. f:variable:: DTFFT_BACKEND_MPI_A2A
 
   MPI backend using MPI_Alltoallv
 
-.. f:variable:: DTFFT_GPU_BACKEND_NCCL
+.. f:variable:: DTFFT_BACKEND_NCCL
 
   NCCL backend
 
-.. f:variable:: DTFFT_GPU_BACKEND_NCCL_PIPELINED
+.. f:variable:: DTFFT_BACKEND_NCCL_PIPELINED
 
   NCCL backend with overlapping data copying and unpacking
 
-.. f:variable:: DTFFT_GPU_BACKEND_CUFFTMP
+.. f:variable:: DTFFT_BACKEND_CUFFTMP
 
   cuFFTMp backend
 
 Related Type functions
 _______________________
 
-.. f:function:: dtfft_get_gpu_backend_string(gpu_backend)
+.. f:function:: dtfft_get_backend_string(backend)
 
   Gets the string description of a GPU backend
 
   This function is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
-  :p dtfft_gpu_backend_t gpu_backend [in]:
+  :p dtfft_backend_t backend [in]:
     GPU backend
   :r character(len=:), allocatable string:
     Backend string
@@ -445,11 +445,11 @@ dtfft_config_t
 
     .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
-  :f type(dtfft_gpu_backend_t) gpu_backend:
+  :f type(dtfft_backend_t) backend:
 
     Backend that will be used by dtFFT when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
 
-    Default is :f:var:`DTFFT_GPU_BACKEND_NCCL`
+    Default is :f:var:`DTFFT_BACKEND_NCCL`
 
     .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
@@ -602,6 +602,9 @@ _______________________
 Version handling
 ================
 
+Parameters
+----------
+
 .. f:variable:: DTFFT_VERSION_MAJOR
 
   ``dtFFT`` Major Version
@@ -617,6 +620,11 @@ Version handling
 .. f:variable:: DTFFT_VERSION_CODE
 
   ``dtFFT`` Version Code. Can be used in Version comparison
+
+------
+
+Functions
+---------
 
 .. f:function:: dtfft_get_version
 
@@ -656,7 +664,7 @@ _________
     Incoming buffer of any rank and kind.
   :p type(*), dimension(..) out [inout]:
     Resulting buffer of any rank and kind
-  :p dtfft_transpose_type_t transpose_type [in]:
+  :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
@@ -674,7 +682,7 @@ _______
     Incoming buffer of any rank and kind.
   :p type(*), dimension(..) out [inout]:
     Resulting buffer of any rank and kind
-  :p dtfft_execute_type_t execute_type [in]:
+  :p dtfft_execute_t execute_type [in]:
     Type of execution
   :o type(*), dimension(..) aux [inout, optional]:
     Optional auxiliary buffer.
@@ -818,40 +826,51 @@ ______
 
 ------
 
-get_gpu_backend
+get_backend
 _______________
 
-.. f:function:: get_gpu_backend([error_code])
+.. f:function:: get_backend([error_code])
 
   Returns the fastest detected GPU backend if ``effort`` is :f:var:`DTFFT_PATIENT`.
 
   If ``effort`` is :f:var:`DTFFT_ESTIMATE` or :f:var:`DTFFT_MEASURE`, returns the value set by :f:func:`dtfft_set_config`
-  or the default, :f:var:`DTFFT_GPU_BACKEND_NCCL`.
+  or the default, :f:var:`DTFFT_BACKEND_NCCL`.
 
   .. note:: This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
-  :r dtfft_gpu_backend_t: Selected GPU backend
+  :r dtfft_backend_t: Selected GPU backend
 
 ------
 
 get_stream
 __________
 
-.. f:function:: get_stream([error_code])
+This method is overloaded to support both CUDA and dtFFT streams.
+
+.. f:subroutine:: get_stream(stream[, error_code])
 
   Returns CUDA stream associated with plan
 
   .. note:: This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
+  :p integer(cuda_stream_kind): CUDA stream associated with plan
+
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
-  :r integer(cuda_stream_kind): CUDA stream associated with plan
+.. f:subroutine:: get_stream(stream[, error_code])
 
-------
+  Returns dtFFT stream associated with plan
+
+  .. note:: This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+
+  :p type(dtfft_stream_t): dtFFT stream associated with plan
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
 
 Real-to-Real plan
 =================
@@ -882,30 +901,6 @@ ______
   :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
   :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
 
-  :from: :ref:`constructor<constructor_r2r>`
-
-------
-
-.. _constructor_r2r:
-
-constructor
-___________
-
-.. f:function:: dtfft_plan_r2r_t(dims [, kinds, comm, precision, effort, executor, error_code])
-
-  R2R Plan Constructor.
-
-  :p integer(int32) dims(:)[in]: Global dimensions of the transform as an integer array.
-  :o dtfft_r2r_kind_t kinds(:) [in, optional]: Kinds of R2R transforms, default = empty.
-  :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
-  :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
-  :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
-  :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
-  :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
-  :r dtfft_plan_r2r_t: Plan ready for execution
-
-  :to: :ref:`create<create_r2r>`
-
 ------
 
 Complex-to-Complex plan
@@ -935,29 +930,6 @@ ______
   :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
   :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
   :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
-
-  :from: :ref:`constructor<constructor_c2c>`
-
-------
-
-.. _constructor_c2c:
-
-constructor
-___________
-
-.. f:function:: dtfft_plan_c2c_t(dims [, kinds, comm, precision, effort, executor, error_code])
-
-  C2C Plan Constructor.
-
-  :p integer(int32) dims(:)[in]: Global dimensions of the transform as an integer array.
-  :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
-  :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
-  :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
-  :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
-  :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
-  :r dtfft_plan_c2c_t: Plan ready for execution
-
-  :to: :ref:`create<create_c2c>`
 
 ------
 
@@ -990,27 +962,4 @@ ______
   :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
   :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = ``undefined``. Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
   :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
-
-  :from: :ref:`constructor<constructor_r2c>`
-
-------
-
-.. _constructor_r2c:
-
-constructor
-___________
-
-.. f:function:: dtfft_plan_r2c_t(dims [, comm, precision, effort, executor, error_code])
-
-  R2C Plan Constructor.
-
-  :p integer(int32) dims(:)[in]: Global dimensions of the transform as an integer array.
-  :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
-  :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
-  :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
-  :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = undefined. Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
-  :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
-  :r dtfft_plan_r2c_t: Plan ready for execution
-
-  :to: :ref:`create<create_r2c>`
 

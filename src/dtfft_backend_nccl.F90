@@ -17,7 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
-module dtfft_backend_nccl
+module dtfft_backend_nccl_m
 !! NCCL Based GPU Backends [[backend_nccl]]
 use iso_fortran_env
 use iso_c_binding, only: c_ptr, c_f_pointer
@@ -28,6 +28,7 @@ use dtfft_parameters
 use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: backend_nccl
@@ -36,6 +37,7 @@ public :: backend_nccl
   !! NCCL backend
   private
     type(ncclComm)                :: nccl_comm
+      !! NCCL Communicator
   contains
     procedure         :: create_private => create_nccl        !! Creates NCCL backend
     procedure         :: execute_private => execute_nccl      !! Executes NCCL backend
@@ -46,13 +48,13 @@ contains
 
   subroutine create_nccl(self, helper, tranpose_type, base_storage)
   !! Creates NCCL backend
-    class(backend_nccl),          intent(inout) :: self               !! NCCL backend
-    type(backend_helper),         intent(in)    :: helper             !! Backend helper
-    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type
-    integer(int8),                intent(in)    :: base_storage       !! Number of bytes to store single element
+    class(backend_nccl),      intent(inout) :: self               !! NCCL backend
+    type(backend_helper),     intent(in)    :: helper             !! Backend helper
+    type(dtfft_transpose_t),  intent(in)    :: tranpose_type      !! Type of transpose to create (unused)
+    integer(int8),            intent(in)    :: base_storage       !! Number of bytes to store single element (unused)
 
-    if ( .not. is_backend_nccl(self%gpu_backend) ) error stop "dtFFT internal error: .not. is_backend_nccl"
-    if ( .not. helper%is_nccl_created ) error stop "dtFFT internal error: .not. helper%is_nccl_created"
+    if ( .not. is_backend_nccl(self%backend) ) INTERNAL_ERROR(".not. is_backend_nccl")
+    if ( .not. helper%is_nccl_created ) INTERNAL_ERROR(".not. helper%is_nccl_created")
     self%nccl_comm = helper%nccl_comm
   end subroutine create_nccl
 
@@ -97,4 +99,4 @@ contains
     class(backend_nccl),  intent(inout) :: self       !! NCCL backend
 
   end subroutine destroy_nccl
-end module dtfft_backend_nccl
+end module dtfft_backend_nccl_m

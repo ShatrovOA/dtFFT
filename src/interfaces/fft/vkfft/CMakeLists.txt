@@ -1,7 +1,6 @@
 target_sources(dtfft PRIVATE
   dtfft_executor_vkfft_m.F90
   dtfft_interface_vkfft_m.F90
-  # dtfft_interface_vkfft_native.c
 )
 
 if ( NOT VKFFT_DIR )
@@ -14,9 +13,8 @@ if ( DTFFT_WITH_CUDA )
     dtfft_interface_vkfft_native.c
   )
   target_include_directories(dtfft_vkfft_cuda PRIVATE $<$<COMPILE_LANGUAGE:C>:${VKFFT_DIR}>)
-  target_include_directories(dtfft_vkfft_cuda PRIVATE $<BUILD_INTERFACE:${DTFFT_MODULE_DIR}>)
   target_compile_definitions(dtfft_vkfft_cuda PRIVATE $<$<COMPILE_LANGUAGE:C>:VKFFT_BACKEND=1>)
-  target_link_libraries(dtfft_vkfft_cuda PRIVATE CUDA::cudart CUDA::cuda_driver CUDA::nvrtc)
+  target_link_libraries(dtfft_vkfft_cuda PRIVATE CUDA::cudart CUDA::nvrtc CUDA::cuda_driver)
   target_link_libraries(dtfft_vkfft_cuda PRIVATE MPI::MPI_C)
 
   add_dependencies(dtfft dtfft_vkfft_cuda)
