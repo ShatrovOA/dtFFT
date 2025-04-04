@@ -43,19 +43,19 @@ public :: ncclDataType
   type(ncclDataType), parameter, public :: ncclFloat = ncclDataType(7)
 
 
-  interface ncclGetErrorString_c
+  interface
+  !! Returns a human-readable string corresponding to the passed error code.
     function ncclGetErrorString_c(ncclResult_t)                                     &
       result(message)                                                               &
       bind(C, name="ncclGetErrorString")
     import
-    !! Returns a human-readable string corresponding to the passed error code.
       integer(c_int32_t), intent(in), value :: ncclResult_t    !! Completion status of a NCCL function.
       type(c_ptr)                           :: message         !! Pointer to message
     end function ncclGetErrorString_c
   endinterface
 
 public :: ncclGetUniqueId
-  interface ncclGetUniqueId
+  interface
   !! Generates an Id to be used in ncclCommInitRank. 
   !! ncclGetUniqueId should be called once when creating a communicator and the Id should be 
   !! distributed to all ranks in the communicator before calling ncclCommInitRank. 
@@ -70,7 +70,7 @@ public :: ncclGetUniqueId
   end interface
   
 public :: ncclMemAlloc
-  interface ncclMemAlloc
+  interface
   !! Allocate a GPU buffer with size.
   !! Allocated buffer head address will be returned by ptr, and the actual allocated size can be larger 
   !! than requested because of the buffer granularity requirements from all types of NCCL optimizations.
@@ -85,7 +85,7 @@ public :: ncclMemAlloc
   end interface
 
 public :: ncclMemFree
-  interface ncclMemFree
+  interface
   !! Free memory allocated by ncclMemAlloc().
     function ncclMemFree(ptr)                                                       &
       result(ncclResult_t)                                                          &
@@ -97,7 +97,7 @@ public :: ncclMemFree
   end interface
 
 public :: ncclCommInitRank
-  interface ncclCommInitRank
+  interface
   !! Creates a new communicator (multi thread/process version).
   !!
   !! rank must be between 0 and nranks-1 and unique within a communicator clique. 
@@ -118,7 +118,7 @@ public :: ncclCommInitRank
   end interface
 
 public :: ncclSend
-  interface ncclSend
+  interface
   !! Send data from sendbuff to rank peer.
   !!
   !! Rank peer needs to call ncclRecv with the same datatype and the same count as this rank.
@@ -141,7 +141,7 @@ public :: ncclSend
   end interface
 
 public :: ncclRecv
-  interface ncclRecv
+  interface
   !! Receive data from rank peer into recvbuff.
   !!
   !! Rank peer needs to call ncclSend with the same datatype and the same count as this rank.
@@ -164,7 +164,7 @@ public :: ncclRecv
   end interface
 
 public :: ncclGroupStart
-  interface ncclGroupStart
+  interface
   !! Start a group call.
   !!
   !! All subsequent calls to NCCL until ncclGroupEnd will not block due to inter-CPU synchronization.
@@ -177,7 +177,7 @@ public :: ncclGroupStart
   end interface
 
 public :: ncclGroupEnd
-  interface ncclGroupEnd
+  interface
   !! End a group call.
   !!
   !! Returns when all operations since ncclGroupStart have been processed.
@@ -192,7 +192,7 @@ public :: ncclGroupEnd
   end interface
 
 public :: ncclCommDestroy
-  interface ncclCommDestroy
+  interface
   !! Destroy a communicator object comm.
     function ncclCommDestroy(comm)                                                  &
       result(ncclResult_t)                                                          &
@@ -204,7 +204,7 @@ public :: ncclCommDestroy
   end interface
 
 public :: ncclCommRegister
-  interface ncclCommRegister
+  interface
   !! Register a buffer for collective communication.
     function ncclCommRegister(comm, buff, size, handle)                             &
       result(ncclResult_t)                                                          &
@@ -219,7 +219,7 @@ public :: ncclCommRegister
   end interface
 
 public :: ncclCommDeregister
-  interface ncclCommDeregister
+  interface
   !! Deregister a buffer for collective communication.
     function ncclCommDeregister(comm, handle)                                       &
       result(ncclResult_t)                                                          &

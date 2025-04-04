@@ -40,6 +40,18 @@ public :: kernelArgs
     type(c_ptr)     :: ptrs(3)      !! Pointer array
   end type kernelArgs
 
+public :: CUmodule
+  type, bind(C) :: CUmodule
+  !! CUDA module
+    type(c_ptr) :: ptr  !! Actual pointer
+  end type CUmodule
+
+public :: CUfunction
+  type, bind(C) :: CUfunction
+  !! CUDA function
+    type(c_ptr) :: ptr  !! Actual pointer
+  end type CUfunction
+
   abstract interface
     function cuModuleLoadDataEx_interface(mod, image, numOptions, options, optionValues)              &
       result(cuResult)
@@ -48,7 +60,7 @@ public :: kernelArgs
     !! Takes a pointer image and loads the corresponding module module into the current context. 
     !! The image may be a cubin or fatbin as output by nvcc, or a NULL-terminated PTX, either as output by nvcc or hand-written.
     import
-      type(c_ptr)           :: mod          !! Returned module
+      type(CUmodule)        :: mod          !! Returned module
       character(c_char)     :: image(*)     !! Module data to load
       integer(c_int), value :: numOptions   !! Number of options
       type(c_ptr),    value :: options      !! Options for JIT
@@ -64,7 +76,7 @@ public :: kernelArgs
     !! Attempting to unload a module which was obtained from the Library Management API 
     !! such as ``cuLibraryGetModule`` will return ``CUDA_ERROR_NOT_PERMITTED``.
     import
-      type(c_ptr), value    :: hmod         !! Module to unload
+      type(CUmodule), value :: hmod         !! Module to unload
       integer(c_int)        :: cuResult     !! Driver result code
     end function cuModuleUnload_interface
 
@@ -75,14 +87,14 @@ public :: kernelArgs
     !! Returns in ``hfunc`` the handle of the function of name name located in module hmod.
     !! If no function of that name exists, ``cuModuleGetFunction`` returns ``CUDA_ERROR_NOT_FOUND``.
     import
-      type(c_ptr)           :: hfunc        !! Returns a function handle.
-      type(c_ptr),    value :: hmod         !! Module to retrieve function from
+      type(CUfunction)      :: hfunc        !! Returns a function handle.
+      type(CUmodule), value :: hmod         !! Module to retrieve function from
       character(c_char)     :: name(*)      !! Name of function to retrieve
       integer(c_int)        :: cuResult     !! Driver result code
     end function cuModuleGetFunction_interface
   end interface
 
-  interface run_cuda_kernel
+  interface
   !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
     function run_cuda_kernel(func, in, out, blocks, threads, stream, args, funptr)          &
       result(cuResult)                                                                      &
@@ -91,7 +103,7 @@ public :: kernelArgs
     !!
     !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
     import
-      type(c_ptr),                  value :: func         !! Function CUfunction or Kernel CUkernel to launch
+      type(CUfunction),             value :: func         !! Function CUfunction or Kernel CUkernel to launch
       type(c_ptr),                  value :: in           !! Input pointer
       type(c_ptr),                  value :: out          !! Output pointer
       type(dim3)                          :: blocks       !! Grid in blocks
@@ -146,7 +158,7 @@ contains
 
   function cuLaunchKernel(func, in, out, blocks, threads, stream, args) result(cuResult)
   !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
-    type(c_ptr)           :: func         !! Function CUfunction or Kernel CUkernel to launch
+    type(CUfunction)      :: func         !! Function CUfunction or Kernel CUkernel to launch
     type(c_ptr)           :: in           !! Input pointer
     type(c_ptr)           :: out          !! Output pointer
     type(dim3)            :: blocks       !! Grid in blocks

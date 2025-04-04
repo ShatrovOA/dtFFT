@@ -33,7 +33,7 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
   logical,                    save  :: domain_created = .false.
   !! Has domain been created?
 
-  interface nvtxDomainCreate_c
+  interface
   !! Creates an NVTX domain with the specified name.
     subroutine nvtxDomainCreate_c(name, domain) bind(C, name="nvtxDomainCreate_c")
       import
@@ -42,7 +42,7 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
     end subroutine nvtxDomainCreate_c
   end interface
 
-  interface nvtxDomainRangePushEx_c
+  interface
   !! Pushes a range with a custom message and color onto the specified NVTX domain.
     subroutine nvtxDomainRangePushEx_c(domain, message, color) bind(C, name="nvtxDomainRangePushEx_c")
       import
@@ -52,7 +52,7 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
     end subroutine nvtxDomainRangePushEx_c
   end interface
 
-  interface nvtxDomainRangePop_c
+  interface
   !! Pops a range from the specified NVTX domain.
     subroutine nvtxDomainRangePop_c(domain) bind(C, name="nvtxDomainRangePop_c")
       import

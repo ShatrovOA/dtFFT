@@ -126,6 +126,8 @@ contains
     call self%wrapper%create(fft_rank, dims, double_precision, how_many, r2c, int(0, int8), dct, dst, get_user_stream(), self%plan_forward)
     if ( self%is_inverse_required ) then
       call self%wrapper%create(fft_rank, dims, double_precision, how_many, int(0, int8), r2c, dct, dst, get_user_stream(), self%plan_backward)
+    else
+      self%plan_backward = self%plan_forward
     endif
   end subroutine create
 
@@ -158,13 +160,13 @@ contains
     integer(int64),           intent(in)  :: alloc_bytes  !! Number of bytes to allocate
     type(c_ptr),              intent(out) :: ptr          !! Allocated pointer
 
-    error stop "mem_alloc for VkFFT called"
+    INTERNAL_ERROR("mem_alloc for VkFFT called")
   end subroutine mem_alloc
 
   subroutine mem_free(ptr)
   !! Dummy method. Raises `error stop`
     type(c_ptr),               intent(in)   :: ptr        !! Pointer to free
 
-    error stop "mem_free for VkFFT called"
+    INTERNAL_ERROR("mem_free for VkFFT called")
   end subroutine mem_free
 end module dtfft_executor_vkfft_m

@@ -17,7 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
-module dtfft_backend_cufftmp
+module dtfft_backend_cufftmp_m
 !! cuFFTMp GPU Backend [[backend_cufftmp]]
 use iso_fortran_env
 use iso_c_binding
@@ -30,6 +30,7 @@ use dtfft_pencil,               only: pencil
 use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: backend_cufftmp
@@ -54,11 +55,11 @@ contains
 
   subroutine create(self, helper, tranpose_type, base_storage)
   !! Creates cuFFTMp GPU Backend
-    class(backend_cufftmp),       intent(inout) :: self               !! cuFFTMp GPU Backend
-    type(backend_helper),         intent(in)    :: helper             !! Backend helper
-    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type      !! Type of transpose to create
-    integer(int8),                intent(in)    :: base_storage       !! Number of bytes to store single element
-    type(Box3D)                      :: inbox, outbox                 !! Reshape boxes
+    class(backend_cufftmp),   intent(inout) :: self               !! cuFFTMp GPU Backend
+    type(backend_helper),     intent(in)    :: helper             !! Backend helper
+    type(dtfft_transpose_t),  intent(in)    :: tranpose_type      !! Type of transpose to create
+    integer(int8),            intent(in)    :: base_storage       !! Number of bytes to store single element
+    type(Box3D)           :: inbox, outbox  !! Reshape boxes
     type(pencil), pointer :: in, out
     type(c_ptr) :: c_comm
 
@@ -83,7 +84,7 @@ contains
       in => helper%pencils(3)
       out => helper%pencils(1)
     case default
-      error stop "dtFFT Internal error, unknown `tranpose_type`"
+      INTERNAL_ERROR("unknown `tranpose_type`")
     endselect
 
     if ( in%rank == 3 ) then
@@ -104,7 +105,7 @@ contains
         inbox%upper   = [in%starts(1) + in%counts(1), in%starts(3) + in%counts(3), in%starts(2) + in%counts(2)]
         inbox%strides = [in%counts(2) * in%counts(3), in%counts(2),                1]
       else
-        error stop "dtFFT internal error, unknown transposition using cufftMp backend"
+        INTERNAL_ERROR("unknown transposition using cufftMp backend")
       endif
 
       outbox%lower   = [out%starts(3),                 out%starts(2),                 out%starts(1)]
@@ -144,4 +145,4 @@ contains
 
     CUFFT_CALL( "cufftMpDestroyReshape", cufftMpDestroyReshape(self%plan) )
   end subroutine destroy
-end module dtfft_backend_cufftmp
+end module dtfft_backend_cufftmp_m

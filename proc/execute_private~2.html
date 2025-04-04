@@ -76,20 +76,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.7% of total for procedures.">67 statements</a>
+                 title=" 0.1% of total for procedures.">11 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_plan.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_plan_host.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_plan_host.f90.html'>dtfft_transpose_plan_host.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_plan_host.html'>dtfft_transpose_plan_host</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute_private</li>
           </ol>
         </nav>
@@ -135,14 +135,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute_private(self, in, out, execute_type, aux, inplace)  
+    <h2>private  subroutine execute_private(self, in, out, transpose_type)  
 </h2>
     
 
-    <p>Executes plan with specified auxiliary buffer</p>
+    <p>Executes single transposition</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
+    <p><a href='../type/transpose_plan_host.html'>transpose_plan_host</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -157,8 +157,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~68"></span>
-              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
+              <span class="anchor" id="variable-self~61"></span>
+              class(<a href='../type/transpose_plan_host.html'>transpose_plan_host</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -167,82 +167,52 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Abstract plan</p>
+                <p>Transposition class</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~24"></span>
-              type(*),
+              <span class="anchor" id="variable-in~20"></span>
+              real(kind=real32),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>in</strong>(..)</td>
+            <td><strong>in</strong>(:)</td>
             <td>
-                <p>Incoming buffer of any rank and kind</p>
+                <p>Incoming buffer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~24"></span>
-              type(*),
+              <span class="anchor" id="variable-out~20"></span>
+              real(kind=real32),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>out</strong>(..)</td>
+            <td><strong>out</strong>(:)</td>
             <td>
-                <p>Resulting buffer of any rank and kind</p>
+                <p>Resulting buffer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-execute_type~2"></span>
-              type(<a href='../type/dtfft_execute_type_t.html'>dtfft_execute_type_t</a>),
+              <span class="anchor" id="variable-transpose_type~4"></span>
+              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>execute_type</strong></td>
+            <td><strong>transpose_type</strong></td>
             <td>
-                <p>Type of execution.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-aux~8"></span>
-              type(*),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>aux</strong>(..)</td>
-            <td>
-                <p>Auxiliary buffer.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-inplace~2"></span>
-              logical,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>inplace</strong></td>
-            <td>
-                <p>Inplace execution flag</p>
+                <p>Type of transpose to execute</p>
             </td>
         </tr>
     </tbody>
@@ -260,270 +230,86 @@
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: proc~~execute_private~2~~CallsGraph Pages: 1 -->
-<svg id="procexecute_private2CallsGraph" width="641pt" height="92pt"
- viewBox="0.00 0.00 641.00 91.67" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~execute_private~2~~CallsGraph" class="graph" transform="scale(0.67 0.67) rotate(0) translate(4 132)">
+<svg id="procexecute_private2CallsGraph" width="587pt" height="158pt"
+ viewBox="0.00 0.00 587.00 158.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_private~2~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 154)">
 <title>proc~~execute_private~2~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-132 947,-132 947,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-154 583,-154 583,4 -4,4"/>
 <!-- proc~execute_private~2 -->
 <g id="proc~~execute_private~2~~CallsGraph_node1" class="node">
 <title>proc~execute_private~2</title>
-<polygon fill="none" stroke="black" points="166,-86 0,-86 0,-62 166,-62 166,-86"/>
-<text text-anchor="middle" x="83" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_plan_t%execute_private</text>
+<polygon fill="none" stroke="black" points="216,-87 0,-87 0,-63 216,-63 216,-87"/>
+<text text-anchor="middle" x="108" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50">transpose_plan_host%execute_private</text>
 </g>
-<!-- proc~execute~4 -->
+<!-- proc~execute~6 -->
 <g id="proc~~execute_private~2~~CallsGraph_node2" class="node">
-<title>proc~execute~4</title>
-<g id="a_proc~~execute_private~2~~CallsGraph_node2"><a xlink:href="../proc/execute~4.html" xlink:title="abstract_transpose_plan%execute">
-<polygon fill="#d9534f" stroke="#d9534f" points="396,-86 202,-86 202,-62 396,-62 396,-86"/>
-<text text-anchor="middle" x="299" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_transpose_plan%execute</text>
+<title>proc~execute~6</title>
+<g id="a_proc~~execute_private~2~~CallsGraph_node2"><a xlink:href="../proc/execute~6.html" xlink:title="transpose_handle_host%execute">
+<polygon fill="#d9534f" stroke="#d9534f" points="439,-87 252,-87 252,-63 439,-63 439,-87"/>
+<text text-anchor="middle" x="345.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_handle_host%execute</text>
 </a>
 </g>
 </g>
-<!-- proc~execute_private~2&#45;&gt;proc~execute~4 -->
+<!-- proc~execute_private~2&#45;&gt;proc~execute~6 -->
 <g id="proc~~execute_private~2~~CallsGraph_edge1" class="edge">
-<title>proc~execute_private~2&#45;&gt;proc~execute~4</title>
-<path fill="none" stroke="#ff0000" d="M166.13,-74C174.51,-74 183.12,-74 191.71,-74"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="191.79,-77.5 201.79,-74 191.79,-70.5 191.79,-77.5"/>
+<title>proc~execute_private~2&#45;&gt;proc~execute~6</title>
+<path fill="none" stroke="#ff0000" d="M216.07,-75C224.53,-75 233.07,-75 241.51,-75"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="241.74,-78.5 251.74,-75 241.74,-71.5 241.74,-78.5"/>
 </g>
-<!-- execute_private -->
+<!-- mpi_alltoall_init -->
 <g id="proc~~execute_private~2~~CallsGraph_node3" class="node">
-<title>execute_private</title>
-<polygon fill="#777777" stroke="#777777" points="554.5,-128 457.5,-128 457.5,-104 554.5,-104 554.5,-128"/>
-<text text-anchor="middle" x="506" y="-113.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_private</text>
+<title>mpi_alltoall_init</title>
+<polygon fill="#777777" stroke="#777777" points="575,-150 479,-150 479,-126 575,-126 575,-150"/>
+<text text-anchor="middle" x="527" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_alltoall_init</text>
 </g>
-<!-- proc~execute~4&#45;&gt;execute_private -->
+<!-- proc~execute~6&#45;&gt;mpi_alltoall_init -->
 <g id="proc~~execute_private~2~~CallsGraph_edge2" class="edge">
-<title>proc~execute~4&#45;&gt;execute_private</title>
-<path fill="none" stroke="#ff0000" d="M358.74,-86.04C386.56,-91.73 419.68,-98.52 447.35,-104.19"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="446.79,-107.65 457.28,-106.22 448.19,-100.79 446.79,-107.65"/>
+<title>proc~execute~6&#45;&gt;mpi_alltoall_init</title>
+<path fill="none" stroke="#ff0000" d="M381.11,-87.15C409.88,-97.25 451,-111.68 482.09,-122.59"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="481.21,-125.99 491.8,-126 483.53,-119.38 481.21,-125.99"/>
 </g>
-<!-- proc~pop_nvtx_domain_range -->
+<!-- mpi_alltoallw_init -->
 <g id="proc~~execute_private~2~~CallsGraph_node4" class="node">
-<title>proc~pop_nvtx_domain_range</title>
-<g id="a_proc~~execute_private~2~~CallsGraph_node4"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
-<polygon fill="#d9534f" stroke="#d9534f" points="577.5,-86 434.5,-86 434.5,-62 577.5,-62 577.5,-86"/>
-<text text-anchor="middle" x="506" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
-</a>
+<title>mpi_alltoallw_init</title>
+<polygon fill="#777777" stroke="#777777" points="579,-108 475,-108 475,-84 579,-84 579,-108"/>
+<text text-anchor="middle" x="527" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_alltoallw_init</text>
 </g>
-</g>
-<!-- proc~execute~4&#45;&gt;proc~pop_nvtx_domain_range -->
+<!-- proc~execute~6&#45;&gt;mpi_alltoallw_init -->
 <g id="proc~~execute_private~2~~CallsGraph_edge3" class="edge">
-<title>proc~execute~4&#45;&gt;proc~pop_nvtx_domain_range</title>
-<path fill="none" stroke="#ff0000" d="M396.2,-74C405.57,-74 415.01,-74 424.21,-74"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="424.48,-77.5 434.48,-74 424.48,-70.5 424.48,-77.5"/>
+<title>proc~execute~6&#45;&gt;mpi_alltoallw_init</title>
+<path fill="none" stroke="#ff0000" d="M439.14,-85.84C447.7,-86.84 456.22,-87.84 464.4,-88.79"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="464.21,-92.3 474.55,-89.98 465.02,-85.34 464.21,-92.3"/>
 </g>
-<!-- proc~push_nvtx_domain_range -->
+<!-- mpi_start -->
 <g id="proc~~execute_private~2~~CallsGraph_node5" class="node">
-<title>proc~push_nvtx_domain_range</title>
-<g id="a_proc~~execute_private~2~~CallsGraph_node5"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
-<polygon fill="#d9534f" stroke="#d9534f" points="580,-44 432,-44 432,-20 580,-20 580,-44"/>
-<text text-anchor="middle" x="506" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
-</a>
+<title>mpi_start</title>
+<polygon fill="#777777" stroke="#777777" points="558,-66 496,-66 496,-42 558,-42 558,-66"/>
+<text text-anchor="middle" x="527" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_start</text>
 </g>
-</g>
-<!-- proc~execute~4&#45;&gt;proc~push_nvtx_domain_range -->
+<!-- proc~execute~6&#45;&gt;mpi_start -->
 <g id="proc~~execute_private~2~~CallsGraph_edge4" class="edge">
-<title>proc~execute~4&#45;&gt;proc~push_nvtx_domain_range</title>
-<path fill="none" stroke="#ff0000" d="M358.74,-61.96C382.98,-57 411.23,-51.21 436.4,-46.05"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="437.15,-49.47 446.25,-44.04 435.75,-42.62 437.15,-49.47"/>
+<title>proc~execute~6&#45;&gt;mpi_start</title>
+<path fill="none" stroke="#ff0000" d="M439.14,-64.16C455.54,-62.24 471.8,-60.34 485.75,-58.71"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="486.4,-62.16 495.92,-57.52 485.59,-55.2 486.4,-62.16"/>
 </g>
-<!-- proc~astring_f2c -->
+<!-- mpi_wait -->
 <g id="proc~~execute_private~2~~CallsGraph_node6" class="node">
-<title>proc~astring_f2c</title>
-<g id="a_proc~~execute_private~2~~CallsGraph_node6"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
-<polygon fill="#d9534f" stroke="#d9534f" points="843,-44 772,-44 772,-20 843,-20 843,-44"/>
-<text text-anchor="middle" x="807.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
-</a>
+<title>mpi_wait</title>
+<polygon fill="#777777" stroke="#777777" points="557,-24 497,-24 497,0 557,0 557,-24"/>
+<text text-anchor="middle" x="527" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_wait</text>
 </g>
-</g>
-<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
+<!-- proc~execute~6&#45;&gt;mpi_wait -->
 <g id="proc~~execute_private~2~~CallsGraph_edge5" class="edge">
-<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
-<path fill="none" stroke="#0000ff" d="M580.29,-32.76C592.22,-32.86 604.46,-32.95 616,-33 669.33,-33.24 682.67,-33.38 736,-33 744.27,-32.94 753.08,-32.84 761.57,-32.73"/>
-<polygon fill="#0000ff" stroke="#0000ff" points="761.77,-36.23 771.72,-32.59 761.67,-29.23 761.77,-36.23"/>
-</g>
-<!-- proc~create_nvtx_domain -->
-<g id="proc~~execute_private~2~~CallsGraph_node7" class="node">
-<title>proc~create_nvtx_domain</title>
-<g id="a_proc~~execute_private~2~~CallsGraph_node7"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
-<polygon fill="#d9534f" stroke="#d9534f" points="736,-24 616,-24 616,0 736,0 736,-24"/>
-<text text-anchor="middle" x="676" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
-</a>
-</g>
-</g>
-<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
-<g id="proc~~execute_private~2~~CallsGraph_edge6" class="edge">
-<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
-<path fill="none" stroke="#0000ff" d="M580.2,-23.29C588.69,-22.28 597.32,-21.25 605.75,-20.24"/>
-<polygon fill="#0000ff" stroke="#0000ff" points="606.4,-23.69 615.91,-19.03 605.57,-16.74 606.4,-23.69"/>
-</g>
-<!-- proc~string_f2c -->
-<g id="proc~~execute_private~2~~CallsGraph_node8" class="node">
-<title>proc~string_f2c</title>
-<g id="a_proc~~execute_private~2~~CallsGraph_node8"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
-<polygon fill="#d9534f" stroke="#d9534f" points="943,-44 879,-44 879,-20 943,-20 943,-44"/>
-<text text-anchor="middle" x="911" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
-</a>
-</g>
-</g>
-<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
-<g id="proc~~execute_private~2~~CallsGraph_edge7" class="edge">
-<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
-<path fill="none" stroke="#ff0000" d="M843.15,-32C851.39,-32 860.27,-32 868.78,-32"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="868.91,-35.5 878.91,-32 868.91,-28.5 868.91,-35.5"/>
-</g>
-<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
-<g id="proc~~execute_private~2~~CallsGraph_edge8" class="edge">
-<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
-<path fill="none" stroke="#00ffff" d="M736.07,-21.12C744.79,-22.47 753.66,-23.84 762.02,-25.13"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="761.51,-28.59 771.93,-26.66 762.58,-21.68 761.51,-28.59"/>
-</g>
-</g>
-</svg>
-</div>                <script>
-                  var panprocexecute_private2CallsGraph = svgPanZoom('#procexecute_private2CallsGraph',
-                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
-                  );
-                </script>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
-          </div>
-          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-<p>Nodes of different colours represent the following: </p>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: Graph Key Pages: 1 -->
-<svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
-<title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
-<!-- Subroutine -->
-<g id="node1" class="node">
-<title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
-</g>
-<!-- Function -->
-<g id="node2" class="node">
-<title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
-</g>
-<!-- Interface -->
-<g id="node3" class="node">
-<title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
-</g>
-<!-- Type Bound Procedure -->
-<g id="node4" class="node">
-<title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
-</g>
-<!-- Unknown Procedure Type -->
-<g id="node5" class="node">
-<title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
-</g>
-<!-- Program -->
-<g id="node6" class="node">
-<title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
-</g>
-<!-- This Page&#39;s Entity -->
-<g id="node7" class="node">
-<title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
-</g>
-</g>
-</svg>
-
-<p>Solid arrows point from a procedure to one which it calls. Dashed 
-arrows point from an interface to procedures which implement that interface.
-This could include the module procedures in a generic interface or the
-implementation in a submodule of an interface in a parent module.
-</p>
- Where possible, edges connecting nodes are
-given different colours to make them easier to distinguish in
-large graphs.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-  <h3 class="card-title">Called by</h3>
-      </div>
-      <div class="card-body">
-  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: proc~~execute_private~2~~CalledByGraph Pages: 1 -->
-<svg id="procexecute_private2CalledByGraph" width="463pt" height="32pt"
- viewBox="0.00 0.00 463.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~execute_private~2~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
-<title>proc~~execute_private~2~~CalledByGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 459,-28 459,4 -4,4"/>
-<!-- proc~execute_private~2 -->
-<g id="proc~~execute_private~2~~CalledByGraph_node1" class="node">
-<title>proc~execute_private~2</title>
-<polygon fill="none" stroke="black" points="455,-24 289,-24 289,0 455,0 455,-24"/>
-<text text-anchor="middle" x="372" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_plan_t%execute_private</text>
-</g>
-<!-- proc~execute~8 -->
-<g id="proc~~execute_private~2~~CalledByGraph_node2" class="node">
-<title>proc~execute~8</title>
-<g id="a_proc~~execute_private~2~~CalledByGraph_node2"><a xlink:href="../proc/execute~8.html" xlink:title="dtfft_plan_t%execute">
-<polygon fill="#d9534f" stroke="#d9534f" points="253,-24 129,-24 129,0 253,0 253,-24"/>
-<text text-anchor="middle" x="191" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%execute</text>
-</a>
-</g>
-</g>
-<!-- proc~execute~8&#45;&gt;proc~execute_private~2 -->
-<g id="proc~~execute_private~2~~CalledByGraph_edge1" class="edge">
-<title>proc~execute~8&#45;&gt;proc~execute_private~2</title>
-<path fill="none" stroke="#ff0000" d="M253.1,-12C261.4,-12 270.06,-12 278.76,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="278.96,-15.5 288.96,-12 278.96,-8.5 278.96,-15.5"/>
-</g>
-<!-- proc~dtfft_execute_c -->
-<g id="proc~~execute_private~2~~CalledByGraph_node3" class="node">
-<title>proc~dtfft_execute_c</title>
-<g id="a_proc~~execute_private~2~~CalledByGraph_node3"><a xlink:href="../proc/dtfft_execute_c.html" xlink:title="dtfft_execute_c">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="93,-24 0,-24 0,0 93,0 93,-24"/>
-<text text-anchor="middle" x="46.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_execute_c</text>
-</a>
-</g>
-</g>
-<!-- proc~dtfft_execute_c&#45;&gt;proc~execute~8 -->
-<g id="proc~~execute_private~2~~CalledByGraph_edge2" class="edge">
-<title>proc~dtfft_execute_c&#45;&gt;proc~execute~8</title>
-<path fill="none" stroke="#ff0000" d="M93.37,-12C101.5,-12 110.14,-12 118.77,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="118.88,-15.5 128.88,-12 118.88,-8.5 118.88,-15.5"/>
+<title>proc~execute~6&#45;&gt;mpi_wait</title>
+<path fill="none" stroke="#ff0000" d="M381.11,-62.85C411.45,-52.21 455.5,-36.74 487.06,-25.67"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="488.56,-28.85 496.84,-22.24 486.24,-22.25 488.56,-28.85"/>
 </g>
 </g>
 </svg>
 </div>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
           </div>
-          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
               <div class="modal-content">
                 <div class="modal-header">

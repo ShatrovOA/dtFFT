@@ -25,24 +25,30 @@ use dtfft_pencil,     only: pencil
 use dtfft_parameters
 use dtfft_utils
 #include "dtfft_profile.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: abstract_executor
 
   integer(int8),  public, parameter :: FFT_C2C = 0
+    !! Complex to complex FFT
   integer(int8),  public, parameter :: FFT_R2C = 1
+    !! Real to complex FFT
   integer(int8),  public, parameter :: FFT_R2R = 2
+    !! Real to real FFT
 
   integer(int8),  public, parameter :: FFT_1D = 1
+    !! 1D FFT
   integer(int8),  public, parameter :: FFT_2D = 2
+    !! 2D FFT
 
   type, abstract :: abstract_executor
   !! The "most" abstract executor.
   !! All FFT executors are extending this class.
-    type(c_ptr)         :: plan_forward
-    type(c_ptr)         :: plan_backward
-    logical,    private :: is_created = .false.
-    logical             :: is_inverse_copied = .false.
+    type(c_ptr)         :: plan_forward                 !! Pointer to forward plan
+    type(c_ptr)         :: plan_backward                !! Pointer to backward plan
+    logical,    private :: is_created = .false.         !! Is plan created?
+    logical             :: is_inverse_copied = .false.  !! Is inverse plan copied?
   contains
     procedure,  non_overridable,              pass(self), public  :: create               !! Creates FFT plan
     procedure,  non_overridable,              pass(self), public  :: execute              !! Executes plan
@@ -112,8 +118,8 @@ contains
     type(pencil),           optional,   intent(in)    :: complex_pencil   !! Complex data layout
     type(dtfft_r2r_kind_t), optional,   intent(in)    :: r2r_kinds(:)     !! Kinds of r2r transform
     integer(int32),         allocatable   :: fft_sizes(:)     !! Dimensions of transform
-    integer(int32),         allocatable   :: inembed(:)       !! 
-    integer(int32),         allocatable   :: onembed(:)       !! 
+    integer(int32),         allocatable   :: inembed(:)       !! Storage dimensions of the input data in memory.
+    integer(int32),         allocatable   :: onembed(:)       !! Storage dimensions of the output data in memory.
     integer(int32)                        :: idist            !! Distance between the first element of two consecutive signals in a batch of the input data.
     integer(int32)                        :: odist            !! Distance between the first element of two consecutive signals in a batch of the output data.
     integer(int32)                        :: how_many         !! Number of transforms to create
@@ -127,9 +133,9 @@ contains
     self%plan_backward = c_null_ptr
     self%is_created = .false.
     self%is_inverse_copied = .false.
-    if ( fft_rank /= FFT_1D .and. fft_rank /= FFT_2D ) error stop
-    if ( (fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil))) error stop
-    if ( (fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds)) ) error stop
+    if ( fft_rank /= FFT_1D .and. fft_rank /= FFT_2D ) INTERNAL_ERROR("fft_rank /= FFT_1D .and. fft_rank /= FFT_2D")
+    if ( (fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil)) ) INTERNAL_ERROR("(fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil))")
+    if ( (fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds)) ) INTERNAL_ERROR("(fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds))")
 
     allocate( fft_sizes(fft_rank), inembed(fft_rank), onembed(fft_rank) )
 
@@ -183,21 +189,22 @@ contains
     endif
 
     call self%create_private(fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, create, r2r_kinds)
+    ! This should only happen when current process do not have any data, so FFT plan is not required here
     if ( is_null_ptr(self%plan_forward) .or. is_null_ptr(self%plan_backward) ) return
     if( create == DTFFT_SUCCESS ) self%is_created = .true.
     deallocate( fft_sizes, inembed, onembed )
     PHASE_END("Creating FFT")
   end function create
 
-  subroutine execute(self, a, b, sign)
+  subroutine execute(self, in, out, sign)
   !! Executes plan
-    class(abstract_executor),     intent(in)    :: self             !! FFT Executor
-    type(*),              target, intent(inout) :: a(..)            !! Source buffer
-    type(*),              target, intent(inout) :: b(..)            !! Target buffer
-    integer(int8),                intent(in)    :: sign             !! Sign of transform
+    class(abstract_executor), intent(in)  :: self   !! FFT Executor
+    type(c_ptr),              intent(in)  :: in     !! Source buffer
+    type(c_ptr),              intent(in)  :: out    !! Target buffer
+    integer(int8),            intent(in)  :: sign   !! Sign of transform
     if ( .not.self%is_created ) return
     PHASE_BEGIN("Executing FFT", COLOR_FFT)
-    call self%execute_private(c_loc(a), c_loc(b), sign)
+    call self%execute_private(in, out, sign)
     PHASE_END("Executing FFT")
   end subroutine execute
 

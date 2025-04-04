@@ -36,7 +36,7 @@ implicit none
 private
 public :: abstract_backend, backend_helper
 
-#ifdef NCCL_HAVE_COMM_REGISTER
+#ifdef NCCL_HAVE_COMMREGISTER
   integer(int32), parameter, public :: NCCL_REGISTER_PREALLOC_SIZE = 8
 #endif
 
@@ -46,14 +46,14 @@ public :: abstract_backend, backend_helper
 #ifdef DTFFT_WITH_NCCL
     type(ncclComm)              :: nccl_comm                    !! NCCL communicator
 #endif
-#ifdef NCCL_HAVE_COMM_REGISTER
+#ifdef NCCL_HAVE_COMMREGISTER
     logical                     :: should_register              !! If NCCL buffer should be registered
     type(c_ptr),    allocatable :: nccl_register(:,:)           !! NCCL register cache
     integer(int32)              :: nccl_register_size           !! Number of elements in `nccl_register`
 #endif
     TYPE_MPI_COMM,  allocatable :: comms(:)                     !! MPI communicators
     integer(int32), allocatable :: comm_mappings(:,:)           !! Mapping of 1d comm ranks to global comm
-    type(dtfft_transpose_type_t):: tranpose_type                !! Type of transpose to create
+    type(dtfft_transpose_t)     :: tranpose_type                !! Type of transpose to create
     type(pencil),   pointer     :: pencils(:)                   !! Pencils
   contains
     procedure,  pass(self) :: create => create_helper           !! Creates helper
@@ -62,10 +62,10 @@ public :: abstract_backend, backend_helper
 
   type, abstract :: abstract_backend
   !! The most Abstract GPU Backend
-    type(dtfft_gpu_backend_t)         :: gpu_backend            !! Backend type
+    type(dtfft_backend_t)             :: backend            !! Backend type
     logical                           :: is_selfcopy            !! If backend is self-copying
     logical                           :: is_pipelined           !! If backend is pipelined
-    real(real32),             pointer :: aux(:)                 !! Auxiliary buffer used in pipelined algorithm
+    real(real32),             pointer :: aux(:)                 !! Auxiliary buffer used in pipelined algorithms
     integer(int64)                    :: aux_size               !! Number of bytes required by aux buffer
     integer(int64)                    :: send_recv_buffer_size  !! Number of float elements used in ``c_f_pointer``
     TYPE_MPI_COMM                     :: comm                   !! MPI Communicator
@@ -93,44 +93,44 @@ public :: abstract_backend, backend_helper
     procedure,      non_overridable,              pass(self)  :: get_aux_size     !! Returns number of bytes required by aux buffer
     procedure,      non_overridable,              pass(self)  :: set_aux          !! Sets Auxiliary buffer
     procedure,      non_overridable,              pass(self)  :: set_unpack_kernel!! Sets unpack kernel for pipelined backend
-    procedure(createInterface),       deferred,   pass(self)  :: create_private   !! Creates overring class
-    procedure(executeInterface),      deferred,   pass(self)  :: execute_private  !! Executes GPU Backend
-    procedure(destroyInterface),      deferred,   pass(self)  :: destroy_private  !! Destroys overring class
+    procedure(create_interface),      deferred,   pass(self)  :: create_private   !! Creates overring class
+    procedure(execute_interface),     deferred,   pass(self)  :: execute_private  !! Executes GPU Backend
+    procedure(destroy_interface),     deferred,   pass(self)  :: destroy_private  !! Destroys overring class
   end type abstract_backend
 
-  interface
-    subroutine createInterface(self, helper, tranpose_type, base_storage)
+  abstract interface
+    subroutine create_interface(self, helper, tranpose_type, base_storage)
     !! Creates overring class
     import
-      class(abstract_backend),      intent(inout) :: self           !! Abstract GPU Backend
-      type(backend_helper),         intent(in)    :: helper         !! Backend helper
-      type(dtfft_transpose_type_t), intent(in)    :: tranpose_type  !! Type of transpose to create
-      integer(int8),                intent(in)    :: base_storage   !! Number of bytes to store single element
-    end subroutine createInterface
+      class(abstract_backend),  intent(inout) :: self           !! Abstract GPU Backend
+      type(backend_helper),     intent(in)    :: helper         !! Backend helper
+      type(dtfft_transpose_t),  intent(in)    :: tranpose_type  !! Type of transpose to create
+      integer(int8),            intent(in)    :: base_storage   !! Number of bytes to store single element
+    end subroutine create_interface
 
-    subroutine executeInterface(self, in, out, stream)
+    subroutine execute_interface(self, in, out, stream)
     !! Executes GPU Backend
     import
-      class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
-      real(real32),     target,   intent(inout) :: in(:)      !! Send pointer
-      real(real32),     target,   intent(inout) :: out(:)     !! Recv pointer
-      type(dtfft_stream_t),       intent(in)    :: stream     !! Main execution CUDA stream
-    end subroutine executeInterface
+      class(abstract_backend),  intent(inout) :: self       !! Abstract GPU Backend
+      real(real32),   target,   intent(inout) :: in(:)      !! Send pointer
+      real(real32),   target,   intent(inout) :: out(:)     !! Recv pointer
+      type(dtfft_stream_t),     intent(in)    :: stream     !! Main execution CUDA stream
+    end subroutine execute_interface
 
-    subroutine destroyInterface(self)
+    subroutine destroy_interface(self)
     !! Destroys overring class
     import
       class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
-    end subroutine destroyInterface
+    end subroutine destroy_interface
   end interface
 
 contains
 
-  subroutine create(self, gpu_backend, tranpose_type, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
+  subroutine create(self, backend, tranpose_type, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
   !! Creates Abstract GPU Backend
     class(abstract_backend),      intent(inout) :: self           !! Abstract GPU Backend
-    type(dtfft_gpu_backend_t),    intent(in)    :: gpu_backend    !! Backend type
-    type(dtfft_transpose_type_t), intent(in)    :: tranpose_type  !! Type of transpose to create
+    type(dtfft_backend_t),        intent(in)    :: backend        !! GPU Backend type
+    type(dtfft_transpose_t),      intent(in)    :: tranpose_type  !! Type of transpose to create
     type(backend_helper),         intent(in)    :: helper         !! Backend helper
     integer(int8),                intent(in)    :: comm_id        !! Id of communicator to use
     integer(int32),               intent(in)    :: send_displs(:) !! Send data displacements, in original elements
@@ -170,9 +170,9 @@ contains
     self%recv_displs(:) = self%recv_displs(:) + 1
     self%recv_floats(:) = int(recv_counts(:), int64) * scaler
 
-    self%gpu_backend = gpu_backend
-    self%is_pipelined = is_backend_pipelined(gpu_backend)
-    self%is_selfcopy = self%is_pipelined .or. is_backend_mpi(gpu_backend)
+    self%backend = backend
+    self%is_pipelined = is_backend_pipelined(backend)
+    self%is_selfcopy = self%is_pipelined .or. is_backend_mpi(backend)
 
     self%aux_size = 0_int64
     if ( self%is_pipelined ) then
@@ -328,14 +328,14 @@ contains
       self%is_nccl_created = .true.
     endblock
 
-# ifdef NCCL_HAVE_COMM_REGISTER
+# ifdef NCCL_HAVE_COMMREGISTER
     self%should_register = get_env("NCCL_BUFFER_REGISTER", .true.)
     if ( self%should_register ) then
       self%nccl_register_size = 0
-      allocate( self%nccl_register(NCCL_REGISTER_PREALLOC_SIZE, 2) )
+      allocate( self%nccl_register(2, NCCL_REGISTER_PREALLOC_SIZE) )
       do i = 1, NCCL_REGISTER_PREALLOC_SIZE
-        self%nccl_register(i, 1) = c_null_ptr
-        self%nccl_register(i, 2) = c_null_ptr
+        self%nccl_register(1, i) = c_null_ptr
+        self%nccl_register(2, i) = c_null_ptr
       enddo
     endif
 # endif
@@ -355,7 +355,7 @@ contains
     endif
     self%is_nccl_created = .false.
 #endif
-#ifdef NCCL_HAVE_COMM_REGISTER
+#ifdef NCCL_HAVE_COMMREGISTER
     if ( self%nccl_register_size > 0 ) then
       WRITE_ERROR("NCCL register is not empty")
     endif

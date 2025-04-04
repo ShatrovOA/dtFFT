@@ -41,7 +41,7 @@ public :: dtfft_plan_r2r_t
 public :: dtfft_pencil_t
 public :: dtfft_get_error_string
 
-public :: dtfft_execute_type_t, dtfft_transpose_type_t
+public :: dtfft_execute_t, dtfft_transpose_t
 public :: dtfft_executor_t, dtfft_effort_t
 public :: dtfft_precision_t, dtfft_r2r_kind_t
 
@@ -132,16 +132,16 @@ public :: dtfft_platform_t
 
 public :: DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA
 
-public :: DTFFT_GPU_BACKEND_MPI_DATATYPE
-public :: DTFFT_GPU_BACKEND_MPI_P2P
-public :: DTFFT_GPU_BACKEND_MPI_P2P_PIPELINED
-public :: DTFFT_GPU_BACKEND_MPI_A2A
-public :: DTFFT_GPU_BACKEND_NCCL
-public :: DTFFT_GPU_BACKEND_NCCL_PIPELINED
-public :: DTFFT_GPU_BACKEND_CUFFTMP
+public :: DTFFT_BACKEND_MPI_DATATYPE
+public :: DTFFT_BACKEND_MPI_P2P
+public :: DTFFT_BACKEND_MPI_P2P_PIPELINED
+public :: DTFFT_BACKEND_MPI_A2A
+public :: DTFFT_BACKEND_NCCL
+public :: DTFFT_BACKEND_NCCL_PIPELINED
+public :: DTFFT_BACKEND_CUFFTMP
 
-public :: dtfft_gpu_backend_t
-public :: dtfft_get_gpu_backend_string
+public :: dtfft_backend_t
+public :: dtfft_get_backend_string
 
 #endif
 end module dtfft

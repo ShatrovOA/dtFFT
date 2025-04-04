@@ -170,58 +170,58 @@ public :: cudaEvent
 
 
 public :: cudaStreamQuery
-  interface cudaStreamQuery
+  interface
   !! Queries an asynchronous stream for completion status.
     function cudaStreamQuery(stream)                              &
       result(cudaError_t)                                         &
       bind(C, name="cudaStreamQuery")
     import
       type(dtfft_stream_t), value :: stream       !! Stream identifier
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if all operations in stream have completed, 
-                                                  !! or [[cudaErrorNotReady]] if not.
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if all operations in stream have completed, 
+                                                  !! or `cudaErrorNotReady` if not.
     end function cudaStreamQuery
   endinterface
 
 public :: cudaStreamCreate
-  interface cudaStreamCreate
+  interface
   !! Creates an asynchronous stream.
     function cudaStreamCreate(stream)                              &
       result(cudaError_t)                                          &
       bind(C, name="cudaStreamCreate")
     import
       type(dtfft_stream_t)        :: stream       !! Pointer to the created stream
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if the stream was created successfully, 
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the stream was created successfully, 
                                                   !! or an error code if there was an issue.
     end function cudaStreamCreate
   end interface
 
 public :: cudaStreamDestroy
-  interface cudaStreamDestroy
+  interface
     !! Destroys an asynchronous stream.
     function cudaStreamDestroy(stream)                             &
       result(cudaError_t)                                          &
       bind(C, name="cudaStreamDestroy")
     import
       type(dtfft_stream_t), value :: stream       !! Stream identifier
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if the stream was destroyed successfully, 
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the stream was destroyed successfully, 
                                                   !! or an error code if there was an issue.
     end function cudaStreamDestroy
   end interface
 
 public :: cudaStreamSynchronize
-  interface cudaStreamSynchronize
+  interface
     !! Waits for stream tasks to complete.
     function cudaStreamSynchronize(stream)                         &
       result(cudaError_t)                                          &
       bind(C, name="cudaStreamSynchronize")
     import
       type(dtfft_stream_t), value :: stream       !! Stream identifier
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if the stream tasks completed successfully, 
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the stream tasks completed successfully, 
                                                   !! or an error code if there was an issue.
     end function cudaStreamSynchronize
   end interface
 
-  interface cudaGetErrorString_c
+  interface
   !! Returns the string representation of an error code.
     function cudaGetErrorString_c(errcode)                           &
       result(string)                                               &
@@ -233,7 +233,7 @@ public :: cudaStreamSynchronize
   end interface
 
 public :: cudaMalloc
-  interface cudaMalloc
+  interface
     !! Allocates memory on the device.
     function cudaMalloc(ptr, count)                                &
       result(cudaError_t)                                          &
@@ -241,26 +241,26 @@ public :: cudaMalloc
     import
       type(c_ptr)               :: ptr          !! Pointer to allocated device memory
       integer(c_size_t), value  :: count        !! Requested allocation size in bytes
-      integer(c_int)            :: cudaError_t  !! Returns [[cudaSuccess]] if memory was allocated successfully, 
-                                                !! or [[cudaErrorMemoryAllocation]] if the memory could not be allocated.
+      integer(c_int)            :: cudaError_t  !! Returns `cudaSuccess` if memory was allocated successfully, 
+                                                !! or `cudaErrorMemoryAllocation` if the memory could not be allocated.
     end function cudaMalloc
   end interface
 
 public :: cudaFree
-  interface cudaFree
+  interface
   !! Frees memory on the device.
     function cudaFree(ptr)                                         &
       result(cudaError_t)                                          &
       bind(C, name="cudaFree")
     import
       type(c_ptr), value :: ptr         !! Pointer to memory to free
-      integer(c_int)     :: cudaError_t !! Returns [[cudaSuccess]] if memory was freed successfully, 
+      integer(c_int)     :: cudaError_t !! Returns `cudaSuccess` if memory was freed successfully, 
                                         !! or an error code if there was an issue.
     end function cudaFree
   end interface
 
 public :: cudaMemset
-  interface cudaMemset
+  interface
   !! Initializes or sets device memory to a value.
     function cudaMemset(ptr, val, count)                           &
       result(cudaError_t)                                          &
@@ -269,13 +269,13 @@ public :: cudaMemset
       type(c_ptr),        value :: ptr          !! Pointer to device memory
       integer(c_int),     value :: val          !! Value to set
       integer(c_size_t),  value :: count        !! Size in bytes to set
-      integer(c_int)            :: cudaError_t  !! Returns [[cudaSuccess]] if the memory was set successfully, 
+      integer(c_int)            :: cudaError_t  !! Returns `cudaSuccess` if the memory was set successfully, 
                                                 !! or an error code if there was an issue.
     end function cudaMemset
   end interface
 
 public :: cudaEventCreateWithFlags
-  interface cudaEventCreateWithFlags
+  interface
   !! Creates an event with the specified flags.
     function cudaEventCreateWithFlags(event, flags)                &
       result(cudaError_t)                                          &
@@ -283,13 +283,13 @@ public :: cudaEventCreateWithFlags
     import
       type(cudaEvent)             :: event        !! Event identifier
       integer(c_int),   value     :: flags        !! Flags for event creation
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if the event was created successfully, 
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the event was created successfully, 
                                                   !! or an error code if there was an issue.
     end function cudaEventCreateWithFlags
   end interface
 
 public :: cudaEventRecord
-  interface cudaEventRecord
+  interface
   !! Records an event in a stream.
     function cudaEventRecord(event, stream)                        &
       result(cudaError_t)                                          &
@@ -297,13 +297,13 @@ public :: cudaEventRecord
     import
       type(cudaEvent),      value :: event        !! Event identifier
       type(dtfft_stream_t), value :: stream       !! Stream identifier
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if the event was recorded successfully, 
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the event was recorded successfully, 
                                                   !! or an error code if there was an issue.
     end function cudaEventRecord
   end interface
 
 public :: cudaStreamWaitEvent
-  interface cudaStreamWaitEvent
+  interface
   !! Makes a stream wait on an event.
     function cudaStreamWaitEvent(stream, event, flags)             &
       result(cudaError_t)                                          &
@@ -312,52 +312,52 @@ public :: cudaStreamWaitEvent
       type(dtfft_stream_t), value :: stream       !! Stream identifier
       type(cudaEvent),      value :: event        !! Event identifier
       integer(c_int),       value :: flags        !! Flags for the wait operation
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if the stream is waiting successfully, 
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the stream is waiting successfully, 
                                                   !! or an error code if there was an issue.
     end function cudaStreamWaitEvent
   end interface
 
 public :: cudaEventDestroy
-  interface cudaEventDestroy
+  interface
   !! Destroys an event.
     function cudaEventDestroy(event)                               &
       result(cudaError_t)                                          &
       bind(C, name="cudaEventDestroy")
     import
       type(cudaEvent), value :: event       !! Event identifier
-      integer(c_int)         :: cudaError_t !! Returns [[cudaSuccess]] if the event was destroyed successfully, 
+      integer(c_int)         :: cudaError_t !! Returns `cudaSuccess` if the event was destroyed successfully, 
                                             !! or an error code if there was an issue.
     end function cudaEventDestroy
   end interface
 
 public :: cudaEventCreate
-  interface cudaEventCreate
+  interface
   !! Creates an event.
     function cudaEventCreate(event)                                &
       result(cudaError_t)                                          &
       bind(C, name="cudaEventCreate")
     import
       type(cudaEvent) :: event        !! Event identifier
-      integer(c_int)  :: cudaError_t  !! Returns [[cudaSuccess]] if the event was created successfully, 
+      integer(c_int)  :: cudaError_t  !! Returns `cudaSuccess` if the event was created successfully, 
                                       !! or an error code if there was an issue.
     end function cudaEventCreate
   end interface
 
 public :: cudaEventSynchronize
-  interface cudaEventSynchronize
+  interface
   !! Waits for an event to complete.
     function cudaEventSynchronize(event)                           &
       result(cudaError_t)                                          &
       bind(C, name="cudaEventSynchronize")
     import
       type(cudaEvent), value :: event       !! Event identifier
-      integer(c_int)         :: cudaError_t !! Returns [[cudaSuccess]] if the event completed successfully, 
+      integer(c_int)         :: cudaError_t !! Returns `cudaSuccess` if the event completed successfully, 
                                             !! or an error code if there was an issue.
     end function cudaEventSynchronize
   end interface
 
 public :: cudaEventElapsedTime
-  interface cudaEventElapsedTime
+  interface
   !! Computes the elapsed time between two events.
     function cudaEventElapsedTime(time, start, end)                &
       result(cudaError_t)                                          &
@@ -366,7 +366,7 @@ public :: cudaEventElapsedTime
       real(c_float)          :: time        !! Elapsed time in milliseconds
       type(cudaEvent), value :: start       !! Starting event
       type(cudaEvent), value :: end         !! Ending event
-      integer(c_int)         :: cudaError_t !! Returns [[cudaSuccess]] if the elapsed time was computed successfully, 
+      integer(c_int)         :: cudaError_t !! Returns `cudaSuccess` if the elapsed time was computed successfully, 
                                             !! or an error code if there was an issue.
     end function cudaEventElapsedTime
   end interface
@@ -383,7 +383,7 @@ public :: cudaMemcpyAsync
       integer(c_size_t),    value :: count        !! Size in bytes to copy
       integer(c_int),       value :: kdir         !! Direction of copy (host-to-device, device-to-host, etc.)
       type(dtfft_stream_t), value :: stream       !! Stream identifier
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if the copy was initiated successfully, 
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the copy was initiated successfully, 
                                                   !! or an error code if there was an issue.
     end function cudaMemcpyAsync_ptr
 
@@ -396,7 +396,7 @@ public :: cudaMemcpyAsync
       integer(c_size_t),    value :: count        !! Number of elements to copy
       integer(c_int),       value :: kdir         !! Direction of copy
       type(dtfft_stream_t), value :: stream       !! Stream identifier
-      integer(c_int)              :: cudaError_t  !! Returns [[cudaSuccess]] if the copy was initiated successfully, 
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the copy was initiated successfully, 
                                                   !! or an error code if there was an issue.
     end function cudaMemcpyAsync_r32
   end interface
@@ -412,7 +412,7 @@ public :: cudaMemcpy
       type(c_ptr),          value :: src         !! Source pointer
       integer(c_size_t),    value :: count       !! Size in bytes to copy
       integer(c_int),       value :: kdir        !! Direction of copy
-      integer(c_int)              :: cudaError_t !! Returns [[cudaSuccess]] if the copy was completed successfully, 
+      integer(c_int)              :: cudaError_t !! Returns `cudaSuccess` if the copy was completed successfully, 
                                                 !! or an error code if there was an issue.
     end function cudaMemcpy_ptr
 
@@ -424,52 +424,52 @@ public :: cudaMemcpy
       real(c_double)              :: src(*)      !! Source array (64-bit float)
       integer(c_size_t),    value :: count       !! Number of elements to copy
       integer(c_int),       value :: kdir        !! Direction of copy
-      integer(c_int)              :: cudaError_t !! Returns [[cudaSuccess]] if the copy was completed successfully, 
+      integer(c_int)              :: cudaError_t !! Returns `cudaSuccess` if the copy was completed successfully, 
                                                 !! or an error code if there was an issue.
     end function cudaMemcpy_r64
   end interface
 
 public :: cudaGetDevice
-  interface cudaGetDevice
+  interface
     !! Returns the current device.
     function cudaGetDevice(num)                                    &
       result(cudaError_t)                                          &
       bind(C, name="cudaGetDevice")
     import
       integer(c_int) :: num         !! Device number
-      integer(c_int) :: cudaError_t !! Returns [[cudaSuccess]] if the device was retrieved successfully, 
+      integer(c_int) :: cudaError_t !! Returns `cudaSuccess` if the device was retrieved successfully, 
                                     !! or an error code if there was an issue.
     end function cudaGetDevice
   end interface
 
 public :: cudaGetDeviceCount
-  interface cudaGetDeviceCount
+  interface
     !! Returns the number of available devices.
     function cudaGetDeviceCount(num)                               &
       result(cudaError_t)                                          &
       bind(C, name="cudaGetDeviceCount")
     import
       integer(c_int) :: num         !! Number of devices
-      integer(c_int) :: cudaError_t !! Returns [[cudaSuccess]] if the device count was retrieved successfully, 
+      integer(c_int) :: cudaError_t !! Returns `cudaSuccess` if the device count was retrieved successfully, 
                                     !! or an error code if there was an issue.
     end function cudaGetDeviceCount
   end interface
 
 public :: cudaSetDevice
-  interface cudaSetDevice
+  interface
     !! Sets the current device.
     function cudaSetDevice(num)                                    &
       result(cudaError_t)                                          &
       bind(C, name="cudaSetDevice")
     import
       integer(c_int), value :: num          !! Device number
-      integer(c_int)        :: cudaError_t  !! Returns [[cudaSuccess]] if the device was set successfully, 
+      integer(c_int)        :: cudaError_t  !! Returns `cudaSuccess` if the device was set successfully, 
                                             !! or an error code if there was an issue.
     end function cudaSetDevice
   end interface
 
 public :: get_cuda_architecture
-  interface get_cuda_architecture
+  interface
     !! Returns the CUDA architecture for a given device.
     subroutine get_cuda_architecture(device, major, minor)         &
       bind(C, name="get_cuda_architecture")
@@ -478,6 +478,20 @@ public :: get_cuda_architecture
       integer(c_int)        :: major   !! Major compute capability
       integer(c_int)        :: minor   !! Minor compute capability
     end subroutine get_cuda_architecture
+  end interface
+
+public :: cudaMemGetInfo
+  interface
+    !! Returns the amount of free and total memory on the device.
+    function cudaMemGetInfo(free, total)                           &
+      result(cudaError_t)                                          &
+      bind(C, name="cudaMemGetInfo")
+    import
+      integer(c_size_t)   :: free         !! Free memory in bytes
+      integer(c_size_t)   :: total        !! Total memory in bytes
+      integer(c_int)      :: cudaError_t  !! Returns `cudaSuccess` if the memory information was retrieved successfully, 
+                                          !! or an error code if there was an issue.
+    end function cudaMemGetInfo
   end interface
 
 

@@ -24,10 +24,10 @@ use iso_fortran_env
 use dtfft_interface_cuda_runtime
 use dtfft_abstract_backend,               only: abstract_backend, backend_helper
 #ifdef DTFFT_WITH_NVSHMEM
-use dtfft_backend_cufftmp,                only: backend_cufftmp
+use dtfft_backend_cufftmp_m,                only: backend_cufftmp
 #endif
 #ifdef DTFFT_WITH_NCCL
-use dtfft_backend_nccl,                   only: backend_nccl
+use dtfft_backend_nccl_m,                   only: backend_nccl
 #endif
 use dtfft_backend_mpi,                    only: backend_mpi
 use dtfft_nvrtc_kernel
@@ -37,6 +37,7 @@ use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_profile.h"
 #include "dtfft_cuda.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: transpose_handle_cuda
@@ -60,7 +61,7 @@ public :: transpose_handle_cuda
   type :: transpose_handle_cuda
   !! CUDA Transpose Handle
   private
-    type(dtfft_transpose_type_t)              :: transpose_type
+    type(dtfft_transpose_t)                   :: transpose_type
     logical                                   :: has_exchange = .false.   !! If current handle has exchanges between GPUs
     logical                                   :: is_pipelined = .false.   !! If underlying exchanges are pipelined
     real(real32),             pointer         :: aux(:)                   !! Auxiliary buffer used in pipelined algorithm
@@ -110,17 +111,17 @@ contains
     if(allocated(self%counts))    deallocate(self%counts)
   end subroutine destroy_data_handle
 
-  subroutine create(self, helper, send, recv, base_storage, gpu_backend)
+  subroutine create(self, helper, send, recv, base_storage, backend)
   !! Creates CUDA Transpose Handle
     class(transpose_handle_cuda),   intent(inout) :: self               !! CUDA Transpose Handle
-    type(backend_helper),           intent(in)    :: helper
+    type(backend_helper),           intent(in)    :: helper             !! Backend helper
     ! TYPE_MPI_COMM,                  intent(in)    :: comm               !! 1d communicator
     type(pencil),                   intent(in)    :: send               !! Send pencil
     type(pencil),                   intent(in)    :: recv               !! Recv pencil
     integer(int8),                  intent(in)    :: base_storage       !! Number of bytes needed to store single element
-    type(dtfft_gpu_backend_t),      intent(in)    :: gpu_backend         !! Backend type
+    type(dtfft_backend_t),          intent(in)    :: backend            !! Backend type
     integer(int8)                                 :: ndims              !! Number of dimensions
-    type(dtfft_transpose_type_t)                  :: transpose_type     !! Type of transpose based on ``send`` and ``recv``
+    type(dtfft_transpose_t)                       :: transpose_type     !! Type of transpose based on ``send`` and ``recv``
     integer(int32)                                :: comm_size          !! Size of ``comm``
     integer(int32)                                :: comm_rank          !! Rank in ``comm``
     integer(int32)                                :: ierr               !! MPI error flag
@@ -150,7 +151,7 @@ contains
     case ( DTFFT_TRANSPOSE_X_TO_Z%val )
       comm_id = 1
     case default
-      error stop "dtFFT Internal error, unknown `abs(transpose_type)`"
+      INTERNAL_ERROR("unknown `abs(transpose_type)`")
     endselect
 
     comm = helper%comms(comm_id)
@@ -165,7 +166,7 @@ contains
     packing_required = (abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val)  &
                         .and. self%has_exchange                                 &
                         .and. ndims == 3                                        &
-                        .and. (.not. gpu_backend==DTFFT_GPU_BACKEND_CUFFTMP)
+                        .and. (.not. backend==DTFFT_BACKEND_CUFFTMP)
 
     kernel_type = KERNEL_TRANSPOSE
     if ( packing_required ) kernel_type = KERNEL_TRANSPOSE_PACKED
@@ -302,39 +303,39 @@ contains
 
     call self%pack_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type, k1)
 
-    self%is_pipelined = is_backend_pipelined(gpu_backend)
+    self%is_pipelined = is_backend_pipelined(backend)
     kernel_type = KERNEL_UNPACK
     if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
-    if ( gpu_backend == DTFFT_GPU_BACKEND_CUFFTMP ) kernel_type = KERNEL_UNPACK_SIMPLE_COPY
+    if ( backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_UNPACK_SIMPLE_COPY
     call self%unpack_kernel%create(comm, recv%counts, base_storage, transpose_type, kernel_type, k2)
 
-    if ( gpu_backend == DTFFT_GPU_BACKEND_NCCL_PIPELINED ) then
+    if ( backend == DTFFT_BACKEND_NCCL_PIPELINED ) then
       kernel_type = KERNEL_UNPACK_PARTIAL
       call self%unpack_kernel2%create(comm, recv%counts, base_storage, transpose_type, kernel_type, k2)
     endif
 
-    if ( is_backend_mpi(gpu_backend) ) then
+    if ( is_backend_mpi(backend) ) then
       allocate( backend_mpi :: self%comm_handle )
-    else if ( is_backend_nccl(gpu_backend) ) then
+    else if ( is_backend_nccl(backend) ) then
 #ifdef DTFFT_WITH_NCCL
       allocate( backend_nccl :: self%comm_handle )
 #else
-      error stop "not DTFFT_WITH_NCCL"
+      INTERNAL_ERROR("not DTFFT_WITH_NCCL")
 #endif
-    else if ( gpu_backend == DTFFT_GPU_BACKEND_CUFFTMP ) then
+    else if ( backend == DTFFT_BACKEND_CUFFTMP ) then
 #ifdef DTFFT_WITH_NVSHMEM
       allocate( backend_cufftmp :: self%comm_handle )
 #else
-      error stop "not DTFFT_WITH_NVSHMEM"
+      INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
 #endif
     else
-      error stop "Unknown gpu_backend"
+      INTERNAL_ERROR("Unknown backend")
     endif
 
-    call self%comm_handle%create(gpu_backend, transpose_type, helper, comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
+    call self%comm_handle%create(backend, transpose_type, helper, comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
 
     if ( self%comm_handle%is_pipelined ) then
-      if( gpu_backend == DTFFT_GPU_BACKEND_NCCL_PIPELINED ) then
+      if( backend == DTFFT_BACKEND_NCCL_PIPELINED ) then
         call self%comm_handle%set_unpack_kernel(self%unpack_kernel, self%unpack_kernel2)
       else
         call self%comm_handle%set_unpack_kernel(self%unpack_kernel)
@@ -406,7 +407,7 @@ contains
   function get_tranpose_type(self) result(tranpose_type)
   !! Returns transpose_type, associated with handle
     class(transpose_handle_cuda),   intent(in)    :: self       !! CUDA Transpose Handle
-    type(dtfft_transpose_type_t)    :: tranpose_type
+    type(dtfft_transpose_t)         :: tranpose_type
     tranpose_type = self%transpose_type
   end function get_tranpose_type
 

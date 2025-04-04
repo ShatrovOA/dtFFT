@@ -1,0 +1,1666 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dtfft_backend_nccl_m &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>dtfft_backend_nccl_m
+      <small>Module</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 1.2% of total for modules and submodules.">101 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_backend_nccl.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_backend_nccl.f90.html'>dtfft_backend_nccl.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">dtfft_backend_nccl_m</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#types-0"
+         aria-expanded="false" aria-controls="types-0">
+         <h4 class="card-header bg-primary text-white">Derived Types</h4>
+      </a>
+      <div id="types-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_backend_nccl_m.html#type-backend_nccl">backend_nccl</a>
+        </div>
+      </div>
+    </div>
+
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_backend_nccl_m.html#proc-create_nccl">create_nccl</a>
+            <a class="list-group-item" href="../module/dtfft_backend_nccl_m.html#proc-execute_nccl">execute_nccl</a>
+            <a class="list-group-item" href="../module/dtfft_backend_nccl_m.html#proc-destroy_nccl">destroy_nccl</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+
+    <div class="col-md-9" id='text'>
+      <p>NCCL Based GPU Backends <a href="../type/backend_nccl.html">backend_nccl</a></p>
+<br>          <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='dtfft_abstract_backend.html'>dtfft_abstract_backend</a></li>
+                  <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
+                  <li class="list-inline-item"><a href='dtfft_interface_cuda_runtime.html'>dtfft_interface_cuda_runtime</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='dtfft_interface_nccl.html'>dtfft_interface_nccl</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_backend_nccl_m~~UsesGraph Pages: 1 -->
+<svg id="moduledtfft_backend_nccl_mUsesGraph" width="641pt" height="448pt"
+ viewBox="0.00 0.00 641.00 448.27" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph" class="graph" transform="scale(0.55 0.55) rotate(0) translate(4 814.91)">
+<title>module~~dtfft_backend_nccl_m~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-814.91 1167,-814.91 1167,4 -4,4"/>
+<!-- module~dtfft_backend_nccl_m -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node1" class="node">
+<title>module~dtfft_backend_nccl_m</title>
+<polygon fill="none" stroke="black" points="1163,-364.38 1035,-364.38 1035,-340.38 1163,-340.38 1163,-364.38"/>
+<text text-anchor="middle" x="1099" y="-349.98" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_backend_nccl_m</text>
+</g>
+<!-- iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-441.38 5,-441.38 5,-417.38 89,-417.38 89,-441.38"/>
+<text text-anchor="middle" x="47" y="-426.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge1" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-807.38C382.34,-796.56 364.09,-818.61 299.5,-807.38"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-324.38 0,-324.38 0,-300.38 94,-300.38 94,-324.38"/>
+<text text-anchor="middle" x="47" y="-309.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge2" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M626,-39.38C520.87,3.56 214.3,-86.3 130,-162.38 90.21,-198.29 65.75,-258.18 54.8,-290.35"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="51.38,-289.53 51.6,-300.12 58.04,-291.71 51.38,-289.53"/>
+</g>
+<!-- module~dtfft_abstract_backend -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node4" class="node">
+<title>module~dtfft_abstract_backend</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node4"><a xlink:href="../module/dtfft_abstract_backend.html" xlink:title="dtfft_abstract_backend">
+<polygon fill="#337ab7" stroke="#337ab7" points="999,-364.38 865,-364.38 865,-340.38 999,-340.38 999,-364.38"/>
+<text text-anchor="middle" x="932" y="-349.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_backend</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge3" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1034.68,-352.38C1026.41,-352.38 1017.87,-352.38 1009.41,-352.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1009.16,-348.88 999.16,-352.38 1009.16,-355.88 1009.16,-348.88"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node5" class="node">
+<title>module~dtfft_interface_cuda_runtime</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node5"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
+<polygon fill="#337ab7" stroke="#337ab7" points="531,-285.38 365,-285.38 365,-261.38 531,-261.38 531,-285.38"/>
+<text text-anchor="middle" x="448" y="-270.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1095.48,-364.47C1085.22,-409.86 1041.86,-569.14 933,-600.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M931,-600.38C808.1,-635.66 913.92,-426.97 829,-331.38 748.63,-240.93 687.73,-249.23 567,-257.38 557.18,-258.04 546.92,-259.01 536.74,-260.15"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="536.13,-256.7 526.6,-261.35 536.94,-263.65 536.13,-256.7"/>
+</g>
+<!-- module~dtfft_interface_nccl -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node6" class="node">
+<title>module~dtfft_interface_nccl</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node6"><a xlink:href="../module/dtfft_interface_nccl.html" xlink:title="dtfft_interface_nccl">
+<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-741.38 390.5,-741.38 390.5,-717.38 505.5,-717.38 505.5,-741.38"/>
+<text text-anchor="middle" x="448" y="-726.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nccl</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_interface_nccl -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_interface_nccl</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M931,-600.38C855.35,-622.42 889.51,-694.92 829,-745.38 809.45,-761.68 800.32,-759.17 777,-769.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M775,-769.38C713.18,-796.45 695.32,-736.03 628,-731.38"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node7" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node7"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-324.38 130,-324.38 130,-300.38 232,-300.38 232,-324.38"/>
+<text text-anchor="middle" x="181" y="-309.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge6" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M775,-769.38C719.86,-793.52 541.08,-813.21 449,-807.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-807.38C262.66,-800.87 283.6,-629.48 232,-452.38 219.58,-409.76 201.27,-361.2 190.6,-333.93"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="193.84,-332.6 186.91,-324.58 187.33,-335.17 193.84,-332.6"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node8" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node8"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-285.38 268,-285.38 268,-261.38 329,-261.38 329,-285.38"/>
+<text text-anchor="middle" x="298.5" y="-270.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge7" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M775,-157.38C683.59,-139.94 656.81,-157.01 567,-181.38 511.69,-196.39 505.84,-226.07 449,-233.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-233.38C409.66,-237.95 368.44,-249.72 339.08,-259.33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="337.6,-256.13 329.22,-262.62 339.82,-262.77 337.6,-256.13"/>
+</g>
+<!-- mpi_f08 -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node9" class="node">
+<title>mpi_f08</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node9"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-150.38 19.5,-150.38 19.5,-126.38 74.5,-126.38 74.5,-150.38"/>
+<text text-anchor="middle" x="47" y="-135.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1086.01,-340.32C1046.4,-301.63 914.4,-181.72 777,-157.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M775,-157.38C697.14,-126.45 705.69,-70.74 628,-39.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M626,-39.38C551.39,-9.27 528.84,-11.37 449,-1.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-1.38C381.17,6.85 365.74,-28.25 299.5,-24.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-24.38C246.25,-21.39 231.47,-10.68 182,-24.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-24.38C127.37,-38.96 83.39,-89.57 61.98,-118.22"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="59.13,-116.19 56.08,-126.34 64.79,-120.3 59.13,-116.19"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge9" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M775,-731.38C743.56,-755.46 726.14,-739.35 687,-745.38 544,-767.42 507.37,-767.58 365,-793.38 335.71,-798.69 328.89,-812.14 299.5,-807.38"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M626,-115.38C436.6,-53.7 358.99,-85.01 182,-176.38"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M180,-176.38C128.05,-205.67 83.49,-261.66 61.9,-291.86"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="58.83,-290.15 55.96,-300.34 64.56,-294.16 58.83,-290.15"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M626,-195.38C597.85,-198.39 591.51,-205.22 567,-219.38 549.45,-229.52 548.94,-237.95 531,-247.38 523.32,-251.42 514.89,-254.97 506.47,-258.03"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="505.3,-254.73 496.99,-261.3 507.58,-261.35 505.3,-254.73"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nccl -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge12" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nccl</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M927.78,-364.77C911.95,-424.57 840.72,-682.58 777,-731.38"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M775,-731.38C723.13,-771.11 693.18,-735.89 628,-731.38"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M626,-731.38C589.6,-728.87 548.9,-728.25 515.71,-728.32"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="515.65,-724.82 505.66,-728.36 515.68,-731.82 515.65,-724.82"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M626,-195.38C465.8,-212.49 405.99,-169.22 268,-252.38 249.15,-263.74 249.94,-273.63 232,-286.38 227.47,-289.61 222.48,-292.68 217.46,-295.51"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="215.65,-292.52 208.5,-300.33 218.96,-298.68 215.65,-292.52"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge16" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M775,-195.38C718.48,-162.61 692.96,-188.44 628,-195.38"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M626,-195.38C546,-203.92 528.8,-223.12 449,-233.38"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M922.55,-339.98C901.6,-310.2 844.05,-234.26 777,-195.38"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M775,-195.38C752.98,-182.61 745.55,-183.19 723,-171.38 679.58,-148.64 674.23,-131.65 628,-115.38"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M626,-115.38C571.71,-96.27 580.74,-56.33 531,-27.38 497.96,-8.15 486.94,-6.13 449,-1.38"/>
+</g>
+<!-- module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node10" class="node">
+<title>module~dtfft_nvrtc_kernel</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node10"><a xlink:href="../module/dtfft_nvrtc_kernel.html" xlink:title="dtfft_nvrtc_kernel">
+<polygon fill="#337ab7" stroke="#337ab7" points="829,-364.38 723,-364.38 723,-340.38 829,-340.38 829,-364.38"/>
+<text text-anchor="middle" x="776" y="-349.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_nvrtc_kernel</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M864.8,-352.38C856.33,-352.38 847.7,-352.38 839.3,-352.38"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="839.2,-348.88 829.2,-352.38 839.2,-355.88 839.2,-348.88"/>
+</g>
+<!-- module~dtfft_pencil -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node11" class="node">
+<title>module~dtfft_pencil</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node11"><a xlink:href="../module/dtfft_pencil.html" xlink:title="dtfft_pencil">
+<polygon fill="#337ab7" stroke="#337ab7" points="484,-167.38 412,-167.38 412,-143.38 484,-143.38 484,-167.38"/>
+<text text-anchor="middle" x="448" y="-152.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_pencil</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_pencil -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_pencil</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M626,-115.38C613.52,-111.32 542.28,-129.49 494.08,-142.68"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="492.88,-139.38 484.17,-145.41 494.74,-146.13 492.88,-139.38"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M439.54,-285.63C411.17,-330.52 305.3,-482.56 182,-466.38"/>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M180,-466.38C149.85,-462.03 116.84,-452.78 91.38,-444.62"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="92.26,-441.22 81.66,-441.44 90.08,-447.88 92.26,-441.22"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M409.27,-285.48C373.01,-296.77 320.68,-312.06 299.5,-313.38"/>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M297.5,-313.38C279.6,-314.5 260.11,-314.71 242.32,-314.52"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="242.12,-311.01 232.07,-314.36 242.02,-318.01 242.12,-311.01"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M364.63,-273.38C355.82,-273.38 347.17,-273.38 339.21,-273.38"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="339.17,-269.88 329.17,-273.38 339.17,-276.88 339.17,-269.88"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge21" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M398.97,-741.39C387.51,-745.13 375.55,-749.77 365,-755.38 332.19,-772.84 336.19,-813.32 299.5,-807.38"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-807.38C236.84,-797.56 233.51,-764.88 182,-731.38"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M390.36,-718.25C381.18,-714.61 372.3,-709.78 365,-703.38 304.18,-650.03 215.8,-408.61 189.59,-334.25"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="192.8,-332.81 186.19,-324.53 186.19,-335.13 192.8,-332.81"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M390.4,-721.06C380.64,-717.17 371.54,-711.53 365,-703.38 308.58,-633.09 369.71,-379.8 329,-299.38 327.84,-297.09 326.38,-294.91 324.74,-292.86"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="327.21,-290.37 317.74,-285.62 322.18,-295.24 327.21,-290.37"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M166.37,-324.46C143.35,-344.87 96.6,-386.3 69.25,-410.55"/>
+<polygon fill="#003fff" stroke="#003fff" points="66.91,-407.94 61.75,-417.19 71.56,-413.18 66.91,-407.94"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge25" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M129.72,-312.38C121.43,-312.38 112.79,-312.38 104.37,-312.38"/>
+<polygon fill="#003fff" stroke="#003fff" points="104.24,-308.88 94.24,-312.38 104.24,-315.88 104.24,-308.88"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M149.81,-300.29C142.77,-296.54 135.68,-291.91 130,-286.38 92.19,-249.56 67.06,-191.51 55.44,-160.18"/>
+<polygon fill="#003fff" stroke="#003fff" points="58.69,-158.87 52.01,-150.65 52.1,-161.24 58.69,-158.87"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge27" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-272.38C157.38,-279.69 148.2,-276.09 130,-291.38 110.1,-308.11 75.65,-373.76 58.43,-408.13"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="55.18,-406.81 53.86,-417.32 61.45,-409.92 55.18,-406.81"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge28" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M267.77,-268.06C243.97,-264.99 210.05,-263.31 182,-272.38"/>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-272.38C153.37,-280.99 123.53,-290.08 98.98,-297.41"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="97.73,-294.13 89.15,-300.34 99.73,-300.84 97.73,-294.13"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M267.76,-283.43C255.49,-287.57 241.01,-292.46 227.47,-297.03"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="226.17,-293.77 217.82,-300.29 228.41,-300.4 226.17,-293.77"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge30" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M294.21,-261.21C287.16,-237.71 268.22,-186.3 232,-162.38 187.71,-133.13 124.2,-131.59 84.57,-134.21"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="84.24,-130.72 74.55,-134.99 84.79,-137.7 84.24,-130.72"/>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge31" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-689.38C432.67,-693.5 193.99,-740.23 182,-731.38"/>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge32" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M626,-581.38C545.87,-626.89 538.9,-669.14 449,-689.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-689.38C270.33,-729.16 252.58,-566.68 130,-433.38 100.76,-401.58 74.14,-358.56 59.59,-333.31"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="62.61,-331.53 54.63,-324.56 56.52,-334.99 62.61,-331.53"/>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge34" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M626,-271.38C590.01,-253.94 544.86,-254.75 509.17,-259.76"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="508.24,-256.36 498.9,-261.35 509.32,-263.28 508.24,-256.36"/>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge37" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M771.79,-364.45C760.4,-404.56 717.64,-533.62 628,-581.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M626,-581.38C582.84,-604.38 293.71,-395.02 206.71,-330.77"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="208.61,-327.81 198.49,-324.68 204.44,-333.44 208.61,-327.81"/>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge38" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M626,-271.38C553.6,-236.29 528.8,-223.12 449,-233.38"/>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge39" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M759.86,-340.27C742.89,-327.13 714.2,-306.2 687,-292.38 662.19,-279.77 653.05,-283.52 628,-271.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M626,-271.38C591.77,-254.79 588.61,-240.69 567,-209.38 546,-178.95 557.2,-160.47 531,-134.38 450.29,-53.99 413.27,-30.07 299.5,-24.38"/>
+</g>
+<!-- module~dtfft_interface_cuda -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node12" class="node">
+<title>module~dtfft_interface_cuda</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node12"><a xlink:href="../module/dtfft_interface_cuda.html" xlink:title="dtfft_interface_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="686.5,-403.38 567.5,-403.38 567.5,-379.38 686.5,-379.38 686.5,-403.38"/>
+<text text-anchor="middle" x="627" y="-388.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_cuda -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge33" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M729.7,-364.4C715.03,-368.29 698.59,-372.65 683.28,-376.72"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="682.18,-373.39 673.41,-379.33 683.97,-380.15 682.18,-373.39"/>
+</g>
+<!-- module~dtfft_interface_nvrtc -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node13" class="node">
+<title>module~dtfft_interface_nvrtc</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node13"><a xlink:href="../module/dtfft_interface_nvrtc.html" xlink:title="dtfft_interface_nvrtc">
+<polygon fill="#337ab7" stroke="#337ab7" points="687,-325.38 567,-325.38 567,-301.38 687,-301.38 687,-325.38"/>
+<text text-anchor="middle" x="627" y="-310.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvrtc</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_nvrtc -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge35" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_nvrtc</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M729.7,-340.36C715.03,-336.47 698.59,-332.11 683.28,-328.05"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="683.97,-324.61 673.41,-325.43 682.18,-331.38 683.97,-324.61"/>
+</g>
+<!-- module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_node14" class="node">
+<title>module~dtfft_interface_nvtx</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsesGraph_node14"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
+<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-593.38 390.5,-593.38 390.5,-569.38 505.5,-569.38 505.5,-593.38"/>
+<text text-anchor="middle" x="448" y="-578.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge36" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M626,-581.38C590.58,-600.25 545.23,-599.87 509.3,-594.96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="509.37,-591.43 498.96,-593.39 508.32,-598.36 509.37,-591.43"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge40" class="edge">
+<title>module~dtfft_pencil&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M411.85,-156.64C381.4,-158.6 336.55,-163.61 299.5,-176.38"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-176.38C248.97,-193.12 227.61,-152.83 182,-176.38"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge41" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-176.38C243.71,-194.93 270.53,-244.51 232,-286.38 229.09,-289.54 225.71,-292.38 222.11,-294.92"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="220.07,-292.06 213.41,-300.3 223.75,-298.02 220.07,-292.06"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge42" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M431.18,-167.53C414.6,-180.31 387.82,-201.07 365,-219.38 350.48,-231.03 334.34,-244.33 321.71,-254.82"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="319.42,-252.17 313.98,-261.26 323.9,-257.55 319.42,-252.17"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge43" class="edge">
+<title>module~dtfft_pencil&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M429.53,-143.2C379.32,-108.76 234.85,-13.88 182,-24.38"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge44" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M623.92,-403.54C617.21,-439.21 592.82,-544.68 531,-602.38 515.89,-616.49 199.33,-742.65 182,-731.38"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-731.38C85.27,-661.45 57.54,-508.81 50.31,-451.61"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="53.76,-451.02 49.12,-441.5 46.81,-451.84 53.76,-451.02"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge45" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M621.23,-403.72C610.13,-430.41 579.79,-493.06 531,-517.38 464.97,-550.29 435.76,-538.27 365,-517.38 238.43,-480.02 114.86,-374.61 67.87,-331.31"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="70.2,-328.7 60.49,-324.44 65.43,-333.82 70.2,-328.7"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge46" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M607.72,-379.2C576.38,-358.3 512.22,-315.53 475.8,-291.25"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="477.44,-288.13 467.18,-285.5 473.56,-293.96 477.44,-288.13"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge47" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M567.5,-380.97C482.98,-365.93 327.52,-338.27 242.12,-323.08"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="242.52,-319.59 232.06,-321.29 241.29,-326.49 242.52,-319.59"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge48" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M592.59,-379.31C531.84,-357.35 403.57,-310.99 338.75,-287.57"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="339.88,-284.25 329.29,-284.15 337.5,-290.84 339.88,-284.25"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge49" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M609.24,-325.54C551.65,-365.9 355.9,-491.46 182,-466.38"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge50" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M566.77,-320.28C554.93,-321.47 542.58,-322.58 531,-323.38 353.15,-335.7 306.88,-355.67 130,-333.38 119.06,-332 107.49,-329.63 96.6,-326.96"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="97.38,-323.55 86.82,-324.45 95.64,-330.33 97.38,-323.55"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge51" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M572.89,-301.38C553.82,-297.07 532.11,-292.16 512.26,-287.68"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="512.9,-284.23 502.37,-285.44 511.36,-291.06 512.9,-284.23"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge52" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M566.95,-311.18C501.5,-309.25 392.85,-307.56 299.5,-313.38"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge53" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M596.25,-301.36C586.58,-296.92 576.03,-291.46 567,-285.38 548.99,-273.26 550.2,-262.5 531,-252.38 497.9,-234.95 486.1,-228.61 449,-233.38"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge54" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M390.41,-590.91C323.29,-599.18 210.38,-603.33 130,-555.38 90.27,-531.68 66.25,-480.41 55.23,-451.1"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="58.42,-449.62 51.75,-441.38 51.83,-451.98 58.42,-449.62"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_backend_nccl_m~~UsesGraph_edge55" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M442.79,-569.36C426,-521.78 363.11,-346.92 329,-299.38 327.28,-296.99 325.31,-294.67 323.21,-292.45"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="325.47,-289.77 315.8,-285.44 320.66,-294.86 325.47,-289.77"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_backend_nccl_mUsesGraph = svgPanZoom('#moduledtfft_backend_nccl_mUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+          <div class="card">
+      <h3 class="card-header card-title bg-light">Used by</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_backend_nccl_m~~UsedByGraph Pages: 1 -->
+<svg id="moduledtfft_backend_nccl_mUsedByGraph" width="641pt" height="66pt"
+ viewBox="0.00 0.00 641.00 66.16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph" class="graph" transform="scale(0.89 0.89) rotate(0) translate(4 70)">
+<title>module~~dtfft_backend_nccl_m~~UsedByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-70 713,-70 713,4 -4,4"/>
+<!-- module~dtfft_backend_nccl_m -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_node1" class="node">
+<title>module~dtfft_backend_nccl_m</title>
+<polygon fill="none" stroke="black" points="128,-45 0,-45 0,-21 128,-21 128,-45"/>
+<text text-anchor="middle" x="64" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_backend_nccl_m</text>
+</g>
+<!-- module~dtfft_transpose_handle_cuda -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_node2" class="node">
+<title>module~dtfft_transpose_handle_cuda</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsedByGraph_node2"><a xlink:href="../module/dtfft_transpose_handle_cuda.html" xlink:title="dtfft_transpose_handle_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="330,-45 164,-45 164,-21 330,-21 330,-45"/>
+<text text-anchor="middle" x="247" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_handle_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_nccl_m -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_edge1" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_nccl_m</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M163.97,-33C155.4,-33 146.71,-33 138.24,-33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="138.04,-29.5 128.04,-33 138.04,-36.5 138.04,-29.5"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_node3" class="node">
+<title>module~dtfft_transpose_plan_cuda</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsedByGraph_node3"><a xlink:href="../module/dtfft_transpose_plan_cuda.html" xlink:title="dtfft_transpose_plan_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="518,-45 366,-45 366,-21 518,-21 518,-45"/>
+<text text-anchor="middle" x="442" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_transpose_handle_cuda -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_edge2" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_transpose_handle_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M365.83,-33C357.46,-33 348.87,-33 340.32,-33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="340.32,-29.5 330.32,-33 340.32,-36.5 340.32,-29.5"/>
+</g>
+<!-- module~dtfft_plan -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_node4" class="node">
+<title>module~dtfft_plan</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsedByGraph_node4"><a xlink:href="../module/dtfft_plan.html" xlink:title="dtfft_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="617,-45 554,-45 554,-21 617,-21 617,-45"/>
+<text text-anchor="middle" x="585.5" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_cuda -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_edge3" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M553.8,-33C545.98,-33 537.18,-33 528.06,-33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="528.06,-29.5 518.06,-33 528.06,-36.5 528.06,-29.5"/>
+</g>
+<!-- module~dtfft -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_node5" class="node">
+<title>module~dtfft</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsedByGraph_node5"><a xlink:href="../module/dtfft.html" xlink:title="dtfft">
+<polygon fill="#337ab7" stroke="#337ab7" points="708,-66 654,-66 654,-42 708,-42 708,-66"/>
+<text text-anchor="middle" x="681" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_edge4" class="edge">
+<title>module~dtfft&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M653.96,-48.15C645.54,-46.26 636.01,-44.12 626.81,-42.05"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="627.56,-38.64 617.04,-39.86 626.03,-45.47 627.56,-38.64"/>
+</g>
+<!-- module~dtfft_api -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_node6" class="node">
+<title>module~dtfft_api</title>
+<g id="a_module~~dtfft_backend_nccl_m~~UsedByGraph_node6"><a xlink:href="../module/dtfft_api.html" xlink:title="dtfft_api">
+<polygon fill="#337ab7" stroke="#337ab7" points="709,-24 653,-24 653,0 709,0 709,-24"/>
+<text text-anchor="middle" x="681" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_api&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_backend_nccl_m~~UsedByGraph_edge5" class="edge">
+<title>module~dtfft_api&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M652.96,-18.07C644.81,-19.9 635.68,-21.96 626.86,-23.94"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="626.09,-20.52 617.1,-26.13 627.62,-27.35 626.09,-20.52"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_backend_nccl_mUsedByGraph = svgPanZoom('#moduledtfft_backend_nccl_mUsedByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsedByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsedByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+      <br>
+
+
+
+
+
+
+        <section>
+          <h2>Derived Types</h2>
+              <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-backend_nccl"></span>
+      <h3>
+        type, public, extends(<a href='../type/abstract_backend.html'>abstract_backend</a>)&nbsp;::&nbsp;
+        <a href='../type/backend_nccl.html'>backend_nccl</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      <p>NCCL backend</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-backend~6"></span>
+              type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>backend</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Backend type</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_selfcopy"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_selfcopy</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>If backend is self-copying</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_pipelined"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_pipelined</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>If backend is pipelined</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aux~6"></span>
+              real(kind=real32),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>aux</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Auxiliary buffer used in pipelined algorithms</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aux_size"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>aux_size</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Number of bytes required by aux buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_recv_buffer_size"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_recv_buffer_size</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Number of float elements used in <code>c_f_pointer</code></p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-comm~9"></span>
+              type(MPI_Comm),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>comm</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>MPI Communicator</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-comm_mapping"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>comm_mapping</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Mapping of 1d comm ranks to global comm</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-comm_size"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>comm_size</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Size of MPI Comm</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-comm_rank"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>comm_rank</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Rank in MPI Comm</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displs"></span>
+              integer(kind=int64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>send_displs</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Send data displacements, in float elements</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_floats"></span>
+              integer(kind=int64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>send_floats</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Send data elements, in float elements</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displs"></span>
+              integer(kind=int64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>recv_displs</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Recv data displacements, in float elements</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_floats"></span>
+              integer(kind=int64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>recv_floats</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Recv data elements, in float elements</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-execution_event"></span>
+              type(<a href='../type/cudaevent.html'>cudaEvent</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>execution_event</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Event for main execution stream</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-copy_event"></span>
+              type(<a href='../type/cudaevent.html'>cudaEvent</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>copy_event</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Event for copy stream</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-copy_stream"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>copy_stream</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Stream for copy operations</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self_copy_elements"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self_copy_elements</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Number of elements to copy</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self_send_displ"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self_send_displ</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Displacement for send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self_recv_displ"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self_recv_displ</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Displacement for recv buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-unpack_kernel"></span>
+              type(<a href='../type/nvrtc_kernel.html'>nvrtc_kernel</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>unpack_kernel</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Kernel for unpacking data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-unpack_kernel2"></span>
+              type(<a href='../type/nvrtc_kernel.html'>nvrtc_kernel</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>unpack_kernel2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Kernel for unpacking data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nccl_comm~2"></span>
+              type(<a href='../type/ncclcomm.html'>ncclComm</a>),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nccl_comm</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>NCCL Communicator</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_backend.html#boundprocedure-create~7'>create</a></strong></td>
+                <td>../../<p>Creates Abstract GPU Backend</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_backend.html#boundprocedure-execute~4'>execute</a></strong></td>
+                <td>../../<p>Executes GPU Backend</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_backend.html#boundprocedure-destroy~5'>destroy</a></strong></td>
+                <td>../../<p>Destroys Abstract GPU Backend</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_backend.html#boundprocedure-get_aux_size'>get_aux_size</a></strong></td>
+                <td>../../<p>Returns number of bytes required by aux buffer</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_backend.html#boundprocedure-set_aux'>set_aux</a></strong></td>
+                <td>../../<p>Sets Auxiliary buffer</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_backend.html#boundprocedure-set_unpack_kernel'>set_unpack_kernel</a></strong></td>
+                <td>../../<p>Sets unpack kernel for pipelined backend</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/backend_nccl.html#boundprocedure-create_private~10'>create_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create_nccl.html'>create_nccl</a></td>
+                <td>../../<p>Creates NCCL backend</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/backend_nccl.html#boundprocedure-execute_private~9'>execute_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/execute_nccl.html'>execute_nccl</a></td>
+                <td>../../<p>Executes NCCL backend</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/backend_nccl.html#boundprocedure-destroy_private~6'>destroy_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/destroy_nccl.html'>destroy_nccl</a></td>
+                <td>../../<p>Destroys NCCL backend</p></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+        <section>
+          <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_nccl"></span> <h3>private  subroutine <a href='../proc/create_nccl.html'>create_nccl</a>(self, helper, tranpose_type, base_storage)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates NCCL backend</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~70"></span>
+              class(<a href='../type/backend_nccl.html'>backend_nccl</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>NCCL backend</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-helper~6"></span>
+              type(<a href='../type/backend_helper.html'>backend_helper</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>helper</strong></td>
+            <td>
+<p>Backend helper</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tranpose_type~5"></span>
+              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tranpose_type</strong></td>
+            <td>
+<p>Type of transpose to create (unused)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~21"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes to store single element (unused)</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-execute_nccl"></span> <h3>private  subroutine <a href='../proc/execute_nccl.html'>execute_nccl</a>(self, in, out, stream)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Executes NCCL backend</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~71"></span>
+              class(<a href='../type/backend_nccl.html'>backend_nccl</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>NCCL backend</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~23"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+<p>Send pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~23"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+<p>Recv pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~29"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>Main execution CUDA stream</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-destroy_nccl"></span> <h3>private  subroutine <a href='../proc/destroy_nccl.html'>destroy_nccl</a>(self)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Destroys NCCL backend</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~72"></span>
+              class(<a href='../type/backend_nccl.html'>backend_nccl</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>NCCL backend</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

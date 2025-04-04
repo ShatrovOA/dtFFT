@@ -42,9 +42,7 @@ use dtfft_parameters
 use dtfft_transpose_plan_host,        only: transpose_plan_host
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
-use dtfft_interface_cuda,             only: load_cuda
 use dtfft_interface_cuda_runtime
-use dtfft_interface_nvrtc,            only: load_nvrtc
 use dtfft_nvrtc_kernel,               only: clean_unused_cache
 use dtfft_transpose_plan_cuda,        only: transpose_plan_cuda
 #endif
@@ -138,8 +136,6 @@ public :: dtfft_plan_r2r_t
     type(dtfft_stream_t)                          :: stream
       !! CUDA Stream associated with current plan
 #endif
-    real(real32),                     pointer     :: aux(:)
-      !! Auxiliary buffer
     type(c_ptr)                                   :: aux_ptr
       !! Auxiliary pointer
     type(fft_executor),               allocatable :: fft(:)
@@ -163,7 +159,7 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: mem_free           !! Frees previously allocated memory specific for this plan
 #ifdef DTFFT_WITH_CUDA
     procedure,  pass(self), non_overridable, public :: get_platform       !! Returns plan execution platform
-    procedure,  pass(self), non_overridable, public :: get_gpu_backend    !! Returns selected GPU backend during autotuning
+    procedure,  pass(self), non_overridable, public :: get_backend        !! Returns selected GPU backend during autotuning
     generic,                                 public :: get_stream       & !! Returns CUDA stream associated with plan
                                                     => get_stream_ptr,  &
                                                        get_stream_int64
@@ -225,12 +221,14 @@ contains
       !! will be modified in GPU build
     type(*),              target, intent(inout) :: out(..)
       !! Resulting buffer of any rank and kind
-    type(dtfft_transpose_type_t), intent(in)    :: transpose_type
+    type(dtfft_transpose_t),      intent(in)    :: transpose_type
       !! Type of transposition.
     integer(int32),   optional, intent(out)     :: error_code
       !! Optional error code returned to user
-    integer(int32) :: ierr    !! Error code
+    integer(int32)  :: ierr    !! Error code
+    type(c_ptr)     :: in_ptr, out_ptr
 
+    in_ptr = c_loc(in); out_ptr = c_loc(out)
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created )                                                                &
       ierr = DTFFT_ERROR_PLAN_NOT_CREATED
@@ -240,18 +238,18 @@ contains
          .or. abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Z%val .and..not.self%is_z_slab)   &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
     CHECK_ERROR_AND_RETURN
-    if ( is_same_ptr(c_loc(in), c_loc(out)) )                                                   &
+    if ( is_same_ptr(in_ptr, out_ptr) )                                                         &
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_CUDA ) then
-      ierr = check_device_pointers(in, out, self%plan%get_gpu_backend())
+      ierr = check_device_pointers(in_ptr, out_ptr, self%plan%get_backend())
       CHECK_ERROR_AND_RETURN
     endif
 #endif
 
     REGION_BEGIN("dtfft_transpose", COLOR_TRANSPOSE)
-    call self%plan%execute(in, out, transpose_type)
+    call self%plan%execute(in_ptr, out_ptr, transpose_type)
     REGION_END("dtfft_transpose")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine transpose
@@ -264,7 +262,7 @@ contains
       !! Incoming buffer of any rank and kind
     type(*),            target, intent(inout) :: out(..)
       !! Resulting buffer of any rank and kind
-    type(dtfft_execute_type_t), intent(in)    :: execute_type
+    type(dtfft_execute_t),      intent(in)    :: execute_type
       !! Type of execution.
     type(*),  optional, target, intent(inout) :: aux(..)
       !! Optional auxiliary buffer.
@@ -274,8 +272,12 @@ contains
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
     logical         :: inplace  !! Inplace execution flag
+    type(c_ptr)     :: in_ptr, out_ptr, aux_ptr
 
-    inplace = is_same_ptr(c_loc(in), c_loc(out))
+    in_ptr = c_loc(in); out_ptr = c_loc(out)
+    aux_ptr = c_null_ptr; if( present(aux) ) aux_ptr = c_loc(aux)
+
+    inplace = is_same_ptr(in_ptr, out_ptr)
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created )                                                                      &
       ierr = DTFFT_ERROR_PLAN_NOT_CREATED
@@ -287,13 +289,13 @@ contains
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
     if ( present( aux ) ) then
-      if ( is_same_ptr(c_loc(in), c_loc(aux)) .or. is_same_ptr(c_loc(out), c_loc(aux)) )              &
+      if ( is_same_ptr(in_ptr, aux_ptr) .or. is_same_ptr(out_ptr, aux_ptr) )                          &
         ierr = DTFFT_ERROR_INVALID_AUX
       CHECK_ERROR_AND_RETURN
     endif
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_CUDA ) then
-      ierr = check_device_pointers(in, out, self%plan%get_gpu_backend(), aux)
+      ierr = check_device_pointers(in_ptr, out_ptr, self%plan%get_backend(), aux_ptr)
       CHECK_ERROR_AND_RETURN
     endif
 #endif
@@ -301,9 +303,9 @@ contains
     REGION_BEGIN("dtfft_execute", COLOR_EXECUTE)
     call self%check_aux(aux=aux)
     if ( present( aux ) ) then
-      call self%execute_private( in, out, execute_type, aux, inplace )
+      call self%execute_private( in_ptr, out_ptr, execute_type, aux_ptr, inplace )
     else
-      call self%execute_private( in, out, execute_type, self%aux, inplace )
+      call self%execute_private( in_ptr, out_ptr, execute_type, self%aux_ptr, inplace )
     endif
     REGION_END("dtfft_execute")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
@@ -313,14 +315,14 @@ contains
   !! Executes plan with specified auxiliary buffer
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
-    type(*),                    intent(inout) :: in(..)
-      !! Incoming buffer of any rank and kind
-    type(*),                    intent(inout) :: out(..)
-      !! Resulting buffer of any rank and kind
-    type(dtfft_execute_type_t), intent(in)    :: execute_type
+    type(c_ptr),                intent(in)    :: in
+      !! Source pointer
+    type(c_ptr),                intent(inout) :: out
+      !! Target pointer
+    type(dtfft_execute_t),      intent(in)    :: execute_type
       !! Type of execution.
-    type(*),                    intent(inout) :: aux(..)
-      !! Auxiliary buffer.
+    type(c_ptr),                intent(inout) :: aux
+      !! Auxiliary pointer.
     logical,                    intent(in)    :: inplace
       !! Inplace execution flag
 
@@ -432,7 +434,6 @@ contains
 
     if ( self%is_aux_alloc ) then
       call self%mem_free(self%aux_ptr)
-      nullify(self%aux)
       self%is_aux_alloc = .false.
     endif
 
@@ -645,11 +646,13 @@ contains
     else
       WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2))//"x"//int_to_str(self%dims(3)))
     endif
+#ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_HOST ) then
       WRITE_REPORT("  Execution platform   :  HOST")
     else
       WRITE_REPORT("  Execution platform   :  CUDA")
     endif
+#endif
     select type( self )
     class is ( dtfft_plan_c2c_t )
       WRITE_REPORT("  Plan type            :  Complex-to-Complex")
@@ -677,13 +680,17 @@ contains
         WRITE_REPORT("  FFT Executor type    :  VkFFT")
       endselect
     endif
-    if ( self%is_z_slab ) then
-      WRITE_REPORT("  Z-slab enabled       :  True")
-    else
-      WRITE_REPORT("  Z-slab enabled       :  False")
+    if ( self%ndims == 3 ) then
+      if ( self%is_z_slab ) then
+        WRITE_REPORT("  Z-slab enabled       :  True")
+      else
+        WRITE_REPORT("  Z-slab enabled       :  False")
+      endif
     endif
 #ifdef DTFFT_WITH_CUDA
-    WRITE_REPORT("  GPU Backend          :  "//dtfft_get_gpu_backend_string(self%plan%get_gpu_backend()))
+    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+      WRITE_REPORT("  GPU Backend          :  "//dtfft_get_backend_string(self%plan%get_backend()))
+    endif
 #endif
     WRITE_REPORT("**End of report**")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
@@ -707,7 +714,7 @@ contains
     get_platform = self%platform
   end function get_platform
 
-  type(dtfft_gpu_backend_t) function get_gpu_backend(self, error_code)
+  type(dtfft_backend_t) function get_backend(self, error_code)
   !! Returns selected GPU backend during autotuning
     class(dtfft_plan_t),        intent(in)  :: self
       !! Abstract plan
@@ -716,13 +723,13 @@ contains
     integer(int32)  :: ierr     !! Error code
 
     ierr = DTFFT_SUCCESS
-    get_gpu_backend = BACKEND_NOT_SET
+    get_backend = BACKEND_NOT_SET
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     if ( present( error_code ) ) error_code = ierr
     if ( ierr /= DTFFT_SUCCESS ) return
 
-    get_gpu_backend = self%plan%get_gpu_backend()
-  end function get_gpu_backend
+    get_backend = self%plan%get_backend()
+  end function get_backend
 
   subroutine get_stream_ptr(self, stream, error_code)
   !! Returns CUDA stream associated with plan
@@ -760,29 +767,29 @@ contains
     if ( present( error_code ) ) error_code = ierr
   end subroutine get_stream_int64
 
-  integer(int32) function check_device_pointers(in, out, gpu_backend, aux) result(error_code)
+  integer(int32) function check_device_pointers(in, out, backend, aux) result(error_code)
   !! Checks if device pointers are provided by user
-    type(*),    target,           intent(in)  :: in(..)
-      !! Incoming buffer of any rank and kind
-    type(*),    target,           intent(in)  :: out(..)
-      !! Resulting buffer of any rank and kind
-    type(dtfft_gpu_backend_t),    intent(in)  :: gpu_backend
+    type(c_ptr),            intent(in)  :: in
+      !! First pointer
+    type(c_ptr),            intent(in)  :: out
+      !! Second pointer
+    type(dtfft_backend_t),  intent(in)  :: backend
       !! Backend. Required to check for `nvshmem` pointer
-    type(*),    target, optional, intent(in)  :: aux(..)
-      !! Optional auxiliary buffer.
+    type(c_ptr), optional,  intent(in)  :: aux
+      !! Optional auxiliary pointer.
     logical(c_bool) :: is_devptr
 
     error_code = DTFFT_SUCCESS
 
-    if ( is_backend_nvshmem(gpu_backend) ) then
+    if ( is_backend_nvshmem(backend) ) then
 #ifdef DTFFT_WITH_NVSHMEM
-      is_devptr = is_nvshmem_ptr(c_loc(in)) .and. is_nvshmem_ptr(c_loc(out))
-      if ( present(aux) ) is_devptr = is_devptr .and. is_nvshmem_ptr(c_loc(aux))
+      is_devptr = is_nvshmem_ptr(in) .and. is_nvshmem_ptr(out)
+      if ( present(aux) ) is_devptr = is_devptr .and. is_nvshmem_ptr(aux)
       if ( .not. is_devptr ) error_code = DTFFT_ERROR_NOT_NVSHMEM_PTR
 #endif
     else
-      is_devptr = is_device_ptr(c_loc(in)) .and. is_device_ptr(c_loc(out))
-      if ( present(aux) ) is_devptr = is_devptr .and. is_device_ptr(c_loc(aux))
+      is_devptr = is_device_ptr(in) .and. is_device_ptr(out)
+      if ( present(aux) ) is_devptr = is_devptr .and. is_device_ptr(aux)
       if ( .not. is_devptr ) error_code = DTFFT_ERROR_NOT_DEVICE_PTR
     endif
   end function check_device_pointers
@@ -826,7 +833,7 @@ contains
       call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
     endselect
 #ifdef DTFFT_WITH_CUDA
-    if ( is_backend_nvshmem( self%get_gpu_backend() ) .and. present(alloc_size) ) then
+    if ( is_backend_nvshmem( self%get_backend() ) .and. present(alloc_size) ) then
       call MPI_Allreduce(MPI_IN_PLACE, alloc_size, 1, MPI_INTEGER8, MPI_MAX, self%comm, ierr)
     endif
 #endif
@@ -885,7 +892,7 @@ contains
       base_storage = dbl_storage_size
       base_dtype = dbl_type
     case default
-      error stop "dtFFT internal error: unknown precision"
+      INTERNAL_ERROR("unknown precision")
     endselect
     self%storage_size = base_storage
 
@@ -920,7 +927,7 @@ contains
       endblock
     endif
 
-    if ( get_user_gpu_backend() == DTFFT_GPU_BACKEND_MPI_DATATYPE .or. self%platform == DTFFT_PLATFORM_HOST ) then
+    if ( get_user_gpu_backend() == DTFFT_BACKEND_MPI_DATATYPE .or. self%platform == DTFFT_PLATFORM_HOST ) then
       allocate( transpose_plan_host :: self%plan )
     else
       allocate( transpose_plan_cuda :: self%plan )
@@ -1013,7 +1020,7 @@ contains
 
   subroutine alloc_fft_plans(self, kinds)
   !! Allocates [[abstract_executor]] with required FFT class
-  !! and populates [[fft_mapping]] with similar FFT ids
+  !! and populates [[dtfft_plan_t(type):fft_mapping]] with similar FFT ids
     class(dtfft_plan_t),              intent(inout) :: self
       !! Abstract plan
     type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)
@@ -1061,7 +1068,7 @@ contains
         allocate(vkfft_executor :: self%fft(dim)%fft)
 #endif
       case default
-        error stop "dtFFT internal error: Executor type unrecognized"
+        INTERNAL_ERROR("Executor type unrecognized")
       endselect
     enddo
     if( self%is_z_slab ) return
@@ -1106,7 +1113,6 @@ contains
     write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size, " bytes"
     WRITE_DEBUG(debug_msg)
     self%aux_ptr = self%mem_alloc(alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
-    call c_f_pointer(self%aux_ptr, self%aux, [ alloc_size /  int(FLOAT_STORAGE_SIZE, int64) ])
     self%is_aux_alloc = .true.
   end subroutine check_aux
 
