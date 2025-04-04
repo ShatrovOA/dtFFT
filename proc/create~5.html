@@ -66,7 +66,7 @@
     <div class="container">
   <div class="row">
     <h1>create
-      <small>Function</small>
+      <small>Subroutine</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -76,20 +76,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.8% of total for procedures.">79 statements</a>
+                 title=" 0.2% of total for procedures.">20 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
+              <a href="../src/dtfft_pencil.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_pencil.f90.html'>dtfft_pencil.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_pencil.html'>dtfft_pencil</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -135,14 +135,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  function create(self, fft_rank, fft_type, precision, real_pencil, complex_pencil, r2r_kinds)  
+    <h2>private  subroutine create(self, rank, aligned_dim, counts, comms)  
 </h2>
     
 
-    <p>Creates FFT plan</p>
+    <p>Creates pencil</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_executor.html'>abstract_executor</a></p>
+    <p><a href='../type/pencil.html'>pencil</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -157,8 +157,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~47"></span>
-              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
+              <span class="anchor" id="variable-self~57"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -167,12 +167,12 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFT Executor</p>
+                <p>Pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fft_rank~3"></span>
+              <span class="anchor" id="variable-rank~14"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -180,14 +180,14 @@
               
             </td>
             <td>::</td>
-            <td><strong>fft_rank</strong></td>
+            <td><strong>rank</strong></td>
             <td>
-                <p>Rank of fft: 1 or 2</p>
+                <p>Rank of buffer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fft_type~3"></span>
+              <span class="anchor" id="variable-aligned_dim~2"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -195,81 +195,44 @@
               
             </td>
             <td>::</td>
-            <td><strong>fft_type</strong></td>
+            <td><strong>aligned_dim</strong></td>
             <td>
-                <p>Type of fft: r2r, r2c, c2c</p>
+                <p>Position of aligned dimension</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-precision~3"></span>
-              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
+              <span class="anchor" id="variable-counts~6"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>precision</strong></td>
+            <td><strong>counts</strong>(:)</td>
             <td>
-                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
+                <p>Global counts</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-real_pencil"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
+              <span class="anchor" id="variable-comms~5"></span>
+              type(MPI_Comm),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(in)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>real_pencil</strong></td>
+            <td><strong>comms</strong>(:)</td>
             <td>
-                <p>Real data layout</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-complex_pencil"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>complex_pencil</strong></td>
-            <td>
-                <p>Complex data layout</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-r2r_kinds~3"></span>
-              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>r2r_kinds</strong>(:)</td>
-            <td>
-                <p>Kinds of r2r transform</p>
+                <p>Grid communicators</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-create~8"></span>
-          integer(kind=int32)
-        </small>
-      </h3>
-      
     <br>
     <div class="card">
       <div class="card-header">
@@ -282,177 +245,306 @@
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: proc~~create~5~~CallsGraph Pages: 1 -->
-<svg id="proccreate5CallsGraph" width="641pt" height="185pt"
- viewBox="0.00 0.00 641.00 184.52" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~create~5~~CallsGraph" class="graph" transform="scale(0.8 0.8) rotate(0) translate(4 226)">
+<svg id="proccreate5CallsGraph" width="363pt" height="116pt"
+ viewBox="0.00 0.00 363.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~create~5~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
 <title>proc~~create~5~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-226 795,-226 795,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-112 359,-112 359,4 -4,4"/>
 <!-- proc~create~5 -->
 <g id="proc~~create~5~~CallsGraph_node1" class="node">
 <title>proc~create~5</title>
-<polygon fill="none" stroke="black" points="151,-159 0,-159 0,-135 151,-135 151,-159"/>
-<text text-anchor="middle" x="75.5" y="-144.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_executor%create</text>
+<polygon fill="none" stroke="black" points="88,-87 0,-87 0,-63 88,-63 88,-87"/>
+<text text-anchor="middle" x="44" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50">pencil%create</text>
 </g>
-<!-- create_private -->
+<!-- proc~destroy~6 -->
 <g id="proc~~create~5~~CallsGraph_node2" class="node">
-<title>create_private</title>
-<polygon fill="#777777" stroke="#777777" points="305.5,-222 216.5,-222 216.5,-198 305.5,-198 305.5,-222"/>
-<text text-anchor="middle" x="261" y="-207.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_private</text>
+<title>proc~destroy~6</title>
+<g id="a_proc~~create~5~~CallsGraph_node2"><a xlink:href="../proc/destroy~6.html" xlink:title="pencil%destroy">
+<polygon fill="#d9534f" stroke="#d9534f" points="218,-108 124,-108 124,-84 218,-84 218,-108"/>
+<text text-anchor="middle" x="171" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pencil%destroy</text>
+</a>
 </g>
-<!-- proc~create~5&#45;&gt;create_private -->
+</g>
+<!-- proc~create~5&#45;&gt;proc~destroy~6 -->
 <g id="proc~~create~5~~CallsGraph_edge1" class="edge">
-<title>proc~create~5&#45;&gt;create_private</title>
-<path fill="none" stroke="#ff0000" d="M106.27,-159.09C128.38,-167.87 159.35,-179.79 187,-189 193.3,-191.1 199.96,-193.19 206.57,-195.19"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="205.62,-198.55 216.2,-198.04 207.61,-191.84 205.62,-198.55"/>
+<title>proc~create~5&#45;&gt;proc~destroy~6</title>
+<path fill="none" stroke="#ff0000" d="M88.02,-82.23C96.34,-83.63 105.18,-85.11 113.85,-86.57"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="113.47,-90.05 123.92,-88.26 114.63,-83.15 113.47,-90.05"/>
 </g>
-<!-- is_null_ptr -->
+<!-- proc~get_local_size -->
 <g id="proc~~create~5~~CallsGraph_node3" class="node">
-<title>is_null_ptr</title>
-<polygon fill="#777777" stroke="#777777" points="294,-180 228,-180 228,-156 294,-156 294,-180"/>
-<text text-anchor="middle" x="261" y="-165.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+<title>proc~get_local_size</title>
+<g id="a_proc~~create~5~~CallsGraph_node3"><a xlink:href="../proc/get_local_size.html" xlink:title="get_local_size">
+<polygon fill="#d9534f" stroke="#d9534f" points="214,-66 128,-66 128,-42 214,-42 214,-66"/>
+<text text-anchor="middle" x="171" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_local_size</text>
+</a>
 </g>
-<!-- proc~create~5&#45;&gt;is_null_ptr -->
+</g>
+<!-- proc~create~5&#45;&gt;proc~get_local_size -->
 <g id="proc~~create~5~~CallsGraph_edge2" class="edge">
-<title>proc~create~5&#45;&gt;is_null_ptr</title>
-<path fill="none" stroke="#ff0000" d="M151.14,-155.54C173.85,-158.14 198.01,-160.91 217.78,-163.17"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="217.65,-166.68 227.98,-164.34 218.45,-159.72 217.65,-166.68"/>
+<title>proc~create~5&#45;&gt;proc~get_local_size</title>
+<path fill="none" stroke="#ff0000" d="M88.02,-67.77C97.56,-66.17 107.77,-64.45 117.64,-62.8"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="118.47,-66.21 127.75,-61.1 117.31,-59.3 118.47,-66.21"/>
 </g>
-<!-- proc~pop_nvtx_domain_range -->
+<!-- mpi_allgather -->
 <g id="proc~~create~5~~CallsGraph_node4" class="node">
-<title>proc~pop_nvtx_domain_range</title>
-<g id="a_proc~~create~5~~CallsGraph_node4"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
-<polygon fill="#d9534f" stroke="#d9534f" points="332.5,-138 189.5,-138 189.5,-114 332.5,-114 332.5,-138"/>
-<text text-anchor="middle" x="261" y="-123.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
-</a>
+<title>mpi_allgather</title>
+<polygon fill="#777777" stroke="#777777" points="347.5,-108 261.5,-108 261.5,-84 347.5,-84 347.5,-108"/>
+<text text-anchor="middle" x="304.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_allgather</text>
 </g>
-</g>
-<!-- proc~create~5&#45;&gt;proc~pop_nvtx_domain_range -->
+<!-- proc~get_local_size&#45;&gt;mpi_allgather -->
 <g id="proc~~create~5~~CallsGraph_edge3" class="edge">
-<title>proc~create~5&#45;&gt;proc~pop_nvtx_domain_range</title>
-<path fill="none" stroke="#ff0000" d="M151.14,-138.46C160.39,-137.4 169.89,-136.31 179.23,-135.24"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="179.75,-138.71 189.28,-134.09 178.95,-131.75 179.75,-138.71"/>
+<title>proc~get_local_size&#45;&gt;mpi_allgather</title>
+<path fill="none" stroke="#00ffff" d="M209.68,-66.04C224.13,-70.65 240.79,-75.97 256.04,-80.84"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="255.22,-84.25 265.81,-83.96 257.35,-77.59 255.22,-84.25"/>
 </g>
-<!-- proc~push_nvtx_domain_range -->
+<!-- mpi_comm_rank -->
 <g id="proc~~create~5~~CallsGraph_node5" class="node">
-<title>proc~push_nvtx_domain_range</title>
-<g id="a_proc~~create~5~~CallsGraph_node5"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
-<polygon fill="#d9534f" stroke="#d9534f" points="335,-86 187,-86 187,-62 335,-62 335,-86"/>
-<text text-anchor="middle" x="261" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
-</a>
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="355,-66 254,-66 254,-42 355,-42 355,-66"/>
+<text text-anchor="middle" x="304.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
 </g>
-</g>
-<!-- proc~create~5&#45;&gt;proc~push_nvtx_domain_range -->
+<!-- proc~get_local_size&#45;&gt;mpi_comm_rank -->
 <g id="proc~~create~5~~CallsGraph_edge4" class="edge">
-<title>proc~create~5&#45;&gt;proc~push_nvtx_domain_range</title>
-<path fill="none" stroke="#ff0000" d="M106.8,-134.95C137.75,-122.64 185.95,-103.46 220.01,-89.91"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="221.66,-93.02 229.65,-86.07 219.07,-86.52 221.66,-93.02"/>
+<title>proc~get_local_size&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#00ffff" d="M214.33,-54C223.69,-54 233.78,-54 243.69,-54"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="243.91,-57.5 253.91,-54 243.91,-50.5 243.91,-57.5"/>
 </g>
-<!-- interface~nvtxdomainrangepop_c -->
+<!-- mpi_comm_size -->
 <g id="proc~~create~5~~CallsGraph_node6" class="node">
-<title>interface~nvtxdomainrangepop_c</title>
-<g id="a_proc~~create~5~~CallsGraph_node6"><a xlink:href="../interface/nvtxdomainrangepop_c.html" xlink:title="nvtxDomainRangePop_c">
-<polygon fill="#a7506f" stroke="#a7506f" points="522,-148 380,-148 380,-124 522,-124 522,-148"/>
-<text text-anchor="middle" x="451" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePop_c</text>
-</a>
+<title>mpi_comm_size</title>
+<polygon fill="#777777" stroke="#777777" points="353,-24 256,-24 256,0 353,0 353,-24"/>
+<text text-anchor="middle" x="304.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_size</text>
 </g>
-</g>
-<!-- proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c -->
+<!-- proc~get_local_size&#45;&gt;mpi_comm_size -->
 <g id="proc~~create~5~~CallsGraph_edge5" class="edge">
-<title>proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c</title>
-<path fill="none" stroke="#00ffff" d="M332.54,-129.75C344.59,-130.39 357.18,-131.06 369.47,-131.72"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="369.52,-135.22 379.69,-132.26 369.89,-128.23 369.52,-135.22"/>
+<title>proc~get_local_size&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#00ffff" d="M209.68,-41.96C224.13,-37.35 240.79,-32.03 256.04,-27.16"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="257.35,-30.41 265.81,-24.04 255.22,-23.75 257.35,-30.41"/>
 </g>
-<!-- interface~nvtxdomainrangepushex_c -->
-<g id="proc~~create~5~~CallsGraph_node7" class="node">
-<title>interface~nvtxdomainrangepushex_c</title>
-<g id="a_proc~~create~5~~CallsGraph_node7"><a xlink:href="../interface/nvtxdomainrangepushex_c.html" xlink:title="nvtxDomainRangePushEx_c">
-<polygon fill="#a7506f" stroke="#a7506f" points="531,-106 371,-106 371,-82 531,-82 531,-106"/>
-<text text-anchor="middle" x="451" y="-91.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePushEx_c</text>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~create~5~~CalledByGraph Pages: 1 -->
+<svg id="proccreate5CalledByGraph" width="641pt" height="130pt"
+ viewBox="0.00 0.00 641.00 130.38" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~create~5~~CalledByGraph" class="graph" transform="scale(0.71 0.71) rotate(0) translate(4 180.28)">
+<title>proc~~create~5~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-180.28 902,-180.28 902,4 -4,4"/>
+<!-- proc~create~5 -->
+<g id="proc~~create~5~~CalledByGraph_node1" class="node">
+<title>proc~create~5</title>
+<polygon fill="none" stroke="black" points="898,-122 810,-122 810,-98 898,-98 898,-122"/>
+<text text-anchor="middle" x="854" y="-107.6" font-family="Helvetica,sans-Serif" font-size="10.50">pencil%create</text>
+</g>
+<!-- proc~autotune_grid -->
+<g id="proc~~create~5~~CalledByGraph_node2" class="node">
+<title>proc~autotune_grid</title>
+<g id="a_proc~~create~5~~CalledByGraph_node2"><a xlink:href="../proc/autotune_grid.html" xlink:title="autotune_grid">
+<polygon fill="#d9534f" stroke="#d9534f" points="715,-142 628,-142 628,-118 715,-118 715,-142"/>
+<text text-anchor="middle" x="671.5" y="-127.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid</text>
 </a>
 </g>
 </g>
-<!-- proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c -->
-<g id="proc~~create~5~~CallsGraph_edge6" class="edge">
-<title>proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c</title>
-<path fill="none" stroke="#7f00ff" d="M335.22,-81.79C343.6,-82.68 352.2,-83.6 360.76,-84.51"/>
-<polygon fill="#7f00ff" stroke="#7f00ff" points="360.44,-87.99 370.75,-85.57 361.18,-81.03 360.44,-87.99"/>
+<!-- proc~autotune_grid&#45;&gt;proc~create~5 -->
+<g id="proc~~create~5~~CalledByGraph_edge1" class="edge">
+<title>proc~autotune_grid&#45;&gt;proc~create~5</title>
+<path fill="none" stroke="#ff0000" d="M715.28,-125.26C740.6,-122.45 772.91,-118.87 799.86,-115.89"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="800.35,-119.36 809.91,-114.78 799.58,-112.4 800.35,-119.36"/>
 </g>
-<!-- proc~astring_f2c -->
-<g id="proc~~create~5~~CallsGraph_node8" class="node">
-<title>proc~astring_f2c</title>
-<g id="a_proc~~create~5~~CallsGraph_node8"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
-<polygon fill="#d9534f" stroke="#d9534f" points="664.5,-66 593.5,-66 593.5,-42 664.5,-42 664.5,-66"/>
-<text text-anchor="middle" x="629" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
+<!-- proc~autotune_grid~2 -->
+<g id="proc~~create~5~~CalledByGraph_node3" class="node">
+<title>proc~autotune_grid~2</title>
+<g id="a_proc~~create~5~~CalledByGraph_node3"><a xlink:href="../proc/autotune_grid~2.html" xlink:title="transpose_plan_host%autotune_grid">
+<polygon fill="#d9534f" stroke="#d9534f" points="774,-62 569,-62 569,-38 774,-38 774,-62"/>
+<text text-anchor="middle" x="671.5" y="-47.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan_host%autotune_grid</text>
 </a>
 </g>
 </g>
-<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
-<g id="proc~~create~5~~CallsGraph_edge7" class="edge">
-<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
-<path fill="none" stroke="#7f00ff" d="M335.19,-70C409.14,-65.96 521.05,-59.84 582.91,-56.46"/>
-<polygon fill="#7f00ff" stroke="#7f00ff" points="583.33,-59.95 593.13,-55.91 582.95,-52.96 583.33,-59.95"/>
+<!-- proc~autotune_grid~2&#45;&gt;proc~create~5 -->
+<g id="proc~~create~5~~CalledByGraph_edge2" class="edge">
+<title>proc~autotune_grid~2&#45;&gt;proc~create~5</title>
+<path fill="none" stroke="#ff0000" d="M725.9,-62.02C741.55,-65.99 758.59,-70.75 774,-76 788.78,-81.04 804.68,-87.64 818.3,-93.68"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="817.22,-97.03 827.78,-97.95 820.1,-90.65 817.22,-97.03"/>
 </g>
-<!-- proc~create_nvtx_domain -->
-<g id="proc~~create~5~~CallsGraph_node9" class="node">
-<title>proc~create_nvtx_domain</title>
-<g id="a_proc~~create~5~~CallsGraph_node9"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
-<polygon fill="#d9534f" stroke="#d9534f" points="511,-26 391,-26 391,-2 511,-2 511,-26"/>
-<text text-anchor="middle" x="451" y="-11.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
+<!-- proc~create_cuda -->
+<g id="proc~~create~5~~CalledByGraph_node4" class="node">
+<title>proc~create_cuda</title>
+<g id="a_proc~~create~5~~CalledByGraph_node4"><a xlink:href="../proc/create_cuda.html" xlink:title="transpose_plan_cuda%create_cuda">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="204,-162 4,-162 4,-138 204,-138 204,-162"/>
+<text text-anchor="middle" x="104" y="-147.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan_cuda%create_cuda</text>
 </a>
 </g>
 </g>
-<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
-<g id="proc~~create~5~~CallsGraph_edge8" class="edge">
-<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
-<path fill="none" stroke="#7f00ff" d="M300.04,-61.86C329.7,-52.39 371.04,-39.2 402.81,-29.06"/>
-<polygon fill="#7f00ff" stroke="#7f00ff" points="403.87,-32.4 412.33,-26.02 401.74,-25.73 403.87,-32.4"/>
+<!-- proc~create_cuda&#45;&gt;proc~create~5 -->
+<g id="proc~~create~5~~CalledByGraph_edge3" class="edge">
+<title>proc~create_cuda&#45;&gt;proc~create~5</title>
+<path fill="none" stroke="#ff0000" d="M204.09,-150.8C217.5,-150.88 231.09,-150.95 244,-151 479.55,-151.85 545.16,-206.85 774,-151 792.9,-146.39 812.31,-136.4 827.16,-127.44"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="829.16,-130.32 835.78,-122.04 825.44,-124.38 829.16,-130.32"/>
 </g>
-<!-- proc~string_f2c -->
-<g id="proc~~create~5~~CallsGraph_node11" class="node">
-<title>proc~string_f2c</title>
-<g id="a_proc~~create~5~~CallsGraph_node11"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
-<polygon fill="#d9534f" stroke="#d9534f" points="791,-66 727,-66 727,-42 791,-42 791,-66"/>
-<text text-anchor="middle" x="759" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
+<!-- proc~autotune_grid_decomposition -->
+<g id="proc~~create~5~~CalledByGraph_node6" class="node">
+<title>proc~autotune_grid_decomposition</title>
+<g id="a_proc~~create~5~~CalledByGraph_node6"><a xlink:href="../proc/autotune_grid_decomposition.html" xlink:title="autotune_grid_decomposition">
+<polygon fill="#d9534f" stroke="#d9534f" points="474,-142 303,-142 303,-118 474,-118 474,-142"/>
+<text text-anchor="middle" x="388.5" y="-127.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid_decomposition</text>
 </a>
 </g>
 </g>
-<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
-<g id="proc~~create~5~~CallsGraph_edge9" class="edge">
-<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
-<path fill="none" stroke="#00ffff" d="M664.64,-54C680.7,-54 699.92,-54 716.73,-54"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="716.83,-57.5 726.83,-54 716.83,-50.5 716.83,-57.5"/>
+<!-- proc~create_cuda&#45;&gt;proc~autotune_grid_decomposition -->
+<g id="proc~~create~5~~CalledByGraph_edge8" class="edge">
+<title>proc~create_cuda&#45;&gt;proc~autotune_grid_decomposition</title>
+<path fill="none" stroke="#ff0000" d="M204.2,-142.98C232.8,-140.95 263.94,-138.75 292.29,-136.74"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="292.87,-140.21 302.6,-136.01 292.38,-133.23 292.87,-140.21"/>
 </g>
-<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
-<g id="proc~~create~5~~CallsGraph_edge11" class="edge">
-<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
-<path fill="none" stroke="#7f00ff" d="M504.81,-26C529.88,-31.7 559.52,-38.44 583.44,-43.87"/>
-<polygon fill="#7f00ff" stroke="#7f00ff" points="582.78,-47.31 593.31,-46.12 584.33,-40.49 582.78,-47.31"/>
-</g>
-<!-- interface~nvtxdomaincreate_c -->
-<g id="proc~~create~5~~CallsGraph_node10" class="node">
-<title>interface~nvtxdomaincreate_c</title>
-<g id="a_proc~~create~5~~CallsGraph_node10"><a xlink:href="../interface/nvtxdomaincreate_c.html" xlink:title="nvtxDomainCreate_c">
-<polygon fill="#a7506f" stroke="#a7506f" points="691,-24 567,-24 567,0 691,0 691,-24"/>
-<text text-anchor="middle" x="629" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainCreate_c</text>
+<!-- proc~create_private~2 -->
+<g id="proc~~create~5~~CalledByGraph_node5" class="node">
+<title>proc~create_private~2</title>
+<g id="a_proc~~create~5~~CalledByGraph_node5"><a xlink:href="../proc/create_private~2.html" xlink:title="transpose_plan_host%create_private">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="208,-64 0,-64 0,-40 208,-40 208,-64"/>
+<text text-anchor="middle" x="104" y="-49.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan_host%create_private</text>
 </a>
 </g>
 </g>
-<!-- proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c -->
-<g id="proc~~create~5~~CallsGraph_edge10" class="edge">
-<title>proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c</title>
-<path fill="none" stroke="#7f00ff" d="M511.1,-13.33C525.7,-13.16 541.5,-12.98 556.62,-12.81"/>
-<polygon fill="#7f00ff" stroke="#7f00ff" points="557,-16.31 566.96,-12.69 556.92,-9.31 557,-16.31"/>
+<!-- proc~create_private~2&#45;&gt;proc~create~5 -->
+<g id="proc~~create~5~~CalledByGraph_edge4" class="edge">
+<title>proc~create_private~2&#45;&gt;proc~create~5</title>
+<path fill="none" stroke="#ff0000" d="M208.21,-61.88C220.27,-62.97 232.41,-64.03 244,-65 449.25,-82.18 693.72,-99.2 799.66,-106.41"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="799.57,-109.91 809.78,-107.1 800.04,-102.93 799.57,-109.91"/>
+</g>
+<!-- proc~create_private~2&#45;&gt;proc~autotune_grid~2 -->
+<g id="proc~~create~5~~CalledByGraph_edge7" class="edge">
+<title>proc~create_private~2&#45;&gt;proc~autotune_grid~2</title>
+<path fill="none" stroke="#7fff00" d="M208.06,-51.64C307.18,-51.28 456.61,-50.76 558.59,-50.4"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="558.63,-53.9 568.62,-50.36 558.61,-46.9 558.63,-53.9"/>
+</g>
+<!-- proc~autotune_grid_decomposition~2 -->
+<g id="proc~~create~5~~CalledByGraph_node7" class="node">
+<title>proc~autotune_grid_decomposition~2</title>
+<g id="a_proc~~create~5~~CalledByGraph_node7"><a xlink:href="../proc/autotune_grid_decomposition~2.html" xlink:title="transpose_plan_host%autotune_grid_decomposition">
+<polygon fill="#d9534f" stroke="#d9534f" points="533,-24 244,-24 244,0 533,0 533,-24"/>
+<text text-anchor="middle" x="388.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan_host%autotune_grid_decomposition</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private~2&#45;&gt;proc~autotune_grid_decomposition~2 -->
+<g id="proc~~create~5~~CalledByGraph_edge9" class="edge">
+<title>proc~create_private~2&#45;&gt;proc~autotune_grid_decomposition~2</title>
+<path fill="none" stroke="#00ffff" d="M189.76,-40C222.02,-35.43 258.98,-30.2 292.15,-25.5"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="292.9,-28.93 302.31,-24.06 291.92,-22 292.9,-28.93"/>
+</g>
+<!-- proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid -->
+<g id="proc~~create~5~~CalledByGraph_edge5" class="edge">
+<title>proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid</title>
+<path fill="none" stroke="#ff0000" d="M474.19,-130C520.87,-130 577.36,-130 617.74,-130"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="617.9,-133.5 627.9,-130 617.9,-126.5 617.9,-133.5"/>
+</g>
+<!-- proc~autotune_grid_decomposition~2&#45;&gt;proc~autotune_grid~2 -->
+<g id="proc~~create~5~~CalledByGraph_edge6" class="edge">
+<title>proc~autotune_grid_decomposition~2&#45;&gt;proc~autotune_grid~2</title>
+<path fill="none" stroke="#7fff00" d="M478.41,-24.02C508.02,-28.03 541.19,-32.51 571.52,-36.61"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="571.31,-40.12 581.69,-37.99 572.25,-33.18 571.31,-40.12"/>
 </g>
 </g>
 </svg>
 </div>                <script>
-                  var panproccreate5CallsGraph = svgPanZoom('#proccreate5CallsGraph',
+                  var panproccreate5CalledByGraph = svgPanZoom('#proccreate5CalledByGraph',
                     {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
                   );
                 </script>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
           </div>
-          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
               <div class="modal-content">
                 <div class="modal-header">
