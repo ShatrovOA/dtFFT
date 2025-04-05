@@ -254,7 +254,6 @@ contains
     block
       type(string), allocatable :: backends(:)
       character(len=:), allocatable :: bcknd_env
-      integer(int32) :: i
 
       allocate( backends(7) )
       backends(1) = string("mpi_dt")
