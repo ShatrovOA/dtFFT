@@ -117,9 +117,9 @@
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_z_slab">enable_z_slab</a>
-            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-platform~4">platform</a>
-            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-stream~31">stream</a>
-            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-backend~11">backend</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-platform~2">platform</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-stream~12">stream</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-backend~7">backend</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_mpi_backends">enable_mpi_backends</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_pipelined_backends">enable_pipelined_backends</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_nccl_backends">enable_nccl_backends</a>
@@ -340,7 +340,7 @@ In all other cases it is considered that Z-slab is always faster, since it reduc
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~4"></span>
+              <span class="anchor" id="variable-platform~2"></span>
               type(<a href='dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
               <td>public</td>
@@ -361,7 +361,7 @@ This enables single library installation to be compiled with both host, CUDA and
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~31"></span>
+              <span class="anchor" id="variable-stream~12"></span>
               type(<a href='dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
               <td>public</td>
@@ -382,7 +382,7 @@ This enables single library installation to be compiled with both host, CUDA and
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-backend~11"></span>
+              <span class="anchor" id="variable-backend~7"></span>
               type(<a href='dtfft_backend_t.html'>dtfft_backend_t</a>),
             </td>
               <td>public</td>
@@ -499,19 +499,151 @@ but it was noticed that disabling CUDA IPC seriously affects overall performance
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private pure function <a href='../proc/config_constructor.html'>config_constructor</a>() result(config)  
+    private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_z_slab, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends) result(config)  
 
     </h3>
     
-  <p>Creates a new configuration with default values</p>
+  <p>Creates a new configuration</p>
 
   <h4>Arguments</h4>
-    <em>None</em>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_z_slab~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_z_slab</strong></td>
+            <td>
+<p>Should dtFFT use Z-slab optimization or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-platform~3"></span>
+              type(<a href='dtfft_platform_t.html'>dtfft_platform_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>platform</strong></td>
+            <td>
+<p>Selects platform to execute plan.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~13"></span>
+              type(<a href='dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>Main CUDA stream that will be used in dtFFT.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-backend~8"></span>
+              type(<a href='dtfft_backend_t.html'>dtfft_backend_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>backend</strong></td>
+            <td>
+<p>Backend that will be used by dtFFT when <code>effort</code> is <code>DTFFT_ESTIMATE</code> or <code>DTFFT_MEASURE</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_mpi_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_mpi_backends</strong></td>
+            <td>
+<p>Should MPI GPU Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_pipelined_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_pipelined_backends</strong></td>
+            <td>
+<p>Should pipelined GPU backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_nccl_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_nccl_backends</strong></td>
+            <td>
+<p>Should NCCL Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_nvshmem_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_nvshmem_backends</strong></td>
+            <td>
+<p>Should NVSHMEM Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
     <h4>
     Return Value
     <small>type(<a href='dtfft_config_t.html'>dtfft_config_t</a>)</small>
     </h4>
-    <p>Configuration to create</p>
+    <p>Constructed <code>dtFFT</code> config ready to be set by call to <a href="../proc/dtfft_set_config.html">dtfft_set_config</a></p>
 
           </li>
     </ul>

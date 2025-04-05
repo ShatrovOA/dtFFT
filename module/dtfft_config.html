@@ -76,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.8% of total for modules and submodules.">154 statements</a>
+                 title=" 2.0% of total for modules and submodules.">170 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -116,7 +116,7 @@
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/dtfft_config.html#variable-is_z_slab_enabled">is_z_slab_enabled</a>
-            <a class="list-group-item" href="../module/dtfft_config.html#variable-platform~3">platform</a>
+            <a class="list-group-item" href="../module/dtfft_config.html#variable-platform">platform</a>
             <a class="list-group-item" href="../module/dtfft_config.html#variable-default_gpu_backend">DEFAULT_GPU_BACKEND</a>
             <a class="list-group-item" href="../module/dtfft_config.html#variable-main_stream">main_stream</a>
             <a class="list-group-item" href="../module/dtfft_config.html#variable-custom_stream">custom_stream</a>
@@ -126,7 +126,7 @@
             <a class="list-group-item" href="../module/dtfft_config.html#variable-is_mpi_enabled">is_mpi_enabled</a>
             <a class="list-group-item" href="../module/dtfft_config.html#variable-is_nccl_enabled">is_nccl_enabled</a>
             <a class="list-group-item" href="../module/dtfft_config.html#variable-is_nvshmem_enabled">is_nvshmem_enabled</a>
-            <a class="list-group-item" href="../module/dtfft_config.html#variable-backend~10">backend</a>
+            <a class="list-group-item" href="../module/dtfft_config.html#variable-backend~6">backend</a>
         </div>
       </div>
     </div>
@@ -220,10 +220,10 @@ or environment variables</p>
               <ul class="list-inline">
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
                   <li class="list-inline-item"><a href='dtfft_interface_cuda_runtime.html'>dtfft_interface_cuda_runtime</a></li>
-                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
                   <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
-                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -789,7 +789,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~3"></span>
+              <span class="anchor" id="variable-platform"></span>
               type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
               <td>private,</td>
@@ -959,7 +959,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-backend~10"></span>
+              <span class="anchor" id="variable-backend~6"></span>
               type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
             </td>
               <td>private,</td>
@@ -995,19 +995,151 @@ parameter
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private pure function <a href='../proc/config_constructor.html'>config_constructor</a>() result(config)  
+    private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_z_slab, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends) result(config)  
 
     </h3>
     
-  <p>Creates a new configuration with default values</p>
+  <p>Creates a new configuration</p>
 
   <h4>Arguments</h4>
-    <em>None</em>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_z_slab~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_z_slab</strong></td>
+            <td>
+<p>Should dtFFT use Z-slab optimization or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-platform~3"></span>
+              type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>platform</strong></td>
+            <td>
+<p>Selects platform to execute plan.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~13"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>Main CUDA stream that will be used in dtFFT.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-backend~8"></span>
+              type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>backend</strong></td>
+            <td>
+<p>Backend that will be used by dtFFT when <code>effort</code> is <code>DTFFT_ESTIMATE</code> or <code>DTFFT_MEASURE</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_mpi_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_mpi_backends</strong></td>
+            <td>
+<p>Should MPI GPU Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_pipelined_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_pipelined_backends</strong></td>
+            <td>
+<p>Should pipelined GPU backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_nccl_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_nccl_backends</strong></td>
+            <td>
+<p>Should NCCL Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_nvshmem_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_nvshmem_backends</strong></td>
+            <td>
+<p>Should NVSHMEM Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
     <h4>
     Return Value
     <small>type(<a href='../type/dtfft_config_t.html'>dtfft_config_t</a>)</small>
     </h4>
-    <p>Configuration to create</p>
+    <p>Constructed <code>dtFFT</code> config ready to be set by call to <a href="../proc/dtfft_set_config.html">dtfft_set_config</a></p>
 
           </li>
     </ul>
@@ -1061,7 +1193,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~4"></span>
+              <span class="anchor" id="variable-platform~2"></span>
               type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
               <td>public</td>
@@ -1073,12 +1205,12 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-<p>Selects platform to execute plan.</p><a href="../type/dtfft_config_t.html#variable-platform~4" class="pull-right"><emph>Read more&hellip;</emph></a>
+<p>Selects platform to execute plan.</p><a href="../type/dtfft_config_t.html#variable-platform~2" class="pull-right"><emph>Read more&hellip;</emph></a>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~31"></span>
+              <span class="anchor" id="variable-stream~12"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
               <td>public</td>
@@ -1090,12 +1222,12 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-<p>Main CUDA stream that will be used in dtFFT.</p><a href="../type/dtfft_config_t.html#variable-stream~31" class="pull-right"><emph>Read more&hellip;</emph></a>
+<p>Main CUDA stream that will be used in dtFFT.</p><a href="../type/dtfft_config_t.html#variable-stream~12" class="pull-right"><emph>Read more&hellip;</emph></a>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-backend~11"></span>
+              <span class="anchor" id="variable-backend~7"></span>
               type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
             </td>
               <td>public</td>
@@ -1107,7 +1239,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-<p>Backend that will be used by dtFFT when <code>effort</code> is <code>DTFFT_ESTIMATE</code> or <code>DTFFT_MEASURE</code>.</p><a href="../type/dtfft_config_t.html#variable-backend~11" class="pull-right"><emph>Read more&hellip;</emph></a>
+<p>Backend that will be used by dtFFT when <code>effort</code> is <code>DTFFT_ESTIMATE</code> or <code>DTFFT_MEASURE</code>.</p><a href="../type/dtfft_config_t.html#variable-backend~7" class="pull-right"><emph>Read more&hellip;</emph></a>
             </td>
         </tr>
         <tr>
@@ -1193,9 +1325,9 @@ parameter
                     pure
                     function
                     <strong><a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/config_constructor.html'>config_constructor</a></strong>
-                    ()
+                    (enable_z_slab, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends)
                   </td>
-                  <td><p>Creates a new configuration with default values</p></td>
+                  <td><p>Creates a new configuration</p></td>
                 </tr>
           </tbody>
         </table>
@@ -1354,19 +1486,151 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-config_constructor"></span> <h3>private pure function <a href='../proc/config_constructor.html'>config_constructor</a>() result(config)  
+    <div class="card-header codesum"><span class="anchor" id="proc-config_constructor"></span> <h3>private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_z_slab, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends) result(config)  
 </h3></div>
     <div class="card-body">
           
-  <p>Creates a new configuration with default values</p>
+  <p>Creates a new configuration</p>
 
   <h4>Arguments</h4>
-    <em>None</em>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_z_slab~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_z_slab</strong></td>
+            <td>
+<p>Should dtFFT use Z-slab optimization or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-platform~3"></span>
+              type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>platform</strong></td>
+            <td>
+<p>Selects platform to execute plan.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~13"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>Main CUDA stream that will be used in dtFFT.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-backend~8"></span>
+              type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>backend</strong></td>
+            <td>
+<p>Backend that will be used by dtFFT when <code>effort</code> is <code>DTFFT_ESTIMATE</code> or <code>DTFFT_MEASURE</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_mpi_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_mpi_backends</strong></td>
+            <td>
+<p>Should MPI GPU Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_pipelined_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_pipelined_backends</strong></td>
+            <td>
+<p>Should pipelined GPU backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_nccl_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_nccl_backends</strong></td>
+            <td>
+<p>Should NCCL Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_nvshmem_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_nvshmem_backends</strong></td>
+            <td>
+<p>Should NVSHMEM Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
     <h4>
     Return Value
     <small>type(<a href='../type/dtfft_config_t.html'>dtfft_config_t</a>)</small>
     </h4>
-    <p>Configuration to create</p>
+    <p>Constructed <code>dtFFT</code> config ready to be set by call to <a href="../proc/dtfft_set_config.html">dtfft_set_config</a></p>
 
     </div>
   </div>
@@ -1381,7 +1645,7 @@ parameter
 </h3></div>
     <div class="card-body">
           
-  <p>Creates a new configuration with default values</p>
+  <p>Creates a new configuration with default values. </p><a href="../proc/dtfft_create_config.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1451,7 +1715,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~32"></span>
+              <span class="anchor" id="variable-error_code~10"></span>
               integer(kind=int32),
             </td>
 <td>intent(out),</td>
