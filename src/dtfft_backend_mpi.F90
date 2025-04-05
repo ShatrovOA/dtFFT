@@ -134,9 +134,10 @@ contains
     real(real32),   target,       intent(inout) :: in(:)      !! Send pointer
     real(real32),   target,       intent(inout) :: out(:)     !! Recv pointer
     type(dtfft_stream_t),         intent(in)    :: stream     !! Main execution CUDA stream
-    integer(int32)                              :: mpi_ierr
-    logical,                      allocatable   :: is_complete_comm(:)  !! Testing for request completion
-    integer(int32) :: request_counter, i
+    integer(int32)          :: mpi_ierr             !! MPI error code
+    logical,  allocatable   :: is_complete_comm(:)  !! Testing for request completion
+    integer(int32)          :: request_counter      !! Request counter
+    integer(int32)          :: i                    !! Loop index
 
     ! Need to sync stream since there is no way pass current stream to MPI
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
@@ -144,8 +145,10 @@ contains
     select case ( self%backend%val )
     case ( DTFFT_BACKEND_MPI_A2A%val )
       call run_mpi_a2a(self%comm, self%send, self%recv, in, out)
+      ! All-to-all request is stored in `send%requests(1)`, so no need to wait for recv requests
     case ( DTFFT_BACKEND_MPI_P2P%val )
       call run_mpi_p2p(self%comm, self%send, self%recv, in, out)
+      ! Waiting for all recv requests to finish
       call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, mpi_ierr)
     case ( DTFFT_BACKEND_MPI_P2P_PIPELINED%val )
       call run_mpi_p2p(self%comm, self%send, self%recv, self%aux, in)
@@ -176,8 +179,8 @@ contains
     TYPE_MPI_COMM,                intent(in)    :: comm   !! MPI communicator
     type(mpi_backend_helper),     intent(inout) :: send   !! MPI Helper for send data
     type(mpi_backend_helper),     intent(inout) :: recv   !! MPI Helper for recv data
-    real(real32),  asynchronous,  intent(in)    :: in(:)  !! Data to be sent
-    real(real32),  asynchronous,  intent(inout) :: out(:) !! Data to be received
+    real(real32),                 intent(in)    :: in(:)  !! Data to be sent
+    real(real32),                 intent(inout) :: out(:) !! Data to be received
     integer(int32) :: send_request_counter, recv_request_counter
     integer(int32) :: i, comm_size, mpi_ierr
 
@@ -234,8 +237,8 @@ contains
     TYPE_MPI_COMM,                intent(in)    :: comm   !! MPI communicator
     type(mpi_backend_helper),     intent(inout) :: send   !! MPI Helper for send data
     type(mpi_backend_helper),     intent(inout) :: recv   !! MPI Helper for recv data
-    real(real32),  asynchronous,  intent(in)    :: in(:)  !! Data to be sent
-    real(real32),  asynchronous,  intent(inout) :: out(:) !! Data to be received
+    real(real32),                 intent(in)    :: in(:)  !! Data to be sent
+    real(real32),                 intent(inout) :: out(:) !! Data to be received
     integer(int32) :: mpi_ierr
 
 #if defined(ENABLE_PERSISTENT_COLLECTIVES)
