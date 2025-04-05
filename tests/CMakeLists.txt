@@ -11,6 +11,9 @@ if ( DTFFT_WITH_CUDA )
   target_sources(test_utils PRIVATE cuda_utils.cu)
   set_target_properties(test_utils PROPERTIES CUDA_ARCHITECTURES all-major)
 endif()
+if ( DTFFT_RUNNING_CICD )
+  target_compile_definitions(test_utils PRIVATE DTFFT_RUNNING_CICD)
+endif()
 target_link_libraries(test_utils PUBLIC dtfft)
 
 

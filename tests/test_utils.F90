@@ -4,7 +4,7 @@ use iso_fortran_env
 use iso_c_binding
 use dtfft_utils, only: int_to_str, double_to_str
 #include "dtfft_mpi.h"
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA)
 use dtfft_interface_cuda_runtime
 #include "dtfft_cuda.h"
 #endif
@@ -110,7 +110,7 @@ contains
   end subroutine write_timers
 
   subroutine attach_gpu_to_process() bind(C)
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
     integer(int32) :: comm_rank, ierr, host_rank, host_size, num_devices
     TYPE_MPI_COMM  :: host_comm
 

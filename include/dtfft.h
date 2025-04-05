@@ -23,7 +23,6 @@
  * @date 2024
  * @brief File containing C API functions of dtFFT Library
  */
-// #define DTFFT_WITH_CUDA
 #ifndef DTFFT_H
 #define DTFFT_H
 

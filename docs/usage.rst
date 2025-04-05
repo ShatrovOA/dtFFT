@@ -21,7 +21,7 @@ Almost all ``dtFFT`` functions return error codes to indicate whether execution 
 - **Fortran API**: Functions include an optional ``error_code`` parameter (type ``integer(int32)``), always positioned as the last argument.
   If omitted, errors must be checked through other means, such as program termination or runtime assertions.
 - **C API**: Functions return a value of type :cpp:type:`dtfft_error_t`, allowing direct inspection of the result.
-- **C++ API**: Functions return :cpp:type:`dtfft::ErrorCode`, typically used with exception handling or explicit checks.
+- **C++ API**: Functions return :cpp:type:`dtfft::Error`, typically used with exception handling or explicit checks.
 
 To simplify error checking, ``dtFFT`` provides predefined macros that wrap function calls and handle error codes automatically:
 
@@ -543,7 +543,7 @@ Allocates memory based on the :f:type:`dtfft_backend_t`. Uses ``ncclMemAlloc`` f
 backends or ``cudaMalloc`` otherwise. Future versions may support HIP-based allocations.
 
 If NCCL is used and supports buffer registration via ``ncclCommRegister``, and the environment variable 
-:ref:`DTFFT_NCCL_BUFFER_REGISTER<dtfft_nccl_buffer_register_env>` is set to ``1``, the allocated buffer will also be registered. 
+:ref:`DTFFT_NCCL_BUFFER_REGISTER<dtfft_nccl_buffer_register_env>` is not set to ``0``, the allocated buffer will also be registered. 
 This registration optimizes communication performance by reducing the overhead of memory operations, 
 which is particularly beneficial for workloads with repeated communication patterns.
 
@@ -699,23 +699,24 @@ The signature is as follows:
   .. code-tab:: fortran
 
     subroutine dtfft_plan_t%transpose(in, out, transpose_type, error_code)
-      type(*)                       intent(inout) :: in(..)
-      type(*)                       intent(inout) :: out(..)
-      type(dtfft_transpose_type_t), intent(in)    :: transpose_type
-      integer(int32),   optional,   intent(out)   :: error_code
+      type(*)                     intent(inout) :: in(..)
+      type(*)                     intent(inout) :: out(..)
+      type(dtfft_transpose_t),    intent(in)    :: transpose_type
+      integer(int32),   optional, intent(out)   :: error_code
+    end subroutine
 
   .. code-tab:: c
 
-      dtfft_error_code_t
+      dtfft_error_t
       dtfft_transpose(
         dtfft_plan_t plan,
         void *in,
         void *out,
-        const dtfft_transpose_type_t transpose_type);
+        const dtfft_transpose_t transpose_type);
 
   .. code-tab:: c++
 
-      dtfft::ErrorCode
+      dtfft::Error
       dtfft::Plan::transpose(
           void *in,
           void *out,
@@ -870,23 +871,24 @@ The signature is as follows:
     subroutine dtfft_plan_t%execute(in, out, execute_type, aux, error_code)
       type(*)                     intent(inout) :: in(..)
       type(*)                     intent(inout) :: out(..)
-      type(dtfft_execute_type_t), intent(in)    :: execute_type
+      type(dtfft_execute_t),      intent(in)    :: execute_type
       type(*),          optional, intent(inout) :: aux(..)
       integer(int32),   optional, intent(out)   :: error_code
+    end subroutine
 
   .. code-tab:: c
 
-      dtfft_error_code_t
+      dtfft_error_t
       dtfft_execute(
         dtfft_plan_t plan,
         void *in,
         void *out,
-        const dtfft_execute_type_t execute_type,
+        const dtfft_execute_t execute_type,
         void *aux);
 
   .. code-tab:: c++
 
-      dtfft::ErrorCode
+      dtfft::Error
       dtfft::Plan::execute(
           void *in,
           void *out,

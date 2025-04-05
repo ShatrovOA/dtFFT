@@ -35,7 +35,7 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
   dtfft_create_config(&conf);
 
   conf.enable_z_slab = enable_z_slab;
-  conf.gpu_backend = DTFFT_GPU_BACKEND_NCCL;
+  conf.backend = DTFFT_BACKEND_NCCL;
 
   dtfft_set_config(conf);
 
@@ -68,7 +68,9 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
   }
 
   cudaStream_t stream;
-  DTFFT_CALL( dtfft_get_stream(plan, &stream) );
+  dtfft_stream_t dtfftStream;
+  DTFFT_CALL( dtfft_get_stream(plan, &dtfftStream) );
+  stream = (cudaStream_t)dtfftStream;
 
   float *in, *out, *aux;
   int64_t scaler;
