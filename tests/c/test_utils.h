@@ -7,6 +7,10 @@
 #include <dtfft.h>
 #include <float.h>
 
+#if defined(DTFFT_WITH_CUDA)
+#include <cuda_runtime.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,8 +33,6 @@ void reportDouble(double *time_forward, double *time_backward, double *local_err
 void attach_gpu_to_process();
 
 #if defined(DTFFT_WITH_CUDA)
-
-#include <cuda_runtime.h>
 
 #define CUDA_SAFE_CALL(call) do {                                         \
   cudaError_t err = call;                                                 \
