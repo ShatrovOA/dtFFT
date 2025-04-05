@@ -2,7 +2,9 @@ name: HPC-SDK Linux
 
 on: [push]
 jobs:
-  hpc_sdk_latest:
+  # This build has broken cmake configuration for cufftMp
+  # This is why it is disabled here
+  hpc_sdk_253:
     name: HPC-SDK 25.3 + CUDA 12.8
     runs-on: ubuntu-latest
     env:
@@ -20,42 +22,38 @@ jobs:
           echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
           sudo apt-get update -y
           sudo apt-get -y install nvhpc-25-3
-      - name: "Check dir struct"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Update PATH
         run: |
-          ls /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs
-          ls /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8
-          ls /opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/include
-      # - name: Checkout
-      #   uses: actions/checkout@v4
-      # - name: Update PATH
-      #   run: |
-      #     echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/mpi/bin" >> $GITHUB_PATH
-      #     echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin" >> $GITHUB_PATH
-      #     echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/bin" >> $GITHUB_PATH
-      # - name: Build
-      #   run: |
-      #     cmake -B build -S . \
-      #       -DCMAKE_BUILD_TYPE=Release \
-      #       -DDTFFT_BUILD_TESTS=on \
-      #       -DDTFFT_ENABLE_PERSISTENT_COMM=on \
-      #       -DDTFFT_BUILD_SHARED=on \
-      #       -DDTFFT_BUILD_C_CXX_API=on \
-      #       -DDTFFT_WITH_PROFILER=on \
-      #       -DDTFFT_WITH_CUDA=on \
-      #       -DDTFFT_WITH_CUFFT=on \
-      #       -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda
-      #     cmake --build build
-      # - name: Test
-      #   run: ctest --test-dir build --output-on-failure
-      # - name: Install
-      #   run: sudo cmake --install build
-      # - name: Test install
-      #   working-directory: ./tests/install
-      #   run: |
-      #     cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
-      #     cmake --build build
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/mpi/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/bin" >> $GITHUB_PATH
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDTFFT_BUILD_TESTS=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=on \
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_WITH_PROFILER=on \
+            -DDTFFT_WITH_CUDA=on \
+            -DDTFFT_WITH_CUFFT=on \
+            -DDTFFT_WITHOUT_NVSHMEM=on \
+            -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda
+          cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
+          cmake --build build
 
-  # Not enough space on the runner
+  # Not enough space on the runner for cuda-multi
   # hpc_sdk_min_recomended:
   #   name: HPC-SDK 24.7 + CUDA 11.8
   #   runs-on: ubuntu-latest

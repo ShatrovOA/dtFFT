@@ -156,26 +156,53 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
 contains
 
   pure subroutine dtfft_create_config(config) bind(C, name="dtfft_create_config_c")
-  !! Creates a new configuration with default values
+  !! Creates a new configuration with default values. 
+  !!
+  !! C interface
     type(dtfft_config_t), intent(out) :: config !! Configuration to create
-
-    config%enable_z_slab = .true.
-#ifdef DTFFT_WITH_CUDA
-    config%platform = DTFFT_PLATFORM_HOST
-    config%stream = NULL_STREAM
-    config%backend = DEFAULT_GPU_BACKEND
-    config%enable_mpi_backends = .false.
-    config%enable_pipelined_backends = .true.
-    config%enable_nccl_backends = .true.
-    config%enable_nvshmem_backends = .true.
-#endif
+    config = dtfft_config_t()
   end subroutine dtfft_create_config
 
-  pure function config_constructor() result(config)
-  !! Creates a new configuration with default values
-    type(dtfft_config_t) :: config    !! Configuration to create
+#ifdef DTFFT_WITH_CUDA
+  pure function config_constructor(                                       &
+    enable_z_slab, platform, stream, backend,                             &
+    enable_mpi_backends, enable_pipelined_backends,                       &
+    enable_nccl_backends, enable_nvshmem_backends) result(config)
+#else
+  pure function config_constructor(enable_z_slab) result(config)
+#endif
+  !! Creates a new configuration
+    logical,                optional, intent(in)  :: enable_z_slab
+      !! Should dtFFT use Z-slab optimization or not.
+#ifdef DTFFT_WITH_CUDA
+    type(dtfft_platform_t), optional, intent(in)  :: platform
+      !! Selects platform to execute plan.
+    type(dtfft_stream_t),   optional, intent(in)  :: stream
+      !! Main CUDA stream that will be used in dtFFT.
+    type(dtfft_backend_t),  optional, intent(in)  :: backend
+      !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+    logical,                optional, intent(in)  :: enable_mpi_backends
+      !! Should MPI GPU Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+    logical,                optional, intent(in)  :: enable_pipelined_backends
+      !! Should pipelined GPU backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+    logical,                optional, intent(in)  :: enable_nccl_backends
+      !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+    logical,                optional, intent(in)  :: enable_nvshmem_backends
+      !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+#endif
+    type(dtfft_config_t) :: config
+      !! Constructed `dtFFT` config ready to be set by call to [[dtfft_set_config]]
 
-    call dtfft_create_config(config)
+    config%enable_z_slab = .true.;              if ( present(enable_z_slab) ) config%enable_z_slab = enable_z_slab
+#ifdef DTFFT_WITH_CUDA
+    config%platform = DTFFT_PLATFORM_HOST;      if ( present(platform) ) config%platform = platform
+    config%stream = NULL_STREAM;                if ( present(stream) ) config%stream = stream
+    config%backend = DEFAULT_GPU_BACKEND;       if ( present(backend) ) config%backend = backend
+    config%enable_mpi_backends = .false.;       if ( present(enable_mpi_backends) ) config%enable_mpi_backends = enable_mpi_backends
+    config%enable_pipelined_backends = .true.;  if ( present(enable_pipelined_backends) ) config%enable_pipelined_backends = enable_pipelined_backends
+    config%enable_nccl_backends = .true.;       if ( present(enable_nccl_backends) ) config%enable_nccl_backends = enable_nccl_backends
+    config%enable_nvshmem_backends = .true.;    if ( present(enable_nvshmem_backends) ) config%enable_nvshmem_backends = enable_nvshmem_backends
+#endif
   end function config_constructor
 
   subroutine dtfft_set_config(config, error_code)

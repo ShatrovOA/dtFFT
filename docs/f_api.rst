@@ -503,15 +503,43 @@ _______________________
 
   Creates dtfft_config_t objects and sets default values to it.
 
-  :p dtfft_config_t config [out]: Configuration object
+  :p dtfft_config_t config [out]: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
 
 ------
 
-.. f:function:: dtfft_config_t()
+.. f:function:: dtfft_config_t(enable_z_slab)
 
   Type bound constructor
 
-  :r dtfft_config_t: Configuration object
+  :o logical enable_z_slab [in, optional]:
+    Should dtFFT use Z-slab optimization or not.
+  :r dtfft_config_t: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
+
+------
+
+.. f:function:: dtfft_config_t(enable_z_slab, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends)
+
+  Type bound constructor
+
+  .. note:: This version of constructor is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+
+  :o logical enable_z_slab [in, optional]:
+    Should dtFFT use Z-slab optimization or not.
+  :o dtfft_platform_t platform [in, optional]:
+    Selects platform to execute plan.
+  :o dtfft_stream_t stream [in, optional]:
+    Main CUDA stream that will be used in dtFFT.
+  :o dtfft_backend_t backend [in, optional]:
+    Backend that will be used by dtFFT when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
+  :o logical enable_mpi_backends [in, optional]:
+    Should MPI GPU Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+  :o logical enable_pipelined_backends [in, optional]:
+    Should pipelined GPU backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+  :o logical enable_nccl_backends [in, optional]:
+    Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+  :o logical enable_nvshmem_backends [in, optional]:
+    Should NVSHMEM Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+  :r dtfft_config_t: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
 
 ------
 

@@ -124,11 +124,12 @@ int main(int argc, char *argv[])
   dtfft_platform_t platform;
   DTFFT_CALL( dtfft_get_platform(plan, &platform) )
 
-  dtfft_stream_t dtfftStream;
-  DTFFT_CALL( dtfft_get_stream(plan, &dtfftStream) )
-  cudaStream_t stream = (cudaStream_t)dtfftStream;
+  cudaStream_t stream;
 
   if ( platform == DTFFT_PLATFORM_CUDA ) {
+    dtfft_stream_t dtfftStream;
+    DTFFT_CALL( dtfft_get_stream(plan, &dtfftStream) )
+    stream = (cudaStream_t)dtfftStream;
     CUDA_SAFE_CALL( cudaMemcpy(in, check, el_size * in_size, cudaMemcpyHostToDevice) )
   } else {
     memcpy(in, check, el_size * in_size);
