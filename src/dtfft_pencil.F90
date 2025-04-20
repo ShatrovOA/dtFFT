@@ -19,10 +19,15 @@
 #include "dtfft_config.h"
 module dtfft_pencil
 !! This module describes private [[pencil]] and public [[dtfft_pencil_t]] classes
-use iso_fortran_env,  only: int8, int32, int64, real64, output_unit
+use iso_fortran_env
+use iso_c_binding
 use dtfft_parameters
 use dtfft_utils
 #include "dtfft_mpi.h"
+#ifdef DTFFT_WITH_CUDA
+use dtfft_interface_cuda_runtime
+#include "dtfft_cuda.h"
+#endif
 implicit none
 private
 public :: pencil
@@ -137,23 +142,26 @@ contains
 !   !! Writes pencil data to stdout
 !     class(pencil),                intent(in)  :: self                 !! Pencil
 !     character(len=*),             intent(in)  :: name                 !! Name of pencil
-!     real(real64),   DEVICE_PTR    intent(in)  :: vec(:)               !! Device pointer to data
+!     type(c_ptr),                  intent(in)  :: vec               !! Device pointer to data
 !     integer(int32)                            :: iter                 !! Iteration counter
 !     integer(int32)                            :: i,j,k,ijk            !! Counters
 !     integer(int32)                            :: comm_size            !! Number of MPI processes
 !     integer(int32)                            :: comm_rank            !! Rank of current MPI process
 !     integer(int32)                            :: ierr                 !! Error code
 ! #ifdef DTFFT_WITH_CUDA
-!     real(real64),                 allocatable :: buf(:)               !! Host buffer
+!     real(real32),    target,      allocatable :: buf(:)               !! Host buffer
 ! #endif
 
 !     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 !     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
 
-! #ifdef DTFFT_WITH_CUDA
 !     allocate( buf( product(self%counts) ) )
 
-!     CUDA_CALL( "cudaMemcpy", cudaMemcpy(buf, vec, product(self%counts), cudaMemcpyDeviceToHost) )
+! #ifdef DTFFT_WITH_CUDA
+!     if ( is_device_ptr(vec) ) then
+!       CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize())
+!       CUDA_CALL( "cudaMemcpy", cudaMemcpy(c_loc(buf), vec, int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
+!     endif
 ! #endif
 
 !     do iter = 0, comm_size - 1

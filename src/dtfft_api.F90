@@ -40,20 +40,20 @@ private
   endif;                                        \
   call c_f_pointer(c_plan, f_plan)
 
-  type :: dtfft_plan_c
+  type :: plan_c
   !! C pointer to Fortran plan
     class(dtfft_plan_t),  allocatable :: p
       !! Actual Fortran plan
-  end type dtfft_plan_c
+  end type plan_c
 
-  type, bind(C) :: dtfft_pencil_c
+  type, bind(C) :: pencil_c
   !! Structure to hold pencil decomposition info
     integer(c_int8_t)   :: dim        !! Aligned dimension id
     integer(c_int8_t)   :: ndims      !! Number of dimensions
     integer(c_int32_t)  :: starts(3)  !! Local starts, starting from 0 for both C and Fortran
     integer(c_int32_t)  :: counts(3)  !! Local counts of data, in elements
     integer(c_size_t)   :: size       !! Total number of elements in a pencil
-  end type dtfft_pencil_c
+  end type pencil_c
 
 contains
 
@@ -75,11 +75,11 @@ contains
     type(dtfft_effort_t),           intent(in)    :: effort               !! ``dtFFT`` planner effort type
     type(dtfft_executor_t),         intent(in)    :: executor             !! Type of External FFT Executor
     type(c_ptr),                    intent(out)   :: plan_ptr             !! C pointer to Fortran plan
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     integer(int32),                     pointer   :: fdims(:)             !! Fortran dims
     type(dtfft_r2r_kind_t),             pointer   :: fkinds(:)            !! Fortran R2R kinds
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     allocate(plan)
     allocate( dtfft_plan_r2r_t :: plan%p )
@@ -105,10 +105,10 @@ contains
     type(dtfft_effort_t),           intent(in)    :: effort               !! ``dtFFT`` planner effort type
     type(dtfft_executor_t),         intent(in)    :: executor             !! Type of External FFT Executor
     type(c_ptr),                    intent(out)   :: plan_ptr             !! C pointer to Fortran plan
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     integer(int32),                     pointer   :: fdims(:)             !! Fortran dims
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     allocate(plan)
     allocate( dtfft_plan_c2c_t :: plan%p )
@@ -134,10 +134,10 @@ contains
     type(dtfft_effort_t),           intent(in)    :: effort               !! ``dtFFT`` planner effort type
     type(dtfft_executor_t),         intent(in)    :: executor             !! Type of External FFT Executor
     type(c_ptr),                    intent(out)   :: plan_ptr             !! C pointer to Fortran plan
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     integer(int32),                     pointer   :: fdims(:)             !! Fortran dims
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     allocate(plan)
     allocate( dtfft_plan_r2c_t :: plan%p )
@@ -146,7 +146,7 @@ contains
 
     select type(p => plan%p)
     class is (dtfft_plan_r2c_t)
-      call p%create(fdims, get_comm(comm), precision, effort, executor, error_code)
+      call p%create(fdims, executor, get_comm(comm), precision, effort, error_code)
     endselect
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_r2c_c
@@ -158,9 +158,9 @@ contains
   !! Checks if dtFFT Plan is using Z-slab optimization
     type(c_ptr),        intent(in),     value     :: plan_ptr             !! C pointer to Fortran plan
     logical(c_bool),    intent(out)               :: is_z_slab_enabled    !! Is plan internally using Z-slab optimization
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     is_z_slab_enabled = plan%p%get_z_slab_enabled(error_code)
@@ -175,9 +175,9 @@ contains
     real(c_float),                intent(inout)   :: out(*)               !! Outgoing buffer
     type(dtfft_execute_t),        intent(in)      :: execute_type         !! Type of execution
     real(c_float),      optional, intent(inout)   :: aux(*)               !! Aux buffer, can be NULL
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     call plan%p%execute(in, out, execute_type, aux, error_code)
@@ -191,9 +191,9 @@ contains
     real(c_float),                  intent(inout) :: in(*)                !! Incomming buffer, not NULL
     real(c_float),                  intent(inout) :: out(*)               !! Outgoing buffer, not NULL
     type(dtfft_transpose_t),        intent(in)    :: transpose_type       !! Type of transposition.
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     call plan%p%transpose(in, out, transpose_type, error_code)
@@ -204,9 +204,9 @@ contains
     bind(C)
   !! Destroys dtFFT Plan, C/C++ interface
     type(c_ptr)                                   :: plan_ptr             !! C pointer to Fortran plan
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     call plan%p%destroy(error_code)
@@ -226,9 +226,9 @@ contains
     integer(c_int32_t),  intent(out),    optional :: out_starts(3)        !! Starts of local portion of data in 'fourier' space
     integer(c_int32_t),  intent(out),    optional :: out_counts(3)        !! Counts of local portion of data in 'fourier' space
     integer(c_size_t),   intent(out),    optional :: alloc_size           !! Minimum data needs to be allocated
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     call plan%p%get_local_sizes(in_starts, in_counts, out_starts, out_counts, alloc_size, error_code)
@@ -240,9 +240,9 @@ contains
   !! Returns minimum number of bytes to be allocated for `in` and `out` buffers, C/C++ interface
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     integer(c_size_t),   intent(out)              :: alloc_size           !! Minimum data needs to be allocated
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     alloc_size = plan%p%get_alloc_size(error_code)
@@ -251,7 +251,7 @@ contains
   subroutine dtfft_get_error_string_c(error_code, error_string, error_string_size) bind(C)
   !! Returns an explaination of ``error_code`` that could have been previously returned by one of dtFFT API calls,
   !! C/C++ interface
-    integer(c_int32_t),  intent(in)               :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t),  intent(in)               :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     character(c_char),   intent(out)              :: error_string(*)      !! Explanation of error
     integer(c_size_t),   intent(out)              :: error_string_size    !! Size of ``error_string``
@@ -265,10 +265,10 @@ contains
   !! Returns pencil decomposition info, C/C++ interface
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     integer(c_int8_t),  intent(in)                :: dim                  !! Dimension requested
-    type(dtfft_pencil_c)                          :: pencil               !! Pencil pointer
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    type(pencil_c)                                :: pencil               !! Pencil pointer
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
     type(dtfft_pencil_t) :: pencil_
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
@@ -286,20 +286,34 @@ contains
   !! Returns size of element in bytes, C/C++ interface
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     integer(c_size_t),    intent(out)             :: element_size         !! Size of element in bytes
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     element_size = plan%p%get_element_size(error_code)
   end function dtfft_get_element_size_c
+
+  function dtfft_get_alloc_bytes_c(plan_ptr, alloc_bytes)                                                           &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Returns minimum number of bytes required to execute plan, C/C++ interface
+    type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
+    integer(c_size_t),    intent(out)             :: alloc_bytes          !! Number of bytes required
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    alloc_bytes = plan%p%get_alloc_bytes(error_code)
+  end function dtfft_get_alloc_bytes_c
 
   function dtfft_set_config_c(config)                                                                               &
     result(error_code)                                                                                              &
     bind(C)
   !! Sets dtFFT configuration, C/C++ interface
     type(dtfft_config_t),             intent(in)  :: config               !! Configuration to set
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     call dtfft_set_config(config, error_code)
   end function dtfft_set_config_c
@@ -309,9 +323,9 @@ contains
     bind(C)
   !! Reports dtFFT Plan, C/C++ interface
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     call plan%p%report(error_code)
@@ -324,12 +338,13 @@ contains
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     integer(c_size_t),                   value    :: alloc_bytes          !! Number of bytes to allocate
     type(c_ptr)                                   :: ptr                  !! Allocated pointer
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
-    ptr = plan%p%mem_alloc(alloc_bytes, error_code)
+    ! ptr = plan%p%mem_alloc(alloc_bytes, error_code)
+    call plan%p%mem_alloc(alloc_bytes, ptr, error_code)
   end function dtfft_mem_alloc_c
 
   function dtfft_mem_free_c(plan_ptr, ptr)                                                                          &
@@ -338,9 +353,9 @@ contains
   !! Frees memory for dtFFT Plan, C/C++ interface
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     type(c_ptr),                         value    :: ptr                  !! Pointer to deallocate
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     call plan%p%mem_free(ptr, error_code)
@@ -353,9 +368,9 @@ contains
   !! Returns Stream associated with plan
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     type(dtfft_stream_t),       intent(out)       :: stream               !! CUDA stream
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     call plan%p%get_stream(stream, error_code)
@@ -367,9 +382,9 @@ contains
   !! Returns selected [[dtfft_backend_t]] during autotuning
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     type(dtfft_backend_t),      intent(out)       :: backend              !! The enumerated type dtfft_backend_t
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     backend = plan%p%get_backend(error_code)
@@ -381,9 +396,9 @@ contains
   !! Returns selected [[dtfft_platform_t]] during autotuning
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
     type(dtfft_platform_t),  intent(out)          :: platform             !! The enumerated type dtfft_platform_t
-    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_code_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
-    type(dtfft_plan_c),                 pointer   :: plan                 !! Pointer to Fortran object
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
     platform = plan%p%get_platform(error_code)

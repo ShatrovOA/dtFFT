@@ -408,25 +408,37 @@ public :: cudaMemcpy
       result(cudaError_t)                                          &
       bind(C, name="cudaMemcpy")
     import
-      type(c_ptr),          value :: dst         !! Destination pointer
-      type(c_ptr),          value :: src         !! Source pointer
-      integer(c_size_t),    value :: count       !! Size in bytes to copy
-      integer(c_int),       value :: kdir        !! Direction of copy
-      integer(c_int)              :: cudaError_t !! Returns `cudaSuccess` if the copy was completed successfully, 
-                                                !! or an error code if there was an issue.
+      type(c_ptr),          value :: dst          !! Destination pointer
+      type(c_ptr),          value :: src          !! Source pointer
+      integer(c_size_t),    value :: count        !! Size in bytes to copy
+      integer(c_int),       value :: kdir         !! Direction of copy
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the copy was completed successfully, 
+                                                  !! or an error code if there was an issue.
     end function cudaMemcpy_ptr
 
     function cudaMemcpy_r64(dst, src, count, kdir)                 &
       result(cudaError_t)                                          &
       bind(C, name="cudaMemcpy")
     import
-      real(c_double)              :: dst(*)      !! Destination array (64-bit float)
-      real(c_double)              :: src(*)      !! Source array (64-bit float)
-      integer(c_size_t),    value :: count       !! Number of elements to copy
-      integer(c_int),       value :: kdir        !! Direction of copy
-      integer(c_int)              :: cudaError_t !! Returns `cudaSuccess` if the copy was completed successfully, 
-                                                !! or an error code if there was an issue.
+      real(c_double)              :: dst(*)       !! Destination array (64-bit float)
+      real(c_double)              :: src(*)       !! Source array (64-bit float)
+      integer(c_size_t),    value :: count        !! Number of bytes to copy
+      integer(c_int),       value :: kdir         !! Direction of copy
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the copy was completed successfully, 
+                                                  !! or an error code if there was an issue.
     end function cudaMemcpy_r64
+
+    function cudaMemcpy_r32(dst, src, count, kdir)                 &
+      result(cudaError_t)                                          &
+      bind(C, name="cudaMemcpy")
+    import
+      real(c_float)               :: dst(*)       !! Destination array (32-bit float)
+      real(c_float)               :: src(*)       !! Source array (32-bit float)
+      integer(c_size_t),    value :: count        !! Number of bytes to copy
+      integer(c_int),       value :: kdir         !! Direction of copy
+      integer(c_int)              :: cudaError_t  !! Returns `cudaSuccess` if the copy was completed successfully, 
+                                                  !! or an error code if there was an issue.
+    end function cudaMemcpy_r32
   end interface
 
 public :: cudaGetDevice
@@ -493,6 +505,18 @@ public :: cudaMemGetInfo
                                           !! or an error code if there was an issue.
     end function cudaMemGetInfo
   end interface
+
+public :: cudaDeviceSynchronize
+    interface
+    !!
+      function cudaDeviceSynchronize()                               &
+        result(cudaError_t)                                          &
+        bind(C, name="cudaDeviceSynchronize")
+      import
+        integer(c_int)        :: cudaError_t  !! Returns `cudaSuccess` if the device was set successfully, 
+                                              !! or an error code if there was an issue.
+      end function cudaDeviceSynchronize
+    end interface
 
 
 contains

@@ -59,7 +59,7 @@ public :: clean_unused_cache
   !! Should be used only when backend is ``DTFFT_GPU_BACKEND_CUFFTMP``.
   integer(int8), parameter, public  :: KERNEL_UNPACK_PIPELINED    = 5
   !! Unpacks pack of contiguous buffer recieved from rank.
-  integer(int8), parameter, public  :: KERNEL_UNPACK_PARTIAL    = 6
+  integer(int8), parameter, public  :: KERNEL_UNPACK_PARTIAL      = 6
   !! Unpacks contiguous buffer recieved from everyone except myself.
 
   type :: kernel_code
@@ -101,7 +101,7 @@ public :: clean_unused_cache
     integer(int8)             :: kernel_type                          !! Type of kernel to execute.
     type(dtfft_transpose_t)   :: transpose_type                       !! Type of transpose
     integer(int32)            :: tile_size                            !! Tile size of transpose kernel
-    integer(int8)             :: base_storage                         !! Number of bytes needed to store single element
+    integer(int64)            :: base_storage                         !! Number of bytes needed to store single element
     logical                   :: has_inner_loop                       !! If kernel has inner loop
   end type nvrtc_cache
 
@@ -185,7 +185,7 @@ contains
     class(nvrtc_kernel),      intent(inout) :: self               !! nvRTC Compiled kernel class
     TYPE_MPI_COMM,            intent(in)    :: comm               !! MPI Communicator
     integer(int32), target,   intent(in)    :: dims(0:)           !! Global dimensions to process
-    integer(int8),            intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),           intent(in)    :: base_storage       !! Number of bytes needed to store single element
     type(dtfft_transpose_t),  intent(in)    :: transpose_type     !! Type of transposition to perform
     integer(int8),            intent(in)    :: kernel_type        !! Type of kernel to build
     integer(int32), optional, intent(in)    :: pointers(:,:)      !! Optional pointers to unpack kernels
@@ -210,7 +210,7 @@ contains
 
     if ( kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
       self%is_created = .true.
-      self%args%ints(1) = product(dims) * base_storage
+      self%args%ints(1) = product(dims) * int(base_storage, int32)
       return
     endif
 
@@ -273,9 +273,7 @@ contains
       endif
     else if ( kernel_type == KERNEL_UNPACK_PIPELINED ) then
       self%args%n_ints = 5
-      self%args%ints(1) = product(dims)
-      self%args%ints(2) = dims(0)
-      ! Other 3 args are populated during kernel execution based on sender pointers
+      ! All 5 ints are populated during kernel execution based on sender pointers
     else
       self%args%n_ints = size(dims)
       self%args%ints(1) = dims(0)
@@ -290,19 +288,19 @@ contains
     endif
 
     self%args%n_ptrs = 0
-    if ( kernel_type == KERNEL_TRANSPOSE_PACKED .or. kernel_type == KERNEL_UNPACK .or. kernel_type == KERNEL_UNPACK_PIPELINED .or. kernel_type == KERNEL_UNPACK_PARTIAL) then
+    if ( any([kernel_type == [KERNEL_TRANSPOSE_PACKED, KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED, KERNEL_UNPACK_PARTIAL]]) ) then
       if ( .not. present(pointers) ) INTERNAL_ERROR("Pointer required")
 
-      if (kernel_type == KERNEL_TRANSPOSE_PACKED .or. kernel_type == KERNEL_UNPACK .or. kernel_type == KERNEL_UNPACK_PARTIAL) then
+      if( kernel_type == KERNEL_UNPACK_PIPELINED ) then
+        allocate( self%pointers, source=pointers )
+      else
         block
           integer(int32) :: i
           self%args%n_ptrs = size(self%args%ptrs)
           do i = 1, self%args%n_ptrs
-            call create_device_pointer(self%args%ptrs(i), pointers(:, i))
+            call create_device_pointer(self%args%ptrs(i), pointers(i, :))
           enddo
         endblock
-      else
-        allocate( self%pointers, source=pointers )
       endif
     endif
 
@@ -320,6 +318,8 @@ contains
     integer(int32)    :: n_align_sent !! Number of aligned elements sent
     integer(int32)    :: displ_in     !! Displacement in source buffer
     integer(int32)    :: displ_out    !! Displacement in target buffer
+    integer :: comm_rank, ierr
+    call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
     if ( self%is_dummy ) return
     if ( .not. self%is_created ) INTERNAL_ERROR("`execute` called while plan not created")
@@ -331,19 +331,20 @@ contains
 
     if ( self%kernel_type == KERNEL_UNPACK_PIPELINED ) then
       if ( .not. present(source) ) INTERNAL_ERROR("Source is not passed")
-      displ_in = self%pointers(source, 1)
-      displ_out = self%pointers(source, 2)
-      n_align_sent = self%pointers(source, 3)
+      displ_in = self%pointers(1, source)
+      displ_out = self%pointers(2, source)
+      n_align_sent = self%pointers(3, source)
 
+      self%args%ints(1) = self%pointers(4, source)
+      self%args%ints(2) = self%pointers(5, source)
       self%args%ints(3) = n_align_sent
       self%args%ints(4) = displ_in
       self%args%ints(5) = displ_out
 
-      call get_contiguous_execution_blocks(self%pointers(source, 4), self%num_blocks, self%block_size)
+      call get_contiguous_execution_blocks(self%pointers(4, source), self%num_blocks, self%block_size)
     endif
 
     CUDA_CALL( "cuLaunchKernel", cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), self%num_blocks, self%block_size, stream, self%args) )
-    ! CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
   end subroutine execute
 
   subroutine destroy(self)
@@ -372,7 +373,7 @@ contains
   !! If not returns null pointer.
     type(dtfft_transpose_t),  intent(in)    :: transpose_type     !! Type of transposition to perform
     integer(int8),            intent(in)    :: kernel_type        !! Type of kernel to build
-    integer(int8),            intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),           intent(in)    :: base_storage       !! Number of bytes needed to store single element
     integer(int32),           intent(in)    :: tile_size          !! Tile size
     logical,                  intent(in)    :: has_inner_loop     !! If kernel has inner loop
     type(CUfunction)          :: kernel             !! Cached kernel
@@ -417,7 +418,7 @@ contains
     integer(int32), target,   intent(in)    :: dims(:)            !! Global dimensions to process
     type(dtfft_transpose_t),  intent(in)    :: transpose_type     !! Type of transposition to perform
     integer(int8),            intent(in)    :: kernel_type        !! Type of kernel to build
-    integer(int8),            intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),           intent(in)    :: base_storage       !! Number of bytes needed to store single element
     integer(int32),           intent(in)    :: tile_size          !! Tile size
     logical,                  intent(in)    :: has_inner_loop     !! If kernel has inner loop
     type(CUfunction)                        :: kernel             !! Compiled kernel to return
@@ -632,7 +633,7 @@ contains
   subroutine get_code_init(kernel_name, base_storage, code, buffer_type)
   !! Generates basic code that is used in all other kernels
     character(len=*),                         intent(in)    :: kernel_name        !! Name of CUDA kernel
-    integer(int8),                            intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),                           intent(in)    :: base_storage       !! Number of bytes needed to store single element
     type(kernel_code),                        intent(inout) :: code               !! Resulting code
     character(len=:), optional, allocatable,  intent(out)   :: buffer_type        !! Type of buffer that should be used
     character(len=:),           allocatable                 :: buffer_type_       !! Type of buffer that should be used
@@ -663,7 +664,7 @@ contains
   !! Generates code that will be used to locally tranpose data and prepares to send it to other processes
     character(len=*),         intent(in)  :: kernel_name              !! Name of CUDA kernel
     integer(int8),            intent(in)  :: ndims                    !! Number of dimensions
-    integer(int8),            intent(in)  :: base_storage             !! Number of bytes needed to store single element
+    integer(int64),           intent(in)  :: base_storage             !! Number of bytes needed to store single element
     type(dtfft_transpose_t),  intent(in)  :: transpose_type           !! Transpose id
     logical,                  intent(in)  :: enable_packing           !! If data should be manually packed or not
     logical,                  intent(in)  :: enable_multiprocess      !! If thread should process more then one element
@@ -766,7 +767,7 @@ contains
   function get_unpack_kernel_code(kernel_name, base_storage, is_partial) result(code)
   !! Generates code that will be used to unpack data when it is recieved
     character(len=*),   intent(in)  :: kernel_name        !! Name of CUDA kernel
-    integer(int8),      intent(in)  :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),     intent(in)  :: base_storage       !! Number of bytes needed to store single element
     logical,            intent(in)  :: is_partial
     type(kernel_code)               :: code               !! Resulting code
 
@@ -804,22 +805,23 @@ contains
   function get_unpack_pipelined_kernel_code(kernel_name, base_storage) result(code)
   !! Generates code that will be used to partially unpack data when it is recieved from other process
     character(len=*),   intent(in)  :: kernel_name        !! Name of CUDA kernel
-    integer(int8),      intent(in)  :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),     intent(in)  :: base_storage       !! Number of bytes needed to store single element
     type(kernel_code)               :: code               !! Resulting code
-
+    integer :: comm_rank, ierr
+    call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
     call get_code_init(kernel_name, base_storage, code)
     call code%add_line("  ,const int n_total")
     call code%add_line("  ,const int n_align")
-    call code%add_line("  ,const int n_align_sent")
+    call code%add_line("  ,const int sent_size")
     call code%add_line("  ,const int displ_in")
     call code%add_line("  ,const int displ_out")
     call code%add_line(") {")
     call code%add_line("  int idx = blockIdx.x * blockDim.x + threadIdx.x;")
 
-    call code%add_line("  if (displ_in + idx < n_total) {")
-    ! call code%add_line("    int ind_mod = (idx % n_align_sent);")
-    call code%add_line("    int ind_mod = idx - (idx / n_align_sent) * n_align_sent;")
-    call code%add_line("    int ind_out = (idx - ind_mod) / n_align_sent * n_align + ind_mod;")
+    call code%add_line("  if ( idx < n_total ) {")
+    ! call code%add_line("    int ind_mod = (idx % sent_size);")
+    call code%add_line("    int ind_mod = idx - (idx / sent_size) * sent_size;")
+    call code%add_line("    int ind_out = (idx - ind_mod) / sent_size * n_align + ind_mod;")
     call code%add_line("    out[displ_out + ind_out] = in[displ_in + idx];")
     call code%add_line("  }")
     call code%add_line("}")

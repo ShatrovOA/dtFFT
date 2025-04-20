@@ -101,7 +101,7 @@ contains
     class(pencil),                intent(in)    :: send               !! Information about send buffer
     class(pencil),                intent(in)    :: recv               !! Information about recv buffer
     TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI Datatype
-    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
     integer(int8),                intent(in)    :: datatype_id        !! Type of datatype to use
     integer(int32)                              :: comm_size          !! Size of 1d communicator
     integer(int32)                              :: n_neighbors        !! Number of datatypes to be created
@@ -212,7 +212,7 @@ contains
     integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
     integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
     TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
     TYPE_MPI_DATATYPE   :: temp1              !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp2              !! Temporary datatype
     integer(int32)      :: displ              !! Displacement in bytes
@@ -221,7 +221,7 @@ contains
 
     if ( datatype_id == 1 ) then
       call MPI_Type_vector(send%counts(2), recv_counts(2), send%counts(1), base_type, temp1, ierr)
-      displ = recv_counts(2) * base_storage
+      displ = recv_counts(2) * int(base_storage, int32)
       call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
       if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
@@ -231,19 +231,19 @@ contains
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(send_counts(2), temp2, self%recv%dtypes(i), ierr)
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(2) * base_storage
+      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(2) * int(base_storage, int32)
       call free_datatypes(temp1, temp2)
     else
       call MPI_Type_vector(send%counts(2), 1, send%counts(1), base_type, temp1, ierr)
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(recv_counts(2), temp2, self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
-      displ = recv_counts(2) * base_storage
+      displ = recv_counts(2) * int(base_storage, int32)
       if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
       call free_datatypes(temp1, temp2)
 
       call MPI_Type_vector(recv%counts(2), send_counts(2), recv%counts(1), base_type, temp1, ierr)
-      displ = send_counts(2) * base_storage
+      displ = send_counts(2) * int(base_storage, int32)
       call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
       if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + displ
@@ -262,7 +262,7 @@ contains
     integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
     integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
     TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
     TYPE_MPI_DATATYPE   :: temp1                !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp2                !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp3                !! Temporary datatype
@@ -273,7 +273,7 @@ contains
     if ( datatype_id == 1 ) then
     ! This datatype_id has "contiguous" send and strided recieve datatype
       call MPI_Type_vector(send%counts(2) * send%counts(3), recv_counts(2), send%counts(1), base_type, temp1, ierr)
-      displ = recv_counts(2) * base_storage
+      displ = recv_counts(2) * int(base_storage, int32)
       call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
       if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
@@ -283,7 +283,7 @@ contains
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(send_counts(2), temp2, temp3, ierr)
       call MPI_Type_create_hvector(recv%counts(3), 1, int(recv%counts(1) * recv%counts(2) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, ierr)
-      displ = send_counts(2) * base_storage
+      displ = send_counts(2) * int(base_storage, int32)
       call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
       if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) +  displ
@@ -294,11 +294,11 @@ contains
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(recv_counts(2), temp2, self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) +  recv_counts(2) * base_storage
+      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) +  recv_counts(2) * int(base_storage, int32)
       call free_datatypes(temp1, temp2)
 
       call MPI_Type_vector(recv%counts(3), send_counts(2), recv%counts(1) * recv%counts(2), base_type, temp1, ierr)
-      displ = send_counts(2) * base_storage
+      displ = send_counts(2) * int(base_storage, int32)
       call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_create_hvector(recv%counts(2), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, temp3, ierr)
       call MPI_Type_create_resized(temp3, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
@@ -319,7 +319,7 @@ contains
     integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
     integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
     TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
     TYPE_MPI_DATATYPE   :: temp1                !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp2                !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp3                !! Temporary datatype
@@ -332,7 +332,7 @@ contains
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(recv_counts(3), temp2, temp3, ierr)
       call MPI_Type_create_hvector(send%counts(2), 1, int(send%counts(1) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, ierr)
-      displ = recv_counts(3) * base_storage
+      displ = recv_counts(3) * int(base_storage, int32)
       call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
       if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) +  displ
@@ -343,7 +343,7 @@ contains
       call MPI_Type_create_hvector(send_counts(2), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, temp3, ierr)
       call MPI_Type_create_resized(temp3, LB, int(send_counts(3) * base_storage, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3) * base_storage
+      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3) * int(base_storage, int32)
       call free_datatypes(temp1, temp2, temp3)
     else
       call MPI_Type_vector(send%counts(2), 1, send%counts(1), base_type, temp1, ierr)
@@ -352,14 +352,14 @@ contains
       call MPI_Type_create_hvector(send%counts(3), 1, int(send%counts(1) * send%counts(2) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, ierr)
       call MPI_Type_create_resized(temp4, LB, int(recv_counts(3) * base_storage, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) +  recv_counts(3) * base_storage
+      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) +  recv_counts(3) * int(base_storage, int32)
       call free_datatypes(temp1, temp2, temp3, temp4)
 
       call MPI_Type_vector(recv%counts(2) * recv%counts(3), 1, recv%counts(1), base_type, temp1, ierr)
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(send_counts(3), temp2,  self%recv%dtypes(i), ierr)      
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3) * base_storage
+      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3) * int(base_storage, int32)
       call free_datatypes(temp1, temp2)
     endif
     end subroutine create_transpose_YZ
@@ -376,7 +376,7 @@ contains
     integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
     integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
     TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
     TYPE_MPI_DATATYPE   :: temp1                !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp2                !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp3                !! Temporary datatype
@@ -389,7 +389,7 @@ contains
       call MPI_Type_create_resized(temp1, LB, int(send%counts(1) * base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(recv_counts(3), temp2, self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + send%counts(1) * recv_counts(3) * base_storage
+      if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + send%counts(1) * recv_counts(3) * int(base_storage, int32)
       call free_datatypes(temp1, temp2)
 
       call MPI_Type_vector(recv%counts(2), 1, recv%counts(1), base_type, temp1, ierr)
@@ -400,14 +400,14 @@ contains
 
       ! call MPI_Type_contiguous(send%counts(1) * send_counts(3) * recv%counts(3), base_type, self%recv%dtypes(i), ierr)
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3)* base_storage
+      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3)* int(base_storage, int32)
       call free_datatypes(temp1, temp2, temp3, temp4)
     else
       call MPI_Type_vector(send%counts(3), 1, send%counts(1) * send%counts(2), base_type, temp1, ierr)
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(send%counts(1), temp2, temp3, ierr)
       call MPI_Type_create_hvector(recv_counts(3), 1, int(send%counts(1) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, ierr)
-      displ = send%counts(1) * recv_counts(3) * base_storage
+      displ = send%counts(1) * recv_counts(3) * int(base_storage, int32)
       call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
       if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
@@ -416,7 +416,7 @@ contains
       call MPI_Type_vector(recv%counts(2) * recv%counts(3), send_counts(3), recv%counts(1), base_type, temp1, ierr)
       call MPI_Type_create_resized(temp1, LB, int(send_counts(3) * base_storage, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
-      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3) * base_storage
+      if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + send_counts(3) * int(base_storage, int32)
       call free_datatypes(temp1)
     endif
   end subroutine create_transpose_XZ
@@ -433,7 +433,7 @@ contains
     integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
     integer(int8),                intent(in)    :: datatype_id        !! Id of transpose plan to use
     TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
     TYPE_MPI_DATATYPE   :: temp1                !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp2                !! Temporary datatype
     TYPE_MPI_DATATYPE   :: temp3                !! Temporary datatype
@@ -443,7 +443,7 @@ contains
 
     if ( datatype_id == 1 ) then
       call MPI_Type_vector(send%counts(2) * send%counts(3), recv_counts(3), send%counts(1), base_type, temp1, ierr)
-      displ = recv_counts(3) * base_storage
+      displ = recv_counts(3) * int(base_storage, int32)
       call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%send%dtypes(i), ierr)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
       if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
@@ -453,7 +453,7 @@ contains
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(recv%counts(1), temp2, temp3, ierr)
       call MPI_Type_create_hvector(send_counts(3), 1, int(recv%counts(1) * base_storage, MPI_ADDRESS_KIND), temp3, temp4, ierr)
-      displ = recv%counts(1) * send_counts(3) * base_storage
+      displ = recv%counts(1) * send_counts(3) * int(base_storage, int32)
       call MPI_Type_create_resized(temp4, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
       call MPI_Type_commit(self%recv%dtypes(i), ierr)
       if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + displ
@@ -462,13 +462,13 @@ contains
       call MPI_Type_vector(send%counts(2) * send%counts(3), 1, send%counts(1), base_type, temp1, ierr)
       call MPI_Type_create_resized(temp1, LB, int(base_storage, MPI_ADDRESS_KIND), temp2, ierr)
       call MPI_Type_contiguous(recv_counts(3), temp2, self%send%dtypes(i), ierr)
-      displ = recv_counts(3) * base_storage
+      displ = recv_counts(3) * int(base_storage, int32)
       call MPI_Type_commit(self%send%dtypes(i), ierr)
       if ( i < n_neighbors ) self%send%displs(i + 1) = self%send%displs(i) + displ
       call free_datatypes(temp1, temp2)
 
       call MPI_Type_vector(recv%counts(3), recv%counts(1) * send_counts(3), recv%counts(1) * recv%counts(2),  base_type, temp1, ierr)
-      displ = recv%counts(1) * send_counts(3) * base_storage
+      displ = recv%counts(1) * send_counts(3) * int(base_storage, int32)
       call MPI_Type_create_resized(temp1, LB, int(displ, MPI_ADDRESS_KIND), self%recv%dtypes(i), ierr)
       if ( i < n_neighbors ) self%recv%displs(i + 1) = self%recv%displs(i) + displ
       call MPI_Type_commit(self%recv%dtypes(i), ierr)

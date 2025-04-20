@@ -58,7 +58,7 @@ contains
     class(backend_cufftmp),   intent(inout) :: self               !! cuFFTMp GPU Backend
     type(backend_helper),     intent(in)    :: helper             !! Backend helper
     type(dtfft_transpose_t),  intent(in)    :: tranpose_type      !! Type of transpose to create
-    integer(int8),            intent(in)    :: base_storage       !! Number of bytes to store single element
+    integer(int64),           intent(in)    :: base_storage       !! Number of bytes to store single element
     type(Box3D)           :: inbox, outbox  !! Reshape boxes
     type(pencil), pointer :: in, out
     type(c_ptr) :: c_comm
@@ -124,19 +124,20 @@ contains
     CUFFT_CALL( "cufftMpCreateReshape", cufftMpCreateReshape(self%plan) )
     c_comm = Comm_f2c(DTFFT_GET_MPI_VALUE(self%comm))
     CUFFT_CALL( "cufftMpAttachReshapeComm", cufftMpAttachReshapeComm(self%plan, CUFFT_COMM_MPI, c_comm) )
-    CUFFT_CALL( "cufftMpMakeReshape", cufftMpMakeReshape(self%plan, int(base_storage, c_size_t), 3, inbox%lower, inbox%upper, outbox%lower, outbox%upper, inbox%strides, outbox%strides) )
+    CUFFT_CALL( "cufftMpMakeReshape", cufftMpMakeReshape(self%plan, base_storage, 3, inbox%lower, inbox%upper, outbox%lower, outbox%upper, inbox%strides, outbox%strides) )
     CUFFT_CALL( "cufftMpGetReshapeSize", cufftMpGetReshapeSize(self%plan, self%aux_size) )
   end subroutine create
 
-  subroutine execute(self, in, out, stream)
+  subroutine execute(self, in, out, stream, aux)
   !! Executes cuFFTMp GPU Backend
     class(backend_cufftmp),     intent(inout) :: self       !! cuFFTMp GPU Backend
     real(real32),     target,   intent(inout) :: in(:)      !! Send pointer
     real(real32),     target,   intent(inout) :: out(:)     !! Recv pointer
     type(dtfft_stream_t),       intent(in)    :: stream     !! Main execution CUDA stream
+    real(real32),     target,   intent(inout) :: aux(:)     !! Aux pointer
 
     call nvshmemx_sync_all_on_stream(stream)
-    CUFFT_CALL( "cufftMpExecReshapeAsync", cufftMpExecReshapeAsync(self%plan, c_loc(out), c_loc(in), c_loc(self%aux), stream) )
+    CUFFT_CALL( "cufftMpExecReshapeAsync", cufftMpExecReshapeAsync(self%plan, c_loc(out), c_loc(in), c_loc(aux), stream) )
   end subroutine execute
 
   subroutine destroy(self)

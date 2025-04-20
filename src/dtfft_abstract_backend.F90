@@ -62,10 +62,9 @@ public :: abstract_backend, backend_helper
 
   type, abstract :: abstract_backend
   !! The most Abstract GPU Backend
-    type(dtfft_backend_t)             :: backend            !! Backend type
+    type(dtfft_backend_t)             :: backend                !! Backend type
     logical                           :: is_selfcopy            !! If backend is self-copying
     logical                           :: is_pipelined           !! If backend is pipelined
-    real(real32),             pointer :: aux(:)                 !! Auxiliary buffer used in pipelined algorithms
     integer(int64)                    :: aux_size               !! Number of bytes required by aux buffer
     integer(int64)                    :: send_recv_buffer_size  !! Number of float elements used in ``c_f_pointer``
     TYPE_MPI_COMM                     :: comm                   !! MPI Communicator
@@ -80,22 +79,21 @@ public :: abstract_backend, backend_helper
     type(cudaEvent)                   :: execution_event        !! Event for main execution stream
     type(cudaEvent)                   :: copy_event             !! Event for copy stream
     type(dtfft_stream_t)              :: copy_stream            !! Stream for copy operations
-    integer(int64)                    :: self_copy_elements     !! Number of elements to copy
+    integer(int64)                    :: self_copy_bytes        !! Number of bytes to copy it itself
     integer(int64)                    :: self_send_displ        !! Displacement for send buffer
     integer(int64)                    :: self_recv_displ        !! Displacement for recv buffer
     ! Pipelined params
     type(nvrtc_kernel),       pointer :: unpack_kernel          !! Kernel for unpacking data
     type(nvrtc_kernel),       pointer :: unpack_kernel2         !! Kernel for unpacking data
   contains
-    procedure,      non_overridable,              pass(self)  :: create           !! Creates Abstract GPU Backend
-    procedure,      non_overridable,              pass(self)  :: execute          !! Executes GPU Backend
-    procedure,      non_overridable,              pass(self)  :: destroy          !! Destroys Abstract GPU Backend
-    procedure,      non_overridable,              pass(self)  :: get_aux_size     !! Returns number of bytes required by aux buffer
-    procedure,      non_overridable,              pass(self)  :: set_aux          !! Sets Auxiliary buffer
-    procedure,      non_overridable,              pass(self)  :: set_unpack_kernel!! Sets unpack kernel for pipelined backend
-    procedure(create_interface),      deferred,   pass(self)  :: create_private   !! Creates overring class
-    procedure(execute_interface),     deferred,   pass(self)  :: execute_private  !! Executes GPU Backend
-    procedure(destroy_interface),     deferred,   pass(self)  :: destroy_private  !! Destroys overring class
+    procedure,            non_overridable,  pass(self)  :: create           !! Creates Abstract GPU Backend
+    procedure,            non_overridable,  pass(self)  :: execute          !! Executes GPU Backend
+    procedure,            non_overridable,  pass(self)  :: destroy          !! Destroys Abstract GPU Backend
+    procedure,            non_overridable,  pass(self)  :: get_aux_size     !! Returns number of bytes required by aux buffer
+    procedure,            non_overridable,  pass(self)  :: set_unpack_kernel!! Sets unpack kernel for pipelined backend
+    procedure(create_interface),  deferred, pass(self)  :: create_private   !! Creates overring class
+    procedure(execute_interface), deferred, pass(self)  :: execute_private  !! Executes GPU Backend
+    procedure(destroy_interface), deferred, pass(self)  :: destroy_private  !! Destroys overring class
   end type abstract_backend
 
   abstract interface
@@ -105,16 +103,17 @@ public :: abstract_backend, backend_helper
       class(abstract_backend),  intent(inout) :: self           !! Abstract GPU Backend
       type(backend_helper),     intent(in)    :: helper         !! Backend helper
       type(dtfft_transpose_t),  intent(in)    :: tranpose_type  !! Type of transpose to create
-      integer(int8),            intent(in)    :: base_storage   !! Number of bytes to store single element
+      integer(int64),           intent(in)    :: base_storage   !! Number of bytes to store single element
     end subroutine create_interface
 
-    subroutine execute_interface(self, in, out, stream)
+    subroutine execute_interface(self, in, out, stream, aux)
     !! Executes GPU Backend
     import
       class(abstract_backend),  intent(inout) :: self       !! Abstract GPU Backend
       real(real32),   target,   intent(inout) :: in(:)      !! Send pointer
       real(real32),   target,   intent(inout) :: out(:)     !! Recv pointer
       type(dtfft_stream_t),     intent(in)    :: stream     !! Main execution CUDA stream
+      real(real32),   target,   intent(inout) :: aux(:)     !! Aux pointer
     end subroutine execute_interface
 
     subroutine destroy_interface(self)
@@ -137,13 +136,13 @@ contains
     integer(int32),               intent(in)    :: send_counts(:) !! Send data elements, in float elements
     integer(int32),               intent(in)    :: recv_displs(:) !! Recv data displacements, in float elements
     integer(int32),               intent(in)    :: recv_counts(:) !! Recv data elements, in float elements
-    integer(int8),                intent(in)    :: base_storage   !! Number of bytes to store single element
+    integer(int64),               intent(in)    :: base_storage   !! Number of bytes to store single element
     integer(int64)                            :: send_size      !! Total number of floats to send
     integer(int64)                            :: recv_size      !! Total number of floats to recv
     integer(int32)                            :: ierr           !! MPI Error code
     integer(int64)                            :: scaler         !! Scaling data amount to float size
 
-    scaler = int(base_storage, int64) / int(FLOAT_STORAGE_SIZE, int64)
+    scaler = base_storage / FLOAT_STORAGE_SIZE
 
     send_size = sum(send_counts) * scaler
     recv_size = sum(recv_counts) * scaler
@@ -176,13 +175,13 @@ contains
 
     self%aux_size = 0_int64
     if ( self%is_pipelined ) then
-      self%aux_size = self%send_recv_buffer_size * int(FLOAT_STORAGE_SIZE, int64)
+      self%aux_size = self%send_recv_buffer_size * FLOAT_STORAGE_SIZE
     endif
 
     if ( self%is_selfcopy ) then
       self%self_send_displ = self%send_displs(self%comm_rank)
       self%self_recv_displ = self%recv_displs(self%comm_rank)
-      self%self_copy_elements = self%send_floats(self%comm_rank) * int(FLOAT_STORAGE_SIZE, int64)
+      self%self_copy_bytes = self%send_floats(self%comm_rank) * FLOAT_STORAGE_SIZE
       self%send_floats(self%comm_rank) = 0
       self%recv_floats(self%comm_rank) = 0
 
@@ -194,15 +193,16 @@ contains
     call self%create_private(helper, tranpose_type, base_storage)
   end subroutine create
 
-  subroutine execute(self, in, out, stream)
+  subroutine execute(self, in, out, stream, aux)
   !! Executes self-copying backend
     class(abstract_backend),    intent(inout) :: self     !! Self-copying backend
     real(real32),               intent(inout) :: in(:)    !! Send pointer
     real(real32),               intent(inout) :: out(:)   !! Recv pointer
     type(dtfft_stream_t),       intent(in)    :: stream   !! CUDA stream
+    real(real32),               intent(inout) :: aux(:)   !! Aux pointer
 
     if ( .not. self%is_selfcopy ) then
-      call self%execute_private(in, out, stream)
+      call self%execute_private(in, out, stream, aux)
       return
     endif
 
@@ -210,28 +210,20 @@ contains
     ! Waiting for transpose kernel to finish execution on stream `stream`
     CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(self%copy_stream, self%execution_event, 0) )
 
-    if( self%self_copy_elements > 0 ) then
+    if( self%self_copy_bytes > 0 ) then
       if ( self%is_pipelined ) then
     ! Tranposed data is actually located in aux buffer for pipelined algorithm
-        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(in( self%self_recv_displ ), self%aux( self%self_send_displ ), self%self_copy_elements, cudaMemcpyDeviceToDevice, self%copy_stream) )
-#ifdef __DEBUG
-        CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-#endif
+        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(aux( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
         ! Data can be unpacked in same stream as `cudaMemcpyAsync`
-        call self%unpack_kernel%execute(in, out, self%copy_stream, self%comm_rank + 1)
+        call self%unpack_kernel%execute(aux, out, self%copy_stream, self%comm_rank + 1)
       else
-        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_elements, cudaMemcpyDeviceToDevice, self%copy_stream) )
+        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
       endif
     endif
-#ifdef __DEBUG
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(self%copy_stream) )
-#endif
-    call self%execute_private(in, out, stream)
-#ifndef __DEBUG
-    ! Making `stream` wait for finish of `cudaMemcpyAsync`
+    call self%execute_private(in, out, stream, aux)
+    ! Making future events, like FFT, on `stream` to wait for `copy_event`
     CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%copy_event, self%copy_stream) )
     CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(stream, self%copy_event, 0) )
-#endif
   end subroutine execute
 
   subroutine destroy(self)
@@ -251,6 +243,7 @@ contains
     endif
     if ( self%is_pipelined ) then
       nullify( self%unpack_kernel )
+      if ( associated(self%unpack_kernel2) ) nullify( self%unpack_kernel2 )
     endif
     self%is_pipelined = .false.
     self%is_selfcopy = .false.
@@ -262,13 +255,6 @@ contains
     class(abstract_backend),    intent(in)    :: self     !! Abstract GPU backend
     get_aux_size = self%aux_size
   end function get_aux_size
-
-  subroutine set_aux(self, aux)
-  !! Sets aux buffer that can be used by various implementations
-    class(abstract_backend),          intent(inout) :: self     !! Abstract GPU backend
-    real(real32),             target, intent(in)    :: aux(:)   !! Aux pointer
-    self%aux => aux
-  end subroutine set_aux
 
   subroutine set_unpack_kernel(self, unpack_kernel, unpack_kernel2)
   !! Sets unpack kernel for pipelined backend
