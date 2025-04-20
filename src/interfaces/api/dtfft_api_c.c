@@ -169,6 +169,13 @@ dtfft_get_element_size(dtfft_plan_t plan, size_t *element_size)
 }
 
 dtfft_error_t
+dtfft_get_alloc_bytes(dtfft_plan_t plan, size_t *alloc_bytes)
+{
+  if ( !alloc_bytes ) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_t)dtfft_get_alloc_bytes_c(get_plan_handle(plan), alloc_bytes);
+}
+
+dtfft_error_t
 dtfft_mem_alloc(dtfft_plan_t plan, size_t alloc_bytes, void** ptr)
 {
   if ( !ptr ) return DTFFT_ERROR_INVALID_USAGE;

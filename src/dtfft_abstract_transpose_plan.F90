@@ -61,7 +61,7 @@ public :: alloc_mem, free_mem
 #endif
     logical         :: is_z_slab
       !! Z-slab optimization flag (for 3D transforms)
-    integer(int64)  :: min_buffer_size  
+    integer(int64)  :: min_buffer_size
       !! Minimal buffer size for transposition
   contains
     procedure,                            pass(self),           public  :: create           !! Create transposition plan
@@ -70,7 +70,7 @@ public :: alloc_mem, free_mem
     procedure(execute_interface),         pass(self), deferred          :: execute_private  !! Executes overriding class
     procedure(destroy_interface),         pass(self), deferred, public  :: destroy          !! Destroys overriding class
 #ifdef DTFFT_WITH_CUDA
-    procedure,   non_overridable,         pass(self),           public  :: get_backend  !! Returns backend id
+    procedure,   non_overridable,         pass(self),           public  :: get_backend      !! Returns backend id
     procedure,   non_overridable,         pass(self),           public  :: mem_alloc        !! Allocates memory based on selected backend
     procedure,   non_overridable,         pass(self),           public  :: mem_free         !! Frees memory allocated with mem_alloc
 #endif
@@ -88,7 +88,7 @@ public :: alloc_mem, free_mem
       integer(int32),                 intent(in)    :: comm_dims(:)         !! Dims in cartesian communicator
       type(dtfft_effort_t),           intent(in)    :: effort               !! ``dtFFT`` planner type of effort
       TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !! Base MPI_Datatype
-      integer(int8),                  intent(in)    :: base_storage         !! Number of bytes needed to store single element
+      integer(int64),                 intent(in)    :: base_storage         !! Number of bytes needed to store single element
       logical,                        intent(in)    :: is_custom_cart_comm  !! Custom cartesian communicator provided by user
       TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
       TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
@@ -121,7 +121,7 @@ contains
     TYPE_MPI_COMM,                  intent(in)    :: base_comm_     !! Base communicator
     type(dtfft_effort_t),           intent(in)    :: effort         !! ``dtFFT`` planner type of effort
     TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype     !! Base MPI_Datatype
-    integer(int8),                  intent(in)    :: base_storage   !! Number of bytes needed to store single element
+    integer(int64),                 intent(in)    :: base_storage   !! Number of bytes needed to store single element
     TYPE_MPI_COMM,                  intent(out)   :: cart_comm      !! Cartesian communicator
     TYPE_MPI_COMM,                  intent(out)   :: comms(:)       !! Array of 1d communicators
     type(pencil),                   intent(out)   :: pencils(:)     !! Data distributing meta
@@ -245,7 +245,7 @@ contains
     if ( error_code /= DTFFT_SUCCESS ) return
 
     call get_local_sizes(pencils, alloc_size=self%min_buffer_size)
-    self%min_buffer_size = self%min_buffer_size * (int(base_storage, int64) / FLOAT_STORAGE_SIZE)
+    self%min_buffer_size = self%min_buffer_size * (base_storage / FLOAT_STORAGE_SIZE)
 
     deallocate( transposed_dims )
     deallocate( comm_dims )
@@ -314,7 +314,10 @@ contains
     call MPI_Allreduce(alloc_bytes, min_mem, 1, MPI_INTEGER8, MPI_MIN, comm, ierr)
     call MPI_Allreduce(free_mem, max_free_mem, 1, MPI_INTEGER8, MPI_MAX, comm, ierr)
     call MPI_Allreduce(free_mem, min_free_mem, 1, MPI_INTEGER8, MPI_MIN, comm, ierr)
-    WRITE_DEBUG("Allocating min/max "//int_to_str(min_mem)//"/"//int_to_str(max_mem)//" bytes for backend: '"//dtfft_get_backend_string(backend)//"'; free memory: "//int_to_str(min_free_mem)//"/"//int_to_str(max_free_mem))
+    WRITE_DEBUG("Trying to allocate "//int_to_str(min_mem)//"/"//int_to_str(max_mem)//" (min/max) bytes for backend: '"//dtfft_get_backend_string(backend)//"'")
+    WRITE_DEBUG("Free memory available: "//int_to_str(min_free_mem)//"/"//int_to_str(max_free_mem)//" (min/max) bytes")
+#else
+    WRITE_INFO("Allocating "//int_to_str(alloc_bytes)//" bytes for backend: '"//dtfft_get_backend_string(backend)//"'"//"; free memory available: "//int_to_str(free_mem)//" bytes")
 #endif
     if ( alloc_bytes > free_mem ) then
       error_code = DTFFT_ERROR_ALLOC_FAILED

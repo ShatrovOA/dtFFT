@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_2d
-use iso_fortran_env, only: R8P => real64, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit
+use iso_fortran_env
 use dtfft
 use test_utils
 use iso_c_binding
@@ -31,20 +31,20 @@ use dtfft_utils
 #include "dtfft.f03"
 implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
-  ! real(R8P),     allocatable :: in(:,:), check(:,:)
-  real(R8P),     allocatable :: inout(:), check(:)
-  real(R8P) :: local_error, rnd
+  ! real(real64),     allocatable :: in(:,:), check(:,:)
+  real(real64),     allocatable :: inout(:), check(:)
+  real(real64) :: local_error, rnd
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  integer(I4P), parameter :: nx = 999, ny = 344
+  integer(int32), parameter :: nx = 999, ny = 344
 #else
-  integer(I4P), parameter :: nx = 64, ny = 32
+  integer(int32), parameter :: nx = 64, ny = 32
 #endif
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  integer(int32) :: comm_size, comm_rank, i, j, ierr
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
-  integer(I4P) :: in_counts(2), out_counts(2)
-  real(R8P) :: tf, tb
-  integer(I8P) :: alloc_size, upper_bound, cmplx_upper_bound
+  integer(int32) :: in_counts(2), out_counts(2)
+  real(real64) :: tf, tb
+  integer(int64) :: alloc_size, upper_bound, cmplx_upper_bound
   type(dtfft_config_t) :: conf
 
   call MPI_Init(ierr)
@@ -81,7 +81,11 @@ implicit none
 
   conf = dtfft_config_t()
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_NCCL)
   conf%backend = DTFFT_BACKEND_NCCL
+#else
+  conf%backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
+#endif
   conf%platform = DTFFT_PLATFORM_CUDA
 #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
@@ -119,7 +123,7 @@ implicit none
 
 !$acc enter data copyin(inout)
 
-  tf = 0.0_R8P - MPI_Wtime()
+  tf = 0.0_real64 - MPI_Wtime()
 !$acc host_data use_device(inout)
   call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 !$acc end host_data
@@ -130,10 +134,10 @@ implicit none
   tf = tf + MPI_Wtime()
 
 !$acc kernels present(inout)
-  inout(:cmplx_upper_bound) = inout(:cmplx_upper_bound) / real(nx * ny, R8P)
+  inout(:cmplx_upper_bound) = inout(:cmplx_upper_bound) / real(nx * ny, real64)
 !$acc end kernels
 
-  tb = 0.0_R8P - MPI_Wtime()
+  tb = 0.0_real64 - MPI_Wtime()
 !$acc host_data use_device(inout)
   call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
 !$acc end host_data

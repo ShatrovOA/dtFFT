@@ -85,6 +85,9 @@ int main(int argc, char *argv[])
     MPI_Finalize();
     return 0;
 # endif
+  } else {
+    MPI_Finalize();
+    return 0;
   }
 #endif
 

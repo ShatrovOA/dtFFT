@@ -22,7 +22,7 @@ program test_r2r_3d
 !< This program shows how to use DTFFT with Real-to-Real 3d transform
 !< It also tests user-defined 1d communicator
 !------------------------------------------------------------------------------------------------
-use iso_fortran_env, only: R8P => real64, I4P => int32, IP => int32, I1P => int8, output_unit, error_unit, I8P => int64, int32
+use iso_fortran_env, only: real64 => real64, int32 => int32, IP => int32, I1P => int8, output_unit, error_unit, int64 => int64, int32
 use dtfft
 use test_utils
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
@@ -33,20 +33,20 @@ use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
-  real(R8P), allocatable :: in(:), out(:), check(:)
-  real(R8P) :: local_error, rnd
+  real(real64), allocatable :: in(:), out(:), check(:)
+  real(real64) :: local_error, rnd
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  integer(I4P), parameter :: nx = 1024, ny = 1024, nz = 16
+  integer(int32), parameter :: nx = 1024, ny = 1024, nz = 16
 #else
-  integer(I4P), parameter :: nx = 512, ny = 32, nz = 8
+  integer(int32), parameter :: nx = 512, ny = 32, nz = 8
 #endif
-  integer(I4P) :: comm_size, comm_rank, i, j, k, out_size, in_size
+  integer(int32) :: comm_size, comm_rank, i, j, k, out_size, in_size
   class(dtfft_plan_t), allocatable :: plan
-  integer(I4P) :: in_starts(3), in_counts(3), out_counts(3), ierr, ijk
-  integer(I4P) :: iter
+  integer(int32) :: in_starts(3), in_counts(3), out_counts(3), ierr, ijk
+  integer(int32) :: iter
   type(dtfft_executor_t) :: executor
-  real(R8P) :: tf, tb, temp
-  integer(I8P) :: alloc_size
+  real(real64) :: tf, tb, temp
+  integer(int64) :: alloc_size
   TYPE_MPI_COMM :: comm
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
@@ -114,7 +114,7 @@ implicit none
         call random_number(rnd)
         ijk = (k * in_counts(2) + j) * in_counts(1) + i + 1
         in(ijk) = rnd
-        ! in(ijk) = real(1000 * comm_rank + ijk, R8P)
+        ! in(ijk) = real(1000 * comm_rank + ijk, real64)
         check(ijk) = in(ijk)
       enddo
     enddo
@@ -122,10 +122,10 @@ implicit none
 
 !$acc enter data copyin(in, check)
 
-  tf = 0.0_R8P
-  tb = 0.0_R8P
+  tf = 0.0_real64
+  tb = 0.0_real64
   do iter = 1, 10
-    temp = 0.0_R8P - MPI_Wtime()
+    temp = 0.0_real64 - MPI_Wtime()
   !$acc host_data use_device(in, out)
     call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
   !$acc end host_data
@@ -138,15 +138,15 @@ implicit none
 
     if ( executor /= DTFFT_EXECUTOR_NONE ) then
     !$acc kernels present(out)
-      out(:out_size) = out(:out_size) / real(8 * nx * ny * nz, R8P)
+      out(:out_size) = out(:out_size) / real(8 * nx * ny * nz, real64)
     !$acc end kernels
     endif
 
   !$acc kernels present(in)
-    in(:) = -1._R8P
+    in(:) = -1._real64
   !$acc end kernels
 
-    temp = 0.0_R8P - MPI_Wtime()
+    temp = 0.0_real64 - MPI_Wtime()
   !$acc host_data use_device(in, out)
     call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
   !$acc end host_data

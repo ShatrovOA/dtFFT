@@ -18,18 +18,18 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_2d
-use iso_fortran_env, only: R4P => real32, R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit
+use iso_fortran_env, only: real32 => real32, real64 => real64, int32 => int32, I1P => int8, output_unit, error_unit
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
 implicit none
-  real(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R8P) :: local_error, scaler, rnd
-  integer(I4P), parameter :: nx = 8, ny = 12
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  real(real64),  allocatable :: in(:,:), out(:,:), check(:,:)
+  real(real64) :: local_error, scaler, rnd
+  integer(int32), parameter :: nx = 8, ny = 12
+  integer(int32) :: comm_size, comm_rank, i, j, ierr
   type(dtfft_plan_r2r_t) :: plan
-  integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2), in_vals
-  real(R8P) :: tf, tb
+  integer(int32) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2), in_vals
+  real(real64) :: tf, tb
   type(dtfft_r2r_kind_t) :: kinds(2)
   type(dtfft_executor_t) :: executor
 
@@ -49,10 +49,10 @@ implicit none
   kinds = DTFFT_DCT_1
 #if defined (DTFFT_WITH_FFTW)
   executor = DTFFT_EXECUTOR_FFTW3
-  scaler = 1._R8P / real(4 * (nx - 1) * (ny - 1), R8P)
+  scaler = 1._real64 / real(4 * (nx - 1) * (ny - 1), real64)
 #else
   executor = DTFFT_EXECUTOR_NONE
-  scaler = 1._R8P
+  scaler = 1._real64
 #endif
 
   call plan%create([nx, ny], kinds=kinds, effort=DTFFT_PATIENT, executor=executor)
@@ -75,16 +75,16 @@ implicit none
 
   allocate(check, source = in)
 
-  tf = 0.0_R8P - MPI_Wtime()
+  tf = 0.0_real64 - MPI_Wtime()
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
   tf = tf + MPI_Wtime()
 
 
   out(:,:) = out(:,:) * scaler
   ! Nullify recv buffer
-  in = -1._R8P
+  in = -1._real64
 
-  tb = 0.0_R8P - MPI_Wtime()
+  tb = 0.0_real64 - MPI_Wtime()
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
   tb = tb + MPI_Wtime()
 

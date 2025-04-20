@@ -238,13 +238,13 @@ public :: operator(/=)
 !------------------------------------------------------------------------------------------------
 ! Storage sizes
 !------------------------------------------------------------------------------------------------
-  integer(int8), parameter,  public :: DOUBLE_COMPLEX_STORAGE_SIZE   = storage_size((1._real64, 1._real64)) / 8_int8
+  integer(int64), parameter,  public :: DOUBLE_COMPLEX_STORAGE_SIZE   = storage_size((1._real64, 1._real64)) / 8_int64
     !! Number of bytes to store single double precision complex element
-  integer(int8), parameter,  public :: COMPLEX_STORAGE_SIZE          = storage_size((1._real32, 1._real32)) / 8_int8
+  integer(int64), parameter,  public :: COMPLEX_STORAGE_SIZE          = storage_size((1._real32, 1._real32)) / 8_int64
     !! Number of bytes to store single float precision complex element
-  integer(int8), parameter,  public :: DOUBLE_STORAGE_SIZE           = storage_size(1._real64) / 8_int8
+  integer(int64), parameter,  public :: DOUBLE_STORAGE_SIZE           = storage_size(1._real64) / 8_int64
     !! Number of bytes to store single double precision real element
-  integer(int8), parameter,  public :: FLOAT_STORAGE_SIZE            = storage_size(1._real32) / 8_int8
+  integer(int64), parameter,  public :: FLOAT_STORAGE_SIZE            = storage_size(1._real32) / 8_int64
     !! Number of bytes to store single single precision real element
 
 

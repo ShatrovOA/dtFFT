@@ -23,6 +23,7 @@
  * @date 2024
  * @brief File containing C API functions of dtFFT Library
  */
+#define DTFFT_WITH_CUDA
 #ifndef DTFFT_H
 #define DTFFT_H
 
@@ -485,6 +486,20 @@ dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil);
  */
 dtfft_error_t
 dtfft_get_element_size(dtfft_plan_t plan, size_t *element_size);
+
+
+/**
+ * @brief Returns minimum number of bytes required to execute plan.
+ * 
+ * This function is a combination of two calls: `::dtfft_get_alloc_size` and `::dtfft_get_element_size`
+ *
+ * @param[in]     plan            Plan handle
+ * @param[out]    alloc_bytes     Number of bytes required
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_alloc_bytes(dtfft_plan_t plan, size_t *alloc_bytes);
 
 
 /**

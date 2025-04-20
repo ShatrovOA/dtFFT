@@ -18,24 +18,24 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_3d
-use iso_fortran_env, only: R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit, int64
+use iso_fortran_env, only: real64 => real64, int32 => int32, I1P => int8, output_unit, error_unit, int64
 use iso_c_binding
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
 implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
-  real(R8P),     allocatable, target :: in(:), check(:,:,:)
-  real(R8P),      pointer :: pin(:,:,:)
-  complex(R8P),  allocatable :: out(:)
-  real(R8P) :: local_error, rnd
-  integer(I4P), parameter :: nx = 256, ny = 256, nz = 4
-  integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
+  real(real64),     allocatable, target :: in(:), check(:,:,:)
+  real(real64),      pointer :: pin(:,:,:)
+  complex(real64),  allocatable :: out(:)
+  real(real64) :: local_error, rnd
+  integer(int32), parameter :: nx = 256, ny = 256, nz = 4
+  integer(int32) :: comm_size, comm_rank, i, j, k, ierr
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
-  integer(I4P) :: in_counts(3)
+  integer(int32) :: in_counts(3)
   integer(int64) :: alloc_size, element_size
-  real(R8P) :: tf, tb
+  real(real64) :: tf, tb
   type(dtfft_pencil_t) :: real_pencil, cmplx_pencil
 
   call MPI_Init(ierr)
@@ -70,7 +70,7 @@ implicit none
   element_size = plan%get_element_size()
   call plan%report()
 
-  if ( element_size /= R8P ) error stop "element_size /= real64"
+  if ( element_size /= real64 ) error stop "element_size /= real64"
 
   real_pencil = plan%get_pencil(0_I1P)
   cmplx_pencil = plan%get_pencil(1_I1P)
@@ -83,7 +83,7 @@ implicit none
 
   allocate(in(alloc_size))
   allocate(check(1:in_counts(1), 1:in_counts(2), 1:in_counts(3)))
-  allocate(out(alloc_size / 2), source = (0._R8P, 0._R8P))
+  allocate(out(alloc_size / 2), source = (0._real64, 0._real64))
   pin(1:in_counts(1), 1:in_counts(2), 1:in_counts(3)) => in
 
   do k = 1, in_counts(3)
@@ -96,17 +96,17 @@ implicit none
     enddo
   enddo
 
-  tf = 0.0_R8P - MPI_Wtime()
+  tf = 0.0_real64 - MPI_Wtime()
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
   tf = tf + MPI_Wtime()
 
   ! Nullify recv buffer
-  in = -1._R8P
+  in = -1._real64
 
-  tb = 0.0_R8P - MPI_Wtime()
+  tb = 0.0_real64 - MPI_Wtime()
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
   tb = tb + MPI_Wtime()
-  in(:) = in(:) / real(nx * ny * nz, R8P)
+  in(:) = in(:) / real(nx * ny * nz, real64)
 
   local_error = maxval(abs(pin - check))
   call report(tf, tb, local_error, nx, ny, nz)

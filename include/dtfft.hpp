@@ -714,6 +714,20 @@ class Version {
 
 
 /**
+ * @brief Returns minimum number of bytes required to execute plan.
+ *
+ * This function is a combination of two calls: Plan.get_alloc_size and Plan.get_element_size
+ *
+ * @param[out]    alloc_bytes    Number of bytes required
+ *
+ * @return Error::SUCCESS on success or error code on failure.
+ */
+      inline
+      Error
+      get_alloc_bytes(size_t *alloc_bytes) const noexcept
+      {return static_cast<Error>(dtfft_get_alloc_bytes(_plan, alloc_bytes));}
+
+/**
  * @brief Allocates memory specific for this plan
  *
  * @param[in]     alloc_bytes     Number of bytes to allocate

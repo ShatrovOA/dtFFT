@@ -2,6 +2,7 @@
 module test_utils
 use iso_fortran_env
 use iso_c_binding
+use dtfft
 use dtfft_utils, only: int_to_str, double_to_str
 #include "dtfft_mpi.h"
 #if defined(DTFFT_WITH_CUDA)
@@ -17,16 +18,49 @@ public :: scaleComplexFloatHost, scaleComplexDoubleHost
 public :: checkFloat, checkDouble
 public :: checkComplexFloat, checkComplexDouble
 
+#if defined(DTFFT_WITH_CUDA)
+public :: scaleComplexFloat, scaleComplexDouble
+public :: scaleFloat, scaleDouble
+
+  interface
+    subroutine scaleComplexFloat(buffer, count, scale, stream) bind(C, name="scaleComplexFloat")
+    import
+      type(c_ptr),          value :: buffer
+      integer(c_size_t),    value :: count
+      integer(c_size_t),    value :: scale
+      type(dtfft_stream_t), value :: stream
+    end subroutine scaleComplexFloat
+
+    subroutine scaleComplexDouble(buffer, count, scale, stream) bind(C, name="scaleComplexDouble")
+    import
+      type(c_ptr),          value :: buffer
+      integer(c_size_t),    value :: count
+      integer(c_size_t),    value :: scale
+      type(dtfft_stream_t), value :: stream
+    end subroutine scaleComplexDouble
+
+    subroutine scaleFloat(buffer, count, scale, stream) bind(C, name="scaleFloat")
+    import
+      type(c_ptr),          value :: buffer
+      integer(c_size_t),    value :: count
+      integer(c_size_t),    value :: scale
+      type(dtfft_stream_t), value :: stream
+    end subroutine scaleFloat
+
+    subroutine scaleDouble(buffer, count, scale, stream) bind(C, name="scaleDouble")
+    import
+      type(c_ptr),          value :: buffer
+      integer(c_size_t),    value :: count
+      integer(c_size_t),    value :: scale
+      type(dtfft_stream_t), value :: stream
+    end subroutine scaleDouble
+  end interface
+#endif
+
   interface report
     module procedure :: reportSingle
     module procedure :: reportDouble
   end interface report
-
-  real(real32),  parameter :: FLT_EPSILON = nearest(1._real32, 1._real32) - &
-                                            nearest(1._real32,-1._real32)
-
-  real(real64),  parameter :: DBL_EPSILON = nearest(1._real64, 1._real64) - &
-                                            nearest(1._real64,-1._real64)
 
 contains
 
@@ -41,7 +75,7 @@ contains
     real(real32)   :: errthr
 
     temp = nx * ny; if( present(nz) ) temp = temp * nz
-    errthr = 5.0_real32 * log( real(temp, real32) ) / log(real(2.0, real32)) * FLT_EPSILON
+    errthr = 5.0_real32 * log( real(temp, real32) ) / log(real(2.0, real32)) * (nearest(1._real32, 1._real32) - nearest(1._real32,-1._real32))
     call report_internal(tf, tb, real(local_error, real64), real(errthr, real64))
   end subroutine reportSingle
 
@@ -56,7 +90,7 @@ contains
     real(real64)   :: errthr
 
     temp = nx * ny; if( present(nz) ) temp = temp * nz
-    errthr = 5.0_real64 * log( real(temp, real64) ) / log(real(2.0, real64)) * DBL_EPSILON
+    errthr = 5.0_real64 * log( real(temp, real64) ) / log(real(2.0, real64)) * (nearest(1._real64, 1._real64) - nearest(1._real64,-1._real64))
     call report_internal(tf, tb, local_error, errthr)
   end subroutine reportDouble
 
@@ -77,7 +111,7 @@ contains
       if(global_error < error_threshold .and. global_error >= 0._real64) then
         write(output_unit, '(a)') "            Test PASSED!"
       else
-        write(error_unit, '(a, d16.5, a, d16.5)') "Test FAILED... error = ", global_error, ' threshold = ', error_threshold
+        write(output_unit, '(a, d16.5, a, d16.5)') "Test FAILED... error = ", global_error, ' threshold = ', error_threshold
         call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
       endif
       write(output_unit, '(a)') repeat("*", 40)
@@ -110,9 +144,14 @@ contains
   end subroutine write_timers
 
   subroutine attach_gpu_to_process() bind(C)
-#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
+#if defined(DTFFT_WITH_CUDA)
     integer(int32) :: comm_rank, ierr, host_rank, host_size, num_devices
     TYPE_MPI_COMM  :: host_comm
+    character(len=5) :: platform_env
+
+    call get_environment_variable("DTFFT_PLATFORM", platform_env)
+    ! Default execution on device
+    if ( trim(adjustl(platform_env)) == "host" ) return
 
     CUDA_CALL( "cudaGetDeviceCount", cudaGetDeviceCount(num_devices) )
     if ( num_devices == 0 ) return
@@ -145,7 +184,7 @@ contains
     real(real64), pointer :: buf(:)
 
     call c_f_pointer(buffer, buf, [buf_size])
-    buf(:) = buf(:) / real(scale, real32)
+    buf(:) = buf(:) / real(scale, real64)
   end subroutine scaleDoubleHost
 
   subroutine scaleComplexFloatHost(buffer, buf_size, scale) bind(C, name="scaleComplexFloatHost")

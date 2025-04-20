@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_3d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I1P => int8, output_unit, error_unit, int32
+use iso_fortran_env, only: real64 => real64, real32 => real32, int32 => int32, I1P => int8, output_unit, error_unit, int32
 use iso_c_binding, only: c_size_t
 use dtfft
 use test_utils
@@ -31,20 +31,20 @@ use dtfft_utils
 #include "dtfft.f03"
 implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
-  real(R4P),     allocatable :: in(:,:,:), check(:,:,:)
-  complex(R4P),  allocatable :: out(:)
-  real(R4P) :: local_error, rnd
+  real(real32),     allocatable :: in(:,:,:), check(:,:,:)
+  complex(real32),  allocatable :: out(:)
+  real(real32) :: local_error, rnd
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  integer(I4P), parameter :: nx = 513, ny = 711, nz = 33
+  integer(int32), parameter :: nx = 513, ny = 711, nz = 33
 #else
-  integer(I4P), parameter :: nx = 16, ny = 8, nz = 4
+  integer(int32), parameter :: nx = 16, ny = 8, nz = 4
 #endif
-  integer(I4P) :: comm_size, comm_rank, i, j, k, ierr
+  integer(int32) :: comm_size, comm_rank, i, j, k, ierr
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
-  integer(I4P) :: in_counts(3)
+  integer(int32) :: in_counts(3)
   integer(c_size_t) :: alloc_size
-  real(R8P) :: tf, tb
+  real(real64) :: tf, tb
   type(dtfft_config_t) :: conf
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
@@ -75,7 +75,7 @@ implicit none
 #ifdef _OPENACC
   block
     use openacc
-    integer(I4P) :: num_devices, my_device, host_rank, host_size
+    integer(int32) :: num_devices, my_device, host_rank, host_size
     TYPE_MPI_COMM :: host_comm
 
     call MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, comm_rank, MPI_INFO_NULL, host_comm, ierr)
@@ -121,11 +121,11 @@ implicit none
   DTFFT_CHECK(ierr)
 #endif
 
-  allocate(in(in_counts(1),in_counts(2), in_counts(3)), source = -33._R4P)
+  allocate(in(in_counts(1),in_counts(2), in_counts(3)), source = -33._real32)
 
   allocate(check, source = in)
 
-  allocate(out(alloc_size), source = (0._R4P, 0._R4P))
+  allocate(out(alloc_size), source = (0._real32, 0._real32))
 
   do k = 1, in_counts(3)
     do j = 1, in_counts(2)
@@ -139,7 +139,7 @@ implicit none
 
 !$acc enter data create(out) copyin(in, check)
 
-  tf = 0.0_R8P - MPI_Wtime()
+  tf = 0.0_real64 - MPI_Wtime()
 !$acc host_data use_device(in, out)
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 !$acc end host_data
@@ -149,14 +149,14 @@ implicit none
 #endif
   tf = tf + MPI_Wtime()
 !$acc kernels present(out)
-  out(:) = out(:) / real(nx * ny * nz, R4P)
+  out(:) = out(:) / real(nx * ny * nz, real32)
 !$acc end kernels
   ! Nullify recv buffer
 !$acc kernels present(in)
-  in(:,:,:) = -1._R4P
+  in(:,:,:) = -1._real32
 !$acc end kernels
 
-  tb = 0.0_R8P - MPI_Wtime()
+  tb = 0.0_real64 - MPI_Wtime()
 !$acc host_data use_device(in, out)
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
 !$acc end host_data

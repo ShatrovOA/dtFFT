@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   const int32_t nx = 256, ny = 512, nz = 1024;
 #else
   const int32_t nx = 32, ny = 64, nz = 128;
@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
   attach_gpu_to_process();
 
   Config conf;
+  // Different FFT kinds are used. Disabling Z-slab
   conf.set_enable_z_slab(false);
 
 #if defined(DTFFT_WITH_CUDA)

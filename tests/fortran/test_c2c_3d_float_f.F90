@@ -18,23 +18,23 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_c2c_3d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I1P => int8, output_unit, error_unit, int32
+use iso_fortran_env
 use iso_c_binding, only: c_size_t
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
-  complex(R4P),  allocatable :: in(:,:,:), out(:), check(:,:,:)
-  real(R4P) :: local_error, rnd1, rnd2
-  integer(I4P), parameter :: nx = 13, ny = 45, nz = 2
-  integer(I4P) :: comm_size, comm_rank, i, j, k
+  complex(real32),  allocatable :: in(:,:,:), out(:), check(:,:,:)
+  real(real32) :: local_error, rnd1, rnd2
+  integer(int32), parameter :: nx = 13, ny = 45, nz = 2
+  integer(int32) :: comm_size, comm_rank, i, j, k
   type(dtfft_plan_c2c_t) :: plan
-  integer(I4P) :: in_counts(3), out_counts(3), out_size
+  integer(int32) :: in_counts(3), out_counts(3), out_size
   integer(c_size_t) :: alloc_size
-  real(R8P) :: tf, tb
+  real(real64) :: tf, tb
   type(dtfft_executor_t) :: executor
-  integer(I4P) :: ierr
+  integer(int32) :: ierr
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -70,25 +70,25 @@ implicit none
       do i = 1, in_counts(1)
         call random_number(rnd1)
         call random_number(rnd2)
-        in(i,j,k) = cmplx(rnd1, rnd2, R4P)
+        in(i,j,k) = cmplx(rnd1, rnd2, real32)
         check(i,j,k) = in(i,j,k)
       enddo
     enddo
   enddo
 
-  tf = 0.0_R8P - MPI_Wtime()
+  tf = 0.0_real64 - MPI_Wtime()
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
   tf = tf + MPI_Wtime()
   DTFFT_CHECK(ierr)
 
   out_size = product(out_counts)
   if ( executor /= DTFFT_EXECUTOR_NONE ) then
-    out(:out_size) = out(:out_size) / real(nx * ny * nz, R4P)
+    out(:out_size) = out(:out_size) / real(nx * ny * nz, real32)
   endif
   ! Nullify recv buffer
-  in = (-1._R4P, -1._R4P)
+  in = (-1._real32, -1._real32)
 
-  tb = 0.0_R8P - MPI_Wtime()
+  tb = 0.0_real64 - MPI_Wtime()
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
   tb = tb + MPI_Wtime()
   DTFFT_CHECK(ierr)

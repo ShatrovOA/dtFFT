@@ -49,20 +49,20 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
+  attach_gpu_to_process();
 
   // Create plan
   dtfft_plan_t plan;
 
-  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE, &plan) )
 
-  size_t alloc_size;
-  DTFFT_CALL( dtfft_get_alloc_size(plan, &alloc_size) )
+  size_t alloc_bytes;
+  DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
 
-  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(double) * alloc_size, (void**)&inout) )
-  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(double) * alloc_size, (void**)&aux) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&inout) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
 
-  check = (double*) malloc(sizeof(double) * alloc_size);
+  check = (double*) malloc(alloc_bytes);
 
   // Obtain pencil information (optional)
   for ( int i = 0; i < 3; i++ ) {
@@ -73,7 +73,20 @@ int main(int argc, char *argv[])
   size_t out_size = pencils[2].size;
 
   for (size_t i = 0; i < in_size; i++)
-    inout[i] = check[i] = (double)(i) / (double)(in_size);
+    check[i] = (double)(i) / (double)(in_size);
+
+#if defined(DTFFT_WITH_CUDA)
+  dtfft_platform_t platform;
+  DTFFT_CALL( dtfft_get_platform(plan, &platform) )
+
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaMemcpy(inout, check, alloc_bytes, cudaMemcpyHostToDevice) )
+  } else {
+    memcpy(inout, check, alloc_bytes);
+  }
+#else
+  memcpy(inout, check, alloc_bytes);
+#endif
 
   double tf = 0.0 - MPI_Wtime();
   /*
@@ -87,13 +100,13 @@ int main(int argc, char *argv[])
   /*
     Run custom Forward FFT Z direction using pencils[2] information
   */
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  }
+#endif
   tf += MPI_Wtime();
 
-  if ( executor != DTFFT_EXECUTOR_NONE ) {
-    // Perform scaling. Scaling value may very depending on FFT type
-    for (size_t i = 0; i < out_size; i++)
-      inout[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
-  }
 
   double tb = 0.0 - MPI_Wtime();
   /*
@@ -107,13 +120,28 @@ int main(int argc, char *argv[])
   /*
     Run custom Backward FFT X direction using pencils[0] information
   */
+#if defined(DTFFT_WITH_CUDA)
+ if ( platform == DTFFT_PLATFORM_CUDA ) {
+   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+ }
+#endif
   tb += MPI_Wtime();
 
-  double local_error = -1.0;
-  for (size_t i = 0; i < in_size; i++) {
-    double error = fabs(check[i] - inout[i]);
-    local_error = error > local_error ? error : local_error;
+  double local_error;
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    double *test;
+
+    test = (double*) malloc(alloc_bytes);
+    CUDA_SAFE_CALL( cudaMemcpy(test, inout, 8 * in_size, cudaMemcpyDeviceToHost) )
+    local_error = checkDouble(check, test, in_size);
+    free(test);
+  } else {
+    local_error = checkDouble(check, inout, in_size);
   }
+#else
+  local_error = checkDouble(check, inout, in_size);
+#endif
 
   reportDouble(&tf, &tb, &local_error, &nx, &ny, &nz);
 

@@ -18,24 +18,24 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_2d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, I4P => int32, I8P => int64, I1P => int8, output_unit, error_unit
+use iso_fortran_env, only: real64 => real64, real32 => real32, int32 => int32, int64 => int64, I1P => int8, output_unit, error_unit
 use dtfft
 use iso_c_binding
 use test_utils
 #include "dtfft_mpi.h"
 implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
-  real(R4P),     allocatable, target :: in(:), check(:,:)
-  real(R4P),      pointer     :: pin(:,:)
-  complex(R4P),  allocatable :: out(:)
-  real(R4P) :: local_error, rnd
-  integer(I4P), parameter :: nx = 17, ny = 19
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr, outsize
+  real(real32),     allocatable, target :: in(:), check(:,:)
+  real(real32),      pointer     :: pin(:,:)
+  complex(real32),  allocatable :: out(:)
+  real(real32) :: local_error, rnd
+  integer(int32), parameter :: nx = 17, ny = 19
+  integer(int32) :: comm_size, comm_rank, i, j, ierr, outsize
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
-  integer(I4P) :: in_counts(2), out_counts(2)
-  real(R8P) :: tf, tb
-  integer(I8P) :: alloc_size
+  integer(int32) :: in_counts(2), out_counts(2)
+  real(real64) :: tf, tb
+  integer(int64) :: alloc_size
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -81,16 +81,16 @@ implicit none
     enddo
   enddo
 
-  tf = 0.0_R8P - MPI_Wtime()
+  tf = 0.0_real64 - MPI_Wtime()
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
   tf = tf + MPI_Wtime()
 
   outsize = product(out_counts)
-  out(:outsize) = out(:outsize) / real(nx * ny, R4P)
+  out(:outsize) = out(:outsize) / real(nx * ny, real32)
   ! Nullify recv buffer
-  in = -1._R4P
+  in = -1._real32
 
-  tb = 0.0_R8P - MPI_Wtime()
+  tb = 0.0_real64 - MPI_Wtime()
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
   tb = tb + MPI_Wtime()
 

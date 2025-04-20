@@ -107,7 +107,7 @@ contains
     class(backend_mpi),       intent(inout) :: self           !! MPI GPU Backend
     type(backend_helper),     intent(in)    :: helper         !! Backend helper (unused)
     type(dtfft_transpose_t),  intent(in)    :: tranpose_type  !! Type of transpose to create (unused)
-    integer(int8),            intent(in)    :: base_storage   !! Number of bytes to store single element (unused)
+    integer(int64),           intent(in)    :: base_storage   !! Number of bytes to store single element (unused)
 
     if ( .not. is_backend_mpi(self%backend) ) INTERNAL_ERROR(".not. is_backend_mpi")
 
@@ -128,12 +128,13 @@ contains
     call self%recv%destroy()
   end subroutine destroy_mpi
 
-  subroutine execute_mpi(self, in, out, stream)
+  subroutine execute_mpi(self, in, out, stream, aux)
   !! Executes MPI backend
     class(backend_mpi),           intent(inout) :: self       !! MPI GPU Backend
     real(real32),   target,       intent(inout) :: in(:)      !! Send pointer
     real(real32),   target,       intent(inout) :: out(:)     !! Recv pointer
     type(dtfft_stream_t),         intent(in)    :: stream     !! Main execution CUDA stream
+    real(real32),   target,       intent(inout) :: aux(:)     !! Aux pointer
     integer(int32)          :: mpi_ierr             !! MPI error code
     logical,  allocatable   :: is_complete_comm(:)  !! Testing for request completion
     integer(int32)          :: request_counter      !! Request counter
@@ -151,7 +152,7 @@ contains
       ! Waiting for all recv requests to finish
       call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, mpi_ierr)
     case ( DTFFT_BACKEND_MPI_P2P_PIPELINED%val )
-      call run_mpi_p2p(self%comm, self%send, self%recv, self%aux, in)
+      call run_mpi_p2p(self%comm, self%send, self%recv, in, aux)
 
       allocate( is_complete_comm(self%recv%n_requests), source=.false. )
       do while (.true.)
@@ -165,7 +166,7 @@ contains
           if ( is_complete_comm( request_counter ) ) cycle
           call MPI_Test(self%recv%requests(request_counter), is_complete_comm( request_counter ), MPI_STATUS_IGNORE, mpi_ierr)
           if ( is_complete_comm( request_counter ) ) then
-            call self%unpack_kernel%execute(in, out, stream, i + 1)
+            call self%unpack_kernel%execute(aux, out, stream, i + 1)
           endif
         enddo
         if ( all( is_complete_comm ) ) exit

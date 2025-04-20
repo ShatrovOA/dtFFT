@@ -82,6 +82,9 @@ int main(int argc, char *argv[])
     MPI_Finalize();
     return 0;
 # endif
+  } else {
+    MPI_Finalize();
+    return 0;
   }
 #endif
 
@@ -91,6 +94,7 @@ int main(int argc, char *argv[])
   dtfft_config_t conf;
   dtfft_create_config(&conf);
   conf.platform = DTFFT_PLATFORM_CUDA;
+  conf.backend = DTFFT_BACKEND_MPI_A2A;
   dtfft_set_config(conf);
 #endif
 

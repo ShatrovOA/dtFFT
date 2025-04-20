@@ -49,6 +49,7 @@ public :: transpose_plan_cuda
   private
     type(dtfft_stream_t)                      :: stream           !! CUDA stream
     type(c_ptr)                               :: aux              !! Auxiliary memory
+    real(real32),                pointer      :: paux(:)          !! Pointer to auxiliary memory
     logical                                   :: is_aux_alloc     !! Is auxiliary memory allocated
     type(transpose_handle_cuda), allocatable  :: fplans(:)        !! Forward transposition plans
     type(transpose_handle_cuda), allocatable  :: bplans(:)        !! Backward transposition plans
@@ -69,7 +70,7 @@ contains
     integer(int32),                 intent(in)    :: comm_dims(:)         !! Number of processors in each dimension
     type(dtfft_effort_t),           intent(in)    :: effort               !! How thoroughly `dtFFT` searches for the optimal plan
     TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !! Base MPI_Datatype
-    integer(int8),                  intent(in)    :: base_storage         !! Number of bytes needed to store single element
+    integer(int64),                 intent(in)    :: base_storage         !! Number of bytes needed to store single element
     logical,                        intent(in)    :: is_custom_cart_comm  !! is custom Cartesian communicator provided by user
     TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
     TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
@@ -156,8 +157,6 @@ contains
 
     call self%helper%create(cart_comm, comms, is_backend_nccl(self%backend), pencils)
 
-    call get_local_sizes(pencils, alloc_size=self%min_buffer_size)
-    self%min_buffer_size = self%min_buffer_size * (int(base_storage, int64) / FLOAT_STORAGE_SIZE)
     do d = 1_int8, ndims - 1_int8
       call self%fplans(d)%create(self%helper, pencils(d), pencils(d + 1), base_storage, self%backend)
       call self%bplans(d)%create(self%helper, pencils(d + 1), pencils(d), base_storage, self%backend)
@@ -166,7 +165,7 @@ contains
       call self%fplans(3)%create(self%helper, pencils(1), pencils(3), base_storage, self%backend)
       call self%bplans(3)%create(self%helper, pencils(3), pencils(1), base_storage, self%backend)
     endif
-    self%is_aux_alloc = alloc_and_set_aux(self%helper, self%backend, cart_comm, self%aux, self%fplans, self%bplans)
+    self%is_aux_alloc = alloc_and_set_aux(self%helper, self%backend, cart_comm, self%aux, self%paux, self%fplans, self%bplans)
 
     call clean_unused_cache()
     deallocate( best_decomposition )
@@ -181,9 +180,9 @@ contains
     type(dtfft_transpose_t),      intent(in)    :: transpose_type !! Type of transpose to execute
 
     if ( transpose_type%val > 0 ) then
-      call self%fplans(transpose_type%val)%execute(in, out, self%stream)
+      call self%fplans(transpose_type%val)%execute(in, out, self%stream, self%paux)
     else
-      call self%bplans(abs(transpose_type%val))%execute(in, out, self%stream)
+      call self%bplans(abs(transpose_type%val))%execute(in, out, self%stream, self%paux)
     endif
   end subroutine execute_cuda
 
@@ -195,6 +194,7 @@ contains
 
     if ( self%is_aux_alloc ) then
       call self%mem_free(self%aux, ierr)
+      self%paux => null()
       self%is_aux_alloc = .false.
     endif
 
@@ -216,7 +216,7 @@ contains
       !! Transposed dimensions
     TYPE_MPI_COMM,                    intent(in)    :: base_comm
       !! 3D comm
-    integer(int8),                    intent(in)    :: base_storage
+    integer(int64),                   intent(in)    :: base_storage
       !! Number of bytes needed to store single element
     type(dtfft_stream_t),             intent(in)    :: stream
       !! Stream to use
@@ -295,7 +295,7 @@ contains
       !! Basic communicator to create 3d grid from
     integer(int32),                   intent(in)    :: comm_dims(:)
       !! Number of processors in each dimension
-    integer(int8),                    intent(in)    :: base_storage
+    integer(int64),                   intent(in)    :: base_storage
       !! Number of bytes needed to store single element
     logical,                          intent(in)    :: is_z_slab
       !! Is Z-slab optimization enabled
@@ -355,7 +355,7 @@ contains
       !! 3D Cartesian comm
     type(pencil),                     intent(in)    :: pencils(:)
       !! Source meta
-    integer(int8),                    intent(in)    :: base_storage
+    integer(int64),                   intent(in)    :: base_storage
       !! Number of bytes needed to store single element
     type(dtfft_stream_t),             intent(in)    :: stream
       !! Stream to use
@@ -375,7 +375,7 @@ contains
     type(transpose_handle_cuda),  allocatable   :: plans(:)
     integer(int8) :: i, n_transpose_plans
     type(c_ptr) :: in, out, aux
-    real(real32), pointer :: pin(:), pout(:)
+    real(real32), pointer :: pin(:), pout(:), paux(:)
     logical :: is_aux_alloc
     ! , need_aux
     integer(int64)         :: alloc_size
@@ -409,7 +409,7 @@ contains
     allocate( plans(2 * n_transpose_plans) )
 
     call get_local_sizes(pencils, alloc_size=alloc_size)
-    alloc_size = alloc_size * int(base_storage, int64)
+    alloc_size = alloc_size * base_storage
     min_buffer_size = alloc_size / FLOAT_STORAGE_SIZE
 
     CUDA_CALL( "cudaEventCreate", cudaEventCreate(timer_start) )
@@ -448,7 +448,7 @@ contains
       call c_f_pointer(in, pin, [min_buffer_size])
       call c_f_pointer(out, pout, [min_buffer_size])
 
-      is_aux_alloc = alloc_and_set_aux(helper, current_backend_id, cart_comm, aux, plans)
+      is_aux_alloc = alloc_and_set_aux(helper, current_backend_id, cart_comm, aux, paux, plans)
 
       testing_phase = "Testing backend "//dtfft_get_backend_string(current_backend_id)
       PHASE_BEGIN(testing_phase, COLOR_AUTOTUNE)
@@ -457,7 +457,7 @@ contains
       PHASE_BEGIN("Warmup, "//int_to_str(n_warmup_iters)//" iterations", COLOR_TRANSPOSE)
       do iter = 1, n_warmup_iters
         do i = 1, 2_int8 * n_transpose_plans
-          call plans(i)%execute(pin, pout, stream)
+          call plans(i)%execute(pin, pout, stream, paux)
         enddo
       enddo
       CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
@@ -471,7 +471,7 @@ contains
       CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_start, stream) )
       do iter = 1, n_iters
         do i = 1, 2_int8 * n_transpose_plans
-          call plans(i)%execute(pin, pout, stream)
+          call plans(i)%execute(pin, pout, stream, paux)
         enddo
       enddo
       CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_stop, stream) )
@@ -519,12 +519,13 @@ contains
     if ( present(best_backend) ) best_backend = best_backend_
   end subroutine run_autotune_backend
 
-  function alloc_and_set_aux(helper, backend, cart_comm, aux, plans, bplans) result(is_aux_alloc)
+  function alloc_and_set_aux(helper, backend, cart_comm, aux, paux, plans, bplans) result(is_aux_alloc)
   !! Allocates auxiliary memory according to the backend and sets it to the plans
     type(backend_helper),         intent(inout)             :: helper       !! Backend helper
-    type(dtfft_backend_t),    intent(in)                :: backend  !! GPU backend
+    type(dtfft_backend_t),        intent(in)                :: backend      !! GPU backend
     TYPE_MPI_COMM,                intent(in)                :: cart_comm    !! Cartesian communicator
     type(c_ptr),                  intent(inout)             :: aux          !! Allocatable auxiliary memory
+    real(real32),     pointer,    intent(inout)             :: paux(:)      !! Pointer to auxiliary memory
     type(transpose_handle_cuda),  intent(inout)             :: plans(:)     !! Plans
     type(transpose_handle_cuda),  intent(inout),  optional  :: bplans(:)    !! Backward plans
     logical                                                 :: is_aux_alloc !! Is auxiliary memory allocated
@@ -532,7 +533,6 @@ contains
     integer(int64) :: max_work_size_local, max_work_size_global
     integer(int32)  :: mpi_ierr, n_transpose_plans, i, n_fplans, n_bplans
     integer(int32) :: alloc_ierr
-    real(real32),   pointer :: paux(:)
 
     n_fplans = size(plans)
     n_bplans = 0;  if ( present(bplans) ) n_bplans = size(bplans)
@@ -555,12 +555,6 @@ contains
       call alloc_mem(helper, backend, cart_comm, max_work_size_global, aux, alloc_ierr)
       DTFFT_CHECK(alloc_ierr)
       call c_f_pointer(aux, paux, [max_work_size_global / 4_int64])
-      do i = 1, n_fplans
-        call plans(i)%set_aux(paux)
-      enddo
-      do i = 1, n_bplans
-        call bplans(i)%set_aux(paux)
-      enddo
       is_aux_alloc = .true.
     endif
 

@@ -51,26 +51,27 @@ contains
     class(backend_nccl),      intent(inout) :: self               !! NCCL backend
     type(backend_helper),     intent(in)    :: helper             !! Backend helper
     type(dtfft_transpose_t),  intent(in)    :: tranpose_type      !! Type of transpose to create (unused)
-    integer(int8),            intent(in)    :: base_storage       !! Number of bytes to store single element (unused)
+    integer(int64),           intent(in)    :: base_storage       !! Number of bytes to store single element (unused)
 
     if ( .not. is_backend_nccl(self%backend) ) INTERNAL_ERROR(".not. is_backend_nccl")
     if ( .not. helper%is_nccl_created ) INTERNAL_ERROR(".not. helper%is_nccl_created")
     self%nccl_comm = helper%nccl_comm
   end subroutine create_nccl
 
-  subroutine execute_nccl(self, in, out, stream)
+  subroutine execute_nccl(self, in, out, stream, aux)
   !! Executes NCCL backend
     class(backend_nccl),          intent(inout) :: self       !! NCCL backend
     real(real32),   target,       intent(inout) :: in(:)      !! Send pointer
     real(real32),   target,       intent(inout) :: out(:)     !! Recv pointer
     type(dtfft_stream_t),         intent(in)    :: stream     !! Main execution CUDA stream
+    real(real32),   target,       intent(inout) :: aux(:)     !! Auxiliary pointer
     integer(int32)                              :: i        !! Counter
     integer(int32)                              :: rnk      !! Rank to send-recv
     real(real32), pointer :: pin(:), pout(:)
 
     if ( self%is_pipelined ) then
-      pin => self%aux(:)
-      pout => in(:)
+      pin => in(:)
+      pout => aux(:)
     else
       pin => in(:)
       pout => out(:)
@@ -90,7 +91,7 @@ contains
     NCCL_CALL( "ncclGroupEnd", ncclGroupEnd() )
 
     if ( self%is_pipelined ) then
-      call self%unpack_kernel2%execute(in, out, stream)
+      call self%unpack_kernel2%execute(pout, out, stream)
     endif
   end subroutine execute_nccl
 

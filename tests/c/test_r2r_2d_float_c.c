@@ -74,7 +74,13 @@ int main(int argc, char *argv[]) {
 #if defined(DTFFT_WITH_CUDA)
   dtfft_config_t config;
   DTFFT_CALL( dtfft_create_config(&config) )
+#if defined(DTFFT_WITH_NCCL)
   config.backend = DTFFT_BACKEND_NCCL_PIPELINED;
+#elif defined(DTFFT_WITH_NVSHMEM)
+  config.backend = DTFFT_BACKEND_CUFFTMP;
+#else
+  config.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
+#endif
   config.platform = DTFFT_PLATFORM_CUDA;
   DTFFT_CALL( dtfft_set_config(config) )
 #endif

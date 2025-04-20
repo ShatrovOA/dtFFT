@@ -18,19 +18,19 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_2d_float
-use iso_fortran_env, only: R8P => real64, R4P => real32, int32, I4P => int32, I1P => int8, output_unit, error_unit
+use iso_fortran_env, only: real64 => real64, real32 => real32, int32, int32 => int32, I1P => int8, output_unit, error_unit
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
 implicit none
-  real(R4P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R4P) :: local_error, rnd
-  integer(I4P), parameter :: nx = 17, ny = 4
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  real(real32),  allocatable :: in(:,:), out(:,:), check(:,:)
+  real(real32) :: local_error, rnd
+  integer(int32), parameter :: nx = 17, ny = 4
+  integer(int32) :: comm_size, comm_rank, i, j, ierr
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2r_t) :: plan
-  integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
-  real(R8P) :: tf, tb, t_sum
+  integer(int32) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
+  real(real64) :: tf, tb, t_sum
   TYPE_MPI_COMM :: comm_1d
 
   call MPI_Init(ierr)
@@ -58,12 +58,12 @@ implicit none
   call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts)
 
   allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,                     &
-              in_starts(2):in_starts(2) + in_counts(2) - 1),  source = 0._R4P)
+              in_starts(2):in_starts(2) + in_counts(2) - 1),  source = 0._real32)
 
   allocate(check, source = in)
 
   allocate(out(out_starts(1):out_starts(1) + out_counts(1) - 1,                 &
-                out_starts(2):out_starts(2) + out_counts(2) - 1), source = 0._R4P)
+                out_starts(2):out_starts(2) + out_counts(2) - 1), source = 0._real32)
 
   do j = in_starts(2), in_starts(2) + in_counts(2) - 1
     do i = in_starts(1), in_starts(1) + in_counts(1) - 1
@@ -73,17 +73,17 @@ implicit none
     enddo
   enddo
 
-  tf = 0.0_R8P - MPI_Wtime()
+  tf = 0.0_real64 - MPI_Wtime()
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
   tf = tf + MPI_Wtime()
 
   if ( executor /= DTFFT_EXECUTOR_NONE ) then
-    out(:,:) = out(:,:) / real(4 * nx * ny, R4P)
+    out(:,:) = out(:,:) / real(4 * nx * ny, real32)
   endif
   ! Nullify recv buffer
-  in = -1._R4P
+  in = -1._real32
 
-  tb = 0.0_R8P - MPI_Wtime()
+  tb = 0.0_real64 - MPI_Wtime()
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
   tb = tb + MPI_Wtime()
 
@@ -91,9 +91,9 @@ implicit none
   call report(tf, tb, local_error, nx, ny)
 
   call MPI_Allreduce(tf, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tf = t_sum / real(comm_size, R8P)
+  tf = t_sum / real(comm_size, real64)
   call MPI_Allreduce(tb, t_sum, 1, MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr)
-  tb = t_sum / real(comm_size, R8P)
+  tb = t_sum / real(comm_size, real64)
 
   deallocate(in, out, check)
 

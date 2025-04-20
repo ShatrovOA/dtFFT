@@ -64,7 +64,7 @@ contains
     integer(int32),                 intent(in)    :: comm_dims(:)         !! Number of MPI Processes in all directions
     type(dtfft_effort_t),           intent(in)    :: effort               !! How thoroughly `dtFFT` searches for the optimal plan
     TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype           !! Base MPI_Datatype
-    integer(int8),                  intent(in)    :: base_storage         !! Number of bytes needed to store single element
+    integer(int64),                 intent(in)    :: base_storage         !! Number of bytes needed to store single element
     logical,                        intent(in)    :: is_custom_cart_comm  !! Is custom Cartesian communicator provided by user
     TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
     TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
@@ -150,11 +150,11 @@ contains
 
     do d = 1_int8, ndims - 1_int8
       call self%fplans(d)%create(comms(d + 1), pencils(d), pencils(d + 1), base_dtype, base_storage, best_forward_ids(d))
-      call self%bplans (d)%create(comms(d + 1), pencils(d + 1), pencils(d), base_dtype, base_storage, best_backward_ids(d))
+      call self%bplans(d)%create(comms(d + 1), pencils(d + 1), pencils(d), base_dtype, base_storage, best_backward_ids(d))
     enddo
     if ( self%is_z_slab ) then
       call self%fplans(3)%create(cart_comm, pencils(1), pencils(3), base_dtype, base_storage, best_forward_ids(3))
-      call self%bplans (3)%create(cart_comm, pencils(3), pencils(1), base_dtype, base_storage, best_backward_ids(3))
+      call self%bplans(3)%create(cart_comm, pencils(3), pencils(1), base_dtype, base_storage, best_backward_ids(3))
     endif
 
 #ifdef DTFFT_WITH_CUDA
@@ -202,7 +202,7 @@ contains
     type(dtfft_effort_t),         intent(in)    :: effort               !! How thoroughly `dtFFT` searches for the optimal plan
     integer(int8),                intent(in)    :: n_transpose_plans    !! Number of transpose plans to test
     TYPE_MPI_DATATYPE,            intent(in)    :: base_dtype           !! Base MPI_Datatype
-    integer(int8),                intent(in)    :: base_storage         !! Number of bytes needed to store single element
+    integer(int64),               intent(in)    :: base_storage         !! Number of bytes needed to store single element
     integer(int32),               intent(out)   :: best_comm_dims(:)    !! Best communicator dimensions
     integer(int8),                intent(inout) :: best_forward_ids(:)  !! Best Datatype ids for forward plan
     integer(int8),                intent(inout) :: best_backward_ids(:) !! Best Datatype ids for backward plan
@@ -273,7 +273,7 @@ contains
     integer(int32),               intent(in)    :: transposed_dims(:,:) !! Transposed dims
     type(dtfft_effort_t),         intent(in)    :: effort               !! How thoroughly `dtFFT` searches for the optimal plan
     TYPE_MPI_DATATYPE,            intent(in)    :: base_dtype           !! Basic MPI Datatype
-    integer(int8),                intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
+    integer(int64),               intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
     integer(int32),               intent(inout) :: latest_timer_id      !! Current timer id
     real(real64),                 intent(inout) :: timers(:)            !! Time of current function execution is stored in timers(latest_timer_id)
     integer(int32),               intent(inout) :: decomps(:,:)         !! Current decomposition is stored in decomps(:, latest_timer_id)
@@ -359,7 +359,7 @@ contains
     TYPE_MPI_COMM,              intent(in)    :: cart_comm          !! 3D Cartesian comm
     TYPE_MPI_COMM,              intent(in)    :: comms(:)           !! Array of 1d communicators
     TYPE_MPI_DATATYPE,          intent(in)    :: base_dtype         !! Basic MPI Datatype
-    integer(int8),              intent(in)    :: base_storage       !! Number of bytes needed to store Basic MPI Datatype
+    integer(int64),             intent(in)    :: base_storage       !! Number of bytes needed to store Basic MPI Datatype
     real(real32),               intent(inout) :: a(:)               !! Work buffer
     real(real32),               intent(inout) :: b(:)               !! Work buffer
     integer(int8),              intent(inout) :: forward_ids(:)     !! Forward plan IDs
@@ -391,7 +391,7 @@ contains
     type(pencil),                 intent(in)    :: from                 !! Source meta
     type(pencil),                 intent(in)    :: to                   !! Target meta
     TYPE_MPI_DATATYPE,            intent(in)    :: base_dtype           !! Basic MPI Datatype
-    integer(int8),                intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
+    integer(int64),               intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
     integer(int8),                intent(in)    :: transpose_name_id    !! ID of transpose name (from -3 to 3, except 0)
     real(real32),                 intent(inout) :: a(:)                 !! Source buffer
     real(real32),                 intent(inout) :: b(:)                 !! Target buffer
@@ -431,7 +431,7 @@ contains
     type(pencil),                 intent(in)    :: from                 !! Source meta
     type(pencil),                 intent(in)    :: to                   !! Target meta
     TYPE_MPI_DATATYPE,            intent(in)    :: base_dtype           !! Basic MPI Datatype
-    integer(int8),                intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
+    integer(int64),               intent(in)    :: base_storage         !! Number of bytes needed to store Basic MPI Datatype
     integer(int8),                intent(in)    :: datatype_id          !! ID of transpose (1 or 2)
     integer(int8),                intent(in)    :: transpose_name_id    !! ID of transpose name (from -3 to 3, except 0)
     real(real32),                 intent(inout) :: a(:)                 !! Source buffer

@@ -72,13 +72,11 @@ int main(int argc, char *argv[])
 #elif defined(DTFFT_WITH_FFTW )
   executor = Executor::FFTW3;
 #else
-# if !defined(DTFFT_WITH_CUDA)
   if(comm_rank == 0) {
-    cout << "Missing HOST FFT Executor\n";
+    cout << "Missing HOST FFT Executor, skipping test\n";
   }
   MPI_Finalize();
   return 0;
-# endif
 #endif
 
   // Create plan

@@ -56,6 +56,8 @@ int main(int argc, char *argv[])
   dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #ifdef DTFFT_WITH_FFTW
   executor = DTFFT_EXECUTOR_FFTW3;
+#elif defined(DTFFT_WITH_MKL)
+  executor = DTFFT_EXECUTOR_MKL;
 #endif
 #ifdef DTFFT_WITH_CUDA
   char* platform_env = getenv("DTFFT_PLATFORM");
