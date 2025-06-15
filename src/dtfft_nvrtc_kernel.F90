@@ -31,7 +31,7 @@ use dtfft_parameters
 #include "dtfft_cuda.h"
 #include "dtfft_profile.h"
 #include "dtfft_private.h"
-implicit none (type, external)
+implicit none
 private
 public :: nvrtc_kernel
 public :: DEF_TILE_SIZE

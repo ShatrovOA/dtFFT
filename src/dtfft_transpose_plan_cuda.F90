@@ -37,7 +37,7 @@ use dtfft_utils
 #include "dtfft_profile.h"
 #include "dtfft_cuda.h"
 #include "dtfft_private.h"
-implicit none (type, external)
+implicit none
 private
 public :: transpose_plan_cuda
 

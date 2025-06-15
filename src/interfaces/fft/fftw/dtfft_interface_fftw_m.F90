@@ -22,7 +22,7 @@ use iso_c_binding,                 only: c_ptr, c_int
 use dtfft_interface_fftw_native_m, only: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
 use dtfft_interface_fftw_native_m, only: fftw_destroy_plan, fftwf_destroy_plan
 use dtfft_interface_fftw_native_m, only: fftw_malloc, fftw_free
-implicit none (type, external)
+implicit none
 private
 public :: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
 public :: fftw_destroy_plan, fftwf_destroy_plan

@@ -33,7 +33,7 @@ use dtfft_utils
 #include "dtfft_cuda.h"
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
-implicit none (type, external)
+implicit none
   complex(real64),  allocatable, target :: check(:,:)
   complex(real64),  pointer :: in(:,:), out(:,:)
   ! type(c_ptr) :: inptr, outptr

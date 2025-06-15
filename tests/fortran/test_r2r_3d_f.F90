@@ -32,7 +32,7 @@ use dtfft_utils
 #endif
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
-implicit none (type, external)
+implicit none
   real(real64), allocatable :: in(:), out(:), check(:)
   real(real64) :: local_error, rnd
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)

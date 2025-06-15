@@ -22,7 +22,7 @@ use iso_fortran_env
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
-implicit none (type, external)
+implicit none
   real(real64),  allocatable :: in(:,:), out(:,:), check(:,:)
   real(real64) :: local_error, scaler, rnd
   integer(int32), parameter :: nx = 8, ny = 12

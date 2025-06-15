@@ -24,7 +24,7 @@ use iso_c_binding
 use test_utils
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
-implicit none (type, external)
+implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
   real(real32),     allocatable, target :: in(:), check(:,:)
   real(real32),      pointer     :: pin(:,:)

@@ -53,7 +53,7 @@ use dtfft_interface_nvshmem,          only: is_nvshmem_ptr
 #include "dtfft_mpi.h"
 #include "dtfft_private.h"
 #include "dtfft_profile.h"
-implicit none (type, external)
+implicit none
 private
 public :: dtfft_plan_t
 public :: dtfft_plan_c2c_t

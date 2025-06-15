@@ -22,7 +22,7 @@ use iso_c_binding
 use iso_fortran_env
 use dtfft_parameters
 use dtfft_utils
-implicit none (type, external)
+implicit none
 private
 public :: nvshmem_team_t
 public :: is_nvshmem_ptr

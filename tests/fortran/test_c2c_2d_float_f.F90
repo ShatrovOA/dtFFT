@@ -29,7 +29,7 @@ use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft.f03"
-implicit none (type, external)
+implicit none
   complex(real32), allocatable, target :: check(:,:)
   complex(real32), DEVICE_PTR pointer :: pin(:,:), pout(:,:)
   real(real32) :: local_error, rnd1, rnd2

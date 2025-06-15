@@ -28,7 +28,7 @@ use dtfft_interface_mkl_native_m
 use dtfft_parameters
 use dtfft_utils,                  only: int_to_str
 #include "dtfft_mpi.h"
-implicit none (type, external)
+implicit none
 private
 public :: mkl_executor
 

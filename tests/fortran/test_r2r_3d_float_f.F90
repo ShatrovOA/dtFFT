@@ -28,7 +28,7 @@ use cudafor
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft.f03"
-implicit none (type, external)
+implicit none
   real(real32),  allocatable :: inout(:), check(:)
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   real(real32), managed, allocatable :: d_inout(:)

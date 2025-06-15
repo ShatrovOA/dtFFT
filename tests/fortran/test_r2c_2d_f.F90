@@ -29,7 +29,7 @@ use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft.f03"
-implicit none (type, external)
+implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
   real(real64),     allocatable :: inout(:), check(:)
   real(real64) :: local_error, rnd

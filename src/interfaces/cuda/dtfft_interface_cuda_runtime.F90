@@ -21,7 +21,7 @@ module dtfft_interface_cuda_runtime
 use iso_c_binding
 use dtfft_parameters, only: dtfft_stream_t
 use dtfft_utils
-implicit none (type, external)
+implicit none
 private
 public :: cudaGetErrorString
 

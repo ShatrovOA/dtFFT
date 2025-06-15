@@ -23,7 +23,7 @@ use dtfft_config
 use dtfft_parameters
 use dtfft_pencil
 use dtfft_plan
-implicit none (type, external)
+implicit none
 private
 
 public :: dtfft_get_version

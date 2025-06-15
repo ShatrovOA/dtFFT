@@ -20,7 +20,7 @@ module dtfft_interface_nvtx
 !! nvtx3 Interfaces
 use iso_c_binding
 use dtfft_utils
-implicit none (type, external)
+implicit none
 private
 public :: push_nvtx_domain_range, pop_nvtx_domain_range
 

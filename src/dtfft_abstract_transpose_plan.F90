@@ -43,7 +43,7 @@ use dtfft_interface_nccl
 #include "dtfft_profile.h"
 #include "dtfft_cuda.h"
 #include "dtfft_private.h"
-implicit none (type, external)
+implicit none
 private
 public :: abstract_transpose_plan
 public :: create_cart_comm
