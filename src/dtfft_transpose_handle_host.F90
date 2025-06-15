@@ -25,7 +25,7 @@ use dtfft_pencil,     only: pencil, get_transpose_type
 #include "dtfft_mpi.h"
 #include "dtfft_profile.h"
 #include "dtfft_cuda.h"
-implicit none (type, external)
+implicit none
 private
 public :: transpose_handle_host
 

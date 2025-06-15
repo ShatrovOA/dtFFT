@@ -26,7 +26,7 @@ use dtfft_parameters
 use dtfft_utils
 #include "dtfft_profile.h"
 #include "dtfft_private.h"
-implicit none (type, external)
+implicit none
 private
 public :: abstract_executor
 

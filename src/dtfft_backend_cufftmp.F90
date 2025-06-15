@@ -31,7 +31,7 @@ use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft_private.h"
-implicit none (type, external)
+implicit none
 private
 public :: backend_cufftmp
 

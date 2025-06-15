@@ -26,7 +26,7 @@ use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_interface_vkfft_m
 use dtfft_config,                   only: get_user_stream, get_user_platform
-implicit none (type, external)
+implicit none
 private
 #include "dtfft_private.h"
 public :: vkfft_executor

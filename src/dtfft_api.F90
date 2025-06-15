@@ -30,7 +30,7 @@ use dtfft_pencil,     only: dtfft_pencil_t
 use dtfft_plan
 use dtfft_utils
 #include "dtfft_mpi.h"
-implicit none (type, external)
+implicit none
 private
 
 #define CHECK_PLAN_CREATED(c_plan, f_plan)      \

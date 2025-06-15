@@ -21,7 +21,7 @@ module dtfft_interface_nccl
 use iso_c_binding
 use dtfft_parameters, only: dtfft_stream_t
 use dtfft_utils,      only: string_c2f
-implicit none (type, external)
+implicit none
 private
 public :: ncclGetErrorString
 

@@ -20,7 +20,7 @@
 module dtfft_interface_mkl_native_m
 !! This module creates native interface with MKL library
 use MKL_DFTI
-implicit none (type, external)
+implicit none
 private
 public :: DFTI_NO_ERROR,                &
           DFTI_DOUBLE, DFTI_SINGLE,     &

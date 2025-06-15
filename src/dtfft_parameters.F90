@@ -23,7 +23,7 @@ use iso_c_binding,    only: c_int32_t, c_null_ptr, c_ptr
 use iso_fortran_env,  only: int8, int32, int64, real32, real64
 #include "dtfft_mpi.h"
 #include "dtfft_private.h"
-implicit none (type, external)
+implicit none
 private
 public :: dtfft_execute_t, dtfft_transpose_t
 public :: dtfft_executor_t, dtfft_effort_t

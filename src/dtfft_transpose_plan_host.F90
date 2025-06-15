@@ -28,7 +28,7 @@ use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_profile.h"
 #include "dtfft_private.h"
-implicit none (type, external)
+implicit none
 private
 public :: transpose_plan_host
 
