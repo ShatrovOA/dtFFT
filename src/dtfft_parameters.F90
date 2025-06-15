@@ -23,7 +23,7 @@ use iso_c_binding,    only: c_int32_t, c_null_ptr, c_ptr
 use iso_fortran_env,  only: int8, int32, int64, real32, real64
 #include "dtfft_mpi.h"
 #include "dtfft_private.h"
-implicit none
+implicit none (type, external)
 private
 public :: dtfft_execute_t, dtfft_transpose_t
 public :: dtfft_executor_t, dtfft_effort_t
@@ -40,7 +40,7 @@ public :: is_valid_platform
 public :: dtfft_backend_t
 public :: dtfft_get_backend_string
 public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl, is_backend_nvshmem
-public :: dtfft_stream_t, get_cuda_stream
+public :: dtfft_stream_t, dtfft_get_cuda_stream
 #endif
 
   integer(int32), parameter, public :: DTFFT_VERSION_MAJOR = CONF_DTFFT_VERSION_MAJOR
@@ -333,6 +333,8 @@ public :: operator(/=)
     !! dlopen failed
   integer(int32),  parameter,  public  :: DTFFT_ERROR_DLSYM_FAILED = CONF_DTFFT_ERROR_DLSYM_FAILED
     !! dlsym failed
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_CALLED = CONF_DTFFT_ERROR_R2C_TRANSPOSE_CALLED
+    !! Calling to `transpose` method for R2C plan is not allowed
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
     !! Selected `executor` do not support R2R FFTs
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
@@ -568,6 +570,8 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(error_string, source="Failed to open shared library. Set DTFFT_ENABLE_LOG=1 to see the error")
     case ( DTFFT_ERROR_DLSYM_FAILED )
       allocate(error_string, source="Failed to find symbol in shared library. Set DTFFT_ENABLE_LOG=1 to see the error")
+    case ( DTFFT_ERROR_R2C_TRANSPOSE_CALLED )
+      allocate(error_string, source="Calling to `transpose` method for R2C plan is not allowed")
     case ( DTFFT_ERROR_GPU_INVALID_STREAM )
       allocate(error_string, source="Invalid stream provided")
     case ( DTFFT_ERROR_GPU_INVALID_BACKEND )
@@ -635,12 +639,12 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     stream = transfer(val, stream)
   end function stream_from_int64
 
-  function get_cuda_stream(stream) result(cuda_stream)
+  function dtfft_get_cuda_stream(stream) result(cuda_stream)
   !! Returns the CUDA stream from [[dtfft_stream_t]]
     type(dtfft_stream_t), intent(in) :: stream      !! Stream
     integer(int64)                   :: cuda_stream !! CUDA stream
 
     cuda_stream = transfer(stream, int64)
-  end function get_cuda_stream
+  end function dtfft_get_cuda_stream
 #endif
 end module dtfft_parameters

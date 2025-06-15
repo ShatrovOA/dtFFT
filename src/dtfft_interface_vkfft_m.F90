@@ -24,7 +24,7 @@ use iso_c_binding
 use iso_fortran_env
 use dtfft_parameters
 use dtfft_utils
-implicit none
+implicit none (type, external)
 private
 #include "dtfft_private.h"
 public :: load_vkfft

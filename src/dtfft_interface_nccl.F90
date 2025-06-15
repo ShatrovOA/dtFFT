@@ -21,7 +21,7 @@ module dtfft_interface_nccl
 use iso_c_binding
 use dtfft_parameters, only: dtfft_stream_t
 use dtfft_utils,      only: string_c2f
-implicit none
+implicit none (type, external)
 private
 public :: ncclGetErrorString
 
@@ -100,10 +100,10 @@ public :: ncclCommInitRank
   interface
   !! Creates a new communicator (multi thread/process version).
   !!
-  !! rank must be between 0 and nranks-1 and unique within a communicator clique. 
-  !! Each rank is associated to a CUDA device, which has to be set before calling ncclCommInitRank. 
+  !! rank must be between 0 and nranks-1 and unique within a communicator clique.
+  !! Each rank is associated to a CUDA device, which has to be set before calling ncclCommInitRank.
   !!
-  !! ncclCommInitRank implicitly synchronizes with other ranks, hence it must be called by different 
+  !! ncclCommInitRank implicitly synchronizes with other ranks, hence it must be called by different
   !! threads/processes or used within ncclGroupStart/ncclGroupEnd.
     function ncclCommInitRank(comm, nranks, uniqueId, rank)                         &
       result(ncclResult_t)                                                          &

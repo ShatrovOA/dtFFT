@@ -29,7 +29,7 @@ use dtfft_interface_cuda_runtime
 #endif
 #include "dtfft_cuda.h"
 #include "dtfft_mpi.h"
-implicit none
+implicit none (type, external)
 private
 public :: dtfft_config_t
 public :: dtfft_create_config, dtfft_set_config

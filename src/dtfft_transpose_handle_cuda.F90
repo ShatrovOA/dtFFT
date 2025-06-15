@@ -19,15 +19,15 @@
 #include "dtfft_config.h"
 module dtfft_transpose_handle_cuda
 !! This module describes [[transpose_handle_cuda]] class
-use iso_c_binding,  only: c_ptr
-use iso_fortran_env
+use iso_c_binding,                        only: c_ptr
+use iso_fortran_env,                      only: int8, int32, int64, real32
 use dtfft_interface_cuda_runtime
 use dtfft_abstract_backend,               only: abstract_backend, backend_helper
 #ifdef DTFFT_WITH_NVSHMEM
-use dtfft_backend_cufftmp_m,                only: backend_cufftmp
+use dtfft_backend_cufftmp_m,              only: backend_cufftmp
 #endif
 #ifdef DTFFT_WITH_NCCL
-use dtfft_backend_nccl_m,                   only: backend_nccl
+use dtfft_backend_nccl_m,                 only: backend_nccl
 #endif
 use dtfft_backend_mpi,                    only: backend_mpi
 use dtfft_nvrtc_kernel
@@ -38,7 +38,7 @@ use dtfft_utils
 #include "dtfft_profile.h"
 #include "dtfft_cuda.h"
 #include "dtfft_private.h"
-implicit none
+implicit none (type, external)
 private
 public :: transpose_handle_cuda
 

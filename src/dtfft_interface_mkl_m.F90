@@ -20,7 +20,7 @@ module dtfft_interface_mkl_m
 !! This module creates C interface with MKL library
 use iso_c_binding,  only: c_long, c_int, c_ptr, c_f_pointer, c_null_char, c_size_t
 use dtfft_utils,    only: string_c2f
-implicit none
+implicit none (type, external)
 private
 
 public :: mkl_dfti_create_desc,         &
@@ -100,7 +100,7 @@ public :: DftiErrorMessage
     function mkl_dfti_execute(desc, in, out, sign)                            &
       result(status)                                                          &
       bind(C)
-      import
+    import
       type(c_ptr),                  value :: desc             !! FFT descriptor.
       type(c_ptr),                  value :: in               !! Data to be transformed
       type(c_ptr),                  value :: out              !! The transformed data

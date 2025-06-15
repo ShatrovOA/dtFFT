@@ -27,7 +27,7 @@ use dtfft_pencil,               only: pencil
 use dtfft_interface_fftw_m
 use dtfft_parameters
 use dtfft_utils,                only: get_inverse_kind
-implicit none
+implicit none (type, external)
 private
 public :: fftw_executor
 

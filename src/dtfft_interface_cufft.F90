@@ -25,7 +25,7 @@ use dtfft_parameters
 ! use dtfft_interface_nvshmem,              only: load_nvshmem
 ! #endif
 use dtfft_utils
-implicit none
+implicit none (type, external)
 private
 public :: CUFFT_R2C, CUFFT_C2R, CUFFT_C2C
 public :: CUFFT_D2Z, CUFFT_Z2D, CUFFT_Z2Z

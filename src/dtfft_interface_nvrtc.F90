@@ -25,7 +25,7 @@ use iso_fortran_env,  only: int32
 use dtfft_parameters
 use dtfft_interface_cuda_runtime, only: dim3
 use dtfft_utils
-implicit none
+implicit none (type, external)
 private
 #include "dtfft_private.h"
 public :: nvrtcGetErrorString

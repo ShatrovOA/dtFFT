@@ -53,7 +53,7 @@ use dtfft_interface_nvshmem,          only: is_nvshmem_ptr
 #include "dtfft_mpi.h"
 #include "dtfft_private.h"
 #include "dtfft_profile.h"
-implicit none
+implicit none (type, external)
 private
 public :: dtfft_plan_t
 public :: dtfft_plan_c2c_t
@@ -155,7 +155,7 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: get_pencil         !! Returns pencil decomposition
     procedure,  pass(self), non_overridable, public :: get_element_size   !! Returns number of bytes required to store single element.
     procedure,  pass(self), non_overridable, public :: get_alloc_bytes    !! Returns minimum number of bytes required to execute plan
-    procedure,  pass(self), non_overridable, public :: report             !! Print plan details
+    procedure,  pass(self), non_overridable, public :: report             !! Prints plan details
     generic,                                 public :: mem_alloc =>     &
                                                        mem_alloc_ptr,  &
                                                        mem_alloc_r32_1d, &
@@ -234,7 +234,8 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self), non_overridable          :: create_c2c_internal            !! Creates plan for both C2C and R2C
+    procedure, pass(self), non_overridable          :: create_c2c_internal
+      !! Creates plan for both C2C and R2C
   end type dtfft_core_c2c
 
   type, extends(dtfft_core_c2c) :: dtfft_plan_c2c_t
@@ -242,16 +243,19 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self), non_overridable,  public :: create => create_c2c   !! Creates C2C plan
+    procedure, pass(self), non_overridable,  public :: create => create_c2c
+      !! Creates C2C plan
   end type dtfft_plan_c2c_t
 
   type, extends(dtfft_core_c2c) :: dtfft_plan_r2c_t
   !! R2C Plan
   private
-    type(pencil)  :: real_pencil                            !! "Real" pencil decomposition info
+    type(pencil)  :: real_pencil
+      !! "Real" pencil decomposition info
   contains
   private
-    procedure, pass(self), non_overridable,  public :: create => create_r2c   !! Creates C2C plan
+    procedure, pass(self), non_overridable,  public :: create => create_r2c
+      !! Creates C2C plan
   end type dtfft_plan_r2c_t
 
   type, extends(dtfft_plan_t) :: dtfft_plan_r2r_t
@@ -259,7 +263,8 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self),  public  :: create => create_r2r !! R2R Plan Constructor
+    procedure, pass(self),  public  :: create => create_r2r
+      !! R2R Plan Constructor
   end type dtfft_plan_r2r_t
 
 contains
@@ -290,12 +295,17 @@ contains
     CHECK_ERROR_AND_RETURN
     if ( .not.is_valid_transpose_type(transpose_type)                                           &
          .or. ( self%ndims == 2 .and. abs(transpose_type%val) > 1 )                             &
-         .or. abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Z%val .and..not.self%is_z_slab)   &
+         .or. (abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Z%val .and..not.self%is_z_slab)) &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
     CHECK_ERROR_AND_RETURN
     if ( is_same_ptr(in_ptr, out_ptr) )                                                         &
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
+    select type( self )
+    class is ( dtfft_plan_r2c_t )
+      ierr = DTFFT_ERROR_R2C_TRANSPOSE_CALLED
+      CHECK_ERROR_AND_RETURN
+    endselect
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_CUDA ) then
       ierr = check_device_pointers(in_ptr, out_ptr, self%plan%get_backend(), c_null_ptr)
@@ -554,7 +564,7 @@ contains
   !! Returns pencil decomposition
     class(dtfft_plan_t),        intent(in)    :: self
       !! Abstract plan
-    integer(int8),              intent(in)    :: dim
+    integer(int32),             intent(in)    :: dim
       !! Required dimension:
       !!
       !!  - 0 for XYZ layout (real space, R2C only)
@@ -566,7 +576,7 @@ contains
     integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
-    integer(int8)   :: min_dim
+    integer(int32)  :: min_dim
 
     ierr = DTFFT_SUCCESS
     ! get_pencil = dtfft_pencil_t(-1,-1,-1,-1)
@@ -642,6 +652,8 @@ contains
     integer(int32), optional,   intent(out) :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
+    integer(int32)  :: comm_dims(self%ndims), coords(self%ndims)
+    logical :: periods(self%ndims)
 
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
@@ -649,10 +661,14 @@ contains
     WRITE_REPORT("**Plan report**")
       WRITE_REPORT("  dtFFT Version        :  "//int_to_str(dtfft_get_version()))
       WRITE_REPORT("  Number of dimensions :  "//int_to_str(self%ndims))
+
+    call MPI_Cart_get(self%comm, int(self%ndims, int32), comm_dims, periods, coords, ierr)
     if ( self%ndims == 2 ) then
       WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2)))
+      WRITE_REPORT("  Grid decomposition   :  "//int_to_str(comm_dims(1))//"x"//int_to_str(comm_dims(2)))
     else
       WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2))//"x"//int_to_str(self%dims(3)))
+      WRITE_REPORT("  Grid decomposition   :  "//int_to_str(comm_dims(1))//"x"//int_to_str(comm_dims(2))//"x"//int_to_str(comm_dims(3)))
     endif
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_HOST ) then
@@ -771,7 +787,7 @@ contains
     type(dtfft_stream_t)  :: stream_
 
     call self%get_stream(stream_, error_code=ierr)
-    if ( ierr == DTFFT_SUCCESS ) stream = get_cuda_stream(stream_)
+    if ( ierr == DTFFT_SUCCESS ) stream = dtfft_get_cuda_stream(stream_)
     if ( present( error_code ) ) error_code = ierr
   end subroutine get_stream_int64
 
@@ -1118,7 +1134,7 @@ contains
     if ( self%is_aux_alloc .or. present(aux) ) return
 
     alloc_size = self%get_alloc_size() * self%get_element_size()
-    write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size, " bytes"
+    write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size," bytes"
     WRITE_DEBUG(debug_msg)
     ! self%aux_ptr = self%mem_alloc(alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
     call self%mem_alloc(alloc_size, self%aux_ptr, ierr);  DTFFT_CHECK(ierr)
