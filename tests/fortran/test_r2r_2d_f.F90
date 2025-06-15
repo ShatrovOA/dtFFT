@@ -18,11 +18,11 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_2d
-use iso_fortran_env, only: real32 => real32, real64 => real64, int32 => int32, I1P => int8, output_unit, error_unit
+use iso_fortran_env
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
-implicit none
+implicit none (type, external)
   real(real64),  allocatable :: in(:,:), out(:,:), check(:,:)
   real(real64) :: local_error, scaler, rnd
   integer(int32), parameter :: nx = 8, ny = 12

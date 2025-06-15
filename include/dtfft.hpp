@@ -135,6 +135,8 @@ class Version {
   DLOPEN_FAILED = DTFFT_ERROR_DLOPEN_FAILED,
 /** Failed to dynamically load symbol */
   DLSYM_FAILED = DTFFT_ERROR_DLSYM_FAILED,
+/** Calling to Plan.transpose for R2C plan is not allowed */
+  R2C_TRANSPOSE_CALLED = DTFFT_ERROR_R2C_TRANSPOSE_CALLED,
 /** Internal call of Plan.mem_free failed */
   FREE_FAILED = DTFFT_ERROR_FREE_FAILED,
 /** Invalid `alloc_bytes` provided */
@@ -596,7 +598,7 @@ class Version {
  */
       inline
       Error
-      get_pencil(const int8_t dim, Pencil& pencil) const noexcept
+      get_pencil(const int32_t dim, Pencil& pencil) const noexcept
       {
         dtfft_pencil_t c_pencil;
         const Error error_code = static_cast<Error>(dtfft_get_pencil(_plan, dim, &c_pencil));

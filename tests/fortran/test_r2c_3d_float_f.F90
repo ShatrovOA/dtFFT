@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_3d_float
-use iso_fortran_env, only: real64 => real64, real32 => real32, int32 => int32, I1P => int8, output_unit, error_unit, int32
+use iso_fortran_env
 use iso_c_binding, only: c_size_t
 use dtfft
 use test_utils
@@ -29,7 +29,7 @@ use dtfft_utils
 #include "dtfft_cuda.h"
 #endif
 #include "dtfft.f03"
-implicit none
+implicit none (type, external)
 #ifndef DTFFT_TRANSPOSE_ONLY
   real(real32),     allocatable :: in(:,:,:), check(:,:,:)
   complex(real32),  allocatable :: out(:)

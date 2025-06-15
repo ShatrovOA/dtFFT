@@ -22,7 +22,7 @@ program test_r2r_3d
 !< This program shows how to use DTFFT with Real-to-Real 3d transform
 !< It also tests user-defined 1d communicator
 !------------------------------------------------------------------------------------------------
-use iso_fortran_env, only: real64 => real64, int32 => int32, IP => int32, I1P => int8, output_unit, error_unit, int64 => int64, int32
+use iso_fortran_env
 use dtfft
 use test_utils
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
@@ -32,7 +32,7 @@ use dtfft_utils
 #endif
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
-implicit none
+implicit none (type, external)
   real(real64), allocatable :: in(:), out(:), check(:)
   real(real64) :: local_error, rnd
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)

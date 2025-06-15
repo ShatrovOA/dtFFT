@@ -9,7 +9,7 @@ use dtfft_utils, only: int_to_str, double_to_str
 use dtfft_interface_cuda_runtime
 #include "dtfft_cuda.h"
 #endif
-implicit none
+implicit none (type, external)
 private
 public :: report
 public :: attach_gpu_to_process

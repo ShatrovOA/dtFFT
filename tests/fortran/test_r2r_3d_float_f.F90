@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2r_3d_float
-use iso_fortran_env, only: real64 => real64, real32 => real32, int32 => int32, int64 => int64, I1P => int8, output_unit, error_unit, int32
+use iso_fortran_env
 use dtfft
 use dtfft_utils
 use test_utils
@@ -28,7 +28,7 @@ use cudafor
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft.f03"
-implicit none
+implicit none (type, external)
   real(real32),  allocatable :: inout(:), check(:)
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   real(real32), managed, allocatable :: d_inout(:)

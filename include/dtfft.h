@@ -142,6 +142,8 @@ typedef enum {
   DTFFT_ERROR_DLOPEN_FAILED = CONF_DTFFT_ERROR_DLOPEN_FAILED,
 /** Failed to dynamically load symbol */
   DTFFT_ERROR_DLSYM_FAILED = CONF_DTFFT_ERROR_DLSYM_FAILED,
+/** Calling to `::dtfft_transpose` for R2C plan is not allowed */
+  DTFFT_ERROR_R2C_TRANSPOSE_CALLED = CONF_DTFFT_ERROR_R2C_TRANSPOSE_CALLED,
 /** Invalid stream provided */
   DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM,
 /** Invalid GPU backend provided */
@@ -472,7 +474,7 @@ typedef struct {
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
 dtfft_error_t
-dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil);
+dtfft_get_pencil(dtfft_plan_t plan, int32_t dim, dtfft_pencil_t *pencil);
 
 
 /**

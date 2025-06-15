@@ -30,7 +30,7 @@ use dtfft_pencil,     only: dtfft_pencil_t
 use dtfft_plan
 use dtfft_utils
 #include "dtfft_mpi.h"
-implicit none
+implicit none (type, external)
 private
 
 #define CHECK_PLAN_CREATED(c_plan, f_plan)      \
@@ -264,7 +264,7 @@ contains
     bind(C)
   !! Returns pencil decomposition info, C/C++ interface
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
-    integer(c_int8_t),  intent(in)                :: dim                  !! Dimension requested
+    integer(c_int32_t),  intent(in)               :: dim                  !! Dimension requested
     type(pencil_c)                                :: pencil               !! Pencil pointer
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.

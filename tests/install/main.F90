@@ -5,7 +5,7 @@ use mpi_f08
 #else
 use mpi
 #endif
-implicit none
+implicit none (type, external)
 type(dtfft_plan_r2r_t) :: plan
 
 #if defined(USE_MPI) && defined(HAVE_F08)

@@ -18,12 +18,13 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_2d_float
-use iso_fortran_env, only: real64 => real64, real32 => real32, int32 => int32, int64 => int64, I1P => int8, output_unit, error_unit
+use iso_fortran_env
 use dtfft
 use iso_c_binding
 use test_utils
 #include "dtfft_mpi.h"
-implicit none
+#include "dtfft.f03"
+implicit none (type, external)
 #ifndef DTFFT_TRANSPOSE_ONLY
   real(real32),     allocatable, target :: in(:), check(:,:)
   real(real32),      pointer     :: pin(:,:)
@@ -63,9 +64,10 @@ implicit none
   executor = DTFFT_EXECUTOR_MKL
 #endif
 
-  call plan%create([nx, ny], precision=DTFFT_SINGLE, executor=executor)
-
-  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size)
+  call plan%create([nx, ny], precision=DTFFT_SINGLE, executor=executor, error_code=ierr)
+  DTFFT_CHECK(ierr)
+  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size, error_code=ierr)
+  DTFFT_CHECK(ierr)
 
   allocate(in(alloc_size))
   allocate(out(alloc_size / 2))
@@ -82,7 +84,8 @@ implicit none
   enddo
 
   tf = 0.0_real64 - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
+  DTFFT_CHECK(ierr)
   tf = tf + MPI_Wtime()
 
   outsize = product(out_counts)
@@ -91,7 +94,8 @@ implicit none
   in = -1._real32
 
   tb = 0.0_real64 - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD)
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
+  DTFFT_CHECK(ierr)
   tb = tb + MPI_Wtime()
 
   local_error = maxval(abs(pin - check))

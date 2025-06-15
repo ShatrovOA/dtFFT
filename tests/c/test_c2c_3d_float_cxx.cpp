@@ -87,13 +87,14 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( set_config(conf) );
 
   Plan *plan = new PlanC2C(dims, grid_comm, Precision::SINGLE, Effort::MEASURE, executor);
+  DTFFT_CXX_CALL( plan->report() )
   vector<int> in_counts(3);
   DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data()) )
 
   size_t in_size = std::accumulate(in_counts.begin(), in_counts.end(), 1, multiplies<int>());
 
   size_t alloc_size;
-  plan->get_alloc_size(&alloc_size);
+  DTFFT_CXX_CALL( plan->get_alloc_size(&alloc_size) );
 
   vector<complex<float>> in(alloc_size),
                           out(alloc_size),
@@ -138,6 +139,7 @@ int main(int argc, char *argv[])
 
   DTFFT_CXX_CALL( plan->destroy() )
 
+  delete plan;
   MPI_Finalize();
   return 0;
 }

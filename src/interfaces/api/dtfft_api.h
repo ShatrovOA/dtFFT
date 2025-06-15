@@ -83,7 +83,7 @@ dtfft_get_error_string_c(const int32_t*, char*, size_t*);
 
 extern
 int32_t
-dtfft_get_pencil_c(const void*, int8_t*, void *);
+dtfft_get_pencil_c(const void*, int32_t*, void *);
 
 extern
 int32_t

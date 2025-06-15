@@ -29,7 +29,7 @@ use dtfft_utils
 #include "dtfft_cuda.h"
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
-implicit none
+implicit none (type, external)
   complex(real64),  pointer :: inout(:), aux(:)
   complex(real64),  allocatable, target :: check(:,:,:)
   real(real64) :: local_error, rnd1, rnd2
@@ -38,7 +38,7 @@ implicit none
 #else
   integer(int32), parameter :: nx = 129, ny = 123, nz = 33
 #endif
-  integer(int32) :: comm_size, comm_rank, i, j, k, ierr
+  integer(int32) :: comm_size, comm_rank, i, j, k, ierr, ii, jj, kk, idx
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_c2c_t) :: plan
   integer(int32) :: in_counts(3), out_counts(3), iter
@@ -146,10 +146,26 @@ implicit none
     CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(c_loc(inout), c_loc(check), in_size * element_size, cudaMemcpyHostToDevice, stream) )
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
   else
-    inout = pack(check, .true.)
+    do k = 1, in_counts(3)
+      do j = 1, in_counts(2)
+        do i = 1, in_counts(1)
+          ii = i - 1; jj = j - 1; kk = k - 1
+          idx = kk * in_counts(2) * in_counts(1) + jj * in_counts(1) + ii + 1
+          inout(idx) = check(i,j,k)
+        enddo
+      enddo
+    enddo
   endif
 #else
-  inout = pack(check, .true.)
+  do k = 1, in_counts(3)
+    do j = 1, in_counts(2)
+      do i = 1, in_counts(1)
+        ii = i - 1; jj = j - 1; kk = k - 1
+        idx = kk * in_counts(2) * in_counts(1) + jj * in_counts(1) + ii + 1
+        inout(idx) = check(i,j,k)
+      enddo
+    enddo
+  enddo
 #endif
 
 

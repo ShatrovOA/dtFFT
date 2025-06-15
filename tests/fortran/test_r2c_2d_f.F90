@@ -29,12 +29,11 @@ use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft.f03"
-implicit none
+implicit none (type, external)
 #ifndef DTFFT_TRANSPOSE_ONLY
-  ! real(real64),     allocatable :: in(:,:), check(:,:)
   real(real64),     allocatable :: inout(:), check(:)
   real(real64) :: local_error, rnd
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   integer(int32), parameter :: nx = 999, ny = 344
 #else
   integer(int32), parameter :: nx = 64, ny = 32
@@ -46,6 +45,9 @@ implicit none
   real(real64) :: tf, tb
   integer(int64) :: alloc_size, upper_bound, cmplx_upper_bound
   type(dtfft_config_t) :: conf
+#if defined(DTFFT_WITH_CUDA) 
+  type(dtfft_platform_t) :: platform
+#endif
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -69,23 +71,37 @@ implicit none
 
 #if defined (DTFFT_WITH_FFTW)
   executor = DTFFT_EXECUTOR_FFTW3
-#elif defined(DTFFT_WITH_MKL)
+#elif defined (DTFFT_WITH_MKL)
   executor = DTFFT_EXECUTOR_MKL
-#elif defined(DTFFT_WITH_VKFFT)
-  executor = DTFFT_EXECUTOR_VKFFT
-#elif defined(DTFFT_WITH_CUFFT)
-  executor = DTFFT_EXECUTOR_CUFFT
+#else
+  executor = DTFFT_EXECUTOR_NONE
+#endif
+
+#ifdef DTFFT_WITH_CUDA
+  block
+    character(len=5) :: platform_env
+    integer(int32) :: env_len
+
+    call get_environment_variable("DTFFT_PLATFORM", platform_env, env_len)
+
+    if ( env_len == 0 .or. trim(adjustl(platform_env)) == "cuda" ) then
+# if defined( DTFFT_WITH_CUFFT )
+      executor = DTFFT_EXECUTOR_CUFFT
+# elif defined( DTFFT_WITH_VKFFT )
+      executor = DTFFT_EXECUTOR_VKFFT
+# else
+      executor = DTFFT_EXECUTOR_NONE
+# endif
+    endif
+  endblock
 #endif
 
   call attach_gpu_to_process()
 
   conf = dtfft_config_t()
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-#if defined(DTFFT_WITH_NCCL)
-  conf%backend = DTFFT_BACKEND_NCCL
-#else
-  conf%backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
-#endif
+#if defined(DTFFT_WITH_CUDA)
+  !! Using openacc, disable nvshmem
+  conf%enable_nvshmem_backends = .false.
   conf%platform = DTFFT_PLATFORM_CUDA
 #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
@@ -95,12 +111,12 @@ implicit none
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA)
+  platform = plan%get_platform(ierr); DTFFT_CHECK(ierr)
   block
     type(dtfft_backend_t) :: selected_backend
 
-    selected_backend = plan%get_backend(error_code=ierr)
-    DTFFT_CHECK(ierr)
+    selected_backend = plan%get_backend(error_code=ierr); DTFFT_CHECK(ierr)
     if(comm_rank == 0) then
       write(output_unit, '(a)') "Using backend: "//dtfft_get_backend_string(selected_backend)
     endif
@@ -121,34 +137,38 @@ implicit none
     enddo
   enddo
 
-!$acc enter data copyin(inout)
+!$acc enter data copyin(inout) if( platform == DTFFT_PLATFORM_CUDA )
 
   tf = 0.0_real64 - MPI_Wtime()
-!$acc host_data use_device(inout)
+!$acc host_data use_device(inout) if( platform == DTFFT_PLATFORM_CUDA )
   call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) then
+!$acc wait
+  endif
 #endif
   tf = tf + MPI_Wtime()
 
-!$acc kernels present(inout)
+!$acc kernels present(inout) if( platform == DTFFT_PLATFORM_CUDA )
   inout(:cmplx_upper_bound) = inout(:cmplx_upper_bound) / real(nx * ny, real64)
 !$acc end kernels
 
   tb = 0.0_real64 - MPI_Wtime()
-!$acc host_data use_device(inout)
+!$acc host_data use_device(inout) if( platform == DTFFT_PLATFORM_CUDA )
   call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
 !$acc end host_data
   DTFFT_CHECK(ierr)
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) then
+!$acc wait
+  endif
 #endif
   tb = tb + MPI_Wtime()
 
-!$acc update self(inout)
-!$acc exit data delete(inout)
+!$acc update self(inout) if( platform == DTFFT_PLATFORM_CUDA )
+!$acc exit data delete(inout)  if( platform == DTFFT_PLATFORM_CUDA )
 
   local_error = maxval(abs(inout(:upper_bound) - check(:upper_bound)))
 

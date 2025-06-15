@@ -18,12 +18,12 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_r2c_3d
-use iso_fortran_env, only: real64 => real64, int32 => int32, I1P => int8, output_unit, error_unit, int64
+use iso_fortran_env
 use iso_c_binding
 use dtfft
 use test_utils
 #include "dtfft_mpi.h"
-implicit none
+implicit none (type, external)
 #ifndef DTFFT_TRANSPOSE_ONLY
   real(real64),     allocatable, target :: in(:), check(:,:,:)
   real(real64),      pointer :: pin(:,:,:)
@@ -72,8 +72,8 @@ implicit none
 
   if ( element_size /= real64 ) error stop "element_size /= real64"
 
-  real_pencil = plan%get_pencil(0_I1P)
-  cmplx_pencil = plan%get_pencil(1_I1P)
+  real_pencil = plan%get_pencil(0)
+  cmplx_pencil = plan%get_pencil(1)
   if ( any(in_counts /= real_pencil%counts) ) error stop "in_counts /= real_pencil%counts"
   if ( cmplx_pencil%counts(1) /= (nx / 2) + 1 ) error stop "cmplx_pencil%counts(1) /= (nx / 2) + 1"
   if ( any(real_pencil%counts(2:) /= cmplx_pencil%counts(2:)) ) error stop "cmplx_pencil%counts(1) /= (nx / 2) + 1"

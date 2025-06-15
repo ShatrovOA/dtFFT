@@ -103,12 +103,7 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan.execute(out.data(), in.data(), dtfft::Execute::BACKWARD) )
   tb += MPI_Wtime();
 
-  double local_error = -1.0;
-  for (size_t i = 0; i < alloc_size; i++) {
-    double error = fabs(in[i] - check[i]);
-    local_error = error > local_error ? error : local_error;
-  }
-
+  double local_error = checkDouble(check.data(), in.data(), alloc_size);
   reportDouble(&tf,&tb, &local_error, &nx, &ny, nullptr);
 
   DTFFT_CXX_CALL( plan.destroy() )

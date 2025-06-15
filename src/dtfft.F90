@@ -23,7 +23,7 @@ use dtfft_config
 use dtfft_parameters
 use dtfft_pencil
 use dtfft_plan
-implicit none
+implicit none (type, external)
 private
 
 public :: dtfft_get_version
@@ -110,6 +110,7 @@ public :: DTFFT_ERROR_FREE_FAILED
 public :: DTFFT_ERROR_INVALID_ALLOC_BYTES
 public :: DTFFT_ERROR_DLOPEN_FAILED
 public :: DTFFT_ERROR_DLSYM_FAILED
+public :: DTFFT_ERROR_R2C_TRANSPOSE_CALLED
 public :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 public :: DTFFT_ERROR_GPU_INVALID_STREAM
 public :: DTFFT_ERROR_GPU_INVALID_BACKEND
@@ -127,7 +128,7 @@ public :: dtfft_create_config, dtfft_set_config
 
 #ifdef DTFFT_WITH_CUDA
 
-public :: dtfft_stream_t, get_cuda_stream
+public :: dtfft_stream_t, dtfft_get_cuda_stream
 public :: dtfft_platform_t
 
 public :: DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA

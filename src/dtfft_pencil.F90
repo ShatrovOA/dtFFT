@@ -28,7 +28,7 @@ use dtfft_utils
 use dtfft_interface_cuda_runtime
 #include "dtfft_cuda.h"
 #endif
-implicit none
+implicit none (type, external)
 private
 public :: pencil
 public :: dtfft_pencil_t

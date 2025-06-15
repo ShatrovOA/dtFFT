@@ -155,7 +155,7 @@ dtfft_get_error_string(const dtfft_error_t error_code)
 }
 
 dtfft_error_t
-dtfft_get_pencil(dtfft_plan_t plan, int8_t dim, dtfft_pencil_t *pencil)
+dtfft_get_pencil(dtfft_plan_t plan, int32_t dim, dtfft_pencil_t *pencil)
 {
   if ( !pencil ) return DTFFT_ERROR_INVALID_USAGE;
   return (dtfft_error_t)dtfft_get_pencil_c(get_plan_handle(plan), &dim, (void*)pencil);
