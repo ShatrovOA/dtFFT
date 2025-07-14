@@ -51,9 +51,6 @@ int main(int argc, char *argv[])
     cout << "Nx = " << nx << ", Ny = " << ny           << endl;
     cout << "Number of processors: " << comm_size      << endl;
     cout << "----------------------------------------" << endl;
-#if defined(DTFFT_WITH_CUDA)
-    cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
-#endif
   }
 
 #if defined(DTFFT_WITH_CUDA)
@@ -61,30 +58,31 @@ int main(int argc, char *argv[])
 
   if ( platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0 )
   {
-      MPI_Finalize();
-      return 0;
+    cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
+    MPI_Finalize();
+    return 0;
   }
 #endif
 
-  Executor executor;
+  Executor executor = Executor::NONE;
 #ifdef DTFFT_WITH_MKL
   executor = Executor::MKL;
 #elif defined(DTFFT_WITH_FFTW )
   executor = Executor::FFTW3;
-#else
-  if(comm_rank == 0) {
-    cout << "Missing HOST FFT Executor, skipping test\n";
-  }
-  MPI_Finalize();
-  return 0;
 #endif
+
+  if ( executor == Executor::NONE ) {
+    if ( comm_rank == 0 ) cout << "Could not find valid R2C FFT executor, skipping test\n";
+    MPI_Finalize();
+    return 0;
+  }
 
   // Create plan
   vector<int32_t> dims = {ny, nx};
-  dtfft::PlanR2C *plan;
+  PlanR2C *plan;
   try {
-    plan = new dtfft::PlanR2C(dims, executor);
-  } catch (const dtfft::Exception& err) {
+    plan = new PlanR2C(dims, executor);
+  } catch (const Exception& err) {
     cerr << err.what() << endl;
     MPI_Abort(MPI_COMM_WORLD, -1);
     return -1;
@@ -99,9 +97,10 @@ int main(int argc, char *argv[])
   vector<double> in(alloc_size), check(in_size);
   vector<complex<double>> out(alloc_size / 2);
 
+  setTestValuesDouble(check.data(), in_size);
+
   for (size_t i = 0; i < in_size; i++) {
-    in[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-    check[i] = in[i];
+    in[i] = check[i];
   }
 
   double tf = 0.0 - MPI_Wtime();
@@ -121,8 +120,11 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), Execute::BACKWARD) );
   tb += MPI_Wtime();
 
-  double local_error = checkDouble(check.data(), in.data(), in_size);
-  reportDouble(&tf, &tb, &local_error, &nx, &ny, nullptr );
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportDouble(nx * ny, tf, tb, in.data(), in_size, check.data(), static_cast<int32_t>(Platform::HOST));
+#else
+  checkAndReportDouble(nx * ny, tf, tb, in.data(), in_size, check.data());
+#endif
 
   DTFFT_CXX_CALL( plan->destroy() );
 

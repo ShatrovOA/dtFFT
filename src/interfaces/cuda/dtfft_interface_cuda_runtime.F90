@@ -508,7 +508,7 @@ public :: cudaMemGetInfo
 
 public :: cudaDeviceSynchronize
     interface
-    !!
+    !! Synchronizes the device, blocking until all preceding tasks in all streams have completed.
       function cudaDeviceSynchronize()                               &
         result(cudaError_t)                                          &
         bind(C, name="cudaDeviceSynchronize")

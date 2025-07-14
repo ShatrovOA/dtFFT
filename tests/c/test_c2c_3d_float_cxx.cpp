@@ -49,15 +49,13 @@ int main(int argc, char *argv[])
     cout << "Nx = " << nx << ", Ny = " << ny << ", Nz = " << nz << endl;
     cout << "Number of processors: " << comm_size               << endl;
     cout << "----------------------------------------"          << endl;
-#if defined(DTFFT_WITH_CUDA)
-    cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
-#endif
   }
 #if defined(DTFFT_WITH_CUDA)
   char* platform_env = std::getenv("DTFFT_PLATFORM");
 
   if ( platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0 )
   {
+      cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
       MPI_Finalize();
       return 0;
   }
@@ -88,23 +86,30 @@ int main(int argc, char *argv[])
 
   Plan *plan = new PlanC2C(dims, grid_comm, Precision::SINGLE, Effort::MEASURE, executor);
   DTFFT_CXX_CALL( plan->report() )
-  vector<int> in_counts(3);
-  DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data()) )
+  vector<int32_t> in_counts(3), out_counts(3);
+  DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data(), nullptr, out_counts.data()) )
+
+#if defined(DTFFT_WITH_CUDA)
+  const Platform platform = plan->get_platform();
+  if ( platform == Platform::CUDA ) {
+    if ( comm_rank == 0 ) cerr << "Detected CUDA Platform\n";
+    MPI_Abort(MPI_COMM_WORLD, -1);
+  }
+#endif
 
   size_t in_size = std::accumulate(in_counts.begin(), in_counts.end(), 1, multiplies<int>());
+  size_t out_size = std::accumulate(out_counts.begin(), out_counts.end(), 1, multiplies<int>());
 
-  size_t alloc_size;
-  DTFFT_CXX_CALL( plan->get_alloc_size(&alloc_size) );
+  size_t alloc_size = plan->get_alloc_size();
 
   vector<complex<float>> in(alloc_size),
                           out(alloc_size),
                           aux(alloc_size),
                           check(alloc_size);
 
+  setTestValuesComplexFloat(check.data(), in_size);
   for (size_t i = 0; i < in_size; i++) {
-    in[i] = complex<float> { (float)(i) / (float)(nx) / (float)(ny) / (float)(nz),
-                            -(float)(i) / (float)(nx) / (float)(ny) / (float)(nz)};
-    check[i] = in[i];
+    in[i] = check[i];
   }
 
   bool is_z_slab;
@@ -126,16 +131,21 @@ int main(int argc, char *argv[])
 
   std::fill(in.begin(), in.end(), complex<float>{-1., -1.});
 
-  if ( executor != Executor::NONE ) {
-    scaleComplexFloatHost(out.data(), alloc_size, nx * ny * nz);
-  }
+#if defined(DTFFT_WITH_CUDA)
+  scaleComplexFloat(static_cast<int32_t>(executor), out.data(), out_size, nx * ny * nz, static_cast<int32_t>(platform), NULL);
+#else
+  scaleComplexFloat(static_cast<int32_t>(executor), out.data(), out_size, nx * ny * nz);
+#endif
 
   double tb = 0.0 - MPI_Wtime();
   DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), Execute::BACKWARD, aux.data()) )
   tb += MPI_Wtime();
 
-  float local_error = checkComplexFloat(check.data(), in.data(), in_size);
-  reportSingle(&tf, &tb, &local_error, &nx, &ny, &nz);
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportComplexFloat(nx * ny * nz, tf, tb, in.data(), in_size, check.data(), static_cast<int32_t>(platform));
+#else
+  checkAndReportComplexFloat(nx * ny * nz, tf, tb, in.data(), in_size, check.data());
+#endif
 
   DTFFT_CXX_CALL( plan->destroy() )
 

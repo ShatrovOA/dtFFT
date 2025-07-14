@@ -19,24 +19,22 @@
 #include "dtfft_config.h"
 program test_c2c_3d_float
 use iso_fortran_env
-use iso_c_binding, only: c_null_ptr, c_loc
+use iso_c_binding, only: c_null_ptr, c_loc, c_ptr
 use dtfft
 use test_utils
 #if defined(DTFFT_WITH_CUDA)
 use dtfft_interface_cuda_runtime
-use dtfft_utils
 #endif
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
 #include "dtfft.f03"
 implicit none
-  complex(real32),  allocatable, target :: check(:,:,:)
-  complex(real32), pointer :: in(:), out(:)
-  real(real32) :: local_error, rnd1, rnd2
-  integer(int32), parameter :: nx = 13, ny = 45, nz = 2
-  integer(int32) :: comm_size, comm_rank, i, j, k, ii, jj, kk, idx
+  type(c_ptr) :: check
+  complex(real32), pointer :: in(:,:,:), out(:)
+  integer(int32), parameter :: nx = 13, ny = 45, nz = 29
+  integer(int32) :: comm_size, comm_rank
   type(dtfft_plan_c2c_t) :: plan
-  integer(int32) :: in_counts(3), out_counts(3)
+  integer(int32) :: in_counts(3), out_counts(3), in_starts(3)
   integer(int64) :: alloc_size, in_size, out_size, element_size
   real(real64) :: tf, tb
   type(dtfft_executor_t) :: executor
@@ -103,10 +101,8 @@ implicit none
   endblock
 #endif
 
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr)
-  DTFFT_CHECK(ierr)
-  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size, error_code=ierr)
-  DTFFT_CHECK(ierr)
+  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%get_local_sizes(in_starts=in_starts, in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
 
   call plan%report()
 
@@ -118,7 +114,7 @@ implicit none
       type(dtfft_backend_t) :: real_backend
 
       real_backend = plan%get_backend(error_code=ierr); DTFFT_CHECK(ierr)
-      if ( backend /= real_backend ) error stop "backend /= real_backend"
+      if ( backend /= real_backend .and. comm_size > 1 ) error stop "backend /= real_backend"
     endblock
   endif
 #endif
@@ -126,79 +122,35 @@ implicit none
   element_size = plan%get_element_size(ierr); DTFFT_CHECK(ierr)
   if ( element_size /= 8_int64 ) error stop "element_size /= 8_int64"
 
-  in_size = 1_int64 * product(in_counts)
-  out_size = 1_int64 * product(out_counts)
+  in_size = product(in_counts)
+  out_size = product(out_counts)
 
-  call plan%mem_alloc(alloc_size, in, error_code=ierr)
+  call plan%mem_alloc(alloc_size, in, in_counts, lbounds=in_starts, error_code=ierr)
   call plan%mem_alloc(alloc_size, out, error_code=ierr)
 
-  allocate(check(in_counts(1),in_counts(2),in_counts(3)))
-
-  do k = 1, in_counts(3)
-    do j = 1, in_counts(2)
-      do i = 1, in_counts(1)
-        call random_number(rnd1)
-        call random_number(rnd2)
-        check(i,j,k) = cmplx(rnd1, rnd2, real32)
-      enddo
-    enddo
-  enddo
+  call mem_alloc_host(in_size * element_size, check)
+  call setTestValuesComplexFloat(check, in_size)
 
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaMemcpy", cudaMemcpy(c_loc(in), c_loc(check), in_size * element_size, cudaMemcpyHostToDevice) )
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
-  else
-    do k = 1, in_counts(3)
-      do j = 1, in_counts(2)
-        do i = 1, in_counts(1)
-          ii = i - 1; jj = j - 1; kk = k - 1
-          idx = kk * in_counts(2) * in_counts(1) + jj * in_counts(1) + ii + 1
-          in(idx) = check(i,j,k)
-        enddo
-      enddo
-    enddo
-  endif
+  call complexFloatH2D(check, c_loc(in), in_size, platform%val)
 #else
-  do k = 1, in_counts(3)
-    do j = 1, in_counts(2)
-      do i = 1, in_counts(1)
-        ii = i - 1; jj = j - 1; kk = k - 1
-        idx = kk * in_counts(2) * in_counts(1) + jj * in_counts(1) + ii + 1
-        in(idx) = check(i,j,k)
-      enddo
-    enddo
-  enddo
+  call complexFloatH2D(check, c_loc(in), in_size)
 #endif
 
-
   tf = 0.0_real64 - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
     CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
   endif
 #endif
   tf = tf + MPI_Wtime()
-  DTFFT_CHECK(ierr)
 
-  if ( executor /= DTFFT_EXECUTOR_NONE ) then
-    block
-      integer(int64) :: scale
-
-      scale = nx * ny * nz
 #if defined(DTFFT_WITH_CUDA)
-      if ( platform == DTFFT_PLATFORM_CUDA )  then
-        call scaleComplexFloat(c_loc(out), out_size, scale, dtfft_stream_t(c_null_ptr))
-        CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
-      else
-        call scaleComplexFloatHost(c_loc(out), out_size, scale)
-      endif
+  call scaleComplexFloat(executor%val, c_loc(out), int(product(out_counts), int64), int(nx * ny * nz, int64), platform%val, NULL_STREAM)
 #else
-      call scaleComplexFloatHost(c_loc(out), out_size, scale)
+  call scaleComplexFloat(executor%val, c_loc(out), int(product(out_counts), int64), int(nx * ny * nz, int64))
 #endif
-    end block
-  endif
 
   tb = 0.0_real64 - MPI_Wtime()
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr); DTFFT_CHECK(ierr)
@@ -209,29 +161,13 @@ implicit none
 #endif
   tb = tb + MPI_Wtime()
 
-  local_error = 0._real32
-
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) then
-  block
-    complex(real32), allocatable, target :: test(:)
-
-    allocate(test(in_size))
-
-    CUDA_CALL( "cudaMemcpy", cudaMemcpy(c_loc(test), c_loc(in), element_size * in_size, cudaMemcpyDeviceToHost) )
-    local_error = checkComplexFloat(c_loc(check), c_loc(test), in_size)
-    deallocate(test)
-  endblock
-  else
-    local_error = checkComplexFloat(c_loc(check), c_loc(in), in_size)
-  endif
+  call checkAndReportComplexFloat(int(nx * ny * nz, int64), tf, tb, c_loc(in), in_size, check, platform%val)
 #else
-  local_error = checkComplexFloat(c_loc(check), c_loc(in), in_size)
+  call checkAndReportComplexFloat(int(nx * ny * nz, int64), tf, tb, c_loc(in), in_size, check)
 #endif
 
-  call report(tf, tb, local_error, nx, ny, nz)
-
-  deallocate(check)
+  call mem_free_host(check)
 
   call plan%mem_free(in, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%mem_free(out, error_code=ierr); DTFFT_CHECK(ierr)

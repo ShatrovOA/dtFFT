@@ -56,8 +56,12 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------"          << endl;
   }
 
-
+  attach_gpu_to_process();
   Executor executor = Executor::NONE;
+  Config conf;
+  // Different FFT kinds are used. Disabling Z-slab
+  conf.set_enable_z_slab(false);
+
 #ifdef DTFFT_WITH_FFTW
   executor = Executor::FFTW3;
 #endif
@@ -65,7 +69,7 @@ int main(int argc, char *argv[])
   char* platform_env = std::getenv("DTFFT_PLATFORM");
 
   bool running_cuda = platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0;
-
+  cudaStream_t stream;
   if ( running_cuda )
   {
 # if defined(DTFFT_WITH_VKFFT)
@@ -73,25 +77,11 @@ int main(int argc, char *argv[])
 # else
     executor = Executor::NONE;
 # endif
-  }
-#endif
-
-  attach_gpu_to_process();
-
-  Config conf;
-  // Different FFT kinds are used. Disabling Z-slab
-  conf.set_enable_z_slab(false);
-
-#if defined(DTFFT_WITH_CUDA)
-  cudaStream_t stream;
-  if ( running_cuda )
-  {
     CUDA_SAFE_CALL( cudaStreamCreate(&stream) );
-    conf.set_stream((dtfft_stream_t)stream);
+    conf.set_stream((dtfft_stream_t)stream)
+      .set_enable_mpi_backends(true)
+      .set_enable_nvshmem_backends(false);
   }
-  conf.set_enable_mpi_backends(true);
-  conf.set_enable_nvshmem_backends(false);
-  conf.set_platform(Platform::CUDA);
 #endif
 
   DTFFT_CXX_CALL( set_config(conf) );
@@ -110,40 +100,31 @@ int main(int argc, char *argv[])
 
   size_t in_size = std::accumulate(in_sizes, in_sizes + 3, 1, multiplies<int>());
   size_t out_size = std::accumulate(out_sizes, out_sizes + 3, 1, multiplies<int>());
-  size_t el_size;
-  DTFFT_CXX_CALL( plan.get_element_size(&el_size) );
+  size_t element_size;
+  DTFFT_CXX_CALL( plan.get_element_size(&element_size) );
 
-  if ( el_size != sizeof(float) ) {
-    DTFFT_THROW_EXCEPTION("el_size != sizeof(float)")
+  if ( element_size != sizeof(float) ) {
+    DTFFT_THROW_EXCEPTION("element_size != sizeof(float)")
   }
 
   float *inout, *aux;
   float *check = new float[in_size];
+  setTestValuesFloat(check, in_size);
 
-  for (size_t i = 0; i < in_size; i++)
-  {
-    check[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-  }
-
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&inout) )
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * el_size, (void**)&aux) )
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * element_size, (void**)&inout) )
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * element_size, (void**)&aux) )
 
 #if defined(DTFFT_WITH_CUDA)
   Platform platform;
-  DTFFT_CXX_CALL( plan.get_platform(&platform) )
+  DTFFT_CXX_CALL( plan.get_platform(platform) )
 
   if ( running_cuda && platform != Platform::CUDA ) {
     DTFFT_THROW_EXCEPTION("running_cuda && platform != Platform::CUDA")
   }
 
-  if ( running_cuda ) {
-    CUDA_SAFE_CALL( cudaMemcpyAsync(inout, check, in_size * el_size, cudaMemcpyHostToDevice, stream) );
-    CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
-  } else {
-    std::memcpy(inout, check, in_size * el_size);
-  }
+  floatH2D(check, inout, in_size, static_cast<int32_t>(platform));
 #else
-  std::memcpy(inout, check, in_size * el_size);
+  floatH2D(check, inout, in_size);
 #endif
 
   double tf = 0.0 - MPI_Wtime();
@@ -156,19 +137,13 @@ int main(int argc, char *argv[])
 #endif
   tf += MPI_Wtime();
 
-  if ( executor != Executor::NONE ) {
-    size_t scale_value = 8 * nx * ny * nz;
+  size_t scale_value = 8 * nx * ny * nz;
+
 #if defined(DTFFT_WITH_CUDA)
-  if ( running_cuda ) {
-    scaleFloat(inout, out_size, scale_value, stream);
-    CUDA_SAFE_CALL(  cudaStreamSynchronize(stream) )
-  } else {
-    scaleFloatHost(inout, out_size, scale_value);
-  }
+  scaleFloat(static_cast<int32_t>(executor), inout, out_size, scale_value, static_cast<int32_t>(platform), stream);
 #else
-  scaleFloatHost(inout, out_size, scale_value);
+  scaleFloat(static_cast<int32_t>(executor), inout, out_size, scale_value);
 #endif
-  }
 
   double tb = 0.0 - MPI_Wtime();
   DTFFT_CXX_CALL( plan.execute(inout, inout, Execute::BACKWARD, aux) )
@@ -180,22 +155,11 @@ int main(int argc, char *argv[])
   tb += MPI_Wtime();
 
 
-  float local_error;
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == dtfft::Platform::CUDA ) {
-    float *test = new float[in_size];
-
-    CUDA_SAFE_CALL( cudaMemcpy(test, inout, el_size * in_size, cudaMemcpyDeviceToHost) )
-    local_error = checkFloat(check, test, in_size);
-    delete[] test;
-  } else {
-    local_error = checkFloat(check, inout, in_size);
-  }
+  checkAndReportFloat(nx * ny * nz, tf, tb, inout, in_size, check, static_cast<int32_t>(platform));
 #else
-  local_error = checkFloat(check, inout, in_size);
+  checkAndReportFloat(nx * ny * nz, tf, tb, inout, in_size, check);
 #endif
-
-  reportSingle(&tf, &tb, &local_error, &nx, &ny, &nz);
 
 
   DTFFT_CXX_CALL( plan.mem_free(inout) )

@@ -90,7 +90,7 @@ include(CheckMPIFeatures)
 
 if ( DTFFT_ENABLE_PERSISTENT_COMM )
   check_persistent_collectives(${MPI_Fortran_MODULE_DIR} "${MPI_Fortran_LIBRARIES}" ${mpi_mod})
-  
+
   # Preprocessor used for gpu p2p algorithms, e.g. MPI_Send_init
   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:ENABLE_PERSISTENT_COMM>)
   if ( HAVE_PERSISTENT_COLLECTIVES )
@@ -335,7 +335,7 @@ if(DTFFT_BUILD_C_CXX_API)
 endif()
 set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
 target_include_directories(dtfft PUBLIC
-  $<BUILD_INTERFACE:${DTFFT_MODULE_DIR}>
+  $<$<COMPILE_LANGUAGE:Fortran>:$<BUILD_INTERFACE:${DTFFT_MODULE_DIR}>>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

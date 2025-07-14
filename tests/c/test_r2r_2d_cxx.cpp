@@ -89,8 +89,10 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), dtfft::Execute::FORWARD) );
   tf += MPI_Wtime();
 
-  Pencil out_pencil;
-  DTFFT_CXX_CALL( plan.get_pencil(2, out_pencil) )
+  Pencil in_pencil = plan.get_pencil(1);
+  size_t in_size = in_pencil.get_size();
+
+  Pencil out_pencil = plan.get_pencil(2);
   size_t out_size = out_pencil.get_size();
 
   if ( executor != Executor::NONE ) {
@@ -103,8 +105,11 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan.execute(out.data(), in.data(), dtfft::Execute::BACKWARD) )
   tb += MPI_Wtime();
 
-  double local_error = checkDouble(check.data(), in.data(), alloc_size);
-  reportDouble(&tf,&tb, &local_error, &nx, &ny, nullptr);
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportDouble(nx * ny, tf, tb, in.data(), in_size, check.data(), static_cast<int32_t>(Platform::HOST));
+#else
+  checkAndReportDouble(nx * ny, tf, tb, in.data(), in_size, check.data());
+#endif
 
   DTFFT_CXX_CALL( plan.destroy() )
 

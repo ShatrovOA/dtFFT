@@ -52,19 +52,11 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_executor_t executor;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #ifdef DTFFT_WITH_MKL
   executor = DTFFT_EXECUTOR_MKL;
 #elif defined (DTFFT_WITH_FFTW)
   executor = DTFFT_EXECUTOR_FFTW3;
-#else
-# if !defined(DTFFT_WITH_CUDA)
-  if(comm_rank == 0) {
-    printf("Missing HOST FFT Executor\n");
-  }
-  MPI_Finalize();
-  return 0;
-# endif
 #endif
 #ifdef DTFFT_WITH_CUDA
   char* platform_env = getenv("DTFFT_PLATFORM");
@@ -72,35 +64,37 @@ int main(int argc, char *argv[])
   if ( platform_env == NULL || strcmp(platform_env, "cuda") == 0 )
   {
 # if defined(DTFFT_WITH_CUFFT)
-  executor = DTFFT_EXECUTOR_CUFFT;
+    executor = DTFFT_EXECUTOR_CUFFT;
 # elif defined(DTFFT_WITH_VKFFT)
-  executor = DTFFT_EXECUTOR_VKFFT;
+    executor = DTFFT_EXECUTOR_VKFFT;
 # else
-    if(comm_rank == 0) {
-      printf("Missing CUDA FFT Executor\n");
-    }
-    MPI_Finalize();
-    return 0;
+    executor = DTFFT_EXECUTOR_NONE;
 # endif
-  } else {
+  }
+#endif
+
+  if ( executor == DTFFT_EXECUTOR_NONE ) {
+    if ( comm_rank == 0 ) printf("Could not find valid R2C FFT executor, skipping test\n");
     MPI_Finalize();
     return 0;
   }
-#endif
 
   attach_gpu_to_process();
 
 #if defined(DTFFT_WITH_CUDA)
   dtfft_config_t conf;
   dtfft_create_config(&conf);
-  conf.platform = DTFFT_PLATFORM_CUDA;
+#ifdef DTFFT_WITH_NVSHMEM
+  conf.backend = DTFFT_BACKEND_CUFFTMP;
+#else
   conf.backend = DTFFT_BACKEND_MPI_A2A;
+#endif
   dtfft_set_config(conf);
 #endif
 
   // Create plan
   DTFFT_CALL( dtfft_create_plan_r2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor, &plan) )
-
+  DTFFT_CALL( dtfft_report(plan) )
   // Get local sizes
   size_t alloc_size, el_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
@@ -118,22 +112,14 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&work) )
 
   check = (float*) malloc(el_size * in_size);
-
-  for (size_t i = 0; i < in_size; i++) {
-    check[i] = (float)i / (float)nx / (float)ny;
-  }
+  setTestValuesFloat(check, in_size);
 
 #if defined(DTFFT_WITH_CUDA)
   dtfft_platform_t platform;
   DTFFT_CALL( dtfft_get_platform(plan, &platform) )
-
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    CUDA_SAFE_CALL( cudaMemcpy(inout, check, el_size * in_size, cudaMemcpyHostToDevice) )
-  } else {
-    memcpy(inout, check, el_size * in_size);
-  }
+  floatH2D(check, inout, in_size, (int32_t)platform);
 #else
-  memcpy(inout, check, el_size * in_size);
+  floatH2D(check, inout, in_size);
 #endif
 
   // Forward transpose
@@ -148,19 +134,11 @@ int main(int argc, char *argv[])
 #endif
   tf += MPI_Wtime();
 
-  // Normalize
-  if ( executor != DTFFT_EXECUTOR_NONE ) {
 #if defined(DTFFT_WITH_CUDA)
-    if ( platform == DTFFT_PLATFORM_CUDA ) {
-      scaleComplexFloat(inout, out_size, nx * ny, 0);
-      CUDA_SAFE_CALL( cudaDeviceSynchronize() )
-    } else {
-      scaleComplexFloatHost(inout, out_size, nx * ny);
-    }
+  scaleComplexFloat((int32_t)executor, inout, out_size, nx * ny, (int32_t)platform, NULL);
 #else
-    scaleComplexFloatHost(inout, out_size, nx * ny);
+  scaleComplexFloat((int32_t)executor, inout, out_size, nx * ny);
 #endif
-  }
 
   // Backward transpose
   double tb = 0.0 - MPI_Wtime();
@@ -173,23 +151,11 @@ int main(int argc, char *argv[])
 #endif
   tb += MPI_Wtime();
 
-  float local_error;
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    dtfftf_complex *h_inout;
-
-    h_inout = (dtfftf_complex*) malloc(el_size * alloc_size);
-    CUDA_SAFE_CALL( cudaMemcpy(h_inout, inout, el_size * in_size, cudaMemcpyDeviceToHost) )
-    local_error = checkFloat(check, h_inout, in_size);
-    free(h_inout);
-  } else {
-    local_error = checkFloat(check, inout, in_size);
-  }
+  checkAndReportFloat(nx * ny, tf, tb, inout, in_size, check, (int32_t)platform);
 #else
-  local_error = checkFloat(check, inout, in_size);
+  checkAndReportFloat(nx * ny, tf, tb, inout, in_size, check);
 #endif
-
-  reportSingle(&tf, &tb, &local_error, &nx, &ny, NULL);
 
   // Deallocate buffers
   DTFFT_CALL( dtfft_mem_free(plan, inout) )

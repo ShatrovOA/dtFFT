@@ -62,30 +62,23 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&inout) )
   DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
 
-  check = (double*) malloc(alloc_bytes);
-
   // Obtain pencil information (optional)
   for ( int i = 0; i < 3; i++ ) {
     dtfft_get_pencil(plan, i + 1, &pencils[i]);
   }
 
   size_t in_size = pencils[0].size;
-  size_t out_size = pencils[2].size;
 
-  for (size_t i = 0; i < in_size; i++)
-    check[i] = (double)(i) / (double)(in_size);
+  check = (double*) malloc(in_size * sizeof(double));
+  setTestValuesDouble(check, in_size);
 
 #if defined(DTFFT_WITH_CUDA)
   dtfft_platform_t platform;
   DTFFT_CALL( dtfft_get_platform(plan, &platform) )
 
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    CUDA_SAFE_CALL( cudaMemcpy(inout, check, alloc_bytes, cudaMemcpyHostToDevice) )
-  } else {
-    memcpy(inout, check, alloc_bytes);
-  }
+  doubleH2D(check, inout, in_size, (int32_t)platform);
 #else
-  memcpy(inout, check, alloc_bytes);
+  doubleH2D(check, inout, in_size);
 #endif
 
   double tf = 0.0 - MPI_Wtime();
@@ -127,23 +120,11 @@ int main(int argc, char *argv[])
 #endif
   tb += MPI_Wtime();
 
-  double local_error;
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    double *test;
-
-    test = (double*) malloc(alloc_bytes);
-    CUDA_SAFE_CALL( cudaMemcpy(test, inout, 8 * in_size, cudaMemcpyDeviceToHost) )
-    local_error = checkDouble(check, test, in_size);
-    free(test);
-  } else {
-    local_error = checkDouble(check, inout, in_size);
-  }
+  checkAndReportDouble(nx * ny, tf, tb, inout, in_size, check, (int32_t)platform);
 #else
-  local_error = checkDouble(check, inout, in_size);
+  checkAndReportDouble(nx * ny, tf, tb, inout, in_size, check);
 #endif
-
-  reportDouble(&tf, &tb, &local_error, &nx, &ny, &nz);
 
   DTFFT_CALL( dtfft_mem_free(plan, inout) )
   DTFFT_CALL( dtfft_mem_free(plan, aux) )

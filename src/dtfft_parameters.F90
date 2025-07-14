@@ -631,17 +631,17 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     endselect
   end function dtfft_get_backend_string
 
-  function stream_from_int64(val) result(stream)
+  function stream_from_int64(cuda_stream) result(stream)
   !! Creates [[dtfft_stream_t]] from integer(cuda_stream_kind)
-    integer(int64), intent(in)  :: val      !! Stream value
-    type(dtfft_stream_t)        :: stream   !! Stream
+    integer(int64), intent(in)  :: cuda_stream  !! CUDA stream
+    type(dtfft_stream_t)        :: stream       !! dtfft Stream
 
-    stream = transfer(val, stream)
+    stream = transfer(cuda_stream, stream)
   end function stream_from_int64
 
   function dtfft_get_cuda_stream(stream) result(cuda_stream)
   !! Returns the CUDA stream from [[dtfft_stream_t]]
-    type(dtfft_stream_t), intent(in) :: stream      !! Stream
+    type(dtfft_stream_t), intent(in) :: stream      !! dtfft stream
     integer(int64)                   :: cuda_stream !! CUDA stream
 
     cuda_stream = transfer(stream, int64)

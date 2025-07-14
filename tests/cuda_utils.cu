@@ -31,24 +31,24 @@ extern "C" {
 #endif
 
 // C/Fortran wrappers
-void scaleFloat(void* buffer, size_t count, size_t scale, cudaStream_t stream)
+void scaleFloatCUDA(void* buffer, size_t count, size_t scale, cudaStream_t stream)
 {
     launchScaleKernel(buffer, count, scale, 0, stream);
 }
 
-void scaleDouble(void* buffer, size_t count, size_t scale, cudaStream_t stream)
+void scaleDoubleCUDA(void* buffer, size_t count, size_t scale, cudaStream_t stream)
 {
     launchScaleKernel(buffer, count, scale, 1, stream);
 }
 
-void scaleComplexFloat(void* buffer, size_t count, size_t scale, cudaStream_t stream)
+void scaleComplexFloatCUDA(void* buffer, size_t count, size_t scale, cudaStream_t stream)
 {
-    scaleFloat(buffer, 2 * count, scale, stream);
+    scaleFloatCUDA(buffer, 2 * count, scale, stream);
 }
 
-void scaleComplexDouble(void* buffer, size_t count, size_t scale, cudaStream_t stream)
+void scaleComplexDoubleCUDA(void* buffer, size_t count, size_t scale, cudaStream_t stream)
 {
-    scaleDouble(buffer, 2 * count, scale, stream);
+    scaleDoubleCUDA(buffer, 2 * count, scale, stream);
 }
 
 #ifdef __cplusplus

@@ -513,7 +513,7 @@ dtfft_get_alloc_bytes(dtfft_plan_t plan, size_t *alloc_bytes);
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
 dtfft_error_t
-dtfft_mem_alloc(dtfft_plan_t plan, size_t alloc_bytes, void** ptr);
+dtfft_mem_alloc(dtfft_plan_t plan, size_t alloc_bytes, void **ptr);
 
 
 /**

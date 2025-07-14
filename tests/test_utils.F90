@@ -3,94 +3,106 @@ module test_utils
 use iso_fortran_env
 use iso_c_binding
 use dtfft
-use dtfft_utils, only: int_to_str, double_to_str
+use dtfft_parameters, only: COMPLEX_STORAGE_SIZE, DOUBLE_COMPLEX_STORAGE_SIZE, DOUBLE_STORAGE_SIZE, FLOAT_STORAGE_SIZE
+use dtfft_utils, only: int_to_str, double_to_str, mem_alloc_host, mem_free_host
 #include "dtfft_mpi.h"
+#include "dtfft_private.h"
 #if defined(DTFFT_WITH_CUDA)
+use dtfft_parameters, only: NULL_STREAM
 use dtfft_interface_cuda_runtime
 #include "dtfft_cuda.h"
 #endif
 implicit none
 private
-public :: report
-public :: attach_gpu_to_process
-public :: scaleFloatHost, scaleDoubleHost
-public :: scaleComplexFloatHost, scaleComplexDoubleHost
-public :: checkFloat, checkDouble
-public :: checkComplexFloat, checkComplexDouble
-
+public :: COMPLEX_STORAGE_SIZE, DOUBLE_COMPLEX_STORAGE_SIZE, DOUBLE_STORAGE_SIZE, FLOAT_STORAGE_SIZE
 #if defined(DTFFT_WITH_CUDA)
-public :: scaleComplexFloat, scaleComplexDouble
-public :: scaleFloat, scaleDouble
-
-  interface
-    subroutine scaleComplexFloat(buffer, count, scale, stream) bind(C, name="scaleComplexFloat")
-    import
-      type(c_ptr),          value :: buffer
-      integer(c_size_t),    value :: count
-      integer(c_size_t),    value :: scale
-      type(dtfft_stream_t), value :: stream
-    end subroutine scaleComplexFloat
-
-    subroutine scaleComplexDouble(buffer, count, scale, stream) bind(C, name="scaleComplexDouble")
-    import
-      type(c_ptr),          value :: buffer
-      integer(c_size_t),    value :: count
-      integer(c_size_t),    value :: scale
-      type(dtfft_stream_t), value :: stream
-    end subroutine scaleComplexDouble
-
-    subroutine scaleFloat(buffer, count, scale, stream) bind(C, name="scaleFloat")
-    import
-      type(c_ptr),          value :: buffer
-      integer(c_size_t),    value :: count
-      integer(c_size_t),    value :: scale
-      type(dtfft_stream_t), value :: stream
-    end subroutine scaleFloat
-
-    subroutine scaleDouble(buffer, count, scale, stream) bind(C, name="scaleDouble")
-    import
-      type(c_ptr),          value :: buffer
-      integer(c_size_t),    value :: count
-      integer(c_size_t),    value :: scale
-      type(dtfft_stream_t), value :: stream
-    end subroutine scaleDouble
-  end interface
+public :: NULL_STREAM
+public :: int_to_str
 #endif
+public :: mem_alloc_host, mem_free_host
+public :: attach_gpu_to_process
+public :: scaleComplexDouble, &
+          scaleComplexFloat,  &
+          scaleDouble,        &
+          scaleFloat
+
+public :: checkAndReportComplexDouble,  &
+          checkAndReportComplexFloat,   &
+          checkAndReportDouble,         &
+          checkAndReportFloat
+
+public :: setTestValuesComplexDouble,   &
+          setTestValuesComplexFloat,    &
+          setTestValuesDouble,          &
+          setTestValuesFloat
+
+public :: complexDoubleH2D,         &
+          complexFloatH2D,          &
+          doubleH2D,                &
+          floatH2D
 
   interface report
     module procedure :: reportSingle
     module procedure :: reportDouble
   end interface report
 
+#if defined(DTFFT_WITH_CUDA)
+  interface
+    subroutine scaleComplexFloatCUDA(buffer, count, scale, stream) bind(C, name="scaleComplexFloatCUDA")
+    import
+      type(c_ptr),          value :: buffer
+      integer(c_size_t),    value :: count
+      integer(c_size_t),    value :: scale
+      type(dtfft_stream_t), value :: stream
+    end subroutine scaleComplexFloatCUDA
+
+    subroutine scaleComplexDoubleCUDA(buffer, count, scale, stream) bind(C, name="scaleComplexDoubleCUDA")
+    import
+      type(c_ptr),          value :: buffer
+      integer(c_size_t),    value :: count
+      integer(c_size_t),    value :: scale
+      type(dtfft_stream_t), value :: stream
+    end subroutine scaleComplexDoubleCUDA
+
+    subroutine scaleFloatCUDA(buffer, count, scale, stream) bind(C, name="scaleFloatCUDA")
+    import
+      type(c_ptr),          value :: buffer
+      integer(c_size_t),    value :: count
+      integer(c_size_t),    value :: scale
+      type(dtfft_stream_t), value :: stream
+    end subroutine scaleFloatCUDA
+
+    subroutine scaleDoubleCUDA(buffer, count, scale, stream) bind(C, name="scaleDoubleCUDA")
+    import
+      type(c_ptr),          value :: buffer
+      integer(c_size_t),    value :: count
+      integer(c_size_t),    value :: scale
+      type(dtfft_stream_t), value :: stream
+    end subroutine scaleDoubleCUDA
+  end interface
+#endif
+
 contains
 
-  subroutine reportSingle(tf, tb, local_error, nx, ny, nz) bind(C, name="reportSingle")
-    real(c_double),       intent(in)            :: tf
-    real(c_double),       intent(in)            :: tb
-    real(c_float),        intent(in)            :: local_error
-    integer(c_int32_t),   intent(in)            :: nx
-    integer(c_int32_t),   intent(in)            :: ny
-    integer(c_int32_t),   intent(in), optional  :: nz
-    integer(int32) :: temp
-    real(real32)   :: errthr
+  subroutine reportSingle(tf, tb, local_error, n_global)
+    real(real64),       intent(in)  :: tf
+    real(real64),       intent(in)  :: tb
+    real(real32),       intent(in)  :: local_error
+    integer(int64),     intent(in)  :: n_global
+    real(real32)        :: errthr
 
-    temp = nx * ny; if( present(nz) ) temp = temp * nz
-    errthr = 5.0_real32 * log( real(temp, real32) ) / log(real(2.0, real32)) * (nearest(1._real32, 1._real32) - nearest(1._real32,-1._real32))
+    errthr = 5.0_real32 * log( real(n_global, real32) ) / log(real(2.0, real32)) * (nearest(1._real32, 1._real32) - nearest(1._real32,-1._real32))
     call report_internal(tf, tb, real(local_error, real64), real(errthr, real64))
   end subroutine reportSingle
 
-  subroutine reportDouble(tf, tb, local_error, nx, ny, nz)  bind(C, name="reportDouble")
-    real(c_double),       intent(in)            :: tf
-    real(c_double),       intent(in)            :: tb
-    real(c_double),       intent(in)            :: local_error
-    integer(c_int32_t),   intent(in)            :: nx
-    integer(c_int32_t),   intent(in)            :: ny
-    integer(c_int32_t),   intent(in), optional  :: nz
-    integer(int32) :: temp
-    real(real64)   :: errthr
+  subroutine reportDouble(tf, tb, local_error, n_global)
+    real(real64),       intent(in)  :: tf
+    real(real64),       intent(in)  :: tb
+    real(real64),       intent(in)  :: local_error
+    integer(int64),     intent(in)  :: n_global
+    real(real64)        :: errthr
 
-    temp = nx * ny; if( present(nz) ) temp = temp * nz
-    errthr = 5.0_real64 * log( real(temp, real64) ) / log(real(2.0, real64)) * (nearest(1._real64, 1._real64) - nearest(1._real64,-1._real64))
+    errthr = 5.0_real64 * log( real(n_global, real64) ) / log(real(2.0, real64)) * (nearest(1._real64, 1._real64) - nearest(1._real64,-1._real64))
     call report_internal(tf, tb, local_error, errthr)
   end subroutine reportDouble
 
@@ -167,6 +179,127 @@ contains
 #endif
   end subroutine attach_gpu_to_process
 
+  subroutine setTestValuesDouble(buffer, buf_size) bind(C, name="setTestValuesDouble")
+    type(c_ptr),        intent(in), value :: buffer
+    integer(c_size_t),  intent(in), value :: buf_size
+    real(real64), pointer :: buf(:)
+    real(real64) :: rnd
+    integer(int64) :: i
+
+    call c_f_pointer(buffer, buf, [buf_size])
+    do i = 1, buf_size
+      call random_number(rnd)
+      buf(i) = rnd
+    enddo
+  end subroutine setTestValuesDouble
+
+  subroutine setTestValuesFloat(buffer, buf_size) bind(C, name="setTestValuesFloat")
+    type(c_ptr),        intent(in), value :: buffer
+    integer(c_size_t),  intent(in), value :: buf_size
+    real(real32), pointer :: buf(:)
+    real(real32) :: rnd
+    integer(int64) :: i
+
+    call c_f_pointer(buffer, buf, [buf_size])
+    do i = 1, buf_size
+      call random_number(rnd)
+      buf(i) = rnd
+    enddo
+  end subroutine setTestValuesFloat
+
+  subroutine setTestValuesComplexDouble(buffer, buf_size) bind(C, name="setTestValuesComplexDouble")
+    type(c_ptr),        intent(in), value :: buffer
+    integer(c_size_t),  intent(in), value :: buf_size
+    call setTestValuesDouble(buffer, 2 * buf_size)
+  end subroutine setTestValuesComplexDouble
+
+  subroutine setTestValuesComplexFloat(buffer, buf_size) bind(C, name="setTestValuesComplexFloat")
+    type(c_ptr),        intent(in), value :: buffer
+    integer(c_size_t),  intent(in), value :: buf_size
+    call setTestValuesFloat(buffer, 2 * buf_size)
+  end subroutine setTestValuesComplexFloat
+
+#if defined(DTFFT_WITH_CUDA)
+  subroutine doubleH2D(source, target, count, platform) bind(C, name="doubleH2D")
+    integer(c_int32_t), intent(in), value :: platform
+#else
+  subroutine doubleH2D(source, target, count) bind(C, name="doubleH2D")
+#endif
+    type(c_ptr),        intent(in), value :: source
+    type(c_ptr),        intent(in), value :: target
+    integer(c_size_t),  intent(in), value :: count
+    real(real64), pointer :: source_(:), target_(:)
+
+    call c_f_pointer(source, source_, [count])
+    call c_f_pointer(target, target_, [count])
+#if defined(DTFFT_WITH_CUDA)
+  if ( dtfft_platform_t(platform) == DTFFT_PLATFORM_CUDA ) then
+    CUDA_CALL( "cudaMemcpy", cudaMemcpy(target, source, count * DOUBLE_STORAGE_SIZE, cudaMemcpyHostToDevice) )
+  else
+    target_(:) = source_(:)
+  endif
+#else
+    target_(:) = source_(:)
+#endif
+  end subroutine doubleH2D
+
+#if defined(DTFFT_WITH_CUDA)
+  subroutine floatH2D(source, target, count, platform) bind(C, name="floatH2D")
+    integer(c_int32_t), intent(in), value :: platform
+#else
+  subroutine floatH2D(source, target, count) bind(C, name="floatH2D")
+#endif
+    type(c_ptr),        intent(in), value :: source
+    type(c_ptr),        intent(in), value :: target
+    integer(c_size_t),  intent(in), value :: count
+    real(real32), pointer :: source_(:), target_(:)
+
+    call c_f_pointer(source, source_, [count])
+    call c_f_pointer(target, target_, [count])
+#if defined(DTFFT_WITH_CUDA)
+  if ( dtfft_platform_t(platform) == DTFFT_PLATFORM_CUDA ) then
+    CUDA_CALL( "cudaMemcpy", cudaMemcpy(target, source, count * FLOAT_STORAGE_SIZE, cudaMemcpyHostToDevice) )
+  else
+    target_(:) = source_(:)
+  endif
+#else
+    target_(:) = source_(:)
+#endif
+  end subroutine floatH2D
+
+#if defined(DTFFT_WITH_CUDA)
+  subroutine complexDoubleH2D(source, target, count, platform) bind(C, name="complexDoubleH2D")
+    integer(c_int32_t), intent(in), value :: platform
+#else
+  subroutine complexDoubleH2D(source, target, count) bind(C, name="complexDoubleH2D")
+#endif
+    type(c_ptr),        intent(in), value :: source
+    type(c_ptr),        intent(in), value :: target
+    integer(c_size_t),  intent(in), value :: count
+#if defined(DTFFT_WITH_CUDA)
+    call doubleH2D(source, target, 2 * count, platform)
+#else
+    call doubleH2D(source, target, 2 * count)
+#endif
+  end subroutine complexDoubleH2D
+
+#if defined(DTFFT_WITH_CUDA)
+  subroutine complexFloatH2D(source, target, count, platform) bind(C, name="complexFloatH2D")
+    integer(c_int32_t), intent(in), value :: platform
+#else
+  subroutine complexFloatH2D(source, target, count) bind(C, name="complexFloatH2D")
+#endif
+    type(c_ptr),        intent(in), value :: source
+    type(c_ptr),        intent(in), value :: target
+    integer(c_size_t),  intent(in), value :: count
+#if defined(DTFFT_WITH_CUDA)
+    call floatH2D(source, target, 2 * count, platform)
+#else
+    call floatH2D(source, target, 2 * count)
+#endif
+  end subroutine complexFloatH2D
+
+
   subroutine scaleFloatHost(buffer, buf_size, scale) bind(C, name="scaleFloatHost")
     type(c_ptr),        value :: buffer
     integer(c_size_t),  value :: buf_size
@@ -201,10 +334,10 @@ contains
     call scaleDoubleHost(buffer, 2 * buf_size, scale)
   end subroutine scaleComplexDoubleHost
 
-  function checkFloat(check, buf, buf_size) result(err) bind(C, name="checkFloat")
-    type(c_ptr),        value :: check
-    type(c_ptr),        value :: buf
-    integer(c_size_t),  value :: buf_size
+    function checkFloat(check, buf, buf_size) result(err)
+    type(c_ptr)         :: check
+    type(c_ptr)         :: buf
+    integer(c_size_t) :: buf_size
     real(c_float)             :: err
     real(real32),  pointer :: check_(:)
     real(real32),  pointer :: buf_(:)
@@ -214,11 +347,11 @@ contains
     err = maxval(abs(check_ - buf_))
   end function checkFloat
 
-  function checkDouble(check, buf, buf_size) result(err) bind(C, name="checkDouble")
-    type(c_ptr),        value :: check
-    type(c_ptr),        value :: buf
-    integer(c_size_t),  value :: buf_size
-    real(c_double)            :: err
+  function checkDouble(check, buf, buf_size) result(err)
+    type(c_ptr)         :: check
+    type(c_ptr)         :: buf
+    integer(c_size_t)  :: buf_size
+    real(c_double)     :: err
     real(real64),  pointer :: check_(:)
     real(real64),  pointer :: buf_(:)
 
@@ -227,21 +360,65 @@ contains
     err = maxval(abs(check_ - buf_))
   end function checkDouble
 
-  function checkComplexFloat(check, buf, buf_size) result(err) bind(C, name="checkComplexFloat")
-    type(c_ptr),        value :: check
-    type(c_ptr),        value :: buf
-    integer(c_size_t),  value :: buf_size
-    real(c_float)             :: err
-
+  function checkComplexFloat(check, buf, buf_size) result(err)
+    type(c_ptr)         :: check
+    type(c_ptr)         :: buf
+    integer(c_size_t)  :: buf_size
+    real(c_float)      :: err
     err = checkFloat(check, buf, 2 * buf_size)
   end function checkComplexFloat
 
-  function checkComplexDouble(check, buf, buf_size) result(err) bind(C, name="checkComplexDouble")
-    type(c_ptr),        value :: check
-    type(c_ptr),        value :: buf
-    integer(c_size_t),  value :: buf_size
-    real(c_double)            :: err
-
+  function checkComplexDouble(check, buf, buf_size) result(err)
+    type(c_ptr)         :: check
+    type(c_ptr)         :: buf
+    integer(c_size_t)  :: buf_size
+    real(c_double)     :: err
     err = checkDouble(check, buf, 2 * buf_size)
   end function checkComplexDouble
-end module
+
+
+#define FUNC_NAME scaleComplexDouble
+#define FUNC_NAME_STR "scaleComplexDouble"
+#include "scale.inc"
+
+#define FUNC_NAME scaleComplexFloat
+#define FUNC_NAME_STR "scaleComplexFloat"
+#include "scale.inc"
+
+#define FUNC_NAME scaleDouble
+#define FUNC_NAME_STR "scaleDouble"
+#include "scale.inc"
+
+#define FUNC_NAME scaleFloat
+#define FUNC_NAME_STR "scaleFloat"
+#include "scale.inc"
+
+
+#define STORAGE_BYTES DOUBLE_COMPLEX_STORAGE_SIZE
+#define FUNC_NAME checkAndReportComplexDouble
+#define FUNC_NAME_STR "checkAndReportComplexDouble"
+#define CHECK_FUNC checkComplexDouble
+#define ERROR_PRECISION c_double
+#include "check_and_report.inc"
+
+#define STORAGE_BYTES COMPLEX_STORAGE_SIZE
+#define FUNC_NAME checkAndReportComplexFloat
+#define FUNC_NAME_STR "checkAndReportComplexFloat"
+#define CHECK_FUNC checkComplexFloat
+#define ERROR_PRECISION c_float
+#include "check_and_report.inc"
+
+#define STORAGE_BYTES DOUBLE_STORAGE_SIZE
+#define FUNC_NAME checkAndReportDouble
+#define FUNC_NAME_STR "checkAndReportDouble"
+#define CHECK_FUNC checkDouble
+#define ERROR_PRECISION c_double
+#include "check_and_report.inc"
+
+#define STORAGE_BYTES FLOAT_STORAGE_SIZE
+#define FUNC_NAME checkAndReportFloat
+#define FUNC_NAME_STR "checkAndReportFloat"
+#define CHECK_FUNC checkFloat
+#define ERROR_PRECISION c_float
+#include "check_and_report.inc"
+end module test_utils

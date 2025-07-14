@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   int32_t nx = 32, ny = 32;
 #endif
   float *in, *out, *check;
-  int i,j, comm_rank, comm_size;
+  int comm_rank, comm_size;
   int32_t in_counts[2], out_counts[2], n[2] = {ny, nx};
   dtfft_r2r_kind_t kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
 
@@ -106,24 +106,14 @@ int main(int argc, char *argv[]) {
   size_t out_size = out_counts[0] * out_counts[1];
 
   check = (float*) malloc(sizeof(float) * in_size);
-
-  for (i = 0; i < in_counts[1]; i++) { // x direction
-    for (j = 0; j < in_counts[0]; j++) { // y direction
-      check[i * in_counts[0] + j] = (float)(i * in_counts[0] + j) / (float)(alloc_size);
-    }
-  }
+  setTestValuesFloat(check, in_size);
 
 #if defined(DTFFT_WITH_CUDA)
   dtfft_platform_t platform;
   DTFFT_CALL( dtfft_get_platform(plan, &platform) )
-
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    CUDA_SAFE_CALL( cudaMemcpy(in, check, in_size * element_size, cudaMemcpyHostToDevice) )
-  } else {
-    memcpy(in, check, in_size * element_size);
-  }
+  floatH2D(check, in, in_size, (int32_t)platform);
 #else
-  memcpy(in, check, in_size * element_size);
+  floatH2D(check, in, in_size);
 #endif
 
   double tf = 0.0 - MPI_Wtime();
@@ -135,18 +125,12 @@ int main(int argc, char *argv[]) {
 #endif
   tf += MPI_Wtime();
 
-  if ( executor != DTFFT_EXECUTOR_NONE ) {
-    size_t scale_size = 4 * nx * (ny + 1);
+  size_t scale_size = 4 * nx * (ny + 1);
 #if defined(DTFFT_WITH_CUDA)
-    if ( platform == DTFFT_PLATFORM_CUDA ) {
-      scaleFloat(out, out_size, scale_size, 0);
-    } else {
-      scaleFloatHost(out, out_size, scale_size);
-    }
+  scaleFloat((int32_t)executor, out, out_size, scale_size, (int32_t)platform, NULL);
 #else
-    scaleFloatHost(out, out_size, scale_size);
+  scaleFloat((int32_t)executor, out, out_size, scale_size);
 #endif
-  }
 
   double tb = 0.0 - MPI_Wtime();
   dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, NULL);
@@ -157,23 +141,11 @@ int main(int argc, char *argv[]) {
 #endif
   tb += MPI_Wtime();
 
-  float local_error;
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    float *test;
-
-    test = (float*) malloc(element_size * alloc_size);
-    CUDA_SAFE_CALL( cudaMemcpy(test, in, element_size * in_size, cudaMemcpyDeviceToHost) )
-    local_error = checkFloat(check, test, in_size);
-    free(test);
-  } else {
-    local_error = checkFloat(check, in, in_size);
-  }
+  checkAndReportFloat(nx * ny, tf, tb, in, in_size, check, (int32_t)platform);
 #else
-  local_error = checkFloat(check, in, in_size);
+  checkAndReportFloat(nx * ny, tf, tb, in, in_size, check);
 #endif
-
-  reportSingle(&tf, &tb, &local_error, &nx, &ny, NULL);
 
   DTFFT_CALL( dtfft_mem_free(plan, in) )
   DTFFT_CALL( dtfft_mem_free(plan, out) )

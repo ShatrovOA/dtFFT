@@ -34,7 +34,6 @@ int main(int argc, char *argv[])
   int32_t nx = 512, ny = 64, nz = 32;
   dtfft_complex *in, *out, *check, *aux;
   int comm_rank, comm_size;
-  size_t i;
   int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
   int grid_dims[3] = {1, 0, 0}, periods[3] = {0, 0, 0};
   MPI_Comm grid_comm;
@@ -119,10 +118,12 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&aux) )
 #endif
 
-  for (i = 0; i < in_size; i++) {
-    in[i][0] = check[i][0] = (double)rand() / (double)(RAND_MAX);
-    in[i][1] = check[i][1] = (double)rand() / (double)(RAND_MAX);
-  }
+  setTestValuesComplexDouble(check, in_size);
+#if defined(DTFFT_WITH_CUDA)
+  complexDoubleH2D(check, in, in_size, (int32_t)platform);
+#else
+  complexDoubleH2D(check, in, in_size);
+#endif
 
   double tf = 0.0 - MPI_Wtime();
 
@@ -145,14 +146,11 @@ int main(int argc, char *argv[])
 #endif
   tf += MPI_Wtime();
 
-  for (i = 0; i < in_size; i++) {
-    in[i][0] = -1.0;
-    in[i][1] = -2.0;
-  }
-
-  if ( executor != DTFFT_EXECUTOR_NONE ) {
-    scaleComplexDoubleHost(out, out_size, nx * ny * nz);
-  }
+#if defined(DTFFT_WITH_CUDA)
+  scaleComplexDouble((int32_t)executor, out, out_size, nx * ny * nz, (int32_t)platform, NULL);
+#else
+  scaleComplexDouble((int32_t)executor, out, out_size, nx * ny * nz);
+#endif
 
   double tb = 0.0 - MPI_Wtime();
   DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, aux) )
@@ -163,13 +161,29 @@ int main(int argc, char *argv[])
 #endif
   tb += MPI_Wtime();
 
-  double local_error = checkComplexDouble(check, in, in_size);
-  reportDouble(&tf, &tb, &local_error, &nx, &ny, &nz);
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportComplexDouble(nx * ny * nz, tf, tb, in, in_size, check, (int32_t)platform);
+#else
+  checkAndReportComplexDouble(nx * ny * nz, tf, tb, in, in_size, check);
+#endif
 
   free(check);
+
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaFree(in) )
+    CUDA_SAFE_CALL( cudaFree(out) )
+    CUDA_SAFE_CALL( cudaFree(aux) )
+  } else {
+    DTFFT_CALL( dtfft_mem_free(plan, in) )
+    DTFFT_CALL( dtfft_mem_free(plan, out) )
+    DTFFT_CALL( dtfft_mem_free(plan, aux) )
+  }
+#else
   DTFFT_CALL( dtfft_mem_free(plan, in) )
   DTFFT_CALL( dtfft_mem_free(plan, out) )
   DTFFT_CALL( dtfft_mem_free(plan, aux) )
+#endif
 
   DTFFT_CALL( dtfft_destroy(&plan) )
 

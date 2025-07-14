@@ -19,24 +19,30 @@
 #include "dtfft_config.h"
 program test_r2c_2d_float
 use iso_fortran_env
-use dtfft
 use iso_c_binding
+use dtfft
 use test_utils
+#if defined(DTFFT_WITH_CUDA)
+use dtfft_interface_cuda_runtime
+#endif
+#include "dtfft_cuda.h"
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
-  real(real32),     allocatable, target :: in(:), check(:,:)
-  real(real32),      pointer     :: pin(:,:)
-  complex(real32),  allocatable :: out(:)
-  real(real32) :: local_error, rnd
+  type(c_ptr) :: check
+  real(real32), pointer :: in(:,:)
+  complex(real32), pointer :: out(:,:)
   integer(int32), parameter :: nx = 17, ny = 19
-  integer(int32) :: comm_size, comm_rank, i, j, ierr, outsize
-  type(dtfft_executor_t) :: executor
+  integer(int32) :: comm_size, comm_rank, ierr
   type(dtfft_plan_r2c_t) :: plan
   integer(int32) :: in_counts(2), out_counts(2)
   real(real64) :: tf, tb
-  integer(int64) :: alloc_size
+  type(dtfft_executor_t) :: executor = DTFFT_EXECUTOR_NONE
+  integer(int64) :: alloc_size, element_size, in_size
+#if defined(DTFFT_WITH_CUDA)
+  type(dtfft_platform_t) :: platform
+#endif
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -50,6 +56,7 @@ implicit none
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
     write(output_unit, '(a)') "----------------------------------------"
   endif
+
 #ifdef DTFFT_TRANSPOSE_ONLY
   if ( comm_rank == 0 ) &
     write(output_unit, '(a)') "R2C Transpose plan not supported, skipping it"
@@ -64,49 +71,99 @@ implicit none
   executor = DTFFT_EXECUTOR_MKL
 #endif
 
-  call plan%create([nx, ny], precision=DTFFT_SINGLE, executor=executor, error_code=ierr)
-  DTFFT_CHECK(ierr)
-  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size, error_code=ierr)
-  DTFFT_CHECK(ierr)
+#ifdef DTFFT_WITH_CUDA
+  block
+    character(len=5) :: platform_env
+    integer(int32) :: env_len
 
-  allocate(in(alloc_size))
-  allocate(out(alloc_size / 2))
-  allocate(check(1:in_counts(1), 1:in_counts(2)))
+    call get_environment_variable("DTFFT_PLATFORM", platform_env, env_len)
 
-  pin(1:in_counts(1), 1:in_counts(2)) => in
+    if ( env_len == 0 .or. trim(adjustl(platform_env)) == "cuda" ) then
+# if defined( DTFFT_WITH_CUFFT )
+      executor = DTFFT_EXECUTOR_CUFFT
+# elif defined( DTFFT_WITH_VKFFT )
+      executor = DTFFT_EXECUTOR_VKFFT
+# endif
+    endif
+  endblock
+#endif
 
-  do j = 1, in_counts(2)
-    do i = 1, in_counts(1)
-      call random_number(rnd)
-      pin(i,j) = rnd
-      check(i,j) = rnd
-    enddo
-  enddo
+  if ( executor == DTFFT_EXECUTOR_NONE ) then
+    if ( comm_rank == 0 ) &
+      write(output_unit, '(a)') "Could not find valid R2C FFT executor, skipping test"
+    call MPI_Finalize(ierr)
+    stop
+  endif
+
+  call attach_gpu_to_process()
+
+#if defined(DTFFT_WITH_CUDA)
+  block
+    type(dtfft_config_t) :: conf
+    conf = dtfft_config_t(platform=DTFFT_PLATFORM_CUDA, backend=DTFFT_BACKEND_NCCL_PIPELINED)
+#ifndef DTFFT_WITH_NCCL
+    conf%backend = DTFFT_BACKEND_MPI_P2P_PIPELINED
+#endif
+    call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
+  endblock
+#endif
+
+  call plan%create([nx, ny], precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%get_local_sizes(in_counts = in_counts, out_counts = out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
+  element_size = plan%get_element_size(error_code=ierr); DTFFT_CHECK(ierr)
+
+  in_size = product(in_counts)
+
+  call plan%mem_alloc(alloc_size, in, in_counts, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%mem_alloc(alloc_size, out, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
+
+  call mem_alloc_host(in_size * element_size, check)
+  call setTestValuesFloat(check, in_size)
+
+#if defined(DTFFT_WITH_CUDA)
+  platform = plan%get_platform(error_code=ierr); DTFFT_CHECK(ierr)
+  call floatH2D(check, c_loc(in), in_size, platform%val)
+#else
+  call floatH2D(check, c_loc(in), in_size)
+#endif
 
   tf = 0.0_real64 - MPI_Wtime()
-  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr)
-  DTFFT_CHECK(ierr)
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr); DTFFT_CHECK(ierr)
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) then
+    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+  endif
+#endif
   tf = tf + MPI_Wtime()
 
-  outsize = product(out_counts)
-  out(:outsize) = out(:outsize) / real(nx * ny, real32)
-  ! Nullify recv buffer
-  in = -1._real32
+#if defined(DTFFT_WITH_CUDA)
+  call scaleComplexFloat(executor%val, c_loc(out), int(product(out_counts), int64), int(nx * ny, int64), platform%val, NULL_STREAM)
+#else
+  call scaleComplexFloat(executor%val, c_loc(out), int(product(out_counts), int64), int(nx * ny, int64))
+#endif
 
   tb = 0.0_real64 - MPI_Wtime()
-  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
-  DTFFT_CHECK(ierr)
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr); DTFFT_CHECK(ierr)
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) then
+    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+  endif
+#endif
   tb = tb + MPI_Wtime()
 
-  local_error = maxval(abs(pin - check))
-  call report(tf, tb, local_error, nx, ny)
+#if defined(DTFFT_WITH_CUDA)
+  call checkAndReportFloat(int(nx * ny, int64), tf, tb, c_loc(in), int(product(in_counts), int64), check, platform%val)
+#else
+  call checkAndReportFloat(int(nx * ny, int64), tf, tb, c_loc(in), int(product(in_counts), int64), check)
+#endif
 
-  deallocate(in, out, check)
-  nullify( pin )
+  call plan%mem_free(in, ierr); DTFFT_CHECK(ierr)
+  call plan%mem_free(out, ierr); DTFFT_CHECK(ierr)
+
+  call mem_free_host(check)
+
+  call plan%destroy(error_code=ierr); DTFFT_CHECK(ierr)
   call MPI_Finalize(ierr)
-  print*,ierr
-  !! Check that no error is raised when MPI is finalized
-  call plan%destroy(ierr)
-  print*,ierr, dtfft_get_error_string(ierr)
 #endif
 end program test_r2c_2d_float

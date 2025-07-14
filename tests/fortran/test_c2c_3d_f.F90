@@ -19,26 +19,25 @@
 #include "dtfft_config.h"
 program test_c2c_3d
 use iso_fortran_env
+use iso_c_binding
 use dtfft
 use iso_c_binding
 use test_utils
 #if defined(DTFFT_WITH_CUDA)
 use dtfft_interface_cuda_runtime
-use dtfft_utils
 #endif
 #include "dtfft_cuda.h"
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
   complex(real64),  pointer :: inout(:), aux(:)
-  complex(real64),  allocatable, target :: check(:,:,:)
-  real(real64) :: local_error, rnd1, rnd2
+  type(c_ptr) :: check
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   integer(int32), parameter :: nx = 255, ny = 333, nz = 135
 #else
   integer(int32), parameter :: nx = 129, ny = 123, nz = 33
 #endif
-  integer(int32) :: comm_size, comm_rank, i, j, k, ierr, ii, jj, kk, idx
+  integer(int32) :: comm_size, comm_rank, ierr
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_c2c_t) :: plan
   integer(int32) :: in_counts(3), out_counts(3), iter
@@ -129,43 +128,15 @@ implicit none
   call plan%mem_alloc(alloc_size, inout, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%mem_alloc(alloc_size, aux, error_code=ierr); DTFFT_CHECK(ierr)
 
-  allocate(check(in_counts(1), in_counts(2), in_counts(3)))
+  call mem_alloc_host(in_size * element_size, check)
+  call setTestValuesComplexDouble(check, in_size)
 
-  do k = 1, in_counts(3)
-    do j = 1, in_counts(2)
-      do i = 1, in_counts(1)
-        call random_number(rnd1)
-        call random_number(rnd2)
-        check(i,j,k) = cmplx(rnd1, rnd1, real64)
-      enddo
-    enddo
-  enddo
 
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(c_loc(inout), c_loc(check), in_size * element_size, cudaMemcpyHostToDevice, stream) )
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-  else
-    do k = 1, in_counts(3)
-      do j = 1, in_counts(2)
-        do i = 1, in_counts(1)
-          ii = i - 1; jj = j - 1; kk = k - 1
-          idx = kk * in_counts(2) * in_counts(1) + jj * in_counts(1) + ii + 1
-          inout(idx) = check(i,j,k)
-        enddo
-      enddo
-    enddo
-  endif
+  platform = plan%get_platform(error_code=ierr); DTFFT_CHECK(ierr)
+  call complexDoubleH2D(check, c_loc(inout), in_size, platform%val)
 #else
-  do k = 1, in_counts(3)
-    do j = 1, in_counts(2)
-      do i = 1, in_counts(1)
-        ii = i - 1; jj = j - 1; kk = k - 1
-        idx = kk * in_counts(2) * in_counts(1) + jj * in_counts(1) + ii + 1
-        inout(idx) = check(i,j,k)
-      enddo
-    enddo
-  enddo
+  call complexDoubleH2D(check, c_loc(inout), in_size)
 #endif
 
 
@@ -183,23 +154,11 @@ implicit none
 #endif
     tf = tf + ts + MPI_Wtime()
 
-    if ( executor /= DTFFT_EXECUTOR_NONE ) then
-      block
-        integer(int64) :: scale
-
-        scale = nx * ny * nz
 #if defined(DTFFT_WITH_CUDA)
-        if ( platform == DTFFT_PLATFORM_CUDA )  then
-          call scaleComplexDouble(c_loc(inout), out_size, scale, stream)
-          CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-        else
-          call scaleComplexDoubleHost(c_loc(inout), out_size, scale)
-        endif
+  call scaleComplexDouble(executor%val, c_loc(inout), int(product(out_counts), int64), int(nx * ny * nz, int64), platform%val, stream)
 #else
-        call scaleComplexDoubleHost(c_loc(inout), out_size, scale)
+  call scaleComplexDouble(executor%val, c_loc(inout), int(product(out_counts), int64), int(nx * ny * nz, int64))
 #endif
-      end block
-    endif
 
     ts = 0.0_real64 - MPI_Wtime()
     call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, aux, error_code=ierr); DTFFT_CHECK(ierr)
@@ -211,32 +170,16 @@ implicit none
     tb = tb + ts + MPI_Wtime()
   enddo
 
-  local_error = 0._real64
-
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) then
-  block
-    complex(real64), allocatable, target :: test(:)
-
-    allocate(test(in_size))
-
-    CUDA_CALL( "cudaMemcpy", cudaMemcpy(c_loc(test), c_loc(inout), element_size * in_size, cudaMemcpyDeviceToHost) )
-    local_error = checkComplexDouble(c_loc(check), c_loc(test), in_size)
-    deallocate(test)
-  endblock
-  else
-    local_error = checkComplexDouble(c_loc(check), c_loc(inout), in_size)
-  endif
+  call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check, platform%val)
 #else
-  local_error = checkComplexDouble(c_loc(check), c_loc(inout), in_size)
+    call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check)
 #endif
-
-  call report(tf, tb, local_error, nx, ny, nz)
 
   call plan%mem_free(inout, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%mem_free(aux, error_code=ierr); DTFFT_CHECK(ierr)
 
-  deallocate(check)
+  call mem_free_host(check)
 
   call plan%destroy()
   call MPI_Finalize(ierr)

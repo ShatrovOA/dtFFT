@@ -118,6 +118,18 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Invalid ``alloc_bytes`` provided
 
+.. f:variable:: DTFFT_ERROR_DLOPEN_FAILED
+
+  Dynamic library loading failed
+
+.. f:variable:: DTFFT_ERROR_DLSYM_FAILED
+
+  Dynamic library symbol lookup failed
+
+.. f:variable:: DTFFT_ERROR_R2C_TRANSPOSE_CALLED
+
+  Calling to ``transpose`` method for R2C plan is not allowed
+
 .. f:variable:: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 
   Selected ``executor`` do not support R2R FFTs
@@ -573,14 +585,14 @@ dtfft_pencil_t
 ------
 
 dtfft_platform_t
------------------------
+----------------
 
 .. f:type:: dtfft_platform_t
 
   Type that specifies the execution platform, such as Host, CUDA, or HIP
 
 Type Parameters
-_____________________
+_______________
 
 .. f:variable:: DTFFT_PLATFORM_HOST
 
@@ -593,7 +605,7 @@ _____________________
 ------
 
 dtfft_stream_t
------------------------
+--------------
 
 .. f:type:: dtfft_stream_t
 
@@ -603,7 +615,7 @@ dtfft_stream_t
     Actual stream
 
 Related Type functions
-_______________________
+______________________
 
 .. f:function:: dtfft_stream_t(stream)
 
@@ -619,7 +631,7 @@ _______________________
   :p integer(cuda_stream_kind) stream [in]: CUDA-Fortran stream
   :r dtfft_stream_t: Stream object
 
-.. f:function:: get_cuda_stream(stream)
+.. f:function:: dtfft_get_cuda_stream(stream)
 
   Gets CUDA stream from dtfft_stream_t object
 
@@ -699,6 +711,24 @@ _________
 
 ------
 
+transpose_ptr
+_____________
+
+.. f:subroutine:: transpose_ptr(in, out, transpose_type [, error_code])
+
+  Performs single transposition
+
+  :p type(c_ptr) in [in]:
+    Incoming pointer
+  :p type(c_ptr) out [in]:
+    Resulting pointer
+  :p dtfft_transpose_t transpose_type [in]:
+    Type of transposition
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
 execute
 _______
 
@@ -714,6 +744,26 @@ _______
     Type of execution
   :o type(*), dimension(..) aux [inout, optional]:
     Optional auxiliary buffer.
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
+execute_ptr
+___________
+
+.. f:subroutine:: execute_ptr(in, out, execute_type, aux [, error_code])
+
+  Executes plan
+
+  :p type(c_ptr) in [in]:
+    Incoming pointer
+  :p type(c_ptr) out [in]:
+    Resulting pointer
+  :p dtfft_execute_t execute_type [in]:
+    Type of execution
+  :p type(c_ptr) aux [in]:
+    Auxiliary pointer. Not optional. Must pass `c_null_ptr` if not used.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -781,17 +831,52 @@ ________________
 
 ------
 
+get_alloc_bytes
+_______________
+
+.. f:function:: get_alloc_bytes([error_code])
+
+  Returns minimum number of bytes required to execute plan
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r integer(int64):
+    Minimum number of bytes needs to be allocated for ``in``, ``out`` or ``aux`` buffers.
+
 mem_alloc
 _________
 
 Allocates memory tailored to the specific needs of the plan.
 
-.. f:function:: mem_alloc(alloc_bytes[, error_code])
+.. f:subroutine:: mem_alloc(alloc_size, ptr [, lbound, error_code])
+
+  :p integer(int64) alloc_size [in]: Number of elements to allocate
+  :p type(*) ptr(:) [pointer, out]: 1D pointer to allocate
+  :o integer(int32) lbound [in, optional]: Lower boundary of allocated pointer
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user
+
+------
+
+.. f:subroutine:: mem_alloc(alloc_size, ptr, sizes [, lbounds, error_code])
+
+  :p integer(int64) alloc_size [in]: Number of elements to allocate
+  :p type(*) ptr(..) [pointer, out]: 2D or 3D pointer to allocate
+  :p integer(int32) sizes(:) [in]: Sizes of each dimension in natural Fortran order. Size of ``sizes`` must match rank of pointer.
+  :o integer(int32) lbounds(:) [in, optional]: Lower boundaries of allocated pointer. Size of ``lbounds`` must match rank of pointer.
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user
+
+------
+
+mem_alloc_ptr
+_____________
+
+Allocates memory tailored to the specific needs of the plan.
+
+.. f:subroutine:: mem_alloc_ptr(alloc_bytes, ptr [, error_code])
 
   :p integer(int64) alloc_bytes [in]: Number of bytes to allocate
+  :p type(c_ptr) ptr [out]: Allocated pointer
   :o integer(int32) error_code [out, optional]: Optional error code returned to user
-  :r type(c_ptr): Allocated pointer
-
 
 ------
 
@@ -803,7 +888,20 @@ Frees memory previously allocated by :f:func:`mem_alloc`.
 
 .. f:subroutine:: mem_free(ptr[, error_code])
 
-  :p type(c_ptr) ptr [in]: Pointer allocated with ``mem_alloc``
+  :p type(*) ptr(..) [inout]: Pointer allocated with ``mem_alloc``
+  :o integer(int32) error_code [out, optional]: Optional error code returned to user
+
+------
+
+mem_free_ptr
+____________
+
+Frees memory previously allocated by :f:func:`mem_alloc_ptr`.
+
+
+.. f:subroutine:: mem_free_ptr(ptr[, error_code])
+
+  :p type(c_ptr) ptr [in]: Pointer allocated with ``mem_alloc_ptr``
   :o integer(int32) error_code [out, optional]: Optional error code returned to user
 
 ------
@@ -855,7 +953,7 @@ ______
 ------
 
 get_backend
-_______________
+___________
 
 .. f:function:: get_backend([error_code])
 
@@ -870,6 +968,22 @@ _______________
     Optional error code returned to user
 
   :r dtfft_backend_t: Selected GPU backend
+
+------
+
+get_platform
+____________
+
+.. f:function:: get_platform([error_code])
+
+  Returns execution platform of the plan (HOST or CUDA)
+
+  .. note:: This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+  :r dtfft_platform_t: Execution platform
 
 ------
 

@@ -1,11 +1,7 @@
 #ifndef TEST_UTILS_H
 #define TEST_UTILS_H
 
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <dtfft.h>
-#include <float.h>
 
 #if defined(DTFFT_WITH_CUDA)
 #include <cuda_runtime.h>
@@ -15,20 +11,11 @@
 extern "C" {
 #endif
 
-void scaleFloatHost(void* buffer, size_t count, size_t scale);
-void scaleDoubleHost(void* buffer, size_t count, size_t scale);
-void scaleComplexFloatHost(void* buffer, size_t count, size_t scale);
-void scaleComplexDoubleHost(void* buffer, size_t count, size_t scale);
 
-float checkFloat(void *check, void *buf, size_t buf_size);
-double checkDouble(void *check, void *buf, size_t buf_size);
-float checkComplexFloat(void *check, void *buf, size_t buf_size);
-double checkComplexDouble(void *check, void *buf, size_t buf_size);
-
-void reportSingle(double *time_forward, double *time_backward, float *local_error,
-  const int32_t *nx, const int32_t *ny, const int32_t *nz);
-void reportDouble(double *time_forward, double *time_backward, double *local_error,
-    const int32_t *nx, const int32_t *ny, const int32_t *nz);
+void setTestValuesComplexDouble(void *, size_t);
+void setTestValuesComplexFloat(void *, size_t);
+void setTestValuesDouble(void *, size_t);
+void setTestValuesFloat(void *, size_t);
 
 void attach_gpu_to_process();
 
@@ -42,10 +29,35 @@ void attach_gpu_to_process();
       MPI_Abort(MPI_COMM_WORLD, err);                                     \
   } } while (0);
 
-void scaleFloat(void* buffer, size_t count, size_t scale, cudaStream_t stream);
-void scaleDouble(void* buffer, size_t count, size_t scale, cudaStream_t stream);
-void scaleComplexFloat(void* buffer, size_t count, size_t scale, cudaStream_t stream);
-void scaleComplexDouble(void* buffer, size_t count, size_t scale, cudaStream_t stream);
+void scaleFloat(int32_t, void *, size_t, size_t, int32_t, dtfft_stream_t);
+void scaleDouble(int32_t, void *, size_t, size_t, int32_t, dtfft_stream_t);
+void scaleComplexFloat(int32_t, void *, size_t, size_t, int32_t, dtfft_stream_t);
+void scaleComplexDouble(int32_t, void *, size_t, size_t, int32_t, dtfft_stream_t);
+
+void complexDoubleH2D(void *, void *, size_t, int32_t);
+void complexFloatH2D(void *, void *, size_t, int32_t);
+void doubleH2D(void *, void *, size_t, int32_t);
+void floatH2D(void *, void *, size_t, int32_t);
+
+void checkAndReportComplexDouble(size_t, double, double, void *, size_t, void *, int32_t);
+void checkAndReportComplexFloat(size_t, double, double, void *, size_t, void *, int32_t);
+void checkAndReportDouble(size_t, double, double, void *, size_t, void *, int32_t);
+void checkAndReportFloat(size_t, double, double, void *, size_t, void *, int32_t);
+#else
+void scaleFloat(int32_t, void *, size_t, size_t);
+void scaleDouble(int32_t, void *, size_t, size_t);
+void scaleComplexFloat(int32_t, void *, size_t, size_t);
+void scaleComplexDouble(int32_t, void *, size_t, size_t);
+
+void complexDoubleH2D(void *, void *, size_t);
+void complexFloatH2D(void *, void *, size_t);
+void doubleH2D(void *, void *, size_t);
+void floatH2D(void *, void *, size_t);
+
+void checkAndReportComplexDouble(size_t, double, double, void *, size_t, void *);
+void checkAndReportComplexFloat(size_t, double, double, void *, size_t, void *);
+void checkAndReportDouble(size_t, double, double, void *, size_t, void *);
+void checkAndReportFloat(size_t, double, double, void *, size_t, void *);
 #endif
 
 #ifdef __cplusplus

@@ -55,21 +55,20 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_executor_t executor;
+  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #ifdef DTFFT_WITH_MKL
   executor = DTFFT_EXECUTOR_MKL;
 #elif defined (DTFFT_WITH_FFTW)
   executor = DTFFT_EXECUTOR_FFTW3;
-#else
-# if !defined(DTFFT_WITH_CUDA)
-  if(comm_rank == 0) {
-    printf("Missing HOST FFT Executor\n");
-  }
-  MPI_Finalize();
-  return 0;
-# endif
 #endif
+
+  attach_gpu_to_process();
+
+  dtfft_config_t config;
+  DTFFT_CALL( dtfft_create_config(&config) )
+
 #ifdef DTFFT_WITH_CUDA
+  cudaStream_t stream;
   char* platform_env = getenv("DTFFT_PLATFORM");
 
   if ( platform_env == NULL || strcmp(platform_env, "cuda") == 0 )
@@ -79,31 +78,26 @@ int main(int argc, char *argv[])
 # elif defined (DTFFT_WITH_CUFFT)
     executor = DTFFT_EXECUTOR_CUFFT;
 # else
-    if(comm_rank == 0) {
-      printf("Missing CUDA FFT Executor\n");
-    }
-    MPI_Finalize();
-    return 0;
+    executor = DTFFT_EXECUTOR_NONE;
 # endif
-  } else {
-    MPI_Finalize();
-    return 0;
+    CUDA_SAFE_CALL( cudaStreamCreate(&stream) )
+    config.stream = (dtfft_stream_t)stream;
+    config.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
   }
 #endif
 
-  dtfft_config_t config;
-  DTFFT_CALL( dtfft_create_config(&config) )
+  if ( executor == DTFFT_EXECUTOR_NONE ) {
+    if ( comm_rank == 0 ) printf("Could not find valid R2C FFT executor, skipping test\n");
+    MPI_Finalize();
+    return 0;
+  }
 
   config.enable_z_slab = false;
-#if defined(DTFFT_WITH_CUDA)
-  config.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
-  config.platform = DTFFT_PLATFORM_CUDA;
-#endif
   DTFFT_CALL( dtfft_set_config(config) )
 
-  attach_gpu_to_process();
   // Create plan
   DTFFT_CALL( dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor, &plan) )
+  DTFFT_CALL( dtfft_report(plan) )
 
   // Get local sizes
   size_t alloc_size, el_size;
@@ -118,27 +112,14 @@ int main(int argc, char *argv[])
 
   // Allocate buffers
   check = (double*) malloc(el_size * in_size);
-
-  for (size_t i = 0; i < in_size; i++) {
-    check[i] = (double)(i) / (double)(in_size);
-  }
+  setTestValuesDouble(check, in_size);
 
 #if defined(DTFFT_WITH_CUDA)
   dtfft_platform_t platform;
   DTFFT_CALL( dtfft_get_platform(plan, &platform) )
-
-  cudaStream_t stream;
-
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    dtfft_stream_t dtfftStream;
-    DTFFT_CALL( dtfft_get_stream(plan, &dtfftStream) )
-    stream = (cudaStream_t)dtfftStream;
-    CUDA_SAFE_CALL( cudaMemcpy(in, check, el_size * in_size, cudaMemcpyHostToDevice) )
-  } else {
-    memcpy(in, check, el_size * in_size);
-  }
+  doubleH2D(check, in, in_size, (int32_t)platform);
 #else
-  memcpy(in, check, el_size * in_size);
+  doubleH2D(check, in, in_size);
 #endif
 
   // Forward transpose
@@ -167,18 +148,11 @@ int main(int argc, char *argv[])
 #endif
 
   // Normalize
-  if ( executor != DTFFT_EXECUTOR_NONE ) {
 #if defined(DTFFT_WITH_CUDA)
-    if ( platform == DTFFT_PLATFORM_CUDA ) {
-      scaleComplexDouble(out, out_size, nx * ny * nz, stream);
-      CUDA_SAFE_CALL( cudaDeviceSynchronize() )
-    } else {
-      scaleComplexDoubleHost(out, out_size, nx * ny * nz);
-    }
+  scaleComplexDouble((int32_t)executor, out, out_size, nx * ny * nz, (int32_t)platform, stream);
 #else
-    scaleComplexDoubleHost(out, out_size, nx * ny * nz);
+  scaleComplexDouble((int32_t)executor, out, out_size, nx * ny * nz);
 #endif
-  }
 
   // Backward transpose
   double tb = 0.0 - MPI_Wtime();
@@ -191,23 +165,11 @@ int main(int argc, char *argv[])
 #endif
   tb += MPI_Wtime();
 
-  double local_error;
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    dtfftf_complex *h_in;
-
-    h_in = (dtfftf_complex*) malloc(el_size * in_size);
-    CUDA_SAFE_CALL( cudaMemcpy(h_in, in, el_size * in_size, cudaMemcpyDeviceToHost) )
-    local_error = checkDouble(check, h_in, in_size);
-    free(h_in);
-  } else {
-    local_error = checkDouble(check, in, in_size);
-  }
+  checkAndReportDouble(nx * ny, tf, tb, in, in_size, check, (int32_t)platform);
 #else
-  local_error = checkDouble(check, in, in_size);
+  checkAndReportDouble(nx * ny, tf, tb, in, in_size, check);
 #endif
-
-  reportDouble(&tf, &tb, &local_error, &nx, &ny, &nz);
 
   // Deallocate buffers
   free(check);

@@ -87,14 +87,14 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor, &plan) )
 
   int32_t in_counts[2], out_counts[2];
-  size_t alloc_size, el_size;
+  size_t alloc_size, element_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
-  DTFFT_CALL( dtfft_get_element_size(plan, &el_size) )
+  DTFFT_CALL( dtfft_get_element_size(plan, &element_size) )
   size_t in_size = in_counts[0] * in_counts[1];
   size_t out_size = out_counts[0] * out_counts[1];
 
-  if ( el_size != (size_t)sizeof(dtfftf_complex) ) {
-    fprintf(stderr, "el_size /= sizeof(dtfftf_complex)\n");
+  if ( element_size != (size_t)sizeof(dtfftf_complex) ) {
+    fprintf(stderr, "element_size /= sizeof(dtfftf_complex)\n");
     MPI_Abort(MPI_COMM_WORLD, -1);
   }
 
@@ -111,22 +111,15 @@ int main(int argc, char *argv[])
 
   dtfftf_complex *in, *out, *check;
 
-  dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&in);
-  dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&out);
-  check = (dtfftf_complex*) malloc(el_size * in_size);
-
-  for (size_t i = 0; i < in_size; i++) {
-    check[i] = (float)rand() / (float)(RAND_MAX) - (float)rand() / (float)(RAND_MAX) * I;
-  }
+  dtfft_mem_alloc(plan, element_size * alloc_size, (void**)&in);
+  dtfft_mem_alloc(plan, element_size * alloc_size, (void**)&out);
+  check = (dtfftf_complex*) malloc(element_size * in_size);
+  setTestValuesComplexFloat(check, in_size);
 
 #if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    CUDA_SAFE_CALL( cudaMemcpyAsync(in, check, el_size * in_size, cudaMemcpyHostToDevice, stream) )
-  } else {
-    memcpy(in, check, el_size * in_size);
-  }
+  complexFloatH2D(check, in, in_size, (int32_t)platform);
 #else
-  memcpy(in, check, el_size * in_size);
+  complexFloatH2D(check, in, in_size);
 #endif
 
   double tf = 0.0 - MPI_Wtime();
@@ -150,17 +143,12 @@ int main(int argc, char *argv[])
   }
 #endif
 
-  if ( executor != DTFFT_EXECUTOR_NONE ) {
+
 #if defined(DTFFT_WITH_CUDA)
-    if ( platform == DTFFT_PLATFORM_CUDA ) {
-      scaleComplexFloat(out, out_size, nx * ny, stream);
-    } else {
-      scaleComplexFloatHost(out, out_size, nx * ny);
-    }
+  scaleComplexFloat((int32_t)executor, out, out_size, nx * ny, (int32_t)platform, stream);
 #else
-    scaleComplexFloatHost(out, out_size, nx * ny);
+  scaleComplexFloat((int32_t)executor, out, out_size, nx * ny);
 #endif
-  }
 
   double tb = 0.0 - MPI_Wtime();
   DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, NULL) )
@@ -171,28 +159,18 @@ int main(int argc, char *argv[])
 #endif
   tb += MPI_Wtime();
 
-  float local_error;
-#if defined(DTFFT_WITH_CUDA)
-  if ( platform == DTFFT_PLATFORM_CUDA ) {
-    dtfftf_complex *h_in;
 
-    h_in = (dtfftf_complex*) malloc(el_size * alloc_size);
-    CUDA_SAFE_CALL( cudaMemcpy(h_in, in, el_size * in_size, cudaMemcpyDeviceToHost) )
-    local_error = checkComplexFloat(check, h_in, in_size);
-    free(h_in);
-  } else {
-    local_error = checkComplexFloat(check, in, in_size);
-  }
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportComplexFloat(nx * ny, tf, tb, in, in_size, check, (int32_t)platform);
 #else
-  local_error = checkComplexFloat(check, in, in_size);
+  checkAndReportComplexFloat(nx * ny, tf, tb, in, in_size, check);
 #endif
+
 
   // Free memory before plan destruction
   dtfft_mem_free(plan, in);
   dtfft_mem_free(plan, out);
   free(check);
-
-  reportSingle(&tf, &tb, &local_error, &nx, &ny, NULL);
 
   DTFFT_CALL( dtfft_destroy(&plan) )
 

@@ -24,8 +24,7 @@
  * @brief File containing C++ API functions of dtFFT Library
  */
 
-#ifndef DTFFT_HPP
-#define DTFFT_HPP
+#pragma once
 
 #include <dtfft.h>
 #include <vector>
@@ -63,102 +62,101 @@
 namespace dtfft
 {
 /** dtFFT version information */
-class Version {
-  public:
+  class Version {
+    public:
     /** dtFFT Major Version */
-    static constexpr int32_t MAJOR = DTFFT_VERSION_MAJOR;
+      static constexpr int32_t MAJOR = DTFFT_VERSION_MAJOR;
 
     /** dtFFT Minor Version */
-    static constexpr int32_t MINOR = DTFFT_VERSION_MINOR;
+      static constexpr int32_t MINOR = DTFFT_VERSION_MINOR;
 
     /** dtFFT Patch Version */
-    static constexpr int32_t PATCH = DTFFT_VERSION_PATCH;
+      static constexpr int32_t PATCH = DTFFT_VERSION_PATCH;
 
     /** dtFFT Version Code. Can be used for version comparison */
-    static constexpr int32_t CODE = DTFFT_VERSION_CODE;
+      static constexpr int32_t CODE = DTFFT_VERSION_CODE;
 
     /** @return Version Code defined during compilation */
-    static int32_t get() noexcept { return dtfft_get_version(); }
+      static int32_t get() noexcept { return dtfft_get_version(); }
 
     /** @return Version Code based on input parameters */
-    static constexpr int32_t get(int32_t major, int32_t minor, int32_t patch) noexcept { return DTFFT_VERSION(major, minor, patch); }
+      static constexpr int32_t get(int32_t major, int32_t minor, int32_t patch) noexcept { return DTFFT_VERSION(major, minor, patch); }
   };
 
 /** This enum lists the different error codes that ``dtFFT`` can return. */
   enum class Error {
-
 /** Successful execution */
-  SUCCESS = DTFFT_SUCCESS,
+    SUCCESS = DTFFT_SUCCESS,
 /** MPI_Init is not called or MPI_Finalize has already been called */
-  MPI_FINALIZED = DTFFT_ERROR_MPI_FINALIZED,
+    MPI_FINALIZED = DTFFT_ERROR_MPI_FINALIZED,
 /** Plan not created */
-  PLAN_NOT_CREATED = DTFFT_ERROR_PLAN_NOT_CREATED,
+    PLAN_NOT_CREATED = DTFFT_ERROR_PLAN_NOT_CREATED,
 /** Invalid `transpose_type` provided */
-  INVALID_TRANSPOSE_TYPE = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE,
+    INVALID_TRANSPOSE_TYPE = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE,
 /** Invalid Number of dimensions provided. Valid options are 2 and 3 */
-  INVALID_N_DIMENSIONS = DTFFT_ERROR_INVALID_N_DIMENSIONS,
+    INVALID_N_DIMENSIONS = DTFFT_ERROR_INVALID_N_DIMENSIONS,
 /** One or more provided dimension sizes <= 0 */
-  INVALID_DIMENSION_SIZE = DTFFT_ERROR_INVALID_DIMENSION_SIZE,
+    INVALID_DIMENSION_SIZE = DTFFT_ERROR_INVALID_DIMENSION_SIZE,
 /** Invalid communicator type provided */
-  INVALID_COMM_TYPE = DTFFT_ERROR_INVALID_COMM_TYPE,
+    INVALID_COMM_TYPE = DTFFT_ERROR_INVALID_COMM_TYPE,
 /** Invalid `precision` parameter provided */
-  INVALID_PRECISION = DTFFT_ERROR_INVALID_PRECISION,
+    INVALID_PRECISION = DTFFT_ERROR_INVALID_PRECISION,
 /** Invalid `effort` parameter provided */
-  INVALID_EFFORT = DTFFT_ERROR_INVALID_EFFORT,
+    INVALID_EFFORT = DTFFT_ERROR_INVALID_EFFORT,
 /** Invalid `executor` parameter provided */
-  INVALID_EXECUTOR = DTFFT_ERROR_INVALID_EXECUTOR,
+    INVALID_EXECUTOR = DTFFT_ERROR_INVALID_EXECUTOR,
 /** Number of dimensions in provided Cartesian communicator > Number of dimension passed to `create` subroutine */
-  INVALID_COMM_DIMS = DTFFT_ERROR_INVALID_COMM_DIMS,
+    INVALID_COMM_DIMS = DTFFT_ERROR_INVALID_COMM_DIMS,
 /** Passed Cartesian communicator with number of processes in 1st (fastest varying) dimension > 1 */
-  INVALID_COMM_FAST_DIM = DTFFT_ERROR_INVALID_COMM_FAST_DIM,
+    INVALID_COMM_FAST_DIM = DTFFT_ERROR_INVALID_COMM_FAST_DIM,
 /** For R2R plan, `kinds` parameter must be passed if `executor` != `Executor::NONE` */
-  MISSING_R2R_KINDS = DTFFT_ERROR_MISSING_R2R_KINDS,
+    MISSING_R2R_KINDS = DTFFT_ERROR_MISSING_R2R_KINDS,
 /** Invalid values detected in `kinds` parameter */
-  INVALID_R2R_KINDS = DTFFT_ERROR_INVALID_R2R_KINDS,
+    INVALID_R2R_KINDS = DTFFT_ERROR_INVALID_R2R_KINDS,
 /** Transpose plan is not supported in R2C, use R2R or C2C plan instead */
-  R2C_TRANSPOSE_PLAN = DTFFT_ERROR_R2C_TRANSPOSE_PLAN,
+    R2C_TRANSPOSE_PLAN = DTFFT_ERROR_R2C_TRANSPOSE_PLAN,
 /** Inplace transpose is not supported */
-  INPLACE_TRANSPOSE = DTFFT_ERROR_INPLACE_TRANSPOSE,
+    INPLACE_TRANSPOSE = DTFFT_ERROR_INPLACE_TRANSPOSE,
 /** Invalid `aux` buffer provided */
-  INVALID_AUX = DTFFT_ERROR_INVALID_AUX,
+    INVALID_AUX = DTFFT_ERROR_INVALID_AUX,
 /** Invalid `dim` passed to `Plan.get_pencil` */
-  INVALID_DIM = DTFFT_ERROR_INVALID_DIM,
+    INVALID_DIM = DTFFT_ERROR_INVALID_DIM,
 /** Invalid API Usage. */
-  INVALID_USAGE = DTFFT_ERROR_INVALID_USAGE,
+    INVALID_USAGE = DTFFT_ERROR_INVALID_USAGE,
 /** Trying to create already created plan */
-  PLAN_IS_CREATED = DTFFT_ERROR_PLAN_IS_CREATED,
+    PLAN_IS_CREATED = DTFFT_ERROR_PLAN_IS_CREATED,
 /** Selected `executor` does not support R2R FFTs */
-  R2R_FFT_NOT_SUPPORTED = DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED,
+    R2R_FFT_NOT_SUPPORTED = DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED,
 /** Internal call of Plan.mem_alloc failed */
-  ALLOC_FAILED = DTFFT_ERROR_ALLOC_FAILED,
+    ALLOC_FAILED = DTFFT_ERROR_ALLOC_FAILED,
 /** Failed to dynamically load library */
-  DLOPEN_FAILED = DTFFT_ERROR_DLOPEN_FAILED,
+    DLOPEN_FAILED = DTFFT_ERROR_DLOPEN_FAILED,
 /** Failed to dynamically load symbol */
-  DLSYM_FAILED = DTFFT_ERROR_DLSYM_FAILED,
+    DLSYM_FAILED = DTFFT_ERROR_DLSYM_FAILED,
 /** Calling to Plan.transpose for R2C plan is not allowed */
-  R2C_TRANSPOSE_CALLED = DTFFT_ERROR_R2C_TRANSPOSE_CALLED,
+    R2C_TRANSPOSE_CALLED = DTFFT_ERROR_R2C_TRANSPOSE_CALLED,
 /** Internal call of Plan.mem_free failed */
-  FREE_FAILED = DTFFT_ERROR_FREE_FAILED,
+    FREE_FAILED = DTFFT_ERROR_FREE_FAILED,
 /** Invalid `alloc_bytes` provided */
-  INVALID_ALLOC_BYTES = DTFFT_ERROR_INVALID_ALLOC_BYTES,
+    INVALID_ALLOC_BYTES = DTFFT_ERROR_INVALID_ALLOC_BYTES,
 /** Invalid stream provided */
-  GPU_INVALID_STREAM = DTFFT_ERROR_GPU_INVALID_STREAM,
+    GPU_INVALID_STREAM = DTFFT_ERROR_GPU_INVALID_STREAM,
 /** Invalid GPU backend provided */
-  GPU_INVALID_BACKEND = DTFFT_ERROR_GPU_INVALID_BACKEND,
+    GPU_INVALID_BACKEND = DTFFT_ERROR_GPU_INVALID_BACKEND,
 /** Multiple MPI Processes located on same host share same GPU which is not supported */
-  GPU_NOT_SET = DTFFT_ERROR_GPU_NOT_SET,
+    GPU_NOT_SET = DTFFT_ERROR_GPU_NOT_SET,
 /** When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions */
-  VKFFT_R2R_2D_PLAN = DTFFT_ERROR_VKFFT_R2R_2D_PLAN,
+    VKFFT_R2R_2D_PLAN = DTFFT_ERROR_VKFFT_R2R_2D_PLAN,
 /** Passed `effort` ==  `Effort::PATIENT` but all GPU backends have been disabled by `Config` */
-  GPU_BACKENDS_DISABLED = DTFFT_ERROR_GPU_BACKENDS_DISABLED,
+    GPU_BACKENDS_DISABLED = DTFFT_ERROR_GPU_BACKENDS_DISABLED,
 /** One of pointers passed to `Plan.execute` or `Plan.transpose` cannot be accessed from device */
-  NOT_DEVICE_PTR = DTFFT_ERROR_NOT_DEVICE_PTR,
-/** One of pointers passed to `Plan.execute` or `Plan.transpose` is not and `NVSHMEM` pointer */
-  NOT_NVSHMEM_PTR = DTFFT_ERROR_NOT_NVSHMEM_PTR,
+    NOT_DEVICE_PTR = DTFFT_ERROR_NOT_DEVICE_PTR,
+/** One of pointers passed to `Plan.execute` or `Plan.transpose` is not an `NVSHMEM` pointer */
+    NOT_NVSHMEM_PTR = DTFFT_ERROR_NOT_NVSHMEM_PTR,
 /** Invalid platform provided */
-  INVALID_PLATFORM = DTFFT_ERROR_INVALID_PLATFORM,
+    INVALID_PLATFORM = DTFFT_ERROR_INVALID_PLATFORM,
 /** Invalid executor provided for selected platform */
-  INVALID_PLATFORM_EXECUTOR_TYPE = DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
+    INVALID_PLATFORM_EXECUTOR_TYPE = DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
   };
 
 /** @brief Returns the string description of an error code
@@ -317,7 +315,7 @@ class Version {
  * @note This function is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
   std::string get_backend_string(const Backend backend) {
-    const char *gpu_str = dtfft_get_backend_string( static_cast<dtfft_backend_t>(backend));
+    const char *gpu_str = dtfft_get_backend_string(static_cast<dtfft_backend_t>(backend));
     return std::string(gpu_str);
   }
 
@@ -443,7 +441,7 @@ class Version {
     public:
       /** Creates and sets default configuration values */
       Config() {
-        DTFFT_CXX_CALL( static_cast<Error>(dtfft_create_config(&config)) );
+        DTFFT_CXX_CALL( static_cast<Error>(dtfft_create_config(&config)) )
       }
 
 /**
@@ -456,7 +454,11 @@ class Version {
  *
  * In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
  */
-      inline void set_enable_z_slab(bool enable_z_slab) noexcept { config.enable_z_slab = enable_z_slab; }
+      inline Config& set_enable_z_slab(bool enable_z_slab) noexcept
+      {
+        config.enable_z_slab = enable_z_slab;
+        return *this;
+      }
 
 #ifdef DTFFT_WITH_CUDA
 /**
@@ -467,7 +469,11 @@ class Version {
  * @details This option is only defined with device support build.
  * Even when dtFFT is build with device support it does not necessary means that all plans must be related to device.
  */
-      inline void set_platform(Platform platform) noexcept {config.platform = static_cast<dtfft_platform_t>(platform);}
+      inline Config& set_platform(Platform platform) noexcept
+      {
+        config.platform = static_cast<dtfft_platform_t>(platform);
+        return *this;
+      }
 /**
  * @brief Sets Main CUDA stream that will be used in dtFFT.
  *
@@ -479,7 +485,11 @@ class Version {
  *
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_stream(dtfft_stream_t stream) noexcept {config.stream = stream; }
+      inline Config& set_stream(dtfft_stream_t stream) noexcept
+      {
+        config.stream = stream;
+        return *this;
+      }
 
 /**
  * @brief Sets GPU Backend that will be used by dtFFT when `effort` is Effort::ESTIMATE or Effort::MEASURE.
@@ -487,7 +497,11 @@ class Version {
  * @details Default is Backend::NCCL
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_backend(Backend backend) noexcept {config.backend = static_cast<dtfft_backend_t>(backend); }
+      inline Config& set_backend(Backend backend) noexcept
+      {
+        config.backend = static_cast<dtfft_backend_t>(backend);
+        return *this;
+      }
 
 /**
  * @brief Sets whether MPI GPU Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
@@ -507,7 +521,11 @@ class Version {
  * but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_enable_mpi_backends(bool enable_mpi_backends) noexcept {config.enable_mpi_backends = enable_mpi_backends; }
+      inline Config& set_enable_mpi_backends(bool enable_mpi_backends) noexcept
+      {
+        config.enable_mpi_backends = enable_mpi_backends;
+        return *this;
+      }
 
 /**
  * @brief Sets whether pipelined GPU backends be enabled when `effort` is Effort::PATIENT or not.
@@ -517,21 +535,33 @@ class Version {
  * @note Pipelined backends require additional buffer that user has no control over.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_enable_pipelined_backends(bool enable_pipelined_backends) noexcept {config.enable_pipelined_backends = enable_pipelined_backends; }
+      inline Config& set_enable_pipelined_backends(bool enable_pipelined_backends) noexcept
+      {
+        config.enable_pipelined_backends = enable_pipelined_backends;
+        return *this;
+      }
 
 /**
  * @brief Sets whether NCCL Backends be enabled when `effort` is Effort::PATIENT or not.
  * @details Default is `true`.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_enable_nccl_backends(bool enable_nccl_backends) noexcept {config.enable_nccl_backends = enable_nccl_backends; }
+      inline Config& set_enable_nccl_backends(bool enable_nccl_backends) noexcept
+      {
+        config.enable_nccl_backends = enable_nccl_backends;
+        return *this;
+      }
 
 /**
  * @brief Should NVSHMEM Backends be enabled when `effort` is Effort::PATIENT or not.
  * @details Default is `true`.
  * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
  */
-      inline void set_enable_nvshmem_backends(bool enable_nvshmem_backends) noexcept {config.enable_nvshmem_backends = enable_nvshmem_backends; }
+      inline Config& set_enable_nvshmem_backends(bool enable_nvshmem_backends) noexcept
+      {
+        config.enable_nvshmem_backends = enable_nvshmem_backends;
+        return *this;
+      }
 #endif
 
 /** @return Underlying C structure */
@@ -575,6 +605,22 @@ class Version {
       }
 
 /**
+ * @brief Checks if plan is using Z-slab optimization.
+ *
+ * @return true if Z-slab is enabled, false otherwise
+ *
+ * @throws Exception if underlying call fails
+ */
+      inline
+      bool
+      get_z_slab_enabled() const
+      {
+        bool is_z_slab_enabled;
+        DTFFT_CXX_CALL( get_z_slab_enabled(&is_z_slab_enabled) )
+        return is_z_slab_enabled;
+      }
+
+/**
  * @brief Prints plan-related information to stdout
  *
  * @return Error::SUCCESS if call was without error, error code otherwise
@@ -606,6 +652,27 @@ class Version {
           pencil = Pencil(c_pencil);
         }
         return error_code;
+      }
+
+/**
+ * @brief Get the pencil object
+ * 
+ * @param[in]     dim             Required dimension:
+ *                                  - 0 for XYZ layout (real space, R2C only)
+ *                                  - 1 for XYZ layout
+ *                                  - 2 for YXZ layout
+ *                                  - 3 for ZXY layout
+ * @return Pencil class
+ *
+ * @throws Exception if underlying call fails
+ */
+      inline
+      Pencil
+      get_pencil(const int32_t dim) const
+      {
+        Pencil pencil;
+        DTFFT_CXX_CALL( get_pencil(dim, pencil) )
+        return pencil;
       }
 
 /** @brief Plan execution
@@ -657,6 +724,21 @@ class Version {
       get_alloc_size(size_t *alloc_size) const noexcept
       {return static_cast<Error>(dtfft_get_alloc_size(_plan, alloc_size));}
 
+/** @brief Wrapper around `Plan.get_local_sizes` to obtain `alloc_size` only
+ * 
+ * @return Minimum number of elements to be allocated for `in`, `out` or `aux` buffers.
+ *
+ * @throws Exception if underlying call fails
+ */
+      inline
+      size_t
+      get_alloc_size() const
+      {
+        size_t alloc_size;
+        DTFFT_CXX_CALL( get_alloc_size(&alloc_size) )
+        return alloc_size;
+      }
+
 
 /** @brief Get grid decomposition information. Results may differ on different MPI processes
  *
@@ -668,6 +750,9 @@ class Version {
  *                                      Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
  *
  * @return Error::SUCCESS on success or error code on failure.
+ * 
+ * @note Before calling this function, user must ensure that `in_starts`, `in_counts`, `out_starts` and `out_counts` vectors
+ *       are large enough to hold the data.
  */
       inline
       Error
@@ -714,6 +799,22 @@ class Version {
       get_element_size(size_t *element_size) const noexcept
       {return static_cast<Error>(dtfft_get_element_size(_plan, element_size));}
 
+/**
+ * @brief Obtains number of bytes required to store single element by this plan.
+ *
+ * @return Size of element in bytes
+ *
+ * @throws Exception if underlying call fails
+ */
+      inline
+      size_t
+      get_element_size() const
+      {
+        size_t element_size;
+        DTFFT_CXX_CALL( get_element_size(&element_size) )
+        return element_size;
+      }
+
 
 /**
  * @brief Returns minimum number of bytes required to execute plan.
@@ -728,6 +829,24 @@ class Version {
       Error
       get_alloc_bytes(size_t *alloc_bytes) const noexcept
       {return static_cast<Error>(dtfft_get_alloc_bytes(_plan, alloc_bytes));}
+
+/**
+ * @brief Returns minimum number of bytes required to execute plan.
+ *
+ * This function is a combination of two calls: Plan.get_alloc_size and Plan.get_element_size
+ *
+ * @return  Number of bytes of each buffer required to execute plan
+ *
+ * @throws Exception if underlying call fails
+ */
+      inline
+      size_t
+      get_alloc_bytes() const
+      {
+        size_t alloc_bytes;
+        DTFFT_CXX_CALL( get_alloc_bytes(&alloc_bytes) )
+        return alloc_bytes;
+      }
 
 /**
  * @brief Allocates memory specific for this plan
@@ -794,12 +913,31 @@ class Version {
  */
       inline
       Error
-      get_backend(Backend *backend) const noexcept
+      get_backend(Backend& backend) const noexcept
       {
         dtfft_backend_t backend_;
         dtfft_error_t error_code = dtfft_get_backend(_plan, &backend_);
-        *backend = static_cast<Backend>(backend_);
+        backend = static_cast<Backend>(backend_);
         return static_cast<Error>(error_code);
+      }
+
+/**
+ * @brief Returns selected GPU backend during autotune if `effort` is Effort::PATIENT.
+ * If `effort` passed to any create function is Effort::ESTIMATE or Effort::MEASURE
+ * returns value set by Config.set_backend followed by set_config() or default value, which is Backend::NCCL.
+ *
+ * @return GPU Backend used by this plan.
+ * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+ *
+ * @throws Exception if underlying call fails
+ */
+      inline
+      Backend
+      get_backend() const
+      {
+        Backend backend;
+        DTFFT_CXX_CALL( get_backend(backend) )
+        return backend;
       }
 
 /**
@@ -809,22 +947,38 @@ class Version {
  */
       inline
       Error
-      get_platform(Platform *platform) const noexcept
+      get_platform(Platform& platform) const noexcept
       {
         dtfft_platform_t platform_;
         dtfft_error_t error_code = dtfft_get_platform(_plan, &platform_);
-        *platform = static_cast<Platform>(platform_);
+        platform = static_cast<Platform>(platform_);
         return static_cast<Error>(error_code);
+      }
+
+/**
+ * @brief Returns plan execution platform.
+ *
+ * @return Platform::HOST if plan is executed on host, Platform::CUDA if plan is executed on CUDA device.
+ *
+ * @throws Exception if underlying call fails
+ */
+      inline
+      Platform
+      get_platform() const
+      {
+        Platform platform;
+        DTFFT_CXX_CALL( get_platform(platform) )
+        return platform;
       }
 #endif
 
-  /** @return Underlying C structure */
-  dtfft_plan_t c_struct() const {
-    return _plan;
-  }
+/** @return Underlying C structure */
+      dtfft_plan_t c_struct() const {
+        return _plan;
+      }
 
 /** Plan Destructor. To fully clean all internal memory, this should be called before MPI_Finalize */
-    virtual ~Plan() noexcept = 0;
+      virtual ~Plan() noexcept = 0;
   };
 
   inline Plan::~Plan() noexcept { destroy(); }
@@ -1032,5 +1186,3 @@ class Version {
       }
   };
 }
-// DTFFT_HPP
-#endif

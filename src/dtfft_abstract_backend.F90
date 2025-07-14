@@ -194,7 +194,7 @@ contains
   end subroutine create
 
   subroutine execute(self, in, out, stream, aux)
-  !! Executes self-copying backend
+  !! Executes GPU Backend
     class(abstract_backend),    intent(inout) :: self     !! Self-copying backend
     real(real32),               intent(inout) :: in(:)    !! Send pointer
     real(real32),               intent(inout) :: out(:)   !! Recv pointer
@@ -212,7 +212,7 @@ contains
 
     if( self%self_copy_bytes > 0 ) then
       if ( self%is_pipelined ) then
-    ! Tranposed data is actually located in aux buffer for pipelined algorithm
+        ! Tranposed data is actually located in aux buffer for pipelined algorithm
         CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(aux( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
         ! Data can be unpacked in same stream as `cudaMemcpyAsync`
         call self%unpack_kernel%execute(aux, out, self%copy_stream, self%comm_rank + 1)

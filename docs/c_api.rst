@@ -4,7 +4,7 @@
 C API Reference
 ###############
 
-This page describes all types, functions and macros available in ``dtFFT`` C API. 
+This page describes all types, functions and macros available in ``dtFFT`` C API.
 In order to use them user have to ``#include <dtfft.h>``.
 
 .. note::
@@ -155,6 +155,10 @@ Plan information
 ---------
 
 .. doxygenfunction:: dtfft_get_element_size
+
+---------
+
+.. doxygenfunction:: dtfft_get_alloc_bytes
 
 ---------
 
