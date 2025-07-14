@@ -61,7 +61,6 @@ foreach(test ${TEST_SOURCES})
       elseif(extension STREQUAL ".cpp")
         set_target_properties(${test_name} PROPERTIES LINKER_LANGUAGE CXX)
       endif()
-      set_target_properties(${test_name} PROPERTIES LINKER_LANGUAGE Fortran)
       target_compile_options(${test_name}
         PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc>)
       target_link_options(${test_name}
