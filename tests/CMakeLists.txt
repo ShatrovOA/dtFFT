@@ -50,9 +50,9 @@ foreach(test ${TEST_SOURCES})
 
     if ( CMAKE_Fortran_COMPILER_ID MATCHES NVHPC )
       target_compile_options(${test_name}
-        PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc>)
+        PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
       target_link_options(${test_name}
-        PUBLIC $<$<LINK_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc>)
+        PUBLIC $<$<LINK_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
     endif()
 
     if ( CMAKE_C_COMPILER_ID MATCHES NVHPC AND CMAKE_CXX_COMPILER_ID MATCHES NVHPC)
