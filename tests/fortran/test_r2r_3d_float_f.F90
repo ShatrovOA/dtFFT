@@ -163,7 +163,9 @@ implicit none
   nullify(check_)
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   deallocate(inout_m)
-  CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(stream) )
+  if ( platform == DTFFT_PLATFORM_CUDA ) then
+    CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(stream) )
+  endif
 #endif
 
   call plan%destroy()

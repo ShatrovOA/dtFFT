@@ -47,22 +47,21 @@ foreach(test ${TEST_SOURCES})
 
   if ( DTFFT_WITH_CUDA )
     target_link_libraries(${test_name} PRIVATE CUDA::cudart)
-    if ( CMAKE_Fortran_COMPILER_ID MATCHES NVHPC )
-      target_compile_options(${test_name}
-        PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
-      target_link_options(${test_name}
-        PUBLIC $<$<LINK_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
-    else()
-      
-    endif()
 
-    if ( CMAKE_C_COMPILER_ID MATCHES NVHPC AND CMAKE_CXX_COMPILER_ID MATCHES NVHPC)
-      target_compile_options(${test_name}
-        PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
-      target_link_options(${test_name}
-        PUBLIC $<$<LINK_LANGUAGE:C,CXX>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
-    else()
-      target_link_libraries(${test_name} PRIVATE CUDA::cudart)
+    if (NOT extension STREQUAL ".c")
+      if ( CMAKE_Fortran_COMPILER_ID MATCHES NVHPC )
+        target_compile_options(${test_name}
+          PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
+        target_link_options(${test_name}
+          PUBLIC $<$<LINK_LANGUAGE:Fortran>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
+      endif()
+
+      if ( CMAKE_C_COMPILER_ID MATCHES NVHPC AND CMAKE_CXX_COMPILER_ID MATCHES NVHPC)
+        target_compile_options(${test_name}
+          PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
+        target_link_options(${test_name}
+          PUBLIC $<$<LINK_LANGUAGE:C,CXX>:-gpu=ccall,cuda${CUDA_VERSION} -acc -Minfo=acc -cuda>)
+      endif()
     endif()
   endif()
 
