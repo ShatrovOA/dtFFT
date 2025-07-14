@@ -76,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 1.2% of total for derived types.</p>Including implementation: 454 statements,  6.2% of total for derived types.">6 statements</a>
+                 title="<p> 1.2% of total for derived types.</p>Including implementation: 530 statements,  6.9% of total for derived types.">6 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -133,8 +133,10 @@
       <div id="boundprocs-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-transpose">transpose</a>
-            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-execute~4">execute</a>
-            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-destroy~7">destroy</a>
+            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-transpose_ptr">transpose_ptr</a>
+            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-execute~5">execute</a>
+            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-execute_ptr">execute_ptr</a>
+            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-destroy~8">destroy</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_local_sizes">get_local_sizes</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_alloc_size">get_alloc_size</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_z_slab_enabled">get_z_slab_enabled</a>
@@ -142,12 +144,14 @@
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_element_size">get_element_size</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_alloc_bytes">get_alloc_bytes</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-report">report</a>
+            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-mem_alloc_ptr">mem_alloc_ptr</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-mem_alloc~9">mem_alloc</a>
+            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-mem_free_ptr">mem_free_ptr</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-mem_free~9">mem_free</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_platform">get_platform</a>
-            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_backend">get_backend</a>
+            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_backend~3">get_backend</a>
             <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-get_stream~4">get_stream</a>
-            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-create~9">create</a>
+            <a class="list-group-item" href="../type/dtfft_plan_r2r_t.html#boundprocedure-create~8">create</a>
         </div>
       </div>
     </div>
@@ -664,7 +668,126 @@ will be modified in GPU build</p>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-execute~4"></span>
+      <span class="anchor" id="boundprocedure-transpose_ptr"></span>
+      <h3>
+          procedure, public, pass(self), non_overridable ::
+  <strong>transpose_ptr</strong>
+        
+      </h3>
+    </div>
+      <div class="card-body">
+        
+        <p>Performs single transposition using type(c_ptr) pointers instead of buffers</p>
+      </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/transpose_ptr.html'>transpose_ptr</a>(self, in, out, transpose_type, error_code)  
+</h3>
+    
+
+  <p>Performs single transposition using type(c_ptr) pointers instead of buffers</p><a href="../proc/transpose_ptr.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='dtfft_plan_t.html'>dtfft_plan_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Abstract plan</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+<p>Incoming pointer. Note that values of this pointer
+will be modified in GPU build</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+<p>Resulting pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='dtfft_transpose_t.html'>dtfft_transpose_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transpose_type</strong></td>
+            <td>
+<p>Type of transposition.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+<p>Optional error code returned to user</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-execute~5"></span>
       <h3>
           procedure, public, pass(self), non_overridable ::
   <strong>execute</strong>
@@ -678,7 +801,7 @@ will be modified in GPU build</p>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/execute~6.html'>execute</a>(self, in, out, execute_type, aux, error_code)  
+    private  subroutine <a href='../proc/execute~5.html'>execute</a>(self, in, out, execute_type, aux, error_code)  
 </h3>
     
 
@@ -799,7 +922,143 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-destroy~7"></span>
+      <span class="anchor" id="boundprocedure-execute_ptr"></span>
+      <h3>
+          procedure, public, pass(self), non_overridable ::
+  <strong>execute_ptr</strong>
+        
+      </h3>
+    </div>
+      <div class="card-body">
+        
+        <p>Executes plan using type(c_ptr) pointers instead of buffers</p>
+      </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/execute_ptr.html'>execute_ptr</a>(self, in, out, execute_type, aux, error_code)  
+</h3>
+    
+
+  <p>Executes plan using type(c_ptr) pointers instead of buffers</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='dtfft_plan_t.html'>dtfft_plan_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Abstract plan</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+<p>Incoming pointer. Note that values of this pointer
+will be modified in GPU build</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+<p>Resulting pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='dtfft_execute_t.html'>dtfft_execute_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>execute_type</strong></td>
+            <td>
+<p>Type of execution.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>aux</strong></td>
+            <td>
+<p>Optional auxiliary buffer.
+Size of buffer must be greater than value
+returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.html#boundprocedure-get_local_sizes">get_local_sizes</a> subroutine</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+<p>Optional error code returned to user</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-destroy~8"></span>
       <h3>
           procedure, public, pass(self), non_overridable ::
   <strong>destroy</strong>
@@ -813,7 +1072,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/destroy~6.html'>destroy</a>(self, error_code)  
+    private  subroutine <a href='../proc/destroy~5.html'>destroy</a>(self, error_code)  
 </h3>
     
 
@@ -1234,7 +1493,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>dim</strong></td>
             <td>
-<p>Required dimension:</p><a href="../proc/get_pencil.html#variable-dim" class="pull-right"><emph>Read more&hellip;</emph></a>
+<p>Required dimension:</p><a href="../proc/get_pencil.html#variable-dim~5" class="pull-right"><emph>Read more&hellip;</emph></a>
             </td>
         </tr>
         <tr>
@@ -1498,13 +1757,17 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-mem_alloc~9"></span>
+      <span class="anchor" id="boundprocedure-mem_alloc_ptr"></span>
       <h3>
-          generic, public ::
-  <strong>mem_alloc</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_ptr'>mem_alloc_ptr</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r32_1d'>mem_alloc_r32_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r64_1d'>mem_alloc_r64_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r32_2d'>mem_alloc_r32_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r64_2d'>mem_alloc_r64_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r32_3d'>mem_alloc_r32_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r64_3d'>mem_alloc_r64_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c32_1d'>mem_alloc_c32_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c64_1d'>mem_alloc_c64_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c32_2d'>mem_alloc_c32_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c64_2d'>mem_alloc_c64_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c32_3d'>mem_alloc_c32_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c64_3d'>mem_alloc_c64_3d</a>
+          procedure, public, pass(self), non_overridable ::
+  <strong>mem_alloc_ptr</strong>
         
       </h3>
     </div>
+      <div class="card-body">
+        
+        <p>Allocates memory for type(c_ptr)</p>
+      </div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
@@ -1590,13 +1853,28 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
 
 
         </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-mem_alloc~9"></span>
+      <h3>
+          generic, public ::
+  <strong>mem_alloc</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r32_1d'>mem_alloc_r32_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r64_1d'>mem_alloc_r64_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r32_2d'>mem_alloc_r32_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r64_2d'>mem_alloc_r64_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r32_3d'>mem_alloc_r32_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_r64_3d'>mem_alloc_r64_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c32_1d'>mem_alloc_c32_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c64_1d'>mem_alloc_c64_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c32_2d'>mem_alloc_c32_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c64_2d'>mem_alloc_c64_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c32_3d'>mem_alloc_c32_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_alloc_c64_3d'>mem_alloc_c64_3d</a>
+        
+      </h3>
+    </div>
+    <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_r32_1d.html'>mem_alloc_r32_1d</a>(self, alloc_size, ptr, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_r32_1d.html'>mem_alloc_r32_1d</a>(self, alloc_size, ptr, lbound, error_code)  
 </h3>
     
 
-  <p>Allocates <code>real32</code> pointer of rank 1</p>
+  <p>Allocates pointer of rank 1</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1636,7 +1914,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>real32</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -1659,81 +1937,12 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               <span class="anchor" ></span>
               integer(kind=int32),
             </td>
-<td>intent(out),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>error_code</strong></td>
-            <td>
-<p>Optional error code returned to user</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-        </li>
-        <li class="list-group-item">
-                  <h3>
-    private  subroutine <a href='../proc/mem_alloc_r64_1d.html'>mem_alloc_r64_1d</a>(self, alloc_size, ptr, error_code)  
-</h3>
-    
-
-  <p>Allocates <code>real64</code> pointer of rank 1</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(<a href='dtfft_plan_t.html'>dtfft_plan_t</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>self</strong></td>
-            <td>
-<p>Abstract plan</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              integer(kind=int64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>alloc_size</strong></td>
-            <td>
-<p>Number of <code>real64</code> elements to allocate</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td></td>            <td>
-              pointer
-            </td>
-            <td>::</td>
-            <td><strong>ptr</strong>(:)</td>
+            <td><strong>lbound</strong></td>
             <td>
 
             </td>
@@ -1760,11 +1969,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_r32_2d.html'>mem_alloc_r32_2d</a>(self, alloc_size, ptr, shape, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_r64_1d.html'>mem_alloc_r64_1d</a>(self, alloc_size, ptr, lbound, error_code)  
 </h3>
     
 
-  <p>Allocates <code>real32</code> pointer of rank 2</p>
+  <p>Allocates pointer of rank 1</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1804,7 +2013,106 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>real32</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>ptr</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbound</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+<p>Optional error code returned to user</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/mem_alloc_r32_2d.html'>mem_alloc_r32_2d</a>(self, alloc_size, ptr, sizes, lbounds, error_code)  
+</h3>
+    
+
+  <p>Allocates pointer of rank 2</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='dtfft_plan_t.html'>dtfft_plan_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Abstract plan</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alloc_size</strong></td>
+            <td>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -1832,7 +2140,22 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               
             </td>
             <td>::</td>
-            <td><strong>shape</strong>(2)</td>
+            <td><strong>sizes</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbounds</strong>(2)</td>
             <td>
 
             </td>
@@ -1859,11 +2182,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_r64_2d.html'>mem_alloc_r64_2d</a>(self, alloc_size, ptr, shape, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_r64_2d.html'>mem_alloc_r64_2d</a>(self, alloc_size, ptr, sizes, lbounds, error_code)  
 </h3>
     
 
-  <p>Allocates <code>real64</code> pointer of rank 2</p>
+  <p>Allocates pointer of rank 2</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1903,7 +2226,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>real64</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -1931,7 +2254,22 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               
             </td>
             <td>::</td>
-            <td><strong>shape</strong>(2)</td>
+            <td><strong>sizes</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbounds</strong>(2)</td>
             <td>
 
             </td>
@@ -1958,11 +2296,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_r32_3d.html'>mem_alloc_r32_3d</a>(self, alloc_size, ptr, shape, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_r32_3d.html'>mem_alloc_r32_3d</a>(self, alloc_size, ptr, sizes, lbounds, error_code)  
 </h3>
     
 
-  <p>Allocates <code>real32</code> pointer of rank 3</p>
+  <p>Allocates pointer of rank 3</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2002,7 +2340,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>real32</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -2030,7 +2368,22 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               
             </td>
             <td>::</td>
-            <td><strong>shape</strong>(3)</td>
+            <td><strong>sizes</strong>(3)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbounds</strong>(3)</td>
             <td>
 
             </td>
@@ -2057,11 +2410,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_r64_3d.html'>mem_alloc_r64_3d</a>(self, alloc_size, ptr, shape, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_r64_3d.html'>mem_alloc_r64_3d</a>(self, alloc_size, ptr, sizes, lbounds, error_code)  
 </h3>
     
 
-  <p>Allocates <code>real64</code> pointer of rank 3</p>
+  <p>Allocates pointer of rank 3</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2101,7 +2454,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>real64</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -2129,7 +2482,22 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               
             </td>
             <td>::</td>
-            <td><strong>shape</strong>(3)</td>
+            <td><strong>sizes</strong>(3)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbounds</strong>(3)</td>
             <td>
 
             </td>
@@ -2156,11 +2524,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_c32_1d.html'>mem_alloc_c32_1d</a>(self, alloc_size, ptr, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_c32_1d.html'>mem_alloc_c32_1d</a>(self, alloc_size, ptr, lbound, error_code)  
 </h3>
     
 
-  <p>Allocates <code>complex32</code> pointer of rank 1</p>
+  <p>Allocates pointer of rank 1</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2200,7 +2568,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>complex32</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -2223,83 +2591,14 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               <span class="anchor" ></span>
               integer(kind=int32),
             </td>
-<td>intent(out),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>error_code</strong></td>
+            <td><strong>lbound</strong></td>
             <td>
-<p>Optional error code returned to user</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
 
-
-        </li>
-        <li class="list-group-item">
-                  <h3>
-    private  subroutine <a href='../proc/mem_alloc_c64_1d.html'>mem_alloc_c64_1d</a>(self, alloc_size, ptr, error_code)  
-</h3>
-    
-
-  <p>Allocates <code>complex64</code> pointer of rank 1</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(<a href='dtfft_plan_t.html'>dtfft_plan_t</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>self</strong></td>
-            <td>
-<p>Abstract plan</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              integer(kind=int64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>alloc_size</strong></td>
-            <td>
-<p>Number of <code>complex64</code> elements to allocate</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              complex(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td></td>            <td>
-              pointer
-            </td>
-            <td>::</td>
-            <td><strong>ptr</strong>(:)</td>
-            <td>
-<p>Allocated pointer</p>
             </td>
         </tr>
         <tr>
@@ -2324,11 +2623,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_c32_2d.html'>mem_alloc_c32_2d</a>(self, alloc_size, ptr, shape, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_c64_1d.html'>mem_alloc_c64_1d</a>(self, alloc_size, ptr, lbound, error_code)  
 </h3>
     
 
-  <p>Allocates <code>complex32</code> pointer of rank 2</p>
+  <p>Allocates pointer of rank 1</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2368,7 +2667,106 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>complex32</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              complex(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>ptr</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbound</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+<p>Optional error code returned to user</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/mem_alloc_c32_2d.html'>mem_alloc_c32_2d</a>(self, alloc_size, ptr, sizes, lbounds, error_code)  
+</h3>
+    
+
+  <p>Allocates pointer of rank 2</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='dtfft_plan_t.html'>dtfft_plan_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Abstract plan</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alloc_size</strong></td>
+            <td>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -2396,7 +2794,22 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               
             </td>
             <td>::</td>
-            <td><strong>shape</strong>(2)</td>
+            <td><strong>sizes</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbounds</strong>(2)</td>
             <td>
 
             </td>
@@ -2423,11 +2836,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_c64_2d.html'>mem_alloc_c64_2d</a>(self, alloc_size, ptr, shape, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_c64_2d.html'>mem_alloc_c64_2d</a>(self, alloc_size, ptr, sizes, lbounds, error_code)  
 </h3>
     
 
-  <p>Allocates <code>complex64</code> pointer of rank 2</p>
+  <p>Allocates pointer of rank 2</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2467,7 +2880,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>complex64</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -2495,7 +2908,22 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               
             </td>
             <td>::</td>
-            <td><strong>shape</strong>(2)</td>
+            <td><strong>sizes</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbounds</strong>(2)</td>
             <td>
 
             </td>
@@ -2522,11 +2950,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_c32_3d.html'>mem_alloc_c32_3d</a>(self, alloc_size, ptr, shape, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_c32_3d.html'>mem_alloc_c32_3d</a>(self, alloc_size, ptr, sizes, lbounds, error_code)  
 </h3>
     
 
-  <p>Allocates <code>complex32</code> pointer of rank 3</p>
+  <p>Allocates pointer of rank 3</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2566,7 +2994,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>complex32</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -2594,7 +3022,22 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               
             </td>
             <td>::</td>
-            <td><strong>shape</strong>(3)</td>
+            <td><strong>sizes</strong>(3)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbounds</strong>(3)</td>
             <td>
 
             </td>
@@ -2621,11 +3064,11 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_alloc_c64_3d.html'>mem_alloc_c64_3d</a>(self, alloc_size, ptr, shape, error_code)  
+    private  subroutine <a href='../proc/mem_alloc_c64_3d.html'>mem_alloc_c64_3d</a>(self, alloc_size, ptr, sizes, lbounds, error_code)  
 </h3>
     
 
-  <p>Allocates <code>complex64</code> pointer of rank 3</p>
+  <p>Allocates pointer of rank 3</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2665,7 +3108,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>alloc_size</strong></td>
             <td>
-<p>Number of <code>complex64</code> elements to allocate</p>
+<p>Number of elements to allocate</p>
             </td>
         </tr>
         <tr>
@@ -2693,7 +3136,22 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               
             </td>
             <td>::</td>
-            <td><strong>shape</strong>(3)</td>
+            <td><strong>sizes</strong>(3)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lbounds</strong>(3)</td>
             <td>
 
             </td>
@@ -2725,13 +3183,17 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-mem_free~9"></span>
+      <span class="anchor" id="boundprocedure-mem_free_ptr"></span>
       <h3>
-          generic, public ::
-  <strong>mem_free</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_ptr'>mem_free_ptr</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r32_1d'>mem_free_r32_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r32_2d'>mem_free_r32_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r32_3d'>mem_free_r32_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r64_1d'>mem_free_r64_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r64_2d'>mem_free_r64_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r64_3d'>mem_free_r64_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c32_1d'>mem_free_c32_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c32_2d'>mem_free_c32_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c32_3d'>mem_free_c32_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c64_1d'>mem_free_c64_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c64_2d'>mem_free_c64_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c64_3d'>mem_free_c64_3d</a>
+          procedure, public, pass(self), non_overridable ::
+  <strong>mem_free_ptr</strong>
         
       </h3>
     </div>
+      <div class="card-body">
+        
+        <p>Frees previously allocated memory for type(c_ptr)</p>
+      </div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
@@ -2802,9 +3264,24 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
 
 
         </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-mem_free~9"></span>
+      <h3>
+          generic, public ::
+  <strong>mem_free</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r32_1d'>mem_free_r32_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r32_2d'>mem_free_r32_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r32_3d'>mem_free_r32_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r64_1d'>mem_free_r64_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r64_2d'>mem_free_r64_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_r64_3d'>mem_free_r64_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c32_1d'>mem_free_c32_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c32_2d'>mem_free_c32_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c32_3d'>mem_free_c32_3d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c64_1d'>mem_free_c64_1d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c64_2d'>mem_free_c64_2d</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/dtfft_plan_t.html#boundprocedure-mem_free_c64_3d'>mem_free_c64_3d</a>
+        
+      </h3>
+    </div>
+    <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_r32_1d.html'>mem_free_r32_1d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_r32_1d.html'>mem_free_r32_1d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -2843,10 +3320,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:)</td>
+            <td><strong>ptr</strong>(:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -2873,7 +3350,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_r32_2d.html'>mem_free_r32_2d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_r32_2d.html'>mem_free_r32_2d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -2912,10 +3389,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:,:)</td>
+            <td><strong>ptr</strong>(:,:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -2942,7 +3419,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_r32_3d.html'>mem_free_r32_3d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_r32_3d.html'>mem_free_r32_3d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -2981,10 +3458,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:,:,:)</td>
+            <td><strong>ptr</strong>(:,:,:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3011,7 +3488,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_r64_1d.html'>mem_free_r64_1d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_r64_1d.html'>mem_free_r64_1d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3050,10 +3527,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:)</td>
+            <td><strong>ptr</strong>(:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3080,7 +3557,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_r64_2d.html'>mem_free_r64_2d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_r64_2d.html'>mem_free_r64_2d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3119,10 +3596,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:,:)</td>
+            <td><strong>ptr</strong>(:,:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3149,7 +3626,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_r64_3d.html'>mem_free_r64_3d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_r64_3d.html'>mem_free_r64_3d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3188,10 +3665,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:,:,:)</td>
+            <td><strong>ptr</strong>(:,:,:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3218,7 +3695,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_c32_1d.html'>mem_free_c32_1d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_c32_1d.html'>mem_free_c32_1d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3257,10 +3734,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:)</td>
+            <td><strong>ptr</strong>(:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3287,7 +3764,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_c32_2d.html'>mem_free_c32_2d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_c32_2d.html'>mem_free_c32_2d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3326,10 +3803,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:,:)</td>
+            <td><strong>ptr</strong>(:,:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3356,7 +3833,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_c32_3d.html'>mem_free_c32_3d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_c32_3d.html'>mem_free_c32_3d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3395,10 +3872,10 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              pointer
+              target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:,:,:)</td>
+            <td><strong>ptr</strong>(:,:,:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3425,7 +3902,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_c64_1d.html'>mem_free_c64_1d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_c64_1d.html'>mem_free_c64_1d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3467,7 +3944,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:)</td>
+            <td><strong>ptr</strong>(:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3494,7 +3971,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_c64_2d.html'>mem_free_c64_2d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_c64_2d.html'>mem_free_c64_2d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3536,7 +4013,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:,:)</td>
+            <td><strong>ptr</strong>(:,:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3563,7 +4040,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
         </li>
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/mem_free_c64_3d.html'>mem_free_c64_3d</a>(self, buf, error_code)  
+    private  subroutine <a href='../proc/mem_free_c64_3d.html'>mem_free_c64_3d</a>(self, ptr, error_code)  
 </h3>
     
 
@@ -3605,7 +4082,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
               target
             </td>
             <td>::</td>
-            <td><strong>buf</strong>(:,:,:)</td>
+            <td><strong>ptr</strong>(:,:,:)</td>
             <td>
 <p>Pointer allocated with <a href="../type/dtfft_plan_t.html#boundprocedure-mem_alloc~3">mem_alloc</a></p>
             </td>
@@ -3655,7 +4132,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
 </h3>
     
 
-  <p>Returns selected GPU backend during autotuning</p>
+  <p>Returns execution platform of the plan (HOST or CUDA)</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -3715,7 +4192,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-get_backend"></span>
+      <span class="anchor" id="boundprocedure-get_backend~3"></span>
       <h3>
           procedure, public, pass(self), non_overridable ::
   <strong>get_backend</strong>
@@ -3729,7 +4206,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  function <a href='../proc/get_backend.html'>get_backend</a>(self, error_code)  
+    private  function <a href='../proc/get_backend~2.html'>get_backend</a>(self, error_code)  
 </h3>
     
 
@@ -3847,7 +4324,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
             <td>::</td>
             <td><strong>stream</strong></td>
             <td>
-
+<p>dtFFT Stream</p>
             </td>
         </tr>
         <tr>
@@ -3946,7 +4423,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-create~9"></span>
+      <span class="anchor" id="boundprocedure-create~8"></span>
       <h3>
           procedure, public, pass(self) ::
   <strong>create</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create_r2r.html'>create_r2r</a>
@@ -3955,7 +4432,7 @@ returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.h
     </div>
       <div class="card-body">
         
-        <p>R2R Plan Constructor</p>
+        <p>Creates R2R plan</p>
       </div>
     <ul class="list-group">
         <li class="list-group-item">

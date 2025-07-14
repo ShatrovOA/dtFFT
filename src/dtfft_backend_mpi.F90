@@ -155,22 +155,24 @@ contains
       call run_mpi_p2p(self%comm, self%send, self%recv, in, aux)
 
       allocate( is_complete_comm(self%recv%n_requests), source=.false. )
-      do while (.true.)
+      ! do while (.true.)
         ! Testing that all data has been recieved so we can unpack it
         request_counter = 0
         do i = 0, self%comm_size - 1
           if ( self%recv_floats(i) == 0 ) cycle
 
           request_counter = request_counter + 1
+          call MPI_Wait(self%recv%requests(request_counter), MPI_STATUS_IGNORE, mpi_ierr)
+          call self%unpack_kernel%execute(aux, out, stream, i + 1)
 
-          if ( is_complete_comm( request_counter ) ) cycle
-          call MPI_Test(self%recv%requests(request_counter), is_complete_comm( request_counter ), MPI_STATUS_IGNORE, mpi_ierr)
-          if ( is_complete_comm( request_counter ) ) then
-            call self%unpack_kernel%execute(aux, out, stream, i + 1)
-          endif
+        !   if ( is_complete_comm( request_counter ) ) cycle
+        !   call MPI_Test(self%recv%requests(request_counter), is_complete_comm( request_counter ), MPI_STATUS_IGNORE, mpi_ierr)
+        !   if ( is_complete_comm( request_counter ) ) then
+        !     call self%unpack_kernel%execute(aux, out, stream, i + 1)
+        !   endif
         enddo
-        if ( all( is_complete_comm ) ) exit
-      enddo
+        ! if ( all( is_complete_comm ) ) exit
+      ! enddo
     endselect
     call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
   end subroutine execute_mpi

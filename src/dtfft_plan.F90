@@ -147,7 +147,9 @@ public :: dtfft_plan_r2r_t
   contains
   private
     procedure,  pass(self), non_overridable, public :: transpose          !! Performs single transposition
+    procedure,  pass(self), non_overridable, public :: transpose_ptr      !! Performs single transposition using type(c_ptr) pointers instead of buffers
     procedure,  pass(self), non_overridable, public :: execute            !! Executes plan
+    procedure,  pass(self), non_overridable, public :: execute_ptr        !! Executes plan using type(c_ptr) pointers instead of buffers
     procedure,  pass(self), non_overridable, public :: destroy            !! Destroys plan
     procedure,  pass(self), non_overridable, public :: get_local_sizes    !! Returns local starts and counts in `real` and `fourier` spaces
     procedure,  pass(self), non_overridable, public :: get_alloc_size     !! Wrapper around ``get_local_sizes`` to obtain number of elements only
@@ -156,34 +158,34 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: get_element_size   !! Returns number of bytes required to store single element.
     procedure,  pass(self), non_overridable, public :: get_alloc_bytes    !! Returns minimum number of bytes required to execute plan
     procedure,  pass(self), non_overridable, public :: report             !! Prints plan details
-    generic,                                 public :: mem_alloc =>     &
-                                                       mem_alloc_ptr,  &
-                                                       mem_alloc_r32_1d, &
-                                                       mem_alloc_r64_1d, &
-                                                       mem_alloc_r32_2d, &
-                                                       mem_alloc_r64_2d, &
-                                                       mem_alloc_r32_3d, &
-                                                       mem_alloc_r64_3d, &
-                                                       mem_alloc_c32_1d, &
-                                                       mem_alloc_c64_1d, &
-                                                       mem_alloc_c32_2d, &
-                                                       mem_alloc_c64_2d, &
-                                                       mem_alloc_c32_3d, &
+    procedure,  pass(self), non_overridable, public :: mem_alloc_ptr      !! Allocates memory for type(c_ptr)
+    generic,                                 public :: mem_alloc =>       &
+                                                       mem_alloc_r32_1d,  &
+                                                       mem_alloc_r64_1d,  &
+                                                       mem_alloc_r32_2d,  &
+                                                       mem_alloc_r64_2d,  &
+                                                       mem_alloc_r32_3d,  &
+                                                       mem_alloc_r64_3d,  &
+                                                       mem_alloc_c32_1d,  &
+                                                       mem_alloc_c64_1d,  &
+                                                       mem_alloc_c32_2d,  &
+                                                       mem_alloc_c64_2d,  &
+                                                       mem_alloc_c32_3d,  &
                                                        mem_alloc_c64_3d
       !! Allocates memory specific for this plan
-    generic,                                 public :: mem_free =>       &
-                                                       mem_free_ptr,     &
-                                                       mem_free_r32_1d,  &
-                                                       mem_free_r32_2d,  &
-                                                       mem_free_r32_3d,  &
-                                                       mem_free_r64_1d,  &
-                                                       mem_free_r64_2d,  &
-                                                       mem_free_r64_3d,  &
-                                                       mem_free_c32_1d,  &
-                                                       mem_free_c32_2d,  &
-                                                       mem_free_c32_3d,  &
-                                                       mem_free_c64_1d,  &
-                                                       mem_free_c64_2d,  &
+    procedure,  pass(self), non_overridable, public :: mem_free_ptr       !! Frees previously allocated memory for type(c_ptr)
+    generic,                                 public :: mem_free =>        &
+                                                       mem_free_r32_1d,   &
+                                                       mem_free_r32_2d,   &
+                                                       mem_free_r32_3d,   &
+                                                       mem_free_r64_1d,   &
+                                                       mem_free_r64_2d,   &
+                                                       mem_free_r64_3d,   &
+                                                       mem_free_c32_1d,   &
+                                                       mem_free_c32_2d,   &
+                                                       mem_free_c32_3d,   &
+                                                       mem_free_c64_1d,   &
+                                                       mem_free_c64_2d,   &
                                                        mem_free_c64_3d
     !! Frees previously allocated memory specific for this plan
 #ifdef DTFFT_WITH_CUDA
@@ -201,7 +203,6 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable         :: alloc_fft_plans    !! Allocates `fft_executor` classes
     procedure,  pass(self), non_overridable         :: check_aux          !! Checks if aux buffer was passed
                                                                           !! and if not will allocate one internally
-    procedure,  pass(self), non_overridable         :: mem_alloc_ptr      !! Allocates memory for type(c_ptr)
     procedure,  pass(self), non_overridable         :: mem_alloc_r32_1d   !! Allocates memory for 1d real32 pointer
     procedure,  pass(self), non_overridable         :: mem_alloc_r64_1d   !! Allocates memory for 1d real64 pointer
     procedure,  pass(self), non_overridable         :: mem_alloc_r32_2d   !! Allocates memory for 2d real32 pointer
@@ -214,7 +215,6 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable         :: mem_alloc_c64_2d   !! Allocates memory for 2d complex64 pointer
     procedure,  pass(self), non_overridable         :: mem_alloc_c32_3d   !! Allocates memory for 3d complex32 pointer
     procedure,  pass(self), non_overridable         :: mem_alloc_c64_3d   !! Allocates memory for 3d complex64 pointer
-    procedure,  pass(self), non_overridable         :: mem_free_ptr       !! Frees type(c_ptr)
     procedure,  pass(self), non_overridable         :: mem_free_r32_1d    !! Frees real32 1d pointer
     procedure,  pass(self), non_overridable         :: mem_free_r64_1d    !! Frees real64 1d pointer
     procedure,  pass(self), non_overridable         :: mem_free_r32_2d    !! Frees real32 2d pointer
@@ -234,8 +234,7 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self), non_overridable          :: create_c2c_internal
-      !! Creates plan for both C2C and R2C
+    procedure, pass(self), non_overridable          :: create_c2c_internal  !! Creates plan for both C2C and R2C
   end type dtfft_core_c2c
 
   type, extends(dtfft_core_c2c) :: dtfft_plan_c2c_t
@@ -243,8 +242,7 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self), non_overridable,  public :: create => create_c2c
-      !! Creates C2C plan
+    procedure, pass(self), non_overridable,  public :: create => create_c2c   !! Creates C2C plan
   end type dtfft_plan_c2c_t
 
   type, extends(dtfft_core_c2c) :: dtfft_plan_r2c_t
@@ -254,8 +252,7 @@ public :: dtfft_plan_r2r_t
       !! "Real" pencil decomposition info
   contains
   private
-    procedure, pass(self), non_overridable,  public :: create => create_r2c
-      !! Creates C2C plan
+    procedure, pass(self), non_overridable,  public :: create => create_r2c   !! Creates R2C plan
   end type dtfft_plan_r2c_t
 
   type, extends(dtfft_plan_t) :: dtfft_plan_r2r_t
@@ -263,8 +260,7 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self),  public  :: create => create_r2r
-      !! R2R Plan Constructor
+    procedure, pass(self),  public  :: create => create_r2r                   !! Creates R2R plan
   end type dtfft_plan_r2r_t
 
 contains
@@ -286,10 +282,29 @@ contains
       !! Type of transposition.
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
-    integer(int32)  :: ierr    !! Error code
-    type(c_ptr)     :: in_ptr, out_ptr
 
-    in_ptr = c_loc(in); out_ptr = c_loc(out)
+    call self%transpose_ptr(c_loc(in), c_loc(out), transpose_type, error_code)
+  end subroutine transpose
+
+  subroutine transpose_ptr(self, in, out, transpose_type, error_code)
+  !! Performs single transposition using type(c_ptr) pointers instead of buffers
+  !!
+  !! @note
+  !! Buffers `in` and `out` cannot be the same
+  !! @endnote
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Incoming pointer. Note that values of this pointer
+      !! will be modified in GPU build
+    type(c_ptr),                intent(in)    :: out
+      !! Resulting pointer
+    type(dtfft_transpose_t),    intent(in)    :: transpose_type
+      !! Type of transposition.
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr    !! Error code
+
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
@@ -298,7 +313,7 @@ contains
          .or. (abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Z%val .and..not.self%is_z_slab)) &
       ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
     CHECK_ERROR_AND_RETURN
-    if ( is_same_ptr(in_ptr, out_ptr) )                                                         &
+    if ( is_same_ptr(in, out) )                                                                 &
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
     select type( self )
@@ -308,16 +323,16 @@ contains
     endselect
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_CUDA ) then
-      ierr = check_device_pointers(in_ptr, out_ptr, self%plan%get_backend(), c_null_ptr)
+      ierr = check_device_pointers(in, out, self%plan%get_backend(), c_null_ptr)
       CHECK_ERROR_AND_RETURN
     endif
 #endif
 
     REGION_BEGIN("dtfft_transpose", COLOR_TRANSPOSE)
-    call self%plan%execute(in_ptr, out_ptr, transpose_type)
+    call self%plan%execute(in, out, transpose_type)
     REGION_END("dtfft_transpose")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine transpose
+  end subroutine transpose_ptr
 
   subroutine execute(self, in, out, execute_type, aux, error_code)
   !! Executes plan
@@ -335,14 +350,33 @@ contains
       !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
+    type(c_ptr)     :: aux_ptr
+
+    aux_ptr = c_null_ptr; if( present(aux) ) aux_ptr = c_loc(aux)
+    call self%execute_ptr(c_loc(in), c_loc(out), execute_type, aux_ptr, error_code)
+  end subroutine execute
+
+  subroutine execute_ptr(self, in, out, execute_type, aux, error_code)
+  !! Executes plan using type(c_ptr) pointers instead of buffers
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Incoming pointer. Note that values of this pointer
+      !! will be modified in GPU build
+    type(c_ptr),                intent(in)    :: out
+      !! Resulting pointer
+    type(dtfft_execute_t),      intent(in)    :: execute_type
+      !! Type of execution.
+    type(c_ptr),                intent(in)    :: aux
+      !! Optional auxiliary buffer.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
     logical         :: inplace  !! Inplace execution flag
-    type(c_ptr)     :: in_ptr, out_ptr, aux_ptr
 
-    in_ptr = c_loc(in); out_ptr = c_loc(out)
-    aux_ptr = c_null_ptr; if( present(aux) ) aux_ptr = c_loc(aux)
-
-    inplace = is_same_ptr(in_ptr, out_ptr)
+    inplace = is_same_ptr(in, out)
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
       CHECK_ERROR_AND_RETURN
@@ -350,27 +384,25 @@ contains
       CHECK_ERROR_AND_RETURN
     if ( self%is_transpose_plan .and. self%ndims == 2 .and. inplace ) ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
       CHECK_ERROR_AND_RETURN
-    if ( present( aux ) ) then
-      if ( is_same_ptr(in_ptr, aux_ptr) .or. is_same_ptr(out_ptr, aux_ptr) ) ierr = DTFFT_ERROR_INVALID_AUX
-        CHECK_ERROR_AND_RETURN
-    endif
+    if ( is_same_ptr(in, aux) .or. is_same_ptr(out, aux) ) ierr = DTFFT_ERROR_INVALID_AUX
+      CHECK_ERROR_AND_RETURN
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_CUDA ) then
-      ierr = check_device_pointers(in_ptr, out_ptr, self%plan%get_backend(), aux_ptr)
+      ierr = check_device_pointers(in, out, self%plan%get_backend(), aux)
         CHECK_ERROR_AND_RETURN
     endif
 #endif
 
     REGION_BEGIN("dtfft_execute", COLOR_EXECUTE)
-    call self%check_aux(aux=aux)
-    if ( present( aux ) ) then
-      call self%execute_private( in_ptr, out_ptr, execute_type, aux_ptr, inplace )
+    call self%check_aux(aux)
+    if ( .not.is_null_ptr(aux) ) then
+      call self%execute_private( in, out, execute_type, aux, inplace )
     else
-      call self%execute_private( in_ptr, out_ptr, execute_type, self%aux_ptr, inplace )
+      call self%execute_private( in, out, execute_type, self%aux_ptr, inplace )
     endif
     REGION_END("dtfft_execute")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine execute
+  end subroutine execute_ptr
 
   subroutine execute_private(self, in, out, execute_type, aux, inplace)
   !! Executes plan with specified auxiliary buffer
@@ -494,7 +526,7 @@ contains
     endif
 
     if ( self%is_aux_alloc ) then
-      call self%mem_free(self%aux_ptr)
+      call self%mem_free_ptr(self%aux_ptr)
       self%is_aux_alloc = .false.
     endif
 
@@ -651,9 +683,10 @@ contains
       !! Abstract plan
     integer(int32), optional,   intent(out) :: error_code
       !! Optional error code returned to user
-    integer(int32)  :: ierr     !! Error code
-    integer(int32)  :: comm_dims(self%ndims), coords(self%ndims)
-    logical :: periods(self%ndims)
+    integer(int32)  :: ierr                   !! Error code
+    integer(int32)  :: comm_dims(self%ndims)  !! Communicator dimensions
+    integer(int32)  :: coords(self%ndims)     !! Coordinates of this process in the grid
+    logical         :: periods(self%ndims)    !! Periodic dimensions
 
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
@@ -722,7 +755,7 @@ contains
 
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_platform_t) function get_platform(self, error_code)
-  !! Returns selected GPU backend during autotuning
+    !! Returns execution platform of the plan (HOST or CUDA)
     class(dtfft_plan_t),        intent(in)  :: self
       !! Abstract plan
     integer(int32), optional,   intent(out) :: error_code
@@ -760,6 +793,7 @@ contains
     class(dtfft_plan_t),        intent(in)  :: self
       !! Abstract plan
     type(dtfft_stream_t),       intent(out) :: stream
+      !! dtFFT Stream
     integer(int32), optional,   intent(out) :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
@@ -784,7 +818,7 @@ contains
     integer(int32), optional,   intent(out) :: error_code
       !! Optional error code returned to user
     integer(int32)        :: ierr     !! Error code
-    type(dtfft_stream_t)  :: stream_
+    type(dtfft_stream_t)  :: stream_  !! dtFFT Stream
 
     call self%get_stream(stream_, error_code=ierr)
     if ( ierr == DTFFT_SUCCESS ) stream = dtfft_get_cuda_stream(stream_)
@@ -801,7 +835,7 @@ contains
       !! Backend. Required to check for `nvshmem` pointer
     type(c_ptr),            intent(in)  :: aux
       !! Optional auxiliary pointer.
-    logical(c_bool) :: is_devptr
+    logical(c_bool) :: is_devptr    !! Are pointers device pointers?
 
     error_code = DTFFT_SUCCESS
 
@@ -1123,7 +1157,7 @@ contains
   !! Checks if aux buffer was passed by user and if not will allocate one internally
     class(dtfft_plan_t),            intent(inout) :: self
       !! Abstract plan
-    type(*),              optional, intent(inout) :: aux(..)
+    type(c_ptr),                    intent(in)    :: aux
       !! Optional auxiliary buffer.
     integer(int64)                                :: alloc_size
       !! Number of elements to be allocated
@@ -1131,13 +1165,13 @@ contains
       !! Logging allocation size
     integer(int32) :: ierr
 
-    if ( self%is_aux_alloc .or. present(aux) ) return
+    if ( self%is_aux_alloc .or. .not.is_null_ptr(aux) ) return
 
     alloc_size = self%get_alloc_size() * self%get_element_size()
     write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size," bytes"
     WRITE_DEBUG(debug_msg)
     ! self%aux_ptr = self%mem_alloc(alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
-    call self%mem_alloc(alloc_size, self%aux_ptr, ierr);  DTFFT_CHECK(ierr)
+    call self%mem_alloc_ptr(alloc_size, self%aux_ptr, ierr);  DTFFT_CHECK(ierr)
     self%is_aux_alloc = .true.
   end subroutine check_aux
 
@@ -1334,256 +1368,7 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine mem_alloc_ptr
 
-  subroutine mem_alloc_r32_1d(self, alloc_size, ptr, error_code)
-  !! Allocates `real32` pointer of rank 1
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `real32` elements to allocate
-    real(real32),   pointer,    intent(out)   :: ptr(:)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    type(c_ptr)                               :: ptr_
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size * FLOAT_STORAGE_SIZE, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      call c_f_pointer(ptr_, ptr, [alloc_size])
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_r32_1d
-
-  subroutine mem_alloc_r64_1d(self, alloc_size, ptr, error_code)
-  !! Allocates `real64` pointer of rank 1
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `real64` elements to allocate
-    real(real64),   pointer,    intent(out)   :: ptr(:)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    type(c_ptr)                               :: ptr_
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size * DOUBLE_STORAGE_SIZE, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      call c_f_pointer(ptr_, ptr, [alloc_size])
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_r64_1d
-
-  subroutine mem_alloc_r32_2d(self, alloc_size, ptr, shape, error_code)
-  !! Allocates `real32` pointer of rank 2
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `real32` elements to allocate
-    real(real32),   pointer,    intent(out)   :: ptr(:,:)
-    integer(int32),             intent(in)    :: shape(2)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    real(real32),   pointer     :: ptr_(:)
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      ptr(1:shape(1), 1:shape(2)) => ptr_(:)
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_r32_2d
-
-  subroutine mem_alloc_r64_2d(self, alloc_size, ptr, shape, error_code)
-  !! Allocates `real64` pointer of rank 2
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `real64` elements to allocate
-    real(real64),   pointer,    intent(out)   :: ptr(:,:)
-    integer(int32),             intent(in)    :: shape(2)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    real(real64),   pointer     :: ptr_(:)
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      ptr(1:shape(1), 1:shape(2)) => ptr_(:)
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_r64_2d
-
-  subroutine mem_alloc_r32_3d(self, alloc_size, ptr, shape, error_code)
-  !! Allocates `real32` pointer of rank 3
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `real32` elements to allocate
-    real(real32),   pointer,    intent(out)   :: ptr(:,:,:)
-    integer(int32),             intent(in)    :: shape(3)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    real(real32),   pointer     :: ptr_(:)
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      ptr(1:shape(1), 1:shape(2), 1:shape(3)) => ptr_
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_r32_3d
-
-  subroutine mem_alloc_r64_3d(self, alloc_size, ptr, shape, error_code)
-  !! Allocates `real64` pointer of rank 3
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `real64` elements to allocate
-    real(real64),   pointer,    intent(out)   :: ptr(:,:,:)
-    integer(int32),             intent(in)    :: shape(3)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    real(real64),   pointer     :: ptr_(:)
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      ptr(1:shape(1), 1:shape(2), 1:shape(3)) => ptr_
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_r64_3d
-
-  subroutine mem_alloc_c32_1d(self, alloc_size, ptr, error_code)
-  !! Allocates `complex32` pointer of rank 1
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `complex32` elements to allocate
-    complex(real32),pointer,    intent(out)   :: ptr(:)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    type(c_ptr)                               :: ptr_
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size * COMPLEX_STORAGE_SIZE, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      call c_f_pointer(ptr_, ptr, [alloc_size])
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_c32_1d
-
-  subroutine mem_alloc_c64_1d(self, alloc_size, ptr, error_code)
-  !! Allocates `complex64` pointer of rank 1
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `complex64` elements to allocate
-    complex(real64),pointer,    intent(out)   :: ptr(:)
-      !! Allocated pointer
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    type(c_ptr)                               :: ptr_
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size * DOUBLE_COMPLEX_STORAGE_SIZE, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      call c_f_pointer(ptr_, ptr, [alloc_size])
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_c64_1d
-
-  subroutine mem_alloc_c32_2d(self, alloc_size, ptr, shape, error_code)
-  !! Allocates `complex32` pointer of rank 2
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `complex32` elements to allocate
-    complex(real32),pointer,    intent(out)   :: ptr(:,:)
-    integer(int32),             intent(in)    :: shape(2)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    complex(real32),   pointer     :: ptr_(:)
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      ptr(1:shape(1), 1:shape(2)) => ptr_
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_c32_2d
-
-  subroutine mem_alloc_c64_2d(self, alloc_size, ptr, shape, error_code)
-  !! Allocates `complex64` pointer of rank 2
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `complex64` elements to allocate
-    complex(real64),pointer,    intent(out)   :: ptr(:,:)
-    integer(int32),             intent(in)    :: shape(2)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    complex(real64),pointer     :: ptr_(:)
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      ptr(1:shape(1), 1:shape(2)) => ptr_
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_c64_2d
-
-  subroutine mem_alloc_c32_3d(self, alloc_size, ptr, shape, error_code)
-  !! Allocates `complex32` pointer of rank 3
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `complex32` elements to allocate
-    complex(real32),pointer,    intent(out)   :: ptr(:,:,:)
-    integer(int32),             intent(in)    :: shape(3)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    complex(real32),pointer     :: ptr_(:)
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      ptr(1:shape(1), 1:shape(2), 1:shape(3)) => ptr_
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_c32_3d
-
-  subroutine mem_alloc_c64_3d(self, alloc_size, ptr, shape, error_code)
-  !! Allocates `complex64` pointer of rank 3
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    integer(int64),             intent(in)    :: alloc_size
-      !! Number of `complex64` elements to allocate
-    complex(real64),pointer,    intent(out)   :: ptr(:,:,:)
-    integer(int32),             intent(in)    :: shape(3)
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    complex(real64),   pointer  :: ptr_(:)
-      !! Allocated pointer
-    integer(int32) :: ierr
-
-    call self%mem_alloc(alloc_size, ptr_, ierr)
-    if ( ierr == DTFFT_SUCCESS ) then
-      ptr(1:shape(1), 1:shape(2), 1:shape(3)) => ptr_
-    endif
-    if ( present(error_code) ) error_code = ierr
-  end subroutine mem_alloc_c64_3d
-
-  subroutine mem_free_ptr(self, ptr, error_code)
+  subroutine  mem_free_ptr(self, ptr, error_code)
   !! Frees previously allocated memory specific for this plan
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
@@ -1612,134 +1397,43 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine mem_free_ptr
 
-  subroutine mem_free_r32_1d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    real(real32),   pointer,     intent(inout) :: buf(:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_r32_1d
+#define STORAGE_BYTES FLOAT_STORAGE_SIZE
+#define BUFFER_TYPE real(real32)
+#define ALLOC_1D mem_alloc_r32_1d
+#define ALLOC_2D mem_alloc_r32_2d
+#define ALLOC_3D mem_alloc_r32_3d
+#define FREE_1D mem_free_r32_1d
+#define FREE_2D mem_free_r32_2d
+#define FREE_3D mem_free_r32_3d
+#include "_dtfft_mem_alloc_free.inc"
 
-  subroutine mem_free_r32_2d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    real(real32),   pointer,     intent(inout) :: buf(:,:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_r32_2d
+#define STORAGE_BYTES DOUBLE_STORAGE_SIZE
+#define BUFFER_TYPE real(real64)
+#define ALLOC_1D mem_alloc_r64_1d
+#define ALLOC_2D mem_alloc_r64_2d
+#define ALLOC_3D mem_alloc_r64_3d
+#define FREE_1D mem_free_r64_1d
+#define FREE_2D mem_free_r64_2d
+#define FREE_3D mem_free_r64_3d
+#include "_dtfft_mem_alloc_free.inc"
 
-  subroutine mem_free_r32_3d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    real(real32),   pointer,     intent(inout) :: buf(:,:,:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_r32_3d
+#define STORAGE_BYTES COMPLEX_STORAGE_SIZE
+#define BUFFER_TYPE complex(real32)
+#define ALLOC_1D mem_alloc_c32_1d
+#define ALLOC_2D mem_alloc_c32_2d
+#define ALLOC_3D mem_alloc_c32_3d
+#define FREE_1D mem_free_c32_1d
+#define FREE_2D mem_free_c32_2d
+#define FREE_3D mem_free_c32_3d
+#include "_dtfft_mem_alloc_free.inc"
 
-  subroutine mem_free_r64_1d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    real(real64),   pointer,    intent(inout) :: buf(:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_r64_1d
-
-  subroutine mem_free_r64_2d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    real(real64),   pointer,    intent(inout) :: buf(:,:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_r64_2d
-
-  subroutine mem_free_r64_3d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    real(real64),   pointer,    intent(inout) :: buf(:,:,:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_r64_3d
-
-  subroutine mem_free_c32_1d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    complex(real32),   pointer, intent(inout) :: buf(:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_c32_1d
-
-  subroutine mem_free_c32_2d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    complex(real32),   pointer, intent(inout) :: buf(:,:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_c32_2d
-
-  subroutine mem_free_c32_3d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    complex(real32),   pointer, intent(inout) :: buf(:,:,:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_c32_3d
-
-  subroutine mem_free_c64_1d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    complex(real64),   target,     intent(inout) :: buf(:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_c64_1d
-  subroutine mem_free_c64_2d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    complex(real64),   target,     intent(inout) :: buf(:,:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_c64_2d
-
-  subroutine mem_free_c64_3d(self, buf, error_code)
-  !! Frees previously allocated memory specific for this plan
-    class(dtfft_plan_t),        intent(inout) :: self
-      !! Abstract plan
-    complex(real64),   target,     intent(inout) :: buf(:,:,:)
-      !! Pointer allocated with [[dtfft_plan_t(type):mem_alloc]]
-    integer(int32), optional,   intent(out)   :: error_code
-      !! Optional error code returned to user
-    call self%mem_free(c_loc(buf), error_code)
-  end subroutine mem_free_c64_3d
+#define STORAGE_BYTES DOUBLE_COMPLEX_STORAGE_SIZE
+#define BUFFER_TYPE complex(real64)
+#define ALLOC_1D mem_alloc_c64_1d
+#define ALLOC_2D mem_alloc_c64_2d
+#define ALLOC_3D mem_alloc_c64_3d
+#define FREE_1D mem_free_c64_1d
+#define FREE_2D mem_free_c64_2d
+#define FREE_3D mem_free_c64_3d
+#include "_dtfft_mem_alloc_free.inc"
 end module dtfft_plan

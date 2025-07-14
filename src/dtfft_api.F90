@@ -170,17 +170,17 @@ contains
     result(error_code)                                                                                              &
     bind(C)
   !! Executes dtFFT Plan, C/C++ interface. `aux` can be NULL.
-    type(c_ptr),         value,   intent(in)      :: plan_ptr             !! C pointer to Fortran plan
-    real(c_float),                intent(inout)   :: in(*)                !! Incomming buffer, not NULL
-    real(c_float),                intent(inout)   :: out(*)               !! Outgoing buffer
+    type(c_ptr),        value,    intent(in)      :: plan_ptr             !! C pointer to Fortran plan
+    type(c_ptr),        value,    intent(in)      :: in                   !! Incomming pointer, not NULL
+    type(c_ptr),        value,    intent(in)      :: out                  !! Outgoing buffer, not NULL
     type(dtfft_execute_t),        intent(in)      :: execute_type         !! Type of execution
-    real(c_float),      optional, intent(inout)   :: aux(*)               !! Aux buffer, can be NULL
+    type(c_ptr),        value,    intent(in)      :: aux                  !! Aux buffer, can be NULL
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
-    call plan%p%execute(in, out, execute_type, aux, error_code)
+    call plan%p%execute_ptr(in, out, execute_type, aux, error_code)
   end function dtfft_execute_c
 
   function dtfft_transpose_c(plan_ptr, in, out, transpose_type)                                                     &
@@ -188,15 +188,15 @@ contains
     bind(C)
   !! Executes single transposition, C/C++ interface.
     type(c_ptr),        value,      intent(in)    :: plan_ptr             !! C pointer to Fortran plan
-    real(c_float),                  intent(inout) :: in(*)                !! Incomming buffer, not NULL
-    real(c_float),                  intent(inout) :: out(*)               !! Outgoing buffer, not NULL
+    type(c_ptr),        value,      intent(in)    :: in                   !! Incomming pointer, not NULL
+    type(c_ptr),        value,      intent(in)    :: out                  !! Outgoing buffer, not NULL
     type(dtfft_transpose_t),        intent(in)    :: transpose_type       !! Type of transposition.
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
-    call plan%p%transpose(in, out, transpose_type, error_code)
+    call plan%p%transpose_ptr(in, out, transpose_type, error_code)
   end function dtfft_transpose_c
 
   function dtfft_destroy_c(plan_ptr)                                                                                &
@@ -343,8 +343,7 @@ contains
     type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
-    ! ptr = plan%p%mem_alloc(alloc_bytes, error_code)
-    call plan%p%mem_alloc(alloc_bytes, ptr, error_code)
+    call plan%p%mem_alloc_ptr(alloc_bytes, ptr, error_code)
   end function dtfft_mem_alloc_c
 
   function dtfft_mem_free_c(plan_ptr, ptr)                                                                          &
@@ -358,7 +357,7 @@ contains
     type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
-    call plan%p%mem_free(ptr, error_code)
+    call plan%p%mem_free_ptr(ptr, error_code)
   end function dtfft_mem_free_c
 
 #ifdef DTFFT_WITH_CUDA
