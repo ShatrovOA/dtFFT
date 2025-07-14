@@ -219,86 +219,29 @@ contains
     call setTestValuesFloat(buffer, 2 * buf_size)
   end subroutine setTestValuesComplexFloat
 
-#if defined(DTFFT_WITH_CUDA)
-  subroutine doubleH2D(source, target, count, platform) bind(C, name="doubleH2D")
-    integer(c_int32_t), intent(in), value :: platform
-#else
-  subroutine doubleH2D(source, target, count) bind(C, name="doubleH2D")
-#endif
-    type(c_ptr),        intent(in), value :: source
-    type(c_ptr),        intent(in), value :: target
-    integer(c_size_t),  intent(in), value :: count
-    real(real64), pointer :: source_(:), target_(:)
+#define FUNC_NAME doubleH2D
+#define FUNC_NAME_STR "doubleH2D"
+#define DTYPE real(real64)
+#define STORAGE_BYTES DOUBLE_STORAGE_SIZE
+#include "h2d.inc"
 
-    call c_f_pointer(source, source_, [count])
-    call c_f_pointer(target, target_, [count])
-#if defined(DTFFT_WITH_CUDA)
-  if ( dtfft_platform_t(platform) == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaMemcpy", cudaMemcpy(target, source, count * DOUBLE_STORAGE_SIZE, cudaMemcpyHostToDevice) )
-  else
-    target_(:) = source_(:)
-  endif
-#else
-    target_(:) = source_(:)
-#endif
-  end subroutine doubleH2D
+#define FUNC_NAME floatH2D
+#define FUNC_NAME_STR "floatH2D"
+#define DTYPE real(real32)
+#define STORAGE_BYTES FLOAT_STORAGE_SIZE
+#include "h2d.inc"
 
-#if defined(DTFFT_WITH_CUDA)
-  subroutine floatH2D(source, target, count, platform) bind(C, name="floatH2D")
-    integer(c_int32_t), intent(in), value :: platform
-#else
-  subroutine floatH2D(source, target, count) bind(C, name="floatH2D")
-#endif
-    type(c_ptr),        intent(in), value :: source
-    type(c_ptr),        intent(in), value :: target
-    integer(c_size_t),  intent(in), value :: count
-    real(real32), pointer :: source_(:), target_(:)
+#define FUNC_NAME complexDoubleH2D
+#define FUNC_NAME_STR "complexDoubleH2D"
+#define DTYPE complex(real64)
+#define STORAGE_BYTES DOUBLE_COMPLEX_STORAGE_SIZE
+#include "h2d.inc"
 
-    call c_f_pointer(source, source_, [count])
-    call c_f_pointer(target, target_, [count])
-#if defined(DTFFT_WITH_CUDA)
-  if ( dtfft_platform_t(platform) == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaMemcpy", cudaMemcpy(target, source, count * FLOAT_STORAGE_SIZE, cudaMemcpyHostToDevice) )
-  else
-    target_(:) = source_(:)
-  endif
-#else
-    target_(:) = source_(:)
-#endif
-  end subroutine floatH2D
-
-#if defined(DTFFT_WITH_CUDA)
-  subroutine complexDoubleH2D(source, target, count, platform) bind(C, name="complexDoubleH2D")
-    integer(c_int32_t), intent(in), value :: platform
-#else
-  subroutine complexDoubleH2D(source, target, count) bind(C, name="complexDoubleH2D")
-#endif
-    type(c_ptr),        intent(in), value :: source
-    type(c_ptr),        intent(in), value :: target
-    integer(c_size_t),  intent(in), value :: count
-#if defined(DTFFT_WITH_CUDA)
-    call doubleH2D(source, target, 2 * count, platform)
-#else
-    call doubleH2D(source, target, 2 * count)
-#endif
-  end subroutine complexDoubleH2D
-
-#if defined(DTFFT_WITH_CUDA)
-  subroutine complexFloatH2D(source, target, count, platform) bind(C, name="complexFloatH2D")
-    integer(c_int32_t), intent(in), value :: platform
-#else
-  subroutine complexFloatH2D(source, target, count) bind(C, name="complexFloatH2D")
-#endif
-    type(c_ptr),        intent(in), value :: source
-    type(c_ptr),        intent(in), value :: target
-    integer(c_size_t),  intent(in), value :: count
-#if defined(DTFFT_WITH_CUDA)
-    call floatH2D(source, target, 2 * count, platform)
-#else
-    call floatH2D(source, target, 2 * count)
-#endif
-  end subroutine complexFloatH2D
-
+#define FUNC_NAME complexFloatH2D
+#define FUNC_NAME_STR "complexFloatH2D"
+#define DTYPE complex(real32)
+#define STORAGE_BYTES COMPLEX_STORAGE_SIZE
+#include "h2d.inc"
 
   subroutine scaleFloatHost(buffer, buf_size, scale) bind(C, name="scaleFloatHost")
     type(c_ptr),        value :: buffer

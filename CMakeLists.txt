@@ -118,7 +118,7 @@ if(DTFFT_WITH_CUDA)
   find_package(CUDAToolkit 11.0 REQUIRED)
   # Not linking CUDA::nvrtc due to implicit link of cuda_driver by cmake
   # target_link_libraries(dtfft PRIVATE CUDA::nvrtc)
-  target_link_libraries(dtfft PRIVATE CUDA::cudart)
+  target_link_libraries(dtfft PUBLIC CUDA::cudart)
   target_link_libraries(dtfft PRIVATE ${CMAKE_DL_LIBS})
 
   if ( NOT DTFFT_WITH_DEVICE_CHECKS )

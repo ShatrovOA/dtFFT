@@ -90,13 +90,13 @@ int main(int argc, char *argv[])
   MPI_Cart_create(MPI_COMM_WORLD, 3, grid_dims, periods, 0, &grid_comm);
   // Create plan
   DTFFT_CALL( dtfft_create_plan_c2c(3, n, grid_comm, DTFFT_DOUBLE, DTFFT_PATIENT, executor, &plan) )
+  DTFFT_CALL( dtfft_report(plan) )
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, NULL) )
+  size_t alloc_bytes;
+  DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
 
-  size_t alloc_size;
-  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
-
-  size_t in_size, out_size;
-  in_size = in_counts[0] * in_counts[1] * in_counts[2];
-  out_size = out_counts[0] * out_counts[1] * out_counts[2];
+  size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
+  size_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
 
   check = (dtfft_complex*) malloc(sizeof(dtfft_complex) * in_size);
 
@@ -104,18 +104,18 @@ int main(int argc, char *argv[])
   dtfft_platform_t platform;
   DTFFT_CALL( dtfft_get_platform(plan, &platform) )
   if ( platform == DTFFT_PLATFORM_CUDA ) {
-    CUDA_SAFE_CALL( cudaMallocManaged((void**)&in, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
-    CUDA_SAFE_CALL( cudaMallocManaged((void**)&out, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
-    CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, sizeof(dtfft_complex) * alloc_size, cudaMemAttachGlobal) )
+    CUDA_SAFE_CALL( cudaMallocManaged((void**)&in, alloc_bytes, cudaMemAttachGlobal) )
+    CUDA_SAFE_CALL( cudaMallocManaged((void**)&out, alloc_bytes, cudaMemAttachGlobal) )
+    CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, alloc_bytes, cudaMemAttachGlobal) )
   } else {
-    DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&in) )
-    DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&out) )
-    DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&aux) )
+    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&in) )
+    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&out) )
+    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
   }
 #else
-  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&in) )
-  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&out) )
-  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&aux) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&in) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&out) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
 #endif
 
   setTestValuesComplexDouble(check, in_size);
