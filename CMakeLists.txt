@@ -130,7 +130,9 @@ if(DTFFT_WITH_CUDA)
     get_filename_component(PARENT_DIR "${CMAKE_Fortran_COMPILER}" DIRECTORY)  # /compilers/bin/
     get_filename_component(PARENT_DIR "${PARENT_DIR}" DIRECTORY)  # /compilers
     get_filename_component(PARENT_DIR "${PARENT_DIR}" DIRECTORY)  # /
-    list(APPEND CMAKE_PREFIX_PATH "${PARENT_DIR}/cmake")
+    set(NVHPC_CMAKE_PATH "${PARENT_DIR}/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${NVHPC_CMAKE_PATH}")
+
 
     set(WITH_HPC_SDK ON)
     set(NVHPC_CUDA_VERSION "${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR}")
