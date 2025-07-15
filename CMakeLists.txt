@@ -227,7 +227,7 @@ if(DTFFT_WITH_CUDA)
 
     set(USE_NVSHMEM ON)
     # target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran,C>:DTFFT_WITH_NVSHMEM>)
-    target_link_libraries(dtfft PRIVATE NVHPC::CUFFTMP)
+    target_link_libraries(dtfft PUBLIC NVHPC::CUFFTMP)
     if ( CMAKE_Fortran_COMPILER_VERSION LESS "24.7")
       target_link_libraries(dtfft PRIVATE CUDA::nvml)
     endif()

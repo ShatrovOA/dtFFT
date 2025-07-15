@@ -44,9 +44,9 @@ implicit none
   integer(int64)  :: alloc_size, in_size
 #if defined(DTFFT_WITH_CUDA)
   type(dtfft_backend_t) :: backend_to_use
-  type(dtfft_platform_t) :: platform
 # if defined(__NVCOMPILER)
   type(dtfft_backend_t) :: actual_backend_used
+  type(dtfft_platform_t) :: platform
   integer(cuda_stream_kind) :: stream
 # endif
 #endif
