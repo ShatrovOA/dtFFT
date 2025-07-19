@@ -233,7 +233,7 @@ contains
       endblock
     endif
 
-    if (  .not.is_valid_platform(config%platform) ) then
+    if ( .not.is_valid_platform(config%platform) ) then
       if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_PLATFORM
       return
     endif

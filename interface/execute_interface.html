@@ -76,20 +76,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.4% of total for procedures.">37 statements</a>
+                 title=" 0.3% of total for procedures.">29 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_transpose_plan.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_transpose_plan.f90.html'>dtfft_abstract_transpose_plan.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_transpose_plan.html'>dtfft_abstract_transpose_plan</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute_interface</li>
           </ol>
         </nav>
@@ -137,7 +137,7 @@
     
     <div class="col-md-9" id='text'>
       <h2>interface <br>
-      private  subroutine execute_interface(self, a, b, sign)  
+      private  subroutine execute_interface(self, in, out, transpose_type)  
 </h2>    
 
     
@@ -155,69 +155,69 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~75"></span>
-              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
+              <span class="anchor" id="variable-self~65"></span>
+              class(<a href='../type/abstract_transpose_plan.html'>abstract_transpose_plan</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFT Executor</p>
+                <p>Transposition class</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-a~6"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-in~11"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+                <p>Incoming buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~11"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+                <p>Resulting buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transpose_type~9"></span>
+              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>a</strong></td>
+            <td><strong>transpose_type</strong></td>
             <td>
-                <p>Source pointer</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-b~6"></span>
-              type(c_ptr),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>b</strong></td>
-            <td>
-                <p>Target pointer</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-sign~3"></span>
-              integer(kind=int8),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>sign</strong></td>
-            <td>
-                <p>Sign of transform</p>
+                <p>Type of transpose</p>
             </td>
         </tr>
     </tbody>
   </table>
 
     <h3>Description</h3>
-    <p>Executes plan</p>
+    <p>Executes single transposition</p>
     <br>
 
  </div>

@@ -433,7 +433,7 @@ contains
 
     allocate(periods(ndims), source = .false.)
     call MPI_Cart_create(old_comm, int(ndims, int32), comm_dims, periods, .false., comm, ierr)
-    if ( DTFFT_GET_MPI_VALUE(comm) == DTFFT_GET_MPI_VALUE(MPI_COMM_NULL) ) INTERNAL_ERROR("comm == MPI_COMM_NULL")
+    if ( GET_MPI_VALUE(comm) == GET_MPI_VALUE(MPI_COMM_NULL) ) INTERNAL_ERROR("comm == MPI_COMM_NULL")
 
     allocate( remain_dims(ndims), source = .false. )
     do dim = 1, ndims
