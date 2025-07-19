@@ -513,8 +513,8 @@ public :: cudaDeviceSynchronize
         result(cudaError_t)                                          &
         bind(C, name="cudaDeviceSynchronize")
       import
-        integer(c_int)        :: cudaError_t  !! Returns `cudaSuccess` if the device was set successfully, 
-                                              !! or an error code if there was an issue.
+        integer(c_int)    :: cudaError_t  !! Returns `cudaSuccess` if the device was set successfully, 
+                                          !! or an error code if there was an issue.
       end function cudaDeviceSynchronize
     end interface
 
@@ -523,8 +523,8 @@ contains
 
   function cudaGetErrorString(errcode) result(string)
   !! Helper function that returns a string describing the given nvrtcResult code
-  !! For unrecognized enumeration values, it returns "NVRTC_ERROR unknown"
-    integer(c_int),   intent(in)  :: errcode     !! CUDA Runtime Compilation API result code.
+  !! If the error code is not recognized, "unrecognized error code" is returned.
+    integer(c_int),   intent(in)  :: errcode        !! CUDA Runtime Compilation API result code.
     character(len=:), allocatable :: string         !! Result string
 
     call string_c2f(cudaGetErrorString_c(errcode), string)

@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&aux) )
 
 #if defined(DTFFT_WITH_CUDA)
-  Platform platform = plan.get_platform();
-  Backend real_backend = plan.get_backend();
+  auto platform = plan.get_platform();
+  auto real_backend = plan.get_backend();
   if ( (backend != real_backend) && (comm_size > 1) && (platform == Platform::CUDA) ) {
     DTFFT_THROW_EXCEPTION("Backend mismatch: backend set before plan creation: " + get_backend_string(backend) +
                           ", but plan reports: " + get_backend_string(real_backend));

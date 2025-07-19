@@ -350,7 +350,7 @@ public :: operator(/=)
   integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR
     !! One of pointers passed to `plan.execute` or `plan.transpose` cannot be accessed from device
   integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_NVSHMEM_PTR = CONF_DTFFT_ERROR_NOT_NVSHMEM_PTR
-    !! One of pointers passed to `plan.execute` or `plan.transpose` is not and `NVSHMEM` pointer
+    !! One of pointers passed to `plan.execute` or `plan.transpose` is not an `NVSHMEM` pointer
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM = CONF_DTFFT_ERROR_INVALID_PLATFORM
     !! Invalid platform provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
@@ -585,7 +585,7 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     case ( DTFFT_ERROR_NOT_DEVICE_PTR )
       allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` cannot be accessed from device" )
     case ( DTFFT_ERROR_NOT_NVSHMEM_PTR )
-      allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` is not and `NVSHMEM` pointer" )
+      allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` is not an `NVSHMEM` pointer" )
     case ( DTFFT_ERROR_INVALID_PLATFORM )
       allocate(error_string, source="Invalid platform provided")
     case ( DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE )

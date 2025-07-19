@@ -112,8 +112,7 @@ int main(int argc, char *argv[])
     in[i] = check[i];
   }
 
-  bool is_z_slab;
-  DTFFT_CXX_CALL( plan->get_z_slab_enabled(&is_z_slab) )
+  bool is_z_slab = plan->get_z_slab_enabled();
   double tf = 0.0 - MPI_Wtime();
 
   if ( executor == Executor::NONE ) {

@@ -122,7 +122,7 @@ contains
     endif
 
     CUFFT_CALL( "cufftMpCreateReshape", cufftMpCreateReshape(self%plan) )
-    c_comm = Comm_f2c(DTFFT_GET_MPI_VALUE(self%comm))
+    c_comm = Comm_f2c(GET_MPI_VALUE(self%comm))
     CUFFT_CALL( "cufftMpAttachReshapeComm", cufftMpAttachReshapeComm(self%plan, CUFFT_COMM_MPI, c_comm) )
     CUFFT_CALL( "cufftMpMakeReshape", cufftMpMakeReshape(self%plan, base_storage, 3, inbox%lower, inbox%upper, outbox%lower, outbox%upper, inbox%strides, outbox%strides) )
     CUFFT_CALL( "cufftMpGetReshapeSize", cufftMpGetReshapeSize(self%plan, self%aux_size) )

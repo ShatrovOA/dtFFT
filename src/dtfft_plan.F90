@@ -282,7 +282,6 @@ contains
       !! Type of transposition.
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
-
     call self%transpose_ptr(c_loc(in), c_loc(out), transpose_type, error_code)
   end subroutine transpose
 

@@ -324,6 +324,9 @@ contains
     else if ( backend == DTFFT_BACKEND_CUFFTMP ) then
 #ifdef DTFFT_WITH_NVSHMEM
       allocate( backend_cufftmp :: self%comm_handle )
+      ! cuFFTMp seems to fail when passing 1d communicators
+      ! General 3d grid comm is used for all transposes
+      comm_id = 1
 #else
       INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
 #endif

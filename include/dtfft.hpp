@@ -439,10 +439,37 @@ namespace dtfft
       dtfft_config_t config;
 
     public:
+      Config(bool enable_z_slab) {
+        Config();
+        config.enable_z_slab = enable_z_slab;
+      }
+
+#ifdef DTFFT_WITH_CUDA
+      Config(bool enable_z_slab = true, Platform platform = Platform::HOST, dtfft_stream_t stream = nullptr, 
+# ifdef DTFFT_WITH_NCCL
+        Backend backend = Backend::NCCL,
+# else
+        Backend backend = Backend::MPI_P2P,
+# endif
+        bool enable_mpi_backends = false, bool enable_pipelined_backends = true,
+        bool enable_nccl_backends = true, bool enable_nvshmem_backends = true
+      ) {
+        DTFFT_CXX_CALL( static_cast<Error>(dtfft_create_config(&config)) )
+        config.enable_z_slab = enable_z_slab;
+        config.platform = static_cast<dtfft_platform_t>(platform);
+        config.stream = stream;
+        config.backend = static_cast<dtfft_backend_t>(backend);
+        config.enable_mpi_backends = enable_mpi_backends;
+        config.enable_pipelined_backends = enable_pipelined_backends;
+        config.enable_nccl_backends = enable_nccl_backends;
+        config.enable_nvshmem_backends = enable_nvshmem_backends;
+      }
+#else
       /** Creates and sets default configuration values */
       Config() {
         DTFFT_CXX_CALL( static_cast<Error>(dtfft_create_config(&config)) )
       }
+#endif
 
 /**
  * @brief Sets whether dtFFT use Z-slab optimization or not.
@@ -861,6 +888,20 @@ namespace dtfft
       mem_alloc(size_t alloc_bytes, void **ptr) const noexcept
       {return static_cast<Error>(dtfft_mem_alloc(_plan, alloc_bytes, ptr));}
 
+/**
+ * @brief Allocates memory specific for this plan
+ *
+ * @param alloc_bytes Number of bytes to allocate
+ * @return void* Pointer to allocated memory
+ */
+      inline
+      void *
+      mem_alloc(size_t alloc_bytes) const
+      {
+        void *ptr = nullptr;
+        DTFFT_CXX_CALL( mem_alloc(alloc_bytes, &ptr) )
+        return ptr;
+      }
 
 /**
  * @brief Frees memory specific for this plan
@@ -901,6 +942,23 @@ namespace dtfft
       Error
       get_stream(dtfft_stream_t *stream) const noexcept
       {return static_cast<Error>(dtfft_get_stream(_plan, stream));}
+
+/**
+ * @brief Returns stream associated with current Plan.
+ * This can either be stream passed by Config.set_stream followed by set_config() or stream created internally.
+ * Returns NULL pointer if plan's platform is Platform::HOST.
+ *
+ * @return dtFFT stream associated with plan
+ * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+ */
+      inline
+      dtfft_stream_t
+      get_stream() const
+      {
+        dtfft_stream_t stream = nullptr;
+        DTFFT_CXX_CALL( get_stream(&stream) )
+        return stream;
+      }
 
 /**
  * @brief Returns selected GPU backend during autotune if `effort` is Effort::PATIENT.
@@ -1034,7 +1092,7 @@ namespace dtfft
  *
  * @throws Exception In case error occurs during plan creation
  */
-      PlanC2C(
+      explicit PlanC2C(
         const int8_t ndims,
         const int32_t *dims,
         MPI_Comm comm=MPI_COMM_WORLD,
@@ -1073,7 +1131,7 @@ namespace dtfft
  *
  * @throws Exception In case error occurs during plan creation
  */
-      PlanR2C(
+      explicit PlanR2C(
         const std::vector<int32_t> &dims,
         const Executor executor,
         MPI_Comm comm=MPI_COMM_WORLD,
@@ -1095,7 +1153,7 @@ namespace dtfft
  *
  * @throws Exception In case error occurs during plan creation
  */
-      PlanR2C(
+      explicit PlanR2C(
         const int8_t ndims,
         const int32_t *dims,
         const Executor executor,
@@ -1130,7 +1188,7 @@ namespace dtfft
  *
  * @throws Exception In case error occurs during plan creation
  */
-      PlanR2R(
+      explicit PlanR2R(
         const std::vector<int32_t> &dims,
         const std::vector<R2RKind> &kinds=std::vector<R2RKind>(),
         MPI_Comm comm=MPI_COMM_WORLD,
@@ -1149,7 +1207,7 @@ namespace dtfft
  *
  * @throws Exception In case error occurs during plan creation
  */
-      PlanR2R(
+      explicit PlanR2R(
         const std::vector<int32_t> &dims,
         const Precision precision=Precision::DOUBLE,
         const Effort effort=Effort::ESTIMATE
@@ -1169,7 +1227,7 @@ namespace dtfft
  *
  * @throws Exception In case error occurs during plan creation
  */
-      PlanR2R(
+      explicit PlanR2R(
         const int8_t ndims,
         const int32_t *dims,
         const R2RKind *kinds=nullptr,

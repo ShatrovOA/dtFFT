@@ -80,13 +80,11 @@ int main(int argc, char *argv[])
   size_t in_size = pencils[0].get_size();
   size_t out_size = pencils[1].get_size();
 
-  complex<double> *in, *out;
-  auto *check = new complex<double>[in_size];
+  auto in = (complex<double> *)plan.mem_alloc(alloc_bytes);
+  auto out = (complex<double> *)plan.mem_alloc(alloc_bytes);
+  auto check = new complex<double>[in_size];
 
   setTestValuesComplexDouble(check, in_size);
-
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&in) )
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&out) )
 
 #if defined(DTFFT_WITH_CUDA)
   Platform platform = plan.get_platform();

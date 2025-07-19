@@ -60,7 +60,7 @@ contains
   pure TYPE_MPI_COMM function get_comm(c_comm)
     integer(c_int32_t),  intent(in) :: c_comm
 
-    DTFFT_GET_MPI_VALUE(get_comm) = c_comm
+    GET_MPI_VALUE(get_comm) = c_comm
   end function get_comm
 
   function dtfft_create_plan_r2r_c(ndims, dims, kinds, comm, precision, effort, executor, plan_ptr)                 &

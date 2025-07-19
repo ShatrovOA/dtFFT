@@ -89,8 +89,7 @@ int main(int argc, char *argv[])
   }
 
   vector<int32_t> in_counts(2);
-  size_t alloc_size;
-  DTFFT_CXX_CALL( plan->get_alloc_size(&alloc_size) );
+  size_t alloc_size = plan->get_alloc_size();
   DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data()) );
   size_t in_size = in_counts[0] * in_counts[1];
 

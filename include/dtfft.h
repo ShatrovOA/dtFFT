@@ -156,7 +156,7 @@ typedef enum {
   DTFFT_ERROR_GPU_BACKENDS_DISABLED = CONF_DTFFT_ERROR_GPU_BACKENDS_DISABLED,
 /** One of pointers passed to `::dtfft_execute` or `::dtfft_transpose` cannot be accessed from device */
   DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR,
-/** One of pointers passed to `::dtfft_execute` or `::dtfft_transpose` is not and `NVSHMEM` pointer */
+/** One of pointers passed to `::dtfft_execute` or `::dtfft_transpose` is not an `NVSHMEM` pointer */
   DTFFT_ERROR_NOT_NVSHMEM_PTR = CONF_DTFFT_ERROR_NOT_NVSHMEM_PTR,
 /** Invalid platform provided */
   DTFFT_ERROR_INVALID_PLATFORM = CONF_DTFFT_ERROR_INVALID_PLATFORM,
