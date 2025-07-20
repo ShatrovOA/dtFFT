@@ -1,0 +1,176 @@
+name: GNU Linux
+
+on: [push]
+jobs:
+  openmpi_coverage:
+    name: GCC-14 + OpenMPI with Coverage
+    runs-on: ubuntu-24.04
+    env:
+      CC: "gcc-14"
+      CXX: "g++-14"
+      FC: "gfortran-14"
+      DTFFT_ENABLE_LOG: "1"
+      DTFFT_MEASURE_WARMUP_ITERS: "-1"
+      DTFFT_MEASURE_ITERS: "3"
+    steps:
+      - name: Get Requirements
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get -q update
+          sudo apt-get -y install gfortran-14
+          sudo apt-get install libopenmpi-dev openmpi-bin
+          sudo apt-get install libfftw3-dev
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_WITH_FFTW=on \
+            -DDTFFT_MPI_VENDOR=openmpi \
+            -DDTFFT_BUILD_C_CXX_API=on
+          cmake --build build
+      - name: Test
+        run: cmake --build build --target coverage
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
+          cmake --build build
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+
+  mpich:
+    name: GCC-12 + MPICH with persistent communications
+    runs-on: ubuntu-22.04
+    env:
+      CC: "gcc-12"
+      CXX: "g++-12"
+      FC: "gfortran-12"
+      DTFFT_ENABLE_LOG: "1"
+    steps:
+      - name: Get Requirements
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get -q update
+          sudo apt-get -y install gfortran-12
+          sudo apt-get install mpich libmpich-dev
+          sudo apt-get install libfftw3-dev
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_WITH_FFTW=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=off \
+            -DDTFFT_BUILD_C_CXX_API=on
+          cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
+          cmake --build build
+
+  openmpi:
+    name: GCC-10 + OpenMPI
+    runs-on: ubuntu-22.04
+    env:
+      CC: "gcc-10"
+      CXX: "g++-10"
+      FC: "gfortran-10"
+      DTFFT_ENABLE_LOG: "1"
+    steps:
+      - name: Get Requirements
+        run: |
+          sudo apt-get -q update
+          sudo apt-get -y install libopenmpi-dev openmpi-bin
+
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=on \
+            -DDTFFT_MPI_VENDOR=openmpi \
+            -DDTFFT_BUILD_C_CXX_API=on
+          cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
+          cmake --build build
+
+  openmpi_cuda:
+    name: GCC-12 + OpenMPI + CUDA + NCCL
+    runs-on: ubuntu-24.04
+    env:
+      CC: "gcc-12"
+      CXX: "g++-12"
+      FC: "gfortran-12"
+      CUDACXX: "/usr/local/cuda/bin/nvcc"
+      DTFFT_ENABLE_LOG: "1"
+      DTFFT_PLATFORM: "host"
+    steps:
+      - name: Get Requirements
+        run: |
+          wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-ubuntu2404.pin
+          sudo mv cuda-ubuntu2404.pin /etc/apt/preferences.d/cuda-repository-pin-600
+          wget https://developer.download.nvidia.com/compute/cuda/12.8.0/local_installers/cuda-repo-ubuntu2404-12-8-local_12.8.0-570.86.10-1_amd64.deb
+          sudo dpkg -i cuda-repo-ubuntu2404-12-8-local_12.8.0-570.86.10-1_amd64.deb
+          sudo cp /var/cuda-repo-ubuntu2404-12-8-local/cuda-*-keyring.gpg /usr/share/keyrings/
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get -q update
+          sudo apt-get -y install gfortran-12
+          sudo apt-get install libopenmpi-dev openmpi-bin
+          sudo apt-get install libfftw3-dev
+          sudo apt-get -y install cuda-toolkit-12-8
+
+          wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+          sudo dpkg -i cuda-keyring_1.1-1_all.deb
+          sudo apt update
+          sudo apt install libnccl2 libnccl-dev
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDTFFT_RUNNING_CICD=on \
+            -DDTFFT_WITH_FFTW=on \
+            -DDTFFT_WITH_CUFFT=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=on \
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_WITH_CUDA=on \
+            -DDTFFT_MPI_VENDOR=openmpi \
+            -DDTFFT_WITH_NCCL=on
+          cmake --build build --verbose
+      - name: Test
+        run: CTEST_OUTPUT_ON_FAILURE=1 cmake --build build --target coverage
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
+          cmake --build build

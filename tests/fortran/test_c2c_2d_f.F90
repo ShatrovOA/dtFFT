@@ -18,26 +18,32 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_c2c_2d
-use iso_fortran_env, only: R8P => real64, I4P => int32, I1P => int8, output_unit, error_unit, int32, R4P => real32
+use iso_fortran_env
+use iso_c_binding
 use dtfft
 use test_utils
-#ifdef DTFFT_WITH_CUDA
-use cudafor
+#if defined(DTFFT_WITH_CUDA)
+use dtfft_interface_cuda_runtime
 #endif
+#include "dtfft_cuda.h"
 #include "dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
-  complex(R8P),  allocatable :: in(:,:), out(:,:), check(:,:)
-  real(R8P) :: local_error, rnd1, rnd2
-  integer(I4P), parameter :: nx = 12, ny = 12
-  integer(I4P) :: comm_size, comm_rank, i, j, ierr
+  type(c_ptr) :: check
+  complex(real64),  pointer :: in(:,:), out(:,:)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
+  integer(int32), parameter :: nx = 4, ny = 4
+#else
+  integer(int32), parameter :: nx = 12, ny = 12
+#endif
+  integer(int32) :: comm_size, comm_rank, ierr
   type(dtfft_plan_c2c_t) :: plan
-  integer(I4P) :: in_starts(2), in_counts(2), out_starts(2), out_counts(2)
-  real(R8P) :: tf, tb
-  type(dtfft_executor_t) :: executor_type = DTFFT_EXECUTOR_NONE
-  type(dtfft_config_t) :: conf
-#ifdef DTFFT_WITH_CUDA
-  integer(cuda_stream_kind) :: stream
+  integer(int32) :: in_counts(2), out_counts(2)
+  real(real64) :: tf, tb
+  type(dtfft_executor_t) :: executor = DTFFT_EXECUTOR_NONE
+  integer(int64) :: alloc_size, element_size, in_size
+#if defined(DTFFT_WITH_CUDA)
+  type(dtfft_platform_t) :: platform
 #endif
 
 
@@ -46,6 +52,7 @@ implicit none
   call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 
   if(comm_rank == 0) then
+    write(output_unit, '(a,i0)') "dtFFT Version = ",dtfft_get_version()
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a)') "|       DTFFT test: c2c_2d             |"
     write(output_unit, '(a)') "----------------------------------------"
@@ -54,91 +61,100 @@ implicit none
     write(output_unit, '(a)') "----------------------------------------"
   endif
 
-#if defined(DTFFT_WITH_MKL)
-  executor_type = DTFFT_EXECUTOR_MKL
-#elif defined (DTFFT_WITH_FFTW)
-  executor_type = DTFFT_EXECUTOR_FFTW3
+#ifdef DTFFT_WITH_FFTW
+  executor = DTFFT_EXECUTOR_FFTW3;
+#elif defined(DTFFT_WITH_MKL)
+  executor = DTFFT_EXECUTOR_MKL;
 #endif
-
-#ifdef _OPENACC
+#ifdef DTFFT_WITH_CUDA
   block
-    use openacc
-    integer(I4P) :: num_devices, my_device, host_rank, host_size
-    TYPE_MPI_COMM :: host_comm
+    character(len=5) :: platform_env
+    integer(int32) :: env_len
 
-    call MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, comm_rank, MPI_INFO_NULL, host_comm, ierr)
-    call MPI_Comm_rank(host_comm, host_rank, ierr)
-    call MPI_Comm_size(host_comm, host_size, ierr)
-    call MPI_Comm_free(host_comm, ierr)
+    call get_environment_variable("DTFFT_PLATFORM", platform_env, env_len)
 
-    num_devices = acc_get_num_devices(acc_device_nvidia)
-    if ( num_devices == 0 ) error stop "GPUs not found on host"
-    if ( num_devices < host_size ) error stop "Number of GPU devices < Number of MPI processes"
-
-    my_device = mod(host_rank, num_devices)
-    ! print*,'setting device',comm_rank,my_device
-    call acc_set_device_num(my_device, acc_device_nvidia)
+    if ( env_len == 0 .or. trim(adjustl(platform_env)) == "cuda" ) then
+# if defined( DTFFT_WITH_CUFFT )
+      executor = DTFFT_EXECUTOR_CUFFT;
+# elif defined( DTFFT_WITH_VKFFT )
+      executor = DTFFT_EXECUTOR_VKFFT;
+# else
+      executor = DTFFT_EXECUTOR_NONE;
+# endif
+    endif
   endblock
 #endif
 
-  call dtfft_create_config(conf)
+  call attach_gpu_to_process()
 
-#ifdef DTFFT_WITH_CUDA
-  conf%gpu_backend = DTFFT_GPU_BACKEND_NCCL
+#if defined(DTFFT_WITH_CUDA)
+  block
+    type(dtfft_config_t) :: conf
+    conf = dtfft_config_t(platform=DTFFT_PLATFORM_CUDA, backend=DTFFT_BACKEND_NCCL)
+#ifndef DTFFT_WITH_NCCL
+    conf%backend = DTFFT_BACKEND_MPI_A2A;
 #endif
-  call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
+    call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
+  endblock
+#endif
 
-  call plan%create([nx, ny], effort_type=DTFFT_MEASURE, executor_type=executor_type, error_code=ierr); DTFFT_CHECK(ierr)
-  call plan%get_local_sizes(in_starts, in_counts, out_starts, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
+
+  call plan%create([nx, ny], effort=DTFFT_MEASURE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
 
-#ifdef DTFFT_WITH_CUDA
-  stream = plan%get_stream()
+  call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
+  element_size = plan%get_element_size(error_code=ierr); DTFFT_CHECK(ierr)
+  if ( element_size /= 16_int64 ) error stop
+
+  in_size = product(in_counts)
+
+  call plan%mem_alloc(alloc_size, in, in_counts, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%mem_alloc(alloc_size, out, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
+
+  call mem_alloc_host(in_size * DOUBLE_COMPLEX_STORAGE_SIZE, check)
+  call setTestValuesComplexDouble(check, in_size)
+
+#if defined(DTFFT_WITH_CUDA)
+  platform = plan%get_platform(error_code=ierr); DTFFT_CHECK(ierr)
+  call complexDoubleH2D(check, c_loc(in), in_size, platform%val)
+#else
+  call complexDoubleH2D(check, c_loc(in), in_size)
 #endif
-  allocate(in(in_starts(1):in_starts(1) + in_counts(1) - 1,       &
-              in_starts(2):in_starts(2) + in_counts(2) - 1))
 
-  allocate(check, source = in)
 
-  allocate(out(out_starts(1):out_starts(1) + out_counts(1) - 1,    &
-                out_starts(2):out_starts(2) + out_counts(2) - 1))
-
-!$acc enter data create(in, out, check)
-
-  do j = in_starts(2), in_starts(2) + in_counts(2) - 1
-    do i = in_starts(1), in_starts(1) + in_counts(1) - 1
-      call random_number(rnd1)
-      call random_number(rnd2)
-      in(i,j) = cmplx(rnd1, rnd2, kind=R8P)
-      check(i,j) = in(i,j)
-    enddo
-  enddo
-
-  tf = 0.0_R8P - MPI_Wtime()
-!$acc host_data use_device(in, out)
-  call plan%execute(in, out, DTFFT_TRANSPOSE_OUT, error_code=ierr)
-!$acc end host_data
-  DTFFT_CHECK(ierr)
-  tf = tf + MPI_Wtime()
-  if ( executor_type /= DTFFT_EXECUTOR_NONE ) then
-    out(:,:) = out(:,:) / real(nx * ny, R8P)
+  tf = 0.0_real64 - MPI_Wtime()
+  call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr); DTFFT_CHECK(ierr)
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) then
+    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
   endif
-  ! Clear recv buffer
-  in = (-1._R8P, -1._R8P)
+#endif
+  tf = tf + MPI_Wtime()
 
+#if defined(DTFFT_WITH_CUDA)
+  call scaleComplexDouble(executor%val, c_loc(out), int(product(out_counts), int64), int(nx * ny, int64), platform%val, NULL_STREAM)
+#else
+  call scaleComplexDouble(executor%val, c_loc(out), int(product(out_counts), int64), int(nx * ny, int64))
+#endif
 
-  tb = 0.0_R8P - MPI_Wtime()
-!$acc host_data use_device(in, out)
-  call plan%execute(out, in, DTFFT_TRANSPOSE_IN, error_code=ierr)
-!$acc end host_data
-  DTFFT_CHECK(ierr)
+  tb = 0.0_real64 - MPI_Wtime()
+  call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr);  DTFFT_CHECK(ierr)
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) then
+    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+  endif
+#endif
   tb = tb + MPI_Wtime()
 
-  local_error = maxval(abs(in - check))
+#if defined(DTFFT_WITH_CUDA)
+  call checkAndReportComplexDouble(int(nx * ny, int64), tf, tb, c_loc(in), in_size, check, platform%val)
+#else
+  call checkAndReportComplexDouble(int(nx * ny, int64), tf, tb, c_loc(in), in_size, check)
+#endif
 
-  call report(tf, tb, local_error, nx, ny)
-
-  deallocate(in, out, check)
+  call plan%mem_free(in, ierr); DTFFT_CHECK(ierr)
+  call plan%mem_free(out, ierr); DTFFT_CHECK(ierr)
+  call mem_free_host(check)
 
   call plan%destroy(error_code=ierr); DTFFT_CHECK(ierr)
   call MPI_Finalize(ierr)

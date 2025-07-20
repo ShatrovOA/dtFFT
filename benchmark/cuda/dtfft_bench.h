@@ -35,7 +35,7 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
   dtfft_create_config(&conf);
 
   conf.enable_z_slab = enable_z_slab;
-  conf.gpu_backend = DTFFT_GPU_BACKEND_NCCL;
+  conf.backend = DTFFT_BACKEND_NCCL;
 
   dtfft_set_config(conf);
 
@@ -68,7 +68,9 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
   }
 
   cudaStream_t stream;
-  DTFFT_CALL( dtfft_get_stream(plan, &stream) );
+  dtfft_stream_t dtfftStream;
+  DTFFT_CALL( dtfft_get_stream(plan, &dtfftStream) );
+  stream = (cudaStream_t)dtfftStream;
 
   float *in, *out, *aux;
   int64_t scaler;
@@ -79,11 +81,11 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
   } else {
     scaler = 1;
   }
-  alloc_size *= (scaler * sizeof(float)) ;
+  alloc_size *= (scaler * sizeof(float));
 
-  CUDA_CALL( cudaMalloc((void**)&in,  alloc_size) );
-  CUDA_CALL( cudaMalloc((void**)&out, alloc_size) );
-  CUDA_CALL( cudaMalloc((void**)&aux, alloc_size) );
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_size, (void**)&in) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_size, (void**)&out) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_size, (void**)&aux) )
 
   CUDA_CALL( cudaMemset(in, 0, alloc_size));
 
@@ -91,8 +93,8 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
     printf("Started warmup\n");
   }
   for ( int iter = 0; iter < WARMUP_ITERATIONS; iter++ ) {
-    DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux) );
-    DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux) );
+    DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, aux) );
+    DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, aux) );
   }
   CUDA_CALL( cudaStreamSynchronize(stream) );
 
@@ -110,8 +112,8 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
   CUDA_CALL( cudaEventRecord(startEvent, stream) );
 
   for ( int iter = 0; iter < TEST_ITERATIONS; iter++ ) {
-    dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, aux);
-    dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, aux);
+    dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, aux);
+    dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, aux);
   }
 
   CUDA_CALL( cudaEventRecord(stopEvent, stream) );
@@ -131,9 +133,9 @@ void run_dtfft(bool c2c, dtfft_precision_t precision, bool enable_z_slab) {
     printf("----------------------------------------\n");
   }
 
-  CUDA_CALL( cudaFree(in) );
-  CUDA_CALL( cudaFree(out) );
-  CUDA_CALL( cudaFree(aux) );
+  DTFFT_CALL( dtfft_mem_free(plan, in) );
+  DTFFT_CALL( dtfft_mem_free(plan, out) );
+  DTFFT_CALL( dtfft_mem_free(plan, aux) );
 
   CUDA_CALL( cudaEventDestroy(startEvent) );
   CUDA_CALL( cudaEventDestroy(stopEvent) );

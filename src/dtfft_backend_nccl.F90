@@ -17,21 +17,18 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
-module dtfft_backend_nccl
-!! This module implements NCCL backend: `backend_nccl`
+module dtfft_backend_nccl_m
+!! NCCL Based GPU Backends [[backend_nccl]]
 use iso_fortran_env
 use iso_c_binding, only: c_ptr, c_f_pointer
-use cudafor
-#ifdef DTFFT_WITH_CUSTOM_NCCL
-use dtfft_nccl_interfaces
-#else
-use nccl
-#endif
+use dtfft_interface_cuda_runtime
+use dtfft_interface_nccl
 use dtfft_abstract_backend,         only: abstract_backend, backend_helper
-use dtfft_parameters,               only: is_backend_nccl
+use dtfft_parameters
 use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: backend_nccl
@@ -40,102 +37,67 @@ public :: backend_nccl
   !! NCCL backend
   private
     type(ncclComm)                :: nccl_comm
-    integer(cuda_stream_kind)     :: nccl_stream        !< Separate stream for NCCL operations
-    !< This allows to overlap NCCL kernels with
-    !< lightweiht partial unpacking kernels
-    type(cudaEvent), allocatable  :: nccl_events(:)     !< Events that allow to wait for completion of NCCL operations before unpacking
-    type(cudaEvent)               :: main_event         !< Event used to wait for completion of main stream operations
+      !! NCCL Communicator
   contains
-    procedure         :: create_private => create_nccl        !< Creates NCCL backend
-    procedure         :: execute_private => execute_nccl      !< Executes NCCL backend
-    procedure         :: destroy_private => destroy_nccl      !< Destroys NCCL backend
+    procedure         :: create_private => create_nccl        !! Creates NCCL backend
+    procedure         :: execute_private => execute_nccl      !! Executes NCCL backend
+    procedure         :: destroy_private => destroy_nccl      !! Destroys NCCL backend
   end type backend_nccl
 
 contains
 
-  subroutine create_nccl(self, helper)
+  subroutine create_nccl(self, helper, tranpose_type, base_storage)
   !! Creates NCCL backend
-    class(backend_nccl),  intent(inout) :: self               !< NCCL backend
-    type(backend_helper), intent(in)    :: helper             !< Backend helper
-    integer(int32)                      :: i
+    class(backend_nccl),      intent(inout) :: self               !! NCCL backend
+    type(backend_helper),     intent(in)    :: helper             !! Backend helper
+    type(dtfft_transpose_t),  intent(in)    :: tranpose_type      !! Type of transpose to create (unused)
+    integer(int64),           intent(in)    :: base_storage       !! Number of bytes to store single element (unused)
 
-    if ( .not. is_backend_nccl(self%backend_id) ) error stop "dtFFT internal error: .not. is_backend_nccl"
-    if ( .not. helper%is_nccl_created ) error stop "dtFFT internal error: .not. helper%is_nccl_created"
+    if ( .not. is_backend_nccl(self%backend) ) INTERNAL_ERROR(".not. is_backend_nccl")
+    if ( .not. helper%is_nccl_created ) INTERNAL_ERROR(".not. helper%is_nccl_created")
     self%nccl_comm = helper%nccl_comm
-
-    if ( self%is_pipelined ) then
-      allocate( self%nccl_events( 0:self%comm_size - 1 ) )
-      do i = 0, self%comm_size - 1
-        CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%nccl_events(i), cudaEventDisableTiming) )
-      enddo
-      CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%main_event, cudaEventDisableTiming) )
-      CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(self%nccl_stream) )
-    endif
   end subroutine create_nccl
 
-  subroutine execute_nccl(self, in, out, stream)
+  subroutine execute_nccl(self, in, out, stream, aux)
   !! Executes NCCL backend
-    class(backend_nccl),          intent(inout) :: self       !< NCCL backend
-    real(real32),   DEVICE_PTR    intent(inout) :: in(:)      !< Send pointer
-    real(real32),   DEVICE_PTR    intent(inout) :: out(:)     !< Recv pointer
-    integer(cuda_stream_kind),    intent(in)    :: stream     !< Main execution CUDA stream
-    integer(int32)                                :: i        !< Counter
-    integer(int32)                                :: rnk      !< Rank to send-recv
+    class(backend_nccl),          intent(inout) :: self       !! NCCL backend
+    real(real32),   target,       intent(inout) :: in(:)      !! Send pointer
+    real(real32),   target,       intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),         intent(in)    :: stream     !! Main execution CUDA stream
+    real(real32),   target,       intent(inout) :: aux(:)     !! Auxiliary pointer
+    integer(int32)                              :: i        !! Counter
+    integer(int32)                              :: rnk      !! Rank to send-recv
+    real(real32), pointer :: pin(:), pout(:)
 
     if ( self%is_pipelined ) then
-      CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%main_event, stream) )
-      ! Waiting for transpose kernel to finish execution on stream `stream` before running on `nccl_stream`
-      CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(self%nccl_stream, self%main_event, 0) )
-
-      do i = 0, self%comm_size - 1
-        if ( i == self%comm_rank ) cycle
-        rnk = self%comm_mapping(i)
-        NCCL_CALL( "ncclGroupStart", ncclGroupStart() )
-        ! Sending from `aux` buffer to `in`
-        if ( self%send_floats(i) > 0 ) then
-          NCCL_CALL( "ncclSend", ncclSend(self%aux( self%send_displs(i) ), self%send_floats(i), ncclFloat, rnk, self%nccl_comm, self%nccl_stream) )
-        endif
-        if ( self%recv_floats(i) > 0) then
-          NCCL_CALL( "ncclRecv", ncclRecv(in( self%recv_displs(i) ), self%recv_floats(i), ncclFloat, rnk, self%nccl_comm, self%nccl_stream) )
-        endif
-
-        NCCL_CALL( "ncclGroupEnd", ncclGroupEnd() )
-        CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%nccl_events(i), self%nccl_stream))
-      enddo
-
-      do i = 0, self%comm_size - 1
-        if ( i == self%comm_rank ) cycle
-        CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(stream, self%nccl_events(i), 0) )
-        ! Upacking data on default `stream`
-        call self%unpack_kernel%execute(in, out, stream, i + 1)
-      enddo
+      pin => in(:)
+      pout => aux(:)
     else
-      NCCL_CALL( "ncclGroupStart", ncclGroupStart() )
-      do i = 0, self%comm_size - 1
-        rnk = self%comm_mapping(i)
-        if ( self%send_floats(i) > 0 ) then
-          NCCL_CALL( "ncclSend", ncclSend(in( self%send_displs(i) ), self%send_floats(i), ncclFloat, rnk, self%nccl_comm, stream) )
-        endif
-        if ( self%recv_floats(i) > 0) then
-          NCCL_CALL( "ncclRecv", ncclRecv(out( self%recv_displs(i) ), self%recv_floats(i), ncclFloat, rnk, self%nccl_comm, stream) )
-        endif
-      enddo
-      NCCL_CALL( "ncclGroupEnd", ncclGroupEnd() )
+      pin => in(:)
+      pout => out(:)
+    endif
+
+    NCCL_CALL( "ncclGroupStart", ncclGroupStart() )
+    do i = 0, self%comm_size - 1
+      if ( i == self%comm_rank .and. self%is_pipelined) cycle
+      rnk = self%comm_mapping(i)
+      if ( self%send_floats(i) > 0 ) then
+        NCCL_CALL( "ncclSend", ncclSend(pin( self%send_displs(i) ), self%send_floats(i), ncclFloat, rnk, self%nccl_comm, stream) )
+      endif
+      if ( self%recv_floats(i) > 0) then
+        NCCL_CALL( "ncclRecv", ncclRecv(pout( self%recv_displs(i) ), self%recv_floats(i), ncclFloat, rnk, self%nccl_comm, stream) )
+      endif
+    enddo
+    NCCL_CALL( "ncclGroupEnd", ncclGroupEnd() )
+
+    if ( self%is_pipelined ) then
+      call self%unpack_kernel2%execute(pout, out, stream)
     endif
   end subroutine execute_nccl
 
   subroutine destroy_nccl(self)
   !! Destroys NCCL backend
-    class(backend_nccl),  intent(inout) :: self       !< NCCL backend
-    integer(int32)                      :: i
+    class(backend_nccl),  intent(inout) :: self       !! NCCL backend
 
-    if ( self%is_pipelined ) then
-      do i = 0, self%comm_size - 1
-        CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(self%nccl_events(i)) )
-      enddo
-      deallocate( self%nccl_events )
-      CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(self%main_event) )
-      CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(self%nccl_stream) )
-    endif
   end subroutine destroy_nccl
-end module dtfft_backend_nccl
+end module dtfft_backend_nccl_m

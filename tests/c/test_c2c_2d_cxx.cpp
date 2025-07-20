@@ -19,12 +19,14 @@
 
 #include <dtfft.hpp>
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <complex>
 #include "test_utils.h"
+#include <cstring>
 
 using namespace std;
+using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
@@ -34,7 +36,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   int32_t nx = 31334, ny = 44;
 #else
   int32_t nx = 313, ny = 44;
@@ -47,84 +49,97 @@ int main(int argc, char *argv[])
     cout << "Nx = " << nx << ", Ny = " << ny           << endl;
     cout << "Number of processors: " << comm_size      << endl;
     cout << "----------------------------------------" << endl;
+    cout << "dtFFT Version = " << Version::get()       << endl;
   }
 
-  assign_device_to_process();
+  attach_gpu_to_process();
+
+#if defined(DTFFT_WITH_CUDA)
+  Config config;
+  config.set_backend(Backend::MPI_P2P);
+  config.set_platform(Platform::CUDA); // Can be changed at runtime via `DTFFT_PLATFORM` environment variable
+  // config.set_enable_nvshmem_backends(false);
+  set_config(config);
+#endif
 
   // Create plan
   const vector<int32_t> dims = {ny, nx};
-  dtfft::PlanC2C plan = dtfft::PlanC2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE);
+  PlanC2C plan(dims, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, Executor::NONE);
 
-  size_t alloc_size;
-  plan.get_alloc_size(&alloc_size);
+  DTFFT_CXX_CALL( plan.report() )
 
-  dtfft_pencil_t pencils[2];
+  size_t alloc_bytes = plan.get_alloc_bytes();
+
+  std::vector<dtfft::Pencil> pencils;
+
   for (int i = 0; i < 2; i++) {
-    plan.get_pencil(i + 1, &pencils[i]);
+    dtfft::Pencil pencil = plan.get_pencil(i + 1);
+    pencils.push_back(pencil);
   }
 
-  size_t in_size = pencils[0].counts[0] * pencils[0].counts[1];
-  size_t out_size = pencils[1].counts[0] * pencils[1].counts[1];
+  size_t in_size = pencils[0].get_size();
+  size_t out_size = pencils[1].get_size();
 
-  complex<double> *in = new complex<double>[alloc_size];
-  complex<double> *out = new complex<double>[alloc_size];
-  complex<double> *check = new complex<double>[in_size];
+  auto in = (complex<double> *)plan.mem_alloc(alloc_bytes);
+  auto out = (complex<double> *)plan.mem_alloc(alloc_bytes);
+  auto check = new complex<double>[in_size];
 
-  for (size_t j = 0; j < in_size; j++) {
-    double real = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-    double cmplx = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-    in[j] = std::complex<double>{real, cmplx};
-    check[j] = in[j];
-  }
+  setTestValuesComplexDouble(check, in_size);
 
-#pragma acc enter data copyin(in[0:alloc_size - 1]) create(out[0:alloc_size - 1])
+#if defined(DTFFT_WITH_CUDA)
+  Platform platform = plan.get_platform();
+  complexDoubleH2D(check, in, in_size, static_cast<int32_t>(platform));
+#else
+  complexDoubleH2D(check, in, in_size);
+#endif
 
   double tf = 0.0 - MPI_Wtime();
-#pragma acc host_data use_device(in, out)
-  DTFFT_CALL( plan.transpose(in, out, DTFFT_TRANSPOSE_X_TO_Y) )
-
-#ifdef DTFFT_WITH_CUDA
-  CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  DTFFT_CXX_CALL( plan.transpose(in, out, Transpose::X_TO_Y) );
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == Platform::CUDA ) {
+    CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  }
 #endif
   tf += MPI_Wtime();
 
-#pragma acc parallel loop present(in)
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == Platform::HOST ) {
+    for ( size_t i = 0; i < out_size; i++) {
+      in[i] = complex<double>{-1., -1.};
+    }
+  }
+#else
   for ( size_t i = 0; i < out_size; i++) {
     in[i] = complex<double>{-1., -1.};
   }
+#endif
 
   double tb = 0.0 - MPI_Wtime();
-#pragma acc host_data use_device(in, out)
-  DTFFT_CALL( plan.transpose(out, in, DTFFT_TRANSPOSE_Y_TO_X) )
-
-#ifdef DTFFT_WITH_CUDA
-  CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  DTFFT_CXX_CALL( plan.transpose(out, in, Transpose::Y_TO_X) );
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == Platform::CUDA ) {
+    CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  }
 #endif
   tb += MPI_Wtime();
 
-#pragma acc update self(in[0:in_size-1])
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportComplexDouble(nx * ny, tf, tb, in, in_size, check, static_cast<int32_t>(platform));
+#else
+  checkAndReportComplexDouble(nx * ny, tf, tb, in, in_size, check);
+#endif
 
-  double local_error = -1.;
-  for (size_t i = 0; i < in_size; i++) {
-    double error = abs(complex<double>(in[i] - check[i]));
-    local_error = error > local_error ? error : local_error;
-  }
-
-#pragma acc exit data delete(in, out)
-
-  delete[] in;
-  delete[] out;
+  DTFFT_CXX_CALL( plan.mem_free(in) )
+  DTFFT_CXX_CALL( plan.mem_free(out) )
   delete[] check;
 
-  report_double(&nx, &ny, nullptr, local_error, tf, tb);
-
-  dtfft_error_code_t error_code;
+  dtfft::Error error_code;
   error_code = plan.destroy();
-  std::cout << dtfft_get_error_string(error_code) << std::endl;
+  if ( comm_rank == 0 ) std::cout << dtfft::get_error_string(error_code) << std::endl;
   // Should not catch any signal
   // Simply returning `DTFFT_ERROR_PLAN_NOT_CREATED`
-  error_code = plan.execute(NULL, NULL, (dtfft_execute_type_t)-1);
-  std::cout << dtfft_get_error_string(error_code) << std::endl;
+  error_code = plan.execute(in, out, static_cast<dtfft::Execute>(-1));
+  if ( comm_rank == 0 ) std::cout << dtfft::get_error_string(error_code) << std::endl;
   MPI_Finalize();
   return 0;
 }

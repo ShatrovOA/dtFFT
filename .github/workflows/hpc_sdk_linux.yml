@@ -1,0 +1,149 @@
+name: HPC-SDK Linux
+
+on: [push]
+jobs:
+  # This build has broken cmake configuration for cufftMp
+  # This is why it is disabled here
+  hpc_sdk_253:
+    name: HPC-SDK 25.3 + CUDA 12.8
+    runs-on: ubuntu-latest
+    env:
+      CC: "nvc"
+      CXX: "nvc++"
+      FC: "nvfortran"
+      DTFFT_ENABLE_LOG: "1"
+      CUDACXX: "nvcc"
+      CUDAHOSTCXX: "nvc++"
+      DTFFT_PLATFORM: "host"
+      LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/12.8/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/12.8/nvshmem/lib:$LD_LIBRARY_PATH"
+    steps:
+      - name: Get Requirements
+        run: |
+          echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
+          sudo apt-get update -y
+          sudo apt-get -y install nvhpc-25-3
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Update PATH
+        run: |
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/mpi/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/compilers/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/cuda/12.8/bin" >> $GITHUB_PATH
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDTFFT_BUILD_TESTS=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=on \
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_WITH_PROFILER=on \
+            -DDTFFT_WITH_CUDA=on \
+            -DDTFFT_WITH_CUFFT=on \
+            -DDTFFT_WITHOUT_NVSHMEM=on \
+            -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda
+          cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
+          cmake --build build
+
+  hpc_sdk_251:
+    name: HPC-SDK 25.1 + CUDA 12.6
+    runs-on: ubuntu-latest
+    env:
+      CC: "nvc"
+      CXX: "nvc++"
+      FC: "nvfortran"
+      DTFFT_ENABLE_LOG: "1"
+      CUDACXX: "nvcc"
+      CUDAHOSTCXX: "nvc++"
+      DTFFT_PLATFORM: "host"
+      LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/math_libs/12.6/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/comm_libs/12.6/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/comm_libs/12.6/nvshmem/lib:$LD_LIBRARY_PATH"
+    steps:
+      - name: Get Requirements
+        run: |
+          echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
+          sudo apt-get update -y
+          sudo apt-get -y install nvhpc-25-1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Update PATH
+        run: |
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/comm_libs/mpi/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/compilers/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/cuda/12.6/bin" >> $GITHUB_PATH
+      - name: Build
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDTFFT_BUILD_TESTS=on \
+            -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+            -DDTFFT_BUILD_SHARED=off \
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_WITH_PROFILER=on \
+            -DDTFFT_WITH_CUDA=on \
+            -DDTFFT_WITH_CUFFT=on \
+            -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda
+          cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install
+        run: sudo cmake --install build
+      - name: Test install
+        working-directory: ./tests/install
+        run: |
+          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
+          cmake --build build
+
+  # Not enough space on the runner for cuda-multi
+  # hpc_sdk_min_recomended:
+  #   name: HPC-SDK 24.7 + CUDA 11.8
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     CC: "nvc"
+  #     CXX: "nvc++"
+  #     FC: "nvfortran"
+  #     DTFFT_ENABLE_LOG: "1"
+  #     CUDACXX: "nvcc"
+  #     DTFFT_PLATFORM: "host"
+  #     LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/math_libs/11.8/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nvshmem/lib:$LD_LIBRARY_PATH"
+  #   steps:
+  #     - name: Get Requirements
+  #       run: |
+  #         echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
+  #         sudo apt-get update -y
+  #         sudo apt-get -y install nvhpc-24-7-cuda-multi
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Update PATH
+  #       run: |
+  #         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/mpi/bin" >> $GITHUB_PATH
+  #         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/compilers/bin" >> $GITHUB_PATH
+  #         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/cuda/11.8/bin" >> $GITHUB_PATH
+  #     - name: Build
+  #       run: |
+  #         cmake -B build -S . \
+  #           -DCMAKE_BUILD_TYPE=Debug \
+  #           -DDTFFT_BUILD_TESTS=on \
+  #           -DDTFFT_ENABLE_PERSISTENT_COMM=on \
+  #           -DDTFFT_BUILD_SHARED=on \
+  #           -DDTFFT_BUILD_C_CXX_API=on \
+  #           -DDTFFT_WITH_CUDA=on \
+  #           -DDTFFT_WITH_CUFFT=on \
+  #           -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda
+  #         cmake --build build
+  #     - name: Test
+  #       run: ctest --test-dir build --output-on-failure
+  #     - name: Install
+  #       run: sudo cmake --install build
+  #     - name: Test install
+  #       working-directory: ./tests/install
+  #       run: |
+  #         cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
+  #         cmake --build build

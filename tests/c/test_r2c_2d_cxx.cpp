@@ -22,15 +22,18 @@
 #include <math.h>
 #include <iostream>
 #include <complex>
+#include <cstring>
+#include <cstdlib>
 #include <vector>
 #include "test_utils.h"
 
 using namespace std;
+using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
-#if defined(DTFFT_TRANSPOSE_ONLY) || defined(DTFFT_WITH_CUDA)
-  return 0;
+#if defined(DTFFT_TRANSPOSE_ONLY)
+  cout << "FFT Support is disabled in this build, skipping test" << endl;
 #else
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -50,40 +53,57 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
-  dtfft_executor_t executor_type;
-#ifdef DTFFT_WITH_MKL
-  executor_type = DTFFT_EXECUTOR_MKL;
-#elif defined(DTFFT_WITH_FFTW )
-  executor_type = DTFFT_EXECUTOR_FFTW3;
+#if defined(DTFFT_WITH_CUDA)
+  char* platform_env = std::getenv("DTFFT_PLATFORM");
+
+  if ( platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0 )
+  {
+    cout << "This test is using C++ vectors, skipping it for GPU build" << endl;
+    MPI_Finalize();
+    return 0;
+  }
 #endif
+
+  Executor executor = Executor::NONE;
+#ifdef DTFFT_WITH_MKL
+  executor = Executor::MKL;
+#elif defined(DTFFT_WITH_FFTW )
+  executor = Executor::FFTW3;
+#endif
+
+  if ( executor == Executor::NONE ) {
+    if ( comm_rank == 0 ) cout << "Could not find valid R2C FFT executor, skipping test\n";
+    MPI_Finalize();
+    return 0;
+  }
 
   // Create plan
   vector<int32_t> dims = {ny, nx};
-  dtfft::PlanR2C *plan;
+  PlanR2C *plan;
   try {
-    plan = new dtfft::PlanR2C(dims, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor_type);
-  } catch (const runtime_error& err) {
+    plan = new PlanR2C(dims, executor);
+  } catch (const Exception& err) {
     cerr << err.what() << endl;
     MPI_Abort(MPI_COMM_WORLD, -1);
     return -1;
   }
 
   vector<int32_t> in_counts(2);
-  size_t alloc_size;
-  DTFFT_CALL( plan->get_alloc_size(&alloc_size) );
-  DTFFT_CALL( plan->get_local_sizes(NULL, in_counts.data()) );
+  size_t alloc_size = plan->get_alloc_size();
+  DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data()) );
   size_t in_size = in_counts[0] * in_counts[1];
 
   vector<double> in(alloc_size), check(in_size);
-  vector<complex<double>> out(alloc_size);
+  vector<complex<double>> out(alloc_size / 2);
+
+  setTestValuesDouble(check.data(), in_size);
 
   for (size_t i = 0; i < in_size; i++) {
-    in[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-    check[i] = in[i];
+    in[i] = check[i];
   }
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CALL( plan->execute(in, out, DTFFT_TRANSPOSE_OUT) );
+  DTFFT_CXX_CALL( plan->execute(in.data(), out.data(), Execute::FORWARD) );
   tf += MPI_Wtime();
 
   for ( auto & element: in) {
@@ -96,22 +116,20 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CALL( plan->execute(out, in, DTFFT_TRANSPOSE_IN) );
+  DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), Execute::BACKWARD) );
   tb += MPI_Wtime();
 
-  double local_error = -1.0;
-  for (size_t i = 0; i < in_size; i++) {
-    double error = abs(in[i] - check[i]);
-    local_error = error > local_error ? error : local_error;
-  }
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportDouble(nx * ny, tf, tb, in.data(), in_size, check.data(), static_cast<int32_t>(Platform::HOST));
+#else
+  checkAndReportDouble(nx * ny, tf, tb, in.data(), in_size, check.data());
+#endif
 
-  report_double(&nx, &ny, NULL, local_error, tf, tb);
-
-  DTFFT_CALL( plan->destroy() );
+  DTFFT_CXX_CALL( plan->destroy() );
 
   delete plan;
 
   MPI_Finalize();
   return 0;
-#endif // DTFFT_TRANSPOSE_ONLY
+#endif
 }

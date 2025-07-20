@@ -21,6 +21,7 @@ module dtfft_interface_fftw_m
 use iso_c_binding,                 only: c_ptr, c_int
 use dtfft_interface_fftw_native_m, only: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
 use dtfft_interface_fftw_native_m, only: fftw_destroy_plan, fftwf_destroy_plan
+use dtfft_interface_fftw_native_m, only: fftw_malloc, fftw_free
 implicit none
 private
 public :: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
@@ -33,72 +34,89 @@ public :: fftw_plan_many_dft, fftwf_plan_many_dft
 public :: fftw_plan_many_dft_r2c, fftwf_plan_many_dft_r2c
 public :: fftw_plan_many_dft_c2r, fftwf_plan_many_dft_c2r
 public :: fftw_plan_many_r2r, fftwf_plan_many_r2r
+public :: fftw_malloc, fftw_free
 
   interface
     subroutine fftw_execute_dft(plan, in, out) bind(C)
+    !! Executes C2C plan, double precision.
 #include "args_execute.i90"
     end subroutine fftw_execute_dft
 
     subroutine fftwf_execute_dft(plan, in, out) bind(C)
+    !! Executes C2C plan, single precision.
 #include "args_execute.i90"
     end subroutine fftwf_execute_dft
 
     subroutine fftw_execute_dft_r2c(plan, in, out) bind(C)
+    !! Executes R2C plan, double precision.
 #include "args_execute.i90"
     end subroutine fftw_execute_dft_r2c
 
     subroutine fftwf_execute_dft_r2c(plan, in, out) bind(C)
+    !! Executes R2C plan, single precision.
 #include "args_execute.i90"
     end subroutine fftwf_execute_dft_r2c
 
     subroutine fftw_execute_dft_c2r(plan, in, out) bind(C)
+    !! Executes C2R plan, double precision.
 #include "args_execute.i90"
     end subroutine fftw_execute_dft_c2r
 
     subroutine fftwf_execute_dft_c2r(plan, in, out) bind(C)
+    !! Executes C2R plan, single precision.
 #include "args_execute.i90"
     end subroutine fftwf_execute_dft_c2r
 
     subroutine fftw_execute_r2r(plan, in, out) bind(C)
+    !! Executes R2R plan, double precision.
 #include "args_execute.i90"
     end subroutine fftw_execute_r2r
 
     subroutine fftwf_execute_r2r(plan, in, out) bind(C)
+    !! Executes R2R plan, single precision.
 #include "args_execute.i90"
     end subroutine fftwf_execute_r2r
 
-    type(C_PTR) function fftw_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
+    type(c_ptr) function fftw_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
+    !! Creates C2C plan, double precision.
 #include "args_create.i90"
       integer(C_INT), value :: sign
     end function fftw_plan_many_dft
 
-    type(C_PTR) function fftwf_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
+    type(c_ptr) function fftwf_plan_many_dft(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
+    !! Creates C2C plan, single precision.
 #include "args_create.i90"
       integer(C_INT), value :: sign
     end function fftwf_plan_many_dft
 
-    type(C_PTR) function fftw_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    type(c_ptr) function fftw_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    !! Creates R2C plan, double precision.
 #include "args_create.i90"
     end function fftw_plan_many_dft_r2c
 
-    type(C_PTR) function fftwf_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    type(c_ptr) function fftwf_plan_many_dft_r2c(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    !! Creates R2C plan, single precision.
 #include "args_create.i90"
     end function fftwf_plan_many_dft_r2c
 
-    type(C_PTR) function fftw_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    type(c_ptr) function fftw_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    !! Creates C2R plan, double precision.
 #include "args_create.i90"
     end function fftw_plan_many_dft_c2r
 
-    type(C_PTR) function fftwf_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    type(c_ptr) function fftwf_plan_many_dft_c2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
+    !! Creates C2R plan, single precision.
 #include "args_create.i90"
     end function fftwf_plan_many_dft_c2r
 
-    type(C_PTR) function fftw_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
+    type(c_ptr) function fftw_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
+    !! Creates R2R plan, double precision.
 #include "args_create.i90"
       integer(C_FFTW_R2R_KIND), intent(in) :: kind(*)
     end function fftw_plan_many_r2r
 
-    type(C_PTR) function fftwf_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
+    type(c_ptr) function fftwf_plan_many_r2r(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kind,flags) bind(C)
+    !! Creates R2R plan, single precision.
 #include "args_create.i90"
       integer(C_FFTW_R2R_KIND), intent(in) :: kind(*)
     end function fftwf_plan_many_r2r

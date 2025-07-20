@@ -1,0 +1,46 @@
+name: Build and Deploy Documentation
+
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        working-directory: ./docs
+        run: |
+          sudo apt-get install libopenmpi-dev openmpi-bin
+          sudo apt install graphviz
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Configure project
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build documentation
+        working-directory: ./docs
+        run: |
+          ford dtfft_ford.md
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html

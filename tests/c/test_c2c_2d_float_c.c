@@ -22,12 +22,13 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include "test_utils.h"
 
 int main(int argc, char *argv[])
 {
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   int32_t nx = 3333, ny = 4444;
 #else
   int32_t nx = 11, ny = 39;
@@ -52,85 +53,126 @@ int main(int argc, char *argv[])
   // Create plan
   int32_t n[2] = {ny, nx};
 
+  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #ifdef DTFFT_WITH_FFTW
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
-#elif defined( DTFFT_WITH_CUFFT )
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_CUFFT;
-#else
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
+  executor = DTFFT_EXECUTOR_FFTW3;
+#elif defined(DTFFT_WITH_MKL)
+  executor = DTFFT_EXECUTOR_MKL;
+#endif
+#ifdef DTFFT_WITH_CUDA
+  char* platform_env = getenv("DTFFT_PLATFORM");
+
+  if ( platform_env == NULL || strcmp(platform_env, "cuda") == 0 )
+  {
+# if defined( DTFFT_WITH_CUFFT )
+    executor = DTFFT_EXECUTOR_CUFFT;
+# elif defined( DTFFT_WITH_VKFFT )
+    executor = DTFFT_EXECUTOR_VKFFT;
+# else
+    executor = DTFFT_EXECUTOR_NONE;
+# endif
+  }
 #endif
 
-  assign_device_to_process();
+#if defined(DTFFT_WITH_CUDA)
+  dtfft_config_t conf;
+  dtfft_create_config(&conf);
+  conf.platform = DTFFT_PLATFORM_CUDA;
+  dtfft_set_config(conf);
+#endif
+
+  attach_gpu_to_process();
 
   dtfft_plan_t plan;
-  DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor, &plan) )
 
   int32_t in_counts[2], out_counts[2];
-  size_t alloc_size;
+  size_t alloc_size, element_size;
   DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+  DTFFT_CALL( dtfft_get_element_size(plan, &element_size) )
   size_t in_size = in_counts[0] * in_counts[1];
   size_t out_size = out_counts[0] * out_counts[1];
 
-#ifdef DTFFT_WITH_CUDA
+  if ( element_size != (size_t)sizeof(dtfftf_complex) ) {
+    fprintf(stderr, "element_size /= sizeof(dtfftf_complex)\n");
+    MPI_Abort(MPI_COMM_WORLD, -1);
+  }
+
+#if defined(DTFFT_WITH_CUDA)
+  dtfft_platform_t platform;
+  DTFFT_CALL( dtfft_get_platform(plan, &platform) )
+
   cudaStream_t stream;
-  DTFFT_CALL( dtfft_get_stream(plan, &stream) )
+
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    DTFFT_CALL( dtfft_get_stream(plan, (dtfft_stream_t*)&stream) )
+  }
 #endif
 
   dtfftf_complex *in, *out, *check;
-  in = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * alloc_size);
-  out = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * alloc_size);
-  check = (dtfftf_complex*) malloc(sizeof(dtfftf_complex) * in_size);
 
-  for (size_t i = 0; i < in_size; i++) {
-    in[i] = check[i] = (float)rand() / (float)(RAND_MAX) - (float)rand() / (float)(RAND_MAX) * I;
-  }
+  dtfft_mem_alloc(plan, element_size * alloc_size, (void**)&in);
+  dtfft_mem_alloc(plan, element_size * alloc_size, (void**)&out);
+  check = (dtfftf_complex*) malloc(element_size * in_size);
+  setTestValuesComplexFloat(check, in_size);
 
-#pragma acc enter data create(out[0:alloc_size - 1]) copyin(in[0:alloc_size - 1])
+#if defined(DTFFT_WITH_CUDA)
+  complexFloatH2D(check, in, in_size, (int32_t)platform);
+#else
+  complexFloatH2D(check, in, in_size);
+#endif
 
   double tf = 0.0 - MPI_Wtime();
-#pragma acc host_data use_device(in, out)
-  DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL) )
-#ifdef DTFFT_WITH_CUDA
-  CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
+  DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, NULL) )
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
+  }
 #endif
   tf += MPI_Wtime();
 
-
-#pragma acc parallel loop present(in)
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_HOST ) {
+    for (size_t i = 0; i < alloc_size; i++) {
+      in[i] = -1.0 + 1.0 * I;
+    }
+  }
+#else
   for (size_t i = 0; i < alloc_size; i++) {
     in[i] = -1.0 + 1.0 * I;
   }
+#endif
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
-#pragma acc parallel loop present(out)
-    for (size_t i = 0; i < out_size; i++) {
-      out[i] /= (float) (nx * ny);
-    }
-  }
+
+#if defined(DTFFT_WITH_CUDA)
+  scaleComplexFloat((int32_t)executor, out, out_size, nx * ny, (int32_t)platform, stream);
+#else
+  scaleComplexFloat((int32_t)executor, out, out_size, nx * ny);
+#endif
 
   double tb = 0.0 - MPI_Wtime();
-#pragma acc host_data use_device(in, out)
-  DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL) )
-#ifdef DTFFT_WITH_CUDA
-  CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
+  DTFFT_CALL( dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, NULL) )
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaStreamSynchronize(stream) )
+  }
 #endif
   tb += MPI_Wtime();
 
-#pragma acc update self(in[0:in_size - 1])
 
-  float local_error = -1.0;
-  for (size_t i = 0; i < in_size; i++) {
-    float real_error = fabs(crealf(check[i]) - crealf(in[i]));
-    float cmplx_error = fabs(cimagf(check[i]) - cimagf(in[i]));
-    float error = fmax(real_error, cmplx_error);
-    local_error = error > local_error ? error : local_error;
-  }
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportComplexFloat(nx * ny, tf, tb, in, in_size, check, (int32_t)platform);
+#else
+  checkAndReportComplexFloat(nx * ny, tf, tb, in, in_size, check);
+#endif
 
-  report_float(&nx, &ny, NULL, local_error, tf, tb);
 
-#pragma acc exit data delete(in, out)
+  // Free memory before plan destruction
+  dtfft_mem_free(plan, in);
+  dtfft_mem_free(plan, out);
+  free(check);
 
-  dtfft_destroy(&plan);
+  DTFFT_CALL( dtfft_destroy(&plan) )
 
   MPI_Finalize();
   return 0;

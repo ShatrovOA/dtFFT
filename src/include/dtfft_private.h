@@ -41,6 +41,19 @@ extern "C" {
 #define WRITE_REPORT(msg) call write_message(output_unit, msg, "dtFFT: ")
 #define WRITE_INFO(msg) if(get_log_enabled()) WRITE_REPORT(msg)
 #define WRITE_WARN(msg) if(get_log_enabled()) call write_message(error_unit, msg, "dtFFT WARNING: ")
+#define WRITE_ERROR(msg) if(get_log_enabled()) call write_message(error_unit, msg, "dtFFT ERROR: ")
+
+#define ALLOC_ALIGNMENT 16
+
+#ifdef __GFORTRAN__
+#define PASTE(a) a
+#define CONCAT(a,b) PASTE(a)b
+#else
+#define PASTE(a,b) a ## b
+#define CONCAT(a,b) PASTE(a,b)
+#endif
+
+#define INTERNAL_ERROR(message) error stop "dtFFT Internal Error: "//message
 
 #ifdef __cplusplus
 }

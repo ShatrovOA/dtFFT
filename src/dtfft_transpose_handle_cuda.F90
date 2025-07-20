@@ -18,19 +18,26 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_transpose_handle_cuda
-use iso_c_binding,  only: c_ptr
-use iso_fortran_env
-use cudafor
+!! This module describes [[transpose_handle_cuda]] class
+use iso_c_binding,                        only: c_ptr
+use iso_fortran_env,                      only: int8, int32, int64, real32
+use dtfft_interface_cuda_runtime
 use dtfft_abstract_backend,               only: abstract_backend, backend_helper
-use dtfft_backend_nccl,                   only: backend_nccl
+#ifdef DTFFT_WITH_NVSHMEM
+use dtfft_backend_cufftmp_m,              only: backend_cufftmp
+#endif
+#ifdef DTFFT_WITH_NCCL
+use dtfft_backend_nccl_m,                 only: backend_nccl
+#endif
 use dtfft_backend_mpi,                    only: backend_mpi
 use dtfft_nvrtc_kernel
-use dtfft_pencil,                         only: pencil, get_transpose_id
+use dtfft_pencil,                         only: pencil, get_transpose_type
 use dtfft_parameters
 use dtfft_utils
 #include "dtfft_mpi.h"
 #include "dtfft_profile.h"
 #include "dtfft_cuda.h"
+#include "dtfft_private.h"
 implicit none
 private
 public :: transpose_handle_cuda
@@ -38,47 +45,46 @@ public :: transpose_handle_cuda
   type :: data_handle
   !! Helper class used to obtain displacements and 
   !! counts needed to send to other processes
-    integer(int32),        allocatable  :: ls(:,:)                  !< Starts of my data that I should send or recv
-                                                                    !< while communicating with other processes
-    integer(int32),        allocatable  :: ln(:,:)                  !< Counts of my data that I should send or recv
-                                                                    !< while communicating with other processes
-    integer(int32),        allocatable  :: sizes(:,:)               !< Counts of every rank in a comm
-    integer(int32),        allocatable  :: starts(:,:)              !< Starts of every rank in a comm
-    integer(int32),        allocatable  :: displs(:)                !< Local buffer displacement
-    integer(int32),        allocatable  :: counts(:)                !< Number of elements to send or recv
+    integer(int32),        allocatable  :: ls(:,:)                  !! Starts of my data that I should send or recv
+                                                                    !! while communicating with other processes
+    integer(int32),        allocatable  :: ln(:,:)                  !! Counts of my data that I should send or recv
+                                                                    !! while communicating with other processes
+    integer(int32),        allocatable  :: sizes(:,:)               !! Counts of every rank in a comm
+    integer(int32),        allocatable  :: starts(:,:)              !! Starts of every rank in a comm
+    integer(int32),        allocatable  :: displs(:)                !! Local buffer displacement
+    integer(int32),        allocatable  :: counts(:)                !! Number of elements to send or recv
   contains
-    procedure,  pass(self)  :: create => create_data_handle         !< Creates handle
-    procedure,  pass(self)  :: destroy => destroy_data_handle       !< Destroys handle
+    procedure,  pass(self)  :: create => create_data_handle         !! Creates handle
+    procedure,  pass(self)  :: destroy => destroy_data_handle       !! Destroys handle
   end type data_handle
 
   type :: transpose_handle_cuda
   !! CUDA Transpose Handle
   private
-    type(dtfft_transpose_type_t)              :: transpose_type
-    logical                                   :: has_exchange = .false.   !< If current handle has exchanges between GPUs
-    logical                                   :: is_pipelined = .false.   !< If underlying exchanges are pipelined
-    real(real32),  DEVICE_PTR pointer         :: aux(:)                   !< Auxiliary buffer used in pipelined algorithm
-    type(nvrtc_kernel)                        :: pack_kernel              !< Transposes data
-    type(nvrtc_kernel)                        :: unpack_kernel            !< Unpacks data
-    class(abstract_backend),  allocatable     :: comm_handle              !< Communication handle
+    type(dtfft_transpose_t)                   :: transpose_type
+    logical                                   :: has_exchange = .false.   !! If current handle has exchanges between GPUs
+    logical                                   :: is_pipelined = .false.   !! If underlying exchanges are pipelined
+    type(nvrtc_kernel)                        :: transpose_kernel              !! Transposes data
+    type(nvrtc_kernel)                        :: unpack_kernel            !! Unpacks data
+    type(nvrtc_kernel)                        :: unpack_kernel2
+    class(abstract_backend),  allocatable     :: comm_handle              !! Communication handle
   contains
-    procedure, pass(self) :: create           !< Creates CUDA Transpose Handle
-    procedure, pass(self) :: execute          !< Executes transpose - exchange - unpack
-    procedure, pass(self) :: destroy          !< Destroys CUDA Transpose Handle
-    procedure, pass(self) :: get_aux_size     !< Returns number of bytes required by aux buffer
-    procedure, pass(self) :: get_tranpose_type!< Returns transpose_type, associated with handle
-    procedure, pass(self) :: set_aux          !< Sets aux buffer to underlying communication handle
+    procedure, pass(self) :: create           !! Creates CUDA Transpose Handle
+    procedure, pass(self) :: execute          !! Executes transpose - exchange - unpack
+    procedure, pass(self) :: destroy          !! Destroys CUDA Transpose Handle
+    procedure, pass(self) :: get_aux_size     !! Returns number of bytes required by aux buffer
+    procedure, pass(self) :: get_tranpose_type!! Returns transpose_type, associated with handle
   end type transpose_handle_cuda
 
 contains
 
   subroutine create_data_handle(self, info, comm, comm_size)
   !! Creates handle
-    class(data_handle),   intent(inout) :: self       !< Helper class
-    type(pencil),         intent(in)    :: info       !< Pencil info
-    TYPE_MPI_COMM,        intent(in)    :: comm       !< MPI communicator
-    integer(int32),       intent(in)    :: comm_size  !< Size of ``comm``
-    integer(int32)                      :: ierr       !< MPI error flag
+    class(data_handle),   intent(inout) :: self       !! Helper class
+    type(pencil),         intent(in)    :: info       !! Pencil info
+    TYPE_MPI_COMM,        intent(in)    :: comm       !! MPI communicator
+    integer(int32),       intent(in)    :: comm_size  !! Size of ``comm``
+    integer(int32)                      :: ierr       !! MPI error flag
 
     allocate( self%ls( info%rank, 0:comm_size - 1 ), source=0_int32 )
     allocate( self%ln( info%rank, 0:comm_size - 1 ), source=0_int32 )
@@ -93,7 +99,7 @@ contains
 
   subroutine destroy_data_handle(self)
   !! Destroys handle
-    class(data_handle),   intent(inout) :: self       !< Helper class
+    class(data_handle),   intent(inout) :: self       !! Helper class
 
     if(allocated(self%ls))        deallocate(self%ls)
     if(allocated(self%ln))        deallocate(self%ln)
@@ -103,37 +109,37 @@ contains
     if(allocated(self%counts))    deallocate(self%counts)
   end subroutine destroy_data_handle
 
-  subroutine create(self, helper, send, recv, base_storage, backend_id)
+  subroutine create(self, helper, send, recv, base_storage, backend)
   !! Creates CUDA Transpose Handle
-    class(transpose_handle_cuda),   intent(inout) :: self               !< CUDA Transpose Handle
-    type(backend_helper),           intent(in)    :: helper
-    ! TYPE_MPI_COMM,                  intent(in)    :: comm               !< 1d communicator
-    type(pencil),                   intent(in)    :: send               !< Send pencil
-    type(pencil),                   intent(in)    :: recv               !< Recv pencil
-    integer(int8),                  intent(in)    :: base_storage       !< Number of bytes needed to store single element
-    type(dtfft_gpu_backend_t),      intent(in)    :: backend_id         !< Backend type
-    integer(int8)                                 :: ndims              !< Number of dimensions
-    type(dtfft_transpose_type_t)                  :: transpose_type     !< Type of transpose based on ``send`` and ``recv``
-    integer(int32)                                :: comm_size          !< Size of ``comm``
-    integer(int32)                                :: comm_rank          !< Rank in ``comm``
-    integer(int32)                                :: ierr               !< MPI error flag
-    logical                                       :: packing_required   !< If transpose kernel requires packing. X-Y 3d only
-    integer(int32)                                :: sdispl             !< Send displacement
-    integer(int32)                                :: rdispl             !< Recv displacement
-    integer(int32)                                :: sendsize           !< Number of elements to send
-    integer(int32)                                :: recvsize           !< Number of elements to recieve
-    integer(int32)                                :: i                  !< Counter
-    TYPE_MPI_REQUEST                              :: sr                 !< Send request
-    TYPE_MPI_REQUEST                              :: rr                 !< Recv request
-    integer(int8)                                 :: kernel_type        !< Type of kernel
-    integer(int32),                   allocatable :: k1(:,:)            !< Pack kernel arguments
-    integer(int32),                   allocatable :: k2(:,:)            !< Unpack kernel arguments
-    type(data_handle)                             :: in                 !< Send helper
-    type(data_handle)                             :: out                !< Recv helper
+    class(transpose_handle_cuda),   intent(inout) :: self               !! CUDA Transpose Handle
+    type(backend_helper),           intent(in)    :: helper             !! Backend helper
+    ! TYPE_MPI_COMM,                  intent(in)    :: comm               !! 1d communicator
+    type(pencil),                   intent(in)    :: send               !! Send pencil
+    type(pencil),                   intent(in)    :: recv               !! Recv pencil
+    integer(int64),                 intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    type(dtfft_backend_t),          intent(in)    :: backend            !! Backend type
+    integer(int8)                                 :: ndims              !! Number of dimensions
+    type(dtfft_transpose_t)                       :: transpose_type     !! Type of transpose based on ``send`` and ``recv``
+    integer(int32)                                :: comm_size          !! Size of ``comm``
+    integer(int32)                                :: comm_rank          !! Rank in ``comm``
+    integer(int32)                                :: ierr               !! MPI error flag
+    logical                                       :: packing_required   !! If transpose kernel requires packing. X-Y 3d only
+    integer(int32)                                :: sdispl             !! Send displacement
+    integer(int32)                                :: rdispl             !! Recv displacement
+    integer(int32)                                :: sendsize           !! Number of elements to send
+    integer(int32)                                :: recvsize           !! Number of elements to recieve
+    integer(int32)                                :: i                  !! Counter
+    TYPE_MPI_REQUEST                              :: sr                 !! Send request
+    TYPE_MPI_REQUEST                              :: rr                 !! Recv request
+    integer(int8)                                 :: kernel_type        !! Type of kernel
+    integer(int32),                   allocatable :: k1(:,:)            !! Pack kernel arguments
+    integer(int32),                   allocatable :: k2(:,:)            !! Unpack kernel arguments
+    type(data_handle)                             :: in                 !! Send helper
+    type(data_handle)                             :: out                !! Recv helper
     integer(int8)                                 :: comm_id
     TYPE_MPI_COMM :: comm
 
-    transpose_type = get_transpose_id(send, recv)
+    transpose_type = get_transpose_type(send, recv)
 
     select case ( abs(transpose_type%val) )
     case ( DTFFT_TRANSPOSE_X_TO_Y%val )
@@ -142,6 +148,8 @@ contains
       comm_id = 3
     case ( DTFFT_TRANSPOSE_X_TO_Z%val )
       comm_id = 1
+    case default
+      INTERNAL_ERROR("unknown `abs(transpose_type)`")
     endselect
 
     comm = helper%comms(comm_id)
@@ -153,19 +161,21 @@ contains
     self%transpose_type = transpose_type
     ndims = send%rank
 
-    packing_required = (abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val) .and. self%has_exchange .and. ndims == 3
-    !  .and. (.not. backend_id==DTFFT_GPU_BACKEND_CUFFTMP)
+    packing_required = (abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val)  &
+                        .and. self%has_exchange                                 &
+                        .and. ndims == 3                                        &
+                        .and. (.not. backend==DTFFT_BACKEND_CUFFTMP)
 
     kernel_type = KERNEL_TRANSPOSE
     if ( packing_required ) kernel_type = KERNEL_TRANSPOSE_PACKED
 
     if ( .not. self%has_exchange ) then
-      call self%pack_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type)
+      call self%transpose_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type)
       return
     endif
 
-    allocate( k1(0:comm_size - 1, 3) )
-    allocate( k2(0:comm_size - 1, 4) )
+    allocate( k1(3, comm_size), source=0_int32 )
+    allocate( k2(5, comm_size), source=0_int32 )
 
     call in%create(send, comm, comm_size)
     call out%create(recv, comm, comm_size)
@@ -211,11 +221,11 @@ contains
       endselect
 
       if ( packing_required ) then
-        k1(i, 1) = in%ls(1, i)
-        k1(i, 2) = in%ln(1, i)
-        k1(i, 3) = sdispl
+        k1(1, i + 1) = in%ls(1, i)
+        k1(2, i + 1) = in%ln(1, i)
+        k1(3, i + 1) = sdispl
         if ( sdispl > 0 ) then
-          k1(i, 3) =  k1(i, 3) - in%ls(1, i) * in%ln(2, i)
+          k1(3, i + 1) =  k1(3, i + 1) - in%ls(1, i) * in%ln(2, i)
         endif
       endif
 
@@ -274,40 +284,64 @@ contains
         endselect
       endif
 
-      k2(i, 1) = rdispl
+      k2(1, i + 1) = rdispl
       if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
-        k2(i, 2) = out%ln(1, i) * out%ls(2, i)
-        k2(i, 3) = out%ln(1, i) * out%ln(2, i)
+        k2(2, i + 1) = out%ln(1, i) * out%ls(2, i)
+        k2(3, i + 1) = out%ln(1, i) * out%ln(2, i)
+        k2(5, i + 1) = out%sizes(1, comm_rank) * out%sizes(2, comm_rank)
       else
-        k2(i, 2) = out%ls(1, i)
-        k2(i, 3) = out%ln(1, i)
+        k2(2, i + 1) = out%ls(1, i)
+        k2(3, i + 1) = out%ln(1, i)
+        k2(5, i + 1) = out%sizes(1, comm_rank)
       endif
-      k2(i, 4) = recvsize
+      k2(4, i + 1) = recvsize
 
       out%counts(i) = recvsize
       out%displs(i) = rdispl
       rdispl = rdispl + recvsize
     enddo
 
-    call self%pack_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type, k1)
+    call self%transpose_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type, k1)
 
-    self%is_pipelined = is_backend_pipelined(backend_id)
+    self%is_pipelined = is_backend_pipelined(backend)
     kernel_type = KERNEL_UNPACK
     if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
+    if ( backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_UNPACK_SIMPLE_COPY
     call self%unpack_kernel%create(comm, recv%counts, base_storage, transpose_type, kernel_type, k2)
 
-    if ( is_backend_mpi(backend_id) ) then
-      allocate( backend_mpi :: self%comm_handle )
-    else if ( is_backend_nccl(backend_id) ) then
-      allocate( backend_nccl :: self%comm_handle )
-    else
-      error stop "Unknown backend_id"
+    if ( backend == DTFFT_BACKEND_NCCL_PIPELINED ) then
+      call self%unpack_kernel2%create(comm, recv%counts, base_storage, transpose_type, KERNEL_UNPACK_PARTIAL, k2)
     endif
 
-    call self%comm_handle%create(backend_id, helper, comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
+    if ( is_backend_mpi(backend) ) then
+      allocate( backend_mpi :: self%comm_handle )
+    else if ( is_backend_nccl(backend) ) then
+#ifdef DTFFT_WITH_NCCL
+      allocate( backend_nccl :: self%comm_handle )
+#else
+      INTERNAL_ERROR("not DTFFT_WITH_NCCL")
+#endif
+    else if ( backend == DTFFT_BACKEND_CUFFTMP ) then
+#ifdef DTFFT_WITH_NVSHMEM
+      allocate( backend_cufftmp :: self%comm_handle )
+      ! cuFFTMp seems to fail when passing 1d communicators
+      ! General 3d grid comm is used for all transposes
+      comm_id = 1
+#else
+      INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
+#endif
+    else
+      INTERNAL_ERROR("Unknown backend")
+    endif
 
-    if ( self%comm_handle%is_pipelined ) then
-      call self%comm_handle%set_unpack_kernel(self%unpack_kernel)
+    call self%comm_handle%create(backend, transpose_type, helper, comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
+
+    if ( self%is_pipelined ) then
+      if( backend == DTFFT_BACKEND_NCCL_PIPELINED ) then
+        call self%comm_handle%set_unpack_kernel(self%unpack_kernel, self%unpack_kernel2)
+      else
+        call self%comm_handle%set_unpack_kernel(self%unpack_kernel)
+      endif
     endif
 
     call in%destroy()
@@ -315,31 +349,32 @@ contains
     deallocate( k1, k2 )
   end subroutine create
 
-  subroutine execute(self, in, out, stream)
+  subroutine execute(self, in, out, stream, aux)
   !! Executes transpose - exchange - unpack
-    class(transpose_handle_cuda),   intent(inout) :: self       !< CUDA Transpose Handle
-    real(real32),    DEVICE_PTR     intent(inout) :: in(:)      !< Send pointer
-    real(real32),    DEVICE_PTR     intent(inout) :: out(:)     !< Recv pointer
-    integer(cuda_stream_kind),      intent(in)    :: stream     !< Main execution CUDA stream
+    class(transpose_handle_cuda),   intent(inout) :: self       !! CUDA Transpose Handle
+    real(real32),                   intent(inout) :: in(:)      !! Send pointer
+    real(real32),                   intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),           intent(in)    :: stream     !! Main execution CUDA stream
+    real(real32),                   intent(inout) :: aux(:)     !! Aux pointer
 
     if ( self%is_pipelined ) then
-      call self%pack_kernel%execute(in, self%aux, stream)
+      call self%transpose_kernel%execute(in, aux, stream)
 #ifdef __DEBUG
       CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
-      call self%comm_handle%execute(in, out, stream)
+      call self%comm_handle%execute(aux, out, stream, in)
 #ifdef __DEBUG
       CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
       return
     endif
 
-    call self%pack_kernel%execute(in, out, stream)
+    call self%transpose_kernel%execute(in, out, stream)
 #ifdef __DEBUG
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
     if ( .not. self%has_exchange ) return
-    call self%comm_handle%execute(out, in, stream)
+    call self%comm_handle%execute(out, in, stream, aux)
 #ifdef __DEBUG
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
 #endif
@@ -351,18 +386,19 @@ contains
 
   subroutine destroy(self)
   !! Destroys CUDA Transpose Handle
-    class(transpose_handle_cuda),   intent(inout) :: self       !< CUDA Transpose Handle
+    class(transpose_handle_cuda),   intent(inout) :: self       !! CUDA Transpose Handle
 
-    call self%pack_kernel%destroy()
+    call self%transpose_kernel%destroy()
     if ( .not. self%has_exchange ) return
     call self%comm_handle%destroy()
     deallocate( self%comm_handle )
     call self%unpack_kernel%destroy()
+    call self%unpack_kernel2%destroy()
   end subroutine destroy
 
   integer(int64) function get_aux_size(self)
   !! Returns number of bytes required by aux buffer
-    class(transpose_handle_cuda),   intent(in)    :: self       !< CUDA Transpose Handle
+    class(transpose_handle_cuda),   intent(in)    :: self       !! CUDA Transpose Handle
 
     if ( .not. self%has_exchange ) then
       get_aux_size = 0
@@ -373,18 +409,8 @@ contains
 
   function get_tranpose_type(self) result(tranpose_type)
   !! Returns transpose_type, associated with handle
-    class(transpose_handle_cuda),   intent(in)    :: self       !< CUDA Transpose Handle
-    type(dtfft_transpose_type_t)    :: tranpose_type
+    class(transpose_handle_cuda),   intent(in)    :: self       !! CUDA Transpose Handle
+    type(dtfft_transpose_t)         :: tranpose_type
     tranpose_type = self%transpose_type
   end function get_tranpose_type
-
-  subroutine set_aux(self, aux)
-  !! Sets aux buffer to underlying communication handle
-    class(transpose_handle_cuda),     intent(inout) :: self       !< CUDA Transpose Handle
-    real(real32), DEVICE_PTR  target, intent(in)    :: aux(:)        !< Aux pointer
-
-    if ( .not. self%has_exchange ) return
-    self%aux => aux
-    call self%comm_handle%set_aux(aux)
-  end subroutine set_aux
 end module dtfft_transpose_handle_cuda

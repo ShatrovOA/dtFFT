@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   int32_t nx = 4, ny = 64, nz = 16;
   double *inout, *check, *aux;
   int comm_rank, comm_size;
-  int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
+  int32_t n[3] = {nz, ny, nx};
   dtfft_pencil_t pencils[3];
 
 
@@ -49,33 +49,37 @@ int main(int argc, char *argv[])
     printf("----------------------------------------\n");
   }
 
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
+  attach_gpu_to_process();
 
   // Create plan
   dtfft_plan_t plan;
 
-  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE, &plan) )
 
-  size_t alloc_size;
-  DTFFT_CALL( dtfft_get_alloc_size(plan, &alloc_size) )
+  size_t alloc_bytes;
+  DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
 
-  inout = (double*) malloc(sizeof(double) * alloc_size);
-  check = (double*) malloc(sizeof(double) * alloc_size);
-  aux = (double*) malloc(sizeof(double) * alloc_size);
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&inout) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
 
   // Obtain pencil information (optional)
   for ( int i = 0; i < 3; i++ ) {
     dtfft_get_pencil(plan, i + 1, &pencils[i]);
   }
 
-  memcpy(in_counts, pencils[0].counts, 3 * sizeof(int32_t));
-  memcpy(out_counts, pencils[2].counts, 3 * sizeof(int32_t));
+  size_t in_size = pencils[0].size;
 
-  int64_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
-  int64_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
+  check = (double*) malloc(in_size * sizeof(double));
+  setTestValuesDouble(check, in_size);
 
-  for (int i = 0; i < in_size; i++)
-    inout[i] = check[i] = (double)(i) / (double)(in_size);
+#if defined(DTFFT_WITH_CUDA)
+  dtfft_platform_t platform;
+  DTFFT_CALL( dtfft_get_platform(plan, &platform) )
+
+  doubleH2D(check, inout, in_size, (int32_t)platform);
+#else
+  doubleH2D(check, inout, in_size);
+#endif
 
   double tf = 0.0 - MPI_Wtime();
   /*
@@ -89,13 +93,13 @@ int main(int argc, char *argv[])
   /*
     Run custom Forward FFT Z direction using pencils[2] information
   */
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  }
+#endif
   tf += MPI_Wtime();
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
-    // Perform scaling. Scaling value may very depending on FFT type
-    for (int i = 0; i < out_size; i++)
-      inout[i] /= (double) (8 * nx * (ny - 1) * (nz - 1));
-  }
 
   double tb = 0.0 - MPI_Wtime();
   /*
@@ -109,20 +113,24 @@ int main(int argc, char *argv[])
   /*
     Run custom Backward FFT X direction using pencils[0] information
   */
+#if defined(DTFFT_WITH_CUDA)
+ if ( platform == DTFFT_PLATFORM_CUDA ) {
+   CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+ }
+#endif
   tb += MPI_Wtime();
 
-  double local_error = -1.0;
-  for (int i = 0; i < in_size; i++) {
-    double error = fabs(check[i] - inout[i]);
-    local_error = error > local_error ? error : local_error;
-  }
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportDouble(nx * ny, tf, tb, inout, in_size, check, (int32_t)platform);
+#else
+  checkAndReportDouble(nx * ny, tf, tb, inout, in_size, check);
+#endif
 
-  report_double(&nx, &ny, &nz, local_error, tf, tb);
+  DTFFT_CALL( dtfft_mem_free(plan, inout) )
+  DTFFT_CALL( dtfft_mem_free(plan, aux) )
 
-  dtfft_destroy(&plan);
-  free(inout);
+  DTFFT_CALL( dtfft_destroy(&plan) )
   free(check);
-  free(aux);
 
   MPI_Finalize();
   return 0;

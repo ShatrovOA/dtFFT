@@ -1,5 +1,6 @@
 #if defined( DTFFT_WITH_PROFILER )
 # if defined( DTFFT_WITH_CUDA )
+use dtfft_interface_nvtx
 #define REGION_BEGIN(name, color) call push_nvtx_domain_range(name, color)
 #define REGION_END(name) call pop_nvtx_domain_range()
 #define PHASE_BEGIN(name, color) REGION_BEGIN(name, color)

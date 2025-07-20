@@ -23,10 +23,13 @@
 #include <iostream>
 #include <complex>
 #include <vector>
+#include <cstring>
+#include <cstdlib>
 
 #include "test_utils.h"
 
 using namespace std;
+using namespace dtfft;
 
 int main(int argc, char *argv[])
 {
@@ -48,20 +51,30 @@ int main(int argc, char *argv[])
     cout << "----------------------------------------" << endl;
   }
 
-// #ifdef DTFFT_WITH_FFTW
-//   dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
-// #elif defined(DTFFT_WITH_VKFFT)
-//   dtfft_executor_t executor_type = DTFFT_EXECUTOR_VKFFT;
-// #else
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
-// #endif
+  Executor executor = Executor::NONE;
+#ifdef DTFFT_WITH_FFTW
+  executor = Executor::FFTW3;
+#endif
+#ifdef DTFFT_WITH_CUDA
+  char* platform_env = std::getenv("DTFFT_PLATFORM");
+
+  if ( platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0 )
+  {
+    if(comm_rank == 0) {
+      cout << "CUDA Platform detected.\n";
+      cout << "This test is not designed to run on CUDA.\n";
+    }
+    MPI_Finalize();
+    exit(0);
+  }
+#endif
 
   // Create plan
   vector<int32_t> dims = {ny, nx};
-  vector<dtfft_r2r_kind_t> kinds = {};
-  dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor_type);
+  vector<dtfft::R2RKind> kinds = {dtfft::R2RKind::DCT_3, dtfft::R2RKind::DCT_3};
+  dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, executor);
   size_t alloc_size;
-  plan.get_alloc_size(&alloc_size);
+  DTFFT_CXX_CALL( plan.get_alloc_size(&alloc_size) )
 
   vector<double> in(alloc_size),
                  out(alloc_size),
@@ -73,28 +86,32 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CALL( plan.execute(in, out, DTFFT_TRANSPOSE_OUT) )
+  DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), dtfft::Execute::FORWARD) );
   tf += MPI_Wtime();
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
-    for (size_t i = 0; i < alloc_size; i++) {
+  Pencil in_pencil = plan.get_pencil(1);
+  size_t in_size = in_pencil.get_size();
+
+  Pencil out_pencil = plan.get_pencil(2);
+  size_t out_size = out_pencil.get_size();
+
+  if ( executor != Executor::NONE ) {
+    for (size_t i = 0; i < out_size; i++) {
       out[i] /= (double) (4 * nx * ny);
     }
   }
 
   double tb = 0.0 - MPI_Wtime();
-  plan.execute(out, in, DTFFT_TRANSPOSE_IN);
+  DTFFT_CXX_CALL( plan.execute(out.data(), in.data(), dtfft::Execute::BACKWARD) )
   tb += MPI_Wtime();
 
-  double local_error = -1.0;
-  for (size_t i = 0; i < alloc_size; i++) {
-    double error = fabs(in[i] - check[i]);
-    local_error = error > local_error ? error : local_error;
-  }
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportDouble(nx * ny, tf, tb, in.data(), in_size, check.data(), static_cast<int32_t>(Platform::HOST));
+#else
+  checkAndReportDouble(nx * ny, tf, tb, in.data(), in_size, check.data());
+#endif
 
-  report_double(&nx, &ny, NULL, local_error, tf, tb);
-
-  plan.destroy();
+  DTFFT_CXX_CALL( plan.destroy() )
 
   MPI_Finalize();
   return 0;

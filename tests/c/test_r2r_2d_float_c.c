@@ -21,6 +21,7 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 
 #include "test_utils.h"
@@ -28,9 +29,13 @@
 int main(int argc, char *argv[]) {
 
   dtfft_plan_t plan;
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
+  int32_t nx = 2048, ny = 64;
+#else
   int32_t nx = 32, ny = 32;
+#endif
   float *in, *out, *check;
-  int i,j, comm_rank, comm_size;
+  int comm_rank, comm_size;
   int32_t in_counts[2], out_counts[2], n[2] = {ny, nx};
   dtfft_r2r_kind_t kinds[2] = {DTFFT_DST_1, DTFFT_DST_2};
 
@@ -49,54 +54,104 @@ int main(int argc, char *argv[]) {
     printf("----------------------------------------\n");
   }
 
+  dtfft_executor_t executor = DTFFT_EXECUTOR_NONE;
 #ifdef DTFFT_WITH_FFTW
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_FFTW3;
-#else
-  dtfft_executor_t executor_type = DTFFT_EXECUTOR_NONE;
+  executor = DTFFT_EXECUTOR_FFTW3;
+#endif
+#ifdef DTFFT_WITH_CUDA
+  char* platform_env = getenv("DTFFT_PLATFORM");
+
+  if ( platform_env == NULL || strcmp(platform_env, "cuda") == 0 )
+  {
+# if defined(DTFFT_WITH_VKFFT)
+    executor = DTFFT_EXECUTOR_VKFFT;
+# else
+    executor = DTFFT_EXECUTOR_NONE;
+# endif
+  }
 #endif
 
+#if defined(DTFFT_WITH_CUDA)
+  dtfft_config_t config;
+  DTFFT_CALL( dtfft_create_config(&config) )
+#if defined(DTFFT_WITH_NCCL)
+  config.backend = DTFFT_BACKEND_NCCL_PIPELINED;
+#elif defined(DTFFT_WITH_NVSHMEM)
+  config.backend = DTFFT_BACKEND_CUFFTMP;
+#else
+  config.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
+#endif
+  config.platform = DTFFT_PLATFORM_CUDA;
+  DTFFT_CALL( dtfft_set_config(config) )
+#endif
+
+  attach_gpu_to_process();
+
   // Create plan
-  DTFFT_CALL( dtfft_create_plan_r2r(2, n, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor_type, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2r(2, n, kinds, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_ESTIMATE, executor, &plan) )
 
-  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, NULL) )
-
-  in = (float*) malloc(sizeof(float) * in_counts[0] * in_counts[1]);
-  out = (float*) malloc(sizeof(float) * out_counts[0] * out_counts[1]);
-  check = (float*) malloc(sizeof(float) * in_counts[0] * in_counts[1]);
-
-  for (i = 0; i < in_counts[1]; i++) { // x direction
-    for (j = 0; j < in_counts[0]; j++) { // y direction
-        in[i * in_counts[0] + j] = check[i * in_counts[0] + j] = 15.0;
-    }
+  size_t element_size;
+  DTFFT_CALL( dtfft_get_element_size(plan, &element_size) )
+  if ( element_size != sizeof(float) ) {
+    fprintf(stderr, "element_size != sizeof(float)\n");
+    MPI_Abort(MPI_COMM_WORLD, -1);
   }
+
+  size_t alloc_size;
+  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(float) * alloc_size, (void**)&in) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(float) * alloc_size, (void**)&out) )
+
+  size_t in_size = in_counts[0] * in_counts[1];
+  size_t out_size = out_counts[0] * out_counts[1];
+
+  check = (float*) malloc(sizeof(float) * in_size);
+  setTestValuesFloat(check, in_size);
+
+#if defined(DTFFT_WITH_CUDA)
+  dtfft_platform_t platform;
+  DTFFT_CALL( dtfft_get_platform(plan, &platform) )
+  floatH2D(check, in, in_size, (int32_t)platform);
+#else
+  floatH2D(check, in, in_size);
+#endif
 
   double tf = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, in, out, DTFFT_TRANSPOSE_OUT, NULL);
+  dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, NULL);
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  }
+#endif
   tf += MPI_Wtime();
 
-  if ( executor_type != DTFFT_EXECUTOR_NONE ) {
-    for (i = 0; i < out_counts[1]; i++) { // y direction
-      for (j = 0; j < out_counts[0]; j++) { // x direction
-          out[i * out_counts[0] + j] /= (float) (4 * nx * (ny + 1));
-      }
-    }
-  }
+  size_t scale_size = 4 * nx * (ny + 1);
+#if defined(DTFFT_WITH_CUDA)
+  scaleFloat((int32_t)executor, out, out_size, scale_size, (int32_t)platform, NULL);
+#else
+  scaleFloat((int32_t)executor, out, out_size, scale_size);
+#endif
 
   double tb = 0.0 - MPI_Wtime();
-  dtfft_execute(plan, out, in, DTFFT_TRANSPOSE_IN, NULL);
+  dtfft_execute(plan, out, in, DTFFT_EXECUTE_BACKWARD, NULL);
+#if defined(DTFFT_WITH_CUDA)
+  if ( platform == DTFFT_PLATFORM_CUDA ) {
+    CUDA_SAFE_CALL( cudaDeviceSynchronize() )
+  }
+#endif
   tb += MPI_Wtime();
 
-  float local_error = -1.0;
-  for (i = 0; i < in_counts[1]; i++) {
-    for (j = 0; j < in_counts[0]; j++) {
-      float error = fabs(check[i * in_counts[0] + j] - in[i * in_counts[0] + j]);
-      local_error = error > local_error ? error : local_error;
-    }
-  }
+#if defined(DTFFT_WITH_CUDA)
+  checkAndReportFloat(nx * ny, tf, tb, in, in_size, check, (int32_t)platform);
+#else
+  checkAndReportFloat(nx * ny, tf, tb, in, in_size, check);
+#endif
 
-  report_float(&nx, &ny, NULL, local_error, tf, tb);
+  DTFFT_CALL( dtfft_mem_free(plan, in) )
+  DTFFT_CALL( dtfft_mem_free(plan, out) )
+  free(check);
 
-  dtfft_destroy(&plan);
+  DTFFT_CALL( dtfft_destroy(&plan) )
 
   MPI_Finalize();
   return 0;
