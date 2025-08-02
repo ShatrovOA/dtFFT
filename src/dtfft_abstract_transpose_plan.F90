@@ -22,7 +22,8 @@ module dtfft_abstract_transpose_plan
 use iso_c_binding
 use iso_fortran_env
 use dtfft_config
-use dtfft_pencil,       only: pencil, get_local_sizes
+use dtfft_errors
+use dtfft_pencil,       only: pencil, pencil_init,get_local_sizes
 use dtfft_parameters
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
@@ -46,7 +47,7 @@ use dtfft_interface_nccl
 implicit none
 private
 public :: abstract_transpose_plan
-public :: create_cart_comm
+public :: create_pencils_and_comm
 #ifdef DTFFT_WITH_CUDA
 public :: alloc_mem, free_mem
 #endif
@@ -64,8 +65,9 @@ public :: alloc_mem, free_mem
     integer(int64)  :: min_buffer_size
       !! Minimal buffer size for transposition
   contains
-    procedure,                            pass(self),           public  :: create           !! Create transposition plan
-    procedure,                            pass(self),           public  :: execute          !! Executes transposition
+    procedure,      non_overridable,      pass(self),           public  :: create           !! Create transposition plan
+    procedure,      non_overridable,      pass(self),           public  :: execute          !! Executes transposition
+    procedure,                            pass(self),           public  :: get_aux_size     !! Returns auxiliary buffer size
     procedure(create_interface),          pass(self), deferred          :: create_private   !! Creates overriding class
     procedure(execute_interface),         pass(self), deferred          :: execute_private  !! Executes overriding class
     procedure(destroy_interface),         pass(self), deferred, public  :: destroy          !! Destroys overriding class
@@ -78,7 +80,7 @@ public :: alloc_mem, free_mem
 
 
   abstract interface
-    function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
+    function create_interface(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils, ipencil) result(error_code)
     !! Creates transposition plans
     import
       class(abstract_transpose_plan), intent(inout) :: self                 !! Transposition class
@@ -93,6 +95,7 @@ public :: alloc_mem, free_mem
       TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
       TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
       type(pencil),                   intent(out)   :: pencils(:)           !! Data distributing meta
+      type(pencil_init),    optional, intent(in)    :: ipencil
       integer(int32)                                :: error_code           !! Error code
     end function create_interface
 
@@ -114,17 +117,18 @@ public :: alloc_mem, free_mem
 
 contains
 
-  function create(self, dims, base_comm_, effort, base_dtype, base_storage, cart_comm, comms, pencils) result(error_code)
+  function create(self, dims, base_comm, effort, base_dtype, base_storage, cart_comm, comms, pencils, ipencil) result(error_code)
   !! Creates transposition plans
     class(abstract_transpose_plan), intent(inout) :: self           !! Transposition class
     integer(int32),                 intent(in)    :: dims(:)        !! Global sizes of the transform requested
-    TYPE_MPI_COMM,                  intent(in)    :: base_comm_     !! Base communicator
+    TYPE_MPI_COMM,                  intent(in)    :: base_comm     !! Base communicator
     type(dtfft_effort_t),           intent(in)    :: effort         !! ``dtFFT`` planner type of effort
     TYPE_MPI_DATATYPE,              intent(in)    :: base_dtype     !! Base MPI_Datatype
     integer(int64),                 intent(in)    :: base_storage   !! Number of bytes needed to store single element
     TYPE_MPI_COMM,                  intent(out)   :: cart_comm      !! Cartesian communicator
     TYPE_MPI_COMM,                  intent(out)   :: comms(:)       !! Array of 1d communicators
     type(pencil),                   intent(out)   :: pencils(:)     !! Data distributing meta
+    type(pencil_init),    optional, intent(in)    :: ipencil
     integer(int32)                                :: error_code     !! Error code
     integer(int32),   allocatable   :: transposed_dims(:,:) !! Global counts in transposed coordinates
     logical           :: cond1    !! First condition for Z-slab optimization
@@ -135,91 +139,108 @@ contains
     integer(int32)    :: top_type   !! Topology type
     integer(int32)    :: ierr       !! Error code
     logical           :: is_custom_cart_comm  !! Custom cartesian communicator provided by user
+    integer(int8)     :: d
+    TYPE_MPI_COMM     :: base_comm_
 
-    call MPI_Comm_size(base_comm_, comm_size, ierr)
-    call MPI_Topo_test(base_comm_, top_type, ierr)
+    call MPI_Comm_size(base_comm, comm_size, ierr)
+    call MPI_Topo_test(base_comm, top_type, ierr)
+    base_comm_ = base_comm
 
     ndims = size(dims, kind=int8)
     allocate( comm_dims(ndims) )
 
     is_custom_cart_comm = .false.
     self%is_z_slab = .false.
-    if ( top_type == MPI_CART ) then
-      is_custom_cart_comm = .true.
-      block
-        integer(int32)                 :: grid_ndims           ! Number of dims in user defined cartesian communicator
-        integer(int32),  allocatable   :: temp_dims(:)         ! Temporary dims needed by MPI_Cart_get
-        integer(int32),  allocatable   :: temp_coords(:)       ! Temporary coordinates needed by MPI_Cart_get
-        logical,         allocatable   :: temp_periods(:)      ! Temporary periods needed by MPI_Cart_get
-        integer(int8) :: d
 
-        call MPI_Cartdim_get(base_comm_, grid_ndims, ierr)
-        if ( grid_ndims > ndims ) then
-          error_code = DTFFT_ERROR_INVALID_COMM_DIMS
-          return
-        endif
-        comm_dims(:) = 1
-        allocate(temp_dims(grid_ndims), temp_periods(grid_ndims), temp_coords(grid_ndims))
-        call MPI_Cart_get(base_comm_, grid_ndims, temp_dims, temp_periods, temp_coords, ierr)
-        if ( grid_ndims == ndims ) then
-          if ( temp_dims(1) /= 1 ) then
-            error_code = DTFFT_ERROR_INVALID_COMM_FAST_DIM
+    if ( present(ipencil) ) then
+      is_custom_cart_comm = .true.
+      do d = 1, ndims
+        call MPI_Comm_size(ipencil%comms(d), comm_dims(d), ierr)
+      enddo
+      if ( comm_dims(1) /= 1 ) then
+        error_code = DTFFT_ERROR_INVALID_COMM_FAST_DIM
+        return
+      endif
+      if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab() ) then
+        self%is_z_slab = .true.
+        base_comm_ = ipencil%comms(3)
+      endif
+    else ! block not present
+
+      if ( top_type == MPI_CART ) then
+        is_custom_cart_comm = .true.
+        block
+          integer(int32)                 :: grid_ndims           ! Number of dims in user defined cartesian communicator
+          integer(int32),  allocatable   :: temp_dims(:)         ! Temporary dims needed by MPI_Cart_get
+          integer(int32),  allocatable   :: temp_coords(:)       ! Temporary coordinates needed by MPI_Cart_get
+          logical,         allocatable   :: temp_periods(:)      ! Temporary periods needed by MPI_Cart_get
+
+          call MPI_Cartdim_get(base_comm_, grid_ndims, ierr)
+          if ( grid_ndims > ndims ) then
+            error_code = DTFFT_ERROR_INVALID_COMM_DIMS
             return
           endif
-          comm_dims(:) = temp_dims
-        elseif ( grid_ndims == ndims - 1 ) then
-          comm_dims(2:) = temp_dims
-        elseif ( grid_ndims == ndims - 2 ) then
-          comm_dims(3) = temp_dims(1)
-        endif
-        deallocate(temp_dims, temp_periods, temp_coords)
-
-        do d = 2, ndims
-          if ( comm_dims(d) > dims(d) ) then
-            WRITE_WARN("Number of MPI processes in direction "//int_to_str(d)//" greater then number of physical points: "//int_to_str(comm_dims(d))//" > "//int_to_str(dims(d)))
+          comm_dims(:) = 1
+          allocate(temp_dims(grid_ndims), temp_periods(grid_ndims), temp_coords(grid_ndims))
+          call MPI_Cart_get(base_comm_, grid_ndims, temp_dims, temp_periods, temp_coords, ierr)
+          if ( grid_ndims == ndims ) then
+            if ( temp_dims(1) /= 1 ) then
+              error_code = DTFFT_ERROR_INVALID_COMM_FAST_DIM
+              return
+            endif
+            comm_dims(:) = temp_dims
+          elseif ( grid_ndims == ndims - 1 ) then
+            comm_dims(2:) = temp_dims
+          elseif ( grid_ndims == ndims - 2 ) then
+            comm_dims(3) = temp_dims(1)
           endif
-        enddo
-        if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab() ) then
-          self%is_z_slab = .true.
-        endif
-      endblock
-    else
-      comm_dims(:) = 0
-      comm_dims(1) = 1
+          deallocate(temp_dims, temp_periods, temp_coords)
+
+          do d = 2, ndims
+            if ( comm_dims(d) > dims(d) ) then
+              WRITE_WARN("Number of MPI processes in direction "//int_to_str(d)//" greater then number of physical points: "//int_to_str(comm_dims(d))//" > "//int_to_str(dims(d)))
+            endif
+          enddo
+          if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab() ) then
+            self%is_z_slab = .true.
+          endif
+        endblock
+      else !  top_type /= MPI_CART
+        comm_dims(:) = 0
+        comm_dims(1) = 1
 #ifdef DTFFT_WITH_CUDA
-      if ( get_user_platform() == DTFFT_PLATFORM_HOST ) then
-        cond1 = comm_size <= dims(ndims)
-        cond2 = comm_size <= dims(1) .and. comm_size <= dims(2)
-      else
-        cond1 = DEF_TILE_SIZE <= dims(ndims) / comm_size
-        cond2 = DEF_TILE_SIZE <= dims(1) / comm_size .and. DEF_TILE_SIZE <= dims(2) / comm_size
-      endif
+        if ( get_user_platform() == DTFFT_PLATFORM_HOST ) then
+          cond1 = comm_size <= dims(ndims)
+          cond2 = comm_size <= dims(1) .and. comm_size <= dims(2)
+        else
+          cond1 = DEF_TILE_SIZE <= dims(ndims) / comm_size
+          cond2 = DEF_TILE_SIZE <= dims(1) / comm_size .and. DEF_TILE_SIZE <= dims(2) / comm_size
+        endif
 #else
         cond1 = comm_size <= dims(ndims)
         cond2 = comm_size <= dims(1) .and. comm_size <= dims(2)
 #endif
 
-      if ( ndims == 3 .and. cond1 ) then
-        comm_dims(2) = 1
-        comm_dims(3) = comm_size
-        self%is_z_slab = get_z_slab()
-      else if (ndims == 3 .and. cond2 ) then
+        if ( ndims == 3 .and. cond1 ) then
+          comm_dims(2) = 1
+          comm_dims(3) = comm_size
+          self%is_z_slab = get_z_slab()
+        else if (ndims == 3 .and. cond2 ) then
           comm_dims(2) = comm_size
           comm_dims(3) = 1
         endif
-      call MPI_Dims_create(comm_size, int(ndims, int32), comm_dims, ierr)
-      if(dims(ndims - 1) < comm_dims(ndims - 1) .or. dims(ndims) < comm_dims(ndims) ) then
-        WRITE_WARN("Unable to create correct grid decomposition.")
-        ! WRITE_WARN("Fallback to Z slab is used")
-        ! comm_dims(ndims - 1) = 1
-        ! comm_dims(ndims) = comm_size
+        call MPI_Dims_create(comm_size, int(ndims, int32), comm_dims, ierr)
+        if(dims(ndims - 1) < comm_dims(ndims - 1) .or. dims(ndims) < comm_dims(ndims) ) then
+          WRITE_WARN("Unable to create correct grid decomposition.")
+          ! WRITE_WARN("Fallback to Z slab is used")
+          ! comm_dims(ndims - 1) = 1
+          ! comm_dims(ndims) = comm_size
+        endif
       endif
     endif
     if ( self%is_z_slab ) then
       WRITE_INFO("Using Z-slab optimization")
     endif
-
-    ndims = size(dims, kind=int8)
 
     allocate(transposed_dims(ndims, ndims))
     if ( ndims == 2 ) then
@@ -241,7 +262,7 @@ contains
       transposed_dims(3, 3) = dims(2)
     endif
 
-    error_code = self%create_private(dims, transposed_dims, base_comm_, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
+    error_code = self%create_private(dims, transposed_dims, base_comm_, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils, ipencil=ipencil)
     if ( error_code /= DTFFT_SUCCESS ) return
 
     call get_local_sizes(pencils, alloc_size=self%min_buffer_size)
@@ -267,6 +288,12 @@ contains
     call self%execute_private(pin, pout, transpose_type)
     PHASE_END('Transpose '//TRANSPOSE_NAMES(transpose_type%val))
   end subroutine execute
+
+  function get_aux_size(self) result(aux_size)
+    class(abstract_transpose_plan), intent(in)    :: self           !! Transposition class
+    integer(int64) :: aux_size
+    aux_size = 0_int64
+  end function get_aux_size
 
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_backend_t) function get_backend(self)
@@ -417,12 +444,49 @@ contains
   end subroutine free_mem
 #endif
 
-  subroutine create_cart_comm(old_comm, comm_dims, comm, local_comms)
+  subroutine create_pencils_and_comm(transposed_dims, old_comm, comm_dims, comm, local_comms, pencils, ipencil)
   !! Creates cartesian communicator
-    TYPE_MPI_COMM,        intent(in)    :: old_comm             !! Communicator to create cartesian from
-    integer(int32),       intent(in)    :: comm_dims(:)         !! Dims in cartesian communicator
-    TYPE_MPI_COMM,        intent(out)   :: comm                 !! Cartesian communicator
-    TYPE_MPI_COMM,        intent(out)   :: local_comms(:)       !! 1d communicators in cartesian communicator
+    integer(int32),       intent(in)            :: transposed_dims(:,:) !! Global counts in transposed coordinates
+    TYPE_MPI_COMM,        intent(in)            :: old_comm             !! Communicator to create cartesian from
+    integer(int32),       intent(in)            :: comm_dims(:)         !! Dims in cartesian communicator
+    TYPE_MPI_COMM,        intent(out)           :: comm                 !! Cartesian communicator
+    TYPE_MPI_COMM,        intent(out)           :: local_comms(:)       !! 1d communicators in cartesian communicator
+    type(pencil),         intent(out)           :: pencils(:)           !! Data distributing meta
+    type(pencil_init),    intent(in), optional  :: ipencil
+    integer(int8)         :: ndims              !! Number of dimensions
+    integer(int8)         :: d                  !! Counter
+
+    ndims = size(comm_dims, kind=int8)
+
+    call create_cart_comm(old_comm, comm_dims, comm, local_comms, ipencil=ipencil)
+    if ( present(ipencil) ) then
+      block
+        integer(int32), allocatable :: lstarts(:), lcounts(:)
+
+        allocate(lstarts, source=ipencil%starts)
+        allocate(lcounts, source=ipencil%counts)
+        do d = 1, ndims
+          call pencils(d)%create(ndims, d, transposed_dims(:,d), local_comms, lstarts=lstarts, lcounts=lcounts)
+          lcounts(:) = pencils(d)%counts(:)
+          lstarts(:) = pencils(d)%starts(:)
+        enddo
+
+        deallocate(lstarts, lcounts)
+      endblock
+    else
+      do d = 1, ndims
+        call pencils(d)%create(ndims, d, transposed_dims(:,d), local_comms)
+      enddo
+    endif
+  end subroutine create_pencils_and_comm
+
+  subroutine create_cart_comm(old_comm, comm_dims, comm, local_comms, ipencil)
+  !! Creates cartesian communicator
+    TYPE_MPI_COMM,        intent(in)            :: old_comm             !! Communicator to create cartesian from
+    integer(int32),       intent(in)            :: comm_dims(:)         !! Dims in cartesian communicator
+    TYPE_MPI_COMM,        intent(out)           :: comm                 !! Cartesian communicator
+    TYPE_MPI_COMM,        intent(out)           :: local_comms(:)       !! 1d communicators in cartesian communicator
+    type(pencil_init),    intent(in), optional  :: ipencil
     logical,              allocatable   :: periods(:)           !! Grid is not periodic
     logical,              allocatable   :: remain_dims(:)       !! Needed by MPI_Cart_sub
     integer(int8)                       :: dim                  !! Counter
@@ -430,6 +494,14 @@ contains
     integer(int8)                       :: ndims
 
     ndims = size(comm_dims, kind=int8)
+
+    if ( present( ipencil) ) then
+      call MPI_Comm_dup(old_comm, comm, ierr)
+      do dim = 1, ndims
+        call MPI_Comm_dup(ipencil%comms(dim), local_comms(dim), ierr)
+      enddo
+      return
+    endif
 
     allocate(periods(ndims), source = .false.)
     call MPI_Cart_create(old_comm, int(ndims, int32), comm_dims, periods, .false., comm, ierr)

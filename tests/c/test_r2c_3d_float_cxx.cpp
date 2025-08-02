@@ -19,7 +19,7 @@
 
 #include <dtfft.hpp>
 #include <mpi.h>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <complex>
 #include <vector>
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
   Config conf;
   Backend backend;
 # ifdef DTFFT_WITH_NVSHMEM
-  backend = Backend::CUFFTMP;
+  backend = Backend::CUFFTMP_PIPELINED;
 # else
   backend = Backend::MPI_P2P;
 # endif
@@ -103,8 +103,8 @@ int main(int argc, char *argv[])
 
   // Create plan
   vector<int32_t> dims = {nz, ny, nx};
-  PlanR2C plan(dims, executor, MPI_COMM_WORLD, Precision::SINGLE, Effort::MEASURE);
-
+  auto plan = PlanR2C(dims, executor, MPI_COMM_WORLD, Precision::SINGLE, Effort::MEASURE);
+  DTFFT_CXX_CALL( plan.report() )
   vector<int32_t> in_counts(3), out_counts(3);
   DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_counts.data()) )
   size_t alloc_bytes = plan.get_alloc_bytes();
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
   size_t out_size = out_pencil.get_size();
 
   if ( element_size != sizeof(float) ) {
-    DTFFT_THROW_EXCEPTION("element_size != sizeof(float)")
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "element_size != sizeof(float)")
   }
 
   size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
@@ -131,7 +131,8 @@ int main(int argc, char *argv[])
   auto platform = plan.get_platform();
   auto real_backend = plan.get_backend();
   if ( (backend != real_backend) && (comm_size > 1) && (platform == Platform::CUDA) ) {
-    DTFFT_THROW_EXCEPTION("Backend mismatch: backend set before plan creation: " + get_backend_string(backend) +
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), 
+                          "Backend mismatch: backend set before plan creation: " + get_backend_string(backend) +
                           ", but plan reports: " + get_backend_string(real_backend));
   }
   floatH2D(check, buf, in_size, static_cast<int32_t>(platform));

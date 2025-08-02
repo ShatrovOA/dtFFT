@@ -87,14 +87,39 @@ int main(int argc, char *argv[])
     MPI_Abort(MPI_COMM_WORLD, -1);
     return -1;
   }
+  vector<int32_t> in_starts(2), in_counts(2);
+  DTFFT_CXX_CALL( plan->get_local_sizes(in_starts.data(), in_counts.data()) );
+  DTFFT_CXX_CALL( plan->destroy() )
+  delete plan;
 
-  vector<int32_t> in_counts(2);
+  // Recreate plan with pencil
+  auto pencil = Pencil(in_starts, in_counts);
+  plan = new PlanR2C(pencil, executor);
+  auto reported_pencil = plan->get_pencil(0);
+  if ( reported_pencil.get_starts() != in_starts || reported_pencil.get_counts() != in_counts ) {
+    cerr << "Plan reported wrong decomposition." << endl;
+    MPI_Abort(MPI_COMM_WORLD, -1);
+    delete plan;
+    MPI_Finalize();
+    return -1;
+  }
+  plan->report();
+  auto dims_reported = plan->get_dims();
+  if ( dims_reported.size() != 2 || dims_reported[0] != ny || dims_reported[1] != nx ) {
+    cerr << "Plan reported wrong dimensions: " << dims_reported.size() << " != 2 or " 
+         << dims_reported[0] << " != " << ny << " or " 
+         << dims_reported[1] << " != " << nx << endl;
+    MPI_Abort(MPI_COMM_WORLD, -1);
+    delete plan;
+    MPI_Finalize();
+    return -1;
+  }
+
   size_t alloc_size = plan->get_alloc_size();
-  DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data()) );
   size_t in_size = in_counts[0] * in_counts[1];
 
   vector<double> in(alloc_size), check(in_size);
-  vector<complex<double>> out(alloc_size / 2);
+  vector<complex<double>> out(alloc_size / 2); // R2C plan reports alloc_size in `real` elements
 
   setTestValuesDouble(check.data(), in_size);
 
@@ -130,6 +155,6 @@ int main(int argc, char *argv[])
   delete plan;
 
   MPI_Finalize();
-  return 0;
 #endif
+  return 0;
 }

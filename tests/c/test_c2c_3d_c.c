@@ -34,15 +34,21 @@ int main(int argc, char *argv[])
   int32_t nx = 512, ny = 64, nz = 32;
   dtfft_complex *in, *out, *check, *aux;
   int comm_rank, comm_size;
-  int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
-  int grid_dims[3] = {1, 0, 0}, periods[3] = {0, 0, 0};
-  MPI_Comm grid_comm;
+  int32_t in_counts[3], in_starts[3], out_counts[3];
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
 
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+
+  if ( comm_size != 2 ) {
+    if ( comm_rank == 0 ) {
+      printf("This test requires exactly 2 MPI processes.\n");
+    }
+    MPI_Finalize();
+    return 0;
+  }
 
   if(comm_rank == 0) {
     printf("----------------------------------------\n");
@@ -86,12 +92,34 @@ int main(int argc, char *argv[])
   dtfft_set_config(conf);
 #endif
 
-  MPI_Dims_create(comm_size, 3, grid_dims);
-  MPI_Cart_create(MPI_COMM_WORLD, 3, grid_dims, periods, 0, &grid_comm);
+  dtfft_pencil_t pencil;
+  pencil.ndims = 3;
+  if ( comm_rank == 0 ) {
+    pencil.starts[0] = 0; pencil.starts[1] = 0; pencil.starts[2] = nx / 4;
+    pencil.counts[0] = nz; pencil.counts[1] = ny; pencil.counts[2] = 3 * nx / 4;
+  } else {
+    pencil.starts[0] = 0; pencil.starts[1] = 0; pencil.starts[2] = 0;
+    pencil.counts[0] = nz; pencil.counts[1] = ny; pencil.counts[2] = nx / 4;
+  }
+
   // Create plan
-  DTFFT_CALL( dtfft_create_plan_c2c(3, n, grid_comm, DTFFT_DOUBLE, DTFFT_PATIENT, executor, &plan) )
+  DTFFT_CALL( dtfft_create_plan_c2c_pencil(&pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor, &plan) )
+  int8_t ndims = 0;
+  const int32_t *dims;
+  DTFFT_CALL( dtfft_get_dims(plan, &ndims, &dims) )
+  if ( ndims != 3 || dims[0] != nz || dims[1] != ny || dims[2] != nx ) {
+    fprintf(stderr, "Plan created with wrong dimensions: ndims = %d: %d, %d, %d.\n", ndims, dims[0], dims[1], dims[2]);
+    MPI_Abort(MPI_COMM_WORLD, -1);
+  }
+
   DTFFT_CALL( dtfft_report(plan) )
-  DTFFT_CALL( dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, NULL) )
+  DTFFT_CALL( dtfft_get_local_sizes(plan, in_starts, in_counts, NULL, out_counts, NULL) )
+  for (int i = 0; i < 3; i++) {
+    if ( in_starts[i] != pencil.starts[i] || in_counts[i] != pencil.counts[i] ) {
+      fprintf(stderr, "Plan reported wrong decomposition.\n");
+      MPI_Abort(MPI_COMM_WORLD, -1);
+    }
+  }
   size_t alloc_bytes;
   DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
 

@@ -130,6 +130,38 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Calling to ``transpose`` method for R2C plan is not allowed
 
+.. f:variable:: DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH
+
+  Sizes of starts and counts arrays passed to dtfft_pencil_t constructor do not match.
+
+.. f:variable:: DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES
+
+  Sizes of starts and counts < 2 or > 3 provided to dtfft_pencil_t constructor.
+
+.. f:variable:: DTFFT_ERROR_PENCIL_INVALID_COUNTS
+
+  Invalid counts provided to dtfft_pencil_t constructor.
+
+.. f:variable:: DTFFT_ERROR_PENCIL_INVALID_STARTS
+
+  Invalid starts provided to dtfft_pencil_t constructor.
+
+.. f:variable:: DTFFT_ERROR_PENCIL_SHAPE_MISMATCH
+
+  Processes have same lower bounds but different sizes in some dimensions.
+
+.. f:variable:: DTFFT_ERROR_PENCIL_OVERLAP
+
+  Pencil overlap detected, i.e. two processes share same part of global space
+
+.. f:variable:: DTFFT_ERROR_PENCIL_NOT_CONTINUOUS
+
+  Local pencils do not cover the global space without gaps.
+
+.. f:variable:: DTFFT_ERROR_PENCIL_NOT_INITIALIZED
+
+  Pencil is not initialized, i.e. constructor subroutine was not called
+
 .. f:variable:: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 
   Selected ``executor`` do not support R2R FFTs
@@ -263,6 +295,16 @@ _____________________
 
   VkFFT Executor (GPU Only)
 
+Related Type functions
+______________________
+
+.. f:function:: dtfft_get_executor_string(executor)
+
+  Gets the string description of an error code
+
+  :p dtfft_executor_t executor [in]: Executor type to convert to string
+  :r character(len=:), allocatable: String representation of dtfft_executor_t
+
 ------
 
 dtfft_effort_t
@@ -309,6 +351,16 @@ _____________________
 .. f:variable:: DTFFT_DOUBLE
 
   Use Double precision
+
+Related Type functions
+______________________
+
+.. f:function:: dtfft_get_precision_string(precision)
+
+  Gets the string description of an error code
+
+  :p dtfft_precision_t precision [in]: Precision level to convert to string
+  :r character(len=:), allocatable: String representation of dtfft_precision_t
 
 ------
 
@@ -398,6 +450,10 @@ _____________________
 .. f:variable:: DTFFT_BACKEND_CUFFTMP
 
   cuFFTMp backend
+
+.. f:variable:: DTFFT_BACKEND_CUFFTMP_PIPELINED
+
+  cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance.
 
 Related Type functions
 _______________________
@@ -573,14 +629,30 @@ dtfft_pencil_t
 
 .. f:type:: dtfft_pencil_t
 
-  Type used to hold pencil decomposition info
+  Type used to hold pencil decomposition info.
+
+  There are two ways users might find pencils useful inside dtFFT:
+
+  1. To create a Plan using users's own grid decomposition, you can pass Pencil to Plan constructors.
+  2. To obtain Pencil from Plan in all possible layouts, in order to run FFT not available in dtFFT.
+
+  When pencil is returned from :f:func:`get_pencil`, all pencil properties are defined.
 
   :f int(int8) dim: Aligned dimension id starting from 1
   :f int(int8) ndims: Number of dimensions in a pencil
-  :f int(int32) starts(3): Local starts in natural Fortran order
-  :f int(int32) counts(3): Local counts in natural Fortran order
+  :f int(int32) starts(:) [allocatable]: Local starts in natural Fortran order
+  :f int(int32) counts(:) [allocatable]: Local counts in natural Fortran order
+  :f int(int64) size: Total number of elements in a pencil
 
-.. seealso:: :f:func:`get_pencil`
+Related Type functions
+_______________________
+
+.. f:function:: dtfft_pencil_t(starts, counts)
+
+  Type bound constructor
+
+  :p int(int32) starts(:) [in]: Local starts in natural Fortran order
+  :p int(int32) counts(:) [in]: Local counts in natural Fortran order
 
 ------
 
@@ -763,7 +835,7 @@ ___________
   :p dtfft_execute_t execute_type [in]:
     Type of execution
   :p type(c_ptr) aux [in]:
-    Auxiliary pointer. Not optional. Must pass `c_null_ptr` if not used.
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -929,9 +1001,10 @@ __________
   Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation,
   that is unavailable in ``dtFFT``.
 
-  :p integer(int8) dim [in]:
+  :p integer(int32) dim [in]:
     Required dimension:
-      - 1 for XYZ layout
+      - 0 for XYZ layout (real space, valid for PlanR2C only)
+      - 1 for XYZ layout (real space for C2C and R2R plans and fourier space for R2C plans)
       - 2 for YXZ layout
       - 3 for ZXY layout
   :o integer(int32) error_code [out, optional]:
@@ -947,6 +1020,48 @@ ______
 
   Prints plan-related information to stdout
 
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
+get_executor
+____________
+
+.. f:function:: get_executor([error_code])
+
+  Returns FFT Executor associated with plan
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r dtfft_executor_t: FFT Executor used by this plan.
+
+------
+
+get_precision
+_____________
+
+.. f:function:: get_precision([error_code])
+
+  Returns precision of the plan
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r dtfft_precision_t: Precision of the plan.
+
+------
+
+get_dims
+________
+
+.. f:subroutine:: get_dims(dims [, error_code])
+
+  Returns global dimensions of the plan.
+
+  :p integer(int32) dims [out, pointer]: 
+    Global dimensions of the plan.
+
+    Users should not attempt to change values in this pointer.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -1041,7 +1156,21 @@ ______
   :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
   :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
   :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
-  :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
+  :o integer(int32) error_code [out, optional]: Optional error code returned to the user
+
+------
+
+.. f:subroutine:: create(pencil [, kinds, comm, precision, effort, executor, error_code])
+
+  R2R Plan Constructor using local pencil information
+
+  :p dtfft_pencil_t pencil[in]: Local pencil of data to be transformed
+  :o dtfft_r2r_kind_t kinds(:) [in, optional]: Kinds of R2R transforms, default = empty.
+  :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
+  :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
+  :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
+  :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
+  :o integer(int32) error_code [out, optional]: Optional error code returned to the user
 
 ------
 
@@ -1071,7 +1200,20 @@ ______
   :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
   :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
   :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
-  :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
+  :o integer(int32) error_code [out, optional]: Optional error code returned to the user
+
+------
+
+.. f:subroutine:: create(pencil [, comm, precision, effort, executor, error_code])
+
+  C2C Plan Constructor using local pencil information
+
+  :p dtfft_pencil_t pencil[in]: Local pencil of data to be transformed
+  :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
+  :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
+  :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
+  :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
+  :o integer(int32) error_code [out, optional]: Optional error code returned to the user
 
 ------
 
@@ -1094,14 +1236,34 @@ Type bound procedures
 create
 ______
 
-.. f:subroutine:: create(dims [, comm, precision, effort, executor, error_code])
+.. f:subroutine:: create(dims, executor [, comm, precision, effort, error_code])
 
   R2C Plan Constructor.
 
   :p integer(int32) dims(:)[in]: Global dimensions of the transform as an integer array.
+  :p dtfft_executor_t executor [in]: 
+    Type of external FFT executor. 
+
+    Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
   :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
   :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
   :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
-  :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = ``undefined``. Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
-  :o integer(int32) error_code [out, optional]: Optional error code returned to the user, default = not returned.
+  :o integer(int32) error_code [out, optional]: Optional error code returned to the user
+
+------
+
+.. f:subroutine:: create(pencil, executor [, comm, precision, effort, error_code])
+
+  R2C Plan Constructor using local pencil information
+
+  :p dtfft_pencil_t pencil[in]: Local pencil of data to be transformed
+  :p dtfft_executor_t executor [in]: Type of external FFT executor. 
+
+    Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
+  :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
+  :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
+  :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
+  :o integer(int32) error_code [out, optional]: Optional error code returned to the user
+
+
 

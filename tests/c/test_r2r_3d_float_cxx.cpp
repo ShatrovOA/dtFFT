@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan.get_element_size(&element_size) );
 
   if ( element_size != sizeof(float) ) {
-    DTFFT_THROW_EXCEPTION("element_size != sizeof(float)")
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "element_size != sizeof(float)")
   }
 
   float *inout, *aux;
@@ -115,11 +115,10 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * element_size, (void**)&aux) )
 
 #if defined(DTFFT_WITH_CUDA)
-  Platform platform;
-  DTFFT_CXX_CALL( plan.get_platform(platform) )
+  Platform platform = plan.get_platform();
 
   if ( running_cuda && platform != Platform::CUDA ) {
-    DTFFT_THROW_EXCEPTION("running_cuda && platform != Platform::CUDA")
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "running_cuda && platform != Platform::CUDA")
   }
 
   floatH2D(check, inout, in_size, static_cast<int32_t>(platform));

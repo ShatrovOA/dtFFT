@@ -21,6 +21,7 @@ module dtfft_utils
 !! All Utilities functions are located here
 use iso_c_binding
 use iso_fortran_env,  only: int8, int32, int64, real64, output_unit, error_unit
+use dtfft_errors
 use dtfft_parameters
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
@@ -255,7 +256,7 @@ contains
       type(string), allocatable :: backends(:)
       character(len=:), allocatable :: bcknd_env
 
-      allocate( backends(7) )
+      allocate( backends(8) )
       backends(1) = string("mpi_dt")
       backends(2) = string("mpi_p2p")
       backends(3) = string("mpi_a2a")
@@ -263,6 +264,7 @@ contains
       backends(5) = string("nccl")
       backends(6) = string("nccl_pipe")
       backends(7) = string("cufftmp")
+      backends(8) = string("cufftmp_pipe")
 
       allocate( bcknd_env, source=get_env("BACKEND", "undefined", backends) )
       select case ( bcknd_env )
@@ -282,6 +284,8 @@ contains
         backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
       case ( "cufftmp" )
         backend_from_env = DTFFT_BACKEND_CUFFTMP
+      case ( "cufftmp_pipe")
+        backend_from_env = DTFFT_BACKEND_CUFFTMP_PIPELINED
       endselect
 
       deallocate( bcknd_env )

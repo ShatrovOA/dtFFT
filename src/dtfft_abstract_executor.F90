@@ -21,6 +21,7 @@ module dtfft_abstract_executor
 !! This module describes Abstraction for all FFT Executors: [[abstract_executor]]
 use iso_c_binding,    only: c_loc, c_ptr, c_null_ptr
 use iso_fortran_env,  only: int8, int32, int64
+use dtfft_errors
 use dtfft_pencil,     only: pencil
 use dtfft_parameters
 use dtfft_utils

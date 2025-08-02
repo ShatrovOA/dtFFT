@@ -100,7 +100,7 @@ Accepted Values
 .. _dtfft_gpu_backend_env:
 
 DTFFT_BACKEND
-=================
+=============
 
 Specifies the GPU backend used by ``dtFFT`` for data transposition and communication when executing plans on a CUDA device.
 This environment variable allows users to override the backend selected through the ``dtfft_config_t`` structure,
@@ -126,6 +126,7 @@ Accepted Values
   - ``nccl``: NCCL backend.
   - ``nccl_pipe``: Pipelined NCCL backend with overlapping data copying and unpacking.
   - ``cufftmp``: cuFFTMp backend.
+  - ``cufftmp_pipe``: cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance.
 
 - **Default**: ``nccl`` if NCCL is available in the library build; otherwise, ``mpi_p2p``.
 
@@ -134,7 +135,7 @@ Accepted Values
    - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
      to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
    - If an unsupported value is provided, it is silently ignored, and the default backend (``nccl`` or ``mpi_p2p``, depending on build) is used.
-   - Availability of some backends (e.g., ``nccl``, ``nccl_pipe``, ``cufftmp``) depends on additional library
+   - Availability of some backends (e.g., ``nccl``, ``cufftmp``) depends on additional library
      support (e.g., NCCL, cuFFTMp) during compilation.
 
 .. _dtfft_nccl_buffer_register_env:

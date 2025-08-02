@@ -41,6 +41,10 @@ Functions
 
 .. doxygenfunction:: dtfft::get_error_string
 
+.. doxygenfunction:: dtfft::get_precision_string
+
+.. doxygenfunction:: dtfft::get_executor_string
+
 .. doxygenfunction:: dtfft::set_config
 
 Classes

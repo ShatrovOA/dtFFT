@@ -83,9 +83,6 @@ do {                                                                          \
   typedef float dtfftf_complex[2];
 #endif
 
-/** Structure to hold plan data */
-typedef struct dtfft_plan_private_t *dtfft_plan_t;
-
 /** This enum lists the different error codes that ``dtFFT`` can return.
  * @see dtfft_get_error_string, DTFFT_CALL
 */
@@ -144,6 +141,22 @@ typedef enum {
   DTFFT_ERROR_DLSYM_FAILED = CONF_DTFFT_ERROR_DLSYM_FAILED,
 /** Calling to `::dtfft_transpose` for R2C plan is not allowed */
   DTFFT_ERROR_R2C_TRANSPOSE_CALLED = CONF_DTFFT_ERROR_R2C_TRANSPOSE_CALLED,
+/** Sizes of `starts` and `counts` arrays passed to `dtfft_pencil_t` constructor do not match */
+  DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH = CONF_DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH,
+/** Sizes of `starts` and `counts` < 2 or > 3 provided to `dtfft_pencil_t` constructor */
+  DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES = CONF_DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES,
+/** Invalid `counts` provided to `dtfft_pencil_t` constructor */
+  DTFFT_ERROR_PENCIL_INVALID_COUNTS = CONF_DTFFT_ERROR_PENCIL_INVALID_COUNTS,
+/** Invalid `starts` provided to `dtfft_pencil_t` constructor */
+  DTFFT_ERROR_PENCIL_INVALID_STARTS = CONF_DTFFT_ERROR_PENCIL_INVALID_STARTS,
+/** Processes have same lower bounds but different sizes in some dimensions */
+  DTFFT_ERROR_PENCIL_SHAPE_MISMATCH = CONF_DTFFT_ERROR_PENCIL_SHAPE_MISMATCH,
+/** Pencil overlap detected, i.e. two processes share same part of global space */
+  DTFFT_ERROR_PENCIL_OVERLAP = CONF_DTFFT_ERROR_PENCIL_OVERLAP,
+/** Local pencils do not cover the global space without gaps */
+  DTFFT_ERROR_PENCIL_NOT_CONTINUOUS = CONF_DTFFT_ERROR_PENCIL_NOT_CONTINUOUS,
+/** Pencil is not initialized, i.e. `constructor` subroutine was not called */
+  DTFFT_ERROR_PENCIL_NOT_INITIALIZED = CONF_DTFFT_ERROR_PENCIL_NOT_INITIALIZED,
 /** Invalid stream provided */
   DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM,
 /** Invalid GPU backend provided */
@@ -274,6 +287,39 @@ typedef enum {
 } dtfft_r2r_kind_t;
 
 
+/** Structure to hold plan data */
+typedef void *dtfft_plan_t;
+
+/** Structure to hold pencil decomposition info
+ *
+ * There are two ways users might find pencils useful inside dtFFT:
+ * 1. To create a Plan using users's own grid decomposition, you can pass Pencil to Plan constructors.
+ * 2. To obtain Pencil from Plan in all possible layouts, in order to run FFT not available in dtFFT.
+ *
+ * In order to create plan using dtfft_pencil_t, user need to provide `ndims`, `starts` and `counts` arrays, other values will be ignored.
+ *
+ * When pencil is returned from `::dtfft_get_pencil`, all pencil properties are defined.
+ *
+ * @see dtfft_get_pencil dtfft_create_plan_r2r_pencil dtfft_create_plan_c2c_pencil dtfft_create_plan_r2c_pencil
+*/
+typedef struct {
+/** Aligned dimension id starting from 1 */
+  uint8_t dim;
+
+/** Number of dimensions in a pencil */
+  uint8_t ndims;
+
+/** Local starts in natural Fortran order. If `ndims` == 2, then only first two elements are defined */
+  int32_t starts[3];
+
+/** Local counts in natural Fortran order. If `ndims` == 2, then only first two elements are defined */
+  int32_t counts[3];
+
+/** Total number of elements in a pencil */
+  size_t size;
+} dtfft_pencil_t;
+
+
 /** Real-to-Real Plan constructor.
  *
  * @param[in]      ndims                  Number of dimensions: 2 or 3
@@ -293,6 +339,30 @@ dtfft_error_t
 dtfft_create_plan_r2r(
   const int8_t ndims,
   const int32_t *dims,
+  const dtfft_r2r_kind_t *kinds,
+  MPI_Comm comm,
+  const dtfft_precision_t precision,
+  const dtfft_effort_t effort,
+  const dtfft_executor_t executor,
+  dtfft_plan_t *plan);
+
+/**
+ * @brief Creates a Real-to-Real Plan using a pencil handle.
+ *
+ * @param[in] pencil       Pencil structure containing local dimensions and starts
+ * @param[in] kinds        Array of size `ndims` containing Real FFT kinds in reverse order.
+ *                           Can be NULL if `executor` == `::DTFFT_EXECUTOR_NONE`
+ * @param[in] comm         MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+ * @param[in] precision    Precision of the transform
+ * @param[in] effort       Effort level for the plan creation
+ * @param[in] executor     Executor to be used for the plan
+ * @param[out] plan        Plan handle ready to be executed
+ *
+ * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
+ */
+dtfft_error_t
+dtfft_create_plan_r2r_pencil(
+  const dtfft_pencil_t *pencil,
   const dtfft_r2r_kind_t *kinds,
   MPI_Comm comm,
   const dtfft_precision_t precision,
@@ -323,6 +393,26 @@ dtfft_create_plan_c2c(
   const dtfft_executor_t executor,
   dtfft_plan_t *plan);
 
+/** Complex-to-Complex Plan constructor using a pencil structure.
+ *
+ * @param[in]      pencil                 Pencil handle
+ * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+ * @param[in]      precision              Precision of the transform
+ * @param[in]      effort                 Effort level for the plan creation
+ * @param[in]      executor               Executor to be used for the plan
+ * @param[out]     plan                   Plan handle ready to be executed
+ *
+ * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
+ */
+dtfft_error_t
+dtfft_create_plan_c2c_pencil(
+  const dtfft_pencil_t *pencil,
+  MPI_Comm comm,
+  const dtfft_precision_t precision,
+  const dtfft_effort_t effort,
+  const dtfft_executor_t executor,
+  dtfft_plan_t *plan);
+
 
 #if !defined(DTFFT_TRANSPOSE_ONLY)
 /** Real-to-Complex Plan constructor.
@@ -344,6 +434,31 @@ dtfft_error_t
 dtfft_create_plan_r2c(
   const int8_t ndims,
   const int32_t *dims,
+  MPI_Comm comm,
+  const dtfft_precision_t precision,
+  const dtfft_effort_t effort,
+  const dtfft_executor_t executor,
+  dtfft_plan_t *plan);
+
+
+/**
+ * @brief Creates a Real-to-Complex Plan using a pencil structure.
+ *
+ * @param[in]      pencil                 Pencil structure containing local dimensions and starts
+ * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+ * @param[in]      precision              Precision of the transform
+ * @param[in]      effort                 Effort level for the plan creation
+ * @param[in]      executor               Executor to be used for the plan
+ * @param[out]     plan                   Plan handle ready to be executed
+ *
+ * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
+ *
+ * @note Parameter `executor` cannot be `::DTFFT_EXECUTOR_NONE`. Use C2C plan instead.
+ * @note This function is only present in the API when ``dtFFT`` was compiled with any external FFT.
+ */
+dtfft_error_t
+dtfft_create_plan_r2c_pencil(
+  const dtfft_pencil_t *pencil,
   MPI_Comm comm,
   const dtfft_precision_t precision,
   const dtfft_effort_t effort,
@@ -388,6 +503,8 @@ dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_t exec
  * @param[in]      transpose_type  Type of transpose.
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ *
+ * @note This function is not supported for R2C plans. Use R2R or C2C plan instead.
  */
 dtfft_error_t
 dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_t transpose_type);
@@ -439,25 +556,24 @@ const char *
 dtfft_get_error_string(const dtfft_error_t error_code);
 
 
-/** Structure to hold pencil decomposition info
- * @see dtfft_get_pencil
-*/
-typedef struct {
-/** Aligned dimension id starting from 1 */
-  uint8_t dim;
+/**
+ * @brief Gets the string description of a precision level
+ *
+ * @param[in]       precision      Precision level to convert to string
+ * @return String representation of `::dtfft_precision_t`.
+ */
+const char *
+dtfft_get_precision_string(const dtfft_precision_t precision);
 
-/** Number of dimensions in a pencil */
-  uint8_t ndims;
 
-/** Local starts in natural Fortran order */
-  int32_t starts[3];
-
-/** Local counts in natural Fortran order */
-  int32_t counts[3];
-
-/** Total number of elements in a pencil */
-  size_t size;
-} dtfft_pencil_t;
+/**
+ * @brief Gets the string description of an executor type
+ *
+ * @param[in]       executor       Executor type to convert to string
+ * @return String representation of `::dtfft_executor_t`.
+ */
+const char *
+dtfft_get_executor_string(const dtfft_executor_t executor);
 
 /**
  * @brief Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation,
@@ -466,7 +582,7 @@ typedef struct {
  * @param[in]     plan            Plan handle
  * @param[in]     dim             Required dimension:
  *                                  - 0 for XYZ layout (real space, R2C only)
- *                                  - 1 for XYZ layout
+ *                                  - 1 for XYZ layout (real space for C2C and R2R plans and fourier space for R2C plans)
  *                                  - 2 for YXZ layout
  *                                  - 3 for ZXY layout
  * @param[out]    pencil          Pencil data
@@ -537,6 +653,43 @@ dtfft_mem_free(dtfft_plan_t plan, void *ptr);
 dtfft_error_t
 dtfft_report(dtfft_plan_t plan);
 
+/**
+ * @brief Returns FFT executor used in plan.
+ *
+ * @param[in]      plan           Plan handle
+ * @param[out]     executor       FFT Executor
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_executor(dtfft_plan_t plan, dtfft_executor_t *executor);
+
+/**
+ * @brief Returns precision of the plan.
+ *
+ * @param[in]      plan           Plan handle
+ * @param[out]     precision      Precision of the plan
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_precision(dtfft_plan_t plan, dtfft_precision_t *precision);
+
+/**
+ * @brief Returns global dimensions of the plan.
+ *
+ * @param[in]      plan           Plan handle
+ * @param[out]     ndims          Number of dimensions in plan. User can pass NULL if this value is not needed.
+ * @param[out]     dims           Pointer of size `ndims` containing global dimensions in reverse order
+ *                                dims[0] is the fastest varying. User can pass NULL if this value is not needed.
+ *
+ * @note Do not free `dims` array, it is freed when the `dtfft_plan_t` is destroyed.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_dims(dtfft_plan_t plan, int8_t *ndims, const int32_t *dims[]);
+
 
 #ifdef DTFFT_WITH_CUDA
 /**
@@ -588,7 +741,10 @@ typedef enum {
   DTFFT_BACKEND_NCCL_PIPELINED = CONF_DTFFT_BACKEND_NCCL_PIPELINED,
 
 /** cuFFTMp backend */
-  DTFFT_BACKEND_CUFFTMP = CONF_DTFFT_BACKEND_CUFFTMP
+  DTFFT_BACKEND_CUFFTMP = CONF_DTFFT_BACKEND_CUFFTMP,
+
+/** cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance */
+  DTFFT_BACKEND_CUFFTMP_PIPELINED = CONF_DTFFT_BACKEND_CUFFTMP_PIPELINED
 } dtfft_backend_t;
 
 

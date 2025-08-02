@@ -20,6 +20,7 @@
 module dtfft
 !! Main ``dtFFT`` module. Should be used in a Fortran program.
 use dtfft_config
+use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil
 use dtfft_plan
@@ -40,6 +41,8 @@ public :: dtfft_plan_r2r_t
 
 public :: dtfft_pencil_t
 public :: dtfft_get_error_string
+public :: dtfft_get_precision_string
+public :: dtfft_get_executor_string
 
 public :: dtfft_execute_t, dtfft_transpose_t
 public :: dtfft_executor_t, dtfft_effort_t
@@ -111,6 +114,14 @@ public :: DTFFT_ERROR_INVALID_ALLOC_BYTES
 public :: DTFFT_ERROR_DLOPEN_FAILED
 public :: DTFFT_ERROR_DLSYM_FAILED
 public :: DTFFT_ERROR_R2C_TRANSPOSE_CALLED
+public :: DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH
+public :: DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES
+public :: DTFFT_ERROR_PENCIL_INVALID_COUNTS
+public :: DTFFT_ERROR_PENCIL_INVALID_STARTS
+public :: DTFFT_ERROR_PENCIL_SHAPE_MISMATCH
+public :: DTFFT_ERROR_PENCIL_OVERLAP
+public :: DTFFT_ERROR_PENCIL_NOT_CONTINUOUS
+public :: DTFFT_ERROR_PENCIL_NOT_INITIALIZED
 public :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 public :: DTFFT_ERROR_GPU_INVALID_STREAM
 public :: DTFFT_ERROR_GPU_INVALID_BACKEND
@@ -140,6 +151,7 @@ public :: DTFFT_BACKEND_MPI_A2A
 public :: DTFFT_BACKEND_NCCL
 public :: DTFFT_BACKEND_NCCL_PIPELINED
 public :: DTFFT_BACKEND_CUFFTMP
+public :: DTFFT_BACKEND_CUFFTMP_PIPELINED
 
 public :: dtfft_backend_t
 public :: dtfft_get_backend_string

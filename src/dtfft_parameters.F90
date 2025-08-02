@@ -32,14 +32,14 @@ public :: is_valid_execute_type, is_valid_transpose_type
 public :: is_valid_executor, is_valid_effort
 public :: is_valid_precision, is_valid_r2r_kind
 public :: is_valid_dimension, is_valid_comm_type
-public :: dtfft_get_error_string
 public :: dtfft_get_version
-public :: is_host_executor, is_cuda_executor
-public :: is_valid_platform
+public :: dtfft_get_precision_string, dtfft_get_executor_string
 #ifdef DTFFT_WITH_CUDA
+public :: is_valid_platform
+public :: is_host_executor, is_cuda_executor
 public :: dtfft_backend_t
 public :: dtfft_get_backend_string
-public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl, is_backend_nvshmem
+public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl, is_backend_cufftmp, is_backend_nvshmem
 public :: dtfft_stream_t, dtfft_get_cuda_stream
 #endif
 
@@ -132,12 +132,12 @@ public :: dtfft_stream_t, dtfft_get_cuda_stream
 #endif
   ]
   !! List of valid executors
-
+#ifdef DTFFT_WITH_CUDA
   type(dtfft_executor_t),  parameter        :: HOST_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE, DTFFT_EXECUTOR_FFTW3, DTFFT_EXECUTOR_MKL]
     !! List of host executors
   type(dtfft_executor_t),  parameter        :: CUDA_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE, DTFFT_EXECUTOR_CUFFT, DTFFT_EXECUTOR_VKFFT]
     !! List of CUDA executors
-
+#endif
 !------------------------------------------------------------------------------------------------
 ! FFT Execution directions
 !------------------------------------------------------------------------------------------------
@@ -283,78 +283,7 @@ public :: operator(/=)
   integer(int32), parameter,  public :: COLOR_TRANSPOSE_PALLETTE(-3:3) = [COLOR_TRANSPOSE_ZX, COLOR_TRANSPOSE_ZY, COLOR_TRANSPOSE_YX, 0, COLOR_TRANSPOSE_XY, COLOR_TRANSPOSE_YZ, COLOR_TRANSPOSE_XZ]
     !! Color pallete for `plan.transpose`
 
-  integer(int32),  parameter,  public  :: DTFFT_SUCCESS = CONF_DTFFT_SUCCESS
-    !! Successful execution
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_MPI_FINALIZED = CONF_DTFFT_ERROR_MPI_FINALIZED
-    !! MPI_Init is not called or MPI_Finalize has already been called
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_PLAN_NOT_CREATED = CONF_DTFFT_ERROR_PLAN_NOT_CREATED
-    !! Plan not created
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_TRANSPOSE_TYPE = CONF_DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
-    !! Invalid `transpose_type` provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_N_DIMENSIONS = CONF_DTFFT_ERROR_INVALID_N_DIMENSIONS
-    !! Invalid Number of dimensions provided. Valid options are 2 and 3
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_DIMENSION_SIZE = CONF_DTFFT_ERROR_INVALID_DIMENSION_SIZE
-    !! One or more provided dimension sizes <= 0 
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_COMM_TYPE = CONF_DTFFT_ERROR_INVALID_COMM_TYPE
-    !! Invalid communicator type provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PRECISION = CONF_DTFFT_ERROR_INVALID_PRECISION
-    !! Invalid `precision` parameter provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_EFFORT = CONF_DTFFT_ERROR_INVALID_EFFORT_FLAG
-    !! Invalid `effort` parameter provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_EXECUTOR = CONF_DTFFT_ERROR_INVALID_EXECUTOR_TYPE
-    !! Invalid `executor` parameter provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_COMM_DIMS = CONF_DTFFT_ERROR_INVALID_COMM_DIMS
-    !! Number of dimensions in provided Cartesian communicator > Number of dimension passed to `create` subroutine
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_COMM_FAST_DIM = CONF_DTFFT_ERROR_INVALID_COMM_FAST_DIM
-    !! Passed Cartesian communicator with number of processes in 1st (fastest varying) dimension > 1
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_MISSING_R2R_KINDS = CONF_DTFFT_ERROR_MISSING_R2R_KINDS
-    !! For R2R plan, `kinds` parameter must be passed if `executor` != `DTFFT_EXECUTOR_NONE`
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_R2R_KINDS = CONF_DTFFT_ERROR_INVALID_R2R_KINDS
-    !! Invalid values detected in `kinds` parameter 
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_PLAN = CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN
-    !! Transpose plan is not supported in R2C, use R2R or C2C plan instead
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INPLACE_TRANSPOSE = CONF_DTFFT_ERROR_INPLACE_TRANSPOSE
-    !! Inplace transpose is not supported
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_AUX = CONF_DTFFT_ERROR_INVALID_AUX
-    !! Invalid `aux` buffer provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_DIM = CONF_DTFFT_ERROR_INVALID_DIM
-    !! Invalid `dim` passed to `plan.get_pencil`
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_USAGE = CONF_DTFFT_ERROR_INVALID_USAGE
-    !! Invalid API Usage.
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_PLAN_IS_CREATED = CONF_DTFFT_ERROR_PLAN_IS_CREATED
-    !! Trying to create already created plan
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_ALLOC_FAILED = CONF_DTFFT_ERROR_ALLOC_FAILED
-    !! Internal allocation failed
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_FREE_FAILED = CONF_DTFFT_ERROR_FREE_FAILED
-    !! Internal memory free failed
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_ALLOC_BYTES = CONF_DTFFT_ERROR_INVALID_ALLOC_BYTES
-    !! Invalid `alloc_bytes` provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_DLOPEN_FAILED = CONF_DTFFT_ERROR_DLOPEN_FAILED
-    !! dlopen failed
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_DLSYM_FAILED = CONF_DTFFT_ERROR_DLSYM_FAILED
-    !! dlsym failed
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_CALLED = CONF_DTFFT_ERROR_R2C_TRANSPOSE_CALLED
-    !! Calling to `transpose` method for R2C plan is not allowed
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
-    !! Selected `executor` do not support R2R FFTs
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
-    !! Invalid stream provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_BACKEND = CONF_DTFFT_ERROR_GPU_INVALID_BACKEND
-    !! Invalid GPU backend provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_NOT_SET = CONF_DTFFT_ERROR_GPU_NOT_SET
-    !! Multiple MPI Processes located on same host share same GPU which is not supported
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_VKFFT_R2R_2D_PLAN = CONF_DTFFT_ERROR_VKFFT_R2R_2D_PLAN
-    !! When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_BACKENDS_DISABLED = CONF_DTFFT_ERROR_GPU_BACKENDS_DISABLED
-    !! Passed `effort` ==  `DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t` */
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR
-    !! One of pointers passed to `plan.execute` or `plan.transpose` cannot be accessed from device
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_NVSHMEM_PTR = CONF_DTFFT_ERROR_NOT_NVSHMEM_PTR
-    !! One of pointers passed to `plan.execute` or `plan.transpose` is not an `NVSHMEM` pointer
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM = CONF_DTFFT_ERROR_INVALID_PLATFORM
-    !! Invalid platform provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
-    !! Invalid executor provided for selected platform
+
 
   integer(int32),  parameter,  public  :: VARIABLE_NOT_SET = -111
   !! Default value when environ is not set
@@ -386,28 +315,33 @@ public :: operator(/=)
     !! NCCL backend with overlapping data copying and unpacking
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_CUFFTMP = dtfft_backend_t(CONF_DTFFT_BACKEND_CUFFTMP)
     !! cuFFTMp backend
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_CUFFTMP_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_CUFFTMP_PIPELINED)
+    !! cuFFTMp backend that uses extra buffer to gain performance
   type(dtfft_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_backend_t(VARIABLE_NOT_SET)
     !! Backend is not used
-  type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED]
+  type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED, DTFFT_BACKEND_CUFFTMP_PIPELINED]
     !! List of pipelined backends
   type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED]
     !! List of MPI backends
   type(dtfft_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_BACKEND_NCCL, DTFFT_BACKEND_NCCL_PIPELINED]
     !! List of NCCL backends
-  type(dtfft_backend_t),  parameter :: NVSHMEM_BACKENDS(*) = [DTFFT_BACKEND_CUFFTMP]
+  type(dtfft_backend_t),  parameter :: CUFFTMP_BACKENDS(*) = [DTFFT_BACKEND_CUFFTMP, DTFFT_BACKEND_CUFFTMP_PIPELINED]
+    !! List of cuFFTMp backends
+  type(dtfft_backend_t),  parameter :: NVSHMEM_BACKENDS(*) = [DTFFT_BACKEND_CUFFTMP, DTFFT_BACKEND_CUFFTMP_PIPELINED]
     !! List of NVSHMEM-based backends
   type(dtfft_backend_t),  parameter,  public :: VALID_GPU_BACKENDS(*) = [DTFFT_BACKEND_MPI_DATATYPE         &
-                                                                             ,DTFFT_BACKEND_MPI_P2P             &
-                                                                             ,DTFFT_BACKEND_MPI_A2A             &
-                                                                             ,DTFFT_BACKEND_MPI_P2P_PIPELINED   &
+                                                                        ,DTFFT_BACKEND_MPI_P2P              &
+                                                                        ,DTFFT_BACKEND_MPI_A2A              &
+                                                                        ,DTFFT_BACKEND_MPI_P2P_PIPELINED    &
 #ifdef DTFFT_WITH_NCCL
-                                                                             ,DTFFT_BACKEND_NCCL_PIPELINED      &
-                                                                             ,DTFFT_BACKEND_NCCL                &
+                                                                        ,DTFFT_BACKEND_NCCL_PIPELINED       &
+                                                                        ,DTFFT_BACKEND_NCCL                 &
 #endif
 #ifdef DTFFT_WITH_NVSHMEM
-                                                                             ,DTFFT_BACKEND_CUFFTMP             &
+                                                                        ,DTFFT_BACKEND_CUFFTMP              &
+                                                                        ,DTFFT_BACKEND_CUFFTMP_PIPELINED    &
 #endif
-                                                                             ]
+                                                                        ]
     !! List of valid GPU backends
 
   type, bind(C) :: dtfft_stream_t
@@ -433,8 +367,10 @@ public :: dtfft_platform_t
     !! Host platform
   type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_CUDA = dtfft_platform_t(CONF_DTFFT_PLATFORM_CUDA)
     !! CUDA platform
+#ifdef DTFFT_WITH_CUDA
   type(dtfft_platform_t),         parameter :: VALID_PLATFORMS(*) = [DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA]
     !! Valid platforms
+#endif
 
   ! type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HIP = dtfft_platform_t(3)
 
@@ -476,14 +412,13 @@ MAKE_EQ_FUN(dtfft_precision_t, precision_eq)
 MAKE_EQ_FUN(dtfft_r2r_kind_t, r2r_kind_eq)
 MAKE_EQ_FUN(dtfft_platform_t, platform_eq)
 
-
 MAKE_NE_FUN(dtfft_execute_t, execute_type_ne)
 MAKE_NE_FUN(dtfft_transpose_t, transpose_type_ne)
 MAKE_NE_FUN(dtfft_executor_t, executor_ne)
 MAKE_NE_FUN(dtfft_effort_t, effort_ne)
 MAKE_NE_FUN(dtfft_precision_t, precision_ne)
 MAKE_NE_FUN(dtfft_r2r_kind_t, r2r_kind_ne)
-MAKE_NE_FUN(dtfft_platform_t, platform_ne)
+ MAKE_NE_FUN(dtfft_platform_t, platform_ne)
 
 MAKE_VALID_FUN_DTYPE(dtfft_execute_t, is_valid_execute_type, VALID_EXECUTE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_transpose_t, is_valid_transpose_type, VALID_TRANSPOSE_TYPES)
@@ -491,9 +426,6 @@ MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_valid_executor, VALID_EXECUTORS)
 MAKE_VALID_FUN_DTYPE(dtfft_effort_t, is_valid_effort, VALID_EFFORTS)
 MAKE_VALID_FUN_DTYPE(dtfft_precision_t, is_valid_precision, VALID_PRECISIONS)
 MAKE_VALID_FUN_DTYPE(dtfft_r2r_kind_t, is_valid_r2r_kind, VALID_R2R_KINDS)
-MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_host_executor, HOST_EXECUTORS)
-MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_cuda_executor, CUDA_EXECUTORS)
-MAKE_VALID_FUN_DTYPE(dtfft_platform_t, is_valid_platform, VALID_PLATFORMS)
 
 MAKE_VALID_FUN(integer(int8), is_valid_dimension, VALID_DIMENSIONS)
 MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
@@ -512,96 +444,54 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     dtfft_get_version_required = CONF_DTFFT_VERSION(major,minor,patch)
   end function dtfft_get_version_required
 
-  pure function dtfft_get_error_string(error_code) result(error_string)
-  !! Gets the string description of an error code
-    integer(int32),   intent(in)   :: error_code    !! Error code
-    character(len=:), allocatable  :: error_string  !! Error string
+  function dtfft_get_precision_string(precision) result(string)
+  !! Gets the string description of a precision
+    type(dtfft_precision_t), intent(in) :: precision !! Precision type
+    character(len=:), allocatable :: string !! Precision string
 
-    select case (error_code)
-    case ( DTFFT_SUCCESS )
-      allocate(error_string, source="DTFFT_SUCCESS")
-    case ( DTFFT_ERROR_MPI_FINALIZED )
-      allocate(error_string, source="MPI_Init is not called or MPI_Finalize has already been called")
-    case ( DTFFT_ERROR_PLAN_NOT_CREATED )
-      allocate(error_string, source="Plan not created")
-    case ( DTFFT_ERROR_INVALID_TRANSPOSE_TYPE )
-      allocate(error_string, source="Invalid `transpose_type` provided")
-    case ( DTFFT_ERROR_INVALID_N_DIMENSIONS )
-      allocate(error_string, source="Invalid Number of dimensions provided. Valid options are 2 and 3")
-    case ( DTFFT_ERROR_INVALID_DIMENSION_SIZE )
-      allocate(error_string, source="One or more provided dimension sizes <= 0")
-    case ( DTFFT_ERROR_INVALID_COMM_TYPE )
-      allocate(error_string, source="Invalid communicator type provided")
-    case ( DTFFT_ERROR_INVALID_PRECISION )
-      allocate(error_string, source="Invalid `precision` parameter provided")
-    case ( DTFFT_ERROR_INVALID_EFFORT )
-      allocate(error_string, source="Invalid `effort` parameter provided")
-    case ( DTFFT_ERROR_INVALID_EXECUTOR )
-      allocate(error_string, source="Invalid `executor` parameter provided")
-    case ( DTFFT_ERROR_INVALID_COMM_DIMS )
-      allocate(error_string, source="Number of dimensions in provided Cartesian communicator > Number of dimension passed to `create` subroutine")
-    case ( DTFFT_ERROR_INVALID_COMM_FAST_DIM )
-      allocate(error_string, source="Passed Cartesian communicator with number of processes in 1st (fastest varying) dimension > 1")
-    case ( DTFFT_ERROR_MISSING_R2R_KINDS )
-      allocate(error_string, source="For R2R plan, `kinds` parameter must be passed if `executor` != `DTFFT_EXECUTOR_NONE`")
-    case ( DTFFT_ERROR_INVALID_R2R_KINDS )
-      allocate(error_string, source="Invalid values detected in `kinds` parameter")
-    case ( DTFFT_ERROR_R2C_TRANSPOSE_PLAN )
-      allocate(error_string, source="Transpose plan is not supported in R2C, use R2R or C2C plan instead")
-    case ( DTFFT_ERROR_INVALID_AUX )
-      allocate(error_string, source="Invalid `aux` buffer provided")
-    case ( DTFFT_ERROR_INPLACE_TRANSPOSE )
-      allocate(error_string, source="Inplace transpose is not supported")
-    case ( DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED )
-      allocate(error_string, source="Selected `executor` do not support R2R FFTs")
-    case ( DTFFT_ERROR_INVALID_DIM )
-      allocate(error_string, source="Invalid `dim` passed to `dtfft_get_pencil`")
-    case ( DTFFT_ERROR_INVALID_USAGE )
-      allocate(error_string, source="Invalid API Usage.")
-    case ( DTFFT_ERROR_PLAN_IS_CREATED )
-      allocate(error_string, source="Trying to create already created plan")
-    case ( DTFFT_ERROR_ALLOC_FAILED )
-      allocate(error_string, source="Allocation failed")
-    case ( DTFFT_ERROR_FREE_FAILED )
-      allocate(error_string, source="Memory free failed")
-    case ( DTFFT_ERROR_INVALID_ALLOC_BYTES )
-      allocate(error_string, source="Invalid `alloc_bytes` provided")
-    case ( DTFFT_ERROR_DLOPEN_FAILED )
-      allocate(error_string, source="Failed to open shared library. Set DTFFT_ENABLE_LOG=1 to see the error")
-    case ( DTFFT_ERROR_DLSYM_FAILED )
-      allocate(error_string, source="Failed to find symbol in shared library. Set DTFFT_ENABLE_LOG=1 to see the error")
-    case ( DTFFT_ERROR_R2C_TRANSPOSE_CALLED )
-      allocate(error_string, source="Calling to `transpose` method for R2C plan is not allowed")
-    case ( DTFFT_ERROR_GPU_INVALID_STREAM )
-      allocate(error_string, source="Invalid stream provided")
-    case ( DTFFT_ERROR_GPU_INVALID_BACKEND )
-      allocate(error_string, source="Invalid GPU backend provided")
-    case ( DTFFT_ERROR_GPU_NOT_SET )
-      allocate(error_string, source="Multiple MPI Processes located on same host share same GPU which is not supported")
-    case ( DTFFT_ERROR_VKFFT_R2R_2D_PLAN )
-      allocate(error_string, source="When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions")
-    case ( DTFFT_ERROR_GPU_BACKENDS_DISABLED )
-      allocate(error_string, source="Passed `effort` ==  `::DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t`")
-    case ( DTFFT_ERROR_NOT_DEVICE_PTR )
-      allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` cannot be accessed from device" )
-    case ( DTFFT_ERROR_NOT_NVSHMEM_PTR )
-      allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` is not an `NVSHMEM` pointer" )
-    case ( DTFFT_ERROR_INVALID_PLATFORM )
-      allocate(error_string, source="Invalid platform provided")
-    case ( DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE )
-      allocate(error_string, source="Invalid executor provided for selected platform")
+    select case ( precision%val )
+    case ( DTFFT_SINGLE%val )
+      allocate(string, source="Single")
+    case ( DTFFT_DOUBLE%val ) 
+      allocate(string, source="Double")
     case default
-      allocate(error_string, source="Unknown error")
+      allocate(string, source="Unknown precision")
     endselect
-  end function dtfft_get_error_string
+  end function dtfft_get_precision_string
+
+  function dtfft_get_executor_string(executor) result(string)
+  !! Gets the string description of an executor
+    type(dtfft_executor_t), intent(in) :: executor !! Executor type
+    character(len=:), allocatable :: string !! Executor string
+
+    select case ( executor%val )
+    case ( DTFFT_EXECUTOR_NONE%val )
+      allocate(string, source="None")
+    case ( DTFFT_EXECUTOR_FFTW3%val )
+      allocate(string, source="FFTW3")
+    case ( DTFFT_EXECUTOR_MKL%val )
+      allocate(string, source="MKL")
+    case ( DTFFT_EXECUTOR_CUFFT%val )
+      allocate(string, source="CUFFT")
+    case ( DTFFT_EXECUTOR_VKFFT%val )
+      allocate(string, source="VKFFT")
+    case default
+      allocate(string, source="Unknown executor")
+    endselect
+  end function dtfft_get_executor_string
 
 #ifdef DTFFT_WITH_CUDA
   MAKE_EQ_FUN(dtfft_backend_t, gpu_backend_eq)
   MAKE_NE_FUN(dtfft_backend_t, gpu_backend_ne)
+
+  MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_host_executor, HOST_EXECUTORS)
+  MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_cuda_executor, CUDA_EXECUTORS)
+  MAKE_VALID_FUN_DTYPE(dtfft_platform_t, is_valid_platform, VALID_PLATFORMS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_valid_gpu_backend, VALID_GPU_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_mpi, MPI_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nccl, NCCL_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_cufftmp, CUFFTMP_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nvshmem, NVSHMEM_BACKENDS)
 
   function dtfft_get_backend_string(backend) result(string)
@@ -611,21 +501,23 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
 
     select case ( backend%val )
     case ( DTFFT_BACKEND_MPI_DATATYPE%val )
-      allocate(string, source="DTFFT_BACKEND_MPI_DATATYPE")
+      allocate(string, source="MPI_DATATYPE")
     case ( DTFFT_BACKEND_MPI_P2P%val )
-      allocate(string, source="DTFFT_BACKEND_MPI_P2P")
+      allocate(string, source="MPI_P2P")
     case ( DTFFT_BACKEND_MPI_A2A%val )
-      allocate(string, source="DTFFT_BACKEND_MPI_A2A")
+      allocate(string, source="MPI_A2A")
     case ( DTFFT_BACKEND_NCCL%val )
-      allocate(string, source="DTFFT_BACKEND_NCCL")
+      allocate(string, source="NCCL")
     case ( DTFFT_BACKEND_CUFFTMP%val )
-      allocate(string, source="DTFFT_BACKEND_CUFFTMP")
+      allocate(string, source="CUFFTMP")
     case ( DTFFT_BACKEND_MPI_P2P_PIPELINED%val )
-      allocate(string, source="DTFFT_BACKEND_MPI_P2P_PIPELINED")
+      allocate(string, source="MPI_P2P_PIPELINED")
     case ( DTFFT_BACKEND_NCCL_PIPELINED%val )
-      allocate(string, source="DTFFT_BACKEND_NCCL_PIPELINED")
+      allocate(string, source="NCCL_PIPELINED")
+    case (DTFFT_BACKEND_CUFFTMP_PIPELINED%val)
+      allocate(string, source="CUFFTMP_PIPELINED")
     case ( BACKEND_NOT_SET%val )
-      allocate(string, source="None" )
+      allocate(string, source="None")
     case default
       allocate(string, source="Unknown backend")
     endselect
