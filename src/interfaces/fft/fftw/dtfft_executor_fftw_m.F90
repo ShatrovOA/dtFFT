@@ -23,6 +23,7 @@ module dtfft_executor_fftw_m
 use iso_c_binding,              only: c_ptr, c_loc, c_null_ptr, c_int
 use iso_fortran_env,            only: int8, int32, int64, real32
 use dtfft_abstract_executor,    only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
+use dtfft_errors
 use dtfft_pencil,               only: pencil
 use dtfft_interface_fftw_m
 use dtfft_parameters

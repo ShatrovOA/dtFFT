@@ -21,6 +21,7 @@ module dtfft_utils
 !! All Utilities functions are located here
 use iso_c_binding
 use iso_fortran_env,  only: int8, int32, int64, real64, output_unit, error_unit
+use dtfft_errors
 use dtfft_parameters
 #include "dtfft_mpi.h"
 #include "dtfft_cuda.h"
@@ -97,6 +98,14 @@ public :: load_library, load_symbol, unload_library, dynamic_load
     module procedure :: get_env_int8
     module procedure :: get_env_logical
   end interface get_env
+
+#if defined(DTFFT_USE_MPI)
+public :: all_reduce_inplace
+  interface all_reduce_inplace
+    module procedure :: all_reduce_inplace_i32
+    module procedure :: all_reduce_inplace_i64
+  end interface all_reduce_inplace
+#endif
 
 #ifdef DTFFT_WITH_CUDA
 public :: string
@@ -255,7 +264,7 @@ contains
       type(string), allocatable :: backends(:)
       character(len=:), allocatable :: bcknd_env
 
-      allocate( backends(7) )
+      allocate( backends(8) )
       backends(1) = string("mpi_dt")
       backends(2) = string("mpi_p2p")
       backends(3) = string("mpi_a2a")
@@ -263,6 +272,7 @@ contains
       backends(5) = string("nccl")
       backends(6) = string("nccl_pipe")
       backends(7) = string("cufftmp")
+      backends(8) = string("cufftmp_pipe")
 
       allocate( bcknd_env, source=get_env("BACKEND", "undefined", backends) )
       select case ( bcknd_env )
@@ -282,6 +292,8 @@ contains
         backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
       case ( "cufftmp" )
         backend_from_env = DTFFT_BACKEND_CUFFTMP
+      case ( "cufftmp_pipe")
+        backend_from_env = DTFFT_BACKEND_CUFFTMP_PIPELINED
       endselect
 
       deallocate( bcknd_env )
@@ -740,5 +752,30 @@ contains
     end do
     deallocate(y)
   end function count_unique
+#endif
+
+#if defined(DTFFT_USE_MPI)
+! Some bug was noticed in mpich for macos
+! For some reason MPI_IN_PLACE has not been recognized.
+! This is some stupid workaround
+  subroutine all_reduce_inplace_i64(buffer, op, comm)
+    integer(int64), intent(inout) :: buffer
+    integer(int32), intent(in)    :: op, comm
+    integer(int64) :: tmp
+    integer(int32) :: ierr
+
+    call MPI_Allreduce(buffer, tmp, 1, MPI_INTEGER8, op, comm, ierr)
+    buffer = tmp
+  end subroutine all_reduce_inplace_i64
+
+  subroutine all_reduce_inplace_i32(buffer, op, comm)
+    integer(int32), intent(inout) :: buffer
+    integer(int32), intent(in)    :: op, comm
+    integer(int32) :: tmp
+    integer(int32) :: ierr
+
+    call MPI_Allreduce(buffer, tmp, 1, MPI_INTEGER4, op, comm, ierr)
+    buffer = tmp
+  end subroutine all_reduce_inplace_i32
 #endif
 end module dtfft_utils

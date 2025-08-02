@@ -47,6 +47,8 @@ public :: clean_unused_cache
   character(len=*), parameter :: DEFAULT_KERNEL_NAME = "dtfft_kernel"
   !! Basic kernel name
 
+  integer(int8), parameter, public  :: KERNEL_DUMMY               = -1
+  !! Dummy kernel, does nothing
   integer(int8), parameter, public  :: KERNEL_TRANSPOSE           = 1
   !! Basic transpose kernel type.
   integer(int8), parameter, public  :: KERNEL_TRANSPOSE_PACKED    = 2
@@ -207,6 +209,11 @@ contains
     endif
     self%is_dummy = .false.
     self%kernel_type = kernel_type
+
+    if ( kernel_type == KERNEL_DUMMY ) then
+      self%is_dummy = .true.
+      return
+    endif
 
     if ( kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
       self%is_created = .true.
@@ -510,7 +517,7 @@ contains
     NVRTC_CALL( "nvrtcCreateProgram", nvrtcCreateProgram(prog, c_code, "dtfft_kernel.cu"//c_null_char, 0, c_null_ptr, c_null_ptr) )
     ierr = nvrtcCompileProgram(prog, num_options, c_options)
     ! It is assumed here that ierr can only be positive
-    call MPI_Allreduce(MPI_IN_PLACE, ierr, 1, MPI_INTEGER4, MPI_MAX, comm, mpi_ierr)
+    ALL_REDUCE(ierr, MPI_INTEGER4, MPI_MAX, comm, mpi_ierr)
     if ( ierr /= 0 ) then
       block
         type(c_ptr) :: c_log

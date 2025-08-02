@@ -1,7 +1,7 @@
 # dtFFT - DataTyped Fast Fourier Transform
 
 [![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
-[![dtfft workflow](https://github.com/ShatrovOA/dtFFT/actions/workflows/main.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/main.yml)
+[![Building](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml)
 [![codecov](https://codecov.io/gh/ShatrovOA/dtFFT/graph/badge.svg?token=6BI4AQVH7Z)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
 [![Documentation Status](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)

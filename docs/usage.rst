@@ -70,7 +70,13 @@ Error codes are defined in the API sections (e.g., :f:var:`DTFFT_SUCCESS`, :f:va
 Plan Creation
 =============
 
-Creating a plan in ``dtFFT`` involves specifying the dimensions of the data, along with optional parameters such as the MPI communicator, precision, and FFT executor type. The library supports three plan types:
+There are two ways to create plan in ``dtFFT``. 
+
+First one involves specifying global dimensions of the data and discussed in this section along with other options such as the MPI communicator, precision, and FFT executor type. 
+
+Second one involves specifing local portion of the data on each MPI process and discussed in the `Plan Creation Using Pencil Decomposition`_ section below.
+
+There are three plan types supported by the library:
 
 - Real-to-Real (R2R)
 - Complex-to-Complex (C2C)
@@ -80,7 +86,7 @@ Creating a plan in ``dtFFT`` involves specifying the dimensions of the data, alo
 
 Each is tailored to specific transformation needs.
 Plans are created using the ``create`` method or corresponding constructor, as detailed in the Fortran, C, and C++ API sections.
-For every plan type, an MPI communicator must be specified to define the process distribution (see `Grid Decomposition`_ below).
+For every plan type, an MPI communicator can be specified to define the process distribution (see `Grid Decomposition`_ below).
 The optimization level applied during plan creation can be controlled via the effort parameter (see `Selecting plan effort`_ below). Additional parameters include:
 
 - **Precision**: Controlled by :f:type:`dtfft_precision_t` with the following options:
@@ -442,6 +448,119 @@ Following example creates config object, disables Z-slab, enables MPI Backends a
 
     // Now we can create a plan
 
+Plan Creation Using Pencil Decomposition
+========================================
+
+In addition to the standard plan creation using global dimensions, ``dtFFT`` supports creating plans using the :f:type:`dtfft_pencil_t` structure. 
+This advanced feature allows users to define custom grid decompositions and provides greater control over data distribution across MPI processes.
+
+When to Use Pencil-Based Plan Creation
+--------------------------------------
+
+Pencil-based plan creation is useful when:
+
+- You need custom grid decomposition that differs from ``dtFFT``'s default strategy
+- You want to integrate with existing domain decomposition from other libraries
+- You need to ensure specific data locality requirements
+- You want to reuse decomposition information from previous computations
+
+
+Creating Plans with Pencil Structure
+------------------------------------
+
+All plan types support pencil-based constructors. Both Fortran and C++ overload the existing plan constructors to accept a pencil structure.
+In the C API, a separate function is provided to create plans using a pencil structure. The pencil structure must be defined before plan creation, specifying the local data portion for each MPI process.
+Fortran users should call ``dtfft_pencil_t`` constructor and provide two arrays: ``starts`` and ``counts`` which must provide the local data portion for each MPI process.
+
+The following example demonstrates how to create a C2C plan using a pencil structure for a 64x64x64 grid, splitting only in the Z (slowest) dimension across MPI processes:
+
+.. tabs::
+
+  .. code-tab:: fortran
+
+    #include "dtfft.f03"
+    use iso_fortran_env
+    use dtfft
+    use mpi
+
+    type(dtfft_plan_c2c_t) :: plan
+    type(dtfft_pencil_t) :: my_pencil
+    integer(int32) :: error_code
+    integer(int32) :: starts(3), counts(3)
+    integer(int32) :: rank, size
+
+    call MPI_Init()
+    call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
+    call MPI_Comm_size(MPI_COMM_WORLD, size, ierr)
+
+    ! Define custom decomposition for 64x64x64 grid
+    ! Example: split only in Z dimension
+    starts = [0, 0, rank * (64 / size)]
+    counts = [64, 64, 64 / size]
+
+    ! Create pencil structure
+    pencil = dtfft_pencil_t(starts, counts)
+
+    ! Create C2C plan using pencil
+    call plan%create(pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, error_code)
+    DTFFT_CHECK(error_code)
+
+  .. code-tab:: c
+
+    #include <dtfft.h>
+    #include <mpi.h>
+
+    int main(int argc, char *argv[]) {
+      dtfft_plan_t plan;
+      dtfft_pencil_t pencil;
+      int rank, size;
+
+      MPI_Init(&argc, &argv);
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+      // Define custom decomposition for 64x64x64 grid
+      pencil.ndims = 3;
+      pencil.starts[0] = 0;
+      pencil.starts[1] = 0; 
+      pencil.starts[2] = rank * (64 / size);
+      pencil.counts[0] = 64;
+      pencil.counts[1] = 64;
+      pencil.counts[2] = 64 / size;
+
+      // Create C2C plan using pencil
+      DTFFT_CALL( dtfft_create_plan_c2c_pencil(&pencil, MPI_COMM_WORLD, 
+                    DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, &plan) );
+
+      return 0;
+    }
+
+  .. code-tab:: c++
+
+    #include <dtfft.hpp>
+    #include <mpi.h>
+    #include <vector>
+
+    int main(int argc, char *argv[]) {
+      MPI_Init(&argc, &argv);
+
+      int rank, size;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+      // Define custom decomposition for 64x64x64 grid
+      std::vector<int32_t> starts = {0, 0, rank * (64 / size)};
+      std::vector<int32_t> counts = {64, 64, 64 / size};
+
+      // Create pencil
+      auto pencil = dtfft::Pencil(starts, counts);
+
+      // Create C2C plan using pencil
+      dtfft::PlanC2C plan(pencil, MPI_COMM_WORLD, dtfft::Precision::DOUBLE, 
+                          dtfft::Effort::ESTIMATE, dtfft::Executor::NONE);
+
+      return 0;
+    }
 
 Memory Allocation
 =================
@@ -618,7 +737,7 @@ the :f:func:`get_pencil` method. This returns a ``dtfft_pencil_t`` structure con
 
     do i = 1, 3
       ! Get pencil for dimension i
-      call plan%get_pencil(i, pencils(i), error_code)
+      pencils(i) = plan%get_pencil(i, error_code)
       DTFFT_CHECK(error_code)
       ! Access pencil properties, e.g., pencils(i)%dim, pencils(i)%starts
     end do
@@ -637,13 +756,12 @@ the :f:func:`get_pencil` method. This returns a ``dtfft_pencil_t`` structure con
     std::vector<dtfft::Pencil> pencils;
 
     for (int8_t i = 0; i < 3; i++) {
-      dtfft::Pencil pencil;
-      DTFFT_CXX_CALL( plan.get_pencil(i + 1, pencil) );
+      dtfft::Pencil pencil = plan.get_pencil(i + 1); // This call will throw an exception if an error occurs
       pencils.push_back(pencil);
       // Access pencil properties, e.g., pencils[i].get_dim(), pencils[i].get_starts()
     }
 
-In C++, the ``dtfft::Pencil`` class provides additional methods:
+In C++, the ``dtfft::Pencil`` class provides properties via getter methods:
 
 - ``get_ndims()``: Returns the number of dimensions
 - ``get_dim()``: Returns the aligned dimension ID
@@ -810,6 +928,14 @@ _____________________________
   back into the ``in`` buffer. Since the final transposed data is required in the ``out`` buffer,
   it is then copied from ``in`` to ``out`` using ``cudaMemcpyAsync``.
 
+- **Pipelined cuFFTMp** (:f:var:`DTFFT_BACKEND_CUFFTMP_PIPELINED`):
+
+  This backend optimizes the standard ``cuFFTMp`` approach by eliminating the final ``cudaMemcpyAsync`` step.
+  It begins with a local transposition from the ``in`` buffer to an auxiliary (``aux``) buffer using an nvRTC kernel.
+  Then, it calls ``cufftMpExecReshapeAsync`` to perform the all-to-all exchange, reshaping the data directly from the ``aux`` buffer
+  into the final ``out`` buffer. This approach avoids the extra copy required by the standard ``cuFFTMp`` backend,
+  potentially reducing latency, but requires an additional ``aux`` buffer for its operation.
+
 
 .. note::
 
@@ -935,6 +1061,7 @@ To optimize memory usage, ``dtFFT`` uses the ``in`` buffer as intermediate stora
 Users needing to preserve original data should copy it elsewhere.
 
 The key parameter is ``execute_type``, with two options:
+
 - ``DTFFT_EXECUTE_FORWARD``: Forward execution
 - ``DTFFT_EXECUTE_BACKWARD``: Backward execution
 

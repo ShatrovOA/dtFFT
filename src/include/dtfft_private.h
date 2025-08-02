@@ -55,6 +55,39 @@ extern "C" {
 
 #define INTERNAL_ERROR(message) error stop "dtFFT Internal Error: "//message
 
+#define CHECK_INPUT_PARAMETER(param, check_func, code)            \
+  if ( .not.check_func(param)) then;                              \
+    __FUNC__ = code;                                              \
+    return;                                                       \
+  endif
+
+#define CHECK_ERROR_AND_RETURN                      \
+  if ( ierr /= DTFFT_SUCCESS ) then;                \
+    if ( present( error_code ) ) error_code = ierr; \
+    WRITE_ERROR( dtfft_get_error_string(ierr) );    \
+    return;                                         \
+  endif
+
+#define CHECK_ERROR_AND_RETURN_AGG(comm)                          \
+  block;                                                          \
+    integer(int32) :: mpi_ierr;                                   \
+    ALL_REDUCE(error_code, MPI_INTEGER, MPI_MAX, comm, mpi_ierr); \
+    if ( error_code /= DTFFT_SUCCESS ) then;                      \
+      WRITE_ERROR( dtfft_get_error_string(error_code) );          \
+      return;                                                     \
+    endif;                                                        \
+  end block
+
+#define CHECK_ERROR_AND_RETURN_NO_MSG               \
+  if ( ierr /= DTFFT_SUCCESS ) then;                \
+    if ( present( error_code ) ) error_code = ierr; \
+    return;                                         \
+  endif
+
+#define CHECK_OPTIONAL_CALL( func )                 \
+  ierr = func;                                      \
+  CHECK_ERROR_AND_RETURN
+
 #ifdef __cplusplus
 }
 #endif

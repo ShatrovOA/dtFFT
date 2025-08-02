@@ -37,7 +37,8 @@ use dtfft_executor_cufft_m,           only: cufft_executor
 use dtfft_executor_vkfft_m,           only: vkfft_executor
 #endif
 use dtfft_config
-use dtfft_pencil,                     only: pencil, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
+use dtfft_errors
+use dtfft_pencil,                     only: pencil, pencil_init, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
 use dtfft_parameters
 use dtfft_transpose_plan_host,        only: transpose_plan_host
 use dtfft_utils
@@ -59,30 +60,6 @@ public :: dtfft_plan_t
 public :: dtfft_plan_c2c_t
 public :: dtfft_plan_r2c_t
 public :: dtfft_plan_r2r_t
-
-
-#define CHECK_INPUT_PARAMETER(param, check_func, code)            \
-  if ( .not.check_func(param)) then;                              \
-    __FUNC__ = code;                                              \
-    return;                                                       \
-  endif
-
-#define CHECK_ERROR_AND_RETURN                      \
-  if ( ierr /= DTFFT_SUCCESS ) then;                \
-    if ( present( error_code ) ) error_code = ierr; \
-    WRITE_ERROR( dtfft_get_error_string(ierr) );    \
-    return;                                         \
-  endif
-
-#define CHECK_ERROR_AND_RETURN_NO_MSG               \
-  if ( ierr /= DTFFT_SUCCESS ) then;                \
-    if ( present( error_code ) ) error_code = ierr; \
-    return;                                         \
-  endif
-
-#define CHECK_OPTIONAL_CALL( func )                 \
-  ierr = func;                                      \
-  CHECK_ERROR_AND_RETURN
 
   type :: fft_executor
   !! FFT handle
@@ -157,6 +134,9 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: get_pencil         !! Returns pencil decomposition
     procedure,  pass(self), non_overridable, public :: get_element_size   !! Returns number of bytes required to store single element.
     procedure,  pass(self), non_overridable, public :: get_alloc_bytes    !! Returns minimum number of bytes required to execute plan
+    procedure,  pass(self), non_overridable, public :: get_executor       !! Returns FFT Executor associated with plan
+    procedure,  pass(self), non_overridable, public :: get_dims           !! Returns global dimensions
+    procedure,  pass(self), non_overridable, public :: get_precision      !! Returns precision of plan
     procedure,  pass(self), non_overridable, public :: report             !! Prints plan details
     procedure,  pass(self), non_overridable, public :: mem_alloc_ptr      !! Allocates memory for type(c_ptr)
     generic,                                 public :: mem_alloc =>       &
@@ -234,7 +214,7 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self), non_overridable          :: create_c2c_internal  !! Creates plan for both C2C and R2C
+    procedure, pass(self), non_overridable          :: create_c2c_core  !! Creates plan for both C2C and R2C
   end type dtfft_core_c2c
 
   type, extends(dtfft_core_c2c) :: dtfft_plan_c2c_t
@@ -242,7 +222,12 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self), non_overridable,  public :: create => create_c2c   !! Creates C2C plan
+    generic,              public  :: create => create_c2c,  &
+                                               create_c2c_pencil
+    !! Creates C2C plan
+    procedure, pass(self)         :: create_c2c              !! Creates C2C plan using global dimensions
+    procedure, pass(self)         :: create_c2c_pencil       !! Creates C2C plan using Pencil of local data
+    procedure, pass(self)         :: create_c2c_internal     !! Private method that combines common logic for C2C plan creation
   end type dtfft_plan_c2c_t
 
   type, extends(dtfft_core_c2c) :: dtfft_plan_r2c_t
@@ -252,7 +237,12 @@ public :: dtfft_plan_r2r_t
       !! "Real" pencil decomposition info
   contains
   private
-    procedure, pass(self), non_overridable,  public :: create => create_r2c   !! Creates R2C plan
+    generic,              public  :: create => create_r2c,  &
+                                               create_r2c_pencil
+    !! Creates R2C plan
+    procedure, pass(self)         :: create_r2c              !! Creates R2C plan using global dimensions
+    procedure, pass(self)         :: create_r2c_pencil       !! Creates R2C plan using Pencil of local data
+    procedure, pass(self)         :: create_r2c_internal     !! Private method that combines common logic for R2C plan creation
   end type dtfft_plan_r2c_t
 
   type, extends(dtfft_plan_t) :: dtfft_plan_r2r_t
@@ -260,7 +250,12 @@ public :: dtfft_plan_r2r_t
   private
   contains
   private
-    procedure, pass(self),  public  :: create => create_r2r                   !! Creates R2R plan
+    generic,              public  :: create => create_r2r, &
+                                               create_r2r_pencil
+    !! Creates R2R plan
+    procedure, pass(self)         :: create_r2r               !! Creates R2R plan using global dimensions
+    procedure, pass(self)         :: create_r2r_pencil        !! Creates R2R plan using Pencil of local data
+    procedure, pass(self)         :: create_r2r_internal      !! Private method that combines common logic for R2R plan creation
   end type dtfft_plan_r2r_t
 
 contains
@@ -676,6 +671,58 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_alloc_bytes
 
+  type(dtfft_executor_t) function get_executor(self, error_code)
+  !! Returns FFT Executor associated with plan
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr     !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_executor = dtfft_executor_t(VARIABLE_NOT_SET)
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    get_executor = self%executor
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_executor
+
+  subroutine get_dims(self, dims, error_code)
+  !! Returns global dimensions
+    class(dtfft_plan_t), target,  intent(in)  :: self
+      !! Abstract plan
+    integer(int32),     pointer,  intent(out) :: dims(:)
+      !! Global dimensions
+    integer(int32),    optional,  intent(out) :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr     !! Error code
+
+    ierr = DTFFT_SUCCESS
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    dims => self%dims
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine get_dims
+
+  type(dtfft_precision_t) function get_precision(self, error_code)
+  !! Returns precision of the plan
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr     !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_precision = dtfft_precision_t(VARIABLE_NOT_SET)
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    get_precision = self%precision
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_precision
+
   subroutine report(self, error_code)
   !! Prints plan-related information to stdout
     class(dtfft_plan_t),        intent(in)  :: self
@@ -684,8 +731,7 @@ contains
       !! Optional error code returned to user
     integer(int32)  :: ierr                   !! Error code
     integer(int32)  :: comm_dims(self%ndims)  !! Communicator dimensions
-    integer(int32)  :: coords(self%ndims)     !! Coordinates of this process in the grid
-    logical         :: periods(self%ndims)    !! Periodic dimensions
+    integer(int32)  :: d                      !! Counter
 
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
@@ -694,13 +740,15 @@ contains
       WRITE_REPORT("  dtFFT Version        :  "//int_to_str(dtfft_get_version()))
       WRITE_REPORT("  Number of dimensions :  "//int_to_str(self%ndims))
 
-    call MPI_Cart_get(self%comm, int(self%ndims, int32), comm_dims, periods, coords, ierr)
+    do d = 2, self%ndims
+      call MPI_Comm_size(self%comms(d), comm_dims(d), ierr)
+    enddo
     if ( self%ndims == 2 ) then
       WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2)))
-      WRITE_REPORT("  Grid decomposition   :  "//int_to_str(comm_dims(1))//"x"//int_to_str(comm_dims(2)))
+      WRITE_REPORT("  Grid decomposition   :  1x"//int_to_str(comm_dims(2)))
     else
       WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2))//"x"//int_to_str(self%dims(3)))
-      WRITE_REPORT("  Grid decomposition   :  "//int_to_str(comm_dims(1))//"x"//int_to_str(comm_dims(2))//"x"//int_to_str(comm_dims(3)))
+      WRITE_REPORT("  Grid decomposition   :  1x"//int_to_str(comm_dims(2))//"x"//int_to_str(comm_dims(3)))
     endif
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_HOST ) then
@@ -717,25 +765,8 @@ contains
     class is ( dtfft_plan_r2c_t )
       WRITE_REPORT("  Plan type            :  Real-to-Complex")
     endselect
-    if ( self%precision == DTFFT_SINGLE ) then
-      WRITE_REPORT("  Plan precision       :  Single")
-    else
-      WRITE_REPORT("  Plan precision       :  Double")
-    endif
-    if ( self%is_transpose_plan ) then
-      WRITE_REPORT("  FFT Executor type    :  None")
-    else
-      select case ( self%executor%val )
-      case ( DTFFT_EXECUTOR_FFTW3%val )
-        WRITE_REPORT("  FFT Executor type    :  FFTW3")
-      case ( DTFFT_EXECUTOR_MKL%val )
-        WRITE_REPORT("  FFT Executor type    :  MKL")
-      case ( DTFFT_EXECUTOR_CUFFT%val )
-        WRITE_REPORT("  FFT Executor type    :  CUFFT")
-      case ( DTFFT_EXECUTOR_VKFFT%val )
-        WRITE_REPORT("  FFT Executor type    :  VkFFT")
-      endselect
-    endif
+      WRITE_REPORT("  Plan precision       :  "//dtfft_get_precision_string(self%precision))
+      WRITE_REPORT("  FFT Executor type    :  "//dtfft_get_executor_string(self%executor))
     if ( self%ndims == 3 ) then
       if ( self%is_z_slab ) then
         WRITE_REPORT("  Z-slab enabled       :  True")
@@ -890,8 +921,18 @@ contains
       call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
     endselect
 #ifdef DTFFT_WITH_CUDA
-    if ( is_backend_nvshmem( self%get_backend() ) .and. present(alloc_size) ) then
-      call MPI_Allreduce(MPI_IN_PLACE, alloc_size, 1, MPI_INTEGER8, MPI_MAX, self%comm, ierr)
+    if ( is_backend_nvshmem( self%plan%get_backend() ) .and. present(alloc_size) ) then
+      block
+        integer(int64) :: aux_size
+
+        ! cufftMp pipelined may require aux buffer that is larger than
+        ! required by dtfft. in such case we must make sure that
+        ! buffer allocated by user is large enough
+        aux_size = self%plan%get_aux_size()
+        alloc_size = max(alloc_size, aux_size / self%storage_size )
+
+        ALL_REDUCE(alloc_size, MPI_INTEGER8, MPI_MAX, self%comm, ierr)
+      endblock
     endif
 #endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
@@ -909,13 +950,11 @@ contains
     call self%get_local_sizes(alloc_size=alloc_size, error_code=error_code)
   end function get_alloc_size
 
-  integer(int32) function create_private(self, dims, sngl_type, sngl_storage_size, dbl_type, dbl_storage_size, comm, precision, effort, executor, kinds)
+  integer(int32) function create_private(self, sngl_type, sngl_storage_size, dbl_type, dbl_storage_size, dims, pencil, comm, precision, effort, executor, kinds)
 #define __FUNC__ create_private
   !! Creates core
     class(dtfft_plan_t),              intent(inout) :: self
       !! Abstract plan
-    integer(int32),                   intent(in)    :: dims(:)
-      !! Global dimensions of transform
     TYPE_MPI_DATATYPE,                intent(in)    :: sngl_type
       !! MPI_Datatype for single precision plan
     integer(int64),                   intent(in)    :: sngl_storage_size
@@ -924,6 +963,10 @@ contains
       !! MPI_Datatype for double precision plan
     integer(int64),                   intent(in)    :: dbl_storage_size
       !! Number of bytes needed to store single element (double precision)
+    integer(int32),         optional, intent(in)    :: dims(:)
+      !! Global dimensions of transform
+    type(dtfft_pencil_t),   optional, intent(in)    :: pencil
+      !! Pencil of local portion of data
     TYPE_MPI_COMM,          optional, intent(in)    :: comm
       !! User-defined communicator
     type(dtfft_precision_t),optional, intent(in)    :: precision
@@ -937,9 +980,10 @@ contains
     TYPE_MPI_DATATYPE       :: base_dtype           !! MPI_Datatype for current precision
     integer(int64)          :: base_storage         !! Number of bytes needed to store single element
     TYPE_MPI_COMM           :: comm_                !! MPI Communicator
+    integer(int8)           :: d                    !! Counter
 
     create_private = DTFFT_SUCCESS
-    CHECK_INTERNAL_CALL( self%check_create_args(dims, comm, precision, effort, executor, kinds) )
+    CHECK_INTERNAL_CALL( self%check_create_args(dims, pencil, comm, precision, effort, executor, kinds) )
 
     select case ( self%precision%val )
     case ( DTFFT_SINGLE%val )
@@ -952,6 +996,23 @@ contains
       INTERNAL_ERROR("unknown precision")
     endselect
     self%storage_size = base_storage
+
+    if ( allocated(self%pencils) ) then
+      do d = 1, size(self%pencils)
+        call self%pencils(d)%destroy()
+      enddo
+      deallocate( self%pencils )
+    endif
+
+    if ( allocated(self%comms) ) then
+      ! Can potentially lose some memory
+      deallocate( self%comms )
+    endif
+
+    if ( allocated( self%plan ) ) then
+      call self%plan%destroy()
+      deallocate( self%plan )
+    endif
 
     allocate(self%pencils(self%ndims))
     allocate(self%comms(self%ndims))
@@ -994,7 +1055,34 @@ contains
     allocate( transpose_plan_host :: self%plan )
 #endif
 
-    CHECK_INTERNAL_CALL( self%plan%create(dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils) )
+    if ( present(pencil) ) then
+      block
+        integer(int32), allocatable :: fixed_dims(:)
+        type(pencil_init) :: ipencil
+
+        CHECK_INTERNAL_CALL( ipencil%create(pencil, comm_) )
+        ! After creating internal pencil and validating user passed pencil
+        ! We finally know global dimensions `dims`
+        allocate( self%dims, source=ipencil%dims )
+        allocate( fixed_dims, source=self%dims )
+        select type( self )
+        class is ( dtfft_plan_r2c_t )
+          fixed_dims(1) = fixed_dims(1) / 2 + 1
+          ipencil%counts(1) = ipencil%counts(1) / 2 + 1
+        endselect
+        CHECK_INTERNAL_CALL( self%plan%create(fixed_dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils, ipencil) )
+
+        select type( self )
+        class is ( dtfft_plan_r2c_t )
+          ipencil%counts(1) = (ipencil%counts(1) - 1) * 2
+          call self%real_pencil%create(self%ndims, 1_int8, self%dims, self%comms, ipencil%starts, ipencil%counts)
+        endselect
+        deallocate( fixed_dims)
+        call ipencil%destroy()
+      endblock
+    else
+      CHECK_INTERNAL_CALL( self%plan%create(dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils) )
+    endif
     self%is_z_slab = self%plan%is_z_slab
     call self%alloc_fft_plans(kinds)
 
@@ -1002,13 +1090,15 @@ contains
 #undef __FUNC__
   end function create_private
 
-  integer(int32) function check_create_args(self, dims, comm, precision, effort, executor, kinds)
+  integer(int32) function check_create_args(self, dims, pencil, comm, precision, effort, executor, kinds)
 #define __FUNC__ check_create_args
   !! Check arguments provided by user and sets private variables
     class(dtfft_plan_t),                intent(inout) :: self
       !! Abstract plan
-    integer(int32),                     intent(in)    :: dims(:)
+    integer(int32),         optional,   intent(in)    :: dims(:)
       !! Global dimensions of transform
+    type(dtfft_pencil_t),   optional,   intent(in)    :: pencil
+      !! Pencil of local portion of data
     TYPE_MPI_COMM,          optional,   intent(in)    :: comm
       !! Optional MPI Communicator
     type(dtfft_precision_t),optional,   intent(in)    :: precision
@@ -1027,13 +1117,25 @@ contains
 
     self%platform = get_user_platform()
 
-    self%ndims = size(dims, kind=int8)
-    CHECK_INPUT_PARAMETER(self%ndims, is_valid_dimension, DTFFT_ERROR_INVALID_N_DIMENSIONS)
-    if ( any([(dims(dim) <= 0, dim=1,self%ndims)]) ) then
-      check_create_args = DTFFT_ERROR_INVALID_DIMENSION_SIZE
-      return
+    if ( .not.present(dims) .and. .not.present(pencil) ) INTERNAL_ERROR(".not.present(dims) .and. .not.present(pencil)")
+    if ( present(dims) .and. present(pencil) ) INTERNAL_ERROR("present(dims) .and. present(pencil)")
+
+    if ( allocated(self%dims) ) deallocate(self%dims)
+    if ( present(dims) ) then
+      self%ndims = size(dims, kind=int8)
+      CHECK_INPUT_PARAMETER(self%ndims, is_valid_dimension, DTFFT_ERROR_INVALID_N_DIMENSIONS)
+      if ( any([(dims(dim) <= 0, dim=1,self%ndims)]) ) then
+        check_create_args = DTFFT_ERROR_INVALID_DIMENSION_SIZE
+        return
+      endif
+      allocate( self%dims, source=dims )
+    else
+      self%ndims = pencil%ndims
+      if ( self%ndims == 0 ) then
+        check_create_args = DTFFT_ERROR_PENCIL_NOT_INITIALIZED
+        return
+      endif
     endif
-    allocate( self%dims, source=dims )
 
     if ( present(comm) ) then
       call MPI_Topo_test(comm, top_type, ierr)
@@ -1193,20 +1295,71 @@ contains
     integer(int32),         optional, intent(out)   :: error_code
       !! Optional Error Code returned to user
     integer(int32)          :: ierr               !! Error code
+
+    CHECK_OPTIONAL_CALL( self%create_r2r_internal(dims=dims, kinds=kinds, comm=comm,precision=precision, effort=effort, executor=executor) )
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine create_r2r
+
+  subroutine create_r2r_pencil(self, pencil, kinds, comm, precision, effort, executor, error_code)
+  !! R2R Plan Constructor
+    class(dtfft_plan_r2r_t),          intent(inout) :: self
+      !! R2R Plan
+    type(dtfft_pencil_t),             intent(in)    :: pencil
+      !! Local pencil of data to be transformed
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)
+      !! Kinds of R2R transform
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm
+      !! Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision
+      !! Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort
+      !! How thoroughly `dtFFT` searches for the optimal plan
+    type(dtfft_executor_t), optional, intent(in)    :: executor
+      !! Type of External FFT Executor
+    integer(int32),         optional, intent(out)   :: error_code
+      !! Optional Error Code returned to user
+    integer(int32)          :: ierr               !! Error code
+    CHECK_OPTIONAL_CALL( self%create_r2r_internal(pencil=pencil, kinds=kinds, comm=comm, precision=precision, effort=effort, executor=executor) )
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine create_r2r_pencil
+
+  integer(int32) function create_r2r_internal(self, dims, pencil, kinds, comm, precision, effort, executor)
+  !! Creates plan for R2R plans
+#define __FUNC__ create_r2r_internal
+    class(dtfft_plan_r2r_t),          intent(inout) :: self
+      !! R2R Plan
+    integer(int32),         optional, intent(in)    :: dims(:)
+      !! Global dimensions of transform
+    type(dtfft_pencil_t),   optional, intent(in)    :: pencil
+      !! Pencil of data to be transformed
+    type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)
+      !! Kinds of R2R transform
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm
+      !! Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision
+      !! Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort
+      !! How thoroughly `dtFFT` searches for the optimal plan
+    type(dtfft_executor_t), optional, intent(in)    :: executor
+      !! Type of External FFT Executor
     integer(int8)           :: fft_rank           !! Rank of FFT transform
     integer(int32)          :: dim                !! Counter
     type(dtfft_r2r_kind_t)  :: r2r_kinds(2)       !! Transposed Kinds of R2R transform
 
-    ierr = DTFFT_SUCCESS
-    if ( self%is_created ) ierr = DTFFT_ERROR_PLAN_IS_CREATED
-    CHECK_ERROR_AND_RETURN
+    create_r2r_internal = DTFFT_SUCCESS
+    if ( self%is_created ) then
+      create_r2r_internal = DTFFT_ERROR_PLAN_IS_CREATED
+      return
+    endif
 
     REGION_BEGIN("dtfft_create_r2r", COLOR_CREATE)
-    CHECK_OPTIONAL_CALL( self%create_private(dims, MPI_REAL, FLOAT_STORAGE_SIZE, MPI_REAL8, DOUBLE_STORAGE_SIZE, comm, precision, effort, executor, kinds) )
+    CHECK_INTERNAL_CALL( self%create_private(MPI_REAL, FLOAT_STORAGE_SIZE, MPI_REAL8, DOUBLE_STORAGE_SIZE, dims=dims, pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor, kinds=kinds) )
 
     if ( .not. self%is_transpose_plan ) then
-      if ( .not. present( kinds ) ) ierr = DTFFT_ERROR_MISSING_R2R_KINDS
-      CHECK_ERROR_AND_RETURN
+      if ( .not. present( kinds ) ) then
+        create_r2r_internal = DTFFT_ERROR_MISSING_R2R_KINDS
+        return
+      endif
 
       do dim = 1, self%ndims
         r2r_kinds(1) = kinds(dim)
@@ -1217,17 +1370,17 @@ contains
           fft_rank = FFT_2D
         endif
         if ( self%is_z_slab .and. dim == 2 ) cycle
-        CHECK_OPTIONAL_CALL( self%fft(self%fft_mapping(dim))%fft%create(fft_rank, FFT_R2R, self%precision, real_pencil=self%pencils(dim), r2r_kinds=r2r_kinds) )
+        CHECK_INTERNAL_CALL( self%fft(self%fft_mapping(dim))%fft%create(fft_rank, FFT_R2R, self%precision, real_pencil=self%pencils(dim), r2r_kinds=r2r_kinds) )
       enddo
     endif
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
     self%is_created = .true.
     REGION_END("dtfft_create_r2r")
-  end subroutine create_r2r
+#undef __FUNC__
+  end function create_r2r_internal
 
   subroutine create_c2c(self, dims, comm, precision, effort, executor, error_code)
   !! C2C Plan Constructor
-    class(dtfft_plan_c2c_t),            intent(inout) :: self
+    class(dtfft_plan_c2c_t),          intent(inout) :: self
       !! C2C Plan
     integer(int32),                   intent(in)    :: dims(:)
       !! Global dimensions of transform
@@ -1248,20 +1401,75 @@ contains
     CHECK_ERROR_AND_RETURN
 
     REGION_BEGIN("create_c2c", COLOR_CREATE)
-    CHECK_OPTIONAL_CALL( self%create_c2c_internal(dims, comm, precision, effort, executor) )
+    CHECK_OPTIONAL_CALL( self%create_c2c_core(dims, comm=comm, precision=precision, effort=effort, executor=executor) )
 
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
     self%is_created = .true.
     REGION_END("create_c2c")
   end subroutine create_c2c
 
-  integer(int32) function create_c2c_internal(self, dims, comm, precision, effort, executor)
-  !! Creates plan for both C2C and R2C
+  subroutine create_c2c_pencil(self, pencil, comm, precision, effort, executor, error_code)
+  !! C2C Plan Constructor
+    class(dtfft_plan_c2c_t),          intent(inout) :: self
+      !! C2C Plan
+    type(dtfft_pencil_t),             intent(in)    :: pencil
+      !! Local pencil of data to be transformed
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm
+      !! Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision
+      !! Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort
+      !! How thoroughly `dtFFT` searches for the optimal plan
+    type(dtfft_executor_t), optional, intent(in)    :: executor
+      !! Type of External FFT Executor
+    integer(int32),         optional, intent(out)   :: error_code
+      !! Optional Error Code returned to user
+    integer(int32)                    :: ierr               !! Error code
+
+    CHECK_OPTIONAL_CALL( self%create_c2c_internal(pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor) )
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine create_c2c_pencil
+
+  integer(int32) function create_c2c_internal(self, dims, pencil, comm, precision, effort, executor)
+  !! Private method that combines common logic for C2C plan creation
 #define __FUNC__ create_c2c_internal
+    class(dtfft_plan_c2c_t),          intent(inout) :: self
+      !! C2C Plan
+    integer(int32),         optional, intent(in)    :: dims(:)
+      !! Global dimensions of transform
+    type(dtfft_pencil_t),   optional, intent(in)    :: pencil
+      !! Pencil of data to be transformed
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm
+      !! Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision
+      !! Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort
+      !! How thoroughly `dtFFT` searches for the optimal plan
+    type(dtfft_executor_t), optional, intent(in)    :: executor
+      !! Type of External FFT Executor
+
+    create_c2c_internal = DTFFT_SUCCESS
+    if ( self%is_created ) then
+      create_c2c_internal = DTFFT_ERROR_PLAN_IS_CREATED
+      return
+    endif
+
+    REGION_BEGIN("create_c2c", COLOR_CREATE)
+    CHECK_INTERNAL_CALL( self%create_c2c_core(dims, pencil, comm, precision, effort, executor) )
+    self%is_created = .true.
+    REGION_END("create_c2c")
+#undef __FUNC__
+  end function create_c2c_internal
+
+  integer(int32) function create_c2c_core(self, dims, pencil, comm, precision, effort, executor)
+  !! Creates plan for both C2C and R2C
+#define __FUNC__ create_c2c_core
     class(dtfft_core_c2c),            intent(inout) :: self
       !! C2C Plan
-    integer(int32),                   intent(in)    :: dims(:)
+    integer(int32),         optional, intent(in)    :: dims(:)
       !! Global dimensions of transform
+    type(dtfft_pencil_t),   optional, intent(in)    :: pencil
+      !! Pencil of data to be transformed
     TYPE_MPI_COMM,          optional, intent(in)    :: comm
       !! Communicator
     type(dtfft_precision_t),optional, intent(in)    :: precision
@@ -1274,14 +1482,13 @@ contains
     integer(int8)           :: fft_start            !! 1 for c2c, 2 for r2c
     integer(int8)           :: fft_rank             !! Rank of FFT transform
 
-    CHECK_INTERNAL_CALL( self%create_private(dims, MPI_COMPLEX, COMPLEX_STORAGE_SIZE, MPI_DOUBLE_COMPLEX, DOUBLE_COMPLEX_STORAGE_SIZE, comm, precision, effort, executor) )
+    CHECK_INTERNAL_CALL( self%create_private(MPI_COMPLEX, COMPLEX_STORAGE_SIZE, MPI_DOUBLE_COMPLEX, DOUBLE_COMPLEX_STORAGE_SIZE, dims=dims, pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor) )
 
     if ( self%is_transpose_plan ) return
+    fft_start = 1
     select type ( self )
     class is (dtfft_plan_r2c_t)
       fft_start = 2
-    class default
-      fft_start = 1
     endselect
     do dim = fft_start, self%ndims
       fft_rank = FFT_1D;  if( self%is_z_slab .and. dim == 1) fft_rank = FFT_2D
@@ -1289,7 +1496,7 @@ contains
       CHECK_INTERNAL_CALL( self%fft(self%fft_mapping(dim))%fft%create(fft_rank, FFT_C2C, self%precision, complex_pencil=self%pencils(dim)) )
     enddo
 #undef __FUNC__
-  end function create_c2c_internal
+  end function create_c2c_core
 
   subroutine create_r2c(self, dims, executor, comm, precision, effort, error_code)
   !! R2C Generic Plan Constructor
@@ -1308,29 +1515,83 @@ contains
     integer(int32),         optional, intent(out)   :: error_code
       !! Optional Error Code returned to user
     integer(int32)                    :: ierr               !! Error code
+
+    CHECK_OPTIONAL_CALL( self%create_r2c_internal(executor, dims=dims, comm=comm, precision=precision, effort=effort) )
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine create_r2c
+
+  subroutine create_r2c_pencil(self, pencil, executor, comm, precision, effort, error_code)
+  !! R2C Plan Constructor with pencil
+    class(dtfft_plan_r2c_t),          intent(inout) :: self
+      !! R2C Plan
+    type(dtfft_pencil_t),             intent(in)    :: pencil
+      !! Local pencil of data to be transformed
+    type(dtfft_executor_t),           intent(in)    :: executor
+      !! Type of External FFT Executor
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm
+      !! Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision
+      !! Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort
+      !! How thoroughly `dtFFT` searches for the optimal plan
+    integer(int32),         optional, intent(out)   :: error_code
+      !! Optional Error Code returned to user
+    integer(int32)                    :: ierr               !! Error code
+
+    CHECK_OPTIONAL_CALL( self%create_r2c_internal(executor, pencil=pencil, comm=comm, precision=precision, effort=effort) )
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine create_r2c_pencil
+
+  integer(int32) function create_r2c_internal(self, executor, dims, pencil, comm, precision, effort)
+  !! Private method that combines common logic for R2C plan creation
+#define __FUNC__ create_r2c_internal
+    class(dtfft_plan_r2c_t),          intent(inout) :: self
+      !! R2C Plan
+    type(dtfft_executor_t),           intent(in)    :: executor
+      !! Type of External FFT Executor
+    integer(int32),         optional, intent(in)    :: dims(:)
+      !! Global dimensions of transform
+    type(dtfft_pencil_t),   optional, intent(in)    :: pencil
+      !! Local pencil of data to be transformed
+    TYPE_MPI_COMM,          optional, intent(in)    :: comm
+      !! Communicator
+    type(dtfft_precision_t),optional, intent(in)    :: precision
+      !! Presicion of Transform
+    type(dtfft_effort_t),   optional, intent(in)    :: effort
+      !! How thoroughly `dtFFT` searches for the optimal plan
     integer(int32),   allocatable     :: fixed_dims(:)      !! Fixed dimensions for R2C
     integer(int8)                     :: fft_rank           !! Rank of FFT transform
 
-    ierr = DTFFT_SUCCESS
-    if ( self%is_created ) ierr = DTFFT_ERROR_PLAN_IS_CREATED
-    CHECK_ERROR_AND_RETURN
+    create_r2c_internal = DTFFT_SUCCESS
+    if ( self%is_created ) then
+      create_r2c_internal = DTFFT_ERROR_PLAN_IS_CREATED
+      return
+    endif
 
     REGION_BEGIN("create_r2c", COLOR_CREATE)
-    allocate(fixed_dims, source=dims)
-    fixed_dims(1) = int(dims(1) / 2, int32) + 1
-    CHECK_OPTIONAL_CALL( self%create_c2c_internal(fixed_dims, comm, precision, effort, executor) )
-    deallocate( fixed_dims )
-    if ( self%is_transpose_plan ) ierr = DTFFT_ERROR_R2C_TRANSPOSE_PLAN
-    CHECK_ERROR_AND_RETURN
+    if ( present(dims) ) then
+      allocate(fixed_dims, source=dims)
+      fixed_dims(1) = int(dims(1) / 2, int32) + 1
+      CHECK_INTERNAL_CALL( self%create_c2c_core(dims=fixed_dims, comm=comm, precision=precision, effort=effort, executor=executor) )
+      deallocate( fixed_dims )
 
-    call self%real_pencil%create(self%ndims, 1_int8, dims, self%comms)
+      call self%real_pencil%create(self%ndims, 1_int8, dims, self%comms)
+    else
+      ! Do not know global dimensions
+      ! They are computed when private pencil is created
+      CHECK_INTERNAL_CALL( self%create_c2c_core(pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor) )
+    endif
+    if ( self%is_transpose_plan ) then
+      create_r2c_internal = DTFFT_ERROR_R2C_TRANSPOSE_PLAN
+      return
+    endif
+
     fft_rank = FFT_1D;  if ( self%is_z_slab ) fft_rank = FFT_2D
-    CHECK_OPTIONAL_CALL( self%fft(1)%fft%create(fft_rank, FFT_R2C, self%precision, real_pencil=self%real_pencil, complex_pencil=self%pencils(1)) )
-
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-    self%is_created = .true.
+    CHECK_INTERNAL_CALL( self%fft(1)%fft%create(fft_rank, FFT_R2C, self%precision, real_pencil=self%real_pencil, complex_pencil=self%pencils(1)) )
     REGION_END("create_r2c")
-  end subroutine create_r2c
+    self%is_created = .true.
+#undef __FUNC__
+  end function create_r2c_internal
 
   subroutine mem_alloc_ptr(self, alloc_bytes, ptr, error_code)
   !! Allocates memory specific for this plan

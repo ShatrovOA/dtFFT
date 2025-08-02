@@ -68,6 +68,10 @@ int main(int argc, char *argv[])
 
   DTFFT_CXX_CALL( plan.report() )
 
+  if ( plan.get_precision() != Precision::DOUBLE ) {
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "reported_precision != Precision::DOUBLE")
+  }
+
   size_t alloc_bytes = plan.get_alloc_bytes();
 
   std::vector<dtfft::Pencil> pencils;

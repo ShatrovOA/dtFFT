@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
   double *in, *check;
   dtfft_complex *out, *aux;
   int comm_rank, comm_size;
-  int32_t in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
+  int32_t in_starts[3], in_counts[3], out_counts[3], n[3] = {nz, ny, nx};
 
   // MPI_Init must be called before calling dtFFT
   MPI_Init(&argc, &argv);
@@ -97,6 +97,17 @@ int main(int argc, char *argv[])
 
   // Create plan
   DTFFT_CALL( dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor, &plan) )
+  DTFFT_CALL( dtfft_get_local_sizes(plan, in_starts, in_counts, NULL, NULL, NULL) )
+  DTFFT_CALL( dtfft_destroy(&plan) )
+
+  // Recreate plan with pencil
+  dtfft_pencil_t pencil;
+  pencil.ndims = 3;
+  for (int i = 0; i < 3; i++) {
+    pencil.starts[i] = in_starts[i];
+    pencil.counts[i] = in_counts[i];
+  }
+  DTFFT_CALL( dtfft_create_plan_r2c_pencil(&pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor, &plan) )
   DTFFT_CALL( dtfft_report(plan) )
 
   // Get local sizes
@@ -166,9 +177,9 @@ int main(int argc, char *argv[])
   tb += MPI_Wtime();
 
 #if defined(DTFFT_WITH_CUDA)
-  checkAndReportDouble(nx * ny, tf, tb, in, in_size, check, (int32_t)platform);
+  checkAndReportDouble(nx * ny * nz, tf, tb, in, in_size, check, (int32_t)platform);
 #else
-  checkAndReportDouble(nx * ny, tf, tb, in, in_size, check);
+  checkAndReportDouble(nx * ny * nz, tf, tb, in, in_size, check);
 #endif
 
   // Deallocate buffers

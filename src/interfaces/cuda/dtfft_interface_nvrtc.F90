@@ -22,8 +22,9 @@ module dtfft_interface_nvrtc
 !! nvRTC is loaded at runtime via dynamic loading due to explicit cuda_driver linking by cmake.
 use iso_c_binding
 use iso_fortran_env,  only: int32
-use dtfft_parameters
+use dtfft_errors
 use dtfft_interface_cuda_runtime, only: dim3
+use dtfft_parameters
 use dtfft_utils
 implicit none
 private

@@ -22,15 +22,16 @@ module dtfft_transpose_plan_cuda
 !! This module describes [[transpose_plan_cuda]] class
 use iso_fortran_env
 use iso_c_binding
+use dtfft_abstract_backend,               only: backend_helper
+use dtfft_abstract_transpose_plan,        only: abstract_transpose_plan, create_pencils_and_comm, alloc_mem, free_mem
+use dtfft_config
+use dtfft_errors
 use dtfft_interface_cuda_runtime
 use dtfft_interface_cuda,                 only: load_cuda
 use dtfft_interface_nvrtc,                only: load_nvrtc
-use dtfft_config
-use dtfft_abstract_transpose_plan,        only: abstract_transpose_plan, create_cart_comm, alloc_mem, free_mem
-use dtfft_abstract_backend,               only: backend_helper
 use dtfft_nvrtc_kernel,                   only: clean_unused_cache
 use dtfft_parameters
-use dtfft_pencil,                         only: pencil, get_local_sizes
+use dtfft_pencil,                         only: pencil, pencil_init, get_local_sizes
 use dtfft_transpose_handle_cuda,          only: transpose_handle_cuda
 use dtfft_utils
 #include "dtfft_mpi.h"
@@ -57,11 +58,12 @@ public :: transpose_plan_cuda
     procedure :: create_private => create_cuda      !! Creates CUDA transpose plan
     procedure :: execute_private => execute_cuda    !! Executes single transposition
     procedure :: destroy => destroy_cuda            !! Destroys CUDA transpose plan
+    procedure :: get_aux_size     !! Returns auxiliary buffer size
   end type transpose_plan_cuda
 
 contains
 
-  integer(int32) function create_cuda(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils)
+  integer(int32) function create_cuda(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils, ipencil)
   !! Creates CUDA transpose plan
     class(transpose_plan_cuda),     intent(inout) :: self                 !! GPU transpose plan
     integer(int32),                 intent(in)    :: dims(:)              !! Global sizes of the transform requested
@@ -75,6 +77,7 @@ contains
     TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
     TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
     type(pencil),                   intent(out)   :: pencils(:)           !! Data distributing meta
+    type(pencil_init),    optional, intent(in)    :: ipencil
     integer(int8) :: n_transpose_plans
     integer(int8) :: d, ndims!, b
     integer(int32) :: comm_size, ierr
@@ -105,10 +108,7 @@ contains
     pencils_created = .false.
     if ( ndims == 2 .or. is_custom_cart_comm .or. self%is_z_slab ) then
       pencils_created = .true.
-      call create_cart_comm(base_comm, best_decomposition, cart_comm, comms)
-      do d = 1, ndims
-        call pencils(d)%create(ndims, d, transposed_dims(:,d), comms)
-      enddo
+      call create_pencils_and_comm(transposed_dims, base_comm, comm_dims, cart_comm, comms, pencils, ipencil=ipencil)
     endif
 
     ts = MPI_Wtime()
@@ -147,10 +147,7 @@ contains
     endif
 
     if ( .not.pencils_created ) then
-      call create_cart_comm(base_comm, best_decomposition, cart_comm, comms)
-      do d = 1, ndims
-        call pencils(d)%create(ndims, d, transposed_dims(:,d), comms)
-      enddo
+      call create_pencils_and_comm(transposed_dims, base_comm, best_decomposition, cart_comm, comms, pencils)
     endif
     n_transpose_plans = ndims - 1_int8; if( self%is_z_slab ) n_transpose_plans = n_transpose_plans + 1_int8
     allocate( self%fplans(n_transpose_plans), self%bplans(n_transpose_plans) )
@@ -198,14 +195,16 @@ contains
       self%is_aux_alloc = .false.
     endif
 
-    do i = 1, size(self%bplans, kind=int8)
-      call self%fplans(i)%destroy()
-      call self% bplans(i)%destroy()
-    enddo
+    if ( allocated( self%bplans ) ) then
+      do i = 1, size(self%bplans, kind=int8)
+        call self%fplans(i)%destroy()
+        call self%bplans(i)%destroy()
+      enddo
+      deallocate(self%fplans)
+      deallocate(self%bplans)
+    endif
 
     call self%helper%destroy()
-    deallocate(self%fplans)
-    deallocate(self% bplans)
   end subroutine destroy_cuda
 
   subroutine autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage, stream, best_decomposition, backend, min_execution_time, best_backend)
@@ -329,11 +328,7 @@ contains
     PHASE_BEGIN(phase_name, COLOR_AUTOTUNE)
 
     allocate( comms(ndims), pencils(ndims) )
-    call create_cart_comm(base_comm, comm_dims, cart_comm, comms)
-    do d = 1, ndims
-      call pencils(d)%create(ndims, d, transposed_dims(:,d), comms)
-    enddo
-
+    call create_pencils_and_comm(transposed_dims, base_comm, comm_dims, cart_comm, comms, pencils)
     ! elapsed_time = autotune_backend_id(comms, cart_comm, pencils, base_storage, backend, stream)
 
     call run_autotune_backend(comms, cart_comm, pencils, base_storage, stream, is_z_slab, backend=backend, best_time=best_time, best_backend=best_backend)
@@ -518,6 +513,29 @@ contains
     if ( present(best_time)) best_time = best_time_
     if ( present(best_backend) ) best_backend = best_backend_
   end subroutine run_autotune_backend
+
+  function get_aux_size(self) result(aux_size)
+    class(transpose_plan_cuda), intent(in)    :: self           !! Transposition class
+    integer(int64) :: aux_size
+    integer(int8) :: n_transpose_plans, i, n_fplans, n_bplans
+    integer(int64), allocatable :: worksizes(:)
+
+    n_fplans = size(self%fplans, kind=int8)
+    n_bplans = size(self%bplans, kind=int8)
+    n_transpose_plans = n_fplans + n_bplans
+
+    allocate( worksizes( n_transpose_plans ) )
+
+    do i = 1, n_fplans
+      worksizes(i) = self%fplans(i)%get_aux_size()
+    enddo
+    do i = 1, n_bplans
+      worksizes(i + n_fplans) = self%bplans(i)%get_aux_size()
+    enddo
+
+    aux_size = maxval(worksizes)
+    deallocate( worksizes )
+  end function get_aux_size
 
   function alloc_and_set_aux(helper, backend, cart_comm, aux, paux, plans, bplans) result(is_aux_alloc)
   !! Allocates auxiliary memory according to the backend and sets it to the plans

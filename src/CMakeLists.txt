@@ -3,6 +3,7 @@ target_sources(dtfft PRIVATE
   dtfft_abstract_executor.F90
   dtfft_abstract_transpose_plan.F90
   dtfft_config.F90
+  dtfft_errors.F90
   dtfft_helpers.c
   dtfft_pencil.F90
   dtfft_plan.F90

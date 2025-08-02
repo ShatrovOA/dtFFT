@@ -71,10 +71,16 @@ int main(int argc, char *argv[])
 
   // Create plan
   vector<int32_t> dims = {ny, nx};
-  vector<dtfft::R2RKind> kinds = {dtfft::R2RKind::DCT_3, dtfft::R2RKind::DCT_3};
-  dtfft::PlanR2R plan(dims, kinds, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, executor);
-  size_t alloc_size;
-  DTFFT_CXX_CALL( plan.get_alloc_size(&alloc_size) )
+  vector<R2RKind> kinds = {R2RKind::DCT_3, R2RKind::DCT_3};
+  auto temp_plan = PlanR2R(dims, Precision::DOUBLE);
+  vector<int32_t> lbounds(2), sizes(2);
+  DTFFT_CXX_CALL( temp_plan.get_local_sizes(lbounds.data(), sizes.data()) )
+  DTFFT_CXX_CALL( temp_plan.destroy() )
+
+  auto pencil = Pencil(lbounds, sizes);
+  auto plan = PlanR2R(pencil, kinds, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, executor);
+  DTFFT_CXX_CALL( plan.report() )
+  size_t alloc_size = plan.get_alloc_size();
 
   vector<double> in(alloc_size),
                  out(alloc_size),
@@ -86,7 +92,7 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), dtfft::Execute::FORWARD) );
+  DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), Execute::FORWARD) );
   tf += MPI_Wtime();
 
   Pencil in_pencil = plan.get_pencil(1);
@@ -102,7 +108,7 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan.execute(out.data(), in.data(), dtfft::Execute::BACKWARD) )
+  DTFFT_CXX_CALL( plan.execute(out.data(), in.data(), Execute::BACKWARD) )
   tb += MPI_Wtime();
 
 #if defined(DTFFT_WITH_CUDA)

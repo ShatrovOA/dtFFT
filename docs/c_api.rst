@@ -94,6 +94,14 @@ Functions
 
 ---------
 
+.. doxygenfunction:: dtfft_get_precision_string
+
+---------
+
+.. doxygenfunction:: dtfft_get_executor_string
+
+---------
+
 .. doxygenfunction:: dtfft_create_config
 
 ---------
@@ -110,11 +118,23 @@ All plan constructors must be called after ``MPI_Init``. Plan must be destroyed 
 
 ---------
 
+.. doxygenfunction:: dtfft_create_plan_r2r_pencil
+
+---------
+
 .. doxygenfunction:: dtfft_create_plan_c2c
 
 ---------
 
+.. doxygenfunction:: dtfft_create_plan_c2c_pencil
+
+---------
+
 .. doxygenfunction:: dtfft_create_plan_r2c
+
+---------
+
+.. doxygenfunction:: dtfft_create_plan_r2c_pencil
 
 Plan destructor
 ======================
@@ -179,3 +199,15 @@ Plan information
 ---------
 
 .. doxygenfunction:: dtfft_get_platform
+
+---------
+
+.. doxygenfunction:: dtfft_get_executor
+
+---------
+
+.. doxygenfunction:: dtfft_get_precision
+
+---------
+
+.. doxygenfunction:: dtfft_get_dims

@@ -24,6 +24,7 @@ use iso_c_binding,                  only: c_ptr, c_int, c_null_ptr, c_loc
 use iso_fortran_env,                only: int8, int32, int64
 use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C
+use dtfft_errors
 use dtfft_interface_cufft
 use dtfft_interface_cuda_runtime
 use dtfft_utils,                    only: int_to_str

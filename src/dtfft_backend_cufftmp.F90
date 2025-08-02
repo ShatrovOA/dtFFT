@@ -62,7 +62,7 @@ contains
     type(Box3D)           :: inbox, outbox  !! Reshape boxes
     type(pencil), pointer :: in, out
     type(c_ptr) :: c_comm
-
+    integer(int64) :: aux_size
 
     select case ( tranpose_type%val )
     case ( DTFFT_TRANSPOSE_X_TO_Y%val )
@@ -122,10 +122,11 @@ contains
     endif
 
     CUFFT_CALL( "cufftMpCreateReshape", cufftMpCreateReshape(self%plan) )
-    c_comm = Comm_f2c(GET_MPI_VALUE(self%comm))
+    c_comm = Comm_f2c(GET_MPI_VALUE(helper%comms(1)))
     CUFFT_CALL( "cufftMpAttachReshapeComm", cufftMpAttachReshapeComm(self%plan, CUFFT_COMM_MPI, c_comm) )
     CUFFT_CALL( "cufftMpMakeReshape", cufftMpMakeReshape(self%plan, base_storage, 3, inbox%lower, inbox%upper, outbox%lower, outbox%upper, inbox%strides, outbox%strides) )
-    CUFFT_CALL( "cufftMpGetReshapeSize", cufftMpGetReshapeSize(self%plan, self%aux_size) )
+    CUFFT_CALL( "cufftMpGetReshapeSize", cufftMpGetReshapeSize(self%plan, aux_size) )
+    self%aux_size = max(aux_size, self%aux_size)
   end subroutine create
 
   subroutine execute(self, in, out, stream, aux)
@@ -135,8 +136,11 @@ contains
     real(real32),     target,   intent(inout) :: out(:)     !! Recv pointer
     type(dtfft_stream_t),       intent(in)    :: stream     !! Main execution CUDA stream
     real(real32),     target,   intent(inout) :: aux(:)     !! Aux pointer
+    integer(int32) :: ierr
 
-    call nvshmemx_sync_all_on_stream(stream)
+    ! call nvshmemx_sync_all_on_stream(stream)
+    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+    call MPI_Barrier(self%comm, ierr)
     CUFFT_CALL( "cufftMpExecReshapeAsync", cufftMpExecReshapeAsync(self%plan, c_loc(out), c_loc(in), c_loc(aux), stream) )
   end subroutine execute
 

@@ -307,6 +307,7 @@ contains
     kernel_type = KERNEL_UNPACK
     if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
     if ( backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_UNPACK_SIMPLE_COPY
+    if ( backend == DTFFT_BACKEND_CUFFTMP_PIPELINED ) kernel_type = KERNEL_DUMMY
     call self%unpack_kernel%create(comm, recv%counts, base_storage, transpose_type, kernel_type, k2)
 
     if ( backend == DTFFT_BACKEND_NCCL_PIPELINED ) then
@@ -321,12 +322,9 @@ contains
 #else
       INTERNAL_ERROR("not DTFFT_WITH_NCCL")
 #endif
-    else if ( backend == DTFFT_BACKEND_CUFFTMP ) then
+    else if ( is_backend_cufftmp(backend) ) then
 #ifdef DTFFT_WITH_NVSHMEM
       allocate( backend_cufftmp :: self%comm_handle )
-      ! cuFFTMp seems to fail when passing 1d communicators
-      ! General 3d grid comm is used for all transposes
-      comm_id = 1
 #else
       INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
 #endif

@@ -36,8 +36,9 @@ implicit none
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   real(real32), managed, allocatable :: inout_m(:)
 #endif
-  integer(int32), parameter :: nx = 512, ny = 64, nz = 16
-  integer(int32) :: comm_size, comm_rank, ierr, in_counts(3)
+  integer(int32), parameter :: nx = 512, ny = 64, nz = 4
+  integer(int32) :: comm_size, comm_rank, ierr, in_counts(3), in_starts(3)
+  integer(int32), allocatable :: all_starts(:,:), all_counts(:, :)
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2r_t) :: plan
   real(real64) :: tf, tb
@@ -51,6 +52,7 @@ implicit none
 # endif
 #endif
   type(dtfft_config_t) :: conf
+  type(dtfft_pencil_t) :: pencil
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -99,9 +101,25 @@ implicit none
 
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+  ! Creating basic plan for single purpose: extracting grid decomposition
+  ! in order to test plan creation using dtfft_pencil_t
+  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%get_local_sizes(in_starts=in_starts, in_counts=in_counts, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%destroy(error_code=ierr); DTFFT_CHECK(ierr)
+
+  allocate(all_starts(3, comm_size), all_counts(3, comm_size))
+  call MPI_Allgather(in_starts, 3, MPI_INTEGER, all_starts, 3, MPI_INTEGER, MPI_COMM_WORLD, ierr)
+  call MPI_Allgather(in_counts, 3, MPI_INTEGER, all_counts, 3, MPI_INTEGER, MPI_COMM_WORLD, ierr)
+  ! Selecting for current pencil other decomposition
+  in_starts(:) = all_starts(:, comm_size - comm_rank)
+  in_counts(:) = all_counts(:, comm_size - comm_rank)
+
+  deallocate(all_starts, all_counts)
+  pencil = dtfft_pencil_t(in_starts, in_counts)
+  ! Creating plan using new pencil
+  call plan%create(pencil, precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+  alloc_size = plan%get_alloc_size(error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
-  call plan%get_local_sizes(in_counts=in_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   actual_backend_used = plan%get_backend(error_code=ierr);  DTFFT_CHECK(ierr)
@@ -160,7 +178,9 @@ implicit none
 #endif
 
   deallocate(inout)
+  call mem_free_host(check)
   nullify(check_)
+
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   deallocate(inout_m)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
