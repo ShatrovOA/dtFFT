@@ -99,6 +99,14 @@ public :: load_library, load_symbol, unload_library, dynamic_load
     module procedure :: get_env_logical
   end interface get_env
 
+#if defined(DTFFT_USE_MPI)
+public :: all_reduce_inplace
+  interface all_reduce_inplace
+    module procedure :: all_reduce_inplace_i32
+    module procedure :: all_reduce_inplace_i64
+  end interface all_reduce_inplace
+#endif
+
 #ifdef DTFFT_WITH_CUDA
 public :: string
   type :: string
@@ -744,5 +752,30 @@ contains
     end do
     deallocate(y)
   end function count_unique
+#endif
+
+#if defined(DTFFT_USE_MPI)
+! Some bug was noticed in mpich for macos
+! For some reason MPI_IN_PLACE has not been recognized.
+! This is some stupid workaround
+  subroutine all_reduce_inplace_i64(buffer, op, comm)
+    integer(int64), intent(inout) :: buffer
+    integer(int32), intent(in)    :: op, comm
+    integer(int64) :: tmp
+    integer(int32) :: ierr
+
+    call MPI_Allreduce(buffer, tmp, 1, MPI_INTEGER8, op, comm, ierr)
+    buffer = tmp
+  end subroutine all_reduce_inplace_i64
+
+  subroutine all_reduce_inplace_i32(buffer, op, comm)
+    integer(int32), intent(inout) :: buffer
+    integer(int32), intent(in)    :: op, comm
+    integer(int32) :: tmp
+    integer(int32) :: ierr
+
+    call MPI_Allreduce(buffer, tmp, 1, MPI_INTEGER4, op, comm, ierr)
+    buffer = tmp
+  end subroutine all_reduce_inplace_i32
 #endif
 end module dtfft_utils

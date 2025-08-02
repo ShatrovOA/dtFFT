@@ -68,14 +68,14 @@ extern "C" {
     return;                                         \
   endif
 
-#define CHECK_ERROR_AND_RETURN_AGG(comm)            \
-  block;                                            \
-    integer(int32) :: mpi_ierr;                     \
-    call MPI_Allreduce(MPI_IN_PLACE, error_code, 1, MPI_INT, MPI_MAX, comm, mpi_ierr); \
-    if ( error_code /= DTFFT_SUCCESS ) then;\
-      WRITE_ERROR( dtfft_get_error_string(error_code) );                       \
-      return;\
-    endif;\
+#define CHECK_ERROR_AND_RETURN_AGG(comm)                          \
+  block;                                                          \
+    integer(int32) :: mpi_ierr;                                   \
+    ALL_REDUCE(error_code, MPI_INTEGER, MPI_MAX, comm, mpi_ierr); \
+    if ( error_code /= DTFFT_SUCCESS ) then;                      \
+      WRITE_ERROR( dtfft_get_error_string(error_code) );          \
+      return;                                                     \
+    endif;                                                        \
   end block
 
 #define CHECK_ERROR_AND_RETURN_NO_MSG               \
