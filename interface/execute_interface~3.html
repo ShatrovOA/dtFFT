@@ -76,20 +76,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.3% of total for procedures.">30 statements</a>
+                 title=" 0.2% of total for procedures.">21 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_transpose_plan.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_backend.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_transpose_plan.f90.html'>dtfft_abstract_transpose_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_transpose_plan.html'>dtfft_abstract_transpose_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_backend.f90.html'>dtfft_abstract_backend.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_backend.html'>dtfft_abstract_backend</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute_interface</li>
           </ol>
         </nav>
@@ -137,7 +137,7 @@
     
     <div class="col-md-9" id='text'>
       <h2>interface <br>
-      private  subroutine execute_interface(self, in, out, transpose_type)  
+      private  subroutine execute_interface(self, in, out, stream, aux)  
 </h2>    
 
     
@@ -155,8 +155,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~142"></span>
-              class(<a href='../type/abstract_transpose_plan.html'>abstract_transpose_plan</a>),
+              <span class="anchor" id="variable-self~141"></span>
+              class(<a href='../type/abstract_backend.html'>abstract_backend</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -165,7 +165,7 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Transposition class</p>
+                <p>Abstract GPU Backend</p>
             </td>
         </tr>
         <tr>
@@ -173,14 +173,14 @@
               <span class="anchor" id="variable-in~46"></span>
               real(kind=real32),
             </td>
-<td>intent(inout)</td>
+<td>intent(inout),</td>
               <td></td>            <td>
-              
+              target
             </td>
             <td>::</td>
             <td><strong>in</strong>(:)</td>
             <td>
-                <p>Incoming buffer</p>
+                <p>Send pointer</p>
             </td>
         </tr>
         <tr>
@@ -188,36 +188,51 @@
               <span class="anchor" id="variable-out~46"></span>
               real(kind=real32),
             </td>
-<td>intent(inout)</td>
+<td>intent(inout),</td>
               <td></td>            <td>
-              
+              target
             </td>
             <td>::</td>
             <td><strong>out</strong>(:)</td>
             <td>
-                <p>Resulting buffer</p>
+                <p>Recv pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-transpose_type~15"></span>
-              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
+              <span class="anchor" id="variable-stream~35"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>transpose_type</strong></td>
+            <td><strong>stream</strong></td>
             <td>
-                <p>Type of transpose</p>
+                <p>Main execution CUDA stream</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aux~14"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>aux</strong>(:)</td>
+            <td>
+                <p>Aux pointer</p>
             </td>
         </tr>
     </tbody>
   </table>
 
     <h3>Description</h3>
-    <p>Executes single transposition</p>
+    <p>Executes GPU Backend</p>
     <br>
 
  </div>

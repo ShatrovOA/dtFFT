@@ -931,8 +931,7 @@ contains
         aux_size = self%plan%get_aux_size()
         alloc_size = max(alloc_size, aux_size / self%storage_size )
 
-        call MPI_Allreduce(MPI_IN_PLACE, alloc_size, 1, MPI_INTEGER8, MPI_MAX, self%comm, ierr)
-
+        ALL_REDUCE(alloc_size, MPI_INTEGER8, MPI_MAX, self%comm, ierr)
       endblock
     endif
 #endif
