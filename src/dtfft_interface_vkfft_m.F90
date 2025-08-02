@@ -22,6 +22,7 @@ module dtfft_interface_vkfft_m
 !! VkFFT is loaded at runtime via dynamic loading.
 use iso_c_binding
 use iso_fortran_env
+use dtfft_errors
 use dtfft_parameters
 use dtfft_utils
 implicit none

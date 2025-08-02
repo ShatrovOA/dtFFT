@@ -1,0 +1,1538 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dtfft_errors.F90 &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>dtfft_errors.F90
+      <small>Source File</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 1.5% of total for source files.">147 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_errors.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+            <li class="breadcrumb-item active" aria-current="page">dtfft_errors.F90</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#mods-0"
+         aria-expanded="false" aria-controls="mods-0">
+         <h4 class="card-header bg-primary text-white">Modules</h4>
+      </a>
+      <div id="mods-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_errors.html">dtfft_errors</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../sourcefile/dtfft_errors.f90.html#src">dtfft_errors.F90</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Files dependent on this one</h3>
+          </div>
+          <div class="card-body">
+            <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: sourcefile~~dtfft_errors.f90~~AfferentGraph Pages: 1 -->
+<svg id="sourcefiledtfft_errorsf90AfferentGraph" width="641pt" height="450pt"
+ viewBox="0.00 0.00 641.00 449.96" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph" class="graph" transform="scale(0.33 0.33) rotate(0) translate(4 1341.67)">
+<title>sourcefile~~dtfft_errors.f90~~AfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1341.67 1913,-1341.67 1913,4 -4,4"/>
+<!-- sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node1" class="node">
+<title>sourcefile~dtfft_errors.f90</title>
+<polygon fill="none" stroke="black" points="94,-1001.71 0,-1001.71 0,-977.71 94,-977.71 94,-1001.71"/>
+<text text-anchor="middle" x="47" y="-987.31" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_errors.F90</text>
+</g>
+<!-- sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node2" class="node">
+<title>sourcefile~dtfft.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node2"><a xlink:href="../sourcefile/dtfft.f90.html" xlink:title="dtfft.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1898,-1003.71 1841,-1003.71 1841,-979.71 1898,-979.71 1898,-1003.71"/>
+<text text-anchor="middle" x="1869.5" y="-989.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge1" class="edge">
+<title>sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1367,-1239.71C1267.51,-1243.42 1239.62,-1215.69 1143,-1239.71"/>
+</g>
+<!-- sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node6" class="node">
+<title>sourcefile~dtfft_config.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node6"><a xlink:href="../sourcefile/dtfft_config.f90.html" xlink:title="dtfft_config.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="965.5,-1253.71 870.5,-1253.71 870.5,-1229.71 965.5,-1229.71 965.5,-1253.71"/>
+<text text-anchor="middle" x="918" y="-1239.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge26" class="edge">
+<title>sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1750.5,-1201.71C1580.12,-1203.68 1539.23,-1232.12 1369,-1239.71"/>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1367,-1239.71C1309.33,-1240.46 1295.59,-1228.82 1238,-1225.71 1152.79,-1221.1 1131.17,-1220.36 1046,-1225.71 1022.93,-1227.15 997.64,-1230.07 975.74,-1233.02"/>
+<polygon fill="#96ff00" stroke="#96ff00" points="975.04,-1229.58 965.61,-1234.41 976,-1236.51 975.04,-1229.58"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node14" class="node">
+<title>sourcefile~dtfft_pencil.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node14"><a xlink:href="../sourcefile/dtfft_pencil.f90.html" xlink:title="dtfft_pencil.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="768.5,-557.71 674.5,-557.71 674.5,-533.71 768.5,-533.71 768.5,-557.71"/>
+<text text-anchor="middle" x="721.5" y="-543.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_pencil.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge42" class="edge">
+<title>sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1867.62,-1003.8C1863.66,-1048.27 1843.49,-1200.14 1752.5,-1201.71"/>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1750.5,-1201.71C1654.51,-1203.36 1714.21,-863.41 1673,-776.71 1657.51,-744.11 1494.19,-546.04 1462,-529.71 1335.2,-465.38 1285.18,-505.71 1143,-505.71"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node15" class="node">
+<title>sourcefile~dtfft_plan.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node15"><a xlink:href="../sourcefile/dtfft_plan.f90.html" xlink:title="dtfft_plan.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1794,-809.71 1709,-809.71 1709,-785.71 1794,-785.71 1794,-809.71"/>
+<text text-anchor="middle" x="1751.5" y="-795.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge54" class="edge">
+<title>sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_plan.f90</title>
+<path fill="none" stroke="#9500ff" stroke-dasharray="5,2" d="M1861.24,-979.57C1841.96,-947.32 1789.25,-859.17 1765,-818.62"/>
+<polygon fill="#9500ff" stroke="#9500ff" points="1767.89,-816.62 1759.75,-809.84 1761.88,-820.22 1767.89,-816.62"/>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node3" class="node">
+<title>sourcefile~dtfft_abstract_executor.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node3"><a xlink:href="../sourcefile/dtfft_abstract_executor.f90.html" xlink:title="dtfft_abstract_executor.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="996,-321.71 840,-321.71 840,-297.71 996,-297.71 996,-321.71"/>
+<text text-anchor="middle" x="918" y="-307.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_executor.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge2" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M904.59,-297.4C883.22,-277.05 837.23,-236.72 790,-217.71 604.97,-143.21 510.58,-43.74 345.5,-155.71"/>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge44" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M850.09,-321.72C841.39,-325.25 833.06,-329.81 826,-335.71 818.03,-342.36 756.82,-472.23 732.46,-524.34"/>
+<polygon fill="#3c00ff" stroke="#3c00ff" points="729.16,-523.13 728.1,-533.67 735.5,-526.09 729.16,-523.13"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node18" class="node">
+<title>sourcefile~dtfft_utils.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node18"><a xlink:href="../sourcefile/dtfft_utils.f90.html" xlink:title="dtfft_utils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="214,-1001.71 130,-1001.71 130,-977.71 214,-977.71 214,-1001.71"/>
+<text text-anchor="middle" x="172" y="-987.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge59" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M851.86,-321.75C843.16,-323.39 834.36,-325.08 826,-326.71 779.93,-335.68 768.89,-340.59 722.5,-347.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M720.5,-347.71C644.28,-359.4 610.91,-304.57 547,-347.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node28" class="node">
+<title>sourcefile~dtfft_interface_nvtx.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node28"><a xlink:href="../sourcefile/dtfft_interface_nvtx.f90.html" xlink:title="dtfft_interface_nvtx.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="615,-399.71 477,-399.71 477,-375.71 615,-375.71 615,-399.71"/>
+<text text-anchor="middle" x="546" y="-385.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge116" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M720.5,-347.71C679.9,-353.94 634.7,-364.48 600.62,-373.17"/>
+<polygon fill="#2700ff" stroke="#2700ff" points="599.67,-369.8 590.86,-375.69 601.42,-376.58 599.67,-369.8"/>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node4" class="node">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node4"><a xlink:href="../sourcefile/dtfft_abstract_transpose_plan.f90.html" xlink:title="dtfft_abstract_transpose_plan.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1238,-827.71 1046,-827.71 1046,-803.71 1238,-803.71 1238,-827.71"/>
+<text text-anchor="middle" x="1142" y="-813.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_transpose_plan.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge3" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1134.08,-827.83C1116.48,-857.86 1067.33,-936.95 1010,-987.71 922.14,-1065.5 664.35,-1240.69 547,-1241.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M545,-1241.71C496.97,-1241.4 486.6,-1227.1 439,-1220.71 380.27,-1212.82 223.5,-1232.73 173,-1201.71"/>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge27" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1130,-827.73C1109.69,-850.69 1066.51,-903.17 1046,-955.71 1006.61,-1056.59 1073.8,-1109.19 1010,-1196.71 1000.72,-1209.44 986.82,-1218.77 972.66,-1225.52"/>
+<polygon fill="#96ff00" stroke="#96ff00" points="971.12,-1222.37 963.36,-1229.59 973.93,-1228.78 971.12,-1222.37"/>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge45" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1059.01,-827.72C1016.42,-831.17 964.01,-830.97 919,-817.71"/>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M917,-817.71C871.22,-804.22 852.94,-800.1 826,-760.71 777.74,-690.12 844.8,-637.35 790,-571.71 786.57,-567.59 782.4,-564.13 777.85,-561.21"/>
+<polygon fill="#3c00ff" stroke="#3c00ff" points="779.16,-557.94 768.7,-556.25 775.82,-564.1 779.16,-557.94"/>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge60" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1120.49,-827.81C1100.65,-839.9 1070.11,-859.56 1046,-879.71 1028.39,-894.42 1030.11,-905.66 1010,-916.71 973.79,-936.6 959.53,-927.69 919,-935.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M917,-935.71C830.42,-952.82 810.59,-890.3 722.5,-895.71"/>
+</g>
+<!-- sourcefile~dtfft_abstract_backend.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node19" class="node">
+<title>sourcefile~dtfft_abstract_backend.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node19"><a xlink:href="../sourcefile/dtfft_abstract_backend.f90.html" xlink:title="dtfft_abstract_backend.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="996.5,-751.71 839.5,-751.71 839.5,-727.71 996.5,-727.71 996.5,-751.71"/>
+<text text-anchor="middle" x="918" y="-737.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_backend.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge84" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1078.45,-803.67C1067.54,-801.06 1056.37,-798.06 1046,-794.71 1013.37,-784.14 977.63,-768.25 952.41,-756.27"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="953.81,-753.06 943.28,-751.88 950.78,-759.37 953.81,-753.06"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node23" class="node">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node23"><a xlink:href="../sourcefile/dtfft_interface_cuda_runtime.f90.html" xlink:title="dtfft_interface_cuda_runtime.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="439,-1001.71 250,-1001.71 250,-977.71 439,-977.71 439,-1001.71"/>
+<text text-anchor="middle" x="344.5" y="-987.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge94" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1096.77,-827.79C1052.25,-838.97 981.44,-854.1 919,-855.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_nccl.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node26" class="node">
+<title>sourcefile~dtfft_interface_nccl.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node26"><a xlink:href="../sourcefile/dtfft_interface_nccl.f90.html" xlink:title="dtfft_interface_nccl.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="790,-713.71 653,-713.71 653,-689.71 790,-689.71 790,-713.71"/>
+<text text-anchor="middle" x="721.5" y="-699.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nccl.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_interface_nccl.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge111" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_interface_nccl.f90</title>
+<path fill="none" stroke="#00c4ff" stroke-dasharray="5,2" d="M917,-817.71C848.51,-797.52 779.31,-747.6 744.88,-720.29"/>
+<polygon fill="#00c4ff" stroke="#00c4ff" points="746.88,-717.4 736.89,-713.86 742.49,-722.86 746.88,-717.4"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvshmem.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node27" class="node">
+<title>sourcefile~dtfft_interface_nvshmem.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node27"><a xlink:href="../sourcefile/dtfft_interface_nvshmem.f90.html" xlink:title="dtfft_interface_nvshmem.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1002,-595.71 834,-595.71 834,-571.71 1002,-571.71 1002,-595.71"/>
+<text text-anchor="middle" x="918" y="-581.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvshmem.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_interface_nvshmem.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge113" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_interface_nvshmem.f90</title>
+<path fill="none" stroke="#004eff" stroke-dasharray="5,2" d="M1057.02,-803.46C1053.02,-800.99 1049.3,-798.09 1046,-794.71 987.53,-734.73 1066.63,-671.43 1010,-609.71 1007,-606.44 1003.62,-603.57 999.98,-601.05"/>
+<polygon fill="#004eff" stroke="#004eff" points="1001.44,-597.85 991.04,-595.8 997.89,-603.88 1001.44,-597.85"/>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge117" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M917,-817.71C797.39,-782.46 736.13,-815.65 653,-722.71 607.01,-671.28 637.31,-637.64 617,-571.71 598.58,-511.91 570.71,-443.55 556.32,-409.44"/>
+<polygon fill="#2700ff" stroke="#2700ff" points="559.45,-407.84 552.32,-400.01 553,-410.58 559.45,-407.84"/>
+</g>
+<!-- sourcefile~dtfft_nvrtc_kernel.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node29" class="node">
+<title>sourcefile~dtfft_nvrtc_kernel.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node29"><a xlink:href="../sourcefile/dtfft_nvrtc_kernel.f90.html" xlink:title="dtfft_nvrtc_kernel.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="785.5,-947.71 657.5,-947.71 657.5,-923.71 785.5,-923.71 785.5,-947.71"/>
+<text text-anchor="middle" x="721.5" y="-933.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_nvrtc_kernel.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge125" class="edge">
+<title>sourcefile~dtfft_abstract_transpose_plan.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90</title>
+<path fill="none" stroke="#9c00ff" stroke-dasharray="5,2" d="M917,-935.71C877.49,-943.52 832.57,-944.05 795.86,-942.39"/>
+<polygon fill="#9c00ff" stroke="#9c00ff" points="795.9,-938.89 785.73,-941.87 795.54,-945.88 795.9,-938.89"/>
+</g>
+<!-- sourcefile~dtfft_api.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node5" class="node">
+<title>sourcefile~dtfft_api.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node5"><a xlink:href="../sourcefile/dtfft_api.f90.html" xlink:title="dtfft_api.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1909,-809.71 1830,-809.71 1830,-785.71 1909,-785.71 1909,-809.71"/>
+<text text-anchor="middle" x="1869.5" y="-795.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge4" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1868.67,-785.59C1868.85,-729.81 1862.8,-494.5 1752.5,-353.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1750.5,-353.71C1582.68,-139.49 1491.93,-116.54 1238,-18.71 1198.11,-3.34 1184.86,-12.35 1143,-3.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1141,-3.71C1043,7.72 1017.17,-13.58 919,-3.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M917,-3.71C798.92,8.16 768.3,-15.63 653,-43.71 604.66,-55.48 595.68,-69.44 547,-79.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M545,-79.71C501.69,-87.86 347.29,-154.39 345.5,-155.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M343.5,-155.71C309.64,-180.71 281.66,-142.97 250,-170.71 160.31,-249.28 235.64,-326.24 173,-427.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M171,-427.71C57.23,-611.99 47.95,-887.29 47.77,-967.21"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="44.27,-967.56 47.8,-977.55 51.27,-967.54 44.27,-967.56"/>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge28" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1865.27,-809.8C1851.72,-857.79 1794.45,-1035.42 1673,-1101.71 1517.35,-1186.67 1451.08,-1111.14 1274,-1101.71 1215.53,-1098.59 1199.36,-1071.83 1143,-1087.71"/>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge46" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1750.5,-353.71C1692.32,-279.98 1011.81,-491.32 919,-505.71"/>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge55" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_plan.f90</title>
+<path fill="none" stroke="#9500ff" stroke-dasharray="5,2" d="M1829.87,-797.71C1821.63,-797.71 1812.8,-797.71 1804.16,-797.71"/>
+<polygon fill="#9500ff" stroke="#9500ff" points="1804.15,-794.21 1794.15,-797.71 1804.15,-801.21 1804.15,-794.21"/>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge61" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1141,-3.71C1134.29,-2.41 659.31,-63.09 653,-65.71 634.28,-73.48 634.83,-84.07 617,-93.71 588.07,-109.35 578.04,-106.82 547,-117.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M545,-117.71C508.96,-129.56 270.67,-257.89 250,-289.71 212.16,-347.94 180.84,-854.16 174.27,-967.33"/>
+<polygon fill="#ff005a" stroke="#ff005a" points="170.76,-967.38 173.68,-977.56 177.75,-967.78 170.76,-967.38"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge5" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M870.16,-1239.76C830.72,-1238.58 772.84,-1237.95 722.5,-1241.71"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge65" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M870.43,-1233.57C800.44,-1222.11 663.87,-1202.7 547,-1203.71"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge98" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M891.96,-1229.6C840.77,-1205.01 720.28,-1147.87 617,-1104.71 554.7,-1078.67 531.94,-1086.99 475,-1050.71 456.18,-1038.71 458.35,-1026.82 439,-1015.71 431.75,-1011.55 423.81,-1008.02 415.7,-1005.04"/>
+<polygon fill="#27ff00" stroke="#27ff00" points="416.74,-1001.7 406.15,-1001.79 414.49,-1008.33 416.74,-1001.7"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node7" class="node">
+<title>sourcefile~dtfft_executor_cufft_m.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node7"><a xlink:href="../sourcefile/dtfft_executor_cufft_m.f90.html" xlink:title="dtfft_executor_cufft_m.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1219,-1059.71 1065,-1059.71 1065,-1035.71 1219,-1035.71 1219,-1059.71"/>
+<text text-anchor="middle" x="1142" y="-1045.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_cufft_m.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge6" class="edge">
+<title>sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M917,-1182.71C832.71,-1215.2 812.58,-1234.98 722.5,-1241.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M720.5,-1241.71C643.6,-1247.45 624.11,-1241.04 547,-1241.71"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge18" class="edge">
+<title>sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#ff5900" stroke-dasharray="5,2" d="M1109.59,-1035.53C1087.69,-1025.24 1059.99,-1008.23 1046,-983.71 978.71,-865.76 1076.1,-492.32 1010,-373.71 998.31,-352.73 976.52,-337.04 957.19,-326.44"/>
+<polygon fill="#ff5900" stroke="#ff5900" points="958.73,-323.29 948.24,-321.79 955.5,-329.51 958.73,-323.29"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge29" class="edge">
+<title>sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1066.36,-1059.91C1058.85,-1063.44 1051.85,-1067.95 1046,-1073.71 1005.37,-1113.63 1046.61,-1153.07 1010,-1196.71 999.5,-1209.22 984.67,-1218.57 970.03,-1225.41"/>
+<polygon fill="#96ff00" stroke="#96ff00" points="968.26,-1222.36 960.48,-1229.55 971.04,-1228.79 968.26,-1222.36"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge66" class="edge">
+<title>sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1070.91,-1059.83C1061.97,-1063.34 1053.38,-1067.87 1046,-1073.71 1019.8,-1094.44 1034.3,-1116.77 1010,-1139.71 977.47,-1170.41 962.04,-1170.5 919,-1182.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M917,-1182.71C837.77,-1205.17 629.35,-1204.12 547,-1203.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M545,-1203.71C392.42,-1187.17 244.54,-1058.7 192.58,-1009.13"/>
+<polygon fill="#ff005a" stroke="#ff005a" points="194.7,-1006.31 185.08,-1001.88 189.84,-1011.35 194.7,-1006.31"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge99" class="edge">
+<title>sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1064.64,-1041.92C962.63,-1034.21 776.23,-1020.2 617,-1008.71 561.67,-1004.71 499.98,-1000.38 449.41,-996.87"/>
+<polygon fill="#27ff00" stroke="#27ff00" points="449.34,-993.36 439.12,-996.16 448.85,-1000.34 449.34,-993.36"/>
+</g>
+<!-- sourcefile~dtfft_interface_cufft.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node24" class="node">
+<title>sourcefile~dtfft_interface_cufft.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node24"><a xlink:href="../sourcefile/dtfft_interface_cufft.f90.html" xlink:title="dtfft_interface_cufft.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="987.5,-907.71 848.5,-907.71 848.5,-883.71 987.5,-883.71 987.5,-907.71"/>
+<text text-anchor="middle" x="918" y="-893.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cufft.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_interface_cufft.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge108" class="edge">
+<title>sourcefile~dtfft_executor_cufft_m.f90&#45;&gt;sourcefile~dtfft_interface_cufft.f90</title>
+<path fill="none" stroke="#00ff4e" stroke-dasharray="5,2" d="M1116.93,-1035.53C1096.27,-1024.21 1066.65,-1005.78 1046,-983.71 1024.23,-960.44 1035.14,-941.28 1010,-921.71 1005.07,-917.86 999.59,-914.59 993.83,-911.8"/>
+<polygon fill="#00ff4e" stroke="#00ff4e" points="995.18,-908.57 984.61,-907.8 992.39,-914.99 995.18,-908.57"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node8" class="node">
+<title>sourcefile~dtfft_executor_fftw_m.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node8"><a xlink:href="../sourcefile/dtfft_executor_fftw_m.f90.html" xlink:title="dtfft_executor_fftw_m.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1216.5,-241.71 1067.5,-241.71 1067.5,-217.71 1216.5,-217.71 1216.5,-241.71"/>
+<text text-anchor="middle" x="1142" y="-227.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_fftw_m.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_fftw_m.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge7" class="edge">
+<title>sourcefile~dtfft_executor_fftw_m.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1074.14,-217.69C1030.16,-210.07 971.28,-200.43 919,-193.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M917,-193.71C875.51,-188.37 865.3,-184.03 826,-169.71 809.38,-163.65 806.52,-159.05 790,-152.71 737.36,-132.5 602.07,-67.6 547,-79.71"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw_m.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge19" class="edge">
+<title>sourcefile~dtfft_executor_fftw_m.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#ff5900" stroke-dasharray="5,2" d="M1091.8,-241.82C1076.95,-245.83 1060.7,-250.6 1046,-255.71 1014.29,-266.73 979.25,-281.86 954.03,-293.3"/>
+<polygon fill="#ff5900" stroke="#ff5900" points="952.5,-290.15 944.86,-297.49 955.41,-296.52 952.5,-290.15"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw_m.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge48" class="edge">
+<title>sourcefile~dtfft_executor_fftw_m.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1069.66,-241.87C1061.11,-245.39 1052.96,-249.9 1046,-255.71 1017.61,-279.39 1036.86,-305.3 1010,-330.71 945.71,-391.5 895.83,-352.37 826,-406.71 783.55,-439.74 749.91,-494.43 733.48,-524.42"/>
+<polygon fill="#3c00ff" stroke="#3c00ff" points="730.21,-523.1 728.58,-533.57 736.38,-526.41 730.21,-523.1"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw_m.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge67" class="edge">
+<title>sourcefile~dtfft_executor_fftw_m.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M917,-193.71C829.64,-182.47 805.53,-202.32 722.5,-231.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M720.5,-231.71C690.49,-242.33 680.5,-239.66 653,-255.71 599.12,-287.15 598.71,-312.81 547,-347.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M545,-347.71C518.28,-365.74 500.65,-347.17 475,-366.71 385.04,-435.22 425.25,-505.55 345.5,-585.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M343.5,-585.71C230.06,-699.73 187.73,-900.72 176.41,-967.46"/>
+<polygon fill="#ff005a" stroke="#ff005a" points="172.9,-967.23 174.74,-977.66 179.81,-968.35 172.9,-967.23"/>
+</g>
+<!-- sourcefile~dtfft_executor_mkl_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node9" class="node">
+<title>sourcefile~dtfft_executor_mkl_m.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node9"><a xlink:href="../sourcefile/dtfft_executor_mkl_m.f90.html" xlink:title="dtfft_executor_mkl_m.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1216.5,-199.71 1067.5,-199.71 1067.5,-175.71 1216.5,-175.71 1216.5,-199.71"/>
+<text text-anchor="middle" x="1142" y="-185.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_mkl_m.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl_m.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge8" class="edge">
+<title>sourcefile~dtfft_executor_mkl_m.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067.47,-177.33C1024.22,-171.18 968.48,-163.14 919,-155.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M917,-155.71C855.45,-146.46 848.66,-117.51 790,-96.71 760.84,-86.37 753.17,-83.74 722.5,-79.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M720.5,-79.71C644.05,-69.66 622.45,-63.79 547,-79.71"/>
+</g>
+<!-- sourcefile~dtfft_executor_mkl_m.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge20" class="edge">
+<title>sourcefile~dtfft_executor_mkl_m.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#ff5900" stroke-dasharray="5,2" d="M1067.31,-199.45C1059.88,-201.96 1052.64,-205.01 1046,-208.71 1025.96,-219.87 1027.46,-230.82 1010,-245.71 989.92,-262.83 965.35,-279.91 946.8,-292.11"/>
+<polygon fill="#ff5900" stroke="#ff5900" points="944.7,-289.3 938.23,-297.69 948.52,-295.17 944.7,-289.3"/>
+</g>
+<!-- sourcefile~dtfft_executor_mkl_m.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge68" class="edge">
+<title>sourcefile~dtfft_executor_mkl_m.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M720.5,-79.71C681.37,-74.57 584.24,-104.64 547,-117.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_mkl_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node25" class="node">
+<title>sourcefile~dtfft_interface_mkl_m.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node25"><a xlink:href="../sourcefile/dtfft_interface_mkl_m.f90.html" xlink:title="dtfft_interface_mkl_m.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="420,-322.71 269,-322.71 269,-298.71 420,-298.71 420,-322.71"/>
+<text text-anchor="middle" x="344.5" y="-308.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_mkl_m.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl_m.f90&#45;&gt;sourcefile~dtfft_interface_mkl_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge109" class="edge">
+<title>sourcefile~dtfft_executor_mkl_m.f90&#45;&gt;sourcefile~dtfft_interface_mkl_m.f90</title>
+<path fill="none" stroke="#00ffc4" stroke-dasharray="5,2" d="M917,-155.71C704.7,-130.29 460.14,-248.48 375.87,-293.71"/>
+<polygon fill="#00ffc4" stroke="#00ffc4" points="373.97,-290.76 366.85,-298.6 377.31,-296.91 373.97,-290.76"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node10" class="node">
+<title>sourcefile~dtfft_executor_vkfft_m.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node10"><a xlink:href="../sourcefile/dtfft_executor_vkfft_m.f90.html" xlink:title="dtfft_executor_vkfft_m.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1218.5,-1173.71 1065.5,-1173.71 1065.5,-1149.71 1218.5,-1149.71 1218.5,-1173.71"/>
+<text text-anchor="middle" x="1142" y="-1159.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_vkfft_m.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft_m.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge9" class="edge">
+<title>sourcefile~dtfft_executor_vkfft_m.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M545,-1281.71C456.53,-1275.81 431.09,-1304.85 345.5,-1281.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M343.5,-1281.71C302.57,-1270.64 288.45,-1280.59 250,-1262.71 210.41,-1244.3 210.2,-1224.56 173,-1201.71"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft_m.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge21" class="edge">
+<title>sourcefile~dtfft_executor_vkfft_m.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#ff5900" stroke-dasharray="5,2" d="M1121.9,-1149.65C1099.17,-1134.09 1062.23,-1104.68 1046,-1068.71 982.39,-927.74 1084.8,-509.07 1010,-373.71 998.39,-352.69 976.6,-336.99 957.25,-326.41"/>
+<polygon fill="#ff5900" stroke="#ff5900" points="958.78,-323.26 948.29,-321.76 955.55,-329.47 958.78,-323.26"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft_m.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge30" class="edge">
+<title>sourcefile~dtfft_executor_vkfft_m.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1091.8,-1173.82C1076.95,-1177.83 1060.7,-1182.6 1046,-1187.71 1014.29,-1198.73 979.25,-1213.86 954.03,-1225.3"/>
+<polygon fill="#96ff00" stroke="#96ff00" points="952.5,-1222.15 944.86,-1229.49 955.41,-1228.52 952.5,-1222.15"/>
+</g>
+<!-- sourcefile~dtfft_interface_vkfft_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node13" class="node">
+<title>sourcefile~dtfft_interface_vkfft_m.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node13"><a xlink:href="../sourcefile/dtfft_interface_vkfft_m.f90.html" xlink:title="dtfft_interface_vkfft_m.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="421.5,-1253.71 267.5,-1253.71 267.5,-1229.71 421.5,-1229.71 421.5,-1253.71"/>
+<text text-anchor="middle" x="344.5" y="-1239.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_vkfft_m.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft_m.f90&#45;&gt;sourcefile~dtfft_interface_vkfft_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge41" class="edge">
+<title>sourcefile~dtfft_executor_vkfft_m.f90&#45;&gt;sourcefile~dtfft_interface_vkfft_m.f90</title>
+<path fill="none" stroke="#001dff" stroke-dasharray="5,2" d="M1120.49,-1173.81C1100.65,-1185.9 1070.11,-1205.56 1046,-1225.71 1028.39,-1240.42 1030.95,-1253.35 1010,-1262.71 915.98,-1304.7 649.85,-1286.8 547,-1281.71"/>
+<path fill="none" stroke="#001dff" stroke-dasharray="5,2" d="M545,-1281.71C494.64,-1278.35 438.34,-1266.28 398.43,-1256.27"/>
+<polygon fill="#001dff" stroke="#001dff" points="399.2,-1252.85 388.65,-1253.77 397.47,-1259.63 399.2,-1252.85"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node11" class="node">
+<title>sourcefile~dtfft_interface_cuda.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node11"><a xlink:href="../sourcefile/dtfft_interface_cuda.f90.html" xlink:title="dtfft_interface_cuda.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="617,-1137.71 475,-1137.71 475,-1113.71 617,-1113.71 617,-1137.71"/>
+<text text-anchor="middle" x="546" y="-1123.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge10" class="edge">
+<title>sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M474.91,-1114.94C435.84,-1111.58 386.86,-1111.8 345.5,-1125.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge69" class="edge">
+<title>sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M509.72,-1113.69C498.49,-1109.58 486.1,-1104.74 475,-1099.71 415.41,-1072.69 410.49,-1037.25 345.5,-1029.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge100" class="edge">
+<title>sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M496.44,-1113.59C488.62,-1110.05 481.1,-1105.52 475,-1099.71 445.58,-1071.7 469.57,-1042.45 439,-1015.71 434.8,-1012.03 430.12,-1008.87 425.16,-1006.16"/>
+<polygon fill="#27ff00" stroke="#27ff00" points="426.49,-1002.91 415.96,-1001.74 423.45,-1009.22 426.49,-1002.91"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvrtc.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node12" class="node">
+<title>sourcefile~dtfft_interface_nvrtc.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node12"><a xlink:href="../sourcefile/dtfft_interface_nvrtc.f90.html" xlink:title="dtfft_interface_nvrtc.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="617,-1041.71 475,-1041.71 475,-1017.71 617,-1017.71 617,-1041.71"/>
+<text text-anchor="middle" x="546" y="-1027.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvrtc.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge11" class="edge">
+<title>sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M524.47,-1041.71C489.08,-1061.91 413.81,-1102.73 345.5,-1125.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M343.5,-1125.71C304.18,-1138.93 208.35,-1223.42 173,-1201.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M171,-1201.71C99.82,-1157.98 65.48,-1056.65 53.33,-1011.77"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="56.67,-1010.69 50.77,-1001.89 49.89,-1012.45 56.67,-1010.69"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge74" class="edge">
+<title>sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M474.6,-1033.66C436.3,-1034.81 388.16,-1034.66 345.5,-1029.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge101" class="edge">
+<title>sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M485.14,-1017.71C463.25,-1013.32 438.28,-1008.31 415.57,-1003.76"/>
+<polygon fill="#27ff00" stroke="#27ff00" points="416.15,-1000.3 405.66,-1001.77 414.78,-1007.17 416.15,-1000.3"/>
+</g>
+<!-- sourcefile~dtfft_interface_vkfft_m.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge12" class="edge">
+<title>sourcefile~dtfft_interface_vkfft_m.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M267.34,-1234.45C236.34,-1228.88 201.24,-1219.05 173,-1201.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_vkfft_m.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge77" class="edge">
+<title>sourcefile~dtfft_interface_vkfft_m.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M318.22,-1229.68C297.46,-1218.68 268.55,-1200.66 250,-1177.71 208.44,-1126.27 186.45,-1049.34 177.66,-1011.84"/>
+<polygon fill="#ff005a" stroke="#ff005a" points="181.05,-1010.94 175.44,-1001.95 174.22,-1012.48 181.05,-1010.94"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge13" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M693.75,-533.68C591.7,-488.69 229.78,-337.35 173,-427.71"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge79" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M692.05,-557.79C658.02,-570.94 599.09,-589.63 547,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge103" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M699.55,-557.83C678.95,-569.46 646.42,-587.07 617,-599.71 586.78,-612.68 573.32,-603.98 547,-623.71"/>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M545,-623.71C423.19,-714.99 366.87,-903.34 350.65,-967.63"/>
+<polygon fill="#27ff00" stroke="#27ff00" points="347.21,-966.96 348.24,-977.51 354.01,-968.62 347.21,-966.96"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge14" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1367,-1201.71C1268.9,-1225.63 1241,-1215.35 1143,-1239.71"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge22" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#ff5900" stroke-dasharray="5,2" d="M1141,-269.71C1081.84,-269.79 1015.19,-283.71 970.49,-295.1"/>
+<polygon fill="#ff5900" stroke="#ff5900" points="969.54,-291.73 960.74,-297.63 971.3,-298.51 969.54,-291.73"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_abstract_transpose_plan.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge23" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_abstract_transpose_plan.f90</title>
+<path fill="none" stroke="#ffb300" stroke-dasharray="5,2" d="M1584.5,-545.71C1547.23,-516.4 1281.28,-775.36 1238,-794.71 1233.08,-796.9 1227.92,-798.88 1222.65,-800.65"/>
+<polygon fill="#ffb300" stroke="#ffb300" points="1221.57,-797.32 1213.06,-803.64 1223.65,-804.01 1221.57,-797.32"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge31" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1367,-1087.71C1267.54,-1083.31 1238.83,-1060.71 1143,-1087.71"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor_cufft_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge33" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor_cufft_m.f90</title>
+<path fill="none" stroke="#3cff00" stroke-dasharray="5,2" d="M1584.5,-1087.71C1502.92,-1137.89 1464.68,-1091.93 1369,-1087.71"/>
+<path fill="none" stroke="#3cff00" stroke-dasharray="5,2" d="M1367,-1087.71C1309.4,-1085.16 1244.66,-1072.52 1199.65,-1062.11"/>
+<polygon fill="#3cff00" stroke="#3cff00" points="1200.33,-1058.68 1189.79,-1059.8 1198.72,-1065.49 1200.33,-1058.68"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor_fftw_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge34" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor_fftw_m.f90</title>
+<path fill="none" stroke="#00ff1e" stroke-dasharray="5,2" d="M1367,-269.71C1311.95,-264.79 1250.16,-253.3 1205.44,-243.89"/>
+<polygon fill="#00ff1e" stroke="#00ff1e" points="1206.11,-240.45 1195.6,-241.79 1204.65,-247.3 1206.11,-240.45"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor_mkl_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge35" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor_mkl_m.f90</title>
+<path fill="none" stroke="#00ff78" stroke-dasharray="5,2" d="M1748.88,-785.59C1743.29,-746.62 1722.35,-621.77 1673,-531.71 1587.28,-375.29 1546.66,-285.56 1369,-269.71"/>
+<path fill="none" stroke="#00ff78" stroke-dasharray="5,2" d="M1367,-269.71C1308.36,-245.54 1298.01,-229.24 1238,-208.71 1231.19,-206.38 1224.01,-204.24 1216.78,-202.3"/>
+<polygon fill="#00ff78" stroke="#00ff78" points="1217.47,-198.86 1206.91,-199.77 1215.73,-205.64 1217.47,-198.86"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor_vkfft_m.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge36" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor_vkfft_m.f90</title>
+<path fill="none" stroke="#00ffd1" stroke-dasharray="5,2" d="M1584.5,-1087.71C1492.21,-1144.48 1474.27,-1176.04 1369,-1201.71"/>
+<path fill="none" stroke="#00ffd1" stroke-dasharray="5,2" d="M1367,-1201.71C1335.41,-1209.41 1251.83,-1190.67 1196.18,-1176.3"/>
+<polygon fill="#00ffd1" stroke="#00ffd1" points="1197.03,-1172.91 1186.47,-1173.77 1195.26,-1179.68 1197.03,-1172.91"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge49" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1367,-467.71C1266.04,-465.99 1243.98,-505.71 1143,-505.71"/>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1141,-505.71C1042.33,-505.71 1016.5,-490.59 919,-505.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node16" class="node">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node16"><a xlink:href="../sourcefile/dtfft_transpose_plan_cuda.f90.html" xlink:title="dtfft_transpose_plan_cuda.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1673,-809.71 1498,-809.71 1498,-785.71 1673,-785.71 1673,-809.71"/>
+<text text-anchor="middle" x="1585.5" y="-795.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan_cuda.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_transpose_plan_cuda.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge56" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_transpose_plan_cuda.f90</title>
+<path fill="none" stroke="#f000ff" stroke-dasharray="5,2" d="M1708.69,-797.71C1700.76,-797.71 1692.17,-797.71 1683.33,-797.71"/>
+<polygon fill="#f000ff" stroke="#f000ff" points="1683.28,-794.21 1673.28,-797.71 1683.28,-801.21 1683.28,-794.21"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_host.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node17" class="node">
+<title>sourcefile~dtfft_transpose_plan_host.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node17"><a xlink:href="../sourcefile/dtfft_transpose_plan_host.f90.html" xlink:title="dtfft_transpose_plan_host.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1453.5,-323.71 1282.5,-323.71 1282.5,-299.71 1453.5,-299.71 1453.5,-323.71"/>
+<text text-anchor="middle" x="1368" y="-309.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan_host.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_transpose_plan_host.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge57" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_transpose_plan_host.f90</title>
+<path fill="none" stroke="#ff00b4" stroke-dasharray="5,2" d="M1746.69,-785.32C1737.31,-756.05 1711.07,-681.04 1673,-627.71 1642.22,-584.59 1628.14,-578.45 1586.5,-545.71"/>
+<path fill="none" stroke="#ff00b4" stroke-dasharray="5,2" d="M1584.5,-545.71C1511.86,-488.59 1527.76,-442.63 1462,-377.71 1442.9,-358.85 1417.96,-341.46 1398.71,-329.27"/>
+<polygon fill="#ff00b4" stroke="#ff00b4" points="1400.38,-326.19 1390.04,-323.89 1396.69,-332.14 1400.38,-326.19"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge80" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1367,-269.71C1274.95,-231.77 1242.56,-269.63 1143,-269.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1141,-269.71C1040.9,-269.78 1018.33,-244.15 919,-231.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M917,-231.71C831.23,-220.96 803.99,-202.86 722.5,-231.71"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge104" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1747.97,-809.97C1737.71,-856.29 1694.39,-1021.34 1586.5,-1087.71"/>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1584.5,-1087.71C1540.99,-1114.47 1418.05,-1021.97 1369,-1007.71"/>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1367,-1007.71C1307.64,-990.45 1295.8,-977.61 1238,-955.71 1137.44,-917.6 1113.54,-903.76 1010,-874.71 970.22,-863.54 960.3,-854.65 919,-855.71"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_interface_nvshmem.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge115" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_interface_nvshmem.f90</title>
+<path fill="none" stroke="#004eff" stroke-dasharray="5,2" d="M1584.5,-545.71C1501.48,-486.69 1470.85,-468.72 1369,-467.71"/>
+<path fill="none" stroke="#004eff" stroke-dasharray="5,2" d="M1367,-467.71C1317.33,-467.21 1314.3,-500.66 1274,-529.71 1257.56,-541.56 1256.89,-550.35 1238,-557.71 1165.87,-585.78 1077.79,-591 1012.47,-589.93"/>
+<polygon fill="#004eff" stroke="#004eff" points="1012.26,-586.42 1002.19,-589.7 1012.11,-593.42 1012.26,-586.42"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge119" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M1141,-269.71C922.25,-270.03 849.23,-237.03 653,-333.71 634.82,-342.66 634.71,-351.84 617,-361.71 610.23,-365.48 602.81,-368.91 595.4,-371.94"/>
+<polygon fill="#2700ff" stroke="#2700ff" points="594.13,-368.68 586.09,-375.58 596.68,-375.2 594.13,-368.68"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge126" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90</title>
+<path fill="none" stroke="#9c00ff" stroke-dasharray="5,2" d="M1367,-1007.71C1228.73,-970.99 1188.65,-994.66 1046,-983.71 989.55,-979.37 975.56,-976.22 919,-973.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge15" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1582.93,-809.94C1576.54,-854.89 1548.6,-1012.89 1462,-1101.71 1448.52,-1115.53 1161.55,-1234.34 1143,-1239.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1141,-1239.71C1080.94,-1256.32 1070.96,-1276.74 1010,-1289.71 721.11,-1351.15 630.61,-1358.81 345.5,-1281.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_abstract_transpose_plan.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge24" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_abstract_transpose_plan.f90</title>
+<path fill="none" stroke="#ffb300" stroke-dasharray="5,2" d="M1367,-855.71C1335.73,-859.66 1256.41,-843.15 1201.1,-830.14"/>
+<polygon fill="#ffb300" stroke="#ffb300" points="1201.6,-826.66 1191.06,-827.76 1199.98,-833.48 1201.6,-826.66"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge32" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1581.71,-809.78C1572.27,-847.73 1537.81,-965.43 1462,-1021.71 1345.75,-1108 1282.41,-1048.65 1143,-1087.71"/>
+<path fill="none" stroke="#96ff00" stroke-dasharray="5,2" d="M1141,-1087.71C1094.46,-1100.82 1081.24,-1107.6 1046,-1140.71 1024.44,-1160.97 1032.06,-1176.99 1010,-1196.71 996.61,-1208.67 979.47,-1218.24 963.69,-1225.42"/>
+<polygon fill="#96ff00" stroke="#96ff00" points="961.86,-1222.4 954.08,-1229.59 964.64,-1228.82 961.86,-1222.4"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge38" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90</title>
+<path fill="none" stroke="#00d1ff" stroke-dasharray="5,2" d="M1141,-969.71C1083.89,-996.64 1070.21,-1005.68 1010,-1024.71 878.3,-1066.33 720.22,-1096.8 626.99,-1112.84"/>
+<polygon fill="#00d1ff" stroke="#00d1ff" points="626.33,-1109.4 617.07,-1114.54 627.51,-1116.3 626.33,-1109.4"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_interface_nvrtc.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge40" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_interface_nvrtc.f90</title>
+<path fill="none" stroke="#0078ff" stroke-dasharray="5,2" d="M1367,-855.71C1256.18,-869.73 1243.99,-921.96 1143,-969.71"/>
+<path fill="none" stroke="#0078ff" stroke-dasharray="5,2" d="M1141,-969.71C1051.98,-1011.8 767.91,-1024.46 627.35,-1028.19"/>
+<polygon fill="#0078ff" stroke="#0078ff" points="626.98,-1024.7 617.07,-1028.46 627.16,-1031.7 626.98,-1024.7"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge52" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1367,-543.71C1345.54,-530.41 1168.24,-505.71 1143,-505.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge82" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1572.73,-785.4C1554.31,-765.53 1518.67,-724.48 1498,-683.71 1472.63,-633.66 1503.37,-600.6 1462,-562.71 1430.89,-534.21 1404.86,-565.93 1369,-543.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1367,-543.71C1161.69,-416.45 1066.48,-468.98 826,-491.71 748.07,-499.07 726.39,-497.47 653,-524.71 602.04,-543.62 601.2,-589.79 547,-585.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M545,-585.71C456.68,-577.87 408.04,-522.85 345.5,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge89" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1551.11,-809.77C1509.23,-824.17 1434.92,-847.36 1369,-855.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1367,-855.71C1294.21,-864.92 1304.52,-783.66 1238,-752.71 1198.96,-734.54 1186.02,-731.8 1143,-733.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge106" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1367,-855.71C1268.23,-868.21 1238.93,-829.07 1143,-855.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge122" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M1580,-785.6C1567.03,-750.66 1528.54,-646.6 1498,-559.71 1481.5,-512.77 1499.48,-486.43 1462,-453.71 1353.2,-358.72 1284.26,-421.78 1143,-391.71"/>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M1141,-391.71C1045.18,-368.09 1017.33,-379.42 919,-387.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge128" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90</title>
+<path fill="none" stroke="#9c00ff" stroke-dasharray="5,2" d="M1367,-855.71C1316.91,-862.05 1187.32,-869.52 1143,-893.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node30" class="node">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node30"><a xlink:href="../sourcefile/dtfft_transpose_handle_cuda.f90.html" xlink:title="dtfft_transpose_handle_cuda.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1462,-595.71 1274,-595.71 1274,-571.71 1462,-571.71 1462,-595.71"/>
+<text text-anchor="middle" x="1368" y="-581.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_handle_cuda.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_transpose_handle_cuda.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge129" class="edge">
+<title>sourcefile~dtfft_transpose_plan_cuda.f90&#45;&gt;sourcefile~dtfft_transpose_handle_cuda.f90</title>
+<path fill="none" stroke="#ff00eb" stroke-dasharray="5,2" d="M1572.3,-785.59C1536.6,-750.14 1432.15,-646.42 1388.51,-603.08"/>
+<polygon fill="#ff00eb" stroke="#ff00eb" points="1390.9,-600.52 1381.34,-595.96 1385.97,-605.49 1390.9,-600.52"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge16" class="edge">
+<title>sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1298.14,-299.54C1289.21,-295.63 1280.82,-290.48 1274,-283.71 1235.41,-245.35 1272.98,-208.37 1238,-166.71 1135.62,-44.77 1078.07,-10.44 919,-3.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_abstract_transpose_plan.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge25" class="edge">
+<title>sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_abstract_transpose_plan.f90</title>
+<path fill="none" stroke="#ffb300" stroke-dasharray="5,2" d="M1356.03,-323.9C1335.81,-347.18 1293,-400.41 1274,-453.71 1248.41,-525.48 1288.77,-737.89 1238,-794.71 1237.24,-795.56 1236.45,-796.38 1235.64,-797.17"/>
+<polygon fill="#ffb300" stroke="#ffb300" points="1233.35,-794.52 1227.76,-803.52 1237.74,-799.97 1233.35,-794.52"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge53" class="edge">
+<title>sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1141,-307.71C1056.6,-321.64 1075.92,-394.2 1010,-448.71 973.22,-479.12 966.16,-498.4 919,-505.71"/>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M917,-505.71C870.09,-512.98 817.37,-524 778.67,-532.63"/>
+<polygon fill="#3c00ff" stroke="#3c00ff" points="777.63,-529.28 768.64,-534.89 779.17,-536.11 777.63,-529.28"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge83" class="edge">
+<title>sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1282.44,-303.02C1240.28,-300.5 1188.67,-300.17 1143,-307.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1141,-307.71C1038.11,-324.7 1022.48,-244.67 919,-231.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge123" class="edge">
+<title>sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M1141,-307.71C1076.68,-318.33 1072.09,-353.84 1010,-373.71 971.03,-386.18 959.78,-384.27 919,-387.71"/>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M917,-387.71C830.86,-394.96 808.83,-392.09 722.5,-387.71"/>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M720.5,-387.71C689.42,-386.13 655.17,-385.82 625.36,-386.02"/>
+<polygon fill="#2700ff" stroke="#2700ff" points="624.99,-382.53 615.02,-386.11 625.05,-389.53 624.99,-382.53"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_host.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node31" class="node">
+<title>sourcefile~dtfft_transpose_handle_host.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node31"><a xlink:href="../sourcefile/dtfft_transpose_handle_host.f90.html" xlink:title="dtfft_transpose_handle_host.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1010,-439.71 826,-439.71 826,-415.71 1010,-415.71 1010,-439.71"/>
+<text text-anchor="middle" x="918" y="-425.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_handle_host.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_transpose_handle_host.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge130" class="edge">
+<title>sourcefile~dtfft_transpose_plan_host.f90&#45;&gt;sourcefile~dtfft_transpose_handle_host.f90</title>
+<path fill="none" stroke="#ff0075" stroke-dasharray="5,2" d="M1141,-307.71C1070.3,-319.38 1074.52,-370.51 1010,-401.71 1001.44,-405.85 992.09,-409.44 982.76,-412.53"/>
+<polygon fill="#ff0075" stroke="#ff0075" points="981.57,-409.24 973.07,-415.57 983.66,-415.92 981.57,-409.24"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge17" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M129.7,-989.71C121.47,-989.71 112.7,-989.71 104.08,-989.71"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="104.06,-986.21 94.06,-989.71 104.06,-993.21 104.06,-986.21"/>
+</g>
+<!-- sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge43" class="edge">
+<title>sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M845.72,-727.53C838.4,-724 831.61,-719.48 826,-713.71 780.66,-666.98 833.21,-620.41 790,-571.71 786.5,-567.76 782.32,-564.4 777.79,-561.56"/>
+<polygon fill="#3c00ff" stroke="#3c00ff" points="779.19,-558.34 768.73,-556.68 775.88,-564.5 779.19,-558.34"/>
+</g>
+<!-- sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge58" class="edge">
+<title>sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M867.44,-751.71C809.62,-762.6 714.16,-770.5 653,-722.71 611.47,-690.25 653.86,-647.38 617,-609.71 594,-586.2 579.8,-588.18 547,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge93" class="edge">
+<title>sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M900.52,-751.83C861.16,-780.4 762,-850 722.5,-855.71"/>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M720.5,-855.71C644.18,-866.73 618.02,-825.68 547,-855.71"/>
+</g>
+<!-- sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_interface_nccl.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge110" class="edge">
+<title>sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_interface_nccl.f90</title>
+<path fill="none" stroke="#00c4ff" stroke-dasharray="5,2" d="M855.46,-727.68C835.94,-723.87 814.2,-719.62 794.04,-715.68"/>
+<polygon fill="#00c4ff" stroke="#00c4ff" points="794.46,-712.2 783.97,-713.72 793.12,-719.07 794.46,-712.2"/>
+</g>
+<!-- sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge124" class="edge">
+<title>sourcefile~dtfft_abstract_backend.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90</title>
+<path fill="none" stroke="#9c00ff" stroke-dasharray="5,2" d="M891.64,-751.83C871.24,-762.77 843.25,-780.67 826,-803.71 796.18,-843.54 824.47,-873.82 790,-909.71 786.78,-913.06 783.08,-915.98 779.11,-918.54"/>
+<polygon fill="#9c00ff" stroke="#9c00ff" points="777.11,-915.64 770.06,-923.55 780.5,-921.77 777.11,-915.64"/>
+</g>
+<!-- sourcefile~dtfft_backend_cufftmp.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node20" class="node">
+<title>sourcefile~dtfft_backend_cufftmp.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node20"><a xlink:href="../sourcefile/dtfft_backend_cufftmp.f90.html" xlink:title="dtfft_backend_cufftmp.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1219,-633.71 1065,-633.71 1065,-609.71 1219,-609.71 1219,-633.71"/>
+<text text-anchor="middle" x="1142" y="-619.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_cufftmp.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge47" class="edge">
+<title>sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1121.07,-609.55C1070.76,-579.1 941.08,-502.28 919,-505.71"/>
+</g>
+<!-- sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge62" class="edge">
+<title>sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1064.87,-627.88C1021.85,-630 967.2,-630.39 919,-623.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M917,-623.71C895.19,-620.68 744.52,-585.59 722.5,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge85" class="edge">
+<title>sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1064.59,-632.08C1057.93,-634.87 1051.61,-638.36 1046,-642.71 1018.04,-664.39 1037.29,-691.19 1010,-713.71 1005.45,-717.46 1000.39,-720.67 995.06,-723.42"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="993.49,-720.28 985.85,-727.62 996.4,-726.65 993.49,-720.28"/>
+</g>
+<!-- sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge95" class="edge">
+<title>sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1064.95,-632.58C1046.97,-634.71 1027.84,-636.62 1010,-637.71 928.37,-642.67 907.75,-639.76 826,-637.71 763.94,-636.15 596.68,-586.48 547,-623.71"/>
+</g>
+<!-- sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_interface_cufft.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge107" class="edge">
+<title>sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_interface_cufft.f90</title>
+<path fill="none" stroke="#00ff4e" stroke-dasharray="5,2" d="M1064.85,-629.5C1057.81,-632.75 1051.33,-637.05 1046,-642.71 975.98,-717.08 1077.73,-793.24 1010,-869.71 1006.19,-874.01 1001.72,-877.63 996.84,-880.66"/>
+<polygon fill="#00ff4e" stroke="#00ff4e" points="994.87,-877.74 987.67,-885.51 998.15,-883.92 994.87,-877.74"/>
+</g>
+<!-- sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_interface_nvshmem.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge114" class="edge">
+<title>sourcefile~dtfft_backend_cufftmp.f90&#45;&gt;sourcefile~dtfft_interface_nvshmem.f90</title>
+<path fill="none" stroke="#004eff" stroke-dasharray="5,2" d="M1070.76,-609.68C1047.97,-605.78 1022.53,-601.43 999.08,-597.41"/>
+<polygon fill="#004eff" stroke="#004eff" points="999.61,-593.95 989.17,-595.72 998.43,-600.85 999.61,-593.95"/>
+</g>
+<!-- sourcefile~dtfft_backend_mpi.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node21" class="node">
+<title>sourcefile~dtfft_backend_mpi.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node21"><a xlink:href="../sourcefile/dtfft_backend_mpi.f90.html" xlink:title="dtfft_backend_mpi.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1208.5,-785.71 1075.5,-785.71 1075.5,-761.71 1208.5,-761.71 1208.5,-785.71"/>
+<text text-anchor="middle" x="1142" y="-771.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_mpi.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_backend_mpi.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge63" class="edge">
+<title>sourcefile~dtfft_backend_mpi.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1075.2,-780.79C980.05,-788.92 799.42,-796.38 653,-755.71 502.54,-713.91 455.01,-474.38 345.5,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_backend_mpi.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge86" class="edge">
+<title>sourcefile~dtfft_backend_mpi.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1075.29,-763.64C1053.8,-760.35 1029.57,-756.64 1006.72,-753.14"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1007.09,-749.66 996.67,-751.6 1006.03,-756.58 1007.09,-749.66"/>
+</g>
+<!-- sourcefile~dtfft_backend_mpi.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge96" class="edge">
+<title>sourcefile~dtfft_backend_mpi.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1075.28,-782.97C1065.11,-785.87 1055,-789.69 1046,-794.71 1025.96,-805.87 1029.81,-820.14 1010,-831.71 973.88,-852.8 960.81,-854.63 919,-855.71"/>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M917,-855.71C830.58,-857.92 808.06,-843.34 722.5,-855.71"/>
+</g>
+<!-- sourcefile~dtfft_backend_nccl.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_node22" class="node">
+<title>sourcefile~dtfft_backend_nccl.f90</title>
+<g id="a_sourcefile~~dtfft_errors.f90~~AfferentGraph_node22"><a xlink:href="../sourcefile/dtfft_backend_nccl.f90.html" xlink:title="dtfft_backend_nccl.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1209.5,-675.71 1074.5,-675.71 1074.5,-651.71 1209.5,-651.71 1209.5,-675.71"/>
+<text text-anchor="middle" x="1142" y="-661.31" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_nccl.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_backend_nccl.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge64" class="edge">
+<title>sourcefile~dtfft_backend_nccl.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1081.85,-651.7C1037.24,-642.98 974.47,-631.4 919,-623.71"/>
+</g>
+<!-- sourcefile~dtfft_backend_nccl.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge87" class="edge">
+<title>sourcefile~dtfft_backend_nccl.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1111.61,-675.76C1085.23,-686.38 1045.34,-701.94 1010,-713.71 998.43,-717.56 985.92,-721.36 973.99,-724.82"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="972.78,-721.53 964.13,-727.64 974.71,-728.26 972.78,-721.53"/>
+</g>
+<!-- sourcefile~dtfft_backend_nccl.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge97" class="edge">
+<title>sourcefile~dtfft_backend_nccl.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1089.78,-675.8C1045.01,-685.46 978.12,-697.7 919,-699.71"/>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M917,-699.71C799.43,-703.71 755.49,-622.96 653,-680.71 573.78,-725.34 630.75,-820.29 547,-855.71"/>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M545,-855.71C473.96,-885.06 401.85,-941.56 367,-970.94"/>
+<polygon fill="#27ff00" stroke="#27ff00" points="364.7,-968.3 359.35,-977.45 369.24,-973.63 364.7,-968.3"/>
+</g>
+<!-- sourcefile~dtfft_backend_nccl.f90&#45;&gt;sourcefile~dtfft_interface_nccl.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge112" class="edge">
+<title>sourcefile~dtfft_backend_nccl.f90&#45;&gt;sourcefile~dtfft_interface_nccl.f90</title>
+<path fill="none" stroke="#00c4ff" stroke-dasharray="5,2" d="M917,-699.71C878.6,-701.01 835.92,-701.55 800.34,-701.75"/>
+<polygon fill="#00c4ff" stroke="#00c4ff" points="800.01,-698.25 790.03,-701.8 800.04,-705.25 800.01,-698.25"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge70" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M249.77,-989.71C240.96,-989.71 232.26,-989.71 224.08,-989.71"/>
+<polygon fill="#ff005a" stroke="#ff005a" points="224,-986.21 214,-989.71 224,-993.21 224,-986.21"/>
+</g>
+<!-- sourcefile~dtfft_interface_cufft.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge71" class="edge">
+<title>sourcefile~dtfft_interface_cufft.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M848.08,-893.65C810.85,-893.06 764.12,-893.15 722.5,-895.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M720.5,-895.71C641.51,-900.56 623.16,-914.22 547,-935.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M545,-935.71C489.46,-951.38 491.97,-987.8 439,-1010.71 400.08,-1027.54 387.62,-1034.6 345.5,-1029.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M343.5,-1029.71C302.31,-1024.92 256.61,-1013.88 222.9,-1004.61"/>
+<polygon fill="#ff005a" stroke="#ff005a" points="223.42,-1001.12 212.84,-1001.8 221.53,-1007.86 223.42,-1001.12"/>
+</g>
+<!-- sourcefile~dtfft_interface_mkl_m.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge72" class="edge">
+<title>sourcefile~dtfft_interface_mkl_m.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M338.41,-322.71C323.02,-359.38 276.47,-473.41 250,-571.71 209.9,-720.59 183.96,-904.91 175.78,-967.63"/>
+<polygon fill="#ff005a" stroke="#ff005a" points="172.31,-967.21 174.5,-977.58 179.25,-968.11 172.31,-967.21"/>
+</g>
+<!-- sourcefile~dtfft_interface_nccl.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge73" class="edge">
+<title>sourcefile~dtfft_interface_nccl.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M710.7,-689.56C686.47,-660.94 620.35,-591.23 547,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvshmem.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge75" class="edge">
+<title>sourcefile~dtfft_interface_nvshmem.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M833.71,-584.75C799.29,-585.14 758.97,-585.52 722.5,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge76" class="edge">
+<title>sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M532.29,-400.11C500.54,-431.14 415.31,-514.74 345.5,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge37" class="edge">
+<title>sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90</title>
+<path fill="none" stroke="#00d1ff" stroke-dasharray="5,2" d="M709.69,-947.86C690.94,-968.91 651.12,-1013.48 617,-1050.71 599.74,-1069.54 579.84,-1090.81 565.69,-1105.88"/>
+<polygon fill="#00d1ff" stroke="#00d1ff" points="562.77,-1103.88 558.47,-1113.56 567.87,-1108.67 562.77,-1103.88"/>
+</g>
+<!-- sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_interface_nvrtc.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge39" class="edge">
+<title>sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_interface_nvrtc.f90</title>
+<path fill="none" stroke="#0078ff" stroke-dasharray="5,2" d="M685.23,-947.75C674.67,-951.76 663.19,-956.54 653,-961.71 623.99,-976.41 592.9,-996.98 571.95,-1011.64"/>
+<polygon fill="#0078ff" stroke="#0078ff" points="569.77,-1008.9 563.63,-1017.53 573.81,-1014.61 569.77,-1008.9"/>
+</g>
+<!-- sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge78" class="edge">
+<title>sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M657.13,-927.53C623.77,-925.26 582.51,-925.69 547,-935.71"/>
+</g>
+<!-- sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge102" class="edge">
+<title>sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M709.24,-923.47C681.78,-895.15 609.02,-829.48 547,-855.71"/>
+</g>
+<!-- sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge118" class="edge">
+<title>sourcefile~dtfft_nvrtc_kernel.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M710.02,-923.56C694.71,-905.09 666.6,-868.22 653,-831.71 612.27,-722.39 645.92,-684.72 617,-571.71 601.49,-511.09 572.37,-443.08 557.03,-409.24"/>
+<polygon fill="#2700ff" stroke="#2700ff" points="560.09,-407.52 552.74,-399.89 553.73,-410.44 560.09,-407.52"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge50" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1308.28,-571.67C1263.23,-562.81 1199.41,-551.08 1143,-543.71"/>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M1141,-543.71C1091.37,-537.22 968.46,-498.04 919,-505.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge81" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M1141,-543.71C1001.93,-525.54 964.89,-543.21 826,-562.71 779.34,-569.26 769.62,-585.47 722.5,-585.71"/>
+<path fill="none" stroke="#ff005a" stroke-dasharray="5,2" d="M720.5,-585.71C643.39,-585.64 623.89,-591.5 547,-585.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge88" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_abstract_backend.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1297.62,-595.86C1289.08,-599.37 1280.94,-603.89 1274,-609.71 1245.67,-633.47 1263.77,-658.19 1238,-684.71 1204.89,-718.78 1190.46,-731.6 1143,-733.71"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1141,-733.71C1096.79,-735.67 1047.6,-737.08 1006.78,-738.03"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1006.51,-734.54 996.59,-738.27 1006.67,-741.54 1006.51,-734.54"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_backend_cufftmp.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge90" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_backend_cufftmp.f90</title>
+<path fill="none" stroke="#ff7500" stroke-dasharray="5,2" d="M1296.12,-595.73C1273.13,-599.63 1247.46,-603.99 1223.8,-608"/>
+<polygon fill="#ff7500" stroke="#ff7500" points="1223.07,-604.57 1213.8,-609.7 1224.24,-611.47 1223.07,-604.57"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_backend_mpi.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge91" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_backend_mpi.f90</title>
+<path fill="none" stroke="#ffeb00" stroke-dasharray="5,2" d="M1294.21,-595.72C1286.72,-599.28 1279.76,-603.85 1274,-609.71 1229.57,-654.92 1282.55,-702.62 1238,-747.71 1232.34,-753.44 1225.54,-757.94 1218.22,-761.47"/>
+<polygon fill="#ffeb00" stroke="#ffeb00" points="1216.59,-758.36 1208.72,-765.44 1219.29,-764.82 1216.59,-758.36"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_backend_nccl.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge92" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_backend_nccl.f90</title>
+<path fill="none" stroke="#9cff00" stroke-dasharray="5,2" d="M1307.79,-595.76C1296.19,-599.35 1284.4,-603.92 1274,-609.71 1255.03,-620.25 1257.25,-632.69 1238,-642.71 1232.11,-645.77 1225.79,-648.39 1219.31,-650.63"/>
+<polygon fill="#9cff00" stroke="#9cff00" points="1218.22,-647.3 1209.73,-653.64 1220.32,-653.98 1218.22,-647.3"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge105" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1364.69,-595.88C1356.21,-637.12 1322.69,-772.55 1238,-836.71 1203.68,-862.71 1184.49,-844.19 1143,-855.71"/>
+<path fill="none" stroke="#27ff00" stroke-dasharray="5,2" d="M1141,-855.71C1045.93,-882.11 1017.63,-853.18 919,-855.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge120" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M1298.86,-571.6C1289.93,-568.08 1281.35,-563.55 1274,-557.71 1247.85,-536.9 1257.67,-518.71 1238,-491.71 1201.91,-442.16 1202.96,-404.47 1143,-391.71"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge127" class="edge">
+<title>sourcefile~dtfft_transpose_handle_cuda.f90&#45;&gt;sourcefile~dtfft_nvrtc_kernel.f90</title>
+<path fill="none" stroke="#9c00ff" stroke-dasharray="5,2" d="M1365.29,-596C1358.43,-640.38 1328.82,-793.63 1238,-869.71 1204.62,-897.67 1181.23,-872.84 1143,-893.71"/>
+<path fill="none" stroke="#9c00ff" stroke-dasharray="5,2" d="M1141,-893.71C1048.94,-943.95 1023.77,-978.36 919,-973.71"/>
+<path fill="none" stroke="#9c00ff" stroke-dasharray="5,2" d="M917,-973.71C868.25,-971.54 813.82,-960.11 774.96,-950.35"/>
+<polygon fill="#9c00ff" stroke="#9c00ff" points="775.49,-946.87 764.94,-947.78 773.75,-953.65 775.49,-946.87"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_host.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge51" class="edge">
+<title>sourcefile~dtfft_transpose_handle_host.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#3c00ff" stroke-dasharray="5,2" d="M896.92,-439.89C862.25,-460.92 791.07,-504.11 751.19,-528.3"/>
+<polygon fill="#3c00ff" stroke="#3c00ff" points="749.21,-525.41 742.47,-533.59 752.84,-531.39 749.21,-525.41"/>
+</g>
+<!-- sourcefile~dtfft_transpose_handle_host.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_errors.f90~~AfferentGraph_edge121" class="edge">
+<title>sourcefile~dtfft_transpose_handle_host.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#2700ff" stroke-dasharray="5,2" d="M876.49,-415.62C837.46,-404.87 776.55,-390.45 722.5,-387.71"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var pansourcefiledtfft_errorsf90AfferentGraph = svgPanZoom('#sourcefiledtfft_errorsf90AfferentGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#AfferentGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="AfferentGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="202pt" height="32pt"
+ viewBox="0.00 0.00 201.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 197.5,-28 197.5,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="193.5,-24 88.5,-24 88.5,0 193.5,0 193.5,-24"/>
+<text text-anchor="middle" x="141" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a file to a file which it depends on. A file
+is dependent upon another if the latter must be compiled before the former
+can be.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+<br>
+      <section>
+        <h2><span class="anchor" id="src"></span>Source Code</h2>
+        <div class="hl codehilite"><pre><span></span><a id="ln-1" name="ln-1" href="#ln-1"></a><span class="k">module </span><span class="n">dtfft_errors</span>
+<a id="ln-2" name="ln-2" href="#ln-2"></a><span class="k">use </span><span class="n">iso_fortran_env</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">int32</span>
+<a id="ln-3" name="ln-3" href="#ln-3"></a><span class="cp">#include &quot;dtfft_config.h&quot;</span>
+<a id="ln-4" name="ln-4" href="#ln-4"></a><span class="k">implicit none</span>
+<a id="ln-5" name="ln-5" href="#ln-5"></a><span class="k">private</span>
+<a id="ln-6" name="ln-6" href="#ln-6"></a><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dtfft_get_error_string</span>
+<a id="ln-7" name="ln-7" href="#ln-7"></a>
+<a id="ln-8" name="ln-8" href="#ln-8"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_SUCCESS</span>
+<a id="ln-9" name="ln-9" href="#ln-9"></a><span class="w">    </span><span class="c">!! Successful execution</span>
+<a id="ln-10" name="ln-10" href="#ln-10"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_MPI_FINALIZED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_MPI_FINALIZED</span>
+<a id="ln-11" name="ln-11" href="#ln-11"></a><span class="w">    </span><span class="c">!! MPI_Init is not called or MPI_Finalize has already been called</span>
+<a id="ln-12" name="ln-12" href="#ln-12"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PLAN_NOT_CREATED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PLAN_NOT_CREATED</span>
+<a id="ln-13" name="ln-13" href="#ln-13"></a><span class="w">    </span><span class="c">!! Plan not created</span>
+<a id="ln-14" name="ln-14" href="#ln-14"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_TRANSPOSE_TYPE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_TRANSPOSE_TYPE</span>
+<a id="ln-15" name="ln-15" href="#ln-15"></a><span class="w">    </span><span class="c">!! Invalid `transpose_type` provided</span>
+<a id="ln-16" name="ln-16" href="#ln-16"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_N_DIMENSIONS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_N_DIMENSIONS</span>
+<a id="ln-17" name="ln-17" href="#ln-17"></a><span class="w">    </span><span class="c">!! Invalid Number of dimensions provided. Valid options are 2 and 3</span>
+<a id="ln-18" name="ln-18" href="#ln-18"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_DIMENSION_SIZE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_DIMENSION_SIZE</span>
+<a id="ln-19" name="ln-19" href="#ln-19"></a><span class="w">    </span><span class="c">!! One or more provided dimension sizes &lt;= 0 </span>
+<a id="ln-20" name="ln-20" href="#ln-20"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_COMM_TYPE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_COMM_TYPE</span>
+<a id="ln-21" name="ln-21" href="#ln-21"></a><span class="w">    </span><span class="c">!! Invalid communicator type provided</span>
+<a id="ln-22" name="ln-22" href="#ln-22"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_PRECISION</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_PRECISION</span>
+<a id="ln-23" name="ln-23" href="#ln-23"></a><span class="w">    </span><span class="c">!! Invalid `precision` parameter provided</span>
+<a id="ln-24" name="ln-24" href="#ln-24"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_EFFORT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_EFFORT_FLAG</span>
+<a id="ln-25" name="ln-25" href="#ln-25"></a><span class="w">    </span><span class="c">!! Invalid `effort` parameter provided</span>
+<a id="ln-26" name="ln-26" href="#ln-26"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_EXECUTOR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_EXECUTOR_TYPE</span>
+<a id="ln-27" name="ln-27" href="#ln-27"></a><span class="w">    </span><span class="c">!! Invalid `executor` parameter provided</span>
+<a id="ln-28" name="ln-28" href="#ln-28"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_COMM_DIMS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_COMM_DIMS</span>
+<a id="ln-29" name="ln-29" href="#ln-29"></a><span class="w">    </span><span class="c">!! Number of dimensions in provided Cartesian communicator &gt; Number of dimension passed to `create` subroutine</span>
+<a id="ln-30" name="ln-30" href="#ln-30"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_COMM_FAST_DIM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_COMM_FAST_DIM</span>
+<a id="ln-31" name="ln-31" href="#ln-31"></a><span class="w">    </span><span class="c">!! Passed Cartesian communicator with number of processes in 1st (fastest varying) dimension &gt; 1</span>
+<a id="ln-32" name="ln-32" href="#ln-32"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_MISSING_R2R_KINDS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_MISSING_R2R_KINDS</span>
+<a id="ln-33" name="ln-33" href="#ln-33"></a><span class="w">    </span><span class="c">!! For R2R plan, `kinds` parameter must be passed if `executor` != `DTFFT_EXECUTOR_NONE`</span>
+<a id="ln-34" name="ln-34" href="#ln-34"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_R2R_KINDS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_R2R_KINDS</span>
+<a id="ln-35" name="ln-35" href="#ln-35"></a><span class="w">    </span><span class="c">!! Invalid values detected in `kinds` parameter </span>
+<a id="ln-36" name="ln-36" href="#ln-36"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_R2C_TRANSPOSE_PLAN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN</span>
+<a id="ln-37" name="ln-37" href="#ln-37"></a><span class="w">    </span><span class="c">!! Transpose plan is not supported in R2C, use R2R or C2C plan instead</span>
+<a id="ln-38" name="ln-38" href="#ln-38"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INPLACE_TRANSPOSE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INPLACE_TRANSPOSE</span>
+<a id="ln-39" name="ln-39" href="#ln-39"></a><span class="w">    </span><span class="c">!! Inplace transpose is not supported</span>
+<a id="ln-40" name="ln-40" href="#ln-40"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_AUX</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_AUX</span>
+<a id="ln-41" name="ln-41" href="#ln-41"></a><span class="w">    </span><span class="c">!! Invalid `aux` buffer provided</span>
+<a id="ln-42" name="ln-42" href="#ln-42"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_DIM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_DIM</span>
+<a id="ln-43" name="ln-43" href="#ln-43"></a><span class="w">    </span><span class="c">!! Invalid `dim` passed to `plan.get_pencil`</span>
+<a id="ln-44" name="ln-44" href="#ln-44"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_USAGE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_USAGE</span>
+<a id="ln-45" name="ln-45" href="#ln-45"></a><span class="w">    </span><span class="c">!! Invalid API Usage.</span>
+<a id="ln-46" name="ln-46" href="#ln-46"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PLAN_IS_CREATED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PLAN_IS_CREATED</span>
+<a id="ln-47" name="ln-47" href="#ln-47"></a><span class="w">    </span><span class="c">!! Trying to create already created plan</span>
+<a id="ln-48" name="ln-48" href="#ln-48"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_ALLOC_FAILED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_ALLOC_FAILED</span>
+<a id="ln-49" name="ln-49" href="#ln-49"></a><span class="w">    </span><span class="c">!! Internal allocation failed</span>
+<a id="ln-50" name="ln-50" href="#ln-50"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_FREE_FAILED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_FREE_FAILED</span>
+<a id="ln-51" name="ln-51" href="#ln-51"></a><span class="w">    </span><span class="c">!! Internal memory free failed</span>
+<a id="ln-52" name="ln-52" href="#ln-52"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_ALLOC_BYTES</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_ALLOC_BYTES</span>
+<a id="ln-53" name="ln-53" href="#ln-53"></a><span class="w">    </span><span class="c">!! Invalid `alloc_bytes` provided</span>
+<a id="ln-54" name="ln-54" href="#ln-54"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_DLOPEN_FAILED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_DLOPEN_FAILED</span>
+<a id="ln-55" name="ln-55" href="#ln-55"></a><span class="w">    </span><span class="c">!! dlopen failed</span>
+<a id="ln-56" name="ln-56" href="#ln-56"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_DLSYM_FAILED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_DLSYM_FAILED</span>
+<a id="ln-57" name="ln-57" href="#ln-57"></a><span class="w">    </span><span class="c">!! dlsym failed</span>
+<a id="ln-58" name="ln-58" href="#ln-58"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_R2C_TRANSPOSE_CALLED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_R2C_TRANSPOSE_CALLED</span>
+<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="w">    </span><span class="c">!! Calling to `transpose` method for R2C plan is not allowed</span>
+<a id="ln-60" name="ln-60" href="#ln-60"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH</span>
+<a id="ln-61" name="ln-61" href="#ln-61"></a><span class="w">    </span><span class="c">!! Sizes of `starts` and `counts` arrays passed to `dtfft_pencil_t` constructor do not match</span>
+<a id="ln-62" name="ln-62" href="#ln-62"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES</span>
+<a id="ln-63" name="ln-63" href="#ln-63"></a><span class="w">    </span><span class="c">!! Sizes of `starts` and `counts` &lt; 2 or &gt; 3 provided to `dtfft_pencil_t` constructor</span>
+<a id="ln-64" name="ln-64" href="#ln-64"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_INVALID_COUNTS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PENCIL_INVALID_COUNTS</span>
+<a id="ln-65" name="ln-65" href="#ln-65"></a><span class="w">    </span><span class="c">!! Invalid `counts` provided to `dtfft_pencil_t` constructor</span>
+<a id="ln-66" name="ln-66" href="#ln-66"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_INVALID_STARTS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PENCIL_INVALID_STARTS</span>
+<a id="ln-67" name="ln-67" href="#ln-67"></a><span class="w">    </span><span class="c">!! Invalid `starts` provided to `dtfft_pencil_t` constructor</span>
+<a id="ln-68" name="ln-68" href="#ln-68"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_SHAPE_MISMATCH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PENCIL_SHAPE_MISMATCH</span>
+<a id="ln-69" name="ln-69" href="#ln-69"></a><span class="w">    </span><span class="c">!! Processes have same lower bounds but different sizes in some dimensions</span>
+<a id="ln-70" name="ln-70" href="#ln-70"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_OVERLAP</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PENCIL_OVERLAP</span>
+<a id="ln-71" name="ln-71" href="#ln-71"></a><span class="w">    </span><span class="c">!! Pencil overlap detected, i.e. two processes share same part of global space</span>
+<a id="ln-72" name="ln-72" href="#ln-72"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_NOT_CONTINUOUS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PENCIL_NOT_CONTINUOUS</span>
+<a id="ln-73" name="ln-73" href="#ln-73"></a><span class="w">    </span><span class="c">!! Local pencils do not cover the global space without gaps</span>
+<a id="ln-74" name="ln-74" href="#ln-74"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_NOT_INITIALIZED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_PENCIL_NOT_INITIALIZED</span>
+<a id="ln-75" name="ln-75" href="#ln-75"></a><span class="w">    </span><span class="c">!! Pencil is not initialized, i.e. `constructor` subroutine was not called</span>
+<a id="ln-76" name="ln-76" href="#ln-76"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED</span>
+<a id="ln-77" name="ln-77" href="#ln-77"></a><span class="w">    </span><span class="c">!! Selected `executor` do not support R2R FFTs</span>
+<a id="ln-78" name="ln-78" href="#ln-78"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_GPU_INVALID_STREAM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_GPU_INVALID_STREAM</span>
+<a id="ln-79" name="ln-79" href="#ln-79"></a><span class="w">    </span><span class="c">!! Invalid stream provided</span>
+<a id="ln-80" name="ln-80" href="#ln-80"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_GPU_INVALID_BACKEND</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_GPU_INVALID_BACKEND</span>
+<a id="ln-81" name="ln-81" href="#ln-81"></a><span class="w">    </span><span class="c">!! Invalid GPU backend provided</span>
+<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_GPU_NOT_SET</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_GPU_NOT_SET</span>
+<a id="ln-83" name="ln-83" href="#ln-83"></a><span class="w">    </span><span class="c">!! Multiple MPI Processes located on same host share same GPU which is not supported</span>
+<a id="ln-84" name="ln-84" href="#ln-84"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_VKFFT_R2R_2D_PLAN</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_VKFFT_R2R_2D_PLAN</span>
+<a id="ln-85" name="ln-85" href="#ln-85"></a><span class="w">    </span><span class="c">!! When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions</span>
+<a id="ln-86" name="ln-86" href="#ln-86"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_GPU_BACKENDS_DISABLED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_GPU_BACKENDS_DISABLED</span>
+<a id="ln-87" name="ln-87" href="#ln-87"></a><span class="w">    </span><span class="c">!! Passed `effort` ==  `DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t` */</span>
+<a id="ln-88" name="ln-88" href="#ln-88"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_NOT_DEVICE_PTR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_NOT_DEVICE_PTR</span>
+<a id="ln-89" name="ln-89" href="#ln-89"></a><span class="w">    </span><span class="c">!! One of pointers passed to `plan.execute` or `plan.transpose` cannot be accessed from device</span>
+<a id="ln-90" name="ln-90" href="#ln-90"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_NOT_NVSHMEM_PTR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_NOT_NVSHMEM_PTR</span>
+<a id="ln-91" name="ln-91" href="#ln-91"></a><span class="w">    </span><span class="c">!! One of pointers passed to `plan.execute` or `plan.transpose` is not an `NVSHMEM` pointer</span>
+<a id="ln-92" name="ln-92" href="#ln-92"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_PLATFORM</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_PLATFORM</span>
+<a id="ln-93" name="ln-93" href="#ln-93"></a><span class="w">    </span><span class="c">!! Invalid platform provided</span>
+<a id="ln-94" name="ln-94" href="#ln-94"></a><span class="w">  </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE</span>
+<a id="ln-95" name="ln-95" href="#ln-95"></a><span class="w">    </span><span class="c">!! Invalid executor provided for selected platform</span>
+<a id="ln-96" name="ln-96" href="#ln-96"></a>
+<a id="ln-97" name="ln-97" href="#ln-97"></a><span class="k">contains</span>
+<a id="ln-98" name="ln-98" href="#ln-98"></a>
+<a id="ln-99" name="ln-99" href="#ln-99"></a><span class="k">  pure function </span><span class="n">dtfft_get_error_string</span><span class="p">(</span><span class="n">error_code</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">error_string</span><span class="p">)</span>
+<a id="ln-100" name="ln-100" href="#ln-100"></a><span class="w">  </span><span class="c">!! Gets the string description of an error code</span>
+<a id="ln-101" name="ln-101" href="#ln-101"></a><span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">error_code</span><span class="w">    </span><span class="c">!! Error code</span>
+<a id="ln-102" name="ln-102" href="#ln-102"></a><span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="p">:),</span><span class="w"> </span><span class="k">allocatable</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">error_string</span><span class="w">  </span><span class="c">!! Error string</span>
+<a id="ln-103" name="ln-103" href="#ln-103"></a>
+<a id="ln-104" name="ln-104" href="#ln-104"></a><span class="w">    </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="n">error_code</span><span class="p">)</span>
+<a id="ln-105" name="ln-105" href="#ln-105"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-106" name="ln-106" href="#ln-106"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;DTFFT_SUCCESS&quot;</span><span class="p">)</span>
+<a id="ln-107" name="ln-107" href="#ln-107"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_MPI_FINALIZED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-108" name="ln-108" href="#ln-108"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;MPI_Init is not called or MPI_Finalize has already been called&quot;</span><span class="p">)</span>
+<a id="ln-109" name="ln-109" href="#ln-109"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PLAN_NOT_CREATED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-110" name="ln-110" href="#ln-110"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Plan not created&quot;</span><span class="p">)</span>
+<a id="ln-111" name="ln-111" href="#ln-111"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_TRANSPOSE_TYPE</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-112" name="ln-112" href="#ln-112"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `transpose_type` provided&quot;</span><span class="p">)</span>
+<a id="ln-113" name="ln-113" href="#ln-113"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_N_DIMENSIONS</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-114" name="ln-114" href="#ln-114"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid Number of dimensions provided. Valid options are 2 and 3&quot;</span><span class="p">)</span>
+<a id="ln-115" name="ln-115" href="#ln-115"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_DIMENSION_SIZE</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-116" name="ln-116" href="#ln-116"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;One or more provided dimension sizes &lt;= 0&quot;</span><span class="p">)</span>
+<a id="ln-117" name="ln-117" href="#ln-117"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_COMM_TYPE</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-118" name="ln-118" href="#ln-118"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid communicator type provided&quot;</span><span class="p">)</span>
+<a id="ln-119" name="ln-119" href="#ln-119"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_PRECISION</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-120" name="ln-120" href="#ln-120"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `precision` parameter provided&quot;</span><span class="p">)</span>
+<a id="ln-121" name="ln-121" href="#ln-121"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_EFFORT</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-122" name="ln-122" href="#ln-122"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `effort` parameter provided&quot;</span><span class="p">)</span>
+<a id="ln-123" name="ln-123" href="#ln-123"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_EXECUTOR</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-124" name="ln-124" href="#ln-124"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `executor` parameter provided&quot;</span><span class="p">)</span>
+<a id="ln-125" name="ln-125" href="#ln-125"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_COMM_DIMS</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-126" name="ln-126" href="#ln-126"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Number of dimensions in provided Cartesian communicator &gt; Number of dimension passed to `create` subroutine&quot;</span><span class="p">)</span>
+<a id="ln-127" name="ln-127" href="#ln-127"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_COMM_FAST_DIM</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-128" name="ln-128" href="#ln-128"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Passed Cartesian communicator with number of processes in 1st (fastest varying) dimension &gt; 1 OR provided dtfft_pencil_t with distribution over 1st dimension&quot;</span><span class="p">)</span>
+<a id="ln-129" name="ln-129" href="#ln-129"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_MISSING_R2R_KINDS</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-130" name="ln-130" href="#ln-130"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;For R2R plan, `kinds` parameter must be passed if `executor` != `DTFFT_EXECUTOR_NONE`&quot;</span><span class="p">)</span>
+<a id="ln-131" name="ln-131" href="#ln-131"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_R2R_KINDS</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-132" name="ln-132" href="#ln-132"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid values detected in `kinds` parameter&quot;</span><span class="p">)</span>
+<a id="ln-133" name="ln-133" href="#ln-133"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_R2C_TRANSPOSE_PLAN</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-134" name="ln-134" href="#ln-134"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Transpose plan is not supported in R2C, use R2R or C2C plan instead&quot;</span><span class="p">)</span>
+<a id="ln-135" name="ln-135" href="#ln-135"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_AUX</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-136" name="ln-136" href="#ln-136"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `aux` buffer provided&quot;</span><span class="p">)</span>
+<a id="ln-137" name="ln-137" href="#ln-137"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INPLACE_TRANSPOSE</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-138" name="ln-138" href="#ln-138"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Inplace transpose is not supported&quot;</span><span class="p">)</span>
+<a id="ln-139" name="ln-139" href="#ln-139"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-140" name="ln-140" href="#ln-140"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Selected `executor` do not support R2R FFTs&quot;</span><span class="p">)</span>
+<a id="ln-141" name="ln-141" href="#ln-141"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_DIM</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-142" name="ln-142" href="#ln-142"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `dim` passed to `dtfft_get_pencil`&quot;</span><span class="p">)</span>
+<a id="ln-143" name="ln-143" href="#ln-143"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_USAGE</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-144" name="ln-144" href="#ln-144"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid API Usage.&quot;</span><span class="p">)</span>
+<a id="ln-145" name="ln-145" href="#ln-145"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PLAN_IS_CREATED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-146" name="ln-146" href="#ln-146"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Trying to create already created plan&quot;</span><span class="p">)</span>
+<a id="ln-147" name="ln-147" href="#ln-147"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_ALLOC_FAILED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-148" name="ln-148" href="#ln-148"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Allocation failed&quot;</span><span class="p">)</span>
+<a id="ln-149" name="ln-149" href="#ln-149"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_FREE_FAILED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-150" name="ln-150" href="#ln-150"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Memory free failed&quot;</span><span class="p">)</span>
+<a id="ln-151" name="ln-151" href="#ln-151"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_ALLOC_BYTES</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-152" name="ln-152" href="#ln-152"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `alloc_bytes` provided&quot;</span><span class="p">)</span>
+<a id="ln-153" name="ln-153" href="#ln-153"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_DLOPEN_FAILED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-154" name="ln-154" href="#ln-154"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Failed to open shared library. Set DTFFT_ENABLE_LOG=1 to see the error&quot;</span><span class="p">)</span>
+<a id="ln-155" name="ln-155" href="#ln-155"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_DLSYM_FAILED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-156" name="ln-156" href="#ln-156"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Failed to find symbol in shared library. Set DTFFT_ENABLE_LOG=1 to see the error&quot;</span><span class="p">)</span>
+<a id="ln-157" name="ln-157" href="#ln-157"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_R2C_TRANSPOSE_CALLED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-158" name="ln-158" href="#ln-158"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Calling to `transpose` method for R2C plan is not allowed&quot;</span><span class="p">)</span>
+<a id="ln-159" name="ln-159" href="#ln-159"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-160" name="ln-160" href="#ln-160"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Sizes of `lbound` and `sizes` arrays passed to `dtfft_pencil_t` constructor do not match&quot;</span><span class="p">)</span>
+<a id="ln-161" name="ln-161" href="#ln-161"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-162" name="ln-162" href="#ln-162"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Sizes of `lbound` and `sizes` &lt; 2 or &gt; 3 provided to `dtfft_pencil_t` constructor&quot;</span><span class="p">)</span>
+<a id="ln-163" name="ln-163" href="#ln-163"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_INVALID_COUNTS</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-164" name="ln-164" href="#ln-164"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `counts` provided to `dtfft_pencil_t` constructor&quot;</span><span class="p">)</span>
+<a id="ln-165" name="ln-165" href="#ln-165"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_INVALID_STARTS</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-166" name="ln-166" href="#ln-166"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid `starts` provided to `dtfft_pencil_t` constructor&quot;</span><span class="p">)</span>
+<a id="ln-167" name="ln-167" href="#ln-167"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_SHAPE_MISMATCH</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-168" name="ln-168" href="#ln-168"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Processes have same `starts` but different `counts` in some dimensions&quot;</span><span class="p">)</span>
+<a id="ln-169" name="ln-169" href="#ln-169"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_OVERLAP</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-170" name="ln-170" href="#ln-170"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Pencil overlap detected, i.e. two processes share same part of global space&quot;</span><span class="p">)</span>
+<a id="ln-171" name="ln-171" href="#ln-171"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_NOT_CONTINUOUS</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-172" name="ln-172" href="#ln-172"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Local pencils do not cover the global space without gaps&quot;</span><span class="p">)</span>
+<a id="ln-173" name="ln-173" href="#ln-173"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_PENCIL_NOT_INITIALIZED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-174" name="ln-174" href="#ln-174"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Pencil is not initialized, i.e. `constructor` subroutine was not called&quot;</span><span class="p">)</span>
+<a id="ln-175" name="ln-175" href="#ln-175"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_GPU_INVALID_STREAM</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-176" name="ln-176" href="#ln-176"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid stream provided&quot;</span><span class="p">)</span>
+<a id="ln-177" name="ln-177" href="#ln-177"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_GPU_INVALID_BACKEND</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-178" name="ln-178" href="#ln-178"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid GPU backend provided&quot;</span><span class="p">)</span>
+<a id="ln-179" name="ln-179" href="#ln-179"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_GPU_NOT_SET</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-180" name="ln-180" href="#ln-180"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Multiple MPI Processes located on same host share same GPU which is not supported&quot;</span><span class="p">)</span>
+<a id="ln-181" name="ln-181" href="#ln-181"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_VKFFT_R2R_2D_PLAN</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-182" name="ln-182" href="#ln-182"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions&quot;</span><span class="p">)</span>
+<a id="ln-183" name="ln-183" href="#ln-183"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_GPU_BACKENDS_DISABLED</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-184" name="ln-184" href="#ln-184"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Passed `effort` ==  `::DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t`&quot;</span><span class="p">)</span>
+<a id="ln-185" name="ln-185" href="#ln-185"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_NOT_DEVICE_PTR</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-186" name="ln-186" href="#ln-186"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;One of pointers passed to `dtfft_execute` or `dtfft_transpose` cannot be accessed from device&quot;</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-187" name="ln-187" href="#ln-187"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_NOT_NVSHMEM_PTR</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-188" name="ln-188" href="#ln-188"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;One of pointers passed to `dtfft_execute` or `dtfft_transpose` is not an `NVSHMEM` pointer&quot;</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-189" name="ln-189" href="#ln-189"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_PLATFORM</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-190" name="ln-190" href="#ln-190"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid platform provided&quot;</span><span class="p">)</span>
+<a id="ln-191" name="ln-191" href="#ln-191"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-192" name="ln-192" href="#ln-192"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Invalid executor provided for selected platform&quot;</span><span class="p">)</span>
+<a id="ln-193" name="ln-193" href="#ln-193"></a><span class="w">    </span><span class="k">case </span><span class="n">default</span>
+<a id="ln-194" name="ln-194" href="#ln-194"></a><span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">error_string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;Unknown error&quot;</span><span class="p">)</span>
+<a id="ln-195" name="ln-195" href="#ln-195"></a><span class="w">    </span><span class="k">endselect</span>
+<a id="ln-196" name="ln-196" href="#ln-196"></a><span class="k">  end function </span><span class="n">dtfft_get_error_string</span>
+<a id="ln-197" name="ln-197" href="#ln-197"></a><span class="k">end module </span><span class="n">dtfft_errors</span>
+</pre></div>
+
+      </section>
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

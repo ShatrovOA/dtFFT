@@ -20,8 +20,9 @@
 module dtfft_transpose_plan_host
 !! This module describes [[transpose_plan_host]] class
 use iso_fortran_env,                only: int8, int32, int64, real32, real64, output_unit
-use dtfft_abstract_transpose_plan,  only: abstract_transpose_plan, create_cart_comm
-use dtfft_pencil,                   only: pencil, get_local_sizes
+use dtfft_abstract_transpose_plan,  only: abstract_transpose_plan, create_pencils_and_comm
+use dtfft_errors
+use dtfft_pencil,                   only: pencil, pencil_init, get_local_sizes
 use dtfft_parameters
 use dtfft_transpose_handle_host,    only: transpose_handle_host
 use dtfft_utils
@@ -55,7 +56,7 @@ public :: transpose_plan_host
 
 contains
 
-  function create_private(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils) result(error_code)
+  function create_private(self, dims, transposed_dims, base_comm, comm_dims, effort, base_dtype, base_storage, is_custom_cart_comm, cart_comm, comms, pencils, ipencil) result(error_code)
   !! Creates transposition plans
     class(transpose_plan_host),     intent(inout) :: self                 !! Transposition class
     integer(int32),                 intent(in)    :: dims(:)              !! Global sizes of the transform requested
@@ -69,6 +70,7 @@ contains
     TYPE_MPI_COMM,                  intent(out)   :: cart_comm            !! Cartesian communicator
     TYPE_MPI_COMM,                  intent(out)   :: comms(:)             !! Array of 1d communicators
     type(pencil),                   intent(out)   :: pencils(:)           !! Pencils
+    type(pencil_init),    optional, intent(in)    :: ipencil
     integer(int32)                                :: error_code           !! Error code
     integer(int32),                 allocatable   :: best_comm_dims(:)
     integer(int8) :: d, ndims, n_transpose_plans
@@ -112,8 +114,9 @@ contains
         call self%autotune_grid(                                &
           base_comm, comm_dims,                                 &
           dims, transposed_dims,                                &
-          effort, base_dtype, base_storage,                &
-          dummy, dummy_timer, dummy_decomp, forw_ids, back_ids  &
+          effort, base_dtype, base_storage,                     &
+          dummy, dummy_timer, dummy_decomp, forw_ids, back_ids, &
+          ipencil=ipencil                                         &
         )
         best_forward_ids(:) = forw_ids(:, 1)
         best_backward_ids(:) = back_ids(:, 1)
@@ -141,10 +144,7 @@ contains
       WRITE_INFO(repeat("*", 50))
     endif
 
-    call create_cart_comm(base_comm, best_comm_dims, cart_comm, comms)
-    do d = 1, ndims
-      call pencils(d)%create(ndims, d, transposed_dims(:,d), comms)
-    enddo
+    call create_pencils_and_comm(transposed_dims, base_comm, best_comm_dims, cart_comm, comms, pencils, ipencil=ipencil)
 
     allocate( self%fplans(n_transpose_plans), self%bplans(n_transpose_plans) )
 
@@ -168,7 +168,7 @@ contains
 
   subroutine execute_private(self, in, out, transpose_type)
   !! Executes single transposition
-    class(transpose_plan_host),   intent(inout) :: self         !! Transposition class
+    class(transpose_plan_host),   intent(inout) :: self           !! Transposition class
     real(real32),                 intent(inout) :: in(:)          !! Incoming buffer
     real(real32),                 intent(inout) :: out(:)         !! Resulting buffer
     type(dtfft_transpose_t),      intent(in)    :: transpose_type !! Type of transpose to execute
@@ -185,12 +185,14 @@ contains
     class(transpose_plan_host),     intent(inout) :: self         !! Transposition class
     integer(int8) :: i
 
-    do i = 1, size(self%bplans, kind=int8)
-      call self%fplans(i)%destroy()
-      call self% bplans(i)%destroy()
-    enddo
-    deallocate(self%fplans)
-    deallocate(self% bplans)
+    if ( allocated( self%bplans ) ) then
+      do i = 1, size(self%bplans, kind=int8)
+        call self%fplans(i)%destroy()
+        call self% bplans(i)%destroy()
+      enddo
+      deallocate(self%fplans)
+      deallocate(self% bplans)
+    endif
   end subroutine destroy
 
   subroutine autotune_grid_decomposition(self, dims, transposed_dims, base_comm, effort, n_transpose_plans, base_dtype, base_storage, best_comm_dims, best_forward_ids, best_backward_ids)
@@ -264,7 +266,7 @@ contains
     deallocate(timers, decomps, forw_ids, back_ids)
   end subroutine autotune_grid_decomposition
 
-  subroutine autotune_grid(self, base_comm, comm_dims, dims, transposed_dims, effort, base_dtype, base_storage, latest_timer_id, timers, decomps, forw_ids, back_ids)
+  subroutine autotune_grid(self, base_comm, comm_dims, dims, transposed_dims, effort, base_dtype, base_storage, latest_timer_id, timers, decomps, forw_ids, back_ids, ipencil)
   !! Creates cartesian communicator and executes various datatypes on it
     class(transpose_plan_host),   intent(in)    :: self                 !! Abstract plan
     TYPE_MPI_COMM,                intent(in)    :: base_comm            !! Base communicator
@@ -279,6 +281,7 @@ contains
     integer(int32),               intent(inout) :: decomps(:,:)         !! Current decomposition is stored in decomps(:, latest_timer_id)
     integer(int8),                intent(inout) :: forw_ids(:,:)        !! Best Forward ids are stored in forw_ids(:, latest_timer_id)
     integer(int8),                intent(inout) :: back_ids(:,:)        !! Best Backward ids are stored in back_ids(:, latest_timer_id)
+    type(pencil_init),  optional, intent(in)    :: ipencil
     character(len=:),             allocatable   :: phase_name           !! Caliper phase name
     integer(int32)          :: ierr
     integer(int8)           :: d
@@ -310,11 +313,7 @@ contains
     allocate( pencils(ndims) )
     allocate( comms(ndims) )
 
-    call create_cart_comm(base_comm, comm_dims, comm, comms)
-    do d = 1, ndims
-      call pencils(d)%create(ndims, d, transposed_dims(:,d), comms)
-    enddo
-
+    call create_pencils_and_comm(transposed_dims, base_comm, comm_dims, comm, comms, pencils, ipencil=ipencil)
     call get_local_sizes(pencils, alloc_size=alloc_size)
     alloc_size = alloc_size * base_storage / FLOAT_STORAGE_SIZE
 

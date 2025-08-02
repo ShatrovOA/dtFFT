@@ -23,6 +23,7 @@ module dtfft_config
 use iso_c_binding
 use iso_fortran_env
 use dtfft_parameters
+use dtfft_errors
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime

@@ -22,6 +22,7 @@ module dtfft_interface_cuda
 !! CUDA Driver is loaded at runtime via dynamic loading.
 use iso_c_binding
 use iso_fortran_env,              only: int32
+use dtfft_errors
 use dtfft_parameters
 use dtfft_interface_cuda_runtime, only: dim3
 use dtfft_utils

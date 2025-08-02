@@ -22,10 +22,11 @@ module dtfft_executor_vkfft_m
 !! https://github.com/DTolm/VkFFT/tree/master
 use iso_c_binding,                  only: c_ptr, c_int, c_int8_t
 use iso_fortran_env,                only: int8, int32, int64
-use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
-use dtfft_interface_vkfft_m
 use dtfft_config,                   only: get_user_stream, get_user_platform
+use dtfft_errors
+use dtfft_interface_vkfft_m
+use dtfft_parameters
 implicit none
 private
 #include "dtfft_private.h"
