@@ -117,6 +117,11 @@ int main(int argc, char *argv[])
     DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "element_size != sizeof(float)")
   }
 
+  if ( comm_rank == 0 ) {
+    cout << "Using executor: " << get_executor_string(plan.get_executor())
+         << ", precision: " << get_precision_string(plan.get_precision()) << endl;
+  }
+
   size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
 
   float *buf, *check, *aux;

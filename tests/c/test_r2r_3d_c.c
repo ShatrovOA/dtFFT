@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_destroy(&plan) )
 
   // Recreate plan with pencils
-  DTFFT_CALL( dtfft_create_plan_r2r_pencil(&pencils[0], NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2r_pencil(&pencils[0], NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE, &plan) )
 
   size_t alloc_bytes;
   DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
