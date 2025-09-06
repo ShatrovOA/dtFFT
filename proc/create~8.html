@@ -76,20 +76,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.8% of total for procedures.">97 statements</a>
+                 title=" 0.1% of total for procedures.">7 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_executor_fftw_m.F90"> Source File</a>
+              <a href="../src/dtfft_nvrtc_kernel_cache.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_fftw_m.f90.html'>dtfft_executor_fftw_m.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_nvrtc_kernel_cache.f90.html'>dtfft_nvrtc_kernel_cache.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_nvrtc_kernel_cache.html'>dtfft_nvrtc_kernel_cache</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -135,14 +135,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)  
+    <h2>private  subroutine create(self)  
 </h2>
     
 
-    <p>Creates FFT plan via FFTW3 Interface</p>
+    <p>Creates cache</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/fftw_executor.html'>fftw_executor</a></p>
+    <p><a href='../type/nvrtc_cache.html'>nvrtc_cache</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -157,8 +157,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~117"></span>
-              class(<a href='../type/fftw_executor.html'>fftw_executor</a>),
+              <span class="anchor" id="variable-self~51"></span>
+              class(<a href='../type/nvrtc_cache.html'>nvrtc_cache</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -167,172 +167,7 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFTW FFT Executor</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-fft_rank~8"></span>
-              integer(kind=int8),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>fft_rank</strong></td>
-            <td>
-                <p>Rank of fft: 1 or 2</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-fft_type~5"></span>
-              integer(kind=int8),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>fft_type</strong></td>
-            <td>
-                <p>Type of fft: r2r, r2c, c2c</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-precision~26"></span>
-              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>precision</strong></td>
-            <td>
-                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-idist~16"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>idist</strong></td>
-            <td>
-                <p>Distance between the first element of two consecutive signals in a batch of the input data.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-odist~16"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>odist</strong></td>
-            <td>
-                <p>Distance between the first element of two consecutive signals in a batch of the output data.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-how_many~5"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>how_many</strong></td>
-            <td>
-                <p>Number of transforms to create</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-fft_sizes~5"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>fft_sizes</strong>(:)</td>
-            <td>
-                <p>Dimensions of transform</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-inembed~16"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>inembed</strong>(:)</td>
-            <td>
-                <p>Storage dimensions of the input data in memory.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-onembed~16"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>onembed</strong>(:)</td>
-            <td>
-                <p>Storage dimensions of the output data in memory.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-error_code~90"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>error_code</strong></td>
-            <td>
-                <p>Error code to be returned to user</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-r2r_kinds~6"></span>
-              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>r2r_kinds</strong>(:)</td>
-            <td>
-                <p>Kinds of r2r transform</p>
+                <p>Cache instance</p>
             </td>
         </tr>
     </tbody>
@@ -341,7 +176,7 @@
     <br>
     <div class="card">
       <div class="card-header">
-  <h3 class="card-title">Calls</h3>
+  <h3 class="card-title">Called by</h3>
       </div>
       <div class="card-body">
   <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -349,87 +184,124 @@
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
-<!-- Title: proc~~create~8~~CallsGraph Pages: 1 -->
-<svg id="proccreate8CallsGraph" width="289pt" height="200pt"
- viewBox="0.00 0.00 289.00 200.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~create~8~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 196)">
-<title>proc~~create~8~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-196 285,-196 285,4 -4,4"/>
+<!-- Title: proc~~create~8~~CalledByGraph Pages: 1 -->
+<svg id="proccreate8CalledByGraph" width="641pt" height="31pt"
+ viewBox="0.00 0.00 641.00 31.15" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~create~8~~CalledByGraph" class="graph" transform="scale(0.6 0.6) rotate(0) translate(4 48)">
+<title>proc~~create~8~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-48 1066,-48 1066,4 -4,4"/>
 <!-- proc~create~8 -->
-<g id="proc~~create~8~~CallsGraph_node1" class="node">
+<g id="proc~~create~8~~CalledByGraph_node1" class="node">
 <title>proc~create~8</title>
-<polygon fill="none" stroke="black" points="127,-108 0,-108 0,-84 127,-84 127,-108"/>
-<text text-anchor="middle" x="63.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50">fftw_executor%create</text>
+<polygon fill="none" stroke="black" points="1062,-44 941,-44 941,-20 1062,-20 1062,-44"/>
+<text text-anchor="middle" x="1001.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50">nvrtc_cache%create</text>
 </g>
-<!-- constructor -->
-<g id="proc~~create~8~~CallsGraph_node2" class="node">
-<title>constructor</title>
-<polygon fill="#777777" stroke="#777777" points="258.5,-192 185.5,-192 185.5,-168 258.5,-168 258.5,-192"/>
-<text text-anchor="middle" x="222" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">constructor</text>
-</g>
-<!-- proc~create~8&#45;&gt;constructor -->
-<g id="proc~~create~8~~CallsGraph_edge1" class="edge">
-<title>proc~create~8&#45;&gt;constructor</title>
-<path fill="none" stroke="#ff0000" d="M80.91,-108.11C99.94,-121.76 132.6,-144 163,-159 167.05,-161 171.35,-162.91 175.69,-164.71"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="174.62,-168.05 185.21,-168.45 177.18,-161.53 174.62,-168.05"/>
-</g>
-<!-- constructor_inverse -->
-<g id="proc~~create~8~~CallsGraph_node3" class="node">
-<title>constructor_inverse</title>
-<polygon fill="#777777" stroke="#777777" points="281,-150 163,-150 163,-126 281,-126 281,-150"/>
-<text text-anchor="middle" x="222" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">constructor_inverse</text>
-</g>
-<!-- proc~create~8&#45;&gt;constructor_inverse -->
-<g id="proc~~create~8~~CallsGraph_edge2" class="edge">
-<title>proc~create~8&#45;&gt;constructor_inverse</title>
-<path fill="none" stroke="#ff0000" d="M109.35,-108.04C127.11,-112.8 147.7,-118.33 166.32,-123.33"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="165.58,-126.75 176.15,-125.96 167.4,-119.99 165.58,-126.75"/>
-</g>
-<!-- inverse_kinds -->
-<g id="proc~~create~8~~CallsGraph_node4" class="node">
-<title>inverse_kinds</title>
-<polygon fill="#777777" stroke="#777777" points="264.5,-108 179.5,-108 179.5,-84 264.5,-84 264.5,-108"/>
-<text text-anchor="middle" x="222" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">inverse_kinds</text>
-</g>
-<!-- proc~create~8&#45;&gt;inverse_kinds -->
-<g id="proc~~create~8~~CallsGraph_edge3" class="edge">
-<title>proc~create~8&#45;&gt;inverse_kinds</title>
-<path fill="none" stroke="#ff0000" d="M127.25,-96C141.21,-96 155.86,-96 169.31,-96"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="169.34,-99.5 179.34,-96 169.34,-92.5 169.34,-99.5"/>
-</g>
-<!-- knds -->
-<g id="proc~~create~8~~CallsGraph_node5" class="node">
-<title>knds</title>
-<polygon fill="#777777" stroke="#777777" points="249,-66 195,-66 195,-42 249,-42 249,-66"/>
-<text text-anchor="middle" x="222" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">knds</text>
-</g>
-<!-- proc~create~8&#45;&gt;knds -->
-<g id="proc~~create~8~~CallsGraph_edge4" class="edge">
-<title>proc~create~8&#45;&gt;knds</title>
-<path fill="none" stroke="#ff0000" d="M109.35,-83.96C133.31,-77.53 162.43,-69.72 184.92,-63.68"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="185.99,-67.02 194.74,-61.05 184.18,-60.26 185.99,-67.02"/>
-</g>
-<!-- proc~get_inverse_kind -->
-<g id="proc~~create~8~~CallsGraph_node6" class="node">
-<title>proc~get_inverse_kind</title>
-<g id="a_proc~~create~8~~CallsGraph_node6"><a xlink:href="../proc/get_inverse_kind.html" xlink:title="get_inverse_kind">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="273,-24 171,-24 171,0 273,0 273,-24"/>
-<text text-anchor="middle" x="222" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_inverse_kind</text>
+<!-- proc~add -->
+<g id="proc~~create~8~~CalledByGraph_node2" class="node">
+<title>proc~add</title>
+<g id="a_proc~~create~8~~CalledByGraph_node2"><a xlink:href="../proc/add.html" xlink:title="nvrtc_cache%add">
+<polygon fill="#d9534f" stroke="#d9534f" points="905,-44 798,-44 798,-20 905,-20 905,-44"/>
+<text text-anchor="middle" x="851.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvrtc_cache%add</text>
 </a>
 </g>
 </g>
-<!-- proc~create~8&#45;&gt;proc~get_inverse_kind -->
-<g id="proc~~create~8~~CallsGraph_edge5" class="edge">
-<title>proc~create~8&#45;&gt;proc~get_inverse_kind</title>
-<path fill="none" stroke="#ff0000" d="M80.91,-83.89C99.94,-70.24 132.6,-48 163,-33 166.73,-31.16 170.66,-29.4 174.64,-27.73"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="175.98,-30.96 183.98,-24.01 173.39,-24.46 175.98,-30.96"/>
+<!-- proc~add&#45;&gt;proc~create~8 -->
+<g id="proc~~create~8~~CalledByGraph_edge1" class="edge">
+<title>proc~add&#45;&gt;proc~create~8</title>
+<path fill="none" stroke="#ff0000" d="M905.1,-32C913.4,-32 922.09,-32 930.71,-32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="930.76,-35.5 940.76,-32 930.76,-28.5 930.76,-35.5"/>
+</g>
+<!-- proc~compile_and_cache -->
+<g id="proc~~create~8~~CalledByGraph_node3" class="node">
+<title>proc~compile_and_cache</title>
+<g id="a_proc~~create~8~~CalledByGraph_node3"><a xlink:href="../proc/compile_and_cache.html" xlink:title="compile_and_cache">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="762,-44 644,-44 644,-20 762,-20 762,-44"/>
+<text text-anchor="middle" x="703" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compile_and_cache</text>
+</a>
+</g>
+</g>
+<!-- proc~compile_and_cache&#45;&gt;proc~add -->
+<g id="proc~~create~8~~CalledByGraph_edge2" class="edge">
+<title>proc~compile_and_cache&#45;&gt;proc~add</title>
+<path fill="none" stroke="#ff0000" d="M762.32,-32C770.6,-32 779.15,-32 787.52,-32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="787.6,-35.5 797.6,-32 787.6,-28.5 787.6,-35.5"/>
+</g>
+<!-- proc~get_kernel -->
+<g id="proc~~create~8~~CalledByGraph_node4" class="node">
+<title>proc~get_kernel</title>
+<g id="a_proc~~create~8~~CalledByGraph_node4"><a xlink:href="../proc/get_kernel.html" xlink:title="get_kernel">
+<polygon fill="#d9534f" stroke="#d9534f" points="445,-44 376,-44 376,-20 445,-20 445,-44"/>
+<text text-anchor="middle" x="410.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_kernel</text>
+</a>
+</g>
+</g>
+<!-- proc~get_kernel&#45;&gt;proc~compile_and_cache -->
+<g id="proc~~create~8~~CalledByGraph_edge3" class="edge">
+<title>proc~get_kernel&#45;&gt;proc~compile_and_cache</title>
+<path fill="none" stroke="#ff0000" d="M445.08,-32.58C456.48,-32.75 469.3,-32.92 481,-33 537.44,-33.41 551.56,-33.3 608,-33 616.33,-32.96 625.07,-32.89 633.73,-32.81"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="633.87,-36.31 643.83,-32.72 633.8,-29.31 633.87,-36.31"/>
+</g>
+<!-- proc~get_transpose_kernel -->
+<g id="proc~~create~8~~CalledByGraph_node5" class="node">
+<title>proc~get_transpose_kernel</title>
+<g id="a_proc~~create~8~~CalledByGraph_node5"><a xlink:href="../proc/get_transpose_kernel.html" xlink:title="get_transpose_kernel">
+<polygon fill="#d9534f" stroke="#d9534f" points="608,-24 481,-24 481,0 608,0 608,-24"/>
+<text text-anchor="middle" x="544.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_transpose_kernel</text>
+</a>
+</g>
+</g>
+<!-- proc~get_kernel&#45;&gt;proc~get_transpose_kernel -->
+<g id="proc~~create~8~~CalledByGraph_edge6" class="edge">
+<title>proc~get_kernel&#45;&gt;proc~get_transpose_kernel</title>
+<path fill="none" stroke="#00ffff" d="M445.15,-26.9C453.09,-25.7 461.85,-24.37 470.78,-23.02"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="471.54,-26.44 480.9,-21.48 470.49,-19.52 471.54,-26.44"/>
+</g>
+<!-- proc~get_transpose_kernel&#45;&gt;proc~compile_and_cache -->
+<g id="proc~~create~8~~CalledByGraph_edge4" class="edge">
+<title>proc~get_transpose_kernel&#45;&gt;proc~compile_and_cache</title>
+<path fill="none" stroke="#ff0000" d="M608.25,-20.02C616.6,-21.09 625.18,-22.18 633.62,-23.26"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="633.44,-26.77 643.8,-24.56 634.32,-19.82 633.44,-26.77"/>
+</g>
+<!-- proc~create~5 -->
+<g id="proc~~create~8~~CalledByGraph_node6" class="node">
+<title>proc~create~5</title>
+<g id="a_proc~~create~8~~CalledByGraph_node6"><a xlink:href="../proc/create~5.html" xlink:title="nvrtc_kernel%create">
+<polygon fill="#d9534f" stroke="#d9534f" points="340,-44 218,-44 218,-20 340,-20 340,-44"/>
+<text text-anchor="middle" x="279" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvrtc_kernel%create</text>
+</a>
+</g>
+</g>
+<!-- proc~create~5&#45;&gt;proc~get_kernel -->
+<g id="proc~~create~8~~CalledByGraph_edge5" class="edge">
+<title>proc~create~5&#45;&gt;proc~get_kernel</title>
+<path fill="none" stroke="#ff0000" d="M340.2,-32C348.84,-32 357.59,-32 365.82,-32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="365.93,-35.5 375.93,-32 365.93,-28.5 365.93,-35.5"/>
+</g>
+<!-- proc~create~13 -->
+<g id="proc~~create~8~~CalledByGraph_node7" class="node">
+<title>proc~create~13</title>
+<g id="a_proc~~create~8~~CalledByGraph_node7"><a xlink:href="../proc/create~13.html" xlink:title="transpose_handle_cuda%create">
+<polygon fill="#d9534f" stroke="#d9534f" points="182,-44 0,-44 0,-20 182,-20 182,-44"/>
+<text text-anchor="middle" x="91" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_handle_cuda%create</text>
+</a>
+</g>
+</g>
+<!-- proc~create~13&#45;&gt;proc~create~5 -->
+<g id="proc~~create~8~~CalledByGraph_edge7" class="edge">
+<title>proc~create~13&#45;&gt;proc~create~5</title>
+<path fill="none" stroke="#ff0000" d="M182,-32C190.64,-32 199.31,-32 207.72,-32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="207.82,-35.5 217.82,-32 207.82,-28.5 207.82,-35.5"/>
 </g>
 </g>
 </svg>
-</div>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+</div>                <script>
+                  var panproccreate8CalledByGraph = svgPanZoom('#proccreate8CalledByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
           </div>
-          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
               <div class="modal-content">
                 <div class="modal-header">
