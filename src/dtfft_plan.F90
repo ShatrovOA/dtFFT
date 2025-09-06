@@ -735,11 +735,6 @@ contains
     CHECK_ERROR_AND_RETURN
     WRITE_REPORT("**Plan report**")
     WRITE_REPORT("  dtFFT Version        :  "//to_str(DTFFT_VERSION_MAJOR)//"."//to_str(DTFFT_VERSION_MINOR)//"."//to_str(DTFFT_VERSION_PATCH))
-#ifdef DTFFT_DEBUG
-    WRITE_REPORT("  Build type           :  DEBUG")
-#else
-    WRITE_REPORT("  Build type           :  RELEASE")
-#endif
     WRITE_REPORT("  Number of dimensions :  "//to_str(self%ndims))
 
     do d = 2, self%ndims

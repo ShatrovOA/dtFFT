@@ -28,7 +28,7 @@ use dtfft_parameters
 #include "_dtfft_private.h"
 implicit none
 private
-public :: string_f2c, string_c2f
+public :: string_f2c
 public :: to_str
 public :: write_message
 
@@ -36,6 +36,10 @@ public :: get_inverse_kind
 public :: is_same_ptr, is_null_ptr
 public :: mem_alloc_host, mem_free_host
 public :: string
+
+#if defined(DTFFT_WITH_CUDA) || defined(DTFFT_WITH_MKL)
+public :: string_c2f
+#endif
 
 #ifdef DTFFT_WITH_CUDA
 public :: destroy_strings
@@ -217,6 +221,7 @@ contains
     if(present( string_size )) string_size = j
   end subroutine string_f2c
 
+#if defined(DTFFT_WITH_CUDA) || defined(DTFFT_WITH_MKL)
   subroutine string_c2f(cstring, fstring)
   !! Convert C string to Fortran string
     type(c_ptr)                     :: cstring    !! C string
@@ -226,6 +231,7 @@ contains
     call c_f_pointer(cstring, fstring_)
     allocate( fstring, source=fstring_(1:max(len(fstring_), index(fstring_, c_null_char)) - 1) )
   end subroutine string_c2f
+#endif
 
 #ifdef DTFFT_WITH_CUDA
   subroutine astring_f2c(fstring, cstring, string_size)

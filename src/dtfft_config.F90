@@ -633,20 +633,20 @@ contains
   function get_env_base(name) result(env)
   !! Base function of obtaining dtFFT environment variable
     character(len=*), intent(in)    :: name         !! Name of environment variable without prefix
-    character(len=:), allocatable   :: full_name    !! Prefixed environment variable name
+    type(string)                    :: full_name    !! Prefixed environment variable name
     type(string)                    :: env          !! Environment variable value
     integer(int32)                  :: env_val_len  !! Length of the environment variable
 
-    allocate( full_name, source="DTFFT_"//name )
+    full_name = string("DTFFT_"//name)
 
-    call get_environment_variable(full_name, length=env_val_len)
+    call get_environment_variable(full_name%raw, length=env_val_len)
     allocate(character(env_val_len) :: env%raw)
     if ( env_val_len == 0 ) then
-      deallocate(full_name)
+      call full_name%destroy()
       return
     endif
-    call get_environment_variable(full_name, env%raw)
-    deallocate(full_name)
+    call get_environment_variable(full_name%raw, env%raw)
+    call full_name%destroy()
   end function get_env_base
 
 #ifdef DTFFT_WITH_CUDA
@@ -693,10 +693,10 @@ contains
     integer(int32),   intent(in)            :: default            !! Default value in case env is not set or it has wrong value
     integer(int32),   intent(in), optional  :: valid_values(:)    !! List of valid values
     integer(int32),   intent(in), optional  :: min_valid_value    !! Mininum valid value. Usually 0 or 1
-    ! character(len=:), allocatable           :: env_val_str        !! String value of the environment variable
+    type(string)                            :: env_val_str        !! String value of the environment variable
     logical                                 :: is_correct         !! Is env value is correct
     integer(int32)                          :: env_val_passed     !! Value of the environment variable
-    type(string) :: env_val_str
+    integer(int32)                          :: io_status          !! IO status of reading env variable
 
     if ( ( present(valid_values).and.present(min_valid_value) )           &
       .or.(.not.present(valid_values).and..not.present(min_valid_value))  &
@@ -710,7 +710,13 @@ contains
       env = default
       return
     endif
-    read(env_val_str%raw, *) env_val_passed
+    read(env_val_str%raw, *, iostat=io_status) env_val_passed
+    if (io_status /= 0) then
+      WRITE_ERROR("Invalid integer value for environment variable: `DTFFT_"//name//"`=<"//env_val_str%raw//">, it has been ignored")
+      env = default
+      deallocate(env_val_str%raw)
+      return
+    endif
     is_correct = .false.
     if ( present( valid_values ) ) then
       is_correct = any(env_val_passed == valid_values)
@@ -723,7 +729,7 @@ contains
       deallocate(env_val_str%raw)
       return
     endif
-    WRITE_ERROR("Invalid environment variable: `DTFFT_"//name//"`, it has been ignored")
+    WRITE_ERROR("Invalid integer value for environment variable: `DTFFT_"//name//"`=<"//env_val_str%raw//">, it has been ignored")
     env = default
     deallocate(env_val_str%raw)
   end function get_env_int32
