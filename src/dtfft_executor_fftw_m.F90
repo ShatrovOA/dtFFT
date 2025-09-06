@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 

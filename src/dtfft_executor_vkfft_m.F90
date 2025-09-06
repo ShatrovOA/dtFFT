@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -23,13 +23,13 @@ module dtfft_executor_vkfft_m
 use iso_c_binding,                  only: c_ptr, c_int, c_int8_t
 use iso_fortran_env,                only: int8, int32, int64
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
-use dtfft_config,                   only: get_user_stream, get_user_platform
+use dtfft_config,                   only: get_conf_stream, get_conf_platform
 use dtfft_errors
 use dtfft_interface_vkfft_m
 use dtfft_parameters
 implicit none
 private
-#include "dtfft_private.h"
+#include "_dtfft_private.h"
 public :: vkfft_executor
 
   type, extends(abstract_executor) :: vkfft_executor
@@ -77,7 +77,7 @@ contains
       dims(i) = fft_sizes(fft_rank - i + 1)
     enddo
 
-    platfrom = get_user_platform()
+    platfrom = get_conf_platform()
     CHECK_CALL( load_vkfft(platfrom), error_code )
 
     if ( platfrom == DTFFT_PLATFORM_CUDA ) then
@@ -124,9 +124,9 @@ contains
     else
       double_precision = 0
     endif
-    call self%wrapper%create(fft_rank, dims, double_precision, how_many, r2c, int(0, int8), dct, dst, get_user_stream(), self%plan_forward)
+    call self%wrapper%create(fft_rank, dims, double_precision, how_many, r2c, int(0, int8), dct, dst, get_conf_stream(), self%plan_forward)
     if ( self%is_inverse_required ) then
-      call self%wrapper%create(fft_rank, dims, double_precision, how_many, int(0, int8), r2c, dct, dst, get_user_stream(), self%plan_backward)
+      call self%wrapper%create(fft_rank, dims, double_precision, how_many, int(0, int8), r2c, dct, dst, get_conf_stream(), self%plan_backward)
     else
       self%plan_backward = self%plan_forward
     endif

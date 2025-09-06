@@ -1,0 +1,1675 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dtfft_nvrtc_kernel_generator &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>dtfft_nvrtc_kernel_generator
+      <small>Module</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 2.1% of total for modules and submodules.">234 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_nvrtc_kernel_generator.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_nvrtc_kernel_generator.f90.html'>dtfft_nvrtc_kernel_generator.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">dtfft_nvrtc_kernel_generator</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#types-0"
+         aria-expanded="false" aria-controls="types-0">
+         <h4 class="card-header bg-primary text-white">Derived Types</h4>
+      </a>
+      <div id="types-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#type-kernel_codegen">kernel_codegen</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#proc-get_transpose_kernel_code">get_transpose_kernel_code</a>
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#proc-get_unpack_kernel_code">get_unpack_kernel_code</a>
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#proc-get_unpack_pipelined_kernel_code">get_unpack_pipelined_kernel_code</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#proc-to_cstr">to_cstr</a>
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#proc-add_line">add_line</a>
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#proc-destroy_code">destroy_code</a>
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#proc-get_neighbor_function_code">get_neighbor_function_code</a>
+            <a class="list-group-item" href="../module/dtfft_nvrtc_kernel_generator.html#proc-get_code_init">get_code_init</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+
+    <div class="col-md-9" id='text'>
+      
+<br>          <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></li>
+                  <li class="list-inline-item"><a href='dtfft_interface_cuda.html'>dtfft_interface_cuda</a></li>
+                  <li class="list-inline-item"><a href='dtfft_nvrtc_block_optimizer.html'>dtfft_nvrtc_block_optimizer</a></li>
+                  <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
+                  <li class="list-inline-item"><a href='dtfft_interface_cuda_runtime.html'>dtfft_interface_cuda_runtime</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_nvrtc_kernel_generator~~UsesGraph Pages: 1 -->
+<svg id="moduledtfft_nvrtc_kernel_generatorUsesGraph" width="641pt" height="253pt"
+ viewBox="0.00 0.00 641.00 253.22" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph" class="graph" transform="scale(0.62 0.62) rotate(0) translate(4 406.84)">
+<title>module~~dtfft_nvrtc_kernel_generator~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-406.84 1036,-406.84 1036,4 -4,4"/>
+<!-- module~dtfft_nvrtc_kernel_generator -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node1" class="node">
+<title>module~dtfft_nvrtc_kernel_generator</title>
+<polygon fill="none" stroke="black" points="1032,-249.99 868,-249.99 868,-225.99 1032,-225.99 1032,-249.99"/>
+<text text-anchor="middle" x="950" y="-235.59" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_nvrtc_kernel_generator</text>
+</g>
+<!-- iso_c_binding -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-120.99 5,-120.99 5,-96.99 89,-96.99 89,-120.99"/>
+<text text-anchor="middle" x="47" y="-106.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge1" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-392.99C270.89,-388.3 204.84,-369.43 182,-354.99"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-78.99 0,-78.99 0,-54.99 94,-54.99 94,-78.99"/>
+<text text-anchor="middle" x="47" y="-64.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge2" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M929.04,-225.91C894.34,-205.15 820.35,-161.95 755,-130.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M753,-130.99C675.81,-94.43 686.67,-32.32 604.5,-8.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M602.5,-8.99C536.87,9.64 516.75,-17.05 449,-8.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-8.99C306.7,7.68 267.43,-0.19 130,-32.99 113.15,-37.02 95.3,-44.06 80.56,-50.69"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="78.97,-47.58 71.37,-54.96 81.91,-53.93 78.97,-47.58"/>
+</g>
+<!-- module~dtfft_interface_cuda -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node4" class="node">
+<title>module~dtfft_interface_cuda</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node4"><a xlink:href="../module/dtfft_interface_cuda.html" xlink:title="dtfft_interface_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="507.5,-140.99 388.5,-140.99 388.5,-116.99 507.5,-116.99 507.5,-140.99"/>
+<text text-anchor="middle" x="448" y="-126.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_interface_cuda -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge3" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M753,-130.99C693.35,-102.74 670.39,-127.19 604.5,-130.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M602.5,-130.99C574.9,-132.59 544.46,-132.56 518.02,-131.96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="517.81,-128.46 507.72,-131.7 517.63,-135.46 517.81,-128.46"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node5" class="node">
+<title>module~dtfft_interface_cuda_runtime</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node5"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
+<polygon fill="#337ab7" stroke="#337ab7" points="531,-288.99 365,-288.99 365,-264.99 531,-264.99 531,-288.99"/>
+<text text-anchor="middle" x="448" y="-274.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M889.01,-250.08C850.61,-257.96 799.78,-268.66 755,-278.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M753,-278.99C688.69,-293.83 670.38,-274.95 604.5,-278.99"/>
+</g>
+<!-- module~dtfft_interface_nvrtc -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node6" class="node">
+<title>module~dtfft_interface_nvrtc</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node6"><a xlink:href="../module/dtfft_interface_nvrtc.html" xlink:title="dtfft_interface_nvrtc">
+<polygon fill="#337ab7" stroke="#337ab7" points="508,-60.99 388,-60.99 388,-36.99 508,-36.99 508,-60.99"/>
+<text text-anchor="middle" x="448" y="-46.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvrtc</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_interface_nvrtc -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_interface_nvrtc</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M602.5,-8.99C592.2,-6.07 537.76,-21.46 496.61,-34"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="495.53,-30.66 487,-36.94 497.59,-37.36 495.53,-30.66"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node7" class="node">
+<title>module~dtfft_nvrtc_block_optimizer</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node7"><a xlink:href="../module/dtfft_nvrtc_block_optimizer.html" xlink:title="dtfft_nvrtc_block_optimizer">
+<polygon fill="#337ab7" stroke="#337ab7" points="832,-249.99 676,-249.99 676,-225.99 832,-225.99 832,-249.99"/>
+<text text-anchor="middle" x="754" y="-235.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_nvrtc_block_optimizer</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_nvrtc_block_optimizer -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge6" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_nvrtc_block_optimizer</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M867.85,-237.99C859.44,-237.99 850.86,-237.99 842.38,-237.99"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="842.1,-234.49 832.1,-237.99 842.1,-241.49 842.1,-234.49"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node8" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node8"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-292.99 130,-292.99 130,-268.99 232,-268.99 232,-292.99"/>
+<text text-anchor="middle" x="181" y="-278.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge7" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M753,-278.99C550.49,-325.72 503.14,-434.52 299.5,-392.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-392.99C272.1,-388.52 223.26,-332.24 198,-301.21"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="200.54,-298.78 191.54,-293.19 195.09,-303.17 200.54,-298.78"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node9" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node9"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-174.99 268,-174.99 268,-150.99 329,-150.99 329,-174.99"/>
+<text text-anchor="middle" x="298.5" y="-160.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M602.5,-130.99C569.67,-132.89 562.91,-142.06 531,-149.99 494.7,-159.02 486.38,-167.47 449,-168.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-168.99C410.46,-170.48 368.84,-168.45 339.14,-166.36"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="339.4,-162.86 329.16,-165.62 338.88,-169.85 339.4,-162.86"/>
+</g>
+<!-- mpi_f08 -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node10" class="node">
+<title>mpi_f08</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node10"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-253.99 19.5,-253.99 19.5,-229.99 74.5,-229.99 74.5,-253.99"/>
+<text text-anchor="middle" x="47" y="-239.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel_generator&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge9" class="edge">
+<title>module~dtfft_nvrtc_kernel_generator&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-392.99C246.95,-384.09 229.91,-411.43 182,-392.99"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M297.5,-122.99C267.31,-122.82 261.92,-136.96 232,-140.99 187.07,-147.05 174.55,-149.38 130,-140.99 113.53,-137.89 96.12,-131.58 81.6,-125.37"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="82.61,-121.99 72.05,-121.13 79.77,-128.38 82.61,-121.99"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M297.5,-122.99C246.17,-121.09 229.17,-147.32 182,-126.99"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M180,-126.99C158.17,-117.59 151.56,-118.01 130,-107.99 113.4,-100.28 110.34,-96.25 94,-87.99 90.93,-86.44 87.72,-84.87 84.49,-83.33"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="85.95,-80.15 75.41,-79.08 82.98,-86.49 85.95,-80.15"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M423.87,-141.09C389.52,-159.18 323.15,-194.62 268,-226.99 248.12,-238.67 226.1,-252.51 209.33,-263.25"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="207.11,-260.52 200.59,-268.87 210.9,-266.4 207.11,-260.52"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M394.58,-141.08C376.34,-145.28 356.2,-149.93 339.16,-153.85"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="337.96,-150.54 329,-156.19 339.53,-157.36 337.96,-150.54"/>
+</g>
+<!-- module~dtfft_errors -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node12" class="node">
+<title>module~dtfft_errors</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node12"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
+<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-98.99 145.5,-98.99 145.5,-74.99 216.5,-74.99 216.5,-98.99"/>
+<text text-anchor="middle" x="181" y="-84.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge12" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M388.17,-125.66C361.16,-124.37 328.72,-123.17 299.5,-122.99"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M297.5,-122.99C268.96,-122.83 238.17,-112.69 215.57,-103.22"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="216.67,-99.88 206.1,-99.09 213.87,-106.3 216.67,-99.88"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M415.5,-289.06C349.77,-313.83 202.41,-367.12 182,-354.99"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M180,-354.99C152.63,-337.69 147.72,-329.1 130,-301.99 124.98,-294.31 76.99,-178.98 56.84,-130.35"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="60.05,-128.95 52.99,-121.05 53.58,-131.63 60.05,-128.95"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge16" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M364.66,-280C343.42,-280.26 320.6,-280.08 299.5,-278.99"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-278.99C279.59,-278.07 260.09,-278.04 242.3,-278.39"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="241.97,-274.89 232.05,-278.63 242.14,-281.89 241.97,-274.89"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M392.24,-264.9C382.65,-261.35 373.15,-256.8 365,-250.99 340.47,-233.52 321.26,-204.06 310.15,-184.09"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="313.16,-182.3 305.36,-175.14 306.99,-185.6 313.16,-182.3"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M180,-46.99C138.12,-53.26 131.39,-68.13 94,-87.99 91.13,-89.52 88.13,-91.04 85.1,-92.53"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="83.52,-89.41 75.99,-96.87 86.53,-95.73 83.52,-89.41"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M387.71,-45.73C360.76,-44.88 328.48,-44.74 299.5,-46.99"/>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M297.5,-46.99C246.32,-50.97 232.77,-39.4 182,-46.99"/>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M180,-46.99C155.14,-50.71 127.65,-54.87 104.23,-58.43"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="103.48,-55 94.12,-59.96 104.53,-61.92 103.48,-55"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge21" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M429.45,-61.06C412.65,-72.73 386.73,-91.09 365,-107.99 350,-119.66 333.63,-133.41 321.01,-144.24"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="318.59,-141.7 313.31,-150.88 323.16,-147 318.59,-141.7"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M297.5,-46.99C268.44,-49.25 237.31,-60.61 214.69,-70.64"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="213.19,-67.48 205.56,-74.83 216.11,-73.85 213.19,-67.48"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M742.6,-225.81C723.26,-203.4 680.09,-154.5 640,-116.99 568.79,-50.37 546.34,-14.92 449,-8.99"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_interface_cuda -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M732.17,-225.76C704.16,-209.9 652.33,-182.69 604.5,-168.99"/>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M602.5,-168.99C571.24,-160.04 536.16,-150.84 507.43,-143.52"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="508.11,-140.08 497.56,-141.01 506.39,-146.87 508.11,-140.08"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge25" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M716.05,-250.09C679.52,-261.7 626.06,-277.67 604.5,-278.99"/>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M602.5,-278.99C582.7,-280.21 561.44,-280.55 541.24,-280.42"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="541.14,-276.92 531.11,-280.31 541.07,-283.92 541.14,-276.92"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M710.78,-250.05C699.18,-254.09 686.82,-259.09 676,-264.99 658.2,-274.7 659.02,-285.98 640,-292.99 608.75,-304.52 380.86,-300.25 365,-297.99 334.99,-293.73 329.77,-280.55 299.5,-278.99"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge27" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M602.5,-168.99C536.91,-150.21 517.17,-166.22 449,-168.99"/>
+</g>
+<!-- module~dtfft_config -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node11" class="node">
+<title>module~dtfft_config</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsesGraph_node11"><a xlink:href="../module/dtfft_config.html" xlink:title="dtfft_config">
+<polygon fill="#337ab7" stroke="#337ab7" points="640,-249.99 567,-249.99 567,-225.99 640,-225.99 640,-249.99"/>
+<text text-anchor="middle" x="603.5" y="-235.59" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_config -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M675.71,-237.99C667.08,-237.99 658.51,-237.99 650.46,-237.99"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="650.22,-234.49 640.22,-237.99 650.22,-241.49 650.22,-234.49"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge28" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M149.83,-268.88C142.79,-265.13 135.69,-260.51 130,-254.99 92.47,-218.66 67.23,-161.4 55.51,-130.49"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="58.79,-129.27 52.06,-121.09 52.22,-131.68 58.79,-129.27"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M168.04,-268.78C156.74,-256.6 140.04,-236.88 130,-216.99 103.17,-163.86 132.68,-133.24 94,-87.99 93.26,-87.13 92.47,-86.29 91.65,-85.49"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="93.48,-82.48 83.43,-79.14 89.2,-88.02 93.48,-82.48"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge30" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M139.32,-268.97C121.71,-263.77 101.28,-257.74 84.21,-252.69"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="85.17,-249.33 74.59,-249.85 83.19,-256.04 85.17,-249.33"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge31" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M274.39,-175.17C251.62,-186.14 215.46,-200.89 182,-202.99"/>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M180,-202.99C129.11,-206.2 84.11,-157.74 62.17,-129.18"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="64.9,-126.97 56.12,-121.03 59.27,-131.14 64.9,-126.97"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge32" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M267.94,-155.62C244.23,-149.27 210.36,-139.21 182,-126.99"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge34" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M283.14,-175.15C278.25,-179.43 272.8,-184.33 268,-188.99 243.41,-212.88 216.68,-242.02 199.65,-261.01"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="196.82,-258.94 192.77,-268.73 202.04,-263.6 196.82,-258.94"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge35" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M180,-202.99C146.59,-205.1 110.21,-216.58 84.12,-226.54"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="82.68,-223.35 74.66,-230.27 85.24,-229.86 82.68,-223.35"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge33" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M283.2,-150.92C270.26,-140.3 250.48,-124.73 232,-112.99 226.97,-109.8 221.51,-106.66 216.1,-103.72"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="217.62,-100.56 207.14,-99 214.36,-106.76 217.62,-100.56"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge36" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-240.99C222.6,-234.23 194.82,-255.13 130,-216.99 95.43,-196.65 70.55,-155.55 57.78,-130.33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="60.86,-128.67 53.34,-121.21 54.57,-131.73 60.86,-128.67"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge37" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-236.99C381.88,-229.26 364.7,-248.04 299.5,-240.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-240.99C225.79,-233.25 248.24,-155.53 182,-126.99"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge39" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M566.9,-247.04C548.86,-251.62 526.52,-257.3 506.15,-262.47"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="505.16,-259.11 496.33,-264.97 506.89,-265.9 505.16,-259.11"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge40" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-240.99C281.86,-239.58 245.68,-253.18 217.95,-264.9"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="216.35,-261.78 208.54,-268.94 219.11,-268.21 216.35,-261.78"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge41" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M567,-240C535.8,-241.23 489.23,-241.77 449,-236.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-236.99C399.25,-231.32 350.71,-201.28 322.94,-181.26"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="324.81,-178.29 314.68,-175.16 320.65,-183.92 324.81,-178.29"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge42" class="edge">
+<title>module~dtfft_config&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M591.04,-250.4C577.82,-264 554.84,-285.53 531,-297.99 513.19,-307.31 200.93,-399.74 182,-392.99"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-392.99C157,-384.14 148.49,-385.29 130,-368.99 95.63,-338.7 70.01,-290.67 57.18,-263.18"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="60.36,-261.71 53.04,-254.05 53.98,-264.6 60.36,-261.71"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge38" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M593.86,-225.6C586.37,-214.63 575.44,-198.07 567,-182.99 548.94,-150.73 561.69,-128.62 531,-107.99 482.5,-75.4 309.58,-79.95 226.79,-84.22"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="226.48,-80.73 216.68,-84.76 226.86,-87.72 226.48,-80.73"/>
+</g>
+<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsesGraph_edge43" class="edge">
+<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M145.32,-81.74C132.78,-79.84 118.28,-77.64 104.36,-75.53"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="104.78,-72.06 94.36,-74.02 103.73,-78.98 104.78,-72.06"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_nvrtc_kernel_generatorUsesGraph = svgPanZoom('#moduledtfft_nvrtc_kernel_generatorUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+          <div class="card">
+      <h3 class="card-header card-title bg-light">Used by</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_nvrtc_kernel_generator~~UsedByGraph Pages: 1 -->
+<svg id="moduledtfft_nvrtc_kernel_generatorUsedByGraph" width="641pt" height="122pt"
+ viewBox="0.00 0.00 641.00 122.17" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph" class="graph" transform="scale(0.51 0.51) rotate(0) translate(4 234.63)">
+<title>module~~dtfft_nvrtc_kernel_generator~~UsedByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-234.63 1248,-234.63 1248,4 -4,4"/>
+<!-- module~dtfft_nvrtc_kernel_generator -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node1" class="node">
+<title>module~dtfft_nvrtc_kernel_generator</title>
+<polygon fill="none" stroke="black" points="164,-129.63 0,-129.63 0,-105.63 164,-105.63 164,-129.63"/>
+<text text-anchor="middle" x="82" y="-115.23" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_nvrtc_kernel_generator</text>
+</g>
+<!-- module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node2" class="node">
+<title>module~dtfft_nvrtc_kernel</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node2"><a xlink:href="../module/dtfft_nvrtc_kernel.html" xlink:title="dtfft_nvrtc_kernel">
+<polygon fill="#337ab7" stroke="#337ab7" points="306,-129.63 200,-129.63 200,-105.63 306,-105.63 306,-129.63"/>
+<text text-anchor="middle" x="253" y="-115.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_nvrtc_kernel</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_nvrtc_kernel_generator -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge1" class="edge">
+<title>module~dtfft_nvrtc_kernel&#45;&gt;module~dtfft_nvrtc_kernel_generator</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M199.92,-117.63C191.76,-117.63 183.13,-117.63 174.4,-117.63"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="174.13,-114.13 164.13,-117.63 174.13,-121.13 174.13,-114.13"/>
+</g>
+<!-- module~dtfft_abstract_backend -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node3" class="node">
+<title>module~dtfft_abstract_backend</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node3"><a xlink:href="../module/dtfft_abstract_backend.html" xlink:title="dtfft_abstract_backend">
+<polygon fill="#337ab7" stroke="#337ab7" points="476,-129.63 342,-129.63 342,-105.63 476,-105.63 476,-129.63"/>
+<text text-anchor="middle" x="409" y="-115.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_backend</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge2" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M341.8,-117.63C333.33,-117.63 324.7,-117.63 316.3,-117.63"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="316.2,-114.13 306.2,-117.63 316.2,-121.13 316.2,-114.13"/>
+</g>
+<!-- module~dtfft_abstract_transpose_plan -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node4" class="node">
+<title>module~dtfft_abstract_transpose_plan</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node4"><a xlink:href="../module/dtfft_abstract_transpose_plan.html" xlink:title="dtfft_abstract_transpose_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="865,-209.63 696,-209.63 696,-185.63 865,-185.63 865,-209.63"/>
+<text text-anchor="middle" x="780.5" y="-195.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_transpose_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_transpose_plan&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge3" class="edge">
+<title>module~dtfft_abstract_transpose_plan&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M585,-195.63C482.55,-183.94 365.82,-151.89 301.99,-132.71"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="302.79,-129.29 292.21,-129.74 300.76,-135.99 302.79,-129.29"/>
+</g>
+<!-- module~dtfft_abstract_transpose_plan&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge5" class="edge">
+<title>module~dtfft_abstract_transpose_plan&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M695.89,-200.5C661.99,-200.69 622.53,-199.68 587,-195.63"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M585,-195.63C528.21,-189.15 468.81,-156.22 435.89,-135.27"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="437.62,-132.23 427.33,-129.71 433.81,-138.1 437.62,-132.23"/>
+</g>
+<!-- module~dtfft_transpose_handle_cuda -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node5" class="node">
+<title>module~dtfft_transpose_handle_cuda</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node5"><a xlink:href="../module/dtfft_transpose_handle_cuda.html" xlink:title="dtfft_transpose_handle_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="863.5,-108.63 697.5,-108.63 697.5,-84.63 863.5,-84.63 863.5,-108.63"/>
+<text text-anchor="middle" x="780.5" y="-94.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_handle_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_nvrtc_kernel -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge4" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_nvrtc_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M767.67,-84.41C747.68,-64.75 704.97,-26.85 660,-12.63 597.28,7.21 576.55,0.01 512,-12.63 425.64,-29.53 331.7,-75.45 284.59,-100.6"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="282.67,-97.66 275.53,-105.49 286,-103.82 282.67,-97.66"/>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge9" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M757.97,-108.75C723.1,-127.15 651.65,-159.78 587,-157.63"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M585,-157.63C539.78,-156.12 489.57,-143.46 454.57,-132.78"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="455.26,-129.33 444.67,-129.69 453.18,-136.01 455.26,-129.33"/>
+</g>
+<!-- module~dtfft_backend_cufftmp_m -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node6" class="node">
+<title>module~dtfft_backend_cufftmp_m</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node6"><a xlink:href="../module/dtfft_backend_cufftmp_m.html" xlink:title="dtfft_backend_cufftmp_m">
+<polygon fill="#337ab7" stroke="#337ab7" points="660,-129.63 512,-129.63 512,-105.63 660,-105.63 660,-129.63"/>
+<text text-anchor="middle" x="586" y="-115.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_cufftmp_m</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_cufftmp_m -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge15" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_cufftmp_m</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M697.3,-105.59C688.32,-106.57 679.17,-107.57 670.17,-108.55"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="669.66,-105.09 660.1,-109.65 670.42,-112.05 669.66,-105.09"/>
+</g>
+<!-- module~dtfft_backend_mpi -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node7" class="node">
+<title>module~dtfft_backend_mpi</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node7"><a xlink:href="../module/dtfft_backend_mpi.html" xlink:title="dtfft_backend_mpi">
+<polygon fill="#337ab7" stroke="#337ab7" points="641.5,-87.63 530.5,-87.63 530.5,-63.63 641.5,-63.63 641.5,-87.63"/>
+<text text-anchor="middle" x="586" y="-73.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_mpi</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_mpi -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge16" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_mpi</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M697.3,-87.66C682.03,-85.99 666.27,-84.27 651.61,-82.67"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="651.98,-79.19 641.66,-81.59 651.22,-86.15 651.98,-79.19"/>
+</g>
+<!-- module~dtfft_backend_nccl_m -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node8" class="node">
+<title>module~dtfft_backend_nccl_m</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node8"><a xlink:href="../module/dtfft_backend_nccl_m.html" xlink:title="dtfft_backend_nccl_m">
+<polygon fill="#337ab7" stroke="#337ab7" points="650,-45.63 522,-45.63 522,-21.63 650,-21.63 650,-45.63"/>
+<text text-anchor="middle" x="586" y="-31.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_nccl_m</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_nccl_m -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge17" class="edge">
+<title>module~dtfft_transpose_handle_cuda&#45;&gt;module~dtfft_backend_nccl_m</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M746.96,-84.62C723.03,-75.92 689.64,-64.09 660,-54.63 653.59,-52.58 646.82,-50.51 640.11,-48.52"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="640.94,-45.11 630.36,-45.65 638.97,-51.83 640.94,-45.11"/>
+</g>
+<!-- module~dtfft_backend_cufftmp_m&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge6" class="edge">
+<title>module~dtfft_backend_cufftmp_m&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M511.8,-117.63C503.41,-117.63 494.84,-117.63 486.41,-117.63"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="486.21,-114.13 476.21,-117.63 486.21,-121.13 486.21,-114.13"/>
+</g>
+<!-- module~dtfft_backend_mpi&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge7" class="edge">
+<title>module~dtfft_backend_mpi&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M534.85,-87.66C514.62,-92.52 491.12,-98.16 469.99,-103.23"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="469.06,-99.85 460.16,-105.59 470.7,-106.66 469.06,-99.85"/>
+</g>
+<!-- module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge8" class="edge">
+<title>module~dtfft_backend_nccl_m&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M536.04,-45.7C527.88,-48.28 519.6,-51.26 512,-54.63 484.15,-66.95 454.81,-85.78 434.78,-99.64"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="432.71,-96.82 426.54,-105.43 436.73,-102.54 432.71,-96.82"/>
+</g>
+<!-- module~dtfft_plan -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node9" class="node">
+<title>module~dtfft_plan</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node9"><a xlink:href="../module/dtfft_plan.html" xlink:title="dtfft_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="1152,-209.63 1089,-209.63 1089,-185.63 1152,-185.63 1152,-209.63"/>
+<text text-anchor="middle" x="1120.5" y="-195.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_abstract_transpose_plan -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge11" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_abstract_transpose_plan</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1088.84,-209.46C1077.73,-213.17 1064.97,-216.78 1053,-218.63 983.83,-229.29 903.87,-220.6 848.73,-211.37"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="849.18,-207.9 838.73,-209.65 847.99,-214.79 849.18,-207.9"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node10" class="node">
+<title>module~dtfft_transpose_plan_cuda</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node10"><a xlink:href="../module/dtfft_transpose_plan_cuda.html" xlink:title="dtfft_transpose_plan_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="1053,-167.63 901,-167.63 901,-143.63 1053,-143.63 1053,-167.63"/>
+<text text-anchor="middle" x="977" y="-153.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_cuda -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge20" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_cuda</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1088.77,-187.69C1077.54,-184.12 1064.72,-180.12 1053,-176.63 1046.14,-174.58 1038.91,-172.49 1031.76,-170.45"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="1032.67,-167.07 1022.09,-167.71 1030.76,-173.8 1032.67,-167.07"/>
+</g>
+<!-- module~dtfft_transpose_plan_host -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node11" class="node">
+<title>module~dtfft_transpose_plan_host</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node11"><a xlink:href="../module/dtfft_transpose_plan_host.html" xlink:title="dtfft_transpose_plan_host">
+<polygon fill="#337ab7" stroke="#337ab7" points="1051,-209.63 903,-209.63 903,-185.63 1051,-185.63 1051,-209.63"/>
+<text text-anchor="middle" x="977" y="-195.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan_host</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_host -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge21" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan_host</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M1088.8,-197.63C1080.47,-197.63 1071.04,-197.63 1061.29,-197.63"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="1061.03,-194.13 1051.03,-197.63 1061.03,-201.13 1061.03,-194.13"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge10" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M900.68,-157.73C822.3,-159.52 696.01,-161.26 587,-157.63"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_abstract_transpose_plan -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge12" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_abstract_transpose_plan</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M920.26,-167.66C897.48,-172.58 870.94,-178.31 847.22,-183.43"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="846.28,-180.06 837.24,-185.59 847.76,-186.9 846.28,-180.06"/>
+</g>
+<!-- module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_transpose_handle_cuda -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge14" class="edge">
+<title>module~dtfft_transpose_plan_cuda&#45;&gt;module~dtfft_transpose_handle_cuda</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M936.17,-143.54C905.75,-134.32 863.66,-121.55 831.06,-111.66"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="831.86,-108.25 821.28,-108.69 829.83,-114.94 831.86,-108.25"/>
+</g>
+<!-- module~dtfft_transpose_plan_host&#45;&gt;module~dtfft_abstract_transpose_plan -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge13" class="edge">
+<title>module~dtfft_transpose_plan_host&#45;&gt;module~dtfft_abstract_transpose_plan</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M902.75,-197.63C893.73,-197.63 884.42,-197.63 875.16,-197.63"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="875.14,-194.13 865.14,-197.63 875.14,-201.13 875.14,-194.13"/>
+</g>
+<!-- module~dtfft -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node12" class="node">
+<title>module~dtfft</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node12"><a xlink:href="../module/dtfft.html" xlink:title="dtfft">
+<polygon fill="#337ab7" stroke="#337ab7" points="1243,-230.63 1189,-230.63 1189,-206.63 1243,-206.63 1243,-230.63"/>
+<text text-anchor="middle" x="1216" y="-216.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge18" class="edge">
+<title>module~dtfft&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1188.96,-212.78C1180.54,-210.89 1171.01,-208.75 1161.81,-206.68"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1162.56,-203.26 1152.04,-204.49 1161.03,-210.09 1162.56,-203.26"/>
+</g>
+<!-- module~dtfft_api -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node13" class="node">
+<title>module~dtfft_api</title>
+<g id="a_module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_node13"><a xlink:href="../module/dtfft_api.html" xlink:title="dtfft_api">
+<polygon fill="#337ab7" stroke="#337ab7" points="1244,-188.63 1188,-188.63 1188,-164.63 1244,-164.63 1244,-188.63"/>
+<text text-anchor="middle" x="1216" y="-174.23" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_api&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_nvrtc_kernel_generator~~UsedByGraph_edge19" class="edge">
+<title>module~dtfft_api&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1187.96,-182.7C1179.81,-184.53 1170.68,-186.58 1161.86,-188.56"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1161.09,-185.15 1152.1,-190.75 1162.62,-191.98 1161.09,-185.15"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_nvrtc_kernel_generatorUsedByGraph = svgPanZoom('#moduledtfft_nvrtc_kernel_generatorUsedByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsedByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsedByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+      <br>
+
+
+
+
+
+
+        <section>
+          <h2>Derived Types</h2>
+              <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-kernel_codegen"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/kernel_codegen.html'>kernel_codegen</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      <p>Class to build CUDA kernel code</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-raw"></span>
+              character(len=:),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>raw</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>String that holds CUDA code</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/kernel_codegen.html#boundprocedure-to_cstr'>to_cstr</a></strong></td>
+                <td>../../<p>Converts Fortran CUDA code to C pointer</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/kernel_codegen.html#boundprocedure-add_line'>add_line</a></strong></td>
+                <td>../../<p>Adds new line to CUDA code</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/kernel_codegen.html#boundprocedure-destroy~3'>destroy</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/destroy_code.html'>destroy_code</a></td>
+                <td>../../<p>Frees all memory</p></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_transpose_kernel_code"></span> <h3>public  function <a href='../proc/get_transpose_kernel_code.html'>get_transpose_kernel_code</a>(kernel_name, ndims, base_storage, transpose_type, enable_packing, padding) result(code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Generates code that will be used to locally tranpose data and prepares to send it to other processes
+ndims == 2</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kernel_name~2"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kernel_name</strong></td>
+            <td>
+<p>Name of CUDA kernel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ndims~4"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ndims</strong></td>
+            <td>
+<p>Number of dimensions</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~11"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transpose_type~4"></span>
+              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transpose_type</strong></td>
+            <td>
+<p>Transpose id</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_packing"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_packing</strong></td>
+            <td>
+<p>If data should be manually packed or not</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-padding~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>padding</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/kernel_codegen.html'>kernel_codegen</a>)</small>
+    </h4>
+    <p>Resulting code</p>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_unpack_kernel_code"></span> <h3>public  function <a href='../proc/get_unpack_kernel_code.html'>get_unpack_kernel_code</a>(kernel_name, base_storage, is_partial) result(code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Generates code that will be used to unpack data when it is recieved</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kernel_name~3"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kernel_name</strong></td>
+            <td>
+<p>Name of CUDA kernel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~12"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_partial"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_partial</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/kernel_codegen.html'>kernel_codegen</a>)</small>
+    </h4>
+    <p>Resulting code</p>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_unpack_pipelined_kernel_code"></span> <h3>public  function <a href='../proc/get_unpack_pipelined_kernel_code.html'>get_unpack_pipelined_kernel_code</a>(kernel_name, base_storage) result(code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Generates code that will be used to partially unpack data when it is recieved from other process</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kernel_name~4"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kernel_name</strong></td>
+            <td>
+<p>Name of CUDA kernel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~13"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/kernel_codegen.html'>kernel_codegen</a>)</small>
+    </h4>
+    <p>Resulting code</p>
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-to_cstr"></span> <h3>private  subroutine <a href='../proc/to_cstr.html'>to_cstr</a>(self, c_code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Converts Fortran CUDA code to C pointer</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~15"></span>
+              class(<a href='../type/kernel_codegen.html'>kernel_codegen</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Kernel code</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-c_code"></span>
+              character(len=c_char),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>c_code</strong>(:)</td>
+            <td>
+<p>C pointer to code</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-add_line"></span> <h3>private  subroutine <a href='../proc/add_line.html'>add_line</a>(self, line)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Adds new line to CUDA code</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~16"></span>
+              class(<a href='../type/kernel_codegen.html'>kernel_codegen</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Kernel code</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-line"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>line</strong></td>
+            <td>
+<p>Line to add</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-destroy_code"></span> <h3>private  subroutine <a href='../proc/destroy_code.html'>destroy_code</a>(self)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Frees all memory</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~17"></span>
+              class(<a href='../type/kernel_codegen.html'>kernel_codegen</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Kernel code</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_neighbor_function_code"></span> <h3>private  subroutine <a href='../proc/get_neighbor_function_code.html'>get_neighbor_function_code</a>(code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Generated device function that is used to determite id of process that to which data is being sent or from which data has been recieved
+based on local element coordinate</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-code"></span>
+              type(<a href='../type/kernel_codegen.html'>kernel_codegen</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>code</strong></td>
+            <td>
+<p>Resulting code</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_code_init"></span> <h3>private  subroutine <a href='../proc/get_code_init.html'>get_code_init</a>(kernel_name, base_storage, code, buffer_type)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Generates basic code that is used in all other kernels</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kernel_name"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kernel_name</strong></td>
+            <td>
+<p>Name of CUDA kernel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~10"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-code~2"></span>
+              type(<a href='../type/kernel_codegen.html'>kernel_codegen</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>code</strong></td>
+            <td>
+<p>Resulting code</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-buffer_type"></span>
+              character(len=:),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>buffer_type</strong></td>
+            <td>
+<p>Type of buffer that should be used</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

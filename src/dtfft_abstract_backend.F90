@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -21,6 +21,7 @@ module dtfft_abstract_backend
 !! This module describes Abstraction for all GPU Backends: [[abstract_backend]]
 use iso_c_binding
 use iso_fortran_env
+use dtfft_config, only: get_env
 use dtfft_interface_cuda_runtime
 #ifdef DTFFT_WITH_NCCL
 use dtfft_interface_nccl
@@ -29,9 +30,9 @@ use dtfft_nvrtc_kernel,   only: nvrtc_kernel
 use dtfft_parameters
 use dtfft_pencil,         only: pencil
 use dtfft_utils
-#include "dtfft_mpi.h"
-#include "dtfft_cuda.h"
-#include "dtfft_private.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_private.h"
 implicit none
 private
 public :: abstract_backend, backend_helper
@@ -203,6 +204,9 @@ contains
 
     if ( .not. self%is_selfcopy ) then
       call self%execute_private(in, out, stream, aux)
+#ifdef DTFFT_DEBUG
+      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+#endif
       return
     endif
 
@@ -224,6 +228,9 @@ contains
     ! Making future events, like FFT, on `stream` to wait for `copy_event`
     CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%copy_event, self%copy_stream) )
     CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(stream, self%copy_event, 0) )
+#ifdef DTFFT_DEBUG
+      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+#endif
   end subroutine execute
 
   subroutine destroy(self)

@@ -76,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 2.4% of total for derived types.</p>Including implementation: 10 statements,  0.1% of total for derived types.">13 statements</a>
+                 title="<p> 3.3% of total for derived types.</p>Including implementation: 16 statements,  0.2% of total for derived types.">19 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -116,14 +116,20 @@
       </a>
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_log">enable_log</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_z_slab">enable_z_slab</a>
-            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-platform~5">platform</a>
-            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-stream~25">stream</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-n_measure_warmup_iters~2">n_measure_warmup_iters</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-n_measure_iters~2">n_measure_iters</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-platform~4">platform</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-stream~29">stream</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-backend~13">backend</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_mpi_backends">enable_mpi_backends</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_pipelined_backends">enable_pipelined_backends</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_nccl_backends">enable_nccl_backends</a>
             <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_nvshmem_backends">enable_nvshmem_backends</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-enable_kernel_optimization">enable_kernel_optimization</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-n_configs_to_test~2">n_configs_to_test</a>
+            <a class="list-group-item" href="../type/dtfft_config_t.html#variable-force_kernel_optimization">force_kernel_optimization</a>
         </div>
       </div>
     </div>
@@ -319,6 +325,24 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
+              <span class="anchor" id="variable-enable_log"></span>
+              logical(kind=c_bool),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_log</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Should dtFFT print additional information during plan creation or not.</p>
+<p>Default is false.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-enable_z_slab"></span>
               logical(kind=c_bool),
             </td>
@@ -340,7 +364,45 @@ In all other cases it is considered that Z-slab is always faster, since it reduc
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~5"></span>
+              <span class="anchor" id="variable-n_measure_warmup_iters~2"></span>
+              integer(kind=c_int32_t),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_measure_warmup_iters</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Number of warmup iterations to execute when effort level is higher or equal to <code>DTFFT_MEASURE</code></p>
+<p>Default is 2.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_measure_iters~2"></span>
+              integer(kind=c_int32_t),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_measure_iters</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Number of iterations to execute when effort level is higher or equal to <code>DTFFT_MEASURE</code></p>
+<p>Default is 5.
+When <code>dtFFT</code> is built with CUDA support, this value also used to determine number
+of iterations when selecting block of threads for NVRTC transpose kernel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-platform~4"></span>
               type(<a href='dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
               <td>public</td>
@@ -361,7 +423,7 @@ This enables single library installation to be compiled with both host, CUDA and
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~25"></span>
+              <span class="anchor" id="variable-stream~29"></span>
               type(<a href='dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
               <td>public</td>
@@ -479,6 +541,71 @@ but it was noticed that disabling CUDA IPC seriously affects overall performance
 <p>Default is true.</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_kernel_optimization"></span>
+              logical(kind=c_bool),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_kernel_optimization</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Should dtFFT try to optimize NVRTC kernel block size when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+<p>Default is true.</p>
+<p>This option is only defined when dtFFT is built with CUDA support.</p>
+<p>Enabling this option will make autotuning process longer, but may result in better performance for some problem sizes.
+It is recommended to keep this option enabled.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_configs_to_test~2"></span>
+              integer(kind=c_int32_t),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_configs_to_test</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Number of top theoretical best performing blocks of threads to test for transposition kernels
+when <code>effort</code> is <code>DTFFT_PATIENT</code>  or <code>force_kernel_optimization</code> set to <code>true</code>.</p>
+<p>Default is 5.</p>
+<p>This option is only defined when dtFFT is built with CUDA support.</p>
+<p>It is recommended to keep this value between 3 and 10.
+Maximum possible value is 25.
+Setting this value to zero or one will disable kernel optimization.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-force_kernel_optimization"></span>
+              logical(kind=c_bool),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>force_kernel_optimization</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Whether to force kernel optimization when <code>effort</code> is not <code>DTFFT_PATIENT</code>.</p>
+<p>Default is false.</p>
+<p>This option is only defined when dtFFT is built with CUDA support.</p>
+<p>Enabling this option will make plan creation process longer, but may result in better performance for a long run.
+Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -499,7 +626,7 @@ but it was noticed that disabling CUDA IPC seriously affects overall performance
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_z_slab, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends) result(config)  
+    private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_log, enable_z_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_optimization, n_configs_to_test, force_kernel_optimization) result(config)  
 
     </h3>
     
@@ -518,6 +645,21 @@ but it was noticed that disabling CUDA IPC seriously affects overall performance
     <tbody>
         <tr>
             <td>
+              <span class="anchor" id="variable-enable_log~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_log</strong></td>
+            <td>
+<p>Should dtFFT use Z-slab optimization or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-enable_z_slab~2"></span>
               logical,
             </td>
@@ -533,7 +675,37 @@ but it was noticed that disabling CUDA IPC seriously affects overall performance
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~6"></span>
+              <span class="anchor" id="variable-n_measure_warmup_iters~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_measure_warmup_iters</strong></td>
+            <td>
+<p>Number of warmup iterations for measurements</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_measure_iters~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_measure_iters</strong></td>
+            <td>
+<p>Number of measurement iterations</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-platform~5"></span>
               type(<a href='dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
 <td>intent(in),</td>
@@ -548,7 +720,7 @@ but it was noticed that disabling CUDA IPC seriously affects overall performance
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~26"></span>
+              <span class="anchor" id="variable-stream~30"></span>
               type(<a href='dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in),</td>
@@ -634,6 +806,51 @@ but it was noticed that disabling CUDA IPC seriously affects overall performance
             <td><strong>enable_nvshmem_backends</strong></td>
             <td>
 <p>Should NVSHMEM Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_kernel_optimization~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_kernel_optimization</strong></td>
+            <td>
+<p>Should dtFFT try to optimize NVRTC kernel block size during autotune or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_configs_to_test~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_configs_to_test</strong></td>
+            <td>
+<p>Number of top theoretical best performing blocks of threads to test for transposition kernels when <code>effort</code> is <code>DTFFT_PATIENT</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-force_kernel_optimization~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>force_kernel_optimization</strong></td>
+            <td>
+<p>Whether to force kernel optimization when <code>effort</code> is not <code>DTFFT_PATIENT</code>.</p>
             </td>
         </tr>
     </tbody>

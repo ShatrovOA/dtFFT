@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -21,8 +21,8 @@ module dtfft_parameters
 !! This module defines common ``dtFFT`` parameters
 use iso_c_binding,    only: c_int32_t, c_null_ptr, c_ptr
 use iso_fortran_env,  only: int8, int32, int64, real32, real64
-#include "dtfft_mpi.h"
-#include "dtfft_private.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_private.h"
 implicit none
 private
 public :: dtfft_execute_t, dtfft_transpose_t
@@ -40,6 +40,7 @@ public :: is_host_executor, is_cuda_executor
 public :: dtfft_backend_t
 public :: dtfft_get_backend_string
 public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl, is_backend_cufftmp, is_backend_nvshmem
+public :: kernel_type_t, is_transpose_kernel, is_unpack_kernel
 public :: dtfft_stream_t, dtfft_get_cuda_stream
 #endif
 
@@ -57,6 +58,11 @@ public :: dtfft_stream_t, dtfft_get_cuda_stream
     module procedure :: dtfft_get_version_current  !! Get current version
     module procedure :: dtfft_get_version_required !! Get required version
   end interface dtfft_get_version
+
+  real(real32),   parameter,  public :: MAX_REAL32  =  huge(1._real32)
+    !! Maximum value of real32
+  integer(int32), parameter,  public :: MAX_INT32 = huge(1_int32)
+    !! Maximum value of int32
 
 !------------------------------------------------------------------------------------------------
 ! Execute types
@@ -95,7 +101,7 @@ public :: dtfft_stream_t, dtfft_get_cuda_stream
     !! Perform single transposition, from Z aligned to X aligned
   type(dtfft_transpose_t), parameter :: VALID_TRANSPOSE_TYPES(*) = [DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Y_TO_Z, DTFFT_TRANSPOSE_Z_TO_Y, DTFFT_TRANSPOSE_X_TO_Z, DTFFT_TRANSPOSE_Z_TO_X]
     !! Types of transpose that are valid to pass to `transpose` method
-  character(len=*), parameter,  public :: TRANSPOSE_NAMES(-3:3) = ["Z2X", "Z2Y", "Y2X", "NUL", "X2Y", "Y2Z", "X2Z"]
+  character(len=*), parameter,  public :: TRANSPOSE_NAMES(-3:3) = ["Z_TO_X", "Z_TO_Y", "Y_TO_X", " NULL ", "X_TO_Y", "Y_TO_Z", "X_TO_Z"]
     !! String representation of `dtfft_transpose_t`
 
 !------------------------------------------------------------------------------------------------
@@ -218,6 +224,7 @@ public :: operator(==)
     module procedure platform_eq        !! Check if two `dtfft_platform_t` are equal
 #ifdef DTFFT_WITH_CUDA
     module procedure gpu_backend_eq     !! Check if two `dtfft_backend_t` are equal
+    module procedure kernel_type_eq     !! Check if two `kernel_type_t` are equal
 #endif
   end interface
 
@@ -232,6 +239,7 @@ public :: operator(/=)
     module procedure platform_ne        !! Check if two `dtfft_platform_t` are not equal
 #ifdef DTFFT_WITH_CUDA
     module procedure gpu_backend_ne     !! Check if two `dtfft_backend_t` are not equal
+    module procedure kernel_type_ne     !! Check if two `kernel_type_t` are not equal
 #endif
   end interface
 
@@ -342,7 +350,7 @@ public :: operator(/=)
                                                                         ,DTFFT_BACKEND_CUFFTMP_PIPELINED    &
 #endif
                                                                         ]
-    !! List of valid GPU backends
+    !! List of valid GPU backends that `dtFFT` was compiled for
 
   type, bind(C) :: dtfft_stream_t
   !! `dtFFT` stream representation.
@@ -370,9 +378,36 @@ public :: dtfft_platform_t
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_platform_t),         parameter :: VALID_PLATFORMS(*) = [DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA]
     !! Valid platforms
-#endif
 
   ! type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HIP = dtfft_platform_t(3)
+
+  type :: kernel_type_t
+  !! nvRTC Kernel type
+    integer(int32) :: val
+  end type kernel_type_t
+
+  type(kernel_type_t), parameter, public  :: KERNEL_DUMMY               = kernel_type_t(-1)
+    !! Dummy kernel, does nothing
+  type(kernel_type_t), parameter, public  :: KERNEL_TRANSPOSE           = kernel_type_t(1)
+    !! Basic transpose kernel type.
+  type(kernel_type_t), parameter, public  :: KERNEL_TRANSPOSE_PACKED    = kernel_type_t(2)
+    !! Transposes data and packs it into contiguous buffer.
+    !! Should be used only in X-Y 3D plans.
+  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK              = kernel_type_t(3)
+    !! Unpacks contiguous buffer.
+  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK_SIMPLE_COPY  = kernel_type_t(4)
+    !! Doesn't actually unpacks anything. Performs ``cudaMemcpyAsync`` call.
+    !! Should be used only when backend is ``DTFFT_GPU_BACKEND_CUFFTMP``.
+  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK_PIPELINED    = kernel_type_t(5)
+    !! Unpacks pack of contiguous buffer recieved from rank.
+  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK_PARTIAL      = kernel_type_t(6)
+    !! Unpacks contiguous buffer recieved from everyone except myself.
+
+  type(kernel_type_t), parameter          :: TRANSPOSE_KERNELS(*) = [KERNEL_TRANSPOSE, KERNEL_TRANSPOSE_PACKED]
+    !! List of all transpose kernel types
+  type(kernel_type_t), parameter          :: UNPACK_KERNELS(*) = [KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED, KERNEL_UNPACK_PARTIAL]
+    !! List of all unpack kernel types
+#endif
 
   type(dtfft_platform_t), public, parameter :: PLATFORM_NOT_SET = dtfft_platform_t(VARIABLE_NOT_SET)
 
@@ -418,7 +453,7 @@ MAKE_NE_FUN(dtfft_executor_t, executor_ne)
 MAKE_NE_FUN(dtfft_effort_t, effort_ne)
 MAKE_NE_FUN(dtfft_precision_t, precision_ne)
 MAKE_NE_FUN(dtfft_r2r_kind_t, r2r_kind_ne)
- MAKE_NE_FUN(dtfft_platform_t, platform_ne)
+MAKE_NE_FUN(dtfft_platform_t, platform_ne)
 
 MAKE_VALID_FUN_DTYPE(dtfft_execute_t, is_valid_execute_type, VALID_EXECUTE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_transpose_t, is_valid_transpose_type, VALID_TRANSPOSE_TYPES)
@@ -483,6 +518,12 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
 #ifdef DTFFT_WITH_CUDA
   MAKE_EQ_FUN(dtfft_backend_t, gpu_backend_eq)
   MAKE_NE_FUN(dtfft_backend_t, gpu_backend_ne)
+
+  MAKE_EQ_FUN(kernel_type_t, kernel_type_eq)
+  MAKE_NE_FUN(kernel_type_t, kernel_type_ne)
+
+  MAKE_VALID_FUN_DTYPE(kernel_type_t, is_transpose_kernel, TRANSPOSE_KERNELS)
+  MAKE_VALID_FUN_DTYPE(kernel_type_t, is_unpack_kernel, UNPACK_KERNELS)
 
   MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_host_executor, HOST_EXECUTORS)
   MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_cuda_executor, CUDA_EXECUTORS)

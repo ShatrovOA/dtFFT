@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -18,45 +18,84 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_config
-!! This module handles additional configuration ``dtFFT``, provided by [[dtfft_config_t]]
-!! or environment variables
-use iso_c_binding
+!! Configuration module for dtFFT.
+!! It handles both runtime (environment variables) and compile-time ([[dtfft_config_t]]) configurations.
+use iso_c_binding, only: c_bool, c_int32_t
 use iso_fortran_env
-use dtfft_parameters
 use dtfft_errors
+use dtfft_parameters
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
 #endif
-#include "dtfft_cuda.h"
-#include "dtfft_mpi.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_private.h"
 implicit none
 private
+public :: init_internal
 public :: dtfft_config_t
+public :: string
 public :: dtfft_create_config, dtfft_set_config
-public :: get_z_slab
-public :: get_user_platform
+public :: get_conf_log_enabled, get_conf_z_slab_enabled
+public :: get_conf_platform
+public :: get_conf_measure_warmup_iters, get_conf_measure_iters
+public :: get_env, get_datatype_from_env
+
 #ifdef DTFFT_WITH_CUDA
-public :: get_user_stream
 public :: destroy_stream
-public :: get_user_gpu_backend
-public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_enabled
+public :: get_conf_stream
+public :: get_conf_backend
+public :: get_conf_mpi_enabled, get_conf_nvshmem_enabled, get_conf_nccl_enabled, get_conf_pipelined_enabled
+public :: get_conf_kernel_optimization_enabled, get_conf_configs_to_test
+public :: get_conf_forced_kernel_optimization
 #endif
 
-
+  logical,                    save  :: is_init_called = .false.
+    !! Has [[init_internal]] already been called or not
+  integer(int32),             save  :: log_enabled_from_env
+    !! Should we log messages to stdout or not
+  type(dtfft_platform_t),     save  :: platform_from_env = PLATFORM_NOT_SET
+    !! Platform obtained from environ
+  integer(int32),             save  :: z_slab_from_env
+    !! Should Z-slab be used if possible
+  integer(int32),             save  :: n_measure_warmup_iters_from_env
+    !! Number of warmup iterations for measurements
+  integer(int32),             save  :: n_measure_iters_from_env
+    !! Number of measurement iterations
+  logical,                    save  :: is_log_enabled = .false.
+    !! Should we print additional information during plan creation
   logical,                    save  :: is_z_slab_enabled = .true.
     !! Should we use z-slab decomposition or not
   type(dtfft_platform_t),     save  :: platform = DTFFT_PLATFORM_HOST
     !! Default platform
-
+  integer(int32),             save  :: n_measure_warmup_iters = CONF_DTFFT_MEASURE_WARMUP_ITERS
+    !! Number of warmup iterations for measurements
+  integer(int32),             save  :: n_measure_iters = CONF_DTFFT_MEASURE_ITERS
+    !! Number of measurement iterations
 #ifdef DTFFT_WITH_CUDA
+  type(dtfft_backend_t),      save  :: backend_from_env
+    !! Backend obtained from environ
+  integer(int32),             save  :: mpi_enabled_from_env
+    !! Should we use MPI backends during autotune or not
+  integer(int32),             save  :: nccl_enabled_from_env
+    !! Should we use NCCL backends during autotune or not
+  integer(int32),             save  :: nvshmem_enabled_from_env
+    !! Should we use NVSHMEM backends during autotune or not
+  integer(int32),             save  :: pipelined_enabled_from_env
+    !! Should we use pipelined backends during autotune or not
+  integer(int32),             save  :: kernel_optimization_enabled_from_env
+    !! Should we enable kernel block optimization during autotune or not
+  integer(int32),             save  :: n_configs_to_test_from_env
+    !! Number of blocks to test during nvrtc kernel autotune
+  integer(int32),             save  :: forced_kernel_optimization_from_env
+
 # ifdef DTFFT_WITH_NCCL
   type(dtfft_backend_t),  parameter :: DEFAULT_GPU_BACKEND = DTFFT_BACKEND_NCCL
 # else
   type(dtfft_backend_t),  parameter :: DEFAULT_GPU_BACKEND = DTFFT_BACKEND_MPI_P2P
 # endif
     !! Default GPU backend 
-
   type(dtfft_stream_t),       save  :: main_stream
     !! Default dtFFT CUDA stream
   type(dtfft_stream_t),       save  :: custom_stream
@@ -73,13 +112,27 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
     !! Should we use NCCL backends or not
   logical,                    save  :: is_nvshmem_enabled = .true.
     !! Should we use NCCL backends or not
+  logical,                    save  :: is_kernel_optimization_enabled = .true.
+    !! Should we use kernel optimization or not
+  integer(int32),             save  :: n_configs_to_test = CONF_DTFFT_CONFIGS_TO_TEST
+    !! Number of different NVRTC kernel configurations to try during autotune
+  logical,                    save  :: is_forced_kernel_optimization = .false.
+    !! Should we use forced kernel optimization or not
   type(dtfft_backend_t),      save  :: backend = DEFAULT_GPU_BACKEND
     !! Default GPU backend
 #endif
 
+  character(len=26), parameter :: UPPER_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    !! Upper case alphabet.
+  character(len=26), parameter :: LOWER_ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+    !! Lower case alphabet.
 
   type, bind(C) :: dtfft_config_t
   !! Type that can be used to set additional configuration parameters to ``dtFFT``
+    logical(c_bool)           :: enable_log
+      !! Should dtFFT print additional information during plan creation or not.
+      !!
+      !! Default is false.
     logical(c_bool)           :: enable_z_slab
       !! Should dtFFT use Z-slab optimization or not.
       !!
@@ -88,6 +141,16 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
       !! One should consider disabling Z-slab optimization in order to resolve `DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error 
       !! OR when underlying FFT implementation of 2D plan is too slow.
       !! In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
+    integer(c_int32_t)        :: n_measure_warmup_iters
+      !! Number of warmup iterations to execute when effort level is higher or equal to `DTFFT_MEASURE`
+      !!
+      !! Default is 2.
+    integer(c_int32_t)        :: n_measure_iters
+      !! Number of iterations to execute when effort level is higher or equal to `DTFFT_MEASURE`
+      !!
+      !! Default is 5.
+      !! When `dtFFT` is built with CUDA support, this value also used to determine number
+      !! of iterations when selecting block of threads for NVRTC transpose kernel
 #ifdef DTFFT_WITH_CUDA
     type(dtfft_platform_t)    :: platform
       !! Selects platform to execute plan.
@@ -146,6 +209,36 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
       !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
       !!
       !! Default is true.
+    logical(c_bool)           :: enable_kernel_optimization
+      !! Should dtFFT try to optimize NVRTC kernel block size when `effort` is `DTFFT_PATIENT` or not.
+      !!
+      !! Default is true.
+      !!
+      !! This option is only defined when dtFFT is built with CUDA support.
+      !!
+      !! Enabling this option will make autotuning process longer, but may result in better performance for some problem sizes.
+      !! It is recommended to keep this option enabled.
+
+    integer(c_int32_t)        :: n_configs_to_test
+      !! Number of top theoretical best performing blocks of threads to test for transposition kernels
+      !! when `effort` is `DTFFT_PATIENT`  or `force_kernel_optimization` set to `true`.
+      !!
+      !! Default is 5.
+      !!
+      !! This option is only defined when dtFFT is built with CUDA support.
+      !!
+      !! It is recommended to keep this value between 3 and 10.
+      !! Maximum possible value is 25.
+      !! Setting this value to zero or one will disable kernel optimization.
+    logical(c_bool)            :: force_kernel_optimization
+      !! Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
+      !!
+      !! Default is false.
+      !!
+      !! This option is only defined when dtFFT is built with CUDA support.
+      !!
+      !! Enabling this option will make plan creation process longer, but may result in better performance for a long run.
+      !! Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
 #endif
   end type dtfft_config_t
 
@@ -154,10 +247,126 @@ public :: get_mpi_enabled, get_nvshmem_enabled, get_nccl_enabled, get_pipelined_
     module procedure config_constructor
   end interface dtfft_config_t
 
+  interface get_conf_internal
+  !! Returns value from configuration unless environment variable is set
+    module procedure get_conf_internal_logical
+    module procedure get_conf_internal_int32
+  end interface get_conf_internal
+
+  interface get_env
+  !! Obtains environment variable
+    module procedure :: get_env_base
+#ifdef DTFFT_WITH_CUDA
+    module procedure :: get_env_string
+#endif
+    module procedure :: get_env_int32
+    module procedure :: get_env_int8
+    module procedure :: get_env_logical
+  end interface get_env
+
 contains
 
+  integer(int32) function init_internal()
+  !! Checks if MPI is initialized and loads environment variables
+    integer(int32)    :: ierr             !! Error code
+    logical           :: is_mpi_init      !! Is MPI initialized?
+
+    init_internal = DTFFT_SUCCESS
+
+    call MPI_Initialized(is_mpi_init, ierr)
+    if( .not. is_mpi_init ) then
+      init_internal = DTFFT_ERROR_MPI_FINALIZED
+      return
+    endif
+    ! Processing environment variables once
+    if ( is_init_called ) return
+
+    call init_environment()
+    is_init_called = .true.
+  end function init_internal
+
+  subroutine init_environment()
+
+    log_enabled_from_env = get_env("ENABLE_LOG", VARIABLE_NOT_SET, valid_values=[0, 1])
+    z_slab_from_env = get_env("ENABLE_Z_SLAB", VARIABLE_NOT_SET, valid_values=[0, 1])
+
+    n_measure_warmup_iters_from_env = get_env("MEASURE_WARMUP_ITERS", VARIABLE_NOT_SET, min_valid_value=0)
+    n_measure_iters_from_env = get_env("MEASURE_ITERS", VARIABLE_NOT_SET, min_valid_value=1)
+
+#ifdef DTFFT_WITH_CUDA
+    block
+      type(string), allocatable :: platforms(:)
+      character(len=:), allocatable :: pltfrm_env
+
+      allocate( platforms(2) )
+      platforms(1) = string("host")
+      platforms(2) = string("cuda")
+
+      allocate( pltfrm_env, source=get_env("PLATFORM", "undefined", platforms) )
+      if ( pltfrm_env == "undefined") then
+        platform_from_env = PLATFORM_NOT_SET
+      else if ( pltfrm_env == "host" ) then
+        platform_from_env = DTFFT_PLATFORM_HOST
+      else if ( pltfrm_env == "cuda") then
+        platform_from_env = DTFFT_PLATFORM_CUDA
+      endif
+
+      deallocate( pltfrm_env )
+      call destroy_strings(platforms)
+    endblock
+
+    block
+      type(string), allocatable :: backends(:)
+      character(len=:), allocatable :: bcknd_env
+
+      allocate( backends(8) )
+      backends(1) = string("mpi_dt")
+      backends(2) = string("mpi_p2p")
+      backends(3) = string("mpi_a2a")
+      backends(4) = string("mpi_p2p_pipe")
+      backends(5) = string("nccl")
+      backends(6) = string("nccl_pipe")
+      backends(7) = string("cufftmp")
+      backends(8) = string("cufftmp_pipe")
+
+      allocate( bcknd_env, source=get_env("BACKEND", "undefined", backends) )
+      select case ( bcknd_env )
+      case ( "undefined" )
+        backend_from_env = BACKEND_NOT_SET
+      case ( "mpi_dt" )
+        backend_from_env = DTFFT_BACKEND_MPI_DATATYPE
+      case ( "mpi_p2p" )
+        backend_from_env = DTFFT_BACKEND_MPI_P2P
+      case ( "mpi_a2a" )
+        backend_from_env = DTFFT_BACKEND_MPI_A2A
+      case ( "mpi_p2p_pipe" )
+        backend_from_env = DTFFT_BACKEND_MPI_P2P_PIPELINED
+      case ( "nccl" )
+        backend_from_env = DTFFT_BACKEND_NCCL
+      case ( "nccl_pipe" )
+        backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
+      case ( "cufftmp" )
+        backend_from_env = DTFFT_BACKEND_CUFFTMP
+      case ( "cufftmp_pipe")
+        backend_from_env = DTFFT_BACKEND_CUFFTMP_PIPELINED
+      endselect
+
+      deallocate( bcknd_env )
+      call destroy_strings(backends)
+    endblock
+
+    mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
+    nccl_enabled_from_env = get_env("ENABLE_NCCL", VARIABLE_NOT_SET, valid_values=[0, 1])
+    nvshmem_enabled_from_env = get_env("ENABLE_NVSHMEM", VARIABLE_NOT_SET, valid_values=[0, 1])
+    pipelined_enabled_from_env = get_env("ENABLE_PIPE", VARIABLE_NOT_SET, valid_values=[0, 1])
+    kernel_optimization_enabled_from_env = get_env("ENABLE_KERNEL_OPTIMIZATION", VARIABLE_NOT_SET, valid_values=[0, 1])
+    n_configs_to_test_from_env = get_env("CONFIGS_TO_TEST", VARIABLE_NOT_SET, min_valid_value=0)
+    forced_kernel_optimization_from_env = get_env("FORCE_KERNEL_OPTIMIZATION", VARIABLE_NOT_SET, valid_values=[0, 1])
+#endif
+  end subroutine init_environment
+
   pure subroutine dtfft_create_config(config) bind(C, name="dtfft_create_config_c")
-  !! Creates a new configuration with default values. 
+  !! Creates a new configuration and sets default values.
   !!
   !! C interface
     type(dtfft_config_t), intent(out) :: config !! Configuration to create
@@ -166,15 +375,25 @@ contains
 
 #ifdef DTFFT_WITH_CUDA
   pure function config_constructor(                                       &
-    enable_z_slab, platform, stream, backend,                             &
+    enable_log, enable_z_slab,                                            &
+    n_measure_warmup_iters, n_measure_iters,                              &
+    platform, stream, backend,                                            &
     enable_mpi_backends, enable_pipelined_backends,                       &
-    enable_nccl_backends, enable_nvshmem_backends) result(config)
+    enable_nccl_backends, enable_nvshmem_backends,                        &
+    enable_kernel_optimization, n_configs_to_test,                        &
+    force_kernel_optimization) result(config)
 #else
-  pure function config_constructor(enable_z_slab) result(config)
+  pure function config_constructor(enable_log, enable_z_slab, n_measure_warmup_iters, n_measure_iters) result(config)
 #endif
   !! Creates a new configuration
+    logical,                optional, intent(in)  :: enable_log
+      !! Should dtFFT use Z-slab optimization or not.
     logical,                optional, intent(in)  :: enable_z_slab
       !! Should dtFFT use Z-slab optimization or not.
+    integer(int32),         optional, intent(in)  :: n_measure_warmup_iters
+      !! Number of warmup iterations for measurements
+    integer(int32),         optional, intent(in)  :: n_measure_iters
+      !! Number of measurement iterations
 #ifdef DTFFT_WITH_CUDA
     type(dtfft_platform_t), optional, intent(in)  :: platform
       !! Selects platform to execute plan.
@@ -190,11 +409,22 @@ contains
       !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
     logical,                optional, intent(in)  :: enable_nvshmem_backends
       !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+    logical,                optional, intent(in)  :: enable_kernel_optimization
+      !! Should dtFFT try to optimize NVRTC kernel block size during autotune or not.
+    integer(int32),         optional, intent(in)  :: n_configs_to_test
+      !! Number of top theoretical best performing blocks of threads to test for transposition kernels when `effort` is `DTFFT_PATIENT`.
+    logical,                optional, intent(in)  :: force_kernel_optimization
+      !! Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
 #endif
+
     type(dtfft_config_t) :: config
       !! Constructed `dtFFT` config ready to be set by call to [[dtfft_set_config]]
-
+    config%enable_log = .false.;                if ( present(enable_log) ) config%enable_log = enable_log
     config%enable_z_slab = .true.;              if ( present(enable_z_slab) ) config%enable_z_slab = enable_z_slab
+    config%n_measure_warmup_iters = CONF_DTFFT_MEASURE_WARMUP_ITERS
+      if ( present(n_measure_warmup_iters) ) config%n_measure_warmup_iters = n_measure_warmup_iters
+    config%n_measure_iters = CONF_DTFFT_MEASURE_ITERS
+      if ( present(n_measure_iters) ) config%n_measure_iters = n_measure_iters
 #ifdef DTFFT_WITH_CUDA
     config%platform = DTFFT_PLATFORM_HOST;      if ( present(platform) ) config%platform = platform
     config%stream = NULL_STREAM;                if ( present(stream) ) config%stream = stream
@@ -203,6 +433,10 @@ contains
     config%enable_pipelined_backends = .true.;  if ( present(enable_pipelined_backends) ) config%enable_pipelined_backends = enable_pipelined_backends
     config%enable_nccl_backends = .true.;       if ( present(enable_nccl_backends) ) config%enable_nccl_backends = enable_nccl_backends
     config%enable_nvshmem_backends = .true.;    if ( present(enable_nvshmem_backends) ) config%enable_nvshmem_backends = enable_nvshmem_backends
+    config%enable_kernel_optimization = .true.; if ( present(enable_kernel_optimization) ) config%enable_kernel_optimization = enable_kernel_optimization
+    config%n_configs_to_test = CONF_DTFFT_CONFIGS_TO_TEST
+      if ( present(n_configs_to_test) ) config%n_configs_to_test = n_configs_to_test
+    config%force_kernel_optimization = .false.; if ( present(force_kernel_optimization) ) config%force_kernel_optimization = force_kernel_optimization
 #endif
   end function config_constructor
 
@@ -211,7 +445,19 @@ contains
     type(dtfft_config_t),     intent(in)  :: config     !! Configuration to set
     integer(int32), optional, intent(out) :: error_code !! Error code
 
+    is_log_enabled = config%enable_log
     is_z_slab_enabled = config%enable_z_slab
+
+    if ( config%n_measure_warmup_iters < 0 ) then
+      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS
+      return
+    endif
+    n_measure_warmup_iters = config%n_measure_warmup_iters
+    if ( config%n_measure_iters < 1 ) then
+      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_MEASURE_ITERS
+      return
+    endif
+    n_measure_iters = config%n_measure_iters
 
 #ifdef DTFFT_WITH_CUDA
     if (.not.is_valid_gpu_backend(config%backend)) then
@@ -244,24 +490,64 @@ contains
     is_pipelined_enabled = config%enable_pipelined_backends
     is_nccl_enabled = config%enable_nccl_backends
     is_nvshmem_enabled = config%enable_nvshmem_backends
+    is_forced_kernel_optimization = config%force_kernel_optimization
+    is_kernel_optimization_enabled = config%enable_kernel_optimization
+    n_configs_to_test = config%n_configs_to_test
+    if ( n_configs_to_test <= 1 ) then
+      is_kernel_optimization_enabled = .false.
+    endif
 #endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine dtfft_set_config
 
-  pure logical function get_z_slab()
-  !! Whether Z-slab optimization is enabled or not
-    get_z_slab = is_z_slab_enabled
-    if ( get_z_slab_from_env() /= VARIABLE_NOT_SET ) get_z_slab = get_z_slab_from_env() == 1
-  end function get_z_slab
+  elemental logical function get_conf_internal_logical(from_conf, from_env)
+  !! Returns value from configuration unless environment variable is set
+    logical,        intent(in) :: from_conf   !! Value from configuration
+    integer(int32), intent(in) :: from_env    !! Value from environment variable
+    get_conf_internal_logical = from_conf
+    if ( from_env /= VARIABLE_NOT_SET ) get_conf_internal_logical = from_env == 1
+  end function get_conf_internal_logical
 
-  pure type(dtfft_platform_t) function get_user_platform()
+  elemental integer(int32) function get_conf_internal_int32(from_conf, from_env)
+  !! Returns value from configuration unless environment variable is set
+    integer(int32), intent(in) :: from_conf   !! Value from configuration
+    integer(int32), intent(in) :: from_env    !! Value from environment variable
+    get_conf_internal_int32 = from_conf
+    if ( from_env /= VARIABLE_NOT_SET ) get_conf_internal_int32 = from_env
+  end function get_conf_internal_int32
+
+  elemental function get_conf_log_enabled() result(bool)
+  !! Whether logging is enabled or not
+    logical :: bool   !! Result flag
+    bool = get_conf_internal(is_log_enabled, log_enabled_from_env)
+  end function get_conf_log_enabled
+
+  elemental function get_conf_z_slab_enabled() result(bool)
+  !! Whether Z-slab optimization is enabled or not
+    logical :: bool   !! Result flag
+    bool = get_conf_internal(is_z_slab_enabled, z_slab_from_env)
+  end function get_conf_z_slab_enabled
+
+  elemental function get_conf_measure_warmup_iters() result(iters)
+  !! Returns the number of warmup iterations
+    integer(int32) :: iters  !! Result
+    iters = get_conf_internal(n_measure_warmup_iters, n_measure_warmup_iters_from_env)
+  end function get_conf_measure_warmup_iters
+
+  elemental function get_conf_measure_iters() result(iters)
+  !! Returns the number of measurement iterations
+    integer(int32) :: iters  !! Result
+    iters = get_conf_internal(n_measure_iters, n_measure_iters_from_env)
+  end function get_conf_measure_iters
+
+  elemental type(dtfft_platform_t) function get_conf_platform()
   !! Returns platform set by the user or default one
-    get_user_platform = platform
-    if ( get_platform_from_env() /= PLATFORM_NOT_SET ) get_user_platform = get_platform_from_env()
-  end function get_user_platform
+    get_conf_platform = platform
+    if ( platform_from_env /= PLATFORM_NOT_SET ) get_conf_platform = platform_from_env
+  end function get_conf_platform
 
 #ifdef DTFFT_WITH_CUDA
-  type(dtfft_stream_t) function get_user_stream() result(stream)
+  type(dtfft_stream_t) function get_conf_stream() result(stream)
   !! Returns either the custom provided by user or creates a new one
     if ( is_custom_stream ) then
       stream = custom_stream
@@ -272,7 +558,7 @@ contains
       is_stream_created = .true.
     endif
     stream = main_stream
-  end function get_user_stream
+  end function get_conf_stream
 
   subroutine destroy_stream
   !! Destroy the default stream if it was created
@@ -282,47 +568,196 @@ contains
     endif
   end subroutine destroy_stream
 
-  pure type(dtfft_backend_t) function get_user_gpu_backend()
+  elemental type(dtfft_backend_t) function get_conf_backend()
   !! Returns GPU backend set by the user or default one
-    get_user_gpu_backend = backend
-    if ( get_backend_from_env() /= BACKEND_NOT_SET) get_user_gpu_backend = get_backend_from_env()
-  end function get_user_gpu_backend
+    get_conf_backend = backend
+    if ( backend_from_env /= BACKEND_NOT_SET) get_conf_backend = backend_from_env
+  end function get_conf_backend
 
-  pure logical function get_pipelined_enabled()
+  elemental function get_conf_pipelined_enabled() result(bool)
   !! Whether pipelined backends are enabled or not
-    get_pipelined_enabled = is_pipelined_enabled
-    if ( get_pipe_enabled_from_env() /= VARIABLE_NOT_SET ) get_pipelined_enabled = get_pipe_enabled_from_env() == 1
-  end function get_pipelined_enabled
+    logical :: bool   !! Result flag
+    bool = get_conf_internal(is_pipelined_enabled, pipelined_enabled_from_env)
+  end function get_conf_pipelined_enabled
 
-  pure logical function get_mpi_enabled()
+  elemental function get_conf_mpi_enabled() result(bool)
   !! Whether MPI backends are enabled or not
+    logical :: bool  !! Result flag
 #if !defined(DTFFT_WITH_NCCL) && !defined(DTFFT_WITH_NVSHMEM)
-    get_mpi_enabled = .true.
+    bool = .true.
     ! Should not be .false. if only MPI backends are possible
 #else
-    get_mpi_enabled = is_mpi_enabled
-    if ( get_mpi_enabled_from_env() /= VARIABLE_NOT_SET ) get_mpi_enabled = get_mpi_enabled_from_env() == 1
+    bool = get_conf_internal(is_mpi_enabled, mpi_enabled_from_env)
 #endif
-  end function get_mpi_enabled
+  end function get_conf_mpi_enabled
 
-  pure logical function get_nccl_enabled()
+  elemental function get_conf_nccl_enabled() result(bool)
   !! Whether NCCL backends are enabled or not
+    logical :: bool  !! Result flag
 #ifdef DTFFT_WITH_NCCL
-    get_nccl_enabled = is_nccl_enabled
-    if ( get_nccl_enabled_from_env() /= VARIABLE_NOT_SET ) get_nccl_enabled = get_nccl_enabled_from_env() == 1
+    bool = get_conf_internal(is_nccl_enabled, nccl_enabled_from_env)
 #else
-    get_nccl_enabled = .false.
+    bool = .false.
 #endif
-  end function get_nccl_enabled
+  end function get_conf_nccl_enabled
 
-  pure logical function get_nvshmem_enabled()
+  elemental function get_conf_nvshmem_enabled() result(bool)
   !! Whether nvshmem backends are enabled or not
+    logical :: bool  !! Result flag
 #ifdef DTFFT_WITH_NVSHMEM
-    get_nvshmem_enabled = is_nvshmem_enabled
-    if ( get_nvshmem_enabled_from_env() /= VARIABLE_NOT_SET ) get_nvshmem_enabled = get_nvshmem_enabled_from_env() == 1
+    bool = get_conf_internal(is_nvshmem_enabled, nvshmem_enabled_from_env)
 #else
-    get_nvshmem_enabled = .false.
+    bool = .false.
 #endif
-  end function get_nvshmem_enabled
+  end function get_conf_nvshmem_enabled
+
+  elemental function get_conf_kernel_optimization_enabled() result(bool)
+  !! Whether kernel optimization is enabled or not
+    logical :: bool  !! Result flag
+    bool = get_conf_internal(is_kernel_optimization_enabled, kernel_optimization_enabled_from_env)
+  end function get_conf_kernel_optimization_enabled
+
+  pure function get_conf_configs_to_test() result(n)
+  !! Returns the number of configurations to test
+    integer(int32) :: n  !! Result
+    n = get_conf_internal(n_configs_to_test, n_configs_to_test_from_env)
+  end function get_conf_configs_to_test
+
+  elemental function get_conf_forced_kernel_optimization() result(bool)
+  !! Whether forced kernel optimization is enabled or not
+    logical :: bool  !! Result flag
+    bool = get_conf_internal(is_forced_kernel_optimization, forced_kernel_optimization_from_env)
+  end function get_conf_forced_kernel_optimization
 #endif
+
+  function get_env_base(name) result(env)
+  !! Base function of obtaining dtFFT environment variable
+    character(len=*), intent(in)    :: name         !! Name of environment variable without prefix
+    character(len=:), allocatable   :: full_name    !! Prefixed environment variable name
+    type(string)                    :: env          !! Environment variable value
+    integer(int32)                  :: env_val_len  !! Length of the environment variable
+
+    allocate( full_name, source="DTFFT_"//name )
+
+    call get_environment_variable(full_name, length=env_val_len)
+    allocate(character(env_val_len) :: env%raw)
+    if ( env_val_len == 0 ) then
+      deallocate(full_name)
+      return
+    endif
+    call get_environment_variable(full_name, env%raw)
+    deallocate(full_name)
+  end function get_env_base
+
+#ifdef DTFFT_WITH_CUDA
+  function get_env_string(name, default, valid_values) result(env)
+  !! Obtains string environment variable
+    character(len=*), intent(in)            :: name                 !! Name of environment variable without prefix
+    character(len=*), intent(in)            :: default              !! Name of environment variable without prefix
+    type(string),     intent(in)            :: valid_values(:)      !! List of valid variable values
+    character(len=:), allocatable           :: env                  !! Environment variable value
+    ! character(len=:), allocatable           :: env_val_str          !! String value of the environment variable
+    logical                                 :: is_correct           !! Is env value is correct
+    integer(int32) :: i, j
+    type(string) :: env_val_str
+
+    env_val_str = get_env(name)
+    if ( len(env_val_str%raw) == 0 ) then
+      deallocate(env_val_str%raw)
+      allocate(env, source=default)
+      return
+    endif
+
+    ! Converting to lowercase
+    do i=1, len(env_val_str%raw)
+      j = index(UPPER_ALPHABET, env_val_str%raw(i:i))
+      if (j>0) env_val_str%raw(i:i) = LOWER_ALPHABET(j:j)
+    enddo
+
+    is_correct = any([(env_val_str%raw == valid_values(i)%raw, i=1,size(valid_values))])
+
+    if ( is_correct ) then
+      allocate( env, source=env_val_str%raw )
+      deallocate(env_val_str%raw)
+      return
+    endif
+    WRITE_ERROR("Invalid environment variable: `DTFFT_"//name//"`, it has been ignored")
+    allocate(env, source=default)
+    deallocate(env_val_str%raw)
+  end function get_env_string
+#endif
+
+  integer(int32) function get_env_int32(name, default, valid_values, min_valid_value) result(env)
+  !! Base Integer function of obtaining dtFFT environment variable
+    character(len=*), intent(in)            :: name               !! Name of environment variable without prefix
+    integer(int32),   intent(in)            :: default            !! Default value in case env is not set or it has wrong value
+    integer(int32),   intent(in), optional  :: valid_values(:)    !! List of valid values
+    integer(int32),   intent(in), optional  :: min_valid_value    !! Mininum valid value. Usually 0 or 1
+    ! character(len=:), allocatable           :: env_val_str        !! String value of the environment variable
+    logical                                 :: is_correct         !! Is env value is correct
+    integer(int32)                          :: env_val_passed     !! Value of the environment variable
+    type(string) :: env_val_str
+
+    if ( ( present(valid_values).and.present(min_valid_value) )           &
+      .or.(.not.present(valid_values).and..not.present(min_valid_value))  &
+    ) then
+      INTERNAL_ERROR("`get_env_int32`")
+    endif
+
+    env_val_str = get_env(name)
+    if ( len(env_val_str%raw) == 0 ) then
+      deallocate(env_val_str%raw)
+      env = default
+      return
+    endif
+    read(env_val_str%raw, *) env_val_passed
+    is_correct = .false.
+    if ( present( valid_values ) ) then
+      is_correct = any(env_val_passed == valid_values)
+    endif
+    if ( present( min_valid_value ) ) then
+      is_correct = env_val_passed >= min_valid_value
+    endif
+    if ( is_correct ) then
+      env = env_val_passed
+      deallocate(env_val_str%raw)
+      return
+    endif
+    WRITE_ERROR("Invalid environment variable: `DTFFT_"//name//"`, it has been ignored")
+    env = default
+    deallocate(env_val_str%raw)
+  end function get_env_int32
+
+  integer(int8) function get_env_int8(name, default, valid_values) result(env)
+  !! Obtains int8 environment variable
+    character(len=*), intent(in)  :: name               !! Name of environment variable without prefix
+    integer(int8),    intent(in)  :: default            !! Default value in case env is not set or it has wrong value
+    integer(int32),   intent(in)  :: valid_values(:)    !! List of valid values
+    integer(int32)                :: val                !! Value of the environment variable
+
+    val = get_env(name, int(default, int32), valid_values)
+    env = int(val, int8)
+  end function get_env_int8
+
+  logical function get_env_logical(name, default) result(env)
+  !! Obtains logical environment variable
+    character(len=*), intent(in) :: name                !! Name of environment variable without prefix
+    logical,          intent(in) :: default             !! Default value in case env is not set or it has wrong value
+    integer(int32) :: def, val
+
+    if ( default ) then
+      def = 1
+    else
+      def = 0
+    endif
+    val = get_env(name, def, [0, 1])
+    env = val == 1
+  end function get_env_logical
+
+  integer(int8) function get_datatype_from_env(name) result(env)
+  !! Obtains datatype id from environment variable
+    character(len=*), intent(in)  :: name               !! Name of environment variable without prefix
+    env = get_env(name, 2_int8, [1, 2])
+  end function get_datatype_from_env
+
 end module dtfft_config

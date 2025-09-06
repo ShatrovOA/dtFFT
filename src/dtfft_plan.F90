@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -44,16 +44,15 @@ use dtfft_transpose_plan_host,        only: transpose_plan_host
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
-use dtfft_nvrtc_kernel,               only: clean_unused_cache
 use dtfft_transpose_plan_cuda,        only: transpose_plan_cuda
 #endif
 #ifdef DTFFT_WITH_NVSHMEM
 use dtfft_interface_nvshmem,          only: is_nvshmem_ptr
 #endif
-#include "dtfft_cuda.h"
-#include "dtfft_mpi.h"
-#include "dtfft_private.h"
-#include "dtfft_profile.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_private.h"
+#include "_dtfft_profile.h"
 implicit none
 private
 public :: dtfft_plan_t
@@ -362,7 +361,7 @@ contains
     type(dtfft_execute_t),      intent(in)    :: execute_type
       !! Type of execution.
     type(c_ptr),                intent(in)    :: aux
-      !! Optional auxiliary buffer.
+      !! Auxiliary buffer. Not optional. If not required, c_null_ptr must be passed.
       !! Size of buffer must be greater than value
       !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
     integer(int32),   optional, intent(out)   :: error_code
@@ -541,7 +540,8 @@ contains
 
     block
       logical     :: is_finalized
-
+      ! Following calls may contain calls to MPI
+      ! Must make sure that MPI is still enabled
       call MPI_Finalized(is_finalized, ierr)
 
       if ( is_finalized ) ierr = DTFFT_ERROR_MPI_FINALIZED
@@ -552,9 +552,6 @@ contains
       call self%plan%destroy()
       deallocate( self%plan )
     endif
-#ifdef DTFFT_WITH_CUDA
-    call clean_unused_cache()
-#endif
 
     if ( allocated(self%comms) ) then
       do d = 1, self%ndims
@@ -737,18 +734,23 @@ contains
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
     WRITE_REPORT("**Plan report**")
-      WRITE_REPORT("  dtFFT Version        :  "//int_to_str(dtfft_get_version()))
-      WRITE_REPORT("  Number of dimensions :  "//int_to_str(self%ndims))
+    WRITE_REPORT("  dtFFT Version        :  "//to_str(DTFFT_VERSION_MAJOR)//"."//to_str(DTFFT_VERSION_MINOR)//"."//to_str(DTFFT_VERSION_PATCH))
+#ifdef DTFFT_DEBUG
+    WRITE_REPORT("  Build type           :  DEBUG")
+#else
+    WRITE_REPORT("  Build type           :  RELEASE")
+#endif
+    WRITE_REPORT("  Number of dimensions :  "//to_str(self%ndims))
 
     do d = 2, self%ndims
       call MPI_Comm_size(self%comms(d), comm_dims(d), ierr)
     enddo
     if ( self%ndims == 2 ) then
-      WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2)))
-      WRITE_REPORT("  Grid decomposition   :  1x"//int_to_str(comm_dims(2)))
+      WRITE_REPORT("  Global dimensions    :  "//to_str(self%dims(1))//"x"//to_str(self%dims(2)))
+      WRITE_REPORT("  Grid decomposition   :  1x"//to_str(comm_dims(2)))
     else
-      WRITE_REPORT("  Global dimensions    :  "//int_to_str(self%dims(1))//"x"//int_to_str(self%dims(2))//"x"//int_to_str(self%dims(3)))
-      WRITE_REPORT("  Grid decomposition   :  1x"//int_to_str(comm_dims(2))//"x"//int_to_str(comm_dims(3)))
+      WRITE_REPORT("  Global dimensions    :  "//to_str(self%dims(1))//"x"//to_str(self%dims(2))//"x"//to_str(self%dims(3)))
+      WRITE_REPORT("  Grid decomposition   :  1x"//to_str(comm_dims(2))//"x"//to_str(comm_dims(3)))
     endif
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_HOST ) then
@@ -998,7 +1000,7 @@ contains
     self%storage_size = base_storage
 
     if ( allocated(self%pencils) ) then
-      do d = 1, size(self%pencils)
+      do d = 1, size(self%pencils, kind=int8)
         call self%pencils(d)%destroy()
       enddo
       deallocate( self%pencils )
@@ -1045,11 +1047,11 @@ contains
       endblock
     endif
 
-    if ( get_user_gpu_backend() == DTFFT_BACKEND_MPI_DATATYPE .or. self%platform == DTFFT_PLATFORM_HOST ) then
+    if ( get_conf_backend() == DTFFT_BACKEND_MPI_DATATYPE .or. self%platform == DTFFT_PLATFORM_HOST ) then
       allocate( transpose_plan_host :: self%plan )
     else
       allocate( transpose_plan_cuda :: self%plan )
-      self%stream = get_user_stream()
+      self%stream = get_conf_stream()
     endif
 #else
     allocate( transpose_plan_host :: self%plan )
@@ -1115,7 +1117,7 @@ contains
 
     CHECK_INTERNAL_CALL( init_internal() )
 
-    self%platform = get_user_platform()
+    self%platform = get_conf_platform()
 
     if ( .not.present(dims) .and. .not.present(pencil) ) INTERNAL_ERROR(".not.present(dims) .and. .not.present(pencil)")
     if ( present(dims) .and. present(pencil) ) INTERNAL_ERROR("present(dims) .and. present(pencil)")
@@ -1200,30 +1202,18 @@ contains
       select case(self%executor%val)
 #ifdef DTFFT_WITH_FFTW
       case (DTFFT_EXECUTOR_FFTW3%val)
-        if ( dim == 1 ) then
-          WRITE_DEBUG("Using FFTW3 executor")
-        endif
         allocate(fftw_executor :: self%fft(dim)%fft)
 #endif
 #ifdef DTFFT_WITH_MKL
       case (DTFFT_EXECUTOR_MKL%val)
-        if ( dim == 1 ) then
-          WRITE_DEBUG("Using MKL executor")
-        endif
         allocate(mkl_executor :: self%fft(dim)%fft)
 #endif
 #ifdef DTFFT_WITH_CUFFT
       case (DTFFT_EXECUTOR_CUFFT%val)
-        if ( dim == 1 ) then
-          WRITE_DEBUG("Using CUFFT executor")
-        endif
         allocate(cufft_executor :: self%fft(dim)%fft)
 #endif
 #ifdef DTFFT_WITH_VKFFT
       case (DTFFT_EXECUTOR_VKFFT%val)
-        if ( dim == 1 ) then
-           WRITE_DEBUG("Using VkFFT executor")
-        endif
         allocate(vkfft_executor :: self%fft(dim)%fft)
 #endif
       case default
@@ -1262,16 +1252,12 @@ contains
       !! Optional auxiliary buffer.
     integer(int64)                                :: alloc_size
       !! Number of elements to be allocated
-    character(len=100)                            :: debug_msg
-      !! Logging allocation size
     integer(int32) :: ierr
 
     if ( self%is_aux_alloc .or. .not.is_null_ptr(aux) ) return
 
     alloc_size = self%get_alloc_size() * self%get_element_size()
-    write(debug_msg, '(a, i0, a)') "Allocating auxiliary buffer of ",alloc_size," bytes"
-    WRITE_DEBUG(debug_msg)
-    ! self%aux_ptr = self%mem_alloc(alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
+    WRITE_DEBUG("Allocating auxiliary buffer of "//to_str(alloc_size)//" bytes")
     call self%mem_alloc_ptr(alloc_size, self%aux_ptr, ierr);  DTFFT_CHECK(ierr)
     self%is_aux_alloc = .true.
   end subroutine check_aux
@@ -1319,6 +1305,7 @@ contains
     integer(int32),         optional, intent(out)   :: error_code
       !! Optional Error Code returned to user
     integer(int32)          :: ierr               !! Error code
+
     CHECK_OPTIONAL_CALL( self%create_r2r_internal(pencil=pencil, kinds=kinds, comm=comm, precision=precision, effort=effort, executor=executor) )
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine create_r2r_pencil
@@ -1396,16 +1383,8 @@ contains
       !! Optional Error Code returned to user
     integer(int32)                    :: ierr               !! Error code
 
-    ierr = DTFFT_SUCCESS
-    if ( self%is_created ) ierr = DTFFT_ERROR_PLAN_IS_CREATED
-    CHECK_ERROR_AND_RETURN
-
-    REGION_BEGIN("create_c2c", COLOR_CREATE)
-    CHECK_OPTIONAL_CALL( self%create_c2c_core(dims, comm=comm, precision=precision, effort=effort, executor=executor) )
-
+    CHECK_OPTIONAL_CALL( self%create_c2c_internal(dims=dims, comm=comm, precision=precision, effort=effort, executor=executor) )
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-    self%is_created = .true.
-    REGION_END("create_c2c")
   end subroutine create_c2c
 
   subroutine create_c2c_pencil(self, pencil, comm, precision, effort, executor, error_code)
@@ -1614,7 +1593,7 @@ contains
 
     if ( self%platform == DTFFT_PLATFORM_HOST ) then
       if( self%is_transpose_plan ) then
-        call mem_alloc_host(alloc_bytes, ptr)
+        ptr = mem_alloc_host(alloc_bytes)
       else
         call self%fft(1)%fft%mem_alloc(alloc_bytes, ptr)
       endif

@@ -76,7 +76,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 0.0% of total for procedures.</p>Including implementation: 30 statements,  0.3% of total for procedures.">3 statements</a>
+                 title="<p> 0.0% of total for procedures.</p>Including implementation: 48 statements,  0.4% of total for procedures.">3 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -273,7 +273,7 @@ large graphs.</div>
 
         <h2>Module Procedures</h2>
             <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-config_constructor"></span> <h3>private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_z_slab, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends) result(config)  
+    <div class="card-header codesum"><span class="anchor" id="proc-config_constructor"></span> <h3>private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_log, enable_z_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_optimization, n_configs_to_test, force_kernel_optimization) result(config)  
 </h3></div>
     <div class="card-body">
           
@@ -292,6 +292,21 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
+              <span class="anchor" id="variable-enable_log~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_log</strong></td>
+            <td>
+<p>Should dtFFT use Z-slab optimization or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-enable_z_slab~2"></span>
               logical,
             </td>
@@ -307,7 +322,37 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~6"></span>
+              <span class="anchor" id="variable-n_measure_warmup_iters~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_measure_warmup_iters</strong></td>
+            <td>
+<p>Number of warmup iterations for measurements</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_measure_iters~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_measure_iters</strong></td>
+            <td>
+<p>Number of measurement iterations</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-platform~5"></span>
               type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
 <td>intent(in),</td>
@@ -322,7 +367,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~26"></span>
+              <span class="anchor" id="variable-stream~30"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in),</td>
@@ -408,6 +453,51 @@ large graphs.</div>
             <td><strong>enable_nvshmem_backends</strong></td>
             <td>
 <p>Should NVSHMEM Backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_kernel_optimization~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_kernel_optimization</strong></td>
+            <td>
+<p>Should dtFFT try to optimize NVRTC kernel block size during autotune or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_configs_to_test~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_configs_to_test</strong></td>
+            <td>
+<p>Number of top theoretical best performing blocks of threads to test for transposition kernels when <code>effort</code> is <code>DTFFT_PATIENT</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-force_kernel_optimization~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>force_kernel_optimization</strong></td>
+            <td>
+<p>Whether to force kernel optimization when <code>effort</code> is not <code>DTFFT_PATIENT</code>.</p>
             </td>
         </tr>
     </tbody>
