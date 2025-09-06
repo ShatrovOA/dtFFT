@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -26,8 +26,8 @@ use test_utils
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
 use cudafor, only: cuda_stream_kind, cudaStreamCreate, cudaStreamDestroy, cudaStreamSynchronize, cudaSuccess, cudaGetErrorString
 #endif
-#include "dtfft_mpi.h"
-#include "dtfft_cuda.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_cuda.h"
 #include "dtfft.f03"
 implicit none
   type(c_ptr) :: check
@@ -134,7 +134,7 @@ implicit none
 
   in_size = product(in_counts)
   allocate(inout(alloc_size))
-  call mem_alloc_host(in_size * FLOAT_STORAGE_SIZE, check)
+  check = mem_alloc_host(in_size * FLOAT_STORAGE_SIZE)
   call setTestValuesFloat(check, in_size)
 
   call c_f_pointer(check, check_, [in_size])

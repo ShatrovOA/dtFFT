@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
   config.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
 #endif
   config.platform = DTFFT_PLATFORM_CUDA;
-  DTFFT_CALL( dtfft_set_config(config) )
+  DTFFT_CALL( dtfft_set_config(&config) )
 #endif
 
   attach_gpu_to_process();

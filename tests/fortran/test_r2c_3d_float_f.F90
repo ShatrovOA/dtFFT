@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -22,14 +22,14 @@ use iso_fortran_env
 use iso_c_binding, only: c_loc, c_ptr
 use dtfft
 use test_utils
-#include "dtfft_mpi.h"
+#include "_dtfft_mpi.h"
 #if defined(DTFFT_WITH_CUDA)
 use dtfft_interface_cuda_runtime
 #if defined(__NVCOMPILER)
 use cudafor, only: cuda_stream_kind
 #endif
 #endif
-#include "dtfft_cuda.h"
+#include "_dtfft_cuda.h"
 #include "dtfft.f03"
 implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
@@ -147,7 +147,7 @@ implicit none
   in_size = product(in_counts)
   out_size = product(out_counts)
 
-  call mem_alloc_host(in_size * FLOAT_STORAGE_SIZE, check)
+  check = mem_alloc_host(in_size * FLOAT_STORAGE_SIZE)
   call setTestValuesFloat(check, in_size)
 
 #if defined(DTFFT_WITH_CUDA)

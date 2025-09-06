@@ -27,7 +27,11 @@ Accepted Values
 ---------------
 
 - **Type**: Integer
-- **Values**: ``0`` (disabled), ``1`` (enabled)
+- **Supported Values:**:
+
+  - ``0`` (disabled)
+  - ``1`` (enabled)
+
 - **Default**: ``0``
 
 DTFFT_MEASURE_WARMUP_ITERS
@@ -306,6 +310,93 @@ Accepted Values
   - ``1``: Enable pipelined GPU backends.
 
 - **Default**: ``1``
+
+.. note::
+
+  - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
+    to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
+  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
+
+
+.. _enable_kernel_optimization:
+
+DTFFT_ENABLE_KERNEL_OPTIMIZATION
+================================
+
+Specifies whether to enable transposition kernels optimizations when effort is :f:var:`DTFFT_PATIENT`.
+When enabled, optimized CUDA kernels are used for data transposition on GPUs.
+
+Purpose
+-------
+
+Kernel optimizations can significantly improve performance for various data layouts and sizes.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Disable kernel optimizations.
+  - ``1``: Enable kernel optimizations.
+
+- **Default**: ``1``
+
+
+.. note::
+
+  - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
+    to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
+  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
+
+
+DTFFT_CONFIGS_TO_TEST
+=====================
+
+Specifies number of kernel configurations to test when effort is :f:var:`DTFFT_PATIENT` and kernel optimizations are enabled.
+This variable allows users to control the extent of autotuning for kernel optimizations.
+
+Purpose
+-------
+
+Testing multiple configurations helps identify the best-performing kernel for specific data layouts and sizes.
+
+Accepted Values
+---------------
+
+- **Type**: Positive integer
+- **Recommended Range**: 3–10 (higher values increase tuning time but may yield better performance. Theoretical maximum is 25)
+- **Default**: ``5``
+
+.. note::
+
+  - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
+    to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
+  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
+  - Setting this variable to zero or one disables kernel optimizations, equivalent to setting
+    :ref:`DTFFT_ENABLE_KERNEL_OPTIMIZATION<enable_kernel_optimization>` to ``0``.
+
+
+DTFFT_FORCE_KERNEL_OPTIMIZATION
+===============================
+
+Forces to run kernnel optimizations when effort is NOT :f:var:`DTFFT_PATIENT`.
+
+Purpose
+-------
+
+Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Do not force kernel optimizations.
+  - ``1``: Force kernel optimizations.
+
+- **Default**: ``0``
 
 .. note::
 

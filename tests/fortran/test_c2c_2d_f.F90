@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -25,14 +25,14 @@ use test_utils
 #if defined(DTFFT_WITH_CUDA)
 use dtfft_interface_cuda_runtime
 #endif
-#include "dtfft_cuda.h"
-#include "dtfft_mpi.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
   type(c_ptr) :: check
   complex(real64),  pointer :: in(:,:), out(:,:)
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
-  integer(int32), parameter :: nx = 4, ny = 4
+  integer(int32), parameter :: nx = 4431, ny = 31
 #else
   integer(int32), parameter :: nx = 12, ny = 12
 #endif
@@ -111,7 +111,7 @@ implicit none
   call plan%mem_alloc(alloc_size, in, in_counts, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%mem_alloc(alloc_size, out, out_counts, error_code=ierr); DTFFT_CHECK(ierr)
 
-  call mem_alloc_host(in_size * DOUBLE_COMPLEX_STORAGE_SIZE, check)
+  check = mem_alloc_host(in_size * DOUBLE_COMPLEX_STORAGE_SIZE)
   call setTestValuesComplexDouble(check, in_size)
 
 #if defined(DTFFT_WITH_CUDA)

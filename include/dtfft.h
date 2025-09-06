@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -20,8 +20,8 @@
 /**
  * @file dtfft.h
  * @author Oleg Shatrov
- * @date 2024
- * @brief File containing C API functions of dtFFT Library
+ * @date 2024 - 2025
+ * @brief File containing C API of dtFFT Library
  */
 #ifndef DTFFT_H
 #define DTFFT_H
@@ -47,7 +47,7 @@ extern "C" {
 /** Generates Version Code based on Major, Minor, Patch */
 #define DTFFT_VERSION(X,Y,Z) CONF_DTFFT_VERSION(X,Y,Z)
 
-/** @return Version Code defined during compilation */
+/** @return `::DTFFT_VERSION_CODE` defined during library compilation */
 int32_t
 dtfft_get_version();
 
@@ -157,6 +157,10 @@ typedef enum {
   DTFFT_ERROR_PENCIL_NOT_CONTINUOUS = CONF_DTFFT_ERROR_PENCIL_NOT_CONTINUOUS,
 /** Pencil is not initialized, i.e. `constructor` subroutine was not called */
   DTFFT_ERROR_PENCIL_NOT_INITIALIZED = CONF_DTFFT_ERROR_PENCIL_NOT_INITIALIZED,
+/** Invalid `n_measure_warmup_iters` provided */
+  DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS = CONF_DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS,
+/** Invalid `n_measure_iters` provided */
+  DTFFT_ERROR_INVALID_MEASURE_ITERS = CONF_DTFFT_ERROR_INVALID_MEASURE_ITERS,
 /** Invalid stream provided */
   DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM,
 /** Invalid GPU backend provided */
@@ -607,7 +611,7 @@ dtfft_get_element_size(dtfft_plan_t plan, size_t *element_size);
 
 /**
  * @brief Returns minimum number of bytes required to execute plan.
- * 
+ *
  * This function is a combination of two calls: `::dtfft_get_alloc_size` and `::dtfft_get_element_size`
  *
  * @param[in]     plan            Plan handle
@@ -806,6 +810,12 @@ dtfft_get_backend_string(const dtfft_backend_t backend);
 */
 typedef struct {
 /**
+ * @brief Should dtFFT print additional information or not.
+ *
+ * @details Default is `false`.
+ */
+  bool enable_log;
+/**
  * @brief Should dtFFT use Z-slab optimization or not.
  *
  * @details Default is `true`
@@ -817,6 +827,26 @@ typedef struct {
  */
   bool enable_z_slab;
 
+/**
+ * @brief Defines the number of warmup iterations for transposition and data exchange to perform when `effort` exceeds `::DTFFT_ESTIMATE`.
+ *
+ * @details Default is `2`.
+ *
+ * Setting this value to a higher number may improve accuracy of performance measurements,
+ * but will also increase the time spent in warmup.
+ */
+  int32_t n_measure_warmup_iters;
+
+/**
+ * @brief Defines the number of actual iterations for transposition and data exchange to perform when `effort` exceeds `::DTFFT_ESTIMATE`.
+ *
+ * @details Default is `5`.
+ *
+ * Setting this value to a higher number may improve accuracy of performance measurements,
+ * but will also increase the time spent in measurement.
+ */
+  int32_t n_measure_iters;
+
 #ifdef DTFFT_WITH_CUDA
 /**
  * @brief Selects platform to execute plan.
@@ -825,6 +855,8 @@ typedef struct {
  *
  * @details This option is only defined in a build with device support.
  * Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
+ *
+ * @note This option is only defined when dtFFT is built with CUDA support.
  */
   dtfft_platform_t platform;
 
@@ -836,6 +868,8 @@ typedef struct {
  * When user sets stream he is responsible of destroying it.
  *
  * Stream must not be destroyed before call to `::dtfft_destroy`.
+ *
+ * @note This option is only defined when dtFFT is built with CUDA support.
  */
   dtfft_stream_t stream;
 
@@ -843,6 +877,8 @@ typedef struct {
  * @brief Backend that will be used by dtFFT when `effort` is `::DTFFT_ESTIMATE` or `::DTFFT_MEASURE`.
  *
  * @details Default is `::DTFFT_BACKEND_NCCL`
+ *
+ * @note This option is only defined when dtFFT is built with CUDA support.
  */
   dtfft_backend_t backend;
 
@@ -862,6 +898,8 @@ typedef struct {
  *
  * Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to `mpiexec`,
  * but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
+ *
+ * @note This option is only defined when dtFFT is built with CUDA support.
  */
   bool enable_mpi_backends;
 
@@ -871,21 +909,60 @@ typedef struct {
  * @details Default is `true`
  *
  * @note Pipelined backends require additional buffer that user has no control over.
+ * @note This option is only defined when dtFFT is built with CUDA support.
  */
   bool enable_pipelined_backends;
 
 /**
  * @brief Should NCCL Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
- * @details Default is true.
+ * @details Default is `true`.
+ *
+ * @note This option is only defined when dtFFT is built with CUDA support.
  */
   bool enable_nccl_backends;
 
 /**
  * @brief Should NVSHMEM Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
- * @details Default is true.
+ * @details Default is `true`.
  *
+ * @note This option is only defined when dtFFT is built with CUDA support.
  */
   bool enable_nvshmem_backends;
+
+/**
+ * @brief Should dtFFT try to optimize NVRTC kernel block size when `effort` is `::DTFFT_PATIENT` or not.
+ *
+ * @details Default is `true`.
+ *
+ * Enabling this option will make autotuning process longer, but may result in better performance for some problem sizes.
+ * It is recommended to keep this option enabled.
+ *
+ * @note This option is only defined when dtFFT is built with CUDA support.
+ */
+  bool enable_kernel_optimization;
+
+/**
+ * @brief Number of top theoretical best performing blocks of threads to test for transposition kernels when `effort` is `::DTFFT_PATIENT`.
+ *
+ * @details Default is `5`.
+ * It is recommended to keep this value between 3 and 10.
+ * Maximum possible value is 25.
+ * Setting this value to zero or one will disable kernel optimization.
+ * 
+ * @note This option is only defined when dtFFT is built with CUDA support.
+ */
+  int32_t n_configs_to_test;
+
+/**
+ * @brief Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
+ *
+ * @details Default is `false`.
+ * 
+ * Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
+ *
+ * @note This option is only defined when dtFFT is built with CUDA support.
+ */
+  bool force_kernel_optimization;
 #endif
 } dtfft_config_t;
 
@@ -905,7 +982,7 @@ dtfft_create_config(dtfft_config_t *config);
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
 dtfft_error_t
-dtfft_set_config(dtfft_config_t config);
+dtfft_set_config(const dtfft_config_t *config);
 
 
 #ifdef __cplusplus

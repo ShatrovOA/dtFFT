@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -29,21 +29,18 @@ use dtfft_errors
 use dtfft_interface_cuda_runtime
 use dtfft_interface_cuda,                 only: load_cuda
 use dtfft_interface_nvrtc,                only: load_nvrtc
-use dtfft_nvrtc_kernel,                   only: clean_unused_cache
+use dtfft_nvrtc_kernel_cache,             only: cache
 use dtfft_parameters
 use dtfft_pencil,                         only: pencil, pencil_init, get_local_sizes
 use dtfft_transpose_handle_cuda,          only: transpose_handle_cuda
 use dtfft_utils
-#include "dtfft_mpi.h"
-#include "dtfft_profile.h"
-#include "dtfft_cuda.h"
-#include "dtfft_private.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_profile.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_private.h"
 implicit none
 private
 public :: transpose_plan_cuda
-
-  real(real32),    parameter :: MaxR4P  =  huge(1._real32)
-    !! Maximum value of real32
 
   type, extends(abstract_transpose_plan) :: transpose_plan_cuda
   !! CUDA Transpose Plan
@@ -88,7 +85,7 @@ contains
     real(real64) :: ts, te
 
     create_cuda = DTFFT_SUCCESS
-    if ( .not.get_mpi_enabled() .and. .not.get_nccl_enabled() .and. .not.get_nvshmem_enabled() .and. effort == DTFFT_PATIENT) then
+    if ( .not.get_conf_mpi_enabled() .and. .not.get_conf_nccl_enabled() .and. .not.get_conf_nvshmem_enabled() .and. effort == DTFFT_PATIENT) then
       create_cuda = DTFFT_ERROR_GPU_BACKENDS_DISABLED
       return
     endif
@@ -98,8 +95,8 @@ contains
     ndims = size(dims, kind=int8)
     allocate( best_decomposition(ndims) )
 
-    self%stream = get_user_stream()
-    self%backend = get_user_gpu_backend()
+    self%stream = get_conf_stream()
+    self%backend = get_conf_backend()
 
     best_decomposition(:) = comm_dims(:)
     call MPI_Comm_size(base_comm, comm_size, ierr)
@@ -136,14 +133,14 @@ contains
       else if ( is_custom_cart_comm ) then
         WRITE_INFO("Skipped search of MPI processor grid due to custom grid provided")
       else
-        WRITE_INFO("DTFFT_MEASURE: Selected MPI processor grid 1x"//int_to_str(best_decomposition(2))//"x"//int_to_str(best_decomposition(3)))
+        WRITE_INFO("DTFFT_MEASURE: Selected MPI processor grid 1x"//to_str(best_decomposition(2))//"x"//to_str(best_decomposition(3)))
       endif
     endif
     if ( effort == DTFFT_PATIENT .and. comm_size > 1 ) then
       WRITE_INFO("DTFFT_PATIENT: Selected backend is "//dtfft_get_backend_string(self%backend))
     endif
     if ( effort%val >= DTFFT_MEASURE%val .and. comm_size > 1 ) then
-      WRITE_INFO("Time spent on autotune: "//double_to_str(te - ts)//" [s]")
+      WRITE_INFO("Time spent on autotune: "//to_str(te - ts)//" [s]")
     endif
 
     if ( .not.pencils_created ) then
@@ -154,17 +151,20 @@ contains
 
     call self%helper%create(cart_comm, comms, is_backend_nccl(self%backend), pencils)
 
+    ts = MPI_Wtime()
     do d = 1_int8, ndims - 1_int8
-      call self%fplans(d)%create(self%helper, pencils(d), pencils(d + 1), base_storage, self%backend)
-      call self%bplans(d)%create(self%helper, pencils(d + 1), pencils(d), base_storage, self%backend)
+      call self%fplans(d)%create(self%helper, pencils(d), pencils(d + 1), effort, base_storage, self%backend)
+      call self%bplans(d)%create(self%helper, pencils(d + 1), pencils(d), effort, base_storage, self%backend)
     enddo
     if ( self%is_z_slab ) then
-      call self%fplans(3)%create(self%helper, pencils(1), pencils(3), base_storage, self%backend)
-      call self%bplans(3)%create(self%helper, pencils(3), pencils(1), base_storage, self%backend)
+      call self%fplans(3)%create(self%helper, pencils(1), pencils(3), effort, base_storage, self%backend)
+      call self%bplans(3)%create(self%helper, pencils(3), pencils(1), effort, base_storage, self%backend)
     endif
+    te = MPI_Wtime()
+    WRITE_INFO("Time spent creating final plans: "//to_str(te - ts)//" [s]")
+
     self%is_aux_alloc = alloc_and_set_aux(self%helper, self%backend, cart_comm, self%aux, self%paux, self%fplans, self%bplans)
 
-    call clean_unused_cache()
     deallocate( best_decomposition )
     create_cuda = DTFFT_SUCCESS
   end function create_cuda
@@ -205,6 +205,7 @@ contains
     endif
 
     call self%helper%destroy()
+    call cache%cleanup()
   end subroutine destroy_cuda
 
   subroutine autotune_grid_decomposition(dims, transposed_dims, base_comm, base_storage, stream, best_decomposition, backend, min_execution_time, best_backend)
@@ -267,7 +268,7 @@ contains
       endif
     enddo
 
-    elapsed_time = MaxR4P
+    elapsed_time = MAX_REAL32
     k = 1
     do i = 1, current_timer
       if ( timers(i) < elapsed_time ) then
@@ -318,9 +319,9 @@ contains
 
     if ( ndims == 3 ) then
       if ( comm_dims(2) > dims(2) .or. comm_dims(3) > dims(3) ) return
-      allocate( phase_name, source = "Testing grid 1x"//int_to_str(comm_dims(2))//"x"//int_to_str(comm_dims(3)) )
+      allocate( phase_name, source = "Testing grid 1x"//to_str(comm_dims(2))//"x"//to_str(comm_dims(3)) )
     else
-      allocate( phase_name, source = "Testing grid 1x"//int_to_str(comm_dims(2)) )
+      allocate( phase_name, source = "Testing grid 1x"//to_str(comm_dims(2)) )
     endif
 
     WRITE_INFO("")
@@ -414,26 +415,26 @@ contains
 
     call helper%create(cart_comm, comms, any(is_backend_nccl(backends_to_run)), pencils)
 
-    n_warmup_iters = get_iters_from_env(.true.)
-    n_iters = get_iters_from_env(.false.)
+    n_warmup_iters = get_conf_measure_warmup_iters()
+    n_iters = get_conf_measure_iters()
 
-    best_time_ = MaxR4P
+    best_time_ = MAX_REAL32
 
     do b = 1, size(backends_to_run)
       current_backend_id = backends_to_run(b)
 
-      if ( (is_backend_pipelined(current_backend_id) .and. .not.get_pipelined_enabled()         &
-            .or.is_backend_mpi(current_backend_id) .and. .not.get_mpi_enabled()                 &
-            .or.is_backend_nvshmem(current_backend_id) .and. .not.get_nvshmem_enabled())        &
+      if ( (is_backend_pipelined(current_backend_id) .and. .not.get_conf_pipelined_enabled()         &
+            .or.is_backend_mpi(current_backend_id) .and. .not.get_conf_mpi_enabled()                 &
+            .or.is_backend_nvshmem(current_backend_id) .and. .not.get_conf_nvshmem_enabled())        &
             .and. .not.is_udb) cycle
 
       if ( is_z_slab ) then
-        call plans(1)%create(helper, pencils(1), pencils(3), base_storage, current_backend_id)
-        call plans(2)%create(helper, pencils(3), pencils(1), base_storage, current_backend_id)
+        call plans(1)%create(helper, pencils(1), pencils(3), DTFFT_ESTIMATE, base_storage, current_backend_id, force_effort=.true.)
+        call plans(2)%create(helper, pencils(3), pencils(1), DTFFT_ESTIMATE, base_storage, current_backend_id, force_effort=.true.)
       else
         do i = 1, n_transpose_plans
-          call plans(i)%create(helper, pencils(i), pencils(i + 1), base_storage, current_backend_id)
-          call plans(i + n_transpose_plans)%create(helper, pencils(i + 1), pencils(i), base_storage, current_backend_id)
+          call plans(i)%create(helper, pencils(i), pencils(i + 1), DTFFT_ESTIMATE, base_storage, current_backend_id, force_effort=.true.)
+          call plans(i + n_transpose_plans)%create(helper, pencils(i + 1), pencils(i), DTFFT_ESTIMATE, base_storage, current_backend_id, force_effort=.true.)
         enddo
       endif
 
@@ -446,21 +447,21 @@ contains
       is_aux_alloc = alloc_and_set_aux(helper, current_backend_id, cart_comm, aux, paux, plans)
 
       testing_phase = "Testing backend "//dtfft_get_backend_string(current_backend_id)
-      PHASE_BEGIN(testing_phase, COLOR_AUTOTUNE)
+      PHASE_BEGIN(testing_phase, COLOR_AUTOTUNE2)
       WRITE_INFO(testing_phase)
 
-      PHASE_BEGIN("Warmup, "//int_to_str(n_warmup_iters)//" iterations", COLOR_TRANSPOSE)
+      PHASE_BEGIN("Warmup", COLOR_TRANSPOSE)
       do iter = 1, n_warmup_iters
         do i = 1, 2_int8 * n_transpose_plans
           call plans(i)%execute(pin, pout, stream, paux)
         enddo
       enddo
       CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-      PHASE_END("Warmup, "//int_to_str(n_warmup_iters)//" iterations")
+      PHASE_END("Warmup")
 
       call MPI_Barrier(cart_comm, mpi_ierr)
 
-      PHASE_BEGIN("Testing, "//int_to_str(n_iters)//" iterations", COLOR_EXECUTE)
+      PHASE_BEGIN("Measure", COLOR_EXECUTE)
       total_time = 0.0
 
       CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_start, stream) )
@@ -475,7 +476,7 @@ contains
       execution_time = execution_time / real(n_iters, real32)
       total_time = total_time + execution_time
 
-      PHASE_END("Testing, "//int_to_str(n_iters)//" iterations")
+      PHASE_END("Measure")
 
       call MPI_Allreduce(total_time, min_execution_time, 1, MPI_REAL4, MPI_MIN, cart_comm, mpi_ierr)
       call MPI_Allreduce(total_time, max_execution_time, 1, MPI_REAL4, MPI_MAX, cart_comm, mpi_ierr)
@@ -483,9 +484,9 @@ contains
 
       avg_execution_time = avg_execution_time / real(comm_size, real32)
 
-      WRITE_INFO("  max: "//double_to_str(real(max_execution_time, real64))//" [ms]")
-      WRITE_INFO("  min: "//double_to_str(real(min_execution_time, real64))//" [ms]")
-      WRITE_INFO("  avg: "//double_to_str(real(avg_execution_time, real64))//" [ms]")
+      WRITE_INFO("  max: "//to_str(real(max_execution_time, real64))//" [ms]")
+      WRITE_INFO("  min: "//to_str(real(min_execution_time, real64))//" [ms]")
+      WRITE_INFO("  avg: "//to_str(real(avg_execution_time, real64))//" [ms]")
 
       if ( avg_execution_time < best_time_ ) then
         best_time_ = avg_execution_time
@@ -544,8 +545,8 @@ contains
     TYPE_MPI_COMM,                intent(in)                :: cart_comm    !! Cartesian communicator
     type(c_ptr),                  intent(inout)             :: aux          !! Allocatable auxiliary memory
     real(real32),     pointer,    intent(inout)             :: paux(:)      !! Pointer to auxiliary memory
-    type(transpose_handle_cuda),  intent(inout)             :: plans(:)     !! Plans
-    type(transpose_handle_cuda),  intent(inout),  optional  :: bplans(:)    !! Backward plans
+    type(transpose_handle_cuda),  intent(in)                :: plans(:)     !! Plans
+    type(transpose_handle_cuda),  intent(in),  optional     :: bplans(:)    !! Backward plans
     logical                                                 :: is_aux_alloc !! Is auxiliary memory allocated
     integer(int64), allocatable :: worksizes(:)
     integer(int64) :: max_work_size_local, max_work_size_global

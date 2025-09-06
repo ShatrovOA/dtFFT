@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -20,65 +20,44 @@
 module dtfft_utils
 !! All Utilities functions are located here
 use iso_c_binding
-use iso_fortran_env,  only: int8, int32, int64, real64, output_unit, error_unit
+use iso_fortran_env
 use dtfft_errors
 use dtfft_parameters
-#include "dtfft_mpi.h"
-#include "dtfft_cuda.h"
-#include "dtfft_private.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_private.h"
 implicit none
 private
-public :: string_f2c, string_c2f
-public :: int_to_str, double_to_str
-public :: write_message, init_internal, get_log_enabled
-public :: get_env, get_iters_from_env, get_datatype_from_env
-public :: get_inverse_kind
-public :: get_platform_from_env, get_z_slab_from_env
+public :: string_f2c
+public :: to_str
+public :: write_message
 
+public :: get_inverse_kind
 public :: is_same_ptr, is_null_ptr
 public :: mem_alloc_host, mem_free_host
+public :: string
+
+#if defined(DTFFT_WITH_CUDA) || defined(DTFFT_WITH_MKL)
+public :: string_c2f
+#endif
+
 #ifdef DTFFT_WITH_CUDA
 public :: destroy_strings
 public :: astring_f2c
 public :: count_unique
 public :: Comm_f2c
 public :: is_device_ptr
-public :: get_backend_from_env
-public :: get_mpi_enabled_from_env, get_nccl_enabled_from_env, get_nvshmem_enabled_from_env, get_pipe_enabled_from_env
-public :: load_library, load_symbol, unload_library, dynamic_load
+public :: dynamic_load
 #endif
 
-  logical,                    save  :: is_init_called = .false.
-    !! Has [[init_internal]] already been called or not
-  logical,                    save  :: is_log_enabled
-    !! Should we log messages to stdout or not
-  type(dtfft_platform_t),     save  :: platform_from_env = PLATFORM_NOT_SET
-    !! Platform obtained from environ
-  integer(int32),             save  :: z_slab_from_env
-    !! Should Z-slab be used if possible
-#ifdef DTFFT_WITH_CUDA
-  type(dtfft_backend_t),      save  :: backend_from_env
-    !! Backend obtained from environ
-  integer(int32),             save  :: mpi_enabled_from_env
-    !! Should we use MPI backends during autotune or not
-  integer(int32),             save  :: nccl_enabled_from_env
-    !! Should we use NCCL backends during autotune or not
-  integer(int32),             save  :: nvshmem_enabled_from_env
-    !! Should we use NVSHMEM backends during autotune or not
-  integer(int32),             save  :: pipe_enabled_from_env
-    !! Should we use pipelined backends during autotune or not
-#endif
-  character(len=26), parameter :: UPPER_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    !! Upper case alphabet.
-  character(len=26), parameter :: LOWER_ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
-    !! Lower case alphabet.
-
-  interface int_to_str
-  !! Converts integer to string
-    module procedure int_to_str_int8
-    module procedure int_to_str_int32
-    module procedure int_to_str_int64
-  end interface int_to_str
+  interface to_str
+  !! Convert various types to string
+    module procedure int8_to_string
+    module procedure int32_to_string
+    module procedure int64_to_string
+    module procedure double_to_string
+    module procedure float_to_string
+  end interface to_str
 
   interface is_null_ptr
   !! Checks if pointer is NULL
@@ -88,45 +67,24 @@ public :: load_library, load_symbol, unload_library, dynamic_load
 #endif
   end interface is_null_ptr
 
-  interface get_env
-  !! Obtains environment variable
-    module procedure :: get_env_base
-#ifdef DTFFT_WITH_CUDA
-    module procedure :: get_env_string
-#endif
-    module procedure :: get_env_int32
-    module procedure :: get_env_int8
-    module procedure :: get_env_logical
-  end interface get_env
-
 #if defined(DTFFT_USE_MPI)
 public :: all_reduce_inplace
   interface all_reduce_inplace
+  !! MPI Allreduce inplace workaround
     module procedure :: all_reduce_inplace_i32
     module procedure :: all_reduce_inplace_i64
   end interface all_reduce_inplace
 #endif
 
 #ifdef DTFFT_WITH_CUDA
-public :: string
-  type :: string
-  !! Class used to create array of strings
-    character(len=:), allocatable :: raw  !! String
-  end type string
-
-  interface string
-  !! Creates [[string]] object
-    module procedure :: string_constructor
-  end interface string
-
   integer(c_int), parameter :: RTLD_LAZY = 1_c_int
     !! Each external function reference is bound the first time the function is called.
   integer(c_int), parameter :: RTLD_NOW  = 2_c_int
     !! All external function references are bound when the library is loaded.
 
   interface
-  !! Load and link a dynamic library or bundle
     function dlopen(filename, mode) bind(C)
+    !! Load and link a dynamic library
     import
       type(c_ptr)           :: dlopen       !! Handle to the library
       character(c_char)     :: filename(*)  !! Name of the library
@@ -135,8 +93,8 @@ public :: string
   end interface
 
   interface
-  !! Get address of a symbol
     function dlsym(handle, name) bind(C)
+    !! Get address of a symbol from a dynamic library
     import
       type(c_funptr)      :: dlsym          !! Address of the symbol
       type(c_ptr),  value :: handle         !! Handle to the library
@@ -145,8 +103,8 @@ public :: string
   end interface
 
   interface
-  !! Close a dynamic library or bundle
     function dlclose(handle) bind(C)
+    !! Close a dynamic library
     import
       integer(c_int)      :: dlclose        !! Result of the operation
       type(c_ptr), value  :: handle         !! Handle to the library
@@ -154,8 +112,8 @@ public :: string
   end interface
 
   interface
-  !! Get diagnostic information
     function dlerror() bind(C)
+    !! Get diagnostic information
     import
       type(c_ptr)  :: dlerror !! Error message
     end function dlerror
@@ -163,17 +121,18 @@ public :: string
 #endif
 
   interface
-  !! Allocates memory using C11 Standard alloc_align with 16 bytes alignment
-    subroutine mem_alloc_host(alloc_size, ptr) bind(C)
+    function aligned_alloc(alignment, alloc_size) result(ptr) bind(C)
+    !! Allocates memory using C11 Standard alloc_align with 16 bytes alignment
     import
+      integer(c_size_t),  value :: alignment    !! Alignment in bytes (16 bytes by default)
       integer(c_size_t),  value :: alloc_size   !! Number of bytes to allocate
       type(c_ptr)               :: ptr          !! Pointer to allocate
-    end subroutine mem_alloc_host
+    end function aligned_alloc
   end interface
 
   interface
-  !! Frees memory allocated with [[mem_alloc_host]]
-    subroutine mem_free_host(ptr) bind(C)
+    subroutine mem_free_host(ptr) bind(C, name="free")
+    !! Frees memory allocated with [[aligned_alloc]]
     import
       type(c_ptr),        value :: ptr          !! Pointer to free
     end subroutine mem_free_host
@@ -181,16 +140,16 @@ public :: string
 
 #ifdef DTFFT_WITH_CUDA
   interface
-  !! Converts Fortran communicator to C
     type(c_ptr) function Comm_f2c(fcomm) bind(C, name="Comm_f2c")
+    !! Converts Fortran communicator to C
       import
       integer(c_int), value :: fcomm            !! Fortran communicator
     end function Comm_f2c
   end interface
 
   interface
-  !! Checks if pointer can be accessed from device
     function is_device_ptr(ptr) result(bool) bind(C)
+    !! Checks if pointer can be accessed from device
     import
       type(c_ptr),    value :: ptr    !! Device pointer
       logical(c_bool)       :: bool   !! Result
@@ -198,15 +157,32 @@ public :: string
   end interface
 #endif
 
+  type :: string
+  !! Class used to create array of strings
+    character(len=:), allocatable :: raw  !! String
+  contains
+    procedure, pass(self) :: destroy => destroy_string
+  end type string
+
+  interface string
+  !! Creates [[string]] object
+    module procedure :: string_constructor
+  end interface string
+
 contains
 
-#ifdef DTFFT_WITH_CUDA
   type(string) function string_constructor(str)
   !! Creates [[string]] object
     character(len=*), intent(in)  :: str  !! String
     allocate( string_constructor%raw, source=str )
   end function string_constructor
 
+  subroutine destroy_string(self)
+    class(string),  intent(inout) :: self
+    if ( allocated(self%raw) ) deallocate( self%raw )
+  end subroutine destroy_string
+
+#ifdef DTFFT_WITH_CUDA
   subroutine destroy_strings(strings)
   !! Destroys array of [[string]] objects
     type(string), intent(inout), allocatable :: strings(:)  !! Array of strings
@@ -214,283 +190,11 @@ contains
 
     if ( .not. allocated(strings) ) return
     do i = 1, size(strings)
-      if ( allocated(strings(i)%raw) ) deallocate( strings(i)%raw )
+      call strings(i)%destroy()
     end do
     deallocate( strings )
   end subroutine destroy_strings
 #endif
-
-  integer(int32) function init_internal()
-  !! Checks if MPI is initialized and loads environment variables
-    integer(int32)    :: ierr             !! Error code
-    logical           :: is_mpi_init      !! Is MPI initialized?
-
-    init_internal = DTFFT_SUCCESS
-
-    call MPI_Initialized(is_mpi_init, ierr)
-    if( .not. is_mpi_init ) then
-      init_internal = DTFFT_ERROR_MPI_FINALIZED
-      return
-    endif
-    ! Processing environment variables once
-    if ( is_init_called ) return
-
-    is_log_enabled = get_env("ENABLE_LOG", .false.)
-    z_slab_from_env = get_env("ENABLE_Z_SLAB", VARIABLE_NOT_SET, valid_values=[0, 1])
-
-#ifdef DTFFT_WITH_CUDA
-    block
-      type(string), allocatable :: platforms(:)
-      character(len=:), allocatable :: pltfrm_env
-
-      allocate( platforms(2) )
-      platforms(1) = string("host")
-      platforms(2) = string("cuda")
-
-      allocate( pltfrm_env, source=get_env("PLATFORM", "undefined", platforms) )
-      if ( pltfrm_env == "undefined") then
-        platform_from_env = PLATFORM_NOT_SET
-      else if ( pltfrm_env == "host" ) then
-        platform_from_env = DTFFT_PLATFORM_HOST
-      else if ( pltfrm_env == "cuda") then
-        platform_from_env = DTFFT_PLATFORM_CUDA
-      endif
-
-      deallocate( pltfrm_env )
-      call destroy_strings(platforms)
-    endblock
-
-    block
-      type(string), allocatable :: backends(:)
-      character(len=:), allocatable :: bcknd_env
-
-      allocate( backends(8) )
-      backends(1) = string("mpi_dt")
-      backends(2) = string("mpi_p2p")
-      backends(3) = string("mpi_a2a")
-      backends(4) = string("mpi_p2p_pipe")
-      backends(5) = string("nccl")
-      backends(6) = string("nccl_pipe")
-      backends(7) = string("cufftmp")
-      backends(8) = string("cufftmp_pipe")
-
-      allocate( bcknd_env, source=get_env("BACKEND", "undefined", backends) )
-      select case ( bcknd_env )
-      case ( "undefined" )
-        backend_from_env = BACKEND_NOT_SET
-      case ( "mpi_dt" )
-        backend_from_env = DTFFT_BACKEND_MPI_DATATYPE
-      case ( "mpi_p2p" )
-        backend_from_env = DTFFT_BACKEND_MPI_P2P
-      case ( "mpi_a2a" )
-        backend_from_env = DTFFT_BACKEND_MPI_A2A
-      case ( "mpi_p2p_pipe" )
-        backend_from_env = DTFFT_BACKEND_MPI_P2P_PIPELINED
-      case ( "nccl" )
-        backend_from_env = DTFFT_BACKEND_NCCL
-      case ( "nccl_pipe" )
-        backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
-      case ( "cufftmp" )
-        backend_from_env = DTFFT_BACKEND_CUFFTMP
-      case ( "cufftmp_pipe")
-        backend_from_env = DTFFT_BACKEND_CUFFTMP_PIPELINED
-      endselect
-
-      deallocate( bcknd_env )
-      call destroy_strings(backends)
-    endblock
-
-    mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
-    nccl_enabled_from_env = get_env("ENABLE_NCCL", VARIABLE_NOT_SET, valid_values=[0, 1])
-    nvshmem_enabled_from_env = get_env("ENABLE_NVSHMEM", VARIABLE_NOT_SET, valid_values=[0, 1])
-    pipe_enabled_from_env = get_env("ENABLE_PIPE", VARIABLE_NOT_SET, valid_values=[0, 1])
-#endif
-    is_init_called = .true.
-  end function init_internal
-
-  pure type(dtfft_platform_t) function get_platform_from_env()
-  !! Returns execution platform set by environment variable
-    get_platform_from_env = platform_from_env
-  end function get_platform_from_env
-
-  pure integer(int32) function get_z_slab_from_env()
-  !! Returns Z-slab to be used set by environment variable
-    get_z_slab_from_env = z_slab_from_env
-  end function get_z_slab_from_env
-
-#ifdef DTFFT_WITH_CUDA
-  pure type(dtfft_backend_t) function get_backend_from_env()
-  !! Returns GPU backend to use set by environment variable
-  get_backend_from_env = backend_from_env
-  end function get_backend_from_env
-
-  pure integer(int32) function get_mpi_enabled_from_env()
-  !! Returns usage of MPI Backends during autotune set by environment variable
-    get_mpi_enabled_from_env = mpi_enabled_from_env
-  end function get_mpi_enabled_from_env
-
-  pure integer(int32) function get_nccl_enabled_from_env()
-  !! Returns usage of NCCL Backends during autotune set by environment variable
-    get_nccl_enabled_from_env = nccl_enabled_from_env
-  end function get_nccl_enabled_from_env
-
-  pure integer(int32) function get_nvshmem_enabled_from_env()
-  !! Returns usage of NVSHMEM Backends during autotune set by environment variable
-    get_nvshmem_enabled_from_env = nvshmem_enabled_from_env
-  end function get_nvshmem_enabled_from_env
-
-  pure integer(int32) function get_pipe_enabled_from_env()
-  !! Returns usage of Pipelined Backends during autotune set by environment variable
-    get_pipe_enabled_from_env = pipe_enabled_from_env
-  end function get_pipe_enabled_from_env
-#endif
-
-  function get_env_base(name) result(env)
-  !! Base function of obtaining dtFFT environment variable
-    character(len=*), intent(in)    :: name         !! Name of environment variable without prefix
-    character(len=:), allocatable   :: full_name    !! Prefixed environment variable name
-    character(len=:), allocatable   :: env          !! Environment variable value
-    integer(int32)                  :: env_val_len  !! Length of the environment variable
-
-    allocate( full_name, source="DTFFT_"//name )
-
-    call get_environment_variable(full_name, length=env_val_len)
-    allocate(character(env_val_len) :: env)
-    if ( env_val_len == 0 ) then
-      deallocate(full_name)
-      return
-    endif
-    call get_environment_variable(full_name, env)
-    deallocate(full_name)
-  end function get_env_base
-
-#ifdef DTFFT_WITH_CUDA
-  function get_env_string(name, default, valid_values) result(env)
-  !! Obtains string environment variable
-    character(len=*), intent(in)            :: name                 !! Name of environment variable without prefix
-    character(len=*), intent(in)            :: default              !! Name of environment variable without prefix
-    type(string),     intent(in)            :: valid_values(:)      !! List of valid variable values
-    character(len=:), allocatable           :: env                  !! Environment variable value
-    character(len=:), allocatable           :: env_val_str          !! String value of the environment variable
-    logical                                 :: is_correct           !! Is env value is correct
-    integer(int32) :: i, j
-
-    allocate( env_val_str, source=get_env(name) )
-    if ( len(env_val_str) == 0 ) then
-      deallocate(env_val_str)
-      allocate(env, source=default)
-      return
-    endif
-
-    ! Converting to lowercase
-    do i=1, len(env_val_str)
-      j = index(UPPER_ALPHABET, env_val_str(i:i))
-      if (j>0) env_val_str(i:i) = LOWER_ALPHABET(j:j)
-    enddo
-
-    is_correct = any([(env_val_str == valid_values(i)%raw, i=1,size(valid_values))])
-
-    if ( is_correct ) then
-      allocate( env, source=env_val_str )
-      deallocate(env_val_str)
-      return
-    endif
-    WRITE_ERROR("Invalid environment variable: `DTFFT_"//name//"`, it has been ignored")
-    allocate(env, source=default)
-    deallocate(env_val_str)
-  end function get_env_string
-#endif
-
-  integer(int32) function get_env_int32(name, default, valid_values, min_valid_value) result(env)
-  !! Base Integer function of obtaining dtFFT environment variable
-    character(len=*), intent(in)            :: name               !! Name of environment variable without prefix
-    integer(int32),   intent(in)            :: default            !! Default value in case env is not set or it has wrong value
-    integer(int32),   intent(in), optional  :: valid_values(:)    !! List of valid values
-    integer(int32),   intent(in), optional  :: min_valid_value    !! Mininum valid value. Usually 0 or 1
-    character(len=:), allocatable           :: env_val_str        !! String value of the environment variable
-    logical                                 :: is_correct         !! Is env value is correct
-    integer(int32)                          :: env_val_passed     !! Value of the environment variable
-
-    if ( ( present(valid_values).and.present(min_valid_value) )           &
-      .or.(.not.present(valid_values).and..not.present(min_valid_value))  &
-    ) then
-      INTERNAL_ERROR("`get_env_int32`")
-    endif
-
-    allocate( env_val_str, source=get_env(name) )
-
-    if ( len(env_val_str) == 0 ) then
-      deallocate(env_val_str)
-      env = default
-      return
-    endif
-    read(env_val_str, *) env_val_passed
-    is_correct = .false.
-    if ( present( valid_values ) ) then
-      is_correct = any(env_val_passed == valid_values)
-    endif
-    if ( present( min_valid_value ) ) then
-      is_correct = env_val_passed >= min_valid_value
-    endif
-    if ( is_correct ) then
-      env = env_val_passed
-      deallocate(env_val_str)
-      return
-    endif
-    WRITE_ERROR("Invalid environment variable: `DTFFT_"//name//"`, it has been ignored")
-    env = default
-    deallocate(env_val_str)
-  end function get_env_int32
-
-  integer(int8) function get_env_int8(name, default, valid_values) result(env)
-  !! Obtains int8 environment variable
-    character(len=*), intent(in)  :: name               !! Name of environment variable without prefix
-    integer(int8),    intent(in)  :: default            !! Default value in case env is not set or it has wrong value
-    integer(int32),   intent(in)  :: valid_values(:)    !! List of valid values
-    integer(int32)                :: val                !! Value of the environment variable
-
-    val = get_env(name, int(default, int32), valid_values)
-    env = int(val, int8)
-  end function get_env_int8
-
-  logical function get_env_logical(name, default) result(env)
-  !! Obtains logical environment variable
-    character(len=*), intent(in) :: name                !! Name of environment variable without prefix
-    logical,          intent(in) :: default             !! Default value in case env is not set or it has wrong value
-    integer(int32) :: def, val
-
-    if ( default ) then
-      def = 1
-    else
-      def = 0
-    endif
-
-    val = get_env(name, def, [0, 1])
-    env = val == 1
-  end function get_env_logical
-
-  integer(int32) function get_iters_from_env(is_warmup) result(n_iters)
-  !! Obtains number of iterations from environment variable
-    logical,  intent(in) :: is_warmup                   !! Warmup variable flag
-
-    if ( is_warmup ) then
-      n_iters = get_env("MEASURE_WARMUP_ITERS", 2, min_valid_value=0)
-    else
-      n_iters = get_env("MEASURE_ITERS", 5, min_valid_value=1)
-    endif
-  end function get_iters_from_env
-
-  integer(int8) function get_datatype_from_env(name) result(env)
-  !! Obtains datatype id from environment variable
-    character(len=*), intent(in)  :: name               !! Name of environment variable without prefix
-    env = get_env(name, 2_int8, [1, 2])
-  end function get_datatype_from_env
-
-  pure function get_log_enabled() result(log)
-  !! Returns the value of the log_enabled variable
-    logical :: log  !! Value of the log_enabled variable
-    log = is_log_enabled
-  end function get_log_enabled
 
   subroutine string_f2c(fstring, cstring, string_size)
   !! Convert Fortran string to C string
@@ -517,15 +221,17 @@ contains
     if(present( string_size )) string_size = j
   end subroutine string_f2c
 
-  subroutine string_c2f(cstring, string)
+#if defined(DTFFT_WITH_CUDA) || defined(DTFFT_WITH_MKL)
+  subroutine string_c2f(cstring, fstring)
   !! Convert C string to Fortran string
-    type(c_ptr)                     :: cstring  !! C string
-    character(len=:),   allocatable :: string   !! Fortran string
-    character(len=256), pointer     :: fstring  !! Temporary Fortran string
+    type(c_ptr)                     :: cstring    !! C string
+    character(len=:),   allocatable :: fstring    !! Fortran string
+    character(len=1024), pointer     :: fstring_  !! Temporary Fortran string
 
-    call c_f_pointer(cstring, fstring)
-    allocate( string, source=fstring(1:index(fstring, c_null_char) - 1) )
+    call c_f_pointer(cstring, fstring_)
+    allocate( fstring, source=fstring_(1:max(len(fstring_), index(fstring_, c_null_char)) - 1) )
   end subroutine string_c2f
+#endif
 
 #ifdef DTFFT_WITH_CUDA
   subroutine astring_f2c(fstring, cstring, string_size)
@@ -554,7 +260,6 @@ contains
     type(c_ptr)                   :: lib_handle   !! Loaded handle
     character(c_char),  allocatable :: cname(:)   !! Temporary string
 
-    WRITE_DEBUG("Loading library: "//name)
     call astring_f2c(name//c_null_char, cname)
     lib_handle = dlopen(cname, RTLD_LAZY)
     deallocate( cname )
@@ -620,45 +325,55 @@ contains
   end function dynamic_load
 #endif
 
-  function int_to_str_int8(n) result(string)
+  function int8_to_string(n) result(str)
   !! Convert 8-bit integer to string
     integer(int8),    intent(in)  :: n            !! Integer to convert
-    character(len=:), allocatable :: string       !! Resulting string
+    character(len=:), allocatable :: str          !! Resulting string
     character(len=3)              :: temp         !! Temporary string
 
     write(temp, '(I3)') n
-    allocate( string, source= trim(adjustl(temp)) )
-  end function int_to_str_int8
+    allocate( str, source=trim(adjustl(temp)) )
+  end function int8_to_string
 
-  function int_to_str_int32(n) result(string)
+  function int32_to_string(n) result(str)
   !! Convert 32-bit integer to string
     integer(int32),   intent(in)  :: n            !! Integer to convert
-    character(len=:), allocatable :: string       !! Resulting string
+    character(len=:), allocatable :: str          !! Resulting string
     character(len=11)             :: temp         !! Temporary string
 
     write(temp, '(I11)') n
-    allocate( string, source= trim(adjustl(temp)) )
-  end function int_to_str_int32
+    allocate( str, source=trim(adjustl(temp)) )
+  end function int32_to_string
 
-  function int_to_str_int64(n) result(string)
+  function int64_to_string(n) result(str)
   !! Convert 64-bit integer to string
     integer(int64),   intent(in)  :: n            !! Integer to convert
-    character(len=:), allocatable :: string       !! Resulting string
+    character(len=:), allocatable :: str          !! Resulting string
     character(len=20)             :: temp         !! Temporary string
 
     write(temp, '(I20)') n
-    allocate( string, source= trim(adjustl(temp)) )
-  end function int_to_str_int64
+    allocate( str, source=trim(adjustl(temp)) )
+  end function int64_to_string
 
-  function double_to_str(n) result(string)
+  function double_to_string(n) result(str)
   !! Convert double to string
     real(real64),     intent(in)  :: n            !! Double to convert
-    character(len=:), allocatable :: string       !! Resulting string
+    character(len=:), allocatable :: str          !! Resulting string
     character(len=23)             :: temp         !! Temporary string
 
     write(temp, '(F15.5)') n
-    allocate( string, source= trim(adjustl(temp)))
-  end function double_to_str
+    allocate( str, source=trim(adjustl(temp)) )
+  end function double_to_string
+
+  function float_to_string(n) result(str)
+  !! Convert double to string
+    real(real32),     intent(in)  :: n            !! Double to convert
+    character(len=:), allocatable :: str          !! Resulting string
+    character(len=15)             :: temp         !! Temporary string
+
+    write(temp, '(F10.2)') n
+    allocate( str, source=trim(adjustl(temp)) )
+  end function float_to_string
 
   subroutine write_message(unit, message, prefix)
   !! Write message to the specified unit
@@ -753,6 +468,20 @@ contains
     deallocate(y)
   end function count_unique
 #endif
+
+  function mem_alloc_host(alloc_size) result(ptr)
+  !! Allocates memory using C11 Standard alloc_align with 16 bytes alignment
+    integer(int64), intent(in)  :: alloc_size   !! Number of bytes to allocate
+    type(c_ptr)                 :: ptr          !! Pointer to allocate
+    integer(int64) :: displ, alloc_size_
+
+    displ = mod(alloc_size, int(ALLOC_ALIGNMENT, int64))
+    alloc_size_ = alloc_size
+    if ( displ > 0 ) then
+      alloc_size_ = alloc_size_ + (ALLOC_ALIGNMENT - displ)
+    endif
+    ptr = aligned_alloc(int(ALLOC_ALIGNMENT, c_size_t), alloc_size_)
+  end function mem_alloc_host
 
 #if defined(DTFFT_USE_MPI)
 ! Some bug was noticed in mpich for macos

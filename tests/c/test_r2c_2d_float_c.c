@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -83,13 +83,13 @@ int main(int argc, char *argv[])
 
 #if defined(DTFFT_WITH_CUDA)
   dtfft_config_t conf;
-  dtfft_create_config(&conf);
+  DTFFT_CALL( dtfft_create_config(&conf) )
 #ifdef DTFFT_WITH_NVSHMEM
   conf.backend = DTFFT_BACKEND_CUFFTMP;
 #else
   conf.backend = DTFFT_BACKEND_MPI_A2A;
 #endif
-  dtfft_set_config(conf);
+  DTFFT_CALL( dtfft_set_config(&conf) )
 #endif
 
   // Create plan

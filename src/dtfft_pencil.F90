@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -24,11 +24,11 @@ use iso_c_binding
 use dtfft_errors
 use dtfft_parameters
 use dtfft_utils
-#include "dtfft_mpi.h"
-#include "dtfft_private.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_private.h"
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
-#include "dtfft_cuda.h"
+#include "_dtfft_cuda.h"
 #endif
 implicit none
 private

@@ -4,20 +4,20 @@ use iso_fortran_env
 use iso_c_binding
 use dtfft
 use dtfft_parameters, only: COMPLEX_STORAGE_SIZE, DOUBLE_COMPLEX_STORAGE_SIZE, DOUBLE_STORAGE_SIZE, FLOAT_STORAGE_SIZE
-use dtfft_utils, only: int_to_str, double_to_str, mem_alloc_host, mem_free_host
-#include "dtfft_mpi.h"
-#include "dtfft_private.h"
+use dtfft_utils, only: to_str, mem_alloc_host, mem_free_host
+#include "_dtfft_mpi.h"
+#include "_dtfft_private.h"
 #if defined(DTFFT_WITH_CUDA)
 use dtfft_parameters, only: NULL_STREAM
 use dtfft_interface_cuda_runtime
-#include "dtfft_cuda.h"
+#include "_dtfft_cuda.h"
 #endif
 implicit none
 private
 public :: COMPLEX_STORAGE_SIZE, DOUBLE_COMPLEX_STORAGE_SIZE, DOUBLE_STORAGE_SIZE, FLOAT_STORAGE_SIZE
 #if defined(DTFFT_WITH_CUDA)
 public :: NULL_STREAM
-public :: int_to_str
+public :: to_str
 #endif
 public :: mem_alloc_host, mem_free_host
 public :: attach_gpu_to_process
@@ -149,9 +149,9 @@ contains
 
     if ( comm_rank == 0 ) then
       write(output_unit, '(a)') direction//" execution time"
-      write(output_unit, '(a)') "  max: "//double_to_str(max_time)//" [s]"
-      write(output_unit, '(a)') "  min: "//double_to_str(min_time)//" [s]"
-      write(output_unit, '(a)') "  avg: "//double_to_str(avg_time)//" [s]"
+      write(output_unit, '(a)') "  max: "//to_str(max_time)//" [s]"
+      write(output_unit, '(a)') "  min: "//to_str(min_time)//" [s]"
+      write(output_unit, '(a)') "  avg: "//to_str(avg_time)//" [s]"
     endif
   end subroutine write_timers
 
@@ -277,7 +277,7 @@ contains
     call scaleDoubleHost(buffer, 2 * buf_size, scale)
   end subroutine scaleComplexDoubleHost
 
-    function checkFloat(check, buf, buf_size) result(err)
+  function checkFloat(check, buf, buf_size) result(err)
     type(c_ptr)         :: check
     type(c_ptr)         :: buf
     integer(c_size_t) :: buf_size

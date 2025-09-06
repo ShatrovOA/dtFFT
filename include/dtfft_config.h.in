@@ -1,14 +1,25 @@
 #ifndef DTFFT_CONFIG_H
 #define DTFFT_CONFIG_H
 
+/* FFTW3 support is enabled */
 #cmakedefine DTFFT_WITH_FFTW
+/* MKL support is enabled */
 #cmakedefine DTFFT_WITH_MKL
+/* CUFFT support is enabled */
 #cmakedefine DTFFT_WITH_CUFFT
+/* VKFFT support is enabled */
 #cmakedefine DTFFT_WITH_VKFFT
+/* No FFT libraries were configured */
 #cmakedefine DTFFT_TRANSPOSE_ONLY
+/* CUDA support is enabled */
 #cmakedefine DTFFT_WITH_CUDA
+/* NCCL support is enabled */
 #cmakedefine DTFFT_WITH_NCCL
+/* NVSHMEM-based backends support is enabled */
 #cmakedefine DTFFT_WITH_NVSHMEM
+/* Debug build*/
+#cmakedefine DTFFT_DEBUG
+
 
 #define CONF_DTFFT_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
 #define CONF_DTFFT_VERSION_MINOR @PROJECT_VERSION_MINOR@
@@ -85,6 +96,8 @@
 #define CONF_DTFFT_ERROR_PENCIL_OVERLAP 30
 #define CONF_DTFFT_ERROR_PENCIL_NOT_CONTINUOUS 31
 #define CONF_DTFFT_ERROR_PENCIL_NOT_INITIALIZED 32
+#define CONF_DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS 33
+#define CONF_DTFFT_ERROR_INVALID_MEASURE_ITERS 34
 #define CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED 101
 #define CONF_DTFFT_ERROR_GPU_INVALID_STREAM 201
 #define CONF_DTFFT_ERROR_GPU_INVALID_BACKEND 202
@@ -112,5 +125,8 @@
 #define CONF_DTFFT_PLATFORM_HOST 1
 #define CONF_DTFFT_PLATFORM_CUDA 2
 
+#define CONF_DTFFT_MEASURE_WARMUP_ITERS 2
+#define CONF_DTFFT_MEASURE_ITERS 5
+#define CONF_DTFFT_CONFIGS_TO_TEST 5
 
 #endif

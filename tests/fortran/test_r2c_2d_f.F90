@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -23,8 +23,8 @@ use iso_c_binding
 use dtfft
 use test_utils
 use iso_c_binding
-#include "dtfft_mpi.h"
-#include "dtfft_cuda.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_cuda.h"
 #include "dtfft.f03"
 implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
@@ -131,7 +131,7 @@ implicit none
   cmplx_upper_bound = 2 * product(out_counts)
   allocate(inout(alloc_size))
 
-  call mem_alloc_host(upper_bound * DOUBLE_STORAGE_SIZE, check)
+  check = mem_alloc_host(upper_bound * DOUBLE_STORAGE_SIZE)
   call setTestValuesDouble(check, upper_bound)
 
 !$acc enter data create(inout) if( platform == DTFFT_PLATFORM_CUDA )

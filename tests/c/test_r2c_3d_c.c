@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   }
 
   config.enable_z_slab = false;
-  DTFFT_CALL( dtfft_set_config(config) )
+  DTFFT_CALL( dtfft_set_config(&config) )
 
   // Create plan
   DTFFT_CALL( dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor, &plan) )

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -222,9 +222,10 @@ dtfft_mem_free(dtfft_plan_t plan, void *ptr)
 }
 
 dtfft_error_t
-dtfft_set_config(dtfft_config_t config)
+dtfft_set_config(const dtfft_config_t *config)
 {
-  return (dtfft_error_t)dtfft_set_config_c((void*)&config);
+  if (!config) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_t)dtfft_set_config_c((void*)config);
 }
 
 dtfft_error_t

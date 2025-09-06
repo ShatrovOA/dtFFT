@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
   DTFFT_CXX_CALL( plan.report() )
   vector<int32_t> in_counts(3), out_counts(3);
   DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_counts.data()) )
-  size_t alloc_bytes = plan.get_alloc_bytes();
+  size_t alloc_size = plan.get_alloc_size();
   size_t element_size = plan.get_element_size();
 
   Pencil out_pencil = plan.get_pencil(3);
@@ -124,13 +124,12 @@ int main(int argc, char *argv[])
 
   size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
 
-  float *buf, *check, *aux;
-
-  check = new float[in_size];
+  float *check = new float[in_size];
   setTestValuesFloat(check, in_size);
 
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&buf) )
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&aux) )
+  float *buf = nullptr;
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * element_size, (void**)&buf) )
+  auto aux = plan.mem_alloc<float>(alloc_size);
 
 #if defined(DTFFT_WITH_CUDA)
   auto platform = plan.get_platform();
@@ -146,7 +145,8 @@ int main(int argc, char *argv[])
 #endif
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan.execute(buf, buf, Execute::FORWARD, aux) )
+  // Performing inplace transform, but treating input and output as different types
+  auto fourier = plan.execute<std::complex<float>>(buf, Execute::FORWARD, aux);
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == Platform::CUDA ) {
     CUDA_SAFE_CALL( cudaDeviceSynchronize() )
@@ -155,13 +155,13 @@ int main(int argc, char *argv[])
   tf += MPI_Wtime();
 
 #if defined(DTFFT_WITH_CUDA)
-  scaleComplexFloat(static_cast<int32_t>(executor), buf, out_size, nx * ny * nz, static_cast<int32_t>(platform), NULL);
+  scaleComplexFloat(static_cast<int32_t>(executor), fourier, out_size, nx * ny * nz, static_cast<int32_t>(platform), NULL);
 #else
-  scaleComplexFloat(static_cast<int32_t>(executor), buf, out_size, nx * ny * nz);
+  scaleComplexFloat(static_cast<int32_t>(executor), fourier, out_size, nx * ny * nz);
 #endif
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan.execute(buf, buf, Execute::BACKWARD, aux) )
+  auto real = plan.backward<float>(fourier, aux);
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == Platform::CUDA ) {
     CUDA_SAFE_CALL( cudaDeviceSynchronize() )
@@ -170,10 +170,16 @@ int main(int argc, char *argv[])
   tb += MPI_Wtime();
 
 #if defined(DTFFT_WITH_CUDA)
-  checkAndReportFloat(nx * ny * nz, tf, tb, buf, in_size, check, static_cast<int32_t>(platform));
+  checkAndReportFloat(nx * ny * nz, tf, tb, real, in_size, check, static_cast<int32_t>(platform));
 #else
-  checkAndReportFloat(nx * ny * nz, tf, tb, buf, in_size, check);
+  checkAndReportFloat(nx * ny * nz, tf, tb, real, in_size, check);
 #endif
+
+  delete[] check;
+  DTFFT_CXX_CALL( plan.mem_free(buf) )
+  DTFFT_CXX_CALL( plan.mem_free(aux) )
+  fourier = nullptr;
+  real = nullptr;
 
   // Plan must be destroyed before calling MPI_Finalize
   DTFFT_CXX_CALL( plan.destroy() )

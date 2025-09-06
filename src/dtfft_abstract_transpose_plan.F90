@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -23,14 +23,14 @@ use iso_c_binding
 use iso_fortran_env
 use dtfft_config
 use dtfft_errors
-use dtfft_pencil,       only: pencil, pencil_init,get_local_sizes
+use dtfft_pencil,           only: pencil, pencil_init,get_local_sizes
 use dtfft_parameters
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
 use dtfft_abstract_backend, only: backend_helper
-#ifdef NCCL_HAVE_COMMREGISTER
+# ifdef NCCL_HAVE_COMMREGISTER
 use dtfft_abstract_backend, only: NCCL_REGISTER_PREALLOC_SIZE
-#endif
+# endif
 use dtfft_nvrtc_kernel,     only: DEF_TILE_SIZE
 use dtfft_interface_cuda_runtime
 # ifdef DTFFT_WITH_NVSHMEM
@@ -40,10 +40,10 @@ use dtfft_interface_nvshmem
 use dtfft_interface_nccl
 # endif
 #endif
-#include "dtfft_mpi.h"
-#include "dtfft_profile.h"
-#include "dtfft_cuda.h"
-#include "dtfft_private.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_profile.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_private.h"
 implicit none
 private
 public :: abstract_transpose_plan
@@ -161,7 +161,7 @@ contains
         error_code = DTFFT_ERROR_INVALID_COMM_FAST_DIM
         return
       endif
-      if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab() ) then
+      if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_conf_z_slab_enabled() ) then
         self%is_z_slab = .true.
         base_comm_ = ipencil%comms(3)
       endif
@@ -198,10 +198,10 @@ contains
 
           do d = 2, ndims
             if ( comm_dims(d) > dims(d) ) then
-              WRITE_WARN("Number of MPI processes in direction "//int_to_str(d)//" greater then number of physical points: "//int_to_str(comm_dims(d))//" > "//int_to_str(dims(d)))
+              WRITE_WARN("Number of MPI processes in direction "//to_str(d)//" greater then number of physical points: "//to_str(comm_dims(d))//" > "//to_str(dims(d)))
             endif
           enddo
-          if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_z_slab() ) then
+          if ( ndims == 3 .and. comm_dims(2) == 1 .and. get_conf_z_slab_enabled() ) then
             self%is_z_slab = .true.
           endif
         endblock
@@ -209,7 +209,7 @@ contains
         comm_dims(:) = 0
         comm_dims(1) = 1
 #ifdef DTFFT_WITH_CUDA
-        if ( get_user_platform() == DTFFT_PLATFORM_HOST ) then
+        if ( get_conf_platform() == DTFFT_PLATFORM_HOST ) then
           cond1 = comm_size <= dims(ndims)
           cond2 = comm_size <= dims(1) .and. comm_size <= dims(2)
         else
@@ -224,7 +224,7 @@ contains
         if ( ndims == 3 .and. cond1 ) then
           comm_dims(2) = 1
           comm_dims(3) = comm_size
-          self%is_z_slab = get_z_slab()
+          self%is_z_slab = get_conf_z_slab_enabled()
         else if (ndims == 3 .and. cond2 ) then
           comm_dims(2) = comm_size
           comm_dims(3) = 1
@@ -336,15 +336,13 @@ contains
     error_code = DTFFT_SUCCESS
     ierr = cudaSuccess
     CUDA_CALL( "cudaMemGetInfo", cudaMemGetInfo(free_mem, total_mem) )
-#ifdef __DEBUG
+#ifdef DTFFT_DEBUG
     call MPI_Allreduce(alloc_bytes, max_mem, 1, MPI_INTEGER8, MPI_MAX, comm, ierr)
     call MPI_Allreduce(alloc_bytes, min_mem, 1, MPI_INTEGER8, MPI_MIN, comm, ierr)
     call MPI_Allreduce(free_mem, max_free_mem, 1, MPI_INTEGER8, MPI_MAX, comm, ierr)
     call MPI_Allreduce(free_mem, min_free_mem, 1, MPI_INTEGER8, MPI_MIN, comm, ierr)
-    WRITE_DEBUG("Trying to allocate "//int_to_str(min_mem)//"/"//int_to_str(max_mem)//" (min/max) bytes for backend: '"//dtfft_get_backend_string(backend)//"'")
-    WRITE_DEBUG("Free memory available: "//int_to_str(min_free_mem)//"/"//int_to_str(max_free_mem)//" (min/max) bytes")
-#else
-    WRITE_INFO("Allocating "//int_to_str(alloc_bytes)//" bytes for backend: '"//dtfft_get_backend_string(backend)//"'"//"; free memory available: "//int_to_str(free_mem)//" bytes")
+    WRITE_DEBUG("Trying to allocate "//to_str(min_mem)//"/"//to_str(max_mem)//" (min/max) bytes for backend: '"//dtfft_get_backend_string(backend)//"'")
+    WRITE_DEBUG("Free memory available: "//to_str(min_free_mem)//"/"//to_str(max_free_mem)//" (min/max) bytes")
 #endif
     if ( alloc_bytes > free_mem ) then
       error_code = DTFFT_ERROR_ALLOC_FAILED
@@ -364,7 +362,8 @@ contains
           type(c_ptr) :: handle
 
           if ( size(helper%nccl_register, dim=2) == helper%nccl_register_size ) then
-            allocate( temp(2, helper%nccl_register_size + NCCL_REGISTER_PREALLOC_SIZE), source=helper%nccl_register )
+            allocate( temp(2, helper%nccl_register_size + NCCL_REGISTER_PREALLOC_SIZE) )
+            temp(2, 1:helper%nccl_register_size) = helper%nccl_register(2, 1:helper%nccl_register_size)
             deallocate( helper%nccl_register )
             call move_alloc(temp, helper%nccl_register)
           endif
@@ -373,6 +372,7 @@ contains
           NCCL_CALL( "ncclCommRegister", ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes, handle) )
           helper%nccl_register(1, helper%nccl_register_size) = ptr
           helper%nccl_register(2, helper%nccl_register_size) = handle
+          WRITE_DEBUG("Registered pointer "//to_str(transfer(ptr, int64)))
         endblock
       endif
 # endif
@@ -418,6 +418,7 @@ contains
             helper%nccl_register(1, i) = c_null_ptr
             helper%nccl_register(2, i) = c_null_ptr
             helper%nccl_register_size = helper%nccl_register_size - 1
+            WRITE_DEBUG("Pointer "//to_str(transfer(ptr, int64))//" has been removed from registry")
           enddo
         endblock
       endif

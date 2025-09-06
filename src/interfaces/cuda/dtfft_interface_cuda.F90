@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -22,23 +22,30 @@ module dtfft_interface_cuda
 !! CUDA Driver is loaded at runtime via dynamic loading.
 use iso_c_binding
 use iso_fortran_env,              only: int32
-use dtfft_errors
-use dtfft_parameters
-use dtfft_interface_cuda_runtime, only: dim3
-use dtfft_utils
+use dtfft_errors,                 only: DTFFT_SUCCESS
+use dtfft_parameters,             only: dtfft_stream_t
+use dtfft_utils,                  only: string, dynamic_load, destroy_strings
 implicit none
 private
-#include "dtfft_private.h"
+#include "_dtfft_private.h"
 public :: load_cuda
 public :: cuLaunchKernel
+
+public :: dim3
+  type, bind(C) :: dim3
+  !! Dimension specification type
+    integer(c_int) :: x,y,z
+  end type
 
 public :: kernelArgs
   type, bind(C) :: kernelArgs
   !! Arguments passed to nvrtc-compiled kernels
-    integer(c_int)  :: n_ints = 0   !! Number of integers provided
-    integer(c_int)  :: ints(5)      !! Integer array
-    integer(c_int)  :: n_ptrs = 0   !! Number of pointers provided
-    type(c_ptr)     :: ptrs(3)      !! Pointer array
+    ! integer(c_int)    :: n_longs = 0
+    ! integer(c_size_t) :: longs(1)
+    integer(c_int)    :: n_ints = 0   !! Number of integers provided
+    integer(c_int)    :: ints(5)      !! Integer array
+    integer(c_int)    :: n_ptrs = 0   !! Number of pointers provided
+    type(c_ptr)       :: ptrs(3)      !! Pointer array
   end type kernelArgs
 
 public :: CUmodule
@@ -54,7 +61,7 @@ public :: CUfunction
   end type CUfunction
 
   abstract interface
-    function cuModuleLoadDataEx_interface(mod, image, numOptions, options, optionValues)              &
+    function cuModuleLoadData_interface(mod, image)                                                   &
       result(cuResult)
     !! Load a module's data with options.
     !!
@@ -63,11 +70,8 @@ public :: CUfunction
     import
       type(CUmodule)        :: mod          !! Returned module
       character(c_char)     :: image(*)     !! Module data to load
-      integer(c_int), value :: numOptions   !! Number of options
-      type(c_ptr),    value :: options      !! Options for JIT
-      type(c_ptr)           :: optionValues !! Option values for JIT
       integer(c_int)        :: cuResult     !! Driver result code
-    end function cuModuleLoadDataEx_interface
+    end function cuModuleLoadData_interface
 
     function cuModuleUnload_interface(hmod)                                                           &
       result(cuResult)
@@ -93,27 +97,24 @@ public :: CUfunction
       character(c_char)     :: name(*)      !! Name of function to retrieve
       integer(c_int)        :: cuResult     !! Driver result code
     end function cuModuleGetFunction_interface
-  end interface
 
-  interface
-  !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
-    function run_cuda_kernel(func, in, out, blocks, threads, stream, args, funptr)          &
-      result(cuResult)                                                                      &
-      bind(C, name="run_cuda_kernel")
-    !! Wrapper around ``cuLaunchKernel``, since I have to idea how to pass array of pointers to ``cuLaunchKernel``.
-    !!
-    !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
+    function cuLaunchKernel_interface(func, gridDimX, gridDimY, gridDimZ, blockDimX, blockDimY, blockDimZ, sharedMemBytes, stream, kernelParams, extra)                                          &
+      result(cuResult)
+    !! Launches a CUDA function CUfunction.
     import
-      type(CUfunction),             value :: func         !! Function CUfunction or Kernel CUkernel to launch
-      type(c_ptr),                  value :: in           !! Input pointer
-      type(c_ptr),                  value :: out          !! Output pointer
-      type(dim3)                          :: blocks       !! Grid in blocks
-      type(dim3)                          :: threads      !! Thread block
-      type(dtfft_stream_t),         value :: stream       !! Stream identifier
-      type(kernelArgs)                    :: args         !! Kernel parameters
-      type(c_funptr),               value :: funptr       !! Pointer to ``cuLaunchKernel``
-      integer(c_int)                      :: cuResult     !! Driver result code
-    end function run_cuda_kernel
+      type(CUfunction),     value :: func               !! CUDA function to launch
+      integer(c_int),       value :: gridDimX           !! Grid dimensions in X
+      integer(c_int),       value :: gridDimY           !! Grid dimensions in Y
+      integer(c_int),       value :: gridDimZ           !! Grid dimensions in Z
+      integer(c_int),       value :: blockDimX          !! Block dimensions in X
+      integer(c_int),       value :: blockDimY          !! Block dimensions in Y
+      integer(c_int),       value :: blockDimZ          !! Block dimensions in Z
+      integer(c_int),       value :: sharedMemBytes     !! Dynamic shared memory size
+      type(dtfft_stream_t), value :: stream             !! Stream identifier
+      type(c_ptr)                 :: kernelParams(*)    !! Array of pointers to kernel parameters
+      type(c_ptr)                 :: extra              !! Dynamic shared-memory size per thread block in bytes
+      integer(c_int)              :: cuResult           !! Driver result code
+    end function cuLaunchKernel_interface
   end interface
 
   logical,        save :: is_loaded = .false.
@@ -123,13 +124,14 @@ public :: CUfunction
   type(c_funptr), save :: cuFunctions(4)
     !! Array of pointers to the CUDA functions
 
-  procedure(cuModuleLoadDataEx_interface),   pointer, public :: cuModuleLoadDataEx
-    !! Fortran pointer to the cuModuleLoadDataEx function
-  procedure(cuModuleUnload_interface),       pointer, public :: cuModuleUnload
+  procedure(cuModuleLoadData_interface),     pointer, public  :: cuModuleLoadData
+    !! Fortran pointer to the cuModuleLoadData function
+  procedure(cuModuleUnload_interface),       pointer, public  :: cuModuleUnload
     !! Fortran pointer to the cuModuleUnload function
-  procedure(cuModuleGetFunction_interface),  pointer, public :: cuModuleGetFunction
+  procedure(cuModuleGetFunction_interface),  pointer, public  :: cuModuleGetFunction
     !! Fortran pointer to the cuModuleGetFunction function
-
+  procedure(cuLaunchKernel_interface),       pointer          :: cuLaunchKernel_
+    !! Fortran pointer to the cuLaunchKernel function
 contains
 
   function load_cuda() result(error_code)
@@ -141,7 +143,7 @@ contains
     if ( is_loaded ) return
 
     allocate(func_names(4))
-    func_names(1) = string("cuModuleLoadDataEx")
+    func_names(1) = string("cuModuleLoadData")
     func_names(2) = string("cuModuleUnload")
     func_names(3) = string("cuModuleGetFunction")
     func_names(4) = string("cuLaunchKernel")
@@ -150,23 +152,47 @@ contains
     call destroy_strings(func_names)
     if ( error_code /= DTFFT_SUCCESS ) return
 
-    call c_f_procpointer(cuFunctions(1), cuModuleLoadDataEx)
+    call c_f_procpointer(cuFunctions(1), cuModuleLoadData)
     call c_f_procpointer(cuFunctions(2), cuModuleUnload)
     call c_f_procpointer(cuFunctions(3), cuModuleGetFunction)
+    call c_f_procpointer(cuFunctions(4), cuLaunchKernel_)
 
     is_loaded = .true.
   end function load_cuda
 
-  function cuLaunchKernel(func, in, out, blocks, threads, stream, args) result(cuResult)
-  !! Launches a CUDA function CUfunction or a CUDA kernel CUkernel.
-    type(CUfunction)      :: func         !! Function CUfunction or Kernel CUkernel to launch
-    type(c_ptr)           :: in           !! Input pointer
-    type(c_ptr)           :: out          !! Output pointer
-    type(dim3)            :: blocks       !! Grid in blocks
-    type(dim3)            :: threads      !! Thread block
-    type(dtfft_stream_t)  :: stream       !! Stream identifier
-    type(kernelArgs)      :: args         !! Kernel parameters
-    integer(c_int)        :: cuResult     !! Driver result code
-    cuResult = run_cuda_kernel(func, in, out, blocks, threads, stream, args, cuFunctions(4))
+  function cuLaunchKernel(func, in, out, blocks, threads, stream, kernelParams) result(cuResult)
+  !! Launches a CUDA kernel
+    type(CUfunction),         intent(in)  :: func             !! Function CUfunction or Kernel CUkernel to launch
+    type(c_ptr),      target, intent(in)  :: in               !! Input pointer
+    type(c_ptr),      target, intent(in)  :: out              !! Output pointer
+    type(dim3),               intent(in)  :: blocks           !! Grid in blocks
+    type(dim3),               intent(in)  :: threads          !! Thread block
+    type(dtfft_stream_t),     intent(in)  :: stream           !! Stream identifier
+    type(kernelArgs), target, intent(in)  :: kernelParams     !! Input parameters of kernel `func`
+    integer(c_int)                        :: cuResult         !! Driver result code
+    type(c_ptr)                           :: args(10)
+    ! integer(int32), pointer :: param
+    integer(int32) :: i, temp
+
+    args(:) = c_null_ptr
+    ! Addresses of pointers are required, not the pointers themselves
+    args(1) = c_loc(out)
+    args(2) = c_loc(in)
+
+    temp = 2
+    ! do i = 1, kernelParams%n_longs
+    !   args(temp + i) = c_loc(kernelParams%longs(i))
+    ! enddo
+
+    ! temp = temp + kernelParams%n_longs
+    do i = 1, kernelParams%n_ints
+      args(temp + i) = c_loc(kernelParams%ints(i))
+    enddo
+
+    temp = temp + kernelParams%n_ints
+    do i = 1, kernelParams%n_ptrs
+      args(temp + i) = c_loc(kernelParams%ptrs(i))
+    enddo
+    cuResult = cuLaunchKernel_(func, blocks%x, blocks%y, blocks%z, threads%x, threads%y, threads%z, 0, stream, args, c_null_ptr)
   end function cuLaunchKernel
 end module dtfft_interface_cuda

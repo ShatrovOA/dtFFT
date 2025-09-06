@@ -1,12 +1,11 @@
-#define NX 1024
-#define NY 1024
-#define NZ 512
+#pragma once
 
 #define WARMUP_ITERATIONS 5
 #define TEST_ITERATIONS 50
 
 #include <cuda_runtime_api.h>
 #include <mpi.h>
+#include <vector>
 
 #define CUDA_CALL(call)                                           \
   do {                                                            \

@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -21,8 +21,8 @@ program test_r2r_2d
 use iso_fortran_env
 use dtfft
 use test_utils, only: attach_gpu_to_process
-#include "dtfft_cuda.h"
-#include "dtfft_mpi.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
   integer(int32) :: comm_size, comm_rank, ierr

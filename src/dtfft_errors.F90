@@ -1,6 +1,24 @@
+!------------------------------------------------------------------------------------------------
+! Copyright (c) 2021 - 2025, Oleg Shatrov
+! All rights reserved.
+! This file is part of dtFFT library.
+
+! dtFFT is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 3 of the License, or
+! (at your option) any later version.
+
+! dtFFT is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more details.
+
+! You should have received a copy of the GNU General Public License
+! along with this program.  If not, see <https://www.gnu.org/licenses/>.
+!------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 module dtfft_errors
 use iso_fortran_env, only: int32
-#include "dtfft_config.h"
 implicit none
 private
 public :: dtfft_get_error_string
@@ -73,6 +91,10 @@ public :: dtfft_get_error_string
     !! Local pencils do not cover the global space without gaps
   integer(int32),  parameter,  public  :: DTFFT_ERROR_PENCIL_NOT_INITIALIZED = CONF_DTFFT_ERROR_PENCIL_NOT_INITIALIZED
     !! Pencil is not initialized, i.e. `constructor` subroutine was not called
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS = CONF_DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS
+    !! Invalid `n_measure_warmup_iters` provided
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_MEASURE_ITERS = CONF_DTFFT_ERROR_INVALID_MEASURE_ITERS
+    !! Invalid `n_measure_iters` provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
     !! Selected `executor` do not support R2R FFTs
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
@@ -172,6 +194,10 @@ contains
       allocate(error_string, source="Local pencils do not cover the global space without gaps")
     case ( DTFFT_ERROR_PENCIL_NOT_INITIALIZED )
       allocate(error_string, source="Pencil is not initialized, i.e. `constructor` subroutine was not called")
+    case ( DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS )
+      allocate(error_string, source="Invalid `n_measure_warmup_iters` provided")
+    case ( DTFFT_ERROR_INVALID_MEASURE_ITERS )
+      allocate(error_string, source="Invalid `n_measure_iters` provided")
     case ( DTFFT_ERROR_GPU_INVALID_STREAM )
       allocate(error_string, source="Invalid stream provided")
     case ( DTFFT_ERROR_GPU_INVALID_BACKEND )

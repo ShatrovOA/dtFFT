@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -16,7 +16,6 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
 #include <dtfft.hpp>
 #include <mpi.h>
 #include <math.h>
@@ -80,7 +79,8 @@ int main(int argc, char *argv[])
     CUDA_SAFE_CALL( cudaStreamCreate(&stream) );
     conf.set_stream((dtfft_stream_t)stream)
       .set_enable_mpi_backends(true)
-      .set_enable_nvshmem_backends(false);
+      .set_enable_nvshmem_backends(false)
+      .set_n_configs_to_test(20);
   }
 #endif
 
@@ -107,12 +107,10 @@ int main(int argc, char *argv[])
     DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "element_size != sizeof(float)")
   }
 
-  float *inout, *aux;
+  auto inout = plan.mem_alloc<float>(alloc_size);
+  auto aux = plan.mem_alloc<float>(alloc_size);
   float *check = new float[in_size];
   setTestValuesFloat(check, in_size);
-
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * element_size, (void**)&inout) )
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * element_size, (void**)&aux) )
 
 #if defined(DTFFT_WITH_CUDA)
   Platform platform = plan.get_platform();
@@ -128,7 +126,7 @@ int main(int argc, char *argv[])
 
   double tf = 0.0 - MPI_Wtime();
 
-  DTFFT_CXX_CALL( plan.execute(inout, inout, Execute::FORWARD, aux) )
+  inout = plan.forward(inout, aux);
 #if defined(DTFFT_WITH_CUDA)
   if ( running_cuda ) {
     CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );
@@ -145,7 +143,7 @@ int main(int argc, char *argv[])
 #endif
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan.execute(inout, inout, Execute::BACKWARD, aux) )
+  inout = plan.backward(inout);
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == Platform::CUDA ) {
     CUDA_SAFE_CALL( cudaStreamSynchronize(stream) );

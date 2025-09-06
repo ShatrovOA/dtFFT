@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -22,16 +22,16 @@ module dtfft_executor_cufft_m
 !! https://docs.nvidia.com/cuda/cufft/index.html
 use iso_c_binding,                  only: c_ptr, c_int, c_null_ptr, c_loc
 use iso_fortran_env,                only: int8, int32, int64
-use dtfft_parameters
 use dtfft_abstract_executor,        only: abstract_executor, FFT_C2C, FFT_R2C
+use dtfft_config,                   only: get_conf_stream
 use dtfft_errors
 use dtfft_interface_cufft
 use dtfft_interface_cuda_runtime
-use dtfft_utils,                    only: int_to_str
-use dtfft_config,                   only: get_user_stream
-#include "dtfft_mpi.h"
-#include "dtfft_cuda.h"
-#include "dtfft_private.h"
+use dtfft_parameters
+use dtfft_utils,                    only: to_str
+#include "_dtfft_mpi.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_private.h"
 implicit none
 private
 public :: cufft_executor
@@ -97,9 +97,9 @@ contains
       endif
       return
     endselect
-    CUFFT_CALL( "cufftSetStream", cufftSetStream(self%plan_forward, get_user_stream()) )
+    CUFFT_CALL( "cufftSetStream", cufftSetStream(self%plan_forward, get_conf_stream()) )
     if ( .not.self%is_inverse_copied ) then
-      CUFFT_CALL( "cufftSetStream", cufftSetStream(self%plan_backward, get_user_stream()) )
+      CUFFT_CALL( "cufftSetStream", cufftSetStream(self%plan_backward, get_conf_stream()) )
     endif
   end subroutine create
 

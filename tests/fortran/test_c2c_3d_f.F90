@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -26,8 +26,8 @@ use test_utils
 #if defined(DTFFT_WITH_CUDA)
 use dtfft_interface_cuda_runtime
 #endif
-#include "dtfft_cuda.h"
-#include "dtfft_mpi.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
   complex(real64),  pointer :: inout(:), aux(:)
@@ -128,7 +128,7 @@ implicit none
   call plan%mem_alloc(alloc_size, inout, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%mem_alloc(alloc_size, aux, error_code=ierr); DTFFT_CHECK(ierr)
 
-  call mem_alloc_host(in_size * element_size, check)
+  check = mem_alloc_host(in_size * element_size)
   call setTestValuesComplexDouble(check, in_size)
 
 

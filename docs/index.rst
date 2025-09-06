@@ -56,3 +56,4 @@ Table of Contents
    c_api
    cpp_api
    environ
+   benchmarks
