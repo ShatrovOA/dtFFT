@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   int32_t nx = 31334, ny = 44;
 #else
-  int32_t nx = 313, ny = 44;
+  int32_t nx = 3133, ny = 44;
 #endif
 
   if(comm_rank == 0) {
@@ -56,10 +56,10 @@ int main(int argc, char *argv[])
 
 #if defined(DTFFT_WITH_CUDA)
   Config config;
-  config.set_backend(Backend::MPI_P2P);
-  config.set_platform(Platform::CUDA); // Can be changed at runtime via `DTFFT_PLATFORM` environment variable
+  config.set_backend(Backend::MPI_P2P)
+    .set_platform(Platform::CUDA); // Can be changed at runtime via `DTFFT_PLATFORM` environment variable
   // config.set_enable_nvshmem_backends(false);
-  set_config(config);
+  DTFFT_CXX_CALL( set_config(config) )
 #endif
 
   // Create plan
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "reported_precision != Precision::DOUBLE")
   }
 
-  size_t alloc_bytes = plan.get_alloc_bytes();
+  size_t alloc_size = plan.get_alloc_size();
 
   std::vector<dtfft::Pencil> pencils;
 
@@ -84,8 +84,10 @@ int main(int argc, char *argv[])
   size_t in_size = pencils[0].get_size();
   size_t out_size = pencils[1].get_size();
 
-  auto in = (complex<double> *)plan.mem_alloc(alloc_bytes);
-  auto out = (complex<double> *)plan.mem_alloc(alloc_bytes);
+  complex<double> * in;
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * sizeof(*in), reinterpret_cast<void**>(&in)) )
+
+  auto out = plan.mem_alloc<complex<double>>(alloc_size);
   auto check = new complex<double>[in_size];
 
   setTestValuesComplexDouble(check, in_size);

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -32,16 +32,16 @@ extern "C" {
 
 #define CHECK_INTERNAL_CALL( func ) CHECK_CALL(func, __FUNC__)
 
-#ifdef __DEBUG
-# define WRITE_DEBUG(msg) if(get_log_enabled()) call write_message(output_unit, msg, "dtFFT DEBUG: ")
+#ifdef DTFFT_DEBUG
+# define WRITE_DEBUG(msg) if(get_conf_log_enabled()) call write_message(output_unit, msg, "dtFFT DEBUG: ")
 #else
 # define WRITE_DEBUG(msg)
 #endif
 
 #define WRITE_REPORT(msg) call write_message(output_unit, msg, "dtFFT: ")
-#define WRITE_INFO(msg) if(get_log_enabled()) WRITE_REPORT(msg)
-#define WRITE_WARN(msg) if(get_log_enabled()) call write_message(error_unit, msg, "dtFFT WARNING: ")
-#define WRITE_ERROR(msg) if(get_log_enabled()) call write_message(error_unit, msg, "dtFFT ERROR: ")
+#define WRITE_INFO(msg) if(get_conf_log_enabled()) WRITE_REPORT(msg)
+#define WRITE_WARN(msg) if(get_conf_log_enabled()) call write_message(error_unit, msg, "dtFFT WARNING: ")
+#define WRITE_ERROR(msg) call write_message(error_unit, msg, "dtFFT ERROR: ")
 
 #define ALLOC_ALIGNMENT 16
 

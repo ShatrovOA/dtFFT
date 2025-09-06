@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -33,10 +33,10 @@ public :: mkl_dfti_create_desc,         &
 public :: DftiErrorMessage
 
   interface
-  !! Generates an error message.
     function DftiErrorMessage_c(error_code)                                   &
       result(message)                                                         &
       bind(C, name="DftiErrorMessage")
+    !! Generates an error message.
     import
       integer(c_long),  intent(in), value  :: error_code      !! Completion status of a function.
       type(c_ptr)                          :: message         !! Pointer to message
@@ -69,10 +69,10 @@ public :: DftiErrorMessage
   end interface mkl_dfti_set_value
 
   interface
-  !! Allocates the descriptor data structure and initializes it with default configuration values.
     function  mkl_dfti_create_desc(precision, domain, dim, length, desc)      &
       result(status)                                                          &
       bind(C)
+    !! Allocates the descriptor data structure and initializes it with default configuration values.
     import
       integer(c_int),   intent(in), value :: precision        !! Precision of the transform: DFTI_SINGLE or DFTI_DOUBLE.
       integer(c_int),   intent(in), value :: domain           !! Forward domain of the transform: DFTI_COMPLEX or DFTI_REAL.
@@ -85,10 +85,10 @@ public :: DftiErrorMessage
   end interface
 
   interface
-  !! Performs all initialization for the actual FFT computation.
     function mkl_dfti_commit_desc(desc)                                       &
       result(status)                                                          &
       bind(C)
+    !! Performs all initialization for the actual FFT computation.
     import
       type(c_ptr),                  value :: desc             !! FFT descriptor.
       integer(c_long)                     :: status           !! Function completion status.
@@ -96,10 +96,10 @@ public :: DftiErrorMessage
   end interface
 
   interface
-  !! Computes FFT.
     function mkl_dfti_execute(desc, in, out, sign)                            &
       result(status)                                                          &
       bind(C)
+    !! Computes FFT.
     import
       type(c_ptr),                  value :: desc             !! FFT descriptor.
       type(c_ptr),                  value :: in               !! Data to be transformed
@@ -110,10 +110,10 @@ public :: DftiErrorMessage
   end interface
 
   interface
-  !! Frees the memory allocated for a descriptor.
     function mkl_dfti_free_desc(desc)                                         &
       result(status)                                                          &
       bind(C)
+    !! Frees the memory allocated for a descriptor.
     import
       type(c_ptr),                  value :: desc             !! FFT descriptor.
       integer(c_long)                     :: status           !! Function completion status.
@@ -121,10 +121,10 @@ public :: DftiErrorMessage
   end interface
 
   interface
-  !! Allocates pointer via `mkl_malloc`
     function mkl_dfti_mem_alloc(alloc_bytes, ptr)                             &
       result(status)                                                          &
       bind(C)
+    !! Allocates pointer via `mkl_malloc`
     import
       integer(c_size_t),            value :: alloc_bytes      !! Number of bytes to allocate.
       type(c_ptr)                         :: ptr              !! Pointer to allocated memory.
@@ -133,10 +133,10 @@ public :: DftiErrorMessage
   end interface
 
   interface
-  !! Frees pointer via `mkl_free`
     function mkl_dfti_mem_free(ptr)                                           &
       result(status)                                                          &
       bind(C)
+    !! Frees pointer via `mkl_free`
     import
       type(c_ptr),                  value :: ptr              !! Pointer to allocated memory.
       integer(c_long)                     :: status           !! Function completion status.

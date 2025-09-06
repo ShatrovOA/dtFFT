@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -35,6 +35,7 @@ public :: is_nvshmem_ptr
   end type nvshmem_team_t
 
   type(nvshmem_team_t), parameter, public :: NVSHMEM_TEAM_WORLD = nvshmem_team_t(0)
+  !! Global NVSHMEM team.
 
 public :: nvshmem_malloc
 public :: nvshmem_free
@@ -51,20 +52,25 @@ public :: nvshmemx_init_status
       type(c_ptr)               :: ptr  !! Pointer to the allocated memory.
       integer(c_size_t), value  :: size            !! Size of the allocation in bytes.
     end function nvshmem_malloc
+  end interface
 
+  interface nvshmem_free
     subroutine nvshmem_free(ptr) bind(C)
     !! Frees symmetric memory allocated by nvshmem_malloc.
       import
       type(c_ptr), value :: ptr  !! Pointer to the memory to free.
     end subroutine nvshmem_free
+  end interface
 
-
+  interface
     subroutine nvshmemx_sync_all_on_stream(stream) bind(C)
     !! Synchronizes all PEs (Processing Elements) on the specified stream.
       import
       type(dtfft_stream_t), intent(in), value :: stream  !! CUDA stream for synchronization.
     end subroutine nvshmemx_sync_all_on_stream
+  end interface
 
+  interface
     function nvshmemx_float_alltoall_on_stream(team, dest, source, nelems, stream) result(ierr) bind(C)
     !! Performs an all-to-all exchange of floating-point data on the specified stream.
       import
@@ -75,7 +81,9 @@ public :: nvshmemx_init_status
       integer(c_size_t),    intent(in), value :: nelems !! Number of elements to exchange.
       type(dtfft_stream_t), intent(in), value :: stream !! CUDA stream for the operation.
     end function nvshmemx_float_alltoall_on_stream
+  end interface
 
+  interface
     function nvshmem_ptr(ptr, pe) result(pe_ptr) bind(C)
     !! Returns a pointer to a symmetric memory location on a specified PE.
       import
@@ -83,13 +91,17 @@ public :: nvshmemx_init_status
       type(c_ptr),    value     :: ptr          !! Local pointer to the symmetric memory.
       integer(c_int), value     :: pe           !! PE (Processing Element) number.
     end function nvshmem_ptr
+  end interface
 
+  interface
     function nvshmem_my_pe() result(pe) bind(C)
     !! Returns the PE (Processing Element) number of the calling thread.
       import
       integer(c_int) :: pe  !! PE number of the calling thread.
     end function nvshmem_my_pe
+  end interface
 
+  interface
     function nvshmemx_init_status() result(status) bind(C)
       import
       integer(c_int)                          :: status  !! Completion status.

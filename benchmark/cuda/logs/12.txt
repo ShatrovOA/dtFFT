@@ -1,377 +1,239 @@
-Nx = 1024, Ny = 1024, Nz = 512
+*******************************
 Number of GPUs: 12
-----------------------------------------
-cuDECOMP benchmark
-Plan type is CUDECOMP_DOUBLE_COMPLEX
-----------------------------------------
-CUDECOMP: Running transpose autotuning...
-CUDECOMP:	grid: 12 x 1, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 440.540161/447.316986/444.029449/1.716703
-CUDECOMP:	           min/max/avg/std [ms]: 440.540161/447.316986/444.029449/1.716702 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 214.983673/222.418945/219.600571/1.935275
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 3.916800/4.037632/3.956548/0.044602
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 3.709952/3.776512/3.748728/0.022670
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 212.761597/220.762115/216.723587/1.271646
-CUDECOMP:	grid: 6 x 2, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 431.879150/477.351929/454.100128/20.004185
-CUDECOMP:	           min/max/avg/std [ms]: 431.879181/477.351929/454.100128/20.004183 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 163.055618/209.060867/185.509705/20.276653
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 33.068031/78.231552/53.493027/20.290028
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 32.909313/33.257473/33.120888/0.096292
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 159.195129/204.628998/181.976532/19.979557
-CUDECOMP:	grid: 4 x 3, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 616.753174/674.594849/651.272034/16.528996
-CUDECOMP:	           min/max/avg/std [ms]: 616.753174/674.594849/651.272034/16.529001 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 201.671677/216.427521/210.448105/5.413898
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 101.137405/137.667587/112.945244/10.617074
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 89.079811/150.704132/121.162346/24.884256
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 149.626877/265.064453/206.716339/36.541870
-CUDECOMP:	grid: 3 x 4, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 503.100403/545.608704/525.085938/18.651264
-CUDECOMP:	           min/max/avg/std [ms]: 503.100403/545.608704/525.085938/18.651266 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 157.830139/208.771072/184.155197/23.204491
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 63.225857/113.928192/87.462212/23.157864
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 74.198013/74.906624/74.481224/0.167138
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 158.013443/199.675903/178.987335/18.653322
-CUDECOMP:	grid: 2 x 6, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 694.964233/733.718567/717.375122/14.212727
-CUDECOMP:	           min/max/avg/std [ms]: 694.964233/733.718506/717.375122/14.212715 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 113.278976/158.540802/139.983704/17.358671
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 151.382019/252.131332/213.172394/24.018755
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 207.242233/238.330887/217.880737/5.319492
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 113.391617/194.423813/146.338303/19.871723
-CUDECOMP:	grid: 1 x 12, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 440.643585/450.229248/446.427795/2.450008
-CUDECOMP:	           min/max/avg/std [ms]: 440.643585/450.229248/446.427795/2.450006 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 3.921920/4.081664/4.009148/0.050671
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 217.308167/222.780411/220.646103/1.512838
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 214.593536/222.115845/218.095596/2.008764
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 3.607552/3.725312/3.676945/0.046595
-CUDECOMP: SELECTED: grid: 12 x 1, backend: NCCL, Avg. time (weighted) [ms]: 444.029449
-CUDECOMP: transpose autotuning time [s]: 26.747381
-running on 12 x 1 process grid...
-running using NCCL transpose backend...
-Started warmup
-Ended warmup
-min time: 22217.589844 [ms]
-max time: 22221.126953 [ms]
-avg time: 22219.531250 [ms]
-----------------------------------------
+*******************************
+Base dims: [1024, 1024, 512] -> Scaled dims: [3072, 2048, 1024]
+Scale factors: [x3.0, x2.0, x2.0]
+Elements per process: 536870912
 ----------------------------------------
 cuDECOMP benchmark
 Plan type is CUDECOMP_DOUBLE
 ----------------------------------------
 CUDECOMP: Running transpose autotuning...
 CUDECOMP:	grid: 12 x 1, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 222.993408/228.006912/225.414658/1.185245
-CUDECOMP:	           min/max/avg/std [ms]: 222.993408/228.006912/225.414658/1.185244 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 109.670403/112.809982/111.649742/0.840084
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 1.874944/2.002944/1.935957/0.047139
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 1.847296/1.929216/1.889843/0.034222
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 107.671555/113.063934/109.939117/1.208654
+CUDECOMP:	Total time min/max/avg/std [ms]: 2672.927734/2721.401855/2692.693359/12.023132
+CUDECOMP:	           min/max/avg/std [ms]: 2672.927734/2721.401855/2692.693115/12.023108 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 1312.223267/1338.818604/1326.406128/9.023860
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 26.099712/27.026432/26.379606/0.268267
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 24.136703/34.072575/27.108847/2.611054
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 1298.751465/1329.895386/1312.798706/7.239970
 CUDECOMP:	grid: 6 x 2, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 217.949188/242.358276/229.920059/10.389293
-CUDECOMP:	           min/max/avg/std [ms]: 217.949188/242.358276/229.920074/10.389294 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 82.405373/104.602623/93.829048/9.996931
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 16.425983/38.059010/26.512947/9.995173
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 16.499712/16.731136/16.615391/0.046388
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 80.681984/106.266624/92.962677/10.416038
+CUDECOMP:	Total time min/max/avg/std [ms]: 2607.847412/2883.167236/2744.071289/120.012650
+CUDECOMP:	           min/max/avg/std [ms]: 2607.847412/2883.167236/2744.071289/120.012642 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 988.968933/1246.490601/1117.505615/121.904678
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 201.313278/457.694214/324.040619/121.899048
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 200.263687/206.675964/201.175186/1.275406
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 968.267761/1241.020386/1101.349854/119.920387
 CUDECOMP:	grid: 4 x 3, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 301.063171/330.211304/319.778564/6.983358
-CUDECOMP:	           min/max/avg/std [ms]: 301.063171/330.211334/319.778564/6.983360 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 100.280319/108.343292/105.362434/2.626003
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 51.102718/63.657986/55.820187/3.563234
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 48.406528/75.731972/59.237873/9.134714
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 77.022209/118.904831/99.358070/12.586599
+CUDECOMP:	Total time min/max/avg/std [ms]: 3539.536865/4019.572754/3873.728271/153.014221
+CUDECOMP:	           min/max/avg/std [ms]: 3539.536865/4019.572754/3873.728271/153.014236 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 1226.933228/1238.748169/1234.864868/1.919662
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 519.907349/723.451904/670.842102/68.943245
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 642.192383/840.626160/729.899536/72.234268
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 957.797363/1615.786011/1238.121704/216.110733
 CUDECOMP:	grid: 3 x 4, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 253.499390/275.028992/264.384277/9.401992
-CUDECOMP:	           min/max/avg/std [ms]: 253.499390/275.028992/264.384277/9.401990 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 79.651840/105.726974/92.813690/12.303694
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 31.027201/57.014271/44.040142/12.283362
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 37.049343/37.957630/37.344017/0.172437
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 79.484924/100.610046/90.186447/9.406161
+CUDECOMP:	Total time min/max/avg/std [ms]: 3056.895020/3307.012207/3180.479248/111.776100
+CUDECOMP:	           min/max/avg/std [ms]: 3056.895020/3307.012207/3180.479248/111.776115 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 975.370239/1248.651245/1112.742676/133.355637
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 401.392639/676.460571/538.088562/133.806580
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 446.228485/455.077881/448.607269/1.647279
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 956.716003/1207.170044/1081.040649/111.594002
 CUDECOMP:	grid: 2 x 6, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 349.759460/369.623047/361.919525/7.080685
-CUDECOMP:	           min/max/avg/std [ms]: 349.759491/369.623047/361.919556/7.080683 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 56.550400/79.604736/70.064537/8.607551
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 77.500420/128.029694/108.443787/12.019263
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 107.128830/117.068802/109.899742/1.778395
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 56.086529/101.113853/73.511475/10.588439
+CUDECOMP:	Total time min/max/avg/std [ms]: 4231.399414/4471.769043/4381.126953/85.114197
+CUDECOMP:	           min/max/avg/std [ms]: 4231.399414/4471.769043/4381.126953/85.114197 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 690.323486/937.247742/837.457581/98.611023
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 927.398926/1528.606689/1303.301270/156.149475
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 1323.281372/1471.800293/1351.226196/35.213917
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 685.071350/1187.805176/889.141907/129.245193
 CUDECOMP:	grid: 1 x 12, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 223.993851/229.584900/227.120834/1.245405
-CUDECOMP:	           min/max/avg/std [ms]: 223.993851/229.584900/227.120834/1.245406 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 1.926144/2.046976/2.002739/0.035602
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 110.945282/114.650108/113.280464/0.884455
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 107.677696/113.364990/109.946693/1.237098
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 1.840128/1.921024/1.890935/0.026616
-CUDECOMP: SELECTED: grid: 12 x 1, backend: NCCL, Avg. time (weighted) [ms]: 225.414658
-CUDECOMP: transpose autotuning time [s]: 13.586614
-running on 12 x 1 process grid...
+CUDECOMP:	Total time min/max/avg/std [ms]: 2666.199219/2710.376221/2686.412109/12.749891
+CUDECOMP:	           min/max/avg/std [ms]: 2666.198975/2710.376465/2686.411865/12.749901 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 23.842815/25.112576/24.492851/0.410081
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 1307.207642/1337.567261/1324.421021/9.679632
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 1301.321777/1330.176025/1315.076904/8.095902
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 22.338560/22.520832/22.421230/0.070139
+CUDECOMP: SELECTED: grid: 1 x 12, backend: NCCL, Avg. time (weighted) [ms]: 2686.411865
+CUDECOMP: transpose autotuning time [s]: 362.050063
+running on 1 x 12 process grid...
 running using NCCL transpose backend...
 Started warmup
 Ended warmup
-min time: 11302.240234 [ms]
-max time: 11306.053711 [ms]
-avg time: 11304.726562 [ms]
+min time: 135098.531250 [ms]
+max time: 135140.359375 [ms]
+avg time: 135118.171875 [ms]
 ----------------------------------------
+Plan created successfully, time spent: 19.173583
+dtFFT: **Plan report**
+dtFFT:   dtFFT Version        :  2.2.0
+dtFFT:   Number of dimensions :  3
+dtFFT:   Global dimensions    :  3072x2048x1024
+dtFFT:   Grid decomposition   :  1x1x12
+dtFFT:   Execution platform   :  CUDA
+dtFFT:   Plan type            :  Real-to-Real
+dtFFT:   Plan precision       :  Double
+dtFFT:   FFT Executor type    :  None
+dtFFT:   Z-slab enabled       :  True
+dtFFT:   GPU Backend          :  NCCL
+dtFFT: **End of report**
+Started warmup
+Ended warmup
+min time: 131310.328125 [ms]
+max time: 131340.171875 [ms]
+avg time: 131328.609375 [ms]
+----------------------------------------
+Plan created successfully, time spent: 373.356185
+dtFFT: **Plan report**
+dtFFT:   dtFFT Version        :  2.2.0
+dtFFT:   Number of dimensions :  3
+dtFFT:   Global dimensions    :  3072x2048x1024
+dtFFT:   Grid decomposition   :  1x12x1
+dtFFT:   Execution platform   :  CUDA
+dtFFT:   Plan type            :  Real-to-Real
+dtFFT:   Plan precision       :  Double
+dtFFT:   FFT Executor type    :  None
+dtFFT:   Z-slab enabled       :  False
+dtFFT:   GPU Backend          :  NCCL
+dtFFT: **End of report**
+Started warmup
+Ended warmup
+min time: 132164.968750 [ms]
+max time: 132185.234375 [ms]
+avg time: 132175.953125 [ms]
+----------------------------------------
+Fixed dims: [1024, 1024, 512]
+Total elements: 536870912
+Elements per process: 44739242
 ----------------------------------------
 cuDECOMP benchmark
-Plan type is CUDECOMP_FLOAT
+Plan type is CUDECOMP_DOUBLE
 ----------------------------------------
 CUDECOMP: Running transpose autotuning...
 CUDECOMP:	grid: 12 x 1, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 113.203201/116.397057/115.031708/0.646269
-CUDECOMP:	           min/max/avg/std [ms]: 113.203201/116.397057/115.031708/0.646269 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 55.612415/57.871361/56.907402/0.571246
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 1.285120/1.312768/1.296538/0.006751
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 1.283072/1.308672/1.297476/0.006035
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 53.955585/57.085953/55.530293/0.765749
+CUDECOMP:	Total time min/max/avg/std [ms]: 221.593597/226.832397/224.106857/1.131327
+CUDECOMP:	           min/max/avg/std [ms]: 221.593597/226.832382/224.106857/1.131328 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 108.519424/112.182274/110.511765/0.898536
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 1.885184/1.927168/1.910352/0.013520
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 1.837056/1.882112/1.864755/0.017852
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 107.505661/113.352707/109.819992/0.982162
 CUDECOMP:	grid: 6 x 2, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 109.701126/122.210304/115.864235/5.090476
-CUDECOMP:	           min/max/avg/std [ms]: 109.701118/122.210304/115.864235/5.090476 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 41.570305/53.038078/46.935040/5.017640
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 8.576000/19.312639/13.614592/5.017796
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 8.614912/8.726528/8.665515/0.020805
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 40.321026/53.889023/46.649086/5.120387
+CUDECOMP:	Total time min/max/avg/std [ms]: 216.236023/241.173523/228.634186/10.147191
+CUDECOMP:	           min/max/avg/std [ms]: 216.236023/241.173508/228.634186/10.147191 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 81.389565/105.033730/93.177086/10.104507
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 16.584703/38.833153/26.714117/10.079738
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 16.550913/16.705536/16.634329/0.035956
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 79.733757/104.909821/92.108650/10.122647
 CUDECOMP:	grid: 4 x 3, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 153.219070/167.196671/162.012039/3.634590
-CUDECOMP:	           min/max/avg/std [ms]: 153.219070/167.196671/162.012039/3.634591 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 49.986561/54.819839/52.819714/1.411596
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 25.569281/32.411648/27.972301/1.959102
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 23.856129/38.352898/30.179995/5.761681
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 38.043648/63.010815/51.040031/8.075603
+CUDECOMP:	Total time min/max/avg/std [ms]: 296.896515/332.722168/320.430603/10.182935
+CUDECOMP:	           min/max/avg/std [ms]: 296.896515/332.722168/320.430603/10.182935 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 102.064125/104.008705/103.166153/0.406241
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 42.488831/60.080128/55.381611/5.620312
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 53.350399/71.220222/60.562950/6.260624
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 77.316093/131.965958/101.319908/16.454264
 CUDECOMP:	grid: 3 x 4, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 128.481293/140.001282/134.158737/4.965568
-CUDECOMP:	           min/max/avg/std [ms]: 128.481277/140.001282/134.158752/4.965569 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 40.265728/54.506496/47.244392/6.351396
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 15.656960/29.508608/22.400938/6.346420
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 18.869247/19.296255/19.051792/0.082360
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 39.442432/51.257343/45.461624/4.969289
+CUDECOMP:	Total time min/max/avg/std [ms]: 251.756561/274.922485/263.319092/9.939532
+CUDECOMP:	           min/max/avg/std [ms]: 251.756546/274.922485/263.319092/9.939532 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 78.825470/104.611839/92.169983/11.642513
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 32.507904/58.006527/44.731064/11.668447
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 36.820992/37.592064/37.177914/0.140443
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 77.771774/100.699135/89.240135/9.898784
 CUDECOMP:	grid: 2 x 6, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 173.408264/185.624573/181.239441/3.745721
-CUDECOMP:	           min/max/avg/std [ms]: 173.408264/185.624573/181.239441/3.745721 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 28.594175/40.914944/35.488514/4.565701
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 38.979584/64.606209/54.701313/6.351152
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 52.747265/58.121216/54.091572/1.214391
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 28.034048/50.513920/36.958038/5.317645
+CUDECOMP:	Total time min/max/avg/std [ms]: 351.478790/372.577301/364.018829/6.799429
+CUDECOMP:	           min/max/avg/std [ms]: 351.478790/372.577271/364.018829/6.799430 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 56.922112/79.332352/69.960548/8.308187
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 77.357056/129.130493/108.934364/13.425261
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 107.936768/122.162178/111.314323/3.049419
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 56.849407/100.262909/73.809593/10.853085
 CUDECOMP:	grid: 1 x 12, backend: NCCL 
-CUDECOMP:	Total time min/max/avg/std [ms]: 115.255295/117.679100/116.375786/0.596803
-CUDECOMP:	           min/max/avg/std [ms]: 115.255295/117.679100/116.375786/0.596803 (weighted)
-CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 1.254400/1.368064/1.316762/0.032128
-CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 57.187328/58.944511/58.272820/0.424826
-CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 54.171646/57.147392/55.507950/0.687134
-CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 1.254400/1.297408/1.278259/0.013675
-CUDECOMP: SELECTED: grid: 12 x 1, backend: NCCL, Avg. time (weighted) [ms]: 115.031708
-CUDECOMP: transpose autotuning time [s]: 7.056525
+CUDECOMP:	Total time min/max/avg/std [ms]: 223.752197/228.651001/225.981949/1.056643
+CUDECOMP:	           min/max/avg/std [ms]: 223.752197/228.651001/225.981949/1.056643 (weighted)
+CUDECOMP:	TransposeXY time min/max/avg/std [ms]: 1.901568/2.006016/1.947329/0.022601
+CUDECOMP:	TransposeYZ time min/max/avg/std [ms]: 110.654465/114.307076/112.737381/0.843409
+CUDECOMP:	TransposeZY time min/max/avg/std [ms]: 107.718658/112.215042/109.469406/0.775189
+CUDECOMP:	TransposeYX time min/max/avg/std [ms]: 1.798144/1.847296/1.827829/0.018769
+CUDECOMP: SELECTED: grid: 12 x 1, backend: NCCL, Avg. time (weighted) [ms]: 224.106857
+CUDECOMP: transpose autotuning time [s]: 30.295365
 running on 12 x 1 process grid...
 running using NCCL transpose backend...
 Started warmup
 Ended warmup
-min time: 5743.325195 [ms]
-max time: 5744.002930 [ms]
-avg time: 5743.666016 [ms]
+min time: 11218.890625 [ms]
+max time: 11222.438477 [ms]
+avg time: 11221.366211 [ms]
 ----------------------------------------
-----------------------------------------
-dtFFT benchmark
-Plan type is C2C
-Precision is DOUBLE
-Using Z-slab optimization
-----------------------------------------
-dtFFT: Using Z-slab optimization
-dtFFT: **************************************************
-dtFFT: Skipped search of MPI processor grid due to Z-slab optimization enabled
-dtFFT: Time spent on autotune: 0.00000 [s]
-Plan creation time: 1.278626 [s]
+Plan created successfully, time spent: 3.911982
+dtFFT: **Plan report**
+dtFFT:   dtFFT Version        :  2.2.0
+dtFFT:   Number of dimensions :  3
+dtFFT:   Global dimensions    :  1024x1024x512
+dtFFT:   Grid decomposition   :  1x1x12
+dtFFT:   Execution platform   :  CUDA
+dtFFT:   Plan type            :  Real-to-Real
+dtFFT:   Plan precision       :  Double
+dtFFT:   FFT Executor type    :  None
+dtFFT:   Z-slab enabled       :  True
+dtFFT:   GPU Backend          :  NCCL
+dtFFT: **End of report**
 Started warmup
 Ended warmup
-min time: 21818.740234 [ms]
-max time: 21823.550781 [ms]
-avg time: 21821.763672 [ms]
+min time: 10986.284180 [ms]
+max time: 10989.416992 [ms]
+avg time: 10988.258789 [ms]
 ----------------------------------------
-----------------------------------------
-dtFFT benchmark
-Plan type is C2C
-Precision is DOUBLE
-----------------------------------------
-dtFFT: 
-dtFFT: Testing grid 1x1x12
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 444.36954 [ms]
-dtFFT:   min: 439.76584 [ms]
-dtFFT:   avg: 442.11386 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x12x1
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 439.03366 [ms]
-dtFFT:   min: 438.06104 [ms]
-dtFFT:   avg: 438.37265 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x2x6
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 472.99911 [ms]
-dtFFT:   min: 472.51538 [ms]
-dtFFT:   avg: 472.79605 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x6x2
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 471.34946 [ms]
-dtFFT:   min: 471.30051 [ms]
-dtFFT:   avg: 471.33789 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x3x4
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 634.66187 [ms]
-dtFFT:   min: 627.51312 [ms]
-dtFFT:   avg: 631.92523 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x4x3
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 628.97723 [ms]
-dtFFT:   min: 616.74945 [ms]
-dtFFT:   avg: 623.66962 [ms]
-dtFFT: **************************************************
-dtFFT: DTFFT_MEASURE: Selected MPI processor grid 1x12x1
-dtFFT: Time spent on autotune: 25.52774 [s]
-Plan creation time: 25.856846 [s]
+Plan created successfully, time spent: 37.414219
+dtFFT: **Plan report**
+dtFFT:   dtFFT Version        :  2.2.0
+dtFFT:   Number of dimensions :  3
+dtFFT:   Global dimensions    :  1024x1024x512
+dtFFT:   Grid decomposition   :  1x12x1
+dtFFT:   Execution platform   :  CUDA
+dtFFT:   Plan type            :  Real-to-Real
+dtFFT:   Plan precision       :  Double
+dtFFT:   FFT Executor type    :  None
+dtFFT:   Z-slab enabled       :  False
+dtFFT:   GPU Backend          :  NCCL
+dtFFT: **End of report**
 Started warmup
 Ended warmup
-min time: 21938.285156 [ms]
-max time: 21942.162109 [ms]
-avg time: 21940.623047 [ms]
+min time: 11086.301758 [ms]
+max time: 11087.906250 [ms]
+avg time: 11087.112305 [ms]
 ----------------------------------------
 ----------------------------------------
-dtFFT benchmark
-Plan type is R2R
-Precision is DOUBLE
-Using Z-slab optimization
+HeFFTe GPU benchmark
+Precision is Single
 ----------------------------------------
-dtFFT: Using Z-slab optimization
-dtFFT: **************************************************
-dtFFT: Skipped search of MPI processor grid due to Z-slab optimization enabled
-dtFFT: Time spent on autotune: 0.00000 [s]
-Plan creation time: 0.963970 [s]
 Started warmup
 Ended warmup
-min time: 10962.588867 [ms]
-max time: 10965.413086 [ms]
-avg time: 10964.406250 [ms]
+min time: 56399.804688 [ms]
+max time: 56424.285156 [ms]
+avg time: 56414.832031 [ms]
 ----------------------------------------
-----------------------------------------
-dtFFT benchmark
-Plan type is R2R
-Precision is DOUBLE
-----------------------------------------
-dtFFT: 
-dtFFT: Testing grid 1x1x12
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 222.54980 [ms]
-dtFFT:   min: 222.33621 [ms]
-dtFFT:   avg: 222.45561 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x12x1
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 221.11784 [ms]
-dtFFT:   min: 220.72607 [ms]
-dtFFT:   avg: 220.91780 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x2x6
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 238.82854 [ms]
-dtFFT:   min: 238.44946 [ms]
-dtFFT:   avg: 238.65312 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x6x2
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 236.46065 [ms]
-dtFFT:   min: 236.39429 [ms]
-dtFFT:   avg: 236.43608 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x3x4
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 315.18063 [ms]
-dtFFT:   min: 313.93549 [ms]
-dtFFT:   avg: 314.64850 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x4x3
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 314.29510 [ms]
-dtFFT:   min: 312.27188 [ms]
-dtFFT:   avg: 313.33878 [ms]
-dtFFT: **************************************************
-dtFFT: DTFFT_MEASURE: Selected MPI processor grid 1x12x1
-dtFFT: Time spent on autotune: 14.90728 [s]
-Plan creation time: 15.230159 [s]
+Plan created successfully, time spent: 37.380221
+dtFFT: **Plan report**
+dtFFT:   dtFFT Version        :  2.2.0
+dtFFT:   Number of dimensions :  3
+dtFFT:   Global dimensions    :  1024x1024x512
+dtFFT:   Grid decomposition   :  1x12x1
+dtFFT:   Execution platform   :  CUDA
+dtFFT:   Plan type            :  Complex-to-Complex
+dtFFT:   Plan precision       :  Single
+dtFFT:   FFT Executor type    :  CUFFT
+dtFFT:   Z-slab enabled       :  False
+dtFFT:   GPU Backend          :  NCCL
+dtFFT: **End of report**
 Started warmup
 Ended warmup
-min time: 11060.981445 [ms]
-max time: 11062.549805 [ms]
-avg time: 11061.914062 [ms]
+min time: 11362.071289 [ms]
+max time: 11364.052734 [ms]
+avg time: 11363.184570 [ms]
 ----------------------------------------
 ----------------------------------------
-dtFFT benchmark
-Plan type is R2R
-Precision is SINGLE
-Using Z-slab optimization
+AccFFT GPU benchmark
+Precision is float
 ----------------------------------------
-dtFFT: Using Z-slab optimization
-dtFFT: **************************************************
-dtFFT: Skipped search of MPI processor grid due to Z-slab optimization enabled
-dtFFT: Time spent on autotune: 0.00000 [s]
-Plan creation time: 0.959817 [s]
+Input c_dim[0] * c_dims[1] != nprocs. Automatically switching to c_dims[0] = 4 , c_dims_1 = 3
 Started warmup
 Ended warmup
-min time: 5573.937012 [ms]
-max time: 5575.267090 [ms]
-avg time: 5574.626465 [ms]
-----------------------------------------
-----------------------------------------
-dtFFT benchmark
-Plan type is R2R
-Precision is SINGLE
-----------------------------------------
-dtFFT: 
-dtFFT: Testing grid 1x1x12
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 113.38118 [ms]
-dtFFT:   min: 113.11903 [ms]
-dtFFT:   avg: 113.22335 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x12x1
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 112.15688 [ms]
-dtFFT:   min: 111.93467 [ms]
-dtFFT:   avg: 112.08796 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x2x6
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 120.80005 [ms]
-dtFFT:   min: 120.58870 [ms]
-dtFFT:   avg: 120.73649 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x6x2
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 119.78076 [ms]
-dtFFT:   min: 119.71420 [ms]
-dtFFT:   avg: 119.74149 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x3x4
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 157.56862 [ms]
-dtFFT:   min: 156.67345 [ms]
-dtFFT:   avg: 157.13336 [ms]
-dtFFT: 
-dtFFT: Testing grid 1x4x3
-dtFFT: Testing backend DTFFT_GPU_BACKEND_NCCL
-dtFFT:   max: 157.60486 [ms]
-dtFFT:   min: 156.04286 [ms]
-dtFFT:   avg: 156.94313 [ms]
-dtFFT: **************************************************
-dtFFT: DTFFT_MEASURE: Selected MPI processor grid 1x12x1
-dtFFT: Time spent on autotune: 9.56586 [s]
-Plan creation time: 9.902177 [s]
-Started warmup
-Ended warmup
-min time: 5608.104004 [ms]
-max time: 5609.097168 [ms]
-avg time: 5608.608887 [ms]
+min time: 66039.218750 [ms]
+max time: 66174.984375 [ms]
+avg time: 66110.046875 [ms]
 ----------------------------------------

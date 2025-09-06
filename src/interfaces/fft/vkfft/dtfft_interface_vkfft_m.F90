@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -27,7 +27,7 @@ use dtfft_parameters
 use dtfft_utils
 implicit none
 private
-#include "dtfft_private.h"
+#include "_dtfft_private.h"
 public :: load_vkfft
 
   abstract interface

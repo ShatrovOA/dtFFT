@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
 
 #if defined(DTFFT_WITH_CUDA)
   dtfft_config_t conf;
-  dtfft_create_config(&conf);
+  DTFFT_CALL( dtfft_create_config(&conf) )
   conf.platform = DTFFT_PLATFORM_CUDA;
-  dtfft_set_config(conf);
+  DTFFT_CALL( dtfft_set_config(&conf) )
 #endif
 
   attach_gpu_to_process();

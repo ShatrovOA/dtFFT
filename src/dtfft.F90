@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -122,6 +122,8 @@ public :: DTFFT_ERROR_PENCIL_SHAPE_MISMATCH
 public :: DTFFT_ERROR_PENCIL_OVERLAP
 public :: DTFFT_ERROR_PENCIL_NOT_CONTINUOUS
 public :: DTFFT_ERROR_PENCIL_NOT_INITIALIZED
+public :: DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS
+public :: DTFFT_ERROR_INVALID_MEASURE_ITERS
 public :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 public :: DTFFT_ERROR_GPU_INVALID_STREAM
 public :: DTFFT_ERROR_GPU_INVALID_BACKEND

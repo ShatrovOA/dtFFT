@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -27,8 +27,8 @@ use dtfft_errors
 use dtfft_interface_mkl_m
 use dtfft_interface_mkl_native_m
 use dtfft_parameters
-use dtfft_utils,                  only: int_to_str
-#include "dtfft_mpi.h"
+use dtfft_utils,                  only: to_str
+#include "_dtfft_mpi.h"
 implicit none
 private
 public :: mkl_executor
@@ -39,7 +39,7 @@ public :: mkl_executor
     integer(int32)  :: mpi_err;                                                                                                                                       \
     ierr = func;                                                                                                                                                      \
     if( ierr /= DFTI_NO_ERROR ) then;                                                                                                                                 \
-      write(error_unit, '(a)') "Error occured during call to MKL DFTI function '"//name//"': "//DftiErrorMessage(ierr)//" at "//__FILE__//":"//int_to_str(__LINE__);  \
+      write(error_unit, '(a)') "Error occured during call to MKL DFTI function '"//name//"': "//DftiErrorMessage(ierr)//" at "//__FILE__//":"//to_str(__LINE__);  \
       call MPI_Abort(MPI_COMM_WORLD, int(ierr, c_int), mpi_err);                                                                                                      \
     endif;                                                                                                                                                            \
   endblock
@@ -96,8 +96,13 @@ contains
     integer(int32),                   intent(in)    :: onembed(:)     !! Storage dimensions of the output data in memory.
     integer(int32),                   intent(inout) :: error_code     !! Error code to be returned to user
     type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !! Kinds of r2r transform
-    integer(int32) :: forward_domain, mkl_precision, i, idx
-    integer(c_long) :: iprod, oprod, sizes(fft_rank)
+    integer(int32)  :: forward_domain   !! Forward domain
+    integer(int32)  :: mkl_precision    !! MKL Precision
+    integer(int32)  :: i                !! Loop counter
+    integer(int32)  :: idx              !! Index
+    integer(c_long) :: iprod            !! Input product
+    integer(c_long) :: oprod            !! Output product
+    integer(c_long) :: sizes(fft_rank)  !! Sizes of FFT
 
     if ( present(r2r_kinds) ) then
     endif

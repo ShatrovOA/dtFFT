@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -19,6 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_transpose_handle_cuda
 !! This module describes [[transpose_handle_cuda]] class
+!! It is responsible for managing CUDA-based transposition operations
+!! It executes transpose kernels, memory transfers between GPUs, and data unpacking if required
 use iso_c_binding,                        only: c_ptr
 use iso_fortran_env,                      only: int8, int32, int64, real32
 use dtfft_interface_cuda_runtime
@@ -34,10 +36,10 @@ use dtfft_nvrtc_kernel
 use dtfft_pencil,                         only: pencil, get_transpose_type
 use dtfft_parameters
 use dtfft_utils
-#include "dtfft_mpi.h"
-#include "dtfft_profile.h"
-#include "dtfft_cuda.h"
-#include "dtfft_private.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_profile.h"
+#include "_dtfft_cuda.h"
+#include "_dtfft_private.h"
 implicit none
 private
 public :: transpose_handle_cuda
@@ -61,19 +63,18 @@ public :: transpose_handle_cuda
   type :: transpose_handle_cuda
   !! CUDA Transpose Handle
   private
-    type(dtfft_transpose_t)                   :: transpose_type
+    type(dtfft_transpose_t)                   :: transpose_type           !! Type of transposition to perform
     logical                                   :: has_exchange = .false.   !! If current handle has exchanges between GPUs
     logical                                   :: is_pipelined = .false.   !! If underlying exchanges are pipelined
-    type(nvrtc_kernel)                        :: transpose_kernel              !! Transposes data
-    type(nvrtc_kernel)                        :: unpack_kernel            !! Unpacks data
-    type(nvrtc_kernel)                        :: unpack_kernel2
+    type(nvrtc_kernel)                        :: transpose_kernel         !! Kernel for data transposition
+    type(nvrtc_kernel)                        :: unpack_kernel            !! Kernel for unpacking data
+    type(nvrtc_kernel)                        :: unpack_kernel2           !! Kernel for unpacking data required by `NCCL_PIPELINED` algorithm
     class(abstract_backend),  allocatable     :: comm_handle              !! Communication handle
   contains
     procedure, pass(self) :: create           !! Creates CUDA Transpose Handle
     procedure, pass(self) :: execute          !! Executes transpose - exchange - unpack
     procedure, pass(self) :: destroy          !! Destroys CUDA Transpose Handle
     procedure, pass(self) :: get_aux_size     !! Returns number of bytes required by aux buffer
-    procedure, pass(self) :: get_tranpose_type!! Returns transpose_type, associated with handle
   end type transpose_handle_cuda
 
 contains
@@ -109,15 +110,16 @@ contains
     if(allocated(self%counts))    deallocate(self%counts)
   end subroutine destroy_data_handle
 
-  subroutine create(self, helper, send, recv, base_storage, backend)
+  subroutine create(self, helper, send, recv, effort, base_storage, backend, force_effort)
   !! Creates CUDA Transpose Handle
     class(transpose_handle_cuda),   intent(inout) :: self               !! CUDA Transpose Handle
     type(backend_helper),           intent(in)    :: helper             !! Backend helper
-    ! TYPE_MPI_COMM,                  intent(in)    :: comm               !! 1d communicator
     type(pencil),                   intent(in)    :: send               !! Send pencil
     type(pencil),                   intent(in)    :: recv               !! Recv pencil
+    type(dtfft_effort_t),           intent(in)    :: effort             !! Effort level for generating transpose kernels
     integer(int64),                 intent(in)    :: base_storage       !! Number of bytes needed to store single element
     type(dtfft_backend_t),          intent(in)    :: backend            !! Backend type
+    logical,              optional, intent(in)    :: force_effort       !! Should effort be forced or not
     integer(int8)                                 :: ndims              !! Number of dimensions
     type(dtfft_transpose_t)                       :: transpose_type     !! Type of transpose based on ``send`` and ``recv``
     integer(int32)                                :: comm_size          !! Size of ``comm``
@@ -131,13 +133,13 @@ contains
     integer(int32)                                :: i                  !! Counter
     TYPE_MPI_REQUEST                              :: sr                 !! Send request
     TYPE_MPI_REQUEST                              :: rr                 !! Recv request
-    integer(int8)                                 :: kernel_type        !! Type of kernel
+    type(kernel_type_t)                           :: kernel_type        !! Type of kernel
     integer(int32),                   allocatable :: k1(:,:)            !! Pack kernel arguments
     integer(int32),                   allocatable :: k2(:,:)            !! Unpack kernel arguments
     type(data_handle)                             :: in                 !! Send helper
     type(data_handle)                             :: out                !! Recv helper
-    integer(int8)                                 :: comm_id
-    TYPE_MPI_COMM :: comm
+    integer(int8)                                 :: comm_id            !! Communicator ID
+    TYPE_MPI_COMM                                 :: comm               !! 1D MPI Communicator
 
     transpose_type = get_transpose_type(send, recv)
 
@@ -164,13 +166,13 @@ contains
     packing_required = (abs(transpose_type%val) == DTFFT_TRANSPOSE_X_TO_Y%val)  &
                         .and. self%has_exchange                                 &
                         .and. ndims == 3                                        &
-                        .and. (.not. backend==DTFFT_BACKEND_CUFFTMP)
+                        .and. (.not. any([backend == [DTFFT_BACKEND_CUFFTMP, DTFFT_BACKEND_CUFFTMP_PIPELINED]]) )
 
     kernel_type = KERNEL_TRANSPOSE
     if ( packing_required ) kernel_type = KERNEL_TRANSPOSE_PACKED
 
     if ( .not. self%has_exchange ) then
-      call self%transpose_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type)
+      call self%transpose_kernel%create(comm, send%counts, effort, base_storage, transpose_type, kernel_type, force_effort=force_effort)
       return
     endif
 
@@ -301,17 +303,17 @@ contains
       rdispl = rdispl + recvsize
     enddo
 
-    call self%transpose_kernel%create(comm, send%counts, base_storage, transpose_type, kernel_type, k1)
+    call self%transpose_kernel%create(comm, send%counts, effort, base_storage, transpose_type, kernel_type, pointers=k1, force_effort=force_effort)
 
     self%is_pipelined = is_backend_pipelined(backend)
     kernel_type = KERNEL_UNPACK
     if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
     if ( backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_UNPACK_SIMPLE_COPY
     if ( backend == DTFFT_BACKEND_CUFFTMP_PIPELINED ) kernel_type = KERNEL_DUMMY
-    call self%unpack_kernel%create(comm, recv%counts, base_storage, transpose_type, kernel_type, k2)
+    call self%unpack_kernel%create(comm, recv%counts, DTFFT_ESTIMATE, base_storage, transpose_type, kernel_type, k2)
 
     if ( backend == DTFFT_BACKEND_NCCL_PIPELINED ) then
-      call self%unpack_kernel2%create(comm, recv%counts, base_storage, transpose_type, KERNEL_UNPACK_PARTIAL, k2)
+      call self%unpack_kernel2%create(comm, recv%counts, DTFFT_ESTIMATE, base_storage, transpose_type, KERNEL_UNPACK_PARTIAL, k2)
     endif
 
     if ( is_backend_mpi(backend) ) then
@@ -357,29 +359,14 @@ contains
 
     if ( self%is_pipelined ) then
       call self%transpose_kernel%execute(in, aux, stream)
-#ifdef __DEBUG
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-#endif
       call self%comm_handle%execute(aux, out, stream, in)
-#ifdef __DEBUG
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-#endif
       return
     endif
 
     call self%transpose_kernel%execute(in, out, stream)
-#ifdef __DEBUG
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-#endif
     if ( .not. self%has_exchange ) return
     call self%comm_handle%execute(out, in, stream, aux)
-#ifdef __DEBUG
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-#endif
     call self%unpack_kernel%execute(in, out, stream)
-#ifdef __DEBUG
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
-#endif
   end subroutine execute
 
   subroutine destroy(self)
@@ -404,11 +391,4 @@ contains
     endif
     get_aux_size = self%comm_handle%get_aux_size()
   end function get_aux_size
-
-  function get_tranpose_type(self) result(tranpose_type)
-  !! Returns transpose_type, associated with handle
-    class(transpose_handle_cuda),   intent(in)    :: self       !! CUDA Transpose Handle
-    type(dtfft_transpose_t)         :: tranpose_type
-    tranpose_type = self%transpose_type
-  end function get_tranpose_type
 end module dtfft_transpose_handle_cuda

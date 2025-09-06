@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -20,8 +20,8 @@
 /**
  * @file dtfft.hpp
  * @author Oleg Shatrov
- * @date 2024
- * @brief File containing C++ API functions of dtFFT Library
+ * @date 2024 - 2025
+ * @brief File containing C++ API of dtFFT Library
  */
 
 #pragma once
@@ -62,7 +62,7 @@
 namespace dtfft
 {
 /** dtFFT version information */
-  class Version {
+  struct Version {
     public:
     /** dtFFT Major Version */
       static constexpr int32_t MAJOR = DTFFT_VERSION_MAJOR;
@@ -153,6 +153,10 @@ namespace dtfft
     PENCIL_NOT_CONTINUOUS = DTFFT_ERROR_PENCIL_NOT_CONTINUOUS,
 /** Pencil is not initialized, i.e. `constructor` subroutine was not called */
     PENCIL_NOT_INITIALIZED = DTFFT_ERROR_PENCIL_NOT_INITIALIZED,
+/** Invalid `n_measure_warmup_iters` provided */
+    INVALID_MEASURE_WARMUP_ITERS = DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS,
+/** Invalid `n_measure_iters` provided */
+    INVALID_MEASURE_ITERS = DTFFT_ERROR_INVALID_MEASURE_ITERS,
 /** Invalid `alloc_bytes` provided */
     INVALID_ALLOC_BYTES = DTFFT_ERROR_INVALID_ALLOC_BYTES,
 /** Invalid stream provided */
@@ -437,7 +441,7 @@ namespace dtfft
    * 
    * @see Plan.get_pencil()
   */
-  class Pencil {
+  struct Pencil {
     private:
       bool is_created;
 
@@ -552,64 +556,28 @@ namespace dtfft
 /** Class to set additional configuration parameters to dtFFT
  * @see set_config()
 */
-  class Config {
+  struct Config {
     protected:
     /** Underlying C structure */
       dtfft_config_t config;
 
     public:
-#ifdef DTFFT_WITH_CUDA
-/**
- * @brief Construct a new Config object
- * 
- * User must call `set_config` to set this configuration to dtFFT.
- * 
- * @param[in]   enable_z_slab             Whether to enable Z-slab optimization or not
- * @param[in]   platform                  Platform to use
- * @param[in]   stream                    Stream to use
- * @param[in]   backend                   Backend to use
- * @param[in]   enable_mpi_backends       Whether to enable MPI backends or not
- * @param[in]   enable_pipelined_backends Whether to enable pipelined backends or not
- * @param[in]   enable_nccl_backends      Whether to enable NCCL backends or not
- * @param[in]   enable_nvshmem_backends   Whether to enable NVSHMEM backends or not
- * 
- * @note This constructor is only present in the API when ``dtFFT`` was compiled with CUDA Support.
- */
-      Config(bool enable_z_slab = true, Platform platform = Platform::HOST, dtfft_stream_t stream = nullptr, 
-# ifdef DTFFT_WITH_NCCL
-        Backend backend = Backend::NCCL,
-# else
-        Backend backend = Backend::MPI_P2P,
-# endif
-        bool enable_mpi_backends = false, bool enable_pipelined_backends = true,
-        bool enable_nccl_backends = true, bool enable_nvshmem_backends = true
-      ) {
-        DTFFT_CXX_CALL( static_cast<Error>(dtfft_create_config(&config)) )
-        config.enable_z_slab = enable_z_slab;
-        config.platform = static_cast<dtfft_platform_t>(platform);
-        config.stream = stream;
-        config.backend = static_cast<dtfft_backend_t>(backend);
-        config.enable_mpi_backends = enable_mpi_backends;
-        config.enable_pipelined_backends = enable_pipelined_backends;
-        config.enable_nccl_backends = enable_nccl_backends;
-        config.enable_nvshmem_backends = enable_nvshmem_backends;
-      }
-#else
 /** Creates and sets default configuration values */
+      explicit
       Config() {
         DTFFT_CXX_CALL( static_cast<Error>(dtfft_create_config(&config)) )
       }
 
-/** @brief Creates and sets configuration with Z-slab optimization enabled or disabled
+/**
+ * @brief Sets whether dtFFT should print additional information or not.
  *
- * @param[in]   enable_z_slab   Whether to enable Z-slab optimization or not
- * @note This constructor is only present in the API when ``dtFFT`` was compiled without CUDA Support.
+ * @details Default is `false`
  */
-      Config(bool enable_z_slab) {
-        DTFFT_CXX_CALL( static_cast<Error>(dtfft_create_config(&config)) )
-        config.enable_z_slab = enable_z_slab;
+      inline Config& set_enable_log(bool enable_log) noexcept
+      {
+        config.enable_log = enable_log;
+        return *this;
       }
-#endif
 
 /**
  * @brief Sets whether dtFFT use Z-slab optimization or not.
@@ -624,6 +592,27 @@ namespace dtfft
       inline Config& set_enable_z_slab(bool enable_z_slab) noexcept
       {
         config.enable_z_slab = enable_z_slab;
+        return *this;
+      }
+/**
+ * @brief Sets number of warmup iterations to underlying C structure
+ *
+ * @param[in] n_measure_warmup_iters  Number of warmup iterations for transposition and data exchange
+ *                                      to perform when `effort` exceeds `::DTFFT_ESTIMATE`.
+ */
+      inline Config& set_measure_warmup_iters(int32_t n_measure_warmup_iters) noexcept
+      {
+        config.n_measure_warmup_iters = n_measure_warmup_iters;
+        return *this;
+      }
+/**
+ * @brief Sets number of actual iterations to underlying C structure
+ * @param[in] n_measure_iters         Number of actual iterations for transposition and data exchange
+ *                                      to perform when `effort` exceeds `::DTFFT_ESTIMATE`.
+ */
+      inline Config& set_measure_iters(int32_t n_measure_iters) noexcept
+      {
+        config.n_measure_iters = n_measure_iters;
         return *this;
       }
 
@@ -729,6 +718,36 @@ namespace dtfft
         config.enable_nvshmem_backends = enable_nvshmem_backends;
         return *this;
       }
+/**
+ * @brief Should dtFFT try to optimize NVRTC kernel block size when `effort` is `::DTFFT_PATIENT` or not.
+ * @details Default is `true`
+ * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+ */
+      inline Config& set_enable_kernel_optimization(bool enable_kernel_optimization) noexcept
+      {
+        config.enable_kernel_optimization = enable_kernel_optimization;
+        return *this;
+      }
+/**
+ * @brief Set number of NVRTC kernels to try when `effort` is `::DTFFT_PATIENT`.
+ * @details Default is 5.
+ * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+ */
+      inline Config& set_n_configs_to_test(int32_t n_configs_to_test) noexcept
+      {
+        config.n_configs_to_test = n_configs_to_test;
+        return *this;
+      }
+/**
+ * @brief Sets whether kernel optimization should be enabled if `effort` is not `::DTFFT_PATIENT` or not.
+ * @details Default is `false`.
+ * @note This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+ */
+      inline Config& set_force_kernel_optimization(bool force_kernel_optimization) noexcept
+      {
+        config.force_kernel_optimization = force_kernel_optimization;
+        return *this;
+      }
 #endif
 
 /** @return Underlying C structure */
@@ -743,7 +762,8 @@ namespace dtfft
  * @see Config
  */
   inline Error set_config(Config& config) noexcept {
-    return static_cast<Error>(dtfft_set_config(config.c_struct()));
+    auto c_config = config.c_struct(); // Store in variable
+    return static_cast<Error>(dtfft_set_config(&c_config));
   }
 
   /** Abstract plan for all dtFFT plans.
@@ -844,13 +864,12 @@ namespace dtfft
 
 /** @brief Plan execution
  *
- * @param[inout]   in                   Incoming pointer
+ * @param[inout]   in                   Input pointer
  * @param[out]     out                  Result pointer
- * @param[in]      execute_type         Type of execution
- * @param[inout]   aux                  Optional auxiliary pointer
+ * @param[in]      execute_type         Direction of execution
+ * @param[inout]   aux                  Optional Auxiliary pointer
  *
  * @return Error::SUCCESS on success or error code on failure.
- * @note
  */
       inline
       Error
@@ -860,12 +879,218 @@ namespace dtfft
         return static_cast<Error>(error_code);
       }
 
+/**
+ * @brief In-place plan execution
+ * @details This template allows user to cast result pointer to desired type.
+ * 
+ * @code{.cpp}
+ * float *data = ...; // Pointer to data
+ * 
+ * PlanR2C plan = ...; // Create plan
+ * 
+ * auto fourier_data = plan.execute<std::complex<float>>(data, Execute::FORWARD);
+ * // `fourier_data` is still pointing to `data`, but is of type std::complex<float>*
+ * @endcode
+ * 
+ * @tparam            Tr            Type of returned data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @param[inout]      inout         Input/output pointer
+ * @param[in]         execute_type  Direction of execution
+ * @param[inout]      aux           Optional Auxiliary pointer
+ * @return Pointer to the processed data casted to type `Tr`
+ * @throws Exception if underlying call fails
+ */
+      template<typename Tr>
+      inline
+      Tr *
+      execute(void *inout, const Execute execute_type, void *aux=nullptr) const
+      {
+        DTFFT_CXX_CALL( execute(inout, inout, execute_type, aux) )
+        return reinterpret_cast<Tr *>(inout);
+      }
+
+/**
+ * @brief In-place plan execution
+ * @details This template allows user to keep result pointer of the same type as input pointer.
+ * 
+ * @code{.cpp}
+ * float *data = ...; // Pointer to data
+ * 
+ * PlanR2R plan = ...; // Create plan
+ * 
+ * auto fourier_data = plan.execute(data, Execute::FORWARD);
+ * // `fourier_data` is still pointing to `data` and is still of type float*
+ * @endcode
+ *
+ * @tparam            T             Type of input/output data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @tparam            Tr            Type of returned data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @param[inout]      inout         Input/output pointer
+ * @param[in]         execute_type  Direction of execution
+ * @param[inout]      aux           Optional Auxiliary pointer
+ * @return Pointer to the processed data casted to type `Tr`
+ * @throws Exception if underlying call fails
+ */
+      template<typename T, typename Tr = T>
+      inline
+      Tr *
+      execute(T *inout, const Execute execute_type, void *aux=nullptr) const
+      {
+        return execute<Tr>(static_cast<void *>(inout), execute_type, aux);
+      }
+
+/** @brief Forward plan execution
+ *
+ * @param[inout]   in                   Input pointer
+ * @param[out]     out                  Result pointer
+ * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`
+ *
+ * @return Error::SUCCESS on success or error code on failure.
+ */
+      inline Error
+      forward(void *in, void *out, void *aux) const noexcept
+      {
+        return execute(in, out, Execute::FORWARD, aux);
+      }
+
+/**
+ * @brief In-place forward plan execution
+ * @details This template allows user to cast result pointer to desired type.
+ * 
+ * @code{.cpp}
+ * float *data = ...; // Pointer to data
+ * 
+ * PlanR2C plan = ...; // Create plan
+ * 
+ * auto fourier_data = plan.forward<std::complex<float>>(data);
+ * // `fourier_data` is still pointing to `data`, but is of type std::complex<float>*
+ * @endcode
+ * 
+ * @tparam            Tr            Type of returned data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @param[inout]      inout         Input/output pointer
+ * @param[inout]      aux           Optional Auxiliary pointer
+ * @return Pointer to the processed data casted to type `Tr`
+ * @throws Exception if underlying call fails
+ */
+      template<typename Tr>
+      inline
+      Tr *
+      forward(void *inout, void *aux=nullptr) const
+      {
+        return execute<Tr>(inout, Execute::FORWARD, aux);
+      }
+
+/**
+ * @brief In-place forward plan execution
+ * @details This template allows user to keep result pointer of the same type as input pointer.
+ * 
+ * @code{.cpp}
+ * float *data = ...; // Pointer to data
+ * 
+ * PlanR2R plan = ...; // Create plan
+ * 
+ * auto fourier_data = plan.forward(data);
+ * // `fourier_data` is still pointing to `data` and is still of type float*
+ * @endcode
+ * 
+ * @tparam            T             Type of input/output data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @tparam            Tr            Type of returned data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @param[inout]      inout         Input/output pointer
+ * @param[inout]      aux           Optional Auxiliary pointer
+ * @return Pointer to the processed data casted to type `Tr`
+ * @throws Exception if underlying call fails
+ */
+      template<typename T, typename Tr = T>
+      inline
+      Tr *
+      forward(T *inout, void *aux=nullptr) const
+      {
+        return forward<Tr>(static_cast<void *>(inout), aux);
+      }
+
+/** @brief Backward plan execution
+ *
+ * @param[inout]   in                   Input pointer
+ * @param[out]     out                  Result pointer
+ * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`
+ *
+ * @return Error::SUCCESS on success or error code on failure.
+ */
+      inline
+      Error
+      backward(void *in, void *out, void *aux) const noexcept
+      {
+        return execute(in, out, Execute::BACKWARD, aux);
+      }
+
+/**
+ * @brief In-place backward plan execution
+ * @details This template allows user to cast result pointer to desired type.
+ * 
+ * @code{.cpp}
+ * std::complex<float> *fourier_data = ...; // Pointer to data
+ * 
+ * PlanR2C plan = ...; // Create plan
+ * 
+ * auto real_data = plan.backward<float>(fourier_data);
+ * // `real_data` is still pointing to `fourier_data`, but is of type float*
+ * @endcode
+ * 
+ * @tparam            Tr            Type of returned data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @param[inout]      inout         Input/output pointer
+ * @param[inout]      aux           Optional Auxiliary pointer
+ * @return Pointer to the processed data casted to type `Tr`
+ * @throws Exception if underlying call fails
+ */
+      template<typename Tr>
+      inline
+      Tr *
+      backward(void *inout, void *aux=nullptr) const
+      {
+        return execute<Tr>(inout, Execute::BACKWARD, aux);
+      }
+
+/**
+ * @brief In-place backward plan execution
+ * @details This template allows user to keep result pointer of the same type as input pointer.
+ * 
+ * @code{.cpp}
+ * float *fourier_data = ...; // Pointer to data
+ * 
+ * PlanR2R plan = ...; // Create plan
+ * 
+ * auto real_data = plan.backward(fourier_data);
+ * // `real_data` is still pointing to `fourier_data` and is still of type float *
+ * @endcode
+ * 
+ * @tparam            T             Type of input/output data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @tparam            Tr            Type of returned data. This should be a basic pointer type,
+ *                                    e.g. float, double or std::complex of any of those
+ * @param[inout]      inout         Input/output pointer
+ * @param[inout]      aux           Optional Auxiliary pointer
+ * @return Pointer to the processed data casted to type `Tr`
+ * @throws Exception if underlying call fails
+ */
+      template<typename T, typename Tr = T>
+      inline
+      Tr *
+      backward(T *inout, void *aux=nullptr) const
+      {
+        return backward<Tr>(static_cast<void *>(inout), aux);
+      }
+
 
 /** @brief Transpose data in single dimension, e.g. X align -> Y align
- * \attention `in` and `out` cannot be the same pointers
+ * @attention `in` and `out` cannot be the same pointers
  *
- * @param[inout]   in                    Incoming pointer
- * @param[out]     out                   Transposed pointer
+ * @param[inout]   in                    Input pointer
+ * @param[out]     out                   Pointer of transposed data
  * @param[in]      transpose_type        Type of transpose to perform.
  *
  * @return Error::SUCCESS on success or error code on failure.
@@ -1139,6 +1364,23 @@ namespace dtfft
         void *ptr = nullptr;
         DTFFT_CXX_CALL( mem_alloc(alloc_bytes, &ptr) )
         return ptr;
+      }
+
+/**
+ * @brief Allocates memory for an array of elements of type T
+ *
+ * @tparam      T           Type of elements
+ * @param[in]   alloc_size  Number of elements to allocate
+ *
+ * @return Pointer to allocated memory
+ * @throws Exception if underlying call fails
+ */
+      template<typename T>
+      inline
+      T *
+      mem_alloc(size_t alloc_size) const
+      {
+        return static_cast<T *>(mem_alloc(alloc_size * sizeof(T)));
       }
 
 /**

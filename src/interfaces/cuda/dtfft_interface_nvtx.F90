@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -25,17 +25,18 @@ private
 public :: push_nvtx_domain_range, pop_nvtx_domain_range
 
   type, bind(C) :: nvtxDomainHandle
-    type(c_ptr) :: handle
+  !! NVTX domain handle.
+    type(c_ptr) :: handle !! Internal handle for the NVTX domain.
   end type nvtxDomainHandle
 
   type(nvtxDomainHandle),     save  :: domain_nvtx
-  !! NVTX domain handle
+    !! NVTX domain handle
   logical,                    save  :: domain_created = .false.
-  !! Has domain been created?
+    !! Has domain been created?
 
   interface
-  !! Creates an NVTX domain with the specified name.
     subroutine nvtxDomainCreate_c(name, domain) bind(C, name="nvtxDomainCreate_c")
+    !! Creates an NVTX domain with the specified name.
       import
       character(c_char),  intent(in)  :: name(*)  !! Name of the NVTX domain.
       type(nvtxDomainHandle)          :: domain   !! Handle to the created NVTX domain.
@@ -43,8 +44,8 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
   end interface
 
   interface
-  !! Pushes a range with a custom message and color onto the specified NVTX domain.
     subroutine nvtxDomainRangePushEx_c(domain, message, color) bind(C, name="nvtxDomainRangePushEx_c")
+    !! Pushes a range with a custom message and color onto the specified NVTX domain.
       import
       type(nvtxDomainHandle), value               :: domain  !! NVTX domain handle.
       character(c_char),              intent(in)  :: message(*)  !! Custom message for the range.
@@ -53,8 +54,8 @@ public :: push_nvtx_domain_range, pop_nvtx_domain_range
   end interface
 
   interface
-  !! Pops a range from the specified NVTX domain.
     subroutine nvtxDomainRangePop_c(domain) bind(C, name="nvtxDomainRangePop_c")
+    !! Pops a range from the specified NVTX domain.
       import
       type(nvtxDomainHandle), value :: domain  !! NVTX domain handle.
     end subroutine nvtxDomainRangePop_c
@@ -64,7 +65,7 @@ contains
 
   subroutine create_nvtx_domain
   !! Creates a new NVTX domain
-    character(c_char), allocatable :: cstr(:)
+    character(c_char), allocatable :: cstr(:) !! C-style string
 
     call astring_f2c("dtFFT", cstr)
 
@@ -77,7 +78,7 @@ contains
   !! Pushes a range to the NVTX domain
     character(len=*), intent(in)    :: message    !! Message to push
     integer(c_int),   intent(in)    :: color      !! Color of the range
-    character(c_char), allocatable  :: cstr(:)
+    character(c_char), allocatable  :: cstr(:)    !! C-style string
 
     if ( .not. domain_created ) call create_nvtx_domain()
     call astring_f2c(message, cstr)

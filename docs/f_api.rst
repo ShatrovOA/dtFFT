@@ -478,6 +478,11 @@ dtfft_config_t
 
   Type that can be used to set additional configuration parameters to ``dtFFT``
 
+  :f logical enable_log:
+    Should dtFFT print additional information during plan creation or not.
+
+    Default is ``.false.``
+
   :f logical enable_z_slab:
     Should ``dtFFT`` use Z-slab optimization or not.
 
@@ -487,6 +492,19 @@ dtfft_config_t
     OR when underlying FFT implementation of 2D plan is too slow.
 
     In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
+
+  :f integer(int32) n_measure_warmup_iters:
+    Number of warmup iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+
+    Default is 2
+
+  :f integer(int32) n_measure_iters:
+    Number of iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+
+    Default is 5
+
+    When ``dtFFT`` is built with CUDA support, this value also used to determine number
+    of iterations when selecting block of threads for NVRTC transpose kernel
 
   :f type(dtfft_platform_t) platform:
 
@@ -564,6 +582,35 @@ dtfft_config_t
 
     .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
+  :f logical enable_kernel_optimization:
+    Should dtFFT try to optimize NVRTC transpose kernel launch parameters or not when ``effort`` is ``DTFFT_PATIENT``.
+
+    Default is ``.true.``
+
+    When enabled, during plan creation dtFFT will try to find optimal block of threads for NVRTC transpose kernel.
+    It does so by running multiple iterations of transpose with different blocks of threads and measuring time taken.
+    This optimization is done only once during plan creation.
+
+    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+
+  :f integer(int32) n_configs_to_test:
+    Number of different blocks of threads to test when ``enable_kernel_optimization`` is ``.true.``
+
+    Default is 5
+
+    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+
+  :f logical force_kernel_optimization:
+    Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
+
+    Default is ``.false.``
+
+    Enabling this option will make plan creation process longer, but may result in better performance for a long run.
+    Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
+
+    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+
+
 Related Type functions
 _______________________
 
@@ -575,24 +622,38 @@ _______________________
 
 ------
 
-.. f:function:: dtfft_config_t(enable_z_slab)
+.. f:function:: dtfft_config_t(enable_log, enable_z_slab, n_measure_warmup_iters, n_measure_iters)
 
   Type bound constructor
 
+  .. note:: This version of constructor is only present in the API when ``dtFFT`` was compiled without CUDA Support.
+
+  :o logical enable_log [in, optional]:
+    Should dtFFT print additional information during plan creation or not.
   :o logical enable_z_slab [in, optional]:
     Should dtFFT use Z-slab optimization or not.
+  :o integer(int32) n_measure_warmup_iters [in, optional]:
+    Number of warmup iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+  :o integer(int32) n_measure_iters [in, optional]:
+    Number of iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
   :r dtfft_config_t: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
 
 ------
 
-.. f:function:: dtfft_config_t(enable_z_slab, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends)
+.. f:function:: dtfft_config_t(enable_log, enable_z_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_optimization, n_configs_to_test, force_kernel_optimization)
 
   Type bound constructor
 
   .. note:: This version of constructor is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
+  :o logical enable_log [in, optional]:
+    Should dtFFT print additional information during plan creation or not.
   :o logical enable_z_slab [in, optional]:
     Should dtFFT use Z-slab optimization or not.
+  :o integer(int32) n_measure_warmup_iters [in, optional]:
+    Number of warmup iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+  :o integer(int32) n_measure_iters [in, optional]:
+    Number of iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
   :o dtfft_platform_t platform [in, optional]:
     Selects platform to execute plan.
   :o dtfft_stream_t stream [in, optional]:
@@ -607,6 +668,12 @@ _______________________
     Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
   :o logical enable_nvshmem_backends [in, optional]:
     Should NVSHMEM Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+  :o logical enable_kernel_optimization [in, optional]:
+    Should dtFFT try to optimize NVRTC transpose kernel launch parameters or not when ``effort`` is ``DTFFT_PATIENT``.
+  :o integer(int32) n_configs_to_test [in, optional]:
+    Number of different blocks of threads to test when ``enable_kernel_optimization`` is ``.true.``
+  :o logical force_kernel_optimization [in, optional]:
+    Whether to force kernel optimization when ``effort`` is not ``DTFFT_PATIENT``.
   :r dtfft_config_t: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
 
 ------
@@ -672,7 +739,7 @@ _______________
 
 .. f:variable:: DTFFT_PLATFORM_CUDA
 
-  Create CUDA-related
+  Create CUDA-related plan
 
 ------
 
@@ -684,7 +751,7 @@ dtfft_stream_t
   ``dtFFT`` stream representation.
 
   :f type(c_ptr) stream:
-    Actual stream
+    Actual stream pointer
 
 Related Type functions
 ______________________
@@ -1058,7 +1125,7 @@ ________
 
   Returns global dimensions of the plan.
 
-  :p integer(int32) dims [out, pointer]: 
+  :p integer(int32) dims [out, pointer]:
     Global dimensions of the plan.
 
     Users should not attempt to change values in this pointer.
@@ -1075,7 +1142,7 @@ ___________
   Returns the fastest detected GPU backend if ``effort`` is :f:var:`DTFFT_PATIENT`.
 
   If ``effort`` is :f:var:`DTFFT_ESTIMATE` or :f:var:`DTFFT_MEASURE`, returns the value set by :f:func:`dtfft_set_config`
-  or the default, :f:var:`DTFFT_BACKEND_NCCL`.
+  or via environment variable DTFFT_BACKEND, or the default, :f:var:`DTFFT_BACKEND_NCCL`.
 
   .. note:: This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
@@ -1241,8 +1308,8 @@ ______
   R2C Plan Constructor.
 
   :p integer(int32) dims(:)[in]: Global dimensions of the transform as an integer array.
-  :p dtfft_executor_t executor [in]: 
-    Type of external FFT executor. 
+  :p dtfft_executor_t executor [in]:
+    Type of external FFT executor.
 
     Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
   :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
@@ -1257,7 +1324,7 @@ ______
   R2C Plan Constructor using local pencil information
 
   :p dtfft_pencil_t pencil[in]: Local pencil of data to be transformed
-  :p dtfft_executor_t executor [in]: Type of external FFT executor. 
+  :p dtfft_executor_t executor [in]: Type of external FFT executor.
 
     Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
   :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.

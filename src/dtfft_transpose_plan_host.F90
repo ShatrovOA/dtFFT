@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -21,14 +21,15 @@ module dtfft_transpose_plan_host
 !! This module describes [[transpose_plan_host]] class
 use iso_fortran_env,                only: int8, int32, int64, real32, real64, output_unit
 use dtfft_abstract_transpose_plan,  only: abstract_transpose_plan, create_pencils_and_comm
-use dtfft_errors
+use dtfft_config,                   only: get_datatype_from_env, get_conf_log_enabled, get_conf_measure_warmup_iters, get_conf_measure_iters
+use dtfft_errors,                   only: DTFFT_SUCCESS
 use dtfft_pencil,                   only: pencil, pencil_init, get_local_sizes
 use dtfft_parameters
 use dtfft_transpose_handle_host,    only: transpose_handle_host
 use dtfft_utils
-#include "dtfft_mpi.h"
-#include "dtfft_profile.h"
-#include "dtfft_private.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_profile.h"
+#include "_dtfft_private.h"
 implicit none
 private
 public :: transpose_plan_host
@@ -138,8 +139,8 @@ contains
       WRITE_INFO(repeat("*", 50))
       WRITE_INFO("DTFFT_PATIENT: Selected transpose ids:")
       do d = 1, n_transpose_plans
-        WRITE_INFO("    "//TRANSPOSE_NAMES( d)//": "//int_to_str( best_forward_ids(d) ))
-        WRITE_INFO("    "//TRANSPOSE_NAMES(-d)//": "//int_to_str( best_backward_ids(d) ))
+        WRITE_INFO("    "//TRANSPOSE_NAMES( d)//": "//to_str( best_forward_ids(d) ))
+        WRITE_INFO("    "//TRANSPOSE_NAMES(-d)//": "//to_str( best_backward_ids(d) ))
       enddo
       WRITE_INFO(repeat("*", 50))
     endif
@@ -255,7 +256,7 @@ contains
     best_comm_dims(2) = decomps(1, k)
     best_comm_dims(3) = decomps(2, k)
     WRITE_INFO(repeat("*", 50))
-    WRITE_INFO("DTFFT_MEASURE: Selected MPI grid 1x"//int_to_str(best_comm_dims(2))//"x"//int_to_str(best_comm_dims(3)))
+    WRITE_INFO("DTFFT_MEASURE: Selected MPI grid 1x"//to_str(best_comm_dims(2))//"x"//to_str(best_comm_dims(3)))
     if ( effort == DTFFT_PATIENT ) then
       best_forward_ids(:) = forw_ids(:, k)
       best_backward_ids(:) = back_ids(:, k)
@@ -297,9 +298,9 @@ contains
 
     if ( ndims == 3 ) then
       if ( comm_dims(2) > dims(2) .or. comm_dims(3) > dims(3) ) return
-      allocate( phase_name, source = "Testing grid 1x"//int_to_str(comm_dims(2))//"x"//int_to_str(comm_dims(3)) )
+      allocate( phase_name, source = "Testing grid 1x"//to_str(comm_dims(2))//"x"//to_str(comm_dims(3)) )
     else
-      allocate( phase_name, source = "Testing grid 1x"//int_to_str(comm_dims(2)) )
+      allocate( phase_name, source = "Testing grid 1x"//to_str(comm_dims(2)) )
     endif
 
     WRITE_INFO(repeat("=", 50))
@@ -322,7 +323,7 @@ contains
 
     if ( effort == DTFFT_PATIENT ) then
       call self%autotune_mpi_datatypes(pencils, comm, comms, base_dtype, base_storage, a, b, forw_ids(:, latest_timer_id), back_ids(:, latest_timer_id), timers(latest_timer_id))
-      WRITE_INFO("Execution time on a grid using fastest transpositions: "//double_to_str(timers(latest_timer_id)))
+      WRITE_INFO("Execution time on a grid using fastest transpositions: "//to_str(timers(latest_timer_id)))
     else
       timers(latest_timer_id) = 0.0_real64
       do d = 1_int8, ndims - 1_int8
@@ -330,7 +331,7 @@ contains
         tb = self%get_plan_execution_time(comms(d + 1), comm, pencils(d + 1), pencils(d), base_dtype, base_storage, BACKWARD_PLAN_IDS(d), d, a, b)
         timers(latest_timer_id) = timers(latest_timer_id) + tf + tb
       enddo
-      WRITE_INFO("Average execution time on a grid: "//double_to_str(timers(latest_timer_id)))
+      WRITE_INFO("Average execution time on a grid: "//to_str(timers(latest_timer_id)))
     endif
     do d = 1_int8, ndims - 1_int8
       decomps(d, latest_timer_id) = comm_dims(d + 1)
@@ -442,23 +443,18 @@ contains
     integer(int32)                              :: iter                 !! Counter
     integer(int32)                              :: ierr                 !! Error code
     integer(int32)                              :: comm_size            !! Size of ``cart_comm``
-    integer(int32)                              :: n_warmup_iters
-    integer(int32)                              :: n_iters
 
-    allocate( phase_name, source="    Testing plan "//TRANSPOSE_NAMES(transpose_name_id)//", datatype_id = "//int_to_str(datatype_id) )
+    allocate( phase_name, source="    Testing plan "//TRANSPOSE_NAMES(transpose_name_id)//", datatype_id = "//to_str(datatype_id) )
     PHASE_BEGIN(phase_name, 0)
     WRITE_INFO(phase_name)
     call plan%create(comm, from, to, base_dtype, base_storage, datatype_id)
 
-    n_warmup_iters = get_iters_from_env(.true.)
-    n_iters = get_iters_from_env(.false.)
-
-    do iter = 1, n_warmup_iters
+    do iter = 1, get_conf_measure_warmup_iters()
       call plan%execute(a, b)
     enddo
 
     ts = MPI_Wtime()
-    do iter = 1, n_iters
+    do iter = 1, get_conf_measure_iters()
       call plan%execute(a, b)
     enddo
     te = MPI_Wtime()
@@ -469,6 +465,6 @@ contains
     call plan%destroy()
     PHASE_END(phase_name)
     deallocate(phase_name)
-    WRITE_INFO("        Average execution time: "//double_to_str(elapsed_time))
+    WRITE_INFO("        Average execution time: "//to_str(elapsed_time))
   end function get_plan_execution_time
 end module dtfft_transpose_plan_host

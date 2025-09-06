@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -28,9 +28,9 @@ use dtfft
 use test_utils
 #if defined(DTFFT_WITH_CUDA)
 use dtfft_interface_cuda_runtime
-#include "dtfft_cuda.h"
+#include "_dtfft_cuda.h"
 #endif
-#include "dtfft_mpi.h"
+#include "_dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
   type(c_ptr) :: check
@@ -115,7 +115,7 @@ implicit none
   in_size = product(in_counts)
   out_size = product(out_counts)
 
-  call mem_alloc_host(in_size * DOUBLE_STORAGE_SIZE, check)
+  check = mem_alloc_host(in_size * DOUBLE_STORAGE_SIZE)
   call setTestValuesDouble(check, in_size)
 
 #if defined(DTFFT_WITH_CUDA)

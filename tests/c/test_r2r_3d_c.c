@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -16,7 +16,6 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
 #include <dtfft.h>
 #include <mpi.h>
 #include <stdlib.h>
@@ -29,7 +28,7 @@
 int main(int argc, char *argv[]) 
 {
   int32_t nx = 4, ny = 64, nz = 16;
-  double *inout, *check, *aux;
+  double *in, *check, *out;
   int comm_rank, comm_size;
   int32_t n[3] = {nz, ny, nx};
   dtfft_pencil_t pencils[3];
@@ -60,12 +59,12 @@ int main(int argc, char *argv[])
 
   // Recreate plan with pencils
   DTFFT_CALL( dtfft_create_plan_r2r_pencil(&pencils[0], NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE, &plan) )
-
+  DTFFT_CALL( dtfft_report(plan) )
   size_t alloc_bytes;
   DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
 
-  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&inout) )
-  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&in) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&out) )
 
   // Obtain pencil information (optional)
   for ( int i = 0; i < 3; i++ ) {
@@ -81,20 +80,20 @@ int main(int argc, char *argv[])
   dtfft_platform_t platform;
   DTFFT_CALL( dtfft_get_platform(plan, &platform) )
 
-  doubleH2D(check, inout, in_size, (int32_t)platform);
+  doubleH2D(check, in, in_size, (int32_t)platform);
 #else
-  doubleH2D(check, inout, in_size);
+  doubleH2D(check, in, in_size);
 #endif
 
   double tf = 0.0 - MPI_Wtime();
   /*
     Run custom Forward FFT X direction using pencils[0] information
   */
-  DTFFT_CALL( dtfft_transpose(plan, inout, aux, DTFFT_TRANSPOSE_X_TO_Y) )
+  DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y) )
   /*
     Run custom Forward FFT Y direction using pencils[1] information
   */
-  DTFFT_CALL( dtfft_transpose(plan, aux, inout, DTFFT_TRANSPOSE_Y_TO_Z) )
+  DTFFT_CALL( dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_Z) )
   /*
     Run custom Forward FFT Z direction using pencils[2] information
   */
@@ -110,11 +109,11 @@ int main(int argc, char *argv[])
   /*
     Run custom Backward FFT Z direction using pencils[2] information
   */
-  DTFFT_CALL( dtfft_transpose(plan, inout, aux, DTFFT_TRANSPOSE_Z_TO_Y) )
+  DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_Z_TO_Y) )
   /*
     Run custom Backward FFT Y direction using pencils[1] information
   */
-  DTFFT_CALL( dtfft_transpose(plan, aux, inout, DTFFT_TRANSPOSE_Y_TO_X) )
+  DTFFT_CALL( dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_X) )
   /*
     Run custom Backward FFT X direction using pencils[0] information
   */
@@ -126,13 +125,13 @@ int main(int argc, char *argv[])
   tb += MPI_Wtime();
 
 #if defined(DTFFT_WITH_CUDA)
-  checkAndReportDouble(nx * ny, tf, tb, inout, in_size, check, (int32_t)platform);
+  checkAndReportDouble(nx * ny, tf, tb, in, in_size, check, (int32_t)platform);
 #else
-  checkAndReportDouble(nx * ny, tf, tb, inout, in_size, check);
+  checkAndReportDouble(nx * ny, tf, tb, in, in_size, check);
 #endif
 
-  DTFFT_CALL( dtfft_mem_free(plan, inout) )
-  DTFFT_CALL( dtfft_mem_free(plan, aux) )
+  DTFFT_CALL( dtfft_mem_free(plan, in) )
+  DTFFT_CALL( dtfft_mem_free(plan, out) )
 
   DTFFT_CALL( dtfft_destroy(&plan) )
   free(check);

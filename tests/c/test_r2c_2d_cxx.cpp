@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2021, Oleg Shatrov
+  Copyright (c) 2021 - 2025, Oleg Shatrov
   All rights reserved.
   This file is part of dtFFT library.
 
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
   }
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan->execute(in.data(), out.data(), Execute::FORWARD) );
+  DTFFT_CXX_CALL( plan->forward(in.data(), out.data(), nullptr) );
   tf += MPI_Wtime();
 
   for ( auto & element: in) {
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
   }
 
   double tb = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan->execute(out.data(), in.data(), Execute::BACKWARD) );
+  DTFFT_CXX_CALL( plan->backward(out.data(), in.data(), nullptr) );
   tb += MPI_Wtime();
 
 #if defined(DTFFT_WITH_CUDA)

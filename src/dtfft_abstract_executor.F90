@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -25,8 +25,8 @@ use dtfft_errors
 use dtfft_pencil,     only: pencil
 use dtfft_parameters
 use dtfft_utils
-#include "dtfft_profile.h"
-#include "dtfft_private.h"
+#include "_dtfft_profile.h"
+#include "_dtfft_private.h"
 implicit none
 private
 public :: abstract_executor

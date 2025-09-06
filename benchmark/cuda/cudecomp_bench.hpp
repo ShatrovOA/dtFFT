@@ -1,8 +1,10 @@
-#include "config.h"
+#pragma once
+
+#include "config.hpp"
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include <cudecomp.h>
-#include <cuda_runtime.h>
 
 
 #define CHECK_CUDECOMP_EXIT(call)                                                                                      \
@@ -16,7 +18,7 @@
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-void run_cudecomp(cudecompDataType_t dtype) {
+void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
   cudecompHandle_t handle;
   CHECK_CUDECOMP_EXIT(cudecompInit(&handle, MPI_COMM_WORLD));
 
@@ -47,9 +49,9 @@ void run_cudecomp(cudecompDataType_t dtype) {
   config.pdims[0] = 0; // P_rows
   config.pdims[1] = 0; // P_cols
 
-  config.gdims[0] = NX; // X
-  config.gdims[1] = NY; // Y
-  config.gdims[2] = NZ; // Z
+  config.gdims[0] = dims[0]; // X
+  config.gdims[1] = dims[1]; // Y
+  config.gdims[2] = dims[2]; // Z
 
   config.transpose_axis_contiguous[0] = true;
   config.transpose_axis_contiguous[1] = true;
@@ -62,7 +64,7 @@ void run_cudecomp(cudecompDataType_t dtype) {
 
     // General options
   options.n_warmup_trials = 3;
-  options.n_trials = 5;
+  options.n_trials = 15;
   options.dtype = dtype;
   options.disable_nccl_backends = false;
   options.disable_nvshmem_backends = true;
@@ -93,18 +95,18 @@ void run_cudecomp(cudecompDataType_t dtype) {
 
   // Get X-pencil information (with halo elements).
   cudecompPencilInfo_t pinfo_x;
-  CHECK_CUDECOMP_EXIT(cudecompGetPencilInfo(handle, grid_desc, &pinfo_x, 0, NULL));
+  CHECK_CUDECOMP_EXIT(cudecompGetPencilInfo(handle, grid_desc, &pinfo_x, 0, NULL, NULL));
 
   // Get Y-pencil information
   cudecompPencilInfo_t pinfo_y;
-  CHECK_CUDECOMP_EXIT(cudecompGetPencilInfo(handle, grid_desc, &pinfo_y, 1, NULL));
+  CHECK_CUDECOMP_EXIT(cudecompGetPencilInfo(handle, grid_desc, &pinfo_y, 1, NULL, NULL));
 
   // Get Z-pencil information
   cudecompPencilInfo_t pinfo_z;
-  CHECK_CUDECOMP_EXIT(cudecompGetPencilInfo(handle, grid_desc, &pinfo_z, 2, NULL));
+  CHECK_CUDECOMP_EXIT(cudecompGetPencilInfo(handle, grid_desc, &pinfo_z, 2, NULL, NULL));
 
   // Allocate pencil memory
-  int64_t data_num_elements = MAX(MAX(pinfo_x.size, pinfo_y.size), pinfo_z.size);
+  size_t data_num_elements = MAX(MAX(pinfo_x.size, pinfo_y.size), pinfo_z.size);
 
     // Get workspace sizes
   int64_t work_size;
@@ -118,7 +120,7 @@ void run_cudecomp(cudecompDataType_t dtype) {
   // Using inplace, since out-of-place resulted in autotune.cc:248 CUDA error. (out of memory)
   // Running on a single GPU Tesla V100, 32Gb
   float *inout;
-  CUDA_CALL(cudecompMalloc(handle, grid_desc, (void**)&inout, data_num_elements * dtype_size));
+  CHECK_CUDECOMP_EXIT(cudecompMalloc(handle, grid_desc, (void**)&inout, data_num_elements * dtype_size));
   CUDA_CALL(cudaMemset(inout, 0, data_num_elements * dtype_size));
 
   float* work;
@@ -128,6 +130,11 @@ void run_cudecomp(cudecompDataType_t dtype) {
   cudaStream_t stream;
   CUDA_CALL( cudaStreamCreate(&stream) );
 
+  cudaEvent_t startEvent, stopEvent;
+  CUDA_CALL( cudaEventCreate(&startEvent) );
+  CUDA_CALL( cudaEventCreate(&stopEvent) );
+  float ms;
+
   if(comm_rank == 0) {
     printf("Started warmup\n");
   }
@@ -136,25 +143,25 @@ void run_cudecomp(cudecompDataType_t dtype) {
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeXToY(handle, grid_desc, inout, inout,
                             work, dtype,
-                            NULL, NULL, stream));
+                            NULL, NULL, NULL, NULL, stream));
 
     // Transpose from Y-pencils to Z-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeYToZ(handle, grid_desc, inout, inout,
                             work, dtype,
-                            NULL, NULL, stream));
+                            NULL, NULL, NULL, NULL, stream));
 
     // Transpose from Z-pencils to Y-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeZToY(handle, grid_desc, inout, inout,
                             work, dtype,
-                            NULL, NULL, stream));
+                            NULL, NULL, NULL, NULL, stream));
 
     // Transpose from Y-pencils to X-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeYToX(handle, grid_desc, inout, inout,
                             work, dtype,
-                            NULL, NULL, stream));
+                            NULL, NULL, NULL, NULL, stream));
   }
   CUDA_CALL( cudaStreamSynchronize(stream) );
 
@@ -162,10 +169,6 @@ void run_cudecomp(cudecompDataType_t dtype) {
   if(comm_rank == 0) {
     printf("Ended warmup\n");
   }
-  cudaEvent_t startEvent, stopEvent;
-  CUDA_CALL( cudaEventCreate(&startEvent) );
-  CUDA_CALL( cudaEventCreate(&stopEvent) );
-  float ms;
 
   CUDA_CALL( cudaEventRecord(startEvent, stream) );
 
@@ -174,25 +177,25 @@ void run_cudecomp(cudecompDataType_t dtype) {
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeXToY(handle, grid_desc, inout, inout,
                             work, dtype,
-                            NULL, NULL, stream));
+                            NULL, NULL, NULL, NULL, stream));
 
     // Transpose from Y-pencils to Z-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeYToZ(handle, grid_desc, inout, inout,
                             work, dtype,
-                            NULL, NULL, stream));
+                            NULL, NULL, NULL, NULL, stream));
 
     // Transpose from Z-pencils to Y-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeZToY(handle, grid_desc, inout, inout,
                             work, dtype,
-                            NULL, NULL, stream));
+                            NULL, NULL, NULL, NULL, stream));
 
     // Transpose from Y-pencils to X-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeYToX(handle, grid_desc, inout, inout,
                             work, dtype,
-                            NULL, NULL, stream));
+                            NULL, NULL, NULL, NULL, stream));
   }
 
   CUDA_CALL( cudaEventRecord(stopEvent, stream) );

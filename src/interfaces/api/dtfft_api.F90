@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -24,13 +24,13 @@ use iso_c_binding,    only: c_int8_t, c_int32_t, c_size_t, &
                             c_null_ptr, c_ptr, c_loc,       &
                             c_f_pointer
 use iso_fortran_env,  only: int8, int32
-use dtfft_config
+use dtfft_config,     only: dtfft_config_t, dtfft_set_config
 use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil,     only: dtfft_pencil_t, dtfft_pencil_c, pencil_c2f, pencil_f2c
 use dtfft_plan,       only: dtfft_plan_t, dtfft_plan_r2r_t, dtfft_plan_c2c_t, dtfft_plan_r2c_t
 use dtfft_utils,      only: is_null_ptr, string_f2c
-#include "dtfft_mpi.h"
+#include "_dtfft_mpi.h"
 implicit none
 private
 
@@ -100,7 +100,7 @@ contains
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     type(dtfft_r2r_kind_t),             pointer   :: fkinds(:)            !! Fortran R2R kinds
-    type(plan_c),                       pointer   :: plan
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
     type(dtfft_pencil_t)                          :: pencil_              !! Fortran pencil
 
     call pencil_c2f(pencil, pencil_)

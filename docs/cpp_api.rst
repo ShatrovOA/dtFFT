@@ -47,19 +47,22 @@ Functions
 
 .. doxygenfunction:: dtfft::set_config
 
+Structs
+=======
+
+.. doxygenstruct:: dtfft::Version
+  :members:
+
+.. doxygenstruct:: dtfft::Pencil
+  :members:
+
+.. doxygenstruct:: dtfft::Config
+  :members:
+
 Classes
 =======
 
-.. doxygenclass:: dtfft::Version
-  :members:
-
 .. doxygenclass:: dtfft::Exception
-  :members:
-
-.. doxygenclass:: dtfft::Pencil
-  :members:
-
-.. doxygenclass:: dtfft::Config
   :members:
 
 .. doxygenclass:: dtfft::Plan

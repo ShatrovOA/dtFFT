@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------------------------
-! Copyright (c) 2021, Oleg Shatrov
+! Copyright (c) 2021 - 2025, Oleg Shatrov
 ! All rights reserved.
 ! This file is part of dtFFT library.
 
@@ -22,9 +22,9 @@ module dtfft_transpose_handle_host
 use iso_fortran_env
 use dtfft_parameters
 use dtfft_pencil,     only: pencil, get_transpose_type
-#include "dtfft_mpi.h"
-#include "dtfft_profile.h"
-#include "dtfft_cuda.h"
+#include "_dtfft_mpi.h"
+#include "_dtfft_profile.h"
+#include "_dtfft_cuda.h"
 implicit none
 private
 public :: transpose_handle_host

@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.23)
-project(dtfft VERSION 2.1.0
+cmake_minimum_required(VERSION 3.25)
+project(dtfft VERSION 2.2.0
               DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
@@ -320,6 +320,11 @@ if ( USE_NVSHMEM )
   SET(DTFFT_WITH_NVSHMEM ON)
 else()
   SET(DTFFT_WITH_NVSHMEM OFF)
+endif()
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+  SET(DTFFT_DEBUG ON)
+else()
+  SET(DTFFT_DEBUG OFF)
 endif()
 set ( DTFFT_VERSION "(X) * 100000 + (Y) * 1000 + (Z)" )
 set ( DTFFT_CONF_HEADER ${PROJECT_BINARY_DIR}/dtfft_config.h CACHE STRING "DTFFT Config header")
