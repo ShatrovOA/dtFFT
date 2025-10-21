@@ -250,10 +250,12 @@ contains
       endif
 #endif
     else
-      if ( self%backend == DTFFT_BACKEND_MPI_RMA_PIPELINED ) then
-        call run_mpi_rma(self%comm, self%send, self%recv, in, aux, self%win, self%is_request_created)
-      else
+      if ( self%backend == DTFFT_BACKEND_MPI_P2P_PIPELINED ) then
         call run_mpi_p2p(self%comm, self%send, self%recv, in, aux, self%is_request_created)
+#ifdef DTFFT_WITH_RMA
+      else
+        call run_mpi_rma(self%comm, self%send, self%recv, in, aux, self%win, self%is_request_created)
+#endif
       endif
       allocate( is_complete_comm(self%recv%n_requests), source=.false. )
       allocate( indices(self%recv%n_requests) )
