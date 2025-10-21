@@ -41,10 +41,6 @@ public :: backend_mpi
     integer(CNT_KIND),  allocatable :: counts(:)    !! Counts of data to send or recv
     integer(ADDR_KIND), allocatable :: displs(:)    !! Displacements of data to send or recv
     TYPE_MPI_REQUEST,   allocatable :: requests(:)  !! MPI Requests
-    integer(int32)                  :: local_start
-    integer(int32)                  :: local_count
-    integer(int32)                  :: remote_start
-    integer(int32)                  :: remote_count
     integer(int32),     allocatable :: process_map(:)
     integer(int32)                  :: n_requests   !! Number of requests
   contains
@@ -263,7 +259,8 @@ contains
         ! Testing that all data has been recieved so we can unpack it
         ! print*,'MPI_Waitsome: ',self%recv%n_requests,self%recv%requests
         call MPI_Waitsome(self%recv%n_requests, self%recv%requests, n_completed, indices, MPI_STATUSES_IGNORE, mpi_ierr)
-        ! print*,statuses(1)%mpi_error
+        print*,'mpi_ierr = ',mpi_ierr
+        print*,'all = ',indices
         print*,'n_completed = ',n_completed,' indices = ',indices(1:n_completed)
         do i = 1, n_completed
           call self%unpack_kernel%execute(aux, out, stream, self%recv%process_map(indices(i)) + 1)

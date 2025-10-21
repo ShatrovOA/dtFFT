@@ -1289,9 +1289,10 @@ contains
         endif
 
         deallocate( local_devices )
+
+        self%stream = get_conf_stream()
       endblock
     endif
-    self%stream = get_conf_stream()
 #endif
 
     if ( present(pencil) ) then
