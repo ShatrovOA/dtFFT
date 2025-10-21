@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">25 statements</a>
+                 title=" 0.3% of total for procedures.">33 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_transpose_handle.F90"> Source File</a>
+              <a href="../src/dtfft_kernel_device.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_transpose_handle.f90.html'>dtfft_abstract_transpose_handle.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_transpose_handle.html'>dtfft_abstract_transpose_handle</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_kernel_device.f90.html'>dtfft_kernel_device.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_kernel_device.html'>dtfft_kernel_device</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,14 +129,27 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self, send, recv, base_storage, kwargs)  
+    <h2>private  subroutine create(self, effort, base_storage, force_effort)  
 </h2>
-    
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+              </ul>
+            </li>
+        </ul>
+      </div>
+    </div>
 
-    <p>Creates transpose handle</p>
+
+    <p>Creates kernel</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_transpose_handle.html'>abstract_transpose_handle</a></p>
+    <p><a href='../type/kernel_device.html'>kernel_device</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +164,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~133"></span>
-              class(<a href='../type/abstract_transpose_handle.html'>abstract_transpose_handle</a>),
+              <span class="anchor" id="variable-self~60"></span>
+              class(<a href='../type/kernel_device.html'>kernel_device</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,42 +174,27 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Abstract transpose handle</p>
+                <p>Device kernel class</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-send~13"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
+              <span class="anchor" id="variable-effort~3"></span>
+              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>send</strong></td>
+            <td><strong>effort</strong></td>
             <td>
-                <p>Send pencil</p>
+                <p>Effort level for generating transpose kernels</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-recv~13"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>recv</strong></td>
-            <td>
-                <p>Recv pencil</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-base_storage~28"></span>
+              <span class="anchor" id="variable-base_storage~11"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -206,22 +204,22 @@
             <td>::</td>
             <td><strong>base_storage</strong></td>
             <td>
-                <p>Base storage size</p>
+                <p>Number of bytes needed to store single element</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kwargs~9"></span>
-              type(<a href='../type/create_args.html'>create_args</a>),
+              <span class="anchor" id="variable-force_effort~3"></span>
+              logical,
             </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>kwargs</strong></td>
+            <td><strong>force_effort</strong></td>
             <td>
-                <p>Additional arguments</p>
+                <p>Should effort be forced or not</p>
             </td>
         </tr>
     </tbody>

@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">18 statements</a>
+                 title=" 0.5% of total for procedures.">67 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_backend_mpi.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_backend.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_backend_mpi.f90.html'>dtfft_backend_mpi.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_backend_mpi.html'>dtfft_backend_mpi</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_backend.f90.html'>dtfft_abstract_backend.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_backend.html'>dtfft_abstract_backend</a></li>
             <li class="breadcrumb-item active" aria-current="page">create_helper</li>
           </ol>
         </nav>
@@ -129,14 +129,27 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create_helper(self, counts, displs, max_requests)  
+    <h2>private  subroutine create_helper(self, platform, base_comm, comms, is_nccl_needed, pencils)  
 </h2>
-    
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+              </ul>
+            </li>
+        </ul>
+      </div>
+    </div>
 
-    <p>Creates MPI helper</p>
+
+    <p>Creates helper</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a></p>
+    <p><a href='../type/backend_helper.html'>backend_helper</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +164,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self"></span>
-              class(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
+              <span class="anchor" id="variable-self~27"></span>
+              class(<a href='../type/backend_helper.html'>backend_helper</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,52 +174,82 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>MPI Helper</p>
+                <p>Backend helper</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-counts~2"></span>
-              integer(kind=int64),
+              <span class="anchor" id="variable-platform~4"></span>
+              type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>counts</strong>(:)</td>
+            <td><strong>platform</strong></td>
             <td>
-                <p>Counts of data to send or recv</p>
+                <p>Platform to use</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-displs~2"></span>
-              integer(kind=int64),
+              <span class="anchor" id="variable-base_comm"></span>
+              type(MPI_Comm),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>displs</strong>(:)</td>
+            <td><strong>base_comm</strong></td>
             <td>
-                <p>Displacements of data to send or recv</p>
+                <p>MPI communicator</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-max_requests"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-comms~2"></span>
+              type(MPI_Comm),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>max_requests</strong></td>
+            <td><strong>comms</strong>(:)</td>
             <td>
-                <p>Maximum number of requests required</p>
+                <p>1D Communicators</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_nccl_needed"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_nccl_needed</strong></td>
+            <td>
+                <p>If nccl communicator will be needed</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-pencils~2"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>pencils</strong>(:)</td>
+            <td>
+                <p>Pencils</p>
             </td>
         </tr>
     </tbody>
