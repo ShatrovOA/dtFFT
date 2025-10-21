@@ -61,7 +61,6 @@ int main(int argc, char *argv[])
   // Different FFT kinds are used. Disabling Z-slab
   conf.set_enable_z_slab(false)
     .set_enable_y_slab(false)
-    .set_backend(Backend::MPI_RMA)
     .set_enable_mpi_backends(true)
     .set_enable_datatype_backend(true)
     .set_enable_pipelined_backends(true);
