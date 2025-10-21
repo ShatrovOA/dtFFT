@@ -20,10 +20,11 @@
 module dtfft_backend_nccl_m
 !! NCCL Based GPU Backends [[backend_nccl]]
 use iso_fortran_env
-use iso_c_binding, only: c_ptr, c_f_pointer
+use iso_c_binding,                  only: c_ptr, c_f_pointer
+use dtfft_abstract_backend,         only: abstract_backend, backend_helper
 use dtfft_interface_cuda_runtime
 use dtfft_interface_nccl
-use dtfft_abstract_backend,         only: abstract_backend, backend_helper
+use dtfft_errors
 use dtfft_parameters
 use dtfft_utils
 #include "_dtfft_mpi.h"
@@ -46,27 +47,29 @@ public :: backend_nccl
 
 contains
 
-  subroutine create_nccl(self, helper, tranpose_type, base_storage)
+  subroutine create_nccl(self, helper, base_storage)
   !! Creates NCCL backend
     class(backend_nccl),      intent(inout) :: self               !! NCCL backend
     type(backend_helper),     intent(in)    :: helper             !! Backend helper
-    type(dtfft_transpose_t),  intent(in)    :: tranpose_type      !! Type of transpose to create (unused)
     integer(int64),           intent(in)    :: base_storage       !! Number of bytes to store single element (unused)
-
+#ifdef DTFFT_DEBUG
     if ( .not. is_backend_nccl(self%backend) ) INTERNAL_ERROR(".not. is_backend_nccl")
     if ( .not. helper%is_nccl_created ) INTERNAL_ERROR(".not. helper%is_nccl_created")
+#endif
     self%nccl_comm = helper%nccl_comm
   end subroutine create_nccl
 
-  subroutine execute_nccl(self, in, out, stream, aux)
+  subroutine execute_nccl(self, in, out, stream, aux, exec_type, error_code)
   !! Executes NCCL backend
-    class(backend_nccl),          intent(inout) :: self       !! NCCL backend
-    real(real32),   target,       intent(inout) :: in(:)      !! Send pointer
-    real(real32),   target,       intent(inout) :: out(:)     !! Recv pointer
-    type(dtfft_stream_t),         intent(in)    :: stream     !! Main execution CUDA stream
-    real(real32),   target,       intent(inout) :: aux(:)     !! Auxiliary pointer
-    integer(int32)                              :: i        !! Counter
-    integer(int32)                              :: rnk      !! Rank to send-recv
+    class(backend_nccl),      intent(inout) :: self       !! NCCL backend
+    real(real32),   target,   intent(inout) :: in(:)      !! Send pointer
+    real(real32),   target,   intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),     intent(in)    :: stream     !! Main execution CUDA stream
+    real(real32),   target,   intent(inout) :: aux(:)     !! Aux pointer
+    type(async_exec_t),       intent(in)    :: exec_type  !! Type of async execution
+    integer(int32),           intent(out)   :: error_code !! Error code
+    integer(int32)                          :: i        !! Counter
+    integer(int32)                          :: rnk      !! Rank to send-recv
     real(real32), pointer :: pin(:), pout(:)
 
     if ( self%is_pipelined ) then
@@ -91,8 +94,14 @@ contains
     NCCL_CALL( "ncclGroupEnd", ncclGroupEnd() )
 
     if ( self%is_pipelined ) then
-      call self%unpack_kernel2%execute(pout, out, stream)
+      do i = 0, self%comm_size - 1
+        if ( self%recv_floats(i) > 0 ) then
+          call self%unpack_kernel%execute(pout, out, stream, i + 1)
+        endif
+      enddo
+      ! call self%unpack_kernel2%execute(pout, out, stream, self%comm_rank + 1)
     endif
+    error_code = DTFFT_SUCCESS
   end subroutine execute_nccl
 
   subroutine destroy_nccl(self)

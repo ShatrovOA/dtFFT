@@ -34,14 +34,14 @@ public :: is_valid_precision, is_valid_r2r_kind
 public :: is_valid_dimension, is_valid_comm_type
 public :: dtfft_get_version
 public :: dtfft_get_precision_string, dtfft_get_executor_string
+public :: dtfft_backend_t, dtfft_stream_t
+public :: dtfft_get_backend_string
+public :: is_backend_pipelined, is_backend_mpi
+public :: is_valid_backend, is_backend_nccl, is_backend_cufftmp, is_backend_nvshmem
 #ifdef DTFFT_WITH_CUDA
 public :: is_valid_platform
 public :: is_host_executor, is_cuda_executor
-public :: dtfft_backend_t
-public :: dtfft_get_backend_string
-public :: is_valid_gpu_backend, is_backend_pipelined, is_backend_mpi, is_backend_nccl, is_backend_cufftmp, is_backend_nvshmem
-public :: kernel_type_t, is_transpose_kernel, is_unpack_kernel
-public :: dtfft_stream_t, dtfft_get_cuda_stream
+public :: dtfft_get_cuda_stream
 #endif
 
   integer(int32), parameter, public :: DTFFT_VERSION_MAJOR = CONF_DTFFT_VERSION_MAJOR
@@ -73,9 +73,9 @@ public :: dtfft_stream_t, dtfft_get_cuda_stream
   end type dtfft_execute_t
 
   type(dtfft_execute_t), parameter, public :: DTFFT_EXECUTE_FORWARD = dtfft_execute_t(CONF_DTFFT_EXECUTE_FORWARD)
-    !! Perform XYZ --> YXZ --> ZXY plan execution (Forward)
+    !! Perform XYZ --> YZX --> ZXY plan execution (Forward)
   type(dtfft_execute_t), parameter, public :: DTFFT_EXECUTE_BACKWARD  = dtfft_execute_t(CONF_DTFFT_EXECUTE_BACKWARD)
-    !! Perform ZXY --> YXZ --> XYZ plan execution (Backward)
+    !! Perform ZXY --> YZX --> XYZ plan execution (Backward)
   type(dtfft_execute_t), parameter :: VALID_EXECUTE_TYPES(*) = [DTFFT_EXECUTE_FORWARD, DTFFT_EXECUTE_BACKWARD]
     !! Valid execute types
 
@@ -222,10 +222,8 @@ public :: operator(==)
     module procedure precision_eq       !! Check if two `dtfft_precision_t` are equal
     module procedure r2r_kind_eq        !! Check if two `dtfft_r2r_kind_t` are equal
     module procedure platform_eq        !! Check if two `dtfft_platform_t` are equal
-#ifdef DTFFT_WITH_CUDA
+    module procedure exec_eq
     module procedure gpu_backend_eq     !! Check if two `dtfft_backend_t` are equal
-    module procedure kernel_type_eq     !! Check if two `kernel_type_t` are equal
-#endif
   end interface
 
 public :: operator(/=)
@@ -237,10 +235,7 @@ public :: operator(/=)
     module procedure precision_ne       !! Check if two `dtfft_precision_t` are not equal
     module procedure r2r_kind_ne        !! Check if two `dtfft_r2r_kind_t` are not equal
     module procedure platform_ne        !! Check if two `dtfft_platform_t` are not equal
-#ifdef DTFFT_WITH_CUDA
     module procedure gpu_backend_ne     !! Check if two `dtfft_backend_t` are not equal
-    module procedure kernel_type_ne     !! Check if two `kernel_type_t` are not equal
-#endif
   end interface
 
 !------------------------------------------------------------------------------------------------
@@ -296,25 +291,27 @@ public :: operator(/=)
   integer(int32),  parameter,  public  :: VARIABLE_NOT_SET = -111
   !! Default value when environ is not set
 
-#ifdef DTFFT_WITH_CUDA
-
 !------------------------------------------------------------------------------------------------
-! GPU Backends that are responsible for transfering data across GPUs
+! Backends that are responsible for transfering data between processes
 !------------------------------------------------------------------------------------------------
   type, bind(C) :: dtfft_backend_t
-  !! Type that specifies various GPU Backend present in dtFFT
+  !! Type that specifies various backends present in dtFFT
     integer(c_int32_t) :: val !! Internal value
   end type dtfft_backend_t
 
 
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_DATATYPE = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_DATATYPE)
     !! Backend that uses MPI datatypes
-    !! Not really recommended to use, since it is a million times slower than other backends
-    !! Left here just to show how slow MPI Datatypes are for GPU usage
+    !! This is default backend for Host build.
+    !! Not really recommended to use for GPU usage, since it is a 'million' times slower than other backends.
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P)
     !! MPI peer-to-peer algorithm
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_A2A = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_A2A)
     !! MPI backend using MPI_Alltoallv
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_RMA = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_RMA)
+    !! MPI RMA backend
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_RMA_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_RMA_PIPELINED)
+    !! MPI Pipelined RMA backend
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_NCCL = dtfft_backend_t(CONF_DTFFT_BACKEND_NCCL)
     !! NCCL backend
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_PIPELINED)
@@ -327,9 +324,9 @@ public :: operator(/=)
     !! cuFFTMp backend that uses extra buffer to gain performance
   type(dtfft_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_backend_t(VARIABLE_NOT_SET)
     !! Backend is not used
-  type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED, DTFFT_BACKEND_CUFFTMP_PIPELINED]
+  type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED, DTFFT_BACKEND_CUFFTMP_PIPELINED, DTFFT_BACKEND_MPI_RMA_PIPELINED]
     !! List of pipelined backends
-  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED]
+  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED]
     !! List of MPI backends
   type(dtfft_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_BACKEND_NCCL, DTFFT_BACKEND_NCCL_PIPELINED]
     !! List of NCCL backends
@@ -337,19 +334,23 @@ public :: operator(/=)
     !! List of cuFFTMp backends
   type(dtfft_backend_t),  parameter :: NVSHMEM_BACKENDS(*) = [DTFFT_BACKEND_CUFFTMP, DTFFT_BACKEND_CUFFTMP_PIPELINED]
     !! List of NVSHMEM-based backends
-  type(dtfft_backend_t),  parameter,  public :: VALID_GPU_BACKENDS(*) = [DTFFT_BACKEND_MPI_DATATYPE         &
-                                                                        ,DTFFT_BACKEND_MPI_P2P              &
-                                                                        ,DTFFT_BACKEND_MPI_A2A              &
-                                                                        ,DTFFT_BACKEND_MPI_P2P_PIPELINED    &
+  type(dtfft_backend_t),  parameter,  public :: VALID_BACKENDS(*) = [DTFFT_BACKEND_MPI_DATATYPE         &
+                                                                    ,DTFFT_BACKEND_MPI_P2P              &
+                                                                    ,DTFFT_BACKEND_MPI_A2A              &
+                                                                    ,DTFFT_BACKEND_MPI_P2P_PIPELINED    &
+#ifdef DTFFT_WITH_RMA
+                                                                    ,DTFFT_BACKEND_MPI_RMA              &
+                                                                    ,DTFFT_BACKEND_MPI_RMA_PIPELINED    &
+#endif
 #ifdef DTFFT_WITH_NCCL
-                                                                        ,DTFFT_BACKEND_NCCL_PIPELINED       &
-                                                                        ,DTFFT_BACKEND_NCCL                 &
+                                                                    ,DTFFT_BACKEND_NCCL_PIPELINED       &
+                                                                    ,DTFFT_BACKEND_NCCL                 &
 #endif
 #ifdef DTFFT_WITH_NVSHMEM
-                                                                        ,DTFFT_BACKEND_CUFFTMP              &
-                                                                        ,DTFFT_BACKEND_CUFFTMP_PIPELINED    &
+                                                                    ,DTFFT_BACKEND_CUFFTMP              &
+                                                                    ,DTFFT_BACKEND_CUFFTMP_PIPELINED    &
 #endif
-                                                                        ]
+                                                                    ]
     !! List of valid GPU backends that `dtFFT` was compiled for
 
   type, bind(C) :: dtfft_stream_t
@@ -359,6 +360,7 @@ public :: operator(/=)
 
   type(dtfft_stream_t), parameter,  public :: NULL_STREAM = dtfft_stream_t(c_null_ptr)
 
+#ifdef DTFFT_WITH_CUDA
   interface dtfft_stream_t
   !! Creates [[dtfft_stream_t]] from integer(cuda_stream_kind)
     module procedure stream_from_int64
@@ -378,64 +380,25 @@ public :: dtfft_platform_t
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_platform_t),         parameter :: VALID_PLATFORMS(*) = [DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA]
     !! Valid platforms
-
-  ! type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HIP = dtfft_platform_t(3)
-
-  type :: kernel_type_t
-  !! nvRTC Kernel type
-    integer(int32) :: val
-  end type kernel_type_t
-
-  type(kernel_type_t), parameter, public  :: KERNEL_DUMMY               = kernel_type_t(-1)
-    !! Dummy kernel, does nothing
-  type(kernel_type_t), parameter, public  :: KERNEL_TRANSPOSE           = kernel_type_t(1)
-    !! Basic transpose kernel type.
-  type(kernel_type_t), parameter, public  :: KERNEL_TRANSPOSE_PACKED    = kernel_type_t(2)
-    !! Transposes data and packs it into contiguous buffer.
-    !! Should be used only in X-Y 3D plans.
-  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK              = kernel_type_t(3)
-    !! Unpacks contiguous buffer.
-  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK_SIMPLE_COPY  = kernel_type_t(4)
-    !! Doesn't actually unpacks anything. Performs ``cudaMemcpyAsync`` call.
-    !! Should be used only when backend is ``DTFFT_GPU_BACKEND_CUFFTMP``.
-  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK_PIPELINED    = kernel_type_t(5)
-    !! Unpacks pack of contiguous buffer recieved from rank.
-  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK_PARTIAL      = kernel_type_t(6)
-    !! Unpacks contiguous buffer recieved from everyone except myself.
-
-  type(kernel_type_t), parameter          :: TRANSPOSE_KERNELS(*) = [KERNEL_TRANSPOSE, KERNEL_TRANSPOSE_PACKED]
-    !! List of all transpose kernel types
-  type(kernel_type_t), parameter          :: UNPACK_KERNELS(*) = [KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED, KERNEL_UNPACK_PARTIAL]
-    !! List of all unpack kernel types
 #endif
+  ! type(dtfft_platform_t), public, parameter :: DTFFT_PLATFORM_HIP = dtfft_platform_t(3)
 
   type(dtfft_platform_t), public, parameter :: PLATFORM_NOT_SET = dtfft_platform_t(VARIABLE_NOT_SET)
 
-#define MAKE_EQ_FUN(datatype, name)                         \
-  pure elemental function name(left, right) result(res);    \
-    type(datatype), intent(in) :: left;                     \
-    type(datatype), intent(in) :: right;                    \
-    logical :: res;                                         \
-    res = left%val == right%val;                            \
-  end function name
+public :: dtfft_request_t
+  type, bind(C) :: dtfft_request_t
+    type(c_ptr) :: val = c_null_ptr
+  end type dtfft_request_t
 
-#define MAKE_NE_FUN(datatype, name)                         \
-  pure elemental function name(left, right) result(res);    \
-    type(datatype), intent(in) :: left;                     \
-    type(datatype), intent(in) :: right;                    \
-    logical :: res;                                         \
-    res = left%val /= right%val;                            \
-  end function name
+public :: async_exec_t
+  type :: async_exec_t
+    integer(int32) :: val
+  end type async_exec_t
 
-#define MAKE_VALID_FUN(type, name, valid_values)            \
-  pure elemental function name(param) result(res);          \
-    type, intent(in)  :: param;                             \
-    logical :: res;                                         \
-    res = any(param == valid_values);                       \
-  end function name
-
-#define MAKE_VALID_FUN_DTYPE(datatype, name, valid_values)  \
-  MAKE_VALID_FUN(type(datatype), name, valid_values)
+  type(async_exec_t), parameter, public :: EXEC_BLOCKING = async_exec_t(1)
+    !! Blocking execution
+  type(async_exec_t), parameter, public :: EXEC_NONBLOCKING = async_exec_t(2)
+    !! Non-blocking execution
 
 contains
 
@@ -446,6 +409,7 @@ MAKE_EQ_FUN(dtfft_effort_t, effort_eq)
 MAKE_EQ_FUN(dtfft_precision_t, precision_eq)
 MAKE_EQ_FUN(dtfft_r2r_kind_t, r2r_kind_eq)
 MAKE_EQ_FUN(dtfft_platform_t, platform_eq)
+MAKE_EQ_FUN(async_exec_t, exec_eq)
 
 MAKE_NE_FUN(dtfft_execute_t, execute_type_ne)
 MAKE_NE_FUN(dtfft_transpose_t, transpose_type_ne)
@@ -515,26 +479,6 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     endselect
   end function dtfft_get_executor_string
 
-#ifdef DTFFT_WITH_CUDA
-  MAKE_EQ_FUN(dtfft_backend_t, gpu_backend_eq)
-  MAKE_NE_FUN(dtfft_backend_t, gpu_backend_ne)
-
-  MAKE_EQ_FUN(kernel_type_t, kernel_type_eq)
-  MAKE_NE_FUN(kernel_type_t, kernel_type_ne)
-
-  MAKE_VALID_FUN_DTYPE(kernel_type_t, is_transpose_kernel, TRANSPOSE_KERNELS)
-  MAKE_VALID_FUN_DTYPE(kernel_type_t, is_unpack_kernel, UNPACK_KERNELS)
-
-  MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_host_executor, HOST_EXECUTORS)
-  MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_cuda_executor, CUDA_EXECUTORS)
-  MAKE_VALID_FUN_DTYPE(dtfft_platform_t, is_valid_platform, VALID_PLATFORMS)
-  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_valid_gpu_backend, VALID_GPU_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_mpi, MPI_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nccl, NCCL_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_cufftmp, CUFFTMP_BACKENDS)
-  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nvshmem, NVSHMEM_BACKENDS)
-
   function dtfft_get_backend_string(backend) result(string)
   !! Gets the string description of a GPU backend
     type(dtfft_backend_t),  intent(in)  :: backend    !! GPU backend
@@ -547,6 +491,10 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(string, source="MPI_P2P")
     case ( DTFFT_BACKEND_MPI_A2A%val )
       allocate(string, source="MPI_A2A")
+    case ( DTFFT_BACKEND_MPI_RMA%val )
+      allocate(string, source="MPI_RMA" )
+    case ( DTFFT_BACKEND_MPI_RMA_PIPELINED%val )
+      allocate(string, source="MPI_RMA_PIPELINED" )
     case ( DTFFT_BACKEND_NCCL%val )
       allocate(string, source="NCCL")
     case ( DTFFT_BACKEND_CUFFTMP%val )
@@ -563,6 +511,23 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(string, source="Unknown backend")
     endselect
   end function dtfft_get_backend_string
+
+  MAKE_EQ_FUN(dtfft_backend_t, gpu_backend_eq)
+  MAKE_NE_FUN(dtfft_backend_t, gpu_backend_ne)
+
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_mpi, MPI_BACKENDS)
+
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_valid_backend, VALID_BACKENDS)
+
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nccl, NCCL_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_cufftmp, CUFFTMP_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nvshmem, NVSHMEM_BACKENDS)
+
+#ifdef DTFFT_WITH_CUDA
+  MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_host_executor, HOST_EXECUTORS)
+  MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_cuda_executor, CUDA_EXECUTORS)
+  MAKE_VALID_FUN_DTYPE(dtfft_platform_t, is_valid_platform, VALID_PLATFORMS)
 
   function stream_from_int64(cuda_stream) result(stream)
   !! Creates [[dtfft_stream_t]] from integer(cuda_stream_kind)

@@ -18,6 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_errors
+!! Module that defines error codes and provides utility to get error string
 use iso_fortran_env, only: int32
 implicit none
 private
@@ -95,17 +96,23 @@ public :: dtfft_get_error_string
     !! Invalid `n_measure_warmup_iters` provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_MEASURE_ITERS = CONF_DTFFT_ERROR_INVALID_MEASURE_ITERS
     !! Invalid `n_measure_iters` provided
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_REQUEST = CONF_DTFFT_ERROR_INVALID_REQUEST
+    !! Invalid `dtfft_request_t` provided
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_TRANSPOSE_ACTIVE = CONF_DTFFT_ERROR_TRANSPOSE_ACTIVE
+    !! Attempting to execute already active transposition
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE = CONF_DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE
+    !! Attempting to finalize non-active transposition
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
     !! Selected `executor` do not support R2R FFTs
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
     !! Invalid stream provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_BACKEND = CONF_DTFFT_ERROR_GPU_INVALID_BACKEND
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_BACKEND = CONF_DTFFT_ERROR_INVALID_BACKEND
     !! Invalid GPU backend provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_NOT_SET = CONF_DTFFT_ERROR_GPU_NOT_SET
     !! Multiple MPI Processes located on same host share same GPU which is not supported
   integer(int32),  parameter,  public  :: DTFFT_ERROR_VKFFT_R2R_2D_PLAN = CONF_DTFFT_ERROR_VKFFT_R2R_2D_PLAN
     !! When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_BACKENDS_DISABLED = CONF_DTFFT_ERROR_GPU_BACKENDS_DISABLED
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_BACKENDS_DISABLED = CONF_DTFFT_ERROR_BACKENDS_DISABLED
     !! Passed `effort` ==  `DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t` */
   integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR
     !! One of pointers passed to `plan.execute` or `plan.transpose` cannot be accessed from device
@@ -113,8 +120,10 @@ public :: dtfft_get_error_string
     !! One of pointers passed to `plan.execute` or `plan.transpose` is not an `NVSHMEM` pointer
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM = CONF_DTFFT_ERROR_INVALID_PLATFORM
     !! Invalid platform provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR
     !! Invalid executor provided for selected platform
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM_BACKEND = CONF_DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+    !! Invalid backend provided for selected platform
 
 contains
 
@@ -198,24 +207,32 @@ contains
       allocate(error_string, source="Invalid `n_measure_warmup_iters` provided")
     case ( DTFFT_ERROR_INVALID_MEASURE_ITERS )
       allocate(error_string, source="Invalid `n_measure_iters` provided")
+    case ( DTFFT_ERROR_INVALID_REQUEST )
+      allocate(error_string, source="Invalid `dtfft_request_t` provided")
+    case ( DTFFT_ERROR_TRANSPOSE_ACTIVE )
+      allocate(error_string, source="Attempting to execute already active transposition")
+    case ( DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE )
+      allocate(error_string, source="Attempting to finalize non-active transposition")
     case ( DTFFT_ERROR_GPU_INVALID_STREAM )
       allocate(error_string, source="Invalid stream provided")
-    case ( DTFFT_ERROR_GPU_INVALID_BACKEND )
-      allocate(error_string, source="Invalid GPU backend provided")
+    case ( DTFFT_ERROR_INVALID_BACKEND )
+      allocate(error_string, source="Invalid backend provided")
     case ( DTFFT_ERROR_GPU_NOT_SET )
       allocate(error_string, source="Multiple MPI Processes located on same host share same GPU which is not supported")
     case ( DTFFT_ERROR_VKFFT_R2R_2D_PLAN )
       allocate(error_string, source="When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions")
-    case ( DTFFT_ERROR_GPU_BACKENDS_DISABLED )
-      allocate(error_string, source="Passed `effort` ==  `::DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t`")
+    case ( DTFFT_ERROR_BACKENDS_DISABLED )
+      allocate(error_string, source="Passed `effort` ==  `DTFFT_PATIENT` but all backends has been disabled by `dtfft_config_t`")
     case ( DTFFT_ERROR_NOT_DEVICE_PTR )
       allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` cannot be accessed from device" )
     case ( DTFFT_ERROR_NOT_NVSHMEM_PTR )
       allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` is not an `NVSHMEM` pointer" )
     case ( DTFFT_ERROR_INVALID_PLATFORM )
       allocate(error_string, source="Invalid platform provided")
-    case ( DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE )
+    case ( DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR )
       allocate(error_string, source="Invalid executor provided for selected platform")
+    case ( DTFFT_ERROR_INVALID_PLATFORM_BACKEND )
+      allocate(error_string, source="Invalid backend provided for selected platform")
     case default
       allocate(error_string, source="Unknown error")
     endselect

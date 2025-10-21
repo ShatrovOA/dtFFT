@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,11 +52,6 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -76,7 +70,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.5% of total for procedures.">62 statements</a>
+                 title=" 0.4% of total for procedures.">47 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -135,7 +129,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  function evaluate_analytical_performance(dims, transpose_type, config, props, base_storage) result(score)  
+    <h2>public  function evaluate_analytical_performance(dims, tile_dim, other_dim, kernel_type, config, props, base_storage, neighbor_data) result(score)  
 </h2>
     
 
@@ -156,7 +150,7 @@ based on various architectural and problem-specific parameters.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dims~21"></span>
+              <span class="anchor" id="variable-dims~7"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -171,22 +165,52 @@ based on various architectural and problem-specific parameters.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-transpose_type~17"></span>
-              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
+              <span class="anchor" id="variable-tile_dim~4"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>transpose_type</strong></td>
+            <td><strong>tile_dim</strong></td>
             <td>
-                <p>Type of transposition to perform</p>
+                <p>Tile dimension</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-config~10"></span>
+              <span class="anchor" id="variable-other_dim~4"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>other_dim</strong></td>
+            <td>
+                <p>Other dimension (not tiled)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kernel_type~2"></span>
+              type(<a href='../type/kernel_type_t.html'>kernel_type_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kernel_type</strong></td>
+            <td>
+                <p>Type of kernel_type to evaluate</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-config~6"></span>
               type(<a href='../type/kernel_config.html'>kernel_config</a>),
             </td>
 <td>intent(in)</td>
@@ -201,7 +225,7 @@ based on various architectural and problem-specific parameters.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-props~11"></span>
+              <span class="anchor" id="variable-props~6"></span>
               type(<a href='../type/device_props.html'>device_props</a>),
             </td>
 <td>intent(in)</td>
@@ -216,7 +240,7 @@ based on various architectural and problem-specific parameters.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_storage~38"></span>
+              <span class="anchor" id="variable-base_storage~10"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -229,6 +253,21 @@ based on various architectural and problem-specific parameters.</p>
                 <p>Number of bytes needed to store single element</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-neighbor_data~2"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>neighbor_data</strong>(:)</td>
+            <td>
+                <p>Neighboring data dimensions for pipelined kernels</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -239,332 +278,6 @@ based on various architectural and problem-specific parameters.</p>
         </small>
       </h3>
       <p>Performance score</p>
-    <br>
-    <div class="card">
-      <div class="card-header">
-  <h3 class="card-title">Calls</h3>
-      </div>
-      <div class="card-body">
-  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: proc~~evaluate_analytical_performance~~CallsGraph Pages: 1 -->
-<svg id="procevaluate_analytical_performanceCallsGraph" width="560pt" height="136pt"
- viewBox="0.00 0.00 560.00 136.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~evaluate_analytical_performance~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 132)">
-<title>proc~~evaluate_analytical_performance~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-132 556,-132 556,4 -4,4"/>
-<!-- proc~evaluate_analytical_performance -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_node1" class="node">
-<title>proc~evaluate_analytical_performance</title>
-<polygon fill="none" stroke="black" points="191,-87 0,-87 0,-63 191,-63 191,-87"/>
-<text text-anchor="middle" x="95.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50">evaluate_analytical_performance</text>
-</g>
-<!-- proc~count_bank_conflicts -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_node2" class="node">
-<title>proc~count_bank_conflicts</title>
-<g id="a_proc~~evaluate_analytical_performance~~CallsGraph_node2"><a xlink:href="../proc/count_bank_conflicts.html" xlink:title="count_bank_conflicts">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="552,-128 428,-128 428,-104 552,-104 552,-128"/>
-<text text-anchor="middle" x="490" y="-113.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">count_bank_conflicts</text>
-</a>
-</g>
-</g>
-<!-- proc~evaluate_analytical_performance&#45;&gt;proc~count_bank_conflicts -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_edge1" class="edge">
-<title>proc~evaluate_analytical_performance&#45;&gt;proc~count_bank_conflicts</title>
-<path fill="none" stroke="#ff0000" d="M125.15,-87.08C151.18,-97.36 190.91,-111.34 227,-117 299.45,-128.37 318.67,-117.38 392,-117 400.35,-116.96 409.11,-116.89 417.8,-116.82"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="417.98,-120.32 427.94,-116.73 417.91,-113.32 417.98,-120.32"/>
-</g>
-<!-- proc~estimate_bank_conflict_ratio -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_node3" class="node">
-<title>proc~estimate_bank_conflict_ratio</title>
-<g id="a_proc~~evaluate_analytical_performance~~CallsGraph_node3"><a xlink:href="../proc/estimate_bank_conflict_ratio.html" xlink:title="estimate_bank_conflict_ratio">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="392,-108 227,-108 227,-84 392,-84 392,-108"/>
-<text text-anchor="middle" x="309.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">estimate_bank_conflict_ratio</text>
-</a>
-</g>
-</g>
-<!-- proc~evaluate_analytical_performance&#45;&gt;proc~estimate_bank_conflict_ratio -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_edge2" class="edge">
-<title>proc~evaluate_analytical_performance&#45;&gt;proc~estimate_bank_conflict_ratio</title>
-<path fill="none" stroke="#ff0000" d="M191.03,-84.36C199.6,-85.21 208.27,-86.07 216.82,-86.92"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="216.48,-90.4 226.78,-87.91 217.17,-83.44 216.48,-90.4"/>
-</g>
-<!-- proc~estimate_coalescing -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_node4" class="node">
-<title>proc~estimate_coalescing</title>
-<g id="a_proc~~evaluate_analytical_performance~~CallsGraph_node4"><a xlink:href="../proc/estimate_coalescing.html" xlink:title="estimate_coalescing">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="370,-66 249,-66 249,-42 370,-42 370,-66"/>
-<text text-anchor="middle" x="309.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">estimate_coalescing</text>
-</a>
-</g>
-</g>
-<!-- proc~evaluate_analytical_performance&#45;&gt;proc~estimate_coalescing -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_edge3" class="edge">
-<title>proc~evaluate_analytical_performance&#45;&gt;proc~estimate_coalescing</title>
-<path fill="none" stroke="#ff0000" d="M191.03,-65.64C207,-64.05 223.32,-62.44 238.52,-60.93"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="239.24,-64.38 248.84,-59.91 238.55,-57.41 239.24,-64.38"/>
-</g>
-<!-- proc~estimate_occupancy -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_node5" class="node">
-<title>proc~estimate_occupancy</title>
-<g id="a_proc~~evaluate_analytical_performance~~CallsGraph_node5"><a xlink:href="../proc/estimate_occupancy.html" xlink:title="estimate_occupancy">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="370.5,-24 248.5,-24 248.5,0 370.5,0 370.5,-24"/>
-<text text-anchor="middle" x="309.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">estimate_occupancy</text>
-</a>
-</g>
-</g>
-<!-- proc~evaluate_analytical_performance&#45;&gt;proc~estimate_occupancy -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_edge4" class="edge">
-<title>proc~evaluate_analytical_performance&#45;&gt;proc~estimate_occupancy</title>
-<path fill="none" stroke="#ff0000" d="M132.05,-62.93C158.19,-54.21 194.65,-42.36 227,-33 234.4,-30.86 242.21,-28.71 249.95,-26.64"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="250.9,-30.01 259.67,-24.08 249.11,-23.24 250.9,-30.01"/>
-</g>
-<!-- proc~estimate_bank_conflict_ratio&#45;&gt;proc~count_bank_conflicts -->
-<g id="proc~~evaluate_analytical_performance~~CallsGraph_edge5" class="edge">
-<title>proc~estimate_bank_conflict_ratio&#45;&gt;proc~count_bank_conflicts</title>
-<path fill="none" stroke="#7fff00" d="M392.18,-105.15C400.72,-106.11 409.37,-107.08 417.79,-108.02"/>
-<polygon fill="#7fff00" stroke="#7fff00" points="417.6,-111.52 427.92,-109.16 418.38,-104.57 417.6,-111.52"/>
-</g>
-</g>
-</svg>
-</div>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
-          </div>
-          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-<p>Nodes of different colours represent the following: </p>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: Graph Key Pages: 1 -->
-<svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
-<title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
-<!-- Subroutine -->
-<g id="node1" class="node">
-<title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
-</g>
-<!-- Function -->
-<g id="node2" class="node">
-<title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
-</g>
-<!-- Interface -->
-<g id="node3" class="node">
-<title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
-</g>
-<!-- Type Bound Procedure -->
-<g id="node4" class="node">
-<title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
-</g>
-<!-- Unknown Procedure Type -->
-<g id="node5" class="node">
-<title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
-</g>
-<!-- Program -->
-<g id="node6" class="node">
-<title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
-</g>
-<!-- This Page&#39;s Entity -->
-<g id="node7" class="node">
-<title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
-</g>
-</g>
-</svg>
-
-<p>Solid arrows point from a procedure to one which it calls. Dashed 
-arrows point from an interface to procedures which implement that interface.
-This could include the module procedures in a generic interface or the
-implementation in a submodule of an interface in a parent module.
-</p>
- Where possible, edges connecting nodes are
-given different colours to make them easier to distinguish in
-large graphs.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-  <h3 class="card-title">Called by</h3>
-      </div>
-      <div class="card-body">
-  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: proc~~evaluate_analytical_performance~~CalledByGraph Pages: 1 -->
-<svg id="procevaluate_analytical_performanceCalledByGraph" width="641pt" height="30pt"
- viewBox="0.00 0.00 641.00 30.16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~evaluate_analytical_performance~~CalledByGraph" class="graph" transform="scale(0.94 0.94) rotate(0) translate(4 28)">
-<title>proc~~evaluate_analytical_performance~~CalledByGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 676,-28 676,4 -4,4"/>
-<!-- proc~evaluate_analytical_performance -->
-<g id="proc~~evaluate_analytical_performance~~CalledByGraph_node1" class="node">
-<title>proc~evaluate_analytical_performance</title>
-<polygon fill="none" stroke="black" points="672,-24 481,-24 481,0 672,0 672,-24"/>
-<text text-anchor="middle" x="576.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">evaluate_analytical_performance</text>
-</g>
-<!-- proc~get_kernel -->
-<g id="proc~~evaluate_analytical_performance~~CalledByGraph_node2" class="node">
-<title>proc~get_kernel</title>
-<g id="a_proc~~evaluate_analytical_performance~~CalledByGraph_node2"><a xlink:href="../proc/get_kernel.html" xlink:title="get_kernel">
-<polygon fill="#d9534f" stroke="#d9534f" points="445,-24 376,-24 376,0 445,0 445,-24"/>
-<text text-anchor="middle" x="410.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_kernel</text>
-</a>
-</g>
-</g>
-<!-- proc~get_kernel&#45;&gt;proc~evaluate_analytical_performance -->
-<g id="proc~~evaluate_analytical_performance~~CalledByGraph_edge1" class="edge">
-<title>proc~get_kernel&#45;&gt;proc~evaluate_analytical_performance</title>
-<path fill="none" stroke="#ff0000" d="M445.08,-12C452.93,-12 461.7,-12 470.87,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="470.97,-15.5 480.97,-12 470.97,-8.5 470.97,-15.5"/>
-</g>
-<!-- proc~create~4 -->
-<g id="proc~~evaluate_analytical_performance~~CalledByGraph_node3" class="node">
-<title>proc~create~4</title>
-<g id="a_proc~~evaluate_analytical_performance~~CalledByGraph_node3"><a xlink:href="../proc/create~4.html" xlink:title="nvrtc_kernel%create">
-<polygon fill="#d9534f" stroke="#d9534f" points="340,-24 218,-24 218,0 340,0 340,-24"/>
-<text text-anchor="middle" x="279" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvrtc_kernel%create</text>
-</a>
-</g>
-</g>
-<!-- proc~create~4&#45;&gt;proc~get_kernel -->
-<g id="proc~~evaluate_analytical_performance~~CalledByGraph_edge2" class="edge">
-<title>proc~create~4&#45;&gt;proc~get_kernel</title>
-<path fill="none" stroke="#ff0000" d="M340.2,-12C348.84,-12 357.59,-12 365.82,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="365.93,-15.5 375.93,-12 365.93,-8.5 365.93,-15.5"/>
-</g>
-<!-- proc~create~9 -->
-<g id="proc~~evaluate_analytical_performance~~CalledByGraph_node4" class="node">
-<title>proc~create~9</title>
-<g id="a_proc~~evaluate_analytical_performance~~CalledByGraph_node4"><a xlink:href="../proc/create~9.html" xlink:title="transpose_handle_cuda%create">
-<polygon fill="#d9534f" stroke="#d9534f" points="182,-24 0,-24 0,0 182,0 182,-24"/>
-<text text-anchor="middle" x="91" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_handle_cuda%create</text>
-</a>
-</g>
-</g>
-<!-- proc~create~9&#45;&gt;proc~create~4 -->
-<g id="proc~~evaluate_analytical_performance~~CalledByGraph_edge3" class="edge">
-<title>proc~create~9&#45;&gt;proc~create~4</title>
-<path fill="none" stroke="#ff0000" d="M182,-12C190.64,-12 199.31,-12 207.72,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="207.82,-15.5 217.82,-12 207.82,-8.5 207.82,-15.5"/>
-</g>
-</g>
-</svg>
-</div>                <script>
-                  var panprocevaluate_analytical_performanceCalledByGraph = svgPanZoom('#procevaluate_analytical_performanceCalledByGraph',
-                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
-                  );
-                </script>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
-          </div>
-          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-<p>Nodes of different colours represent the following: </p>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: Graph Key Pages: 1 -->
-<svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
-<title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
-<!-- Subroutine -->
-<g id="node1" class="node">
-<title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
-</g>
-<!-- Function -->
-<g id="node2" class="node">
-<title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
-</g>
-<!-- Interface -->
-<g id="node3" class="node">
-<title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
-</g>
-<!-- Type Bound Procedure -->
-<g id="node4" class="node">
-<title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
-</g>
-<!-- Unknown Procedure Type -->
-<g id="node5" class="node">
-<title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
-</g>
-<!-- Program -->
-<g id="node6" class="node">
-<title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
-</g>
-<!-- This Page&#39;s Entity -->
-<g id="node7" class="node">
-<title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
-</g>
-</g>
-</svg>
-
-<p>Solid arrows point from a procedure to one which it calls. Dashed 
-arrows point from an interface to procedures which implement that interface.
-This could include the module procedures in a generic interface or the
-implementation in a submodule of an interface in a parent module.
-</p>
- Where possible, edges connecting nodes are
-given different colours to make them easier to distinguish in
-large graphs.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     <br>
 
 
@@ -620,9 +333,6 @@ large graphs.</div>
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>
