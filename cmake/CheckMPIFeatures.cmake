@@ -1,3 +1,4 @@
+include(CheckSourceCompiles)
 include(CheckFortranSourceCompiles)
 
 # Function to check support for MPI persistent collectives
@@ -52,7 +53,8 @@ function(check_int64_supported MPI_INCLUDES MPI_LIBS)
     integer :: ierr
     type(MPI_Request) :: request
 
-    call MPI_Isend(send_buf, send_count, MPI_REAL, 0, 0, MPI_COMM_WORLD, request, ierr)"
+    call MPI_Isend(send_buf, send_count, MPI_REAL, 0, 0, MPI_COMM_WORLD, request, ierr)
+  end program"
   HAVE_MPI_INT64
   SRC_EXT .F90)
   set(HAVE_MPI_INT64 ${HAVE_MPI_INT64} PARENT_SCOPE)
@@ -61,3 +63,27 @@ function(check_int64_supported MPI_INCLUDES MPI_LIBS)
   set(CMAKE_REQUIRED_INCLUDES "" PARENT_SCOPE)
   set(CMAKE_REQUIRED_LIBRARIES "" PARENT_SCOPE)
 endfunction()
+
+function(check_ompi_fix_required MPI_INCLUDES)
+  # Set required includes and libraries for MPI
+  set(file "${PROJECT_BINARY_DIR}/detect_ompi_version.cc")
+  file(WRITE ${file} "
+      #include <iostream>
+      #include <mpi.h>
+      int main() {
+        std::cout << OMPI_MAJOR_VERSION << std::endl;
+        return OMPI_MAJOR_VERSION < 5 ? 1 : 0;
+      }
+    ")
+  try_run(OMPI_LESS_5 compile_result ${PROJECT_BINARY_DIR} ${file}
+          CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MPI_INCLUDES}")
+  if(NOT compile_result)
+    SET(OMPI_FIX_REQUIRED FALSE PARENT_SCOPE)
+  else()
+    if (OMPI_LESS_5)
+      SET(OMPI_FIX_REQUIRED TRUE PARENT_SCOPE)
+    else()
+      SET(OMPI_FIX_REQUIRED FALSE PARENT_SCOPE)
+    endif()
+  endif()
+endfunction(check_ompi_fix_required)

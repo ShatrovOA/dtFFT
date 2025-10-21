@@ -50,6 +50,11 @@ int main(int argc, char *argv[])
 
   attach_gpu_to_process();
 
+  dtfft_config_t conf;
+  DTFFT_CALL( dtfft_create_config(&conf) )
+  conf.enable_mpi_backends = true;
+  DTFFT_CALL( dtfft_set_config(&conf) )
+
   // Create plan
   dtfft_plan_t plan;
 
@@ -67,7 +72,9 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&out) )
 
   // Obtain pencil information (optional)
-  for ( int i = 0; i < 3; i++ ) {
+  int8_t ndims;
+  DTFFT_CALL( dtfft_get_dims(plan, &ndims, NULL) )
+  for ( int i = 0; i < ndims; i++ ) {
     dtfft_get_pencil(plan, i + 1, &pencils[i]);
   }
 
@@ -85,15 +92,19 @@ int main(int argc, char *argv[])
   doubleH2D(check, in, in_size);
 #endif
 
+  dtfft_request_t request;
+
   double tf = 0.0 - MPI_Wtime();
   /*
     Run custom Forward FFT X direction using pencils[0] information
   */
-  DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y) )
+  DTFFT_CALL( dtfft_transpose_start(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y, &request) )
+  DTFFT_CALL( dtfft_transpose_end(plan, request) )
   /*
     Run custom Forward FFT Y direction using pencils[1] information
   */
-  DTFFT_CALL( dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_Z) )
+  DTFFT_CALL( dtfft_transpose_start(plan, out, in, DTFFT_TRANSPOSE_Y_TO_Z, &request) )
+  DTFFT_CALL( dtfft_transpose_end(plan, request) )
   /*
     Run custom Forward FFT Z direction using pencils[2] information
   */
@@ -109,7 +120,8 @@ int main(int argc, char *argv[])
   /*
     Run custom Backward FFT Z direction using pencils[2] information
   */
-  DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_Z_TO_Y) )
+  DTFFT_CALL( dtfft_transpose_start(plan, in, out, DTFFT_TRANSPOSE_Z_TO_Y, &request) )
+  DTFFT_CALL( dtfft_transpose_end(plan, request) )
   /*
     Run custom Backward FFT Y direction using pencils[1] information
   */

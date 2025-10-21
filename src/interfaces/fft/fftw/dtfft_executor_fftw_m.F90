@@ -27,7 +27,7 @@ use dtfft_errors
 use dtfft_pencil,               only: pencil
 use dtfft_interface_fftw_m
 use dtfft_parameters
-use dtfft_utils,                only: get_inverse_kind
+use dtfft_utils,                only: get_inverse_kind, is_null_ptr
 implicit none
 private
 public :: fftw_executor
@@ -95,7 +95,6 @@ contains
     integer(int32),                   intent(in)    :: onembed(:)     !! Storage dimensions of the output data in memory.
     integer(int32),                   intent(inout) :: error_code     !! Error code to be returned to user
     type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !! Kinds of r2r transform
-    real(real32),           target,   allocatable   :: buf(:)         !! Buffer needed to create plan
     integer(int32)                                  :: n_elements     !! Number of elements in `buf`
     type(c_ptr)                                     :: ptr            !! C pointer to `buf`
 
@@ -108,8 +107,8 @@ contains
     if ( precision == DTFFT_DOUBLE ) then
       n_elements = n_elements * 2
     endif
-    allocate( buf(n_elements) )
-    ptr = c_loc(buf)
+
+    call self%mem_alloc(FLOAT_STORAGE_SIZE * n_elements, ptr)
 
     if ( precision == DTFFT_SINGLE ) then
       self%free => fftwf_destroy_plan
@@ -189,8 +188,7 @@ contains
       endblock
     endselect
 
-    deallocate( buf )
-    ptr = c_null_ptr
+    call self%mem_free(ptr)
   end subroutine create
 
   subroutine execute(self, a, b, sign)

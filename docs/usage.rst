@@ -1003,7 +1003,7 @@ Below is an example of transposing data from X to Y and back:
 
     ! Assuming plan is created and buffers `a` and `b` are allocated.
     call plan%transpose(a, b, DTFFT_TRANSPOSE_X_TO_Y, error_code)
-    DTFFT_CHECK(error_code)  ! Checks for errors, e.g., DTFFT_ERROR_INPLACE_TRANSPOSE
+    DTFFT_CHECK(error_code)  ! Checks for errors
 
     ! Process Y-aligned data in buffer `b`
     ! ... (e.g., apply scaling or analysis)
@@ -1208,7 +1208,10 @@ For 3D plans, the method operates as follows:
 
 .. note::
 
-  The only case when in-place execution is not allowed is 2D ``Transpose-Only`` plan. Doing so will trigger the error :f:var:`DTFFT_ERROR_INPLACE_TRANSPOSE`.
+  There are two cases when in-place execution is not allowed:
+
+    - 2D ``Transpose-Only`` plan
+    - 3D ``Transpose-Only`` with Y-slab optimization enabled.
 
 An optional auxiliary buffer ``aux`` may be provided. If omitted on the first call to :f:func:`execute`,
 it is allocated internally and freed when the plan is destroyed. C users can pass ``NULL`` to opt out.

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   const int32_t nx = 256, ny = 512, nz = 1024;
 #else
-  const int32_t nx = 32, ny = 64, nz = 128;
+  const int32_t nx = 512, ny = 99, nz = 17;
 #endif
 
   if(comm_rank == 0) {
@@ -59,7 +59,12 @@ int main(int argc, char *argv[])
   Executor executor = Executor::NONE;
   Config conf;
   // Different FFT kinds are used. Disabling Z-slab
-  conf.set_enable_z_slab(false);
+  conf.set_enable_z_slab(false)
+    .set_enable_y_slab(false)
+    .set_backend(Backend::MPI_RMA)
+    .set_enable_mpi_backends(true)
+    .set_enable_datatype_backend(true)
+    .set_enable_pipelined_backends(true);
 
 #ifdef DTFFT_WITH_FFTW
   executor = Executor::FFTW3;
@@ -80,6 +85,7 @@ int main(int argc, char *argv[])
     conf.set_stream((dtfft_stream_t)stream)
       .set_enable_mpi_backends(true)
       .set_enable_nvshmem_backends(false)
+      .set_force_kernel_optimization(true)
       .set_n_configs_to_test(20);
   }
 #endif
@@ -91,17 +97,38 @@ int main(int argc, char *argv[])
   const R2RKind kinds[] = {R2RKind::DCT_2, R2RKind::DCT_3, R2RKind::DCT_2};
   PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, Precision::SINGLE, Effort::PATIENT, executor);
 
-  int32_t in_sizes[ndims];
-  int32_t out_sizes[ndims];
+  int8_t ndims_check;
+  DTFFT_CXX_CALL( plan.get_dims(&ndims_check, nullptr) )
+  if ( ndims_check != ndims ) {
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "ndims_check != ndims")
+  }
+
+  auto grid_dims = plan.get_grid_dims();
+  if ( grid_dims.size() != 3 ) {
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "grid_dims.size() != 3")
+  }
+  if ( grid_dims[0] != 1 ) {
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "grid_dims[0] != 1")
+  }
+
+  if ( comm_rank == 0 ) {
+    std::cout << "Using grid dims: " + std::to_string(grid_dims[1]) + "x" + std::to_string(grid_dims[2]) << "\n";
+  }
+
+  auto in_sizes = new int32_t[ndims_check];
+  auto out_sizes = new int32_t[ndims_check];
   size_t alloc_size;
 
   DTFFT_CXX_CALL( plan.report() )
   DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_sizes, nullptr, out_sizes, &alloc_size) )
 
-  size_t in_size = std::accumulate(in_sizes, in_sizes + 3, 1, multiplies<int>());
-  size_t out_size = std::accumulate(out_sizes, out_sizes + 3, 1, multiplies<int>());
+  size_t in_size = std::accumulate(in_sizes, in_sizes + ndims, 1, multiplies<int>());
+  size_t out_size = std::accumulate(out_sizes, out_sizes + ndims, 1, multiplies<int>());
   size_t element_size;
   DTFFT_CXX_CALL( plan.get_element_size(&element_size) );
+
+  delete[] in_sizes;
+  delete[] out_sizes;
 
   if ( element_size != sizeof(float) ) {
     DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "element_size != sizeof(float)")

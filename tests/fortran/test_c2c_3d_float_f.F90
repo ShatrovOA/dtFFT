@@ -32,7 +32,7 @@ implicit none
   type(c_ptr) :: check
   complex(real32), pointer :: in(:,:,:), out(:)
   integer(int32), parameter :: nx = 13, ny = 45, nz = 29
-  integer(int32) :: comm_size, comm_rank
+  integer(int32) :: comm_size, comm_rank, i
   type(dtfft_plan_c2c_t) :: plan
   integer(int32) :: in_counts(3), out_counts(3), in_starts(3)
   integer(int64) :: alloc_size, in_size, out_size, element_size
@@ -126,6 +126,10 @@ implicit none
   out_size = product(out_counts)
 
   call plan%mem_alloc(alloc_size, in, in_counts, lbounds=in_starts, error_code=ierr)
+  do i = 1, 3
+    if ( lbound(in, dim=i) /= in_starts(i) ) error stop "invalid lbound, dim = "//to_str(i)//""
+    if ( ubound(in, dim=i) /= in_starts(i) + in_counts(i) - 1 ) error stop "invalid ubound, dim = "//to_str(i)
+  enddo
   call plan%mem_alloc(alloc_size, out, error_code=ierr)
 
   check = mem_alloc_host(in_size * element_size)

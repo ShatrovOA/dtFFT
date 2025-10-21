@@ -71,19 +71,20 @@ int main(int argc, char *argv[]) {
   }
 #endif
 
-#if defined(DTFFT_WITH_CUDA)
   dtfft_config_t config;
   DTFFT_CALL( dtfft_create_config(&config) )
+  config.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
+
+#if defined(DTFFT_WITH_CUDA)
 #if defined(DTFFT_WITH_NCCL)
   config.backend = DTFFT_BACKEND_NCCL_PIPELINED;
 #elif defined(DTFFT_WITH_NVSHMEM)
   config.backend = DTFFT_BACKEND_CUFFTMP;
-#else
-  config.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
 #endif
   config.platform = DTFFT_PLATFORM_CUDA;
-  DTFFT_CALL( dtfft_set_config(&config) )
 #endif
+
+  DTFFT_CALL( dtfft_set_config(&config) )
 
   attach_gpu_to_process();
 

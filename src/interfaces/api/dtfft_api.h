@@ -63,11 +63,23 @@ dtfft_get_z_slab_enabled_c(const void*, bool*);
 
 extern
 int32_t
+dtfft_get_y_slab_enabled_c(const void*, bool*);
+
+extern
+int32_t
 dtfft_execute_c(const void*, void*, void*, const int32_t*, void*);
 
 extern
 int32_t
 dtfft_transpose_c(const void*, void*, void*, const int32_t*);
+
+extern
+int32_t
+dtfft_transpose_start_c(const void*, void*, void*, const int32_t*, void **);
+
+extern
+int32_t
+dtfft_transpose_end_c(const void*, void **);
 
 extern
 int32_t
@@ -137,33 +149,26 @@ extern
 int32_t
 dtfft_get_dims_c(const void*, int8_t*, int32_t**);
 
-
-#ifdef DTFFT_WITH_CUDA
-
 extern
 int32_t
-dtfft_set_stream_c(const dtfft_stream_t*);
-
-extern
-int32_t
-dtfft_set_backend_c(const int32_t*);
-
-extern
-int32_t
-dtfft_get_stream_c(const void*, dtfft_stream_t*);
+dtfft_get_grid_dims_c(const void*, int8_t*, int32_t**);
 
 extern
 int32_t
 dtfft_get_backend_c(const void*, int32_t*);
 
 extern
-int32_t
-dtfft_get_platform_c(const void*, int32_t*);
-
-extern
 void
 dtfft_get_backend_string_c(const int32_t*, char*, size_t*);
 
+#ifdef DTFFT_WITH_CUDA
+extern
+int32_t
+dtfft_get_stream_c(const void*, dtfft_stream_t*);
+
+extern
+int32_t
+dtfft_get_platform_c(const void*, int32_t*);
 #endif
 
 #ifdef __cplusplus

@@ -38,6 +38,7 @@ public :: dtfft_plan_c2c_t
 public :: dtfft_plan_r2c_t
 #endif
 public :: dtfft_plan_r2r_t
+public :: dtfft_request_t
 
 public :: dtfft_pencil_t
 public :: dtfft_get_error_string
@@ -124,20 +125,34 @@ public :: DTFFT_ERROR_PENCIL_NOT_CONTINUOUS
 public :: DTFFT_ERROR_PENCIL_NOT_INITIALIZED
 public :: DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS
 public :: DTFFT_ERROR_INVALID_MEASURE_ITERS
+public :: DTFFT_ERROR_INVALID_REQUEST
+public :: DTFFT_ERROR_TRANSPOSE_ACTIVE
+public :: DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE
 public :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 public :: DTFFT_ERROR_GPU_INVALID_STREAM
-public :: DTFFT_ERROR_GPU_INVALID_BACKEND
+public :: DTFFT_ERROR_INVALID_BACKEND
 public :: DTFFT_ERROR_GPU_NOT_SET
 public :: DTFFT_ERROR_VKFFT_R2R_2D_PLAN
-public :: DTFFT_ERROR_GPU_BACKENDS_DISABLED
+public :: DTFFT_ERROR_BACKENDS_DISABLED
 public :: DTFFT_ERROR_NOT_DEVICE_PTR
 public :: DTFFT_ERROR_NOT_NVSHMEM_PTR
 public :: DTFFT_ERROR_INVALID_PLATFORM
-public :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
+public :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR
+public :: DTFFT_ERROR_INVALID_PLATFORM_BACKEND
 
 
 public :: dtfft_config_t
 public :: dtfft_create_config, dtfft_set_config
+
+public :: DTFFT_BACKEND_MPI_DATATYPE
+public :: DTFFT_BACKEND_MPI_P2P
+public :: DTFFT_BACKEND_MPI_P2P_PIPELINED
+public :: DTFFT_BACKEND_MPI_A2A
+public :: DTFFT_BACKEND_MPI_RMA
+public :: DTFFT_BACKEND_MPI_RMA_PIPELINED
+
+public :: dtfft_backend_t
+public :: dtfft_get_backend_string
 
 #ifdef DTFFT_WITH_CUDA
 
@@ -146,17 +161,9 @@ public :: dtfft_platform_t
 
 public :: DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA
 
-public :: DTFFT_BACKEND_MPI_DATATYPE
-public :: DTFFT_BACKEND_MPI_P2P
-public :: DTFFT_BACKEND_MPI_P2P_PIPELINED
-public :: DTFFT_BACKEND_MPI_A2A
 public :: DTFFT_BACKEND_NCCL
 public :: DTFFT_BACKEND_NCCL_PIPELINED
 public :: DTFFT_BACKEND_CUFFTMP
 public :: DTFFT_BACKEND_CUFFTMP_PIPELINED
-
-public :: dtfft_backend_t
-public :: dtfft_get_backend_string
-
 #endif
 end module dtfft

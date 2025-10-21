@@ -53,13 +53,14 @@ public :: pencil_c2f, pencil_f2c
     logical,        private     :: is_created = .false.
       !! Is pencil created
   contains
-    final :: destroy_pencil_t
+    ! final :: destroy_pencil_t !! Finalizer
     procedure, pass(self),  private  :: destroy => destroy_pencil_t_private
+      !! Destroys pencil
   end type dtfft_pencil_t
 
   interface dtfft_pencil_t
   !! Type bound constuctor for dtfft_pencil_t
-    module procedure create_pencil_t
+    module procedure create_pencil_t    !! Creates pencil object, that can be used to create dtFFT plans
   end interface dtfft_pencil_t
 
   type, bind(C) :: dtfft_pencil_c
@@ -102,7 +103,7 @@ public :: pencil_c2f, pencil_f2c
   end type pencil_init
 
 contains
-  subroutine create(self, rank, aligned_dim, counts, comms, lstarts, lcounts)
+  subroutine create(self, rank, aligned_dim, counts, comms, lstarts, lcounts, order)
   !! Creates pencil
     class(pencil),                  intent(inout) :: self             !! Pencil
     integer(int8),                  intent(in)    :: rank             !! Rank of buffer
@@ -111,37 +112,48 @@ contains
     TYPE_MPI_COMM,                  intent(in)    :: comms(:)         !! Grid communicators
     integer(int32),       optional, intent(in)    :: lstarts(:)       !! Local starts
     integer(int32),       optional, intent(in)    :: lcounts(:)       !! Local counts
+    integer(int8),        optional, intent(in)    :: order(:)         !! Order of dimensions
     integer(int8)                     :: d                !! Counter
     logical, allocatable              :: is_even(:)       !! Even distribution flag
+    integer(int8)               :: order_
+    integer(int32), allocatable :: starts(:), sizes(:)
 
     call self%destroy()
-    allocate(self%counts(rank))
-    allocate(self%starts(rank))
+    allocate(sizes(rank))
+    allocate(starts(rank))
     allocate(is_even(rank))
     self%aligned_dim = aligned_dim
     self%rank = rank
     if ( present(lstarts) .and. present(lcounts) ) then
       if ( aligned_dim == 1 ) then
-        self%starts(:) = lstarts(:)
-        self%counts(:) = lcounts(:)
+        starts(:) = lstarts(:)
+        sizes(:) = lcounts(:)
       else
         do d = 1, rank
           if ( aligned_dim == 2 .and. rank == 3 .and. d == 3 ) then
-            call get_local_size(counts(d), comms(d), self%starts(d), self%counts(d), lstarts(3), lcounts(3))
+            call get_local_size(counts(d), comms(d), starts(d), sizes(d), lstarts(3), lcounts(3))
           else if ( aligned_dim == 3 .and. rank == 3 .and. d == 2 ) then
-            call get_local_size(counts(d), comms(d), self%starts(d), self%counts(d), lstarts(2), lcounts(2))
+            call get_local_size(counts(d), comms(d), starts(d), sizes(d), lstarts(3), lcounts(3))
           else
-            call get_local_size(counts(d), comms(d), self%starts(d), self%counts(d))
+            call get_local_size(counts(d), comms(d), starts(d), sizes(d))
           endif
         enddo
       endif
     else
       do d = 1, rank
-        call get_local_size(counts(d), comms(d), self%starts(d), self%counts(d))
+        call get_local_size(counts(d), comms(d), starts(d), sizes(d))
       enddo
     endif
     do d = 1, rank
-      is_even(d) = check_if_even(self%counts(d), comms(d))
+      is_even(d) = check_if_even(sizes(d), comms(d))
+    enddo
+    allocate(self%counts(rank))
+    allocate(self%starts(rank))
+    do d = 1, rank
+      order_ = d
+      if ( present(order) ) order_ = order(d)
+      self%counts(d) = sizes(order_)
+      self%starts(d) = starts(order_)
     enddo
     self%is_even = all(is_even)
     deallocate(is_even)
@@ -223,7 +235,7 @@ contains
 !   !! Writes pencil data to stdout
 !     class(pencil),                intent(in)  :: self                 !! Pencil
 !     character(len=*),             intent(in)  :: name                 !! Name of pencil
-!     type(c_ptr),                  intent(in)  :: vec               !! Device pointer to data
+!     real(real32),    target,      intent(in)  :: vec(:)               !! Device pointer to data
 !     integer(int32)                            :: iter                 !! Iteration counter
 !     integer(int32)                            :: i,j,k,ijk            !! Counters
 !     integer(int32)                            :: comm_size            !! Number of MPI processes
@@ -236,12 +248,11 @@ contains
 !     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
 !     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
 
-!     allocate( buf( product(self%counts) ) )
-
 ! #ifdef DTFFT_WITH_CUDA
-!     if ( is_device_ptr(vec) ) then
+!     allocate( buf( product(self%counts) ) )
+!     if ( is_device_ptr(c_loc(vec)) ) then
 !       CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize())
-!       CUDA_CALL( "cudaMemcpy", cudaMemcpy(c_loc(buf), vec, int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
+!       CUDA_CALL( "cudaMemcpy", cudaMemcpy(c_loc(buf), c_loc(vec), int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
 !     endif
 ! #endif
 
@@ -284,6 +295,7 @@ contains
     if ( allocated(make_public%starts) ) deallocate( make_public%starts )
     allocate(make_public%counts(1:self%rank), source=self%counts)
     allocate(make_public%starts(1:self%rank), source=self%starts)
+
     make_public%size = 1_int64
     do i = 1, make_public%ndims
       make_public%size = make_public%size * int(make_public%counts(i), int64)
@@ -333,15 +345,22 @@ contains
     c_pencil%counts(1:pencil%ndims) = pencil%counts(:)
   end subroutine pencil_f2c
 
-  subroutine pencil_c2f(c_pencil, pencil)
+  subroutine pencil_c2f(c_pencil, pencil, error_code)
   !! Converts C pencil to Fortran pencil
     type(dtfft_pencil_c), intent(in)  :: c_pencil   !! C pencil
     type(dtfft_pencil_t), intent(out) :: pencil     !! Fortran pencil
+    integer(int32),       intent(out) :: error_code !! Error code
+
+    error_code = DTFFT_SUCCESS
+    if ( .not. any(c_pencil%ndims == [2, 3]) ) then
+      error_code = DTFFT_ERROR_PENCIL_NOT_INITIALIZED
+      return
+    endif
 
     pencil = dtfft_pencil_t(c_pencil%starts(1:c_pencil%ndims), c_pencil%counts(1:c_pencil%ndims))
   end subroutine pencil_c2f
 
-  subroutine get_local_sizes(pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
+  subroutine get_local_sizes(pencils, in_starts, in_counts, out_starts, out_counts, alloc_size, is_y_slab)
   !! Obtain local starts and counts in `real` and `fourier` spaces
     type(pencil),             intent(in)  :: pencils(:)             !! Array of pencils
     integer(int32), optional, intent(out) :: in_starts(:)           !! Start indexes in `real` space (0-based)
@@ -349,14 +368,19 @@ contains
     integer(int32), optional, intent(out) :: out_starts(:)          !! Start indexes in `fourier` space (0-based)
     integer(int32), optional, intent(out) :: out_counts(:)          !! Number of elements in `fourier` space
     integer(int64), optional, intent(out) :: alloc_size             !! Minimal number of elements required to execute plan
+    logical,        optional, intent(in)  :: is_y_slab              !! Is Y-slab optimization used
     integer(int8)                         :: d                      !! Counter
     integer(int8)                         :: ndims                  !! Number of dimensions
+    logical                               :: is_y_slab_             !! Is Y-slab optimization used
+    integer(int8)                         :: out_dim                !! Aligned dimension of output pencil
 
     ndims = size(pencils, kind=int8)
+    is_y_slab_ = .false.; if ( present(is_y_slab) ) is_y_slab_ = is_y_slab
+    out_dim = ndims; if ( is_y_slab_ .and. ndims == 3 ) out_dim = 2
     if ( present(in_starts) )  in_starts(1:ndims)   = pencils(1)%starts(1:ndims)
     if ( present(in_counts) )  in_counts(1:ndims)   = pencils(1)%counts(1:ndims)
-    if ( present(out_starts) ) out_starts(1:ndims)  = pencils(ndims)%starts(1:ndims)
-    if ( present(out_counts) ) out_counts(1:ndims)  = pencils(ndims)%counts(1:ndims)
+    if ( present(out_starts) ) out_starts(1:ndims)  = pencils(out_dim)%starts(1:ndims)
+    if ( present(out_counts) ) out_counts(1:ndims)  = pencils(out_dim)%counts(1:ndims)
     if ( present(alloc_size) ) alloc_size = maxval([(product(pencils(d)%counts), d=1,ndims)])
   end subroutine get_local_sizes
 
@@ -613,11 +637,8 @@ contains
     integer(int32) :: ierr        !! Error codes for mpi calls
     integer(int32), allocatable :: neighbors(:) !! Array to neighbors ranks
     integer(int32), allocatable :: varying_dim(:)    !! Coordinates along the non-fixed dimension
-
     integer(int32) :: i, j                      !! Counters
     integer(int32) :: neighbor_count            !! Number of neighboring processes
-    TYPE_MPI_GROUP :: group                     !! Original MPI group
-    TYPE_MPI_GROUP :: new_group                 !! New MPI group for 1D communicator
 
     call MPI_Comm_size(comm, comm_size, ierr)
 
@@ -640,12 +661,7 @@ contains
     ! Sort neighbors by their coordinate along the varying dimension
     call sort_by_varying_dim(neighbors(1:neighbor_count), varying_dim(1:neighbor_count))
 
-    ! Create the new group and communicator
-    call MPI_Comm_group(comm, group, ierr)
-    call MPI_Group_incl(group, neighbor_count, neighbors(1:neighbor_count), new_group, ierr)
-    call MPI_Comm_create(comm, new_group, new_comm, ierr)
-    call MPI_Group_free(group, ierr)
-    call MPI_Group_free(new_group, ierr)
+    call create_subcomm(comm, neighbors(1:neighbor_count), new_comm)
     deallocate(neighbors, varying_dim)
   end subroutine create_1d_comm
 end module dtfft_pencil

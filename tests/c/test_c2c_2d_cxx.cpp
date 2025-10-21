@@ -54,13 +54,14 @@ int main(int argc, char *argv[])
 
   attach_gpu_to_process();
 
-#if defined(DTFFT_WITH_CUDA)
   Config config;
-  config.set_backend(Backend::MPI_P2P)
-    .set_platform(Platform::CUDA); // Can be changed at runtime via `DTFFT_PLATFORM` environment variable
-  // config.set_enable_nvshmem_backends(false);
-  DTFFT_CXX_CALL( set_config(config) )
+  config.set_enable_mpi_backends(true);
+
+#if defined(DTFFT_WITH_CUDA)
+  config.set_platform(Platform::CUDA) // Can be changed at runtime via `DTFFT_PLATFORM` environment variable
+    .set_enable_nvshmem_backends(false);
 #endif
+  DTFFT_CXX_CALL( set_config(config) )
 
   // Create plan
   const vector<int32_t> dims = {ny, nx};
@@ -72,7 +73,11 @@ int main(int argc, char *argv[])
     DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "reported_precision != Precision::DOUBLE")
   }
 
+  auto back = plan.get_backend();
+  if ( comm_rank == 0 ) std::cout << "Using backend: " << get_backend_string(back) << "\n";
+
   size_t alloc_size = plan.get_alloc_size();
+  size_t alloc_bytes = plan.get_alloc_bytes();
 
   std::vector<dtfft::Pencil> pencils;
 
@@ -85,7 +90,7 @@ int main(int argc, char *argv[])
   size_t out_size = pencils[1].get_size();
 
   complex<double> * in;
-  DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * sizeof(*in), reinterpret_cast<void**>(&in)) )
+  DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, reinterpret_cast<void**>(&in)) )
 
   auto out = plan.mem_alloc<complex<double>>(alloc_size);
   auto check = new complex<double>[in_size];
@@ -100,7 +105,11 @@ int main(int argc, char *argv[])
 #endif
 
   double tf = 0.0 - MPI_Wtime();
-  DTFFT_CXX_CALL( plan.transpose(in, out, Transpose::X_TO_Y) );
+  dtfft_request_t request = nullptr;
+
+  DTFFT_CXX_CALL( plan.transpose_start(in, out, Transpose::X_TO_Y, &request) );
+  cout << "Doing stuff while data is being tranposed on host" << endl;
+  DTFFT_CXX_CALL( plan.transpose_end(request) );
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == Platform::CUDA ) {
     CUDA_SAFE_CALL( cudaDeviceSynchronize() )
@@ -122,6 +131,8 @@ int main(int argc, char *argv[])
 
   double tb = 0.0 - MPI_Wtime();
   DTFFT_CXX_CALL( plan.transpose(out, in, Transpose::Y_TO_X) );
+  cout << "Executed backwards using blocking tranpose" << endl;
+
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == Platform::CUDA ) {
     CUDA_SAFE_CALL( cudaDeviceSynchronize() )

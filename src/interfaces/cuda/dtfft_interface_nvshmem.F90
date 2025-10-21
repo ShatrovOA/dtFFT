@@ -22,10 +22,12 @@ use iso_c_binding
 use iso_fortran_env
 use dtfft_parameters
 use dtfft_utils
+#include "_dtfft_mpi.h"
 implicit none
 private
 public :: nvshmem_team_t
 public :: is_nvshmem_ptr
+! public :: nvshmem_init, nvshmem_finalize
 ! public :: load_nvshmem
 
 
@@ -43,7 +45,7 @@ public :: nvshmemx_sync_all_on_stream
 public :: nvshmemx_float_alltoall_on_stream
 public :: nvshmem_ptr
 public :: nvshmem_my_pe
-public :: nvshmemx_init_status
+! public :: nvshmemx_init_status
 
   interface
     function nvshmem_malloc(size) result(ptr) bind(C)
@@ -107,6 +109,24 @@ public :: nvshmemx_init_status
       integer(c_int)                          :: status  !! Completion status.
     end function nvshmemx_init_status
   end interface
+
+  interface
+    subroutine init_nvshmem(comm) bind(C)
+      import
+      integer(c_int), value :: comm  !! MPI communicator (C handle)
+    end subroutine init_nvshmem
+  end interface
+
+  interface
+    subroutine nvshmem_finalize_() bind(C, name="nvshmemi_finalize")
+    !! Finalizes the NVSHMEM library.
+    end subroutine nvshmem_finalize_
+  end interface
+
+  logical, save :: is_init = .false.
+    !! Flag indicating whether NVSHMEM is initialized
+  logical, save :: is_external_init = .false.
+    !! Flag indicating whether NVSHMEM was initialized externally
 
   ! logical, save :: is_loaded = .false.
   !   !! Flag indicating whether the library is loaded
@@ -177,4 +197,27 @@ contains
 
     bool = .not.is_null_ptr( nvshmem_ptr(ptr, nvshmem_my_pe()) )
   end function is_nvshmem_ptr
+
+  ! subroutine nvshmem_init(comm)
+  ! !! Initializes NVSHMEM with the given MPI communicator
+  !   TYPE_MPI_COMM, intent(in) :: comm  !! MPI communicator (Fortran handle)
+  !   integer(c_int) :: status
+
+  !   if ( is_init ) return
+  !   status = nvshmemx_init_status()
+  !   if( status == 0 ) then
+  !     call init_nvshmem(GET_MPI_VALUE(comm))
+  !   else
+  !     is_external_init = .true.
+  !   endif
+  !   is_init = .true.
+  ! end subroutine nvshmem_init
+
+  ! subroutine nvshmem_finalize()
+  ! !! Finalizes NVSHMEM if it was initialized internally
+  !   if ( is_init .and. .not.is_external_init ) then
+  !     call nvshmem_finalize_()
+  !     is_init = .false.
+  !   endif
+  ! end subroutine nvshmem_finalize
 end module dtfft_interface_nvshmem

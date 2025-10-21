@@ -52,8 +52,8 @@ Table of Contents
 
    build
    usage
-   f_api
-   c_api
-   cpp_api
+   api_fortran
+   api_c
+   api_cxx
    environ
    benchmarks

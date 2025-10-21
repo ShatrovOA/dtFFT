@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
     return -1;
   }
   vector<int32_t> in_starts(2), in_counts(2);
-  DTFFT_CXX_CALL( plan->get_local_sizes(in_starts.data(), in_counts.data()) );
+  auto dummy_vec = vector<int32_t>();
+  DTFFT_CXX_CALL( plan->get_local_sizes(in_starts, in_counts, dummy_vec, dummy_vec, nullptr) );
   DTFFT_CXX_CALL( plan->destroy() )
   delete plan;
 

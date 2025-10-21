@@ -42,7 +42,7 @@ extern "C" {
 #define DTFFT_VERSION_MINOR CONF_DTFFT_VERSION_MINOR
 /** dtFFT Patch Version */
 #define DTFFT_VERSION_PATCH CONF_DTFFT_VERSION_PATCH
-/** dtFFT Version Code. Can be used in Version comparison */
+/** dtFFT Version Code. Can be used for version comparison */
 #define DTFFT_VERSION_CODE CONF_DTFFT_VERSION_CODE
 /** Generates Version Code based on Major, Minor, Patch */
 #define DTFFT_VERSION(X,Y,Z) CONF_DTFFT_VERSION(X,Y,Z)
@@ -161,16 +161,22 @@ typedef enum {
   DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS = CONF_DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS,
 /** Invalid `n_measure_iters` provided */
   DTFFT_ERROR_INVALID_MEASURE_ITERS = CONF_DTFFT_ERROR_INVALID_MEASURE_ITERS,
+/** Invalid `dtfft_request_t` provided */
+  DTFFT_ERROR_INVALID_REQUEST = CONF_DTFFT_ERROR_INVALID_REQUEST,
+/** Attempting to execute already active transposition */
+  DTFFT_ERROR_TRANSPOSE_ACTIVE = CONF_DTFFT_ERROR_TRANSPOSE_ACTIVE,
+/** Attempting to finalize non-active transposition */
+  DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE = CONF_DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE,
 /** Invalid stream provided */
   DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM,
-/** Invalid GPU backend provided */
-  DTFFT_ERROR_GPU_INVALID_BACKEND = CONF_DTFFT_ERROR_GPU_INVALID_BACKEND,
+/** Invalid backend provided */
+  DTFFT_ERROR_INVALID_BACKEND = CONF_DTFFT_ERROR_INVALID_BACKEND,
 /** Multiple MPI Processes located on same host share same GPU which is not supported */
   DTFFT_ERROR_GPU_NOT_SET = CONF_DTFFT_ERROR_GPU_NOT_SET,
 /** When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions */
   DTFFT_ERROR_VKFFT_R2R_2D_PLAN = CONF_DTFFT_ERROR_VKFFT_R2R_2D_PLAN,
-/** Passed `effort` ==  `::DTFFT_PATIENT` but all GPU Backends has been disabled by `::dtfft_config_t`*/
-  DTFFT_ERROR_GPU_BACKENDS_DISABLED = CONF_DTFFT_ERROR_GPU_BACKENDS_DISABLED,
+/** Passed `effort` ==  `::DTFFT_PATIENT` but all Backends has been disabled by `::dtfft_config_t`*/
+  DTFFT_ERROR_BACKENDS_DISABLED = CONF_DTFFT_ERROR_BACKENDS_DISABLED,
 /** One of pointers passed to `::dtfft_execute` or `::dtfft_transpose` cannot be accessed from device */
   DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR,
 /** One of pointers passed to `::dtfft_execute` or `::dtfft_transpose` is not an `NVSHMEM` pointer */
@@ -178,16 +184,18 @@ typedef enum {
 /** Invalid platform provided */
   DTFFT_ERROR_INVALID_PLATFORM = CONF_DTFFT_ERROR_INVALID_PLATFORM,
 /** Invalid executor provided for selected platform */
-  DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
+  DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR,
+/** Invalid backend provided for selected platform */
+  DTFFT_ERROR_INVALID_PLATFORM_BACKEND = CONF_DTFFT_ERROR_INVALID_PLATFORM_BACKEND
 } dtfft_error_t;
 
 
 /** This enum lists valid `execute_type` parameters that can be passed to `::dtfft_execute`. */
 typedef enum {
-/** Perform XYZ --> YXZ --> ZXY plan execution (Forward) */
+/** Perform XYZ --> YZX --> ZXY plan execution (Forward) */
   DTFFT_EXECUTE_FORWARD = CONF_DTFFT_EXECUTE_FORWARD,
 
-/** Perform ZXY --> YXZ --> XYZ plan execution (Backward) */
+/** Perform ZXY --> YZX --> XYZ plan execution (Backward) */
   DTFFT_EXECUTE_BACKWARD = CONF_DTFFT_EXECUTE_BACKWARD
 } dtfft_execute_t;
 
@@ -237,8 +245,7 @@ typedef enum {
  */
   DTFFT_MEASURE = CONF_DTFFT_MEASURE,
 
-/** Same as `::DTFFT_MEASURE` plus cycle through various send and receive MPI_Datatypes.
- * For GPU Build this flag will run autotune procedure to find best backend
+/** Same as `::DTFFT_MEASURE` plus autotune will try to find best backend
  */
   DTFFT_PATIENT = CONF_DTFFT_PATIENT
 } dtfft_effort_t;
@@ -307,7 +314,7 @@ typedef void *dtfft_plan_t;
  * @see dtfft_get_pencil dtfft_create_plan_r2r_pencil dtfft_create_plan_c2c_pencil dtfft_create_plan_r2c_pencil
 */
 typedef struct {
-/** Aligned dimension id starting from 1 */
+/** Aligned dimension ID starting from 1 */
   uint8_t dim;
 
 /** Number of dimensions in a pencil */
@@ -327,7 +334,7 @@ typedef struct {
 /** Real-to-Real Plan constructor.
  *
  * @param[in]      ndims                  Number of dimensions: 2 or 3
- * @param[in]      dims                   Array of size `ndims` containing global dimensions in reverse order
+ * @param[in]      dims                   Array of size `ndims` containing global dimensions in reverse order.
  *                                          dims[0] must be the fastest varying
  * @param[in]      kinds                  Array of size `ndims` containing Real FFT kinds in reverse order.
  *                                          Can be NULL if `executor` == `::DTFFT_EXECUTOR_NONE`
@@ -341,13 +348,13 @@ typedef struct {
  */
 dtfft_error_t
 dtfft_create_plan_r2r(
-  const int8_t ndims,
+  int8_t ndims,
   const int32_t *dims,
   const dtfft_r2r_kind_t *kinds,
   MPI_Comm comm,
-  const dtfft_precision_t precision,
-  const dtfft_effort_t effort,
-  const dtfft_executor_t executor,
+  dtfft_precision_t precision,
+  dtfft_effort_t effort,
+  dtfft_executor_t executor,
   dtfft_plan_t *plan);
 
 /**
@@ -369,9 +376,9 @@ dtfft_create_plan_r2r_pencil(
   const dtfft_pencil_t *pencil,
   const dtfft_r2r_kind_t *kinds,
   MPI_Comm comm,
-  const dtfft_precision_t precision,
-  const dtfft_effort_t effort,
-  const dtfft_executor_t executor,
+  dtfft_precision_t precision,
+  dtfft_effort_t effort,
+  dtfft_executor_t executor,
   dtfft_plan_t *plan);
 
 
@@ -389,12 +396,12 @@ dtfft_create_plan_r2r_pencil(
  */
 dtfft_error_t
 dtfft_create_plan_c2c(
-  const int8_t ndims,
+  int8_t ndims,
   const int32_t *dims,
   MPI_Comm comm,
-  const dtfft_precision_t precision,
-  const dtfft_effort_t effort,
-  const dtfft_executor_t executor,
+  dtfft_precision_t precision,
+  dtfft_effort_t effort,
+  dtfft_executor_t executor,
   dtfft_plan_t *plan);
 
 /** Complex-to-Complex Plan constructor using a pencil structure.
@@ -412,9 +419,9 @@ dtfft_error_t
 dtfft_create_plan_c2c_pencil(
   const dtfft_pencil_t *pencil,
   MPI_Comm comm,
-  const dtfft_precision_t precision,
-  const dtfft_effort_t effort,
-  const dtfft_executor_t executor,
+  dtfft_precision_t precision,
+  dtfft_effort_t effort,
+  dtfft_executor_t executor,
   dtfft_plan_t *plan);
 
 
@@ -436,12 +443,12 @@ dtfft_create_plan_c2c_pencil(
  */
 dtfft_error_t
 dtfft_create_plan_r2c(
-  const int8_t ndims,
+  int8_t ndims,
   const int32_t *dims,
   MPI_Comm comm,
-  const dtfft_precision_t precision,
-  const dtfft_effort_t effort,
-  const dtfft_executor_t executor,
+  dtfft_precision_t precision,
+  dtfft_effort_t effort,
+  dtfft_executor_t executor,
   dtfft_plan_t *plan);
 
 
@@ -464,9 +471,9 @@ dtfft_error_t
 dtfft_create_plan_r2c_pencil(
   const dtfft_pencil_t *pencil,
   MPI_Comm comm,
-  const dtfft_precision_t precision,
-  const dtfft_effort_t effort,
-  const dtfft_executor_t executor,
+  dtfft_precision_t precision,
+  dtfft_effort_t effort,
+  dtfft_executor_t executor,
   dtfft_plan_t *plan);
 #endif
 
@@ -482,6 +489,18 @@ dtfft_error_t
 dtfft_get_z_slab_enabled(dtfft_plan_t plan, bool *is_z_slab_enabled);
 
 
+/** @brief Checks if plan is using Y-slab optimization.
+ * If `true` then `dtFFT` will skip the transpose step between Y and Z aligned layouts during call to `::dtfft_execute`.
+ *
+ * @param[in]      plan              Plan handle
+ * @param[out]     is_y_slab_enabled Boolean value if Y-slab is used.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_y_slab_enabled(dtfft_plan_t plan, bool *is_y_slab_enabled);
+
+
 /** @brief Plan execution. Neither `in` nor `out` are allowed to be `NULL`. The same pointer can safely be passed to both `in` and `out`.
  *
  * @param[in]      plan            Plan handle
@@ -495,7 +514,7 @@ dtfft_get_z_slab_enabled(dtfft_plan_t plan, bool *is_z_slab_enabled);
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
 dtfft_error_t
-dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_t execute_type, void *aux);
+dtfft_execute(dtfft_plan_t plan, void *in, void *out, dtfft_execute_t execute_type, void *aux);
 
 
 /** @brief Transpose data in single dimension, e.g. X align -> Y align
@@ -511,7 +530,41 @@ dtfft_execute(dtfft_plan_t plan, void *in, void *out, const dtfft_execute_t exec
  * @note This function is not supported for R2C plans. Use R2R or C2C plan instead.
  */
 dtfft_error_t
-dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_t transpose_type);
+dtfft_transpose(dtfft_plan_t plan, void *in, void *out, dtfft_transpose_t transpose_type);
+
+
+/** @brief Helper type to manage asynchronous operations */
+typedef void *dtfft_request_t;
+
+
+/**
+ * @brief Starts an asynchronous transpose operation.
+ *
+ * @param[in]      plan             Plan handle
+ * @param[in]      in               Incoming buffer
+ * @param[out]     out              Transposed buffer
+ * @param[in]      transpose_type   Type of transpose.
+ * @param[out]     request          Handle to manage the asynchronous operation.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ *
+ * @note This function is not supported for R2C plans. Use R2R or C2C plan instead.
+ * @note Both `in` and `out` buffers must not be changed or freed until call to `::dtfft_transpose_end`.
+ */
+dtfft_error_t
+dtfft_transpose_start(dtfft_plan_t plan, void *in, void *out, dtfft_transpose_t transpose_type, dtfft_request_t *request);
+
+
+/**
+ * @brief Finalizes an asynchronous transpose operation.
+ *
+ * @param[in]      plan             Plan handle
+ * @param[inout]   request          Handle to manage the asynchronous operation.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_transpose_end(dtfft_plan_t plan, dtfft_request_t request);
 
 
 /** @brief Plan Destructor.
@@ -557,7 +610,7 @@ dtfft_get_alloc_size(dtfft_plan_t plan, size_t *alloc_size);
  * @return Error string explaining error.
  */
 const char *
-dtfft_get_error_string(const dtfft_error_t error_code);
+dtfft_get_error_string(dtfft_error_t error_code);
 
 
 /**
@@ -567,7 +620,7 @@ dtfft_get_error_string(const dtfft_error_t error_code);
  * @return String representation of `::dtfft_precision_t`.
  */
 const char *
-dtfft_get_precision_string(const dtfft_precision_t precision);
+dtfft_get_precision_string(dtfft_precision_t precision);
 
 
 /**
@@ -577,7 +630,7 @@ dtfft_get_precision_string(const dtfft_precision_t precision);
  * @return String representation of `::dtfft_executor_t`.
  */
 const char *
-dtfft_get_executor_string(const dtfft_executor_t executor);
+dtfft_get_executor_string(dtfft_executor_t executor);
 
 /**
  * @brief Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation,
@@ -587,7 +640,7 @@ dtfft_get_executor_string(const dtfft_executor_t executor);
  * @param[in]     dim             Required dimension:
  *                                  - 0 for XYZ layout (real space, R2C only)
  *                                  - 1 for XYZ layout (real space for C2C and R2R plans and fourier space for R2C plans)
- *                                  - 2 for YXZ layout
+ *                                  - 2 for YZX layout
  *                                  - 3 for ZXY layout
  * @param[out]    pencil          Pencil data
  *
@@ -695,6 +748,63 @@ dtfft_error_t
 dtfft_get_dims(dtfft_plan_t plan, int8_t *ndims, const int32_t *dims[]);
 
 
+/**
+ * @brief Returns grid decomposition dimensions of the plan.
+ *
+ * @param[in]      plan           Plan handle
+ * @param[out]     ndims          Number of dimensions in plan. User can pass NULL if this value is not needed.
+ * @param[out]     grid_dims      Pointer of size `ndims` containing grid decomposition dimensions in reverse order
+ *                                grid_dims[0] is the fastest varying and is always equal to 1.
+ *                                User can pass NULL if this value is not needed.
+ *
+ * @note Do not free `grid_dims` array, it is freed when the `dtfft_plan_t` is destroyed.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_grid_dims(dtfft_plan_t plan, int8_t *ndims, const int32_t *grid_dims[]);
+
+
+/** This enum lists the different available backend options.
+ * @see dtfft_get_backend_string, dtfft_get_backend
+*/
+typedef enum {
+/** @brief Backend that uses MPI datatypes.
+ * @details This is default backend for Host build.
+ *
+ * Not really recommended to use for GPU usage, since it is a 'million' times slower than other backends.
+ * Not available for autotune when `effort` is `::DTFFT_PATIENT` in GPU build.
+ */
+  DTFFT_BACKEND_MPI_DATATYPE = CONF_DTFFT_BACKEND_MPI_DATATYPE,
+
+/** MPI peer-to-peer algorithm */
+  DTFFT_BACKEND_MPI_P2P = CONF_DTFFT_BACKEND_MPI_P2P,
+
+/** MPI peer-to-peer algorithm with overlapping data copying and unpacking */
+  DTFFT_BACKEND_MPI_P2P_PIPELINED = CONF_DTFFT_BACKEND_MPI_P2P_PIPELINED,
+
+/** MPI backend using MPI_Alltoallv */
+  DTFFT_BACKEND_MPI_A2A = CONF_DTFFT_BACKEND_MPI_A2A,
+
+/** MPI backend using one-sided communications */
+  DTFFT_BACKEND_MPI_RMA = CONF_DTFFT_BACKEND_MPI_RMA,
+
+/** MPI backend using pipelined one-sided communications */
+  DTFFT_BACKEND_MPI_RMA_PIPELINED = CONF_DTFFT_BACKEND_MPI_RMA_PIPELINED,
+
+/** NCCL backend */
+  DTFFT_BACKEND_NCCL = CONF_DTFFT_BACKEND_NCCL,
+
+/** NCCL backend with overlapping data copying and unpacking */
+  DTFFT_BACKEND_NCCL_PIPELINED = CONF_DTFFT_BACKEND_NCCL_PIPELINED,
+
+/** cuFFTMp backend */
+  DTFFT_BACKEND_CUFFTMP = CONF_DTFFT_BACKEND_CUFFTMP,
+
+/** cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance */
+  DTFFT_BACKEND_CUFFTMP_PIPELINED = CONF_DTFFT_BACKEND_CUFFTMP_PIPELINED
+} dtfft_backend_t;
+
 #ifdef DTFFT_WITH_CUDA
 /**
  * @brief `dtFFT` stream representation.
@@ -718,40 +828,6 @@ typedef enum {
   DTFFT_PLATFORM_CUDA = CONF_DTFFT_PLATFORM_CUDA
 } dtfft_platform_t;
 
-
-/** This enum lists the different available GPU backend options.
- * @see dtfft_get_backend_string, dtfft_get_backend
-*/
-typedef enum {
-/** @brief Backend that uses MPI datatypes
- * @details Not really recommended to use, since it is a million times slower than other backends.
- * It is present here just to show how slow MPI Datatypes are for GPU usage.
- */
-  DTFFT_BACKEND_MPI_DATATYPE = CONF_DTFFT_BACKEND_MPI_DATATYPE,
-
-/** MPI peer-to-peer algorithm */
-  DTFFT_BACKEND_MPI_P2P = CONF_DTFFT_BACKEND_MPI_P2P,
-
-/** MPI peer-to-peer algorithm with overlapping data copying and unpacking */
-  DTFFT_BACKEND_MPI_P2P_PIPELINED = CONF_DTFFT_BACKEND_MPI_P2P_PIPELINED,
-
-/** MPI backend using MPI_Alltoallv */
-  DTFFT_BACKEND_MPI_A2A = CONF_DTFFT_BACKEND_MPI_A2A,
-
-/** NCCL backend */
-  DTFFT_BACKEND_NCCL = CONF_DTFFT_BACKEND_NCCL,
-
-/** NCCL backend with overlapping data copying and unpacking */
-  DTFFT_BACKEND_NCCL_PIPELINED = CONF_DTFFT_BACKEND_NCCL_PIPELINED,
-
-/** cuFFTMp backend */
-  DTFFT_BACKEND_CUFFTMP = CONF_DTFFT_BACKEND_CUFFTMP,
-
-/** cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance */
-  DTFFT_BACKEND_CUFFTMP_PIPELINED = CONF_DTFFT_BACKEND_CUFFTMP_PIPELINED
-} dtfft_backend_t;
-
-
 /**
  * @brief Returns stream associated with ``dtFFT`` plan.
  * This can either be stream passed by user to `::dtfft_set_config` or stream created internally.
@@ -767,21 +843,6 @@ dtfft_get_stream(dtfft_plan_t plan, dtfft_stream_t *stream);
 
 
 /**
- * @brief Returns selected GPU backend during autotune if `effort` is `::DTFFT_PATIENT`.
- *
- * If `effort` passed to any create function is `::DTFFT_ESTIMATE` or `::DTFFT_MEASURE`
- * returns value set by `::dtfft_set_config` or default value, which is `::DTFFT_BACKEND_NCCL`.
- *
- * @param[in]        plan           Plan handle
- * @param[out]       backend     Selected backend
- *
- * @return `::DTFFT_SUCCESS` on success or error code on failure.
- */
-dtfft_error_t
-dtfft_get_backend(dtfft_plan_t plan, dtfft_backend_t *backend);
-
-
-/**
  * @brief Returns plan execution platform .
  *
  * @param[in]        plan           Plan handle
@@ -791,7 +852,21 @@ dtfft_get_backend(dtfft_plan_t plan, dtfft_backend_t *backend);
  */
 dtfft_error_t
 dtfft_get_platform(dtfft_plan_t plan, dtfft_platform_t *platform);
+#endif
 
+/**
+ * @brief Returns selected backend during autotune if `effort` is `::DTFFT_PATIENT`.
+ *
+ * If `effort` passed to any create function is `::DTFFT_ESTIMATE` or `::DTFFT_MEASURE`
+ * returns value set by `::dtfft_set_config` or default value, which is `::DTFFT_BACKEND_NCCL` for CUDA build and `::DTFFT_BACKEND_MPI_DATATYPE` for host build.
+ *
+ * @param[in]        plan           Plan handle
+ * @param[out]       backend     Selected backend
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_backend(dtfft_plan_t plan, dtfft_backend_t *backend);
 
 /**
  * @brief Returns null terminated string with name of backend provided as argument.
@@ -801,8 +876,7 @@ dtfft_get_platform(dtfft_plan_t plan, dtfft_platform_t *platform);
  * @return Character representation of backend.
  */
 const char *
-dtfft_get_backend_string(const dtfft_backend_t backend);
-#endif
+dtfft_get_backend_string(dtfft_backend_t backend);
 
 
 /** Struct that can be used to set additional configuration parameters to dtFFT
@@ -816,16 +890,29 @@ typedef struct {
  */
   bool enable_log;
 /**
- * @brief Should dtFFT use Z-slab optimization or not.
+ * @brief Enables Z-slab optimization.
  *
  * @details Default is `true`
  *
  * One should consider disabling Z-slab optimization in order to resolve `::DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error
- * OR when underlying FFT implementation of 2D plan is too slow.
+ * or when underlying FFT implementation of 2D plan is too slow.
  *
- * In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
+ * In all other cases, Z-slab is considered to be always faster.
  */
   bool enable_z_slab;
+
+/**
+ * @brief Enables Y-slab optimization.
+ *
+ * @details Default is `false`.
+ *
+ * If true, then dtFFT will skip the transpose step between Y and Z aligned layouts during call to `::dtfft_execute`.
+ *
+ * One should consider disabling Y-slab optimization when the underlying FFT implementation of the 2D plan is too slow.
+ *
+ * In all other cases, Y-slab is considered to be always faster.
+ */
+  bool enable_y_slab;
 
 /**
  * @brief Defines the number of warmup iterations for transposition and data exchange to perform when `effort` exceeds `::DTFFT_ESTIMATE`.
@@ -873,20 +960,29 @@ typedef struct {
  */
   dtfft_stream_t stream;
 
+#endif
 /**
  * @brief Backend that will be used by dtFFT when `effort` is `::DTFFT_ESTIMATE` or `::DTFFT_MEASURE`.
  *
  * @details Default is `::DTFFT_BACKEND_NCCL`
- *
- * @note This option is only defined when dtFFT is built with CUDA support.
  */
   dtfft_backend_t backend;
 
 /**
- * @brief Should MPI GPU Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
+ * @brief Should `::DTFFT_BACKEND_MPI_DATATYPE` be enabled when `effort` is `::DTFFT_PATIENT` or not.
+ *
+ * @details Default is `true`
+ *
+ * This option works only when executing on a host.
+ */
+  bool enable_datatype_backend;
+
+/**
+ * @brief Should MPI Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
  *
  * @details Default is `false`
  *
+ * The following applies only to CUDA builds.
  * MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849
  * It was noticed that during plan autotuning GPU memory not being freed completely.
  *
@@ -898,23 +994,21 @@ typedef struct {
  *
  * Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to `mpiexec`,
  * but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
- *
- * @note This option is only defined when dtFFT is built with CUDA support.
  */
   bool enable_mpi_backends;
 
 /**
- * @brief Should pipelined GPU backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
+ * @brief Should pipelined backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
  *
  * @details Default is `true`
  *
  * @note Pipelined backends require additional buffer that user has no control over.
- * @note This option is only defined when dtFFT is built with CUDA support.
  */
   bool enable_pipelined_backends;
 
+#ifdef DTFFT_WITH_CUDA
 /**
- * @brief Should NCCL Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
+ * @brief Should NCCL backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
  * @details Default is `true`.
  *
  * @note This option is only defined when dtFFT is built with CUDA support.
@@ -922,7 +1016,7 @@ typedef struct {
   bool enable_nccl_backends;
 
 /**
- * @brief Should NVSHMEM Backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
+ * @brief Should NVSHMEM backends be enabled when `effort` is `::DTFFT_PATIENT` or not.
  * @details Default is `true`.
  *
  * @note This option is only defined when dtFFT is built with CUDA support.
@@ -942,22 +1036,22 @@ typedef struct {
   bool enable_kernel_optimization;
 
 /**
- * @brief Number of top theoretical best performing blocks of threads to test for transposition kernels when `effort` is `::DTFFT_PATIENT`.
+ * @brief Number of top-performing theoretical thread block configurations to test for transposition kernels when effort is ::DTFFT_PATIENT.
  *
  * @details Default is `5`.
  * It is recommended to keep this value between 3 and 10.
  * Maximum possible value is 25.
  * Setting this value to zero or one will disable kernel optimization.
- * 
+ *
  * @note This option is only defined when dtFFT is built with CUDA support.
  */
   int32_t n_configs_to_test;
 
 /**
- * @brief Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
+ * @brief Whether to force kernel optimization when `effort` is not `::DTFFT_PATIENT`.
  *
  * @details Default is `false`.
- * 
+ *
  * Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
  *
  * @note This option is only defined when dtFFT is built with CUDA support.

@@ -98,8 +98,8 @@ contains
   !! Loads VkFFT library
     class(vkfft_wrapper), intent(inout) :: wrapper  !! VkFFT Wrapper
     character(len=*),     intent(in)    :: suffix   !! Suffix for the library name
-    type(string), allocatable :: func_names(:)
-    integer(int32)  :: error_code
+    type(string), allocatable           :: func_names(:)  !! Names of functions to load from VkFFT module
+    integer(int32)                      :: error_code !! Error code
 
     error_code = DTFFT_SUCCESS
     if ( wrapper%is_loaded ) return

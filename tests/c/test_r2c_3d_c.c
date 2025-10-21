@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  config.enable_mpi_backends = true;
   config.enable_z_slab = false;
   DTFFT_CALL( dtfft_set_config(&config) )
 
@@ -109,6 +110,11 @@ int main(int argc, char *argv[])
   }
   DTFFT_CALL( dtfft_create_plan_r2c_pencil(&pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor, &plan) )
   DTFFT_CALL( dtfft_report(plan) )
+  dtfft_backend_t backend;
+  DTFFT_CALL( dtfft_get_backend(plan, &backend) )
+  if ( comm_rank == 0 ) {
+    printf("Selected backend = '%s'\n", dtfft_get_backend_string(backend));
+  }
 
   // Get local sizes
   size_t alloc_size, el_size;

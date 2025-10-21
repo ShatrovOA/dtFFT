@@ -4,7 +4,7 @@
   use iso_c_binding, only: c_int32_t;                                                                                                                                           \
   integer(c_int32_t) :: ierr, mpi_err;                                                                                                                                          \
   ierr = func;                                                                                                                                                                  \
-  if( ierr /= cudaSuccess ) then;                                                                                                                                               \
+  if( ierr /= 0_c_int32_t ) then;                                                                                                                                               \
       write(error_unit, '(a)') lib//" Function '"//name//"' returned non-zero error code: '"//trim(getErrorString(ierr))//"' at "//__FILE__//":"//trim(to_str(__LINE__));    \
       call MPI_Abort(MPI_COMM_WORLD, ierr, mpi_err);                                                                                                                            \
   endif;                                                                                                                                                                        \

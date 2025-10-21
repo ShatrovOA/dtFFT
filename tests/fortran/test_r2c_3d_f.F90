@@ -31,7 +31,7 @@ use dtfft_interface_cuda_runtime
 implicit none
 #ifndef DTFFT_TRANSPOSE_ONLY
   type(c_ptr) :: check
-  real(real64),     pointer :: in(:)
+  real(real64),     pointer :: in(:,:,:)
   complex(real64),  pointer :: out(:)
   integer(int32), parameter :: nx = 256, ny = 256, nz = 4
   integer(int32) :: comm_size, comm_rank, ierr
@@ -117,7 +117,7 @@ implicit none
     if ( any(real_pencil%counts /= [nx, ny, nz]) ) error stop "real_pencil%counts /= [nx, ny, nz]"
   endif
 
-  call plan%mem_alloc(alloc_size, in, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%mem_alloc(alloc_size, in, in_counts, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%mem_alloc(alloc_size / 2, out, error_code=ierr); DTFFT_CHECK(ierr)
   in_size = product(in_counts)
   check = mem_alloc_host(in_size * DOUBLE_STORAGE_SIZE)

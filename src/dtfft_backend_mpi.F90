@@ -18,16 +18,20 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_backend_mpi
-!! MPI Based GPU Backends [[backend_mpi]]
+!! MPI Based Backends [[backend_mpi]]
 use iso_fortran_env
 use iso_c_binding
 use dtfft_abstract_backend
+#ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
+#endif
+use dtfft_errors
 use dtfft_parameters
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
 #include "_dtfft_private.h"
+#include "_dtfft_profile.h"
 implicit none
 private
 public :: backend_mpi
@@ -37,10 +41,12 @@ public :: backend_mpi
     integer(CNT_KIND),  allocatable :: counts(:)    !! Counts of data to send or recv
     integer(ADDR_KIND), allocatable :: displs(:)    !! Displacements of data to send or recv
     TYPE_MPI_REQUEST,   allocatable :: requests(:)  !! MPI Requests
+    integer(int32)                  :: local_start
+    integer(int32)                  :: local_count
+    integer(int32)                  :: remote_start
+    integer(int32)                  :: remote_count
+    integer(int32),     allocatable :: process_map(:)
     integer(int32)                  :: n_requests   !! Number of requests
-#ifdef ENABLE_PERSISTENT_COMM
-    logical                         :: is_request_created = .false. !! Request created flag. Used for persistent functions
-#endif
   contains
     procedure,  pass(self) :: create => create_helper   !! Creates MPI helper
     procedure,  pass(self) :: destroy => destoy_helper  !! Destroys MPI helper
@@ -50,12 +56,18 @@ public :: backend_mpi
   type, extends(abstract_backend) :: backend_mpi
   !! MPI Backend
   private
-    type(mpi_backend_helper)        :: send     !! MPI Helper for send data
-    type(mpi_backend_helper)        :: recv     !! MPI Helper for recv data
+    logical                         :: is_active  !! If async transpose is active
+    type(mpi_backend_helper)        :: send       !! MPI Helper for send data
+    type(mpi_backend_helper)        :: recv       !! MPI Helper for recv data
+    logical                         :: is_rma     !!
+    TYPE_MPI_WIN                    :: win        !! MPI Window for RMA backend
+    logical                         :: is_request_created !! Request created flag. Used for persistent functions
   contains
     procedure :: create_private => create_mpi   !! Creates MPI backend
     procedure :: execute_private => execute_mpi !! Executes MPI backend
     procedure :: destroy_private => destroy_mpi !! Destroys MPI backend
+    procedure :: execute_end => execute_end_mpi !! Finalizes async transpose
+    procedure :: get_async_active               !! Overrides abstract method and returns if async transpose is active
   end type backend_mpi
 
 contains
@@ -66,7 +78,7 @@ contains
     integer(int64),             intent(in)    :: counts(:)    !! Counts of data to send or recv
     integer(int64),             intent(in)    :: displs(:)    !! Displacements of data to send or recv
     integer(int32),             intent(in)    :: max_requests !! Maximum number of requests required
-    integer(int32)  :: n_counts
+    integer(int32)  :: i, n_counts
 
     n_counts = size(counts)
     allocate( self%counts(0:n_counts - 1), self%displs(0:n_counts - 1) )
@@ -74,43 +86,47 @@ contains
     self%displs(0:) = int(displs(:), ADDR_KIND)
     if ( max_requests > 0 ) then
       allocate( self%requests(max_requests) )
-#ifdef ENABLE_PERSISTENT_COMM
-      self%is_request_created = .false.
-#endif
+      do i = 1, max_requests
+        self%requests(i) = MPI_REQUEST_NULL
+      enddo
     endif
+    self%n_requests = 0
   end subroutine create_helper
 
-  subroutine destoy_helper(self)
+  subroutine destoy_helper(self, is_request_created)
   !! Destroys MPI helper
     class(mpi_backend_helper),  intent(inout) :: self !! MPI Helper
+    logical,                    intent(in)    :: is_request_created
 
     if ( allocated(self%counts) ) deallocate( self%counts )
     if ( allocated(self%displs) ) deallocate( self%displs )
-#ifdef ENABLE_PERSISTENT_COMM
+#if defined(ENABLE_PERSISTENT_COMM) || defined(DTFFT_WITH_RMA)
     block
       integer(int32)  :: mpi_ierr, i
 
-      if ( self%is_request_created ) then
+      if ( is_request_created ) then
         do i = 1, self%n_requests
-          call MPI_Request_free(self%requests(i), mpi_ierr)
+          if ( self%requests(i) /= MPI_REQUEST_NULL )       &
+            call MPI_Request_free(self%requests(i), mpi_ierr)
         enddo
       endif
-      self%is_request_created = .false.
     endblock
 #endif
     if ( allocated(self%requests) ) deallocate(self%requests)
+    if ( allocated(self%process_map) ) deallocate(self%process_map)
     self%n_requests = 0
   end subroutine destoy_helper
 
-  subroutine create_mpi(self, helper, tranpose_type, base_storage)
+  subroutine create_mpi(self, helper, base_storage)
   !! Creates MPI backend
-    class(backend_mpi),       intent(inout) :: self           !! MPI GPU Backend
+    class(backend_mpi),       intent(inout) :: self           !! MPI Backend
     type(backend_helper),     intent(in)    :: helper         !! Backend helper (unused)
-    type(dtfft_transpose_t),  intent(in)    :: tranpose_type  !! Type of transpose to create (unused)
     integer(int64),           intent(in)    :: base_storage   !! Number of bytes to store single element (unused)
+    integer(int32) :: mpi_err
 
+#ifdef DTFFT_DEBUG
     if ( .not. is_backend_mpi(self%backend) ) INTERNAL_ERROR(".not. is_backend_mpi")
-
+#endif
     if ( self%backend == DTFFT_BACKEND_MPI_A2A ) then
       call self%send%create(self%send_floats, self%send_displs - 1, 1)
       call self%recv%create(self%recv_floats, self%recv_displs - 1, 0)
@@ -118,90 +134,222 @@ contains
       call self%send%create(self%send_floats, self%send_displs, self%comm_size)
       call self%recv%create(self%recv_floats, self%recv_displs, self%comm_size)
     endif
+
+    self%is_rma = .false.
+#ifdef DTFFT_WITH_RMA
+    if ( any(self%backend == [DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED]) ) then
+      block
+        integer(int32), allocatable :: all_displs(:,:)
+
+        self%is_rma = .true.
+        allocate( all_displs(0:self%comm_size - 1, 0:self%comm_size - 1) )
+        call MPI_Allgather(self%send%displs, self%comm_size, MPI_INTEGER, all_displs, self%comm_size, MPI_INTEGER, self%comm, mpi_err)
+        self%send%displs(:) = all_displs(self%comm_rank, :) - 1
+        deallocate( all_displs )
+      endblock
+    endif
+#endif
+    self%is_request_created = .false.
+    self%is_active = .false.
   end subroutine create_mpi
 
   subroutine destroy_mpi(self)
   !! Destroys MPI backend
-    class(backend_mpi),  intent(inout) :: self  !! MPI GPU Backend
+    class(backend_mpi),       intent(inout) :: self           !! MPI Backend
+    integer(int32) :: mpi_ierr
 
-    call self%send%destroy()
-    call self%recv%destroy()
+    call self%send%destroy(self%is_request_created)
+    call self%recv%destroy(self%is_request_created)
+
+#ifdef DTFFT_WITH_RMA
+    if ( self%is_rma ) then
+      ! REGION_BEGIN("MPI_Win_free", 0)
+      call MPI_Win_free(self%win, mpi_ierr)
+      ! REGION_END("MPI_Win_free")
+    endif
+#endif
+    self%is_request_created = .false.
+    self%is_active = .false.
   end subroutine destroy_mpi
 
-  subroutine execute_mpi(self, in, out, stream, aux)
+  elemental logical function get_async_active(self)
+  !! Returns if async transpose is active
+    class(backend_mpi),    intent(in)    :: self              !!  MPI Backend
+    get_async_active = self%is_active
+  end function get_async_active
+
+  subroutine execute_mpi(self, in, out, stream, aux, exec_type, error_code)
   !! Executes MPI backend
-    class(backend_mpi),           intent(inout) :: self       !! MPI GPU Backend
+    class(backend_mpi),           intent(inout) :: self       !! MPI Backend
     real(real32),   target,       intent(inout) :: in(:)      !! Send pointer
     real(real32),   target,       intent(inout) :: out(:)     !! Recv pointer
     type(dtfft_stream_t),         intent(in)    :: stream     !! Main execution CUDA stream
     real(real32),   target,       intent(inout) :: aux(:)     !! Aux pointer
+    type(async_exec_t),           intent(in)    :: exec_type  !! Type of async execution
+    integer(int32),               intent(out)   :: error_code !! Error code
     integer(int32)          :: mpi_ierr             !! MPI error code
     logical,  allocatable   :: is_complete_comm(:)  !! Testing for request completion
-    integer(int32)          :: request_counter      !! Request counter
+    integer(int32), allocatable :: indices(:)
+    integer(int32)          :: n_completed      !! Request counter
     integer(int32)          :: i                    !! Loop index
+    ! type(mpi_status), allocatable :: statuses(:)
 
+    error_code = DTFFT_SUCCESS
+    if ( self%is_active ) then
+      error_code = DTFFT_ERROR_TRANSPOSE_ACTIVE
+      return
+    endif
+#ifdef DTFFT_WITH_CUDA
+    if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
     ! Need to sync stream since there is no way pass current stream to MPI
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+    endif
+#endif
 
-    select case ( self%backend%val )
-    case ( DTFFT_BACKEND_MPI_A2A%val )
-      call run_mpi_a2a(self%comm, self%send, self%recv, in, out)
+    if ( any( self%backend == [DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P] ) ) then
+      if ( self%backend == DTFFT_BACKEND_MPI_A2A ) then
+      call run_mpi_a2a(self%comm, self%send, self%recv, in, out, self%is_request_created)
       ! All-to-all request is stored in `send%requests(1)`, so no need to wait for recv requests
-    case ( DTFFT_BACKEND_MPI_P2P%val )
-      call run_mpi_p2p(self%comm, self%send, self%recv, in, out)
-      ! Waiting for all recv requests to finish
-      call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, mpi_ierr)
-    case ( DTFFT_BACKEND_MPI_P2P_PIPELINED%val )
-      call run_mpi_p2p(self%comm, self%send, self%recv, in, aux)
+      else if ( self%backend ==  DTFFT_BACKEND_MPI_P2P ) then
+        call run_mpi_p2p(self%comm, self%send, self%recv, in, out, self%is_request_created)
+        ! Waiting for all recv requests to finish
+        if ( self%platform == DTFFT_PLATFORM_CUDA  .or. exec_type == EXEC_BLOCKING ) then
+          REGION_BEGIN("MPI_Waitall recv", 0)
+          call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, mpi_ierr)
+          REGION_END("MPI_Waitall recv")
+        endif
+      endif
+      if ( self%platform == DTFFT_PLATFORM_CUDA  .or. exec_type == EXEC_BLOCKING ) then
+         REGION_BEGIN("MPI_Waitall send", 0)
+        call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
+         REGION_END("MPI_Waitall send")
+      else
+        self%is_active = .true.
+      endif
+#ifdef DTFFT_WITH_RMA
+    else if ( self%backend == DTFFT_BACKEND_MPI_RMA ) then
+      call run_mpi_rma(self%comm, self%send, self%recv, in, out, self%win, self%is_request_created)
+      if ( self%platform == DTFFT_PLATFORM_CUDA  .or. exec_type == EXEC_BLOCKING ) then
+        ! REGION_BEGIN("MPI_Win_wait", 0)
+        ! call MPI_Win_wait(self%win, mpi_ierr)
+        ! REGION_END("MPI_Win_wait")
 
+    ! REGION_BEGIN("MPI_Win_complete", 0)
+    ! call MPI_Win_complete(self%win, error_code)
+    ! REGION_END("MPI_Win_complete")
+        call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, error_code)
+        REGION_BEGIN("MPI_Win_fence", 0)
+        call MPI_Win_fence(0, self%win, error_code)
+        REGION_END("MPI_Win_fence")
+
+        ! REGION_BEGIN("MPI_Win_unlock_all", 0)
+        ! call MPI_Win_unlock_all(self%win, mpi_ierr)
+        ! REGION_END("MPI_Win_unlock_all")
+      else
+        self%is_active = .true.
+      endif
+#endif
+    else
+      if ( self%backend == DTFFT_BACKEND_MPI_RMA_PIPELINED ) then
+        call run_mpi_rma(self%comm, self%send, self%recv, in, aux, self%win, self%is_request_created)
+      else
+        call run_mpi_p2p(self%comm, self%send, self%recv, in, aux, self%is_request_created)
+      endif
       allocate( is_complete_comm(self%recv%n_requests), source=.false. )
-      ! do while (.true.)
+      allocate( indices(self%recv%n_requests) )
+      do while (.true.)
         ! Testing that all data has been recieved so we can unpack it
-        request_counter = 0
-        do i = 0, self%comm_size - 1
-          if ( self%recv_floats(i) == 0 ) cycle
-
-          request_counter = request_counter + 1
-          call MPI_Wait(self%recv%requests(request_counter), MPI_STATUS_IGNORE, mpi_ierr)
-          call self%unpack_kernel%execute(aux, out, stream, i + 1)
-
-        !   if ( is_complete_comm( request_counter ) ) cycle
-        !   call MPI_Test(self%recv%requests(request_counter), is_complete_comm( request_counter ), MPI_STATUS_IGNORE, mpi_ierr)
-        !   if ( is_complete_comm( request_counter ) ) then
-        !     call self%unpack_kernel%execute(aux, out, stream, i + 1)
-        !   endif
+        ! print*,'MPI_Waitsome: ',self%recv%n_requests,self%recv%requests
+        call MPI_Waitsome(self%recv%n_requests, self%recv%requests, n_completed, indices, MPI_STATUSES_IGNORE, mpi_ierr)
+        ! print*,statuses(1)%mpi_error
+        ! print*,'n_completed = ',n_completed,' indices = ',indices(1:n_completed)
+        do i = 1, n_completed
+          call self%unpack_kernel%execute(aux, out, stream, self%recv%process_map(indices(i)) + 1)
         enddo
-        ! if ( all( is_complete_comm ) ) exit
-      ! enddo
-    endselect
-    call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
+        is_complete_comm( indices(1:n_completed) ) = .true.
+        ! request_counter = 0
+        ! do i = 0, self%comm_size - 1
+        !   if ( self%recv_floats(i) == 0 ) cycle
+
+        !   request_counter = request_counter + 1
+        !   call MPI_Wait(self%recv%requests(request_counter), MPI_STATUS_IGNORE, mpi_ierr)
+        !   call self%unpack_kernel%execute(aux, out, stream, i + 1)
+
+        ! ! if ( is_complete_comm( request_counter ) ) cycle
+        ! ! call MPI_Test(self%recv%requests(request_counter), is_complete_comm( request_counter ), MPI_STATUS_IGNORE, mpi_ierr)
+        ! ! if ( is_complete_comm( request_counter ) ) then
+        ! !   call self%unpack_kernel%execute(aux, out, stream, i + 1)
+        ! ! endif
+        ! enddo
+        if ( all( is_complete_comm ) ) exit
+      enddo
+      deallocate( is_complete_comm, indices )
+      if ( self%send%n_requests > 0 ) then
+        call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
+      endif
+      if ( self%is_rma ) then
+        REGION_BEGIN("MPI_Win_fence end", 0)
+        call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, error_code)
+        REGION_END("MPI_Win_fence end")
+      endif
+    endif
   end subroutine execute_mpi
 
-  subroutine run_mpi_p2p(comm, send, recv, in, out)
+  subroutine execute_end_mpi(self, error_code)
+    class(backend_mpi),           intent(inout) :: self       !! MPI Backend
+    integer(int32),               intent(out)   :: error_code !! Error code
+
+    error_code = DTFFT_SUCCESS
+    if ( .not. self%is_active ) then
+      error_code = DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE
+      return
+    endif
+
+    if ( self%recv%n_requests > 0 ) then
+      call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, error_code)
+    endif
+    if ( self%send%n_requests > 0 ) then
+      call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, error_code)
+    endif
+    if ( self%is_rma ) then
+      REGION_BEGIN("MPI_Win_fence", 0)
+      call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, error_code)
+      REGION_END("MPI_Win_fence")
+    endif
+    self%is_active = .false.
+  end subroutine execute_end_mpi
+
+  subroutine run_mpi_p2p(comm, send, recv, in, out, is_request_created)
   !! Executes MPI point-to-point communication
     TYPE_MPI_COMM,                intent(in)    :: comm   !! MPI communicator
     type(mpi_backend_helper),     intent(inout) :: send   !! MPI Helper for send data
     type(mpi_backend_helper),     intent(inout) :: recv   !! MPI Helper for recv data
     real(real32),                 intent(in)    :: in(:)  !! Data to be sent
     real(real32),                 intent(inout) :: out(:) !! Data to be received
+    logical,                      intent(inout) :: is_request_created
     integer(int32) :: send_request_counter, recv_request_counter
     integer(int32) :: i, comm_size, mpi_ierr
 
-    send_request_counter = 0
-    recv_request_counter = 0
     call MPI_Comm_size(comm, comm_size, mpi_ierr)
 
+    if (.not. allocated(recv%process_map)) then
+      allocate(recv%process_map(comm_size))
+    endif
+
 #ifdef ENABLE_PERSISTENT_COMM
-    if ( .not. send%is_request_created ) then
+    if ( .not. is_request_created ) then
+      recv_request_counter = 0
       do i = 0, comm_size - 1
         if ( recv%counts(i) > 0 ) then
           recv_request_counter = recv_request_counter + 1
+          recv%process_map(recv_request_counter) = i
           call MPI_Recv_init(out( recv%displs(i) ), recv%counts(i), MPI_REAL, i, 0,   &
                              comm, recv%requests(recv_request_counter), mpi_ierr)
         endif
       enddo
-      recv%n_requests = recv_request_counter; recv%is_request_created = .true.
+      recv%n_requests = recv_request_counter
 
+      send_request_counter = 0
       do i = 0, comm_size - 1
         if ( send%counts(i) > 0 ) then
           send_request_counter = send_request_counter + 1
@@ -209,15 +357,18 @@ contains
                              comm, send%requests(send_request_counter), mpi_ierr)
         endif
       enddo
-      send%n_requests = send_request_counter; send%is_request_created = .true.
+      send%n_requests = send_request_counter
+      is_request_created = .true.
     endif
-
     call MPI_Startall(recv%n_requests, recv%requests, mpi_ierr)
     call MPI_Startall(send%n_requests, send%requests, mpi_ierr)
 #else
+    send_request_counter = 0
+    recv_request_counter = 0
     do i = 0, comm_size - 1
       if ( recv%counts(i) > 0 ) then
         recv_request_counter = recv_request_counter + 1
+        recv%process_map(recv_request_counter) = i
         call MPI_Irecv(out( recv%displs(i) ), recv%counts(i), MPI_REAL, i, 0,   &
                        comm, recv%requests(recv_request_counter), mpi_ierr)
       endif
@@ -235,21 +386,22 @@ contains
 #endif
   end subroutine run_mpi_p2p
 
-  subroutine run_mpi_a2a(comm, send, recv, in, out)
+  subroutine run_mpi_a2a(comm, send, recv, in, out, is_request_created)
   !! Executes MPI all-to-all communication
     TYPE_MPI_COMM,                intent(in)    :: comm   !! MPI communicator
     type(mpi_backend_helper),     intent(inout) :: send   !! MPI Helper for send data
     type(mpi_backend_helper),     intent(inout) :: recv   !! MPI Helper for recv data
     real(real32),                 intent(in)    :: in(:)  !! Data to be sent
     real(real32),                 intent(inout) :: out(:) !! Data to be received
+    logical,                      intent(inout) :: is_request_created
     integer(int32) :: mpi_ierr
 
 #if defined(ENABLE_PERSISTENT_COLLECTIVES)
-    if ( .not. send%is_request_created ) then
+    if ( .not. is_request_created ) then
       call MPI_Alltoallv_init(in, send%counts, send%displs, MPI_REAL,        &
                               out, recv%counts, recv%displs, MPI_REAL,       &
                               comm, MPI_INFO_NULL, send%requests(1), mpi_ierr)
-      send%is_request_created = .true.
+      is_request_created = .true.
     endif
     call MPI_Start(send%requests(1), mpi_ierr)
 #else
@@ -259,4 +411,43 @@ contains
 #endif
     send%n_requests = 1
   end subroutine run_mpi_a2a
+
+#ifdef DTFFT_WITH_RMA
+  subroutine run_mpi_rma(comm, send, recv, in, out, win, is_created)
+  !! Executes MPI One-sided communication
+    TYPE_MPI_COMM,                intent(in)    :: comm   !! MPI communicator
+    type(mpi_backend_helper),     intent(inout) :: send   !! MPI Helper for send data
+    type(mpi_backend_helper),     intent(inout) :: recv   !! MPI Helper for recv data
+    real(real32),                 intent(in)    :: in(:)  !! Data to be sent
+    real(real32),                 intent(inout) :: out(:) !! Data to be received
+    TYPE_MPI_WIN,                 intent(inout) :: win    !! MPI Window
+    logical,                      intent(inout) :: is_created
+    integer(int32) :: mpi_ierr, i, comm_size
+    integer(int32) :: recv_request_counter
+
+    call MPI_Comm_size(comm, comm_size, mpi_ierr)
+    if (.not. allocated(recv%process_map)) then
+      allocate(recv%process_map(comm_size))
+    endif
+    if( .not. is_created) then
+      call MPI_Win_create(in, int( size(in) * FLOAT_STORAGE_SIZE, MPI_ADDRESS_KIND ), int(FLOAT_STORAGE_SIZE, int32), MPI_INFO_NULL, comm, win, mpi_ierr)
+      is_created = .true.
+    endif
+
+    REGION_BEGIN("MPI_Win_fence start", 0)
+    call MPI_Win_fence(MPI_MODE_NOPRECEDE, win, mpi_ierr)
+    REGION_END("MPI_Win_fence start")
+
+    recv_request_counter = 0
+    do i = 0, comm_size - 1
+      if ( recv%counts(i) > 0 ) then
+        recv_request_counter = recv_request_counter + 1
+        recv%process_map(recv_request_counter) = i
+        call MPI_RGet(out( recv%displs(i) ), recv%counts(i), MPI_REAL, i,      &
+                     int(send%displs(i), MPI_ADDRESS_KIND), recv%counts(i), MPI_REAL, win, recv%requests(recv_request_counter), mpi_ierr)
+      endif
+    enddo
+    recv%n_requests = recv_request_counter
+  end subroutine run_mpi_rma
+#endif
 end module dtfft_backend_mpi

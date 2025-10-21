@@ -101,7 +101,7 @@ dtfft_create_plan_r2r_pencil(const dtfft_pencil_t *pencil,
                              const dtfft_precision_t precision,
                              const dtfft_effort_t effort,
                              const dtfft_executor_t executor,
-                            dtfft_plan_t *plan)
+                             dtfft_plan_t *plan)
 {
   if (!pencil || !plan) return DTFFT_ERROR_INVALID_USAGE;
   return (dtfft_error_t)dtfft_create_plan_r2r_pencil_c(pencil, (int32_t*)kinds, MPI_Comm_c2f(comm), (int32_t*)&precision, (int32_t*)&effort, (int32_t*)&executor, plan);
@@ -112,6 +112,13 @@ dtfft_get_z_slab_enabled(dtfft_plan_t plan, bool *is_z_slab_enabled)
 {
   if (!is_z_slab_enabled) return DTFFT_ERROR_INVALID_USAGE;
   return (dtfft_error_t)dtfft_get_z_slab_enabled_c(plan, is_z_slab_enabled);
+}
+
+dtfft_error_t
+dtfft_get_y_slab_enabled(dtfft_plan_t plan, bool *is_y_slab_enabled)
+{
+  if (!is_y_slab_enabled) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_t)dtfft_get_y_slab_enabled_c(plan, is_y_slab_enabled);
 }
 
 dtfft_error_t
@@ -129,6 +136,21 @@ dtfft_transpose(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_t 
   return (dtfft_error_t)dtfft_transpose_c(plan, in, out, (int32_t*)&transpose_type);
 }
 
+dtfft_error_t
+dtfft_transpose_start(dtfft_plan_t plan, void *in, void *out, const dtfft_transpose_t transpose_type, dtfft_request_t *request)
+{
+  if (!in || !out) return DTFFT_ERROR_INVALID_USAGE;
+  if (in == out) return DTFFT_ERROR_INPLACE_TRANSPOSE;
+  if (!request) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_t)dtfft_transpose_start_c(plan, in, out, (int32_t*)&transpose_type, request);
+}
+
+dtfft_error_t
+dtfft_transpose_end(dtfft_plan_t plan, dtfft_request_t request)
+{
+  if (!request) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_t)dtfft_transpose_end_c(plan, &request);
+}
 
 dtfft_error_t
 dtfft_destroy(dtfft_plan_t *plan)
@@ -261,20 +283,24 @@ dtfft_get_dims(dtfft_plan_t plan, int8_t *ndims, const int32_t *dims[])
 }
 
 dtfft_error_t
+dtfft_get_grid_dims(dtfft_plan_t plan, int8_t *ndims, const int32_t *grid_dims[])
+{
+  if (!ndims && !grid_dims) return DTFFT_ERROR_INVALID_USAGE;
+  int8_t ndims_;
+  int32_t *grid_dims_;
+  int32_t error_code = dtfft_get_grid_dims_c(plan, &ndims_, &grid_dims_);
+  if ( ndims ) *ndims = ndims_;
+  if ( grid_dims ) *grid_dims = grid_dims_;
+  return (dtfft_error_t)error_code;
+}
+
+
+dtfft_error_t
 dtfft_create_config(dtfft_config_t *config)
 {
   if (!config) return DTFFT_ERROR_INVALID_USAGE;
   dtfft_create_config_c((void *)config);
   return DTFFT_SUCCESS;
-}
-
-#ifdef DTFFT_WITH_CUDA
-
-dtfft_error_t
-dtfft_get_stream(dtfft_plan_t plan, dtfft_stream_t *stream)
-{
-  if (!stream) return DTFFT_ERROR_INVALID_USAGE;
-  return (dtfft_error_t)dtfft_get_stream_c(plan, stream);
 }
 
 dtfft_error_t
@@ -284,17 +310,25 @@ dtfft_get_backend(dtfft_plan_t plan, dtfft_backend_t *backend)
   return (dtfft_error_t)dtfft_get_backend_c(plan, (int32_t*)backend);
 }
 
-dtfft_error_t
-dtfft_get_platform(dtfft_plan_t plan, dtfft_platform_t *platform)
-{
-  if (!platform) return DTFFT_ERROR_INVALID_USAGE;
-  return (dtfft_error_t)dtfft_get_platform_c(plan, (int32_t*)platform);
-}
-
 const char *
 dtfft_get_backend_string(const dtfft_backend_t backend)
 {
   return get_string_helper((int32_t)backend, 20, dtfft_get_backend_string_c);
 }
 
+#ifdef DTFFT_WITH_CUDA
+dtfft_error_t
+dtfft_get_stream(dtfft_plan_t plan, dtfft_stream_t *stream)
+{
+  if (!stream) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_t)dtfft_get_stream_c(plan, stream);
+}
+
+
+dtfft_error_t
+dtfft_get_platform(dtfft_plan_t plan, dtfft_platform_t *platform)
+{
+  if (!platform) return DTFFT_ERROR_INVALID_USAGE;
+  return (dtfft_error_t)dtfft_get_platform_c(plan, (int32_t*)platform);
+}
 #endif

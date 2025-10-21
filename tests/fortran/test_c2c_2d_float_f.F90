@@ -106,8 +106,8 @@ implicit none
 
   alloc_bytes = alloc_size * element_size
 
-  call plan%mem_alloc_ptr(alloc_bytes, in, ierr); DTFFT_CHECK(ierr)
-  call plan%mem_alloc_ptr(alloc_bytes, out, ierr); DTFFT_CHECK(ierr)
+  in = plan%mem_alloc_ptr(alloc_bytes, ierr); DTFFT_CHECK(ierr)
+  out = plan%mem_alloc_ptr(alloc_bytes, ierr); DTFFT_CHECK(ierr)
 
   in_size = int(product(in_counts), int64)
   check = mem_alloc_host(in_size * element_size)
@@ -151,7 +151,7 @@ implicit none
 #endif
 
   call plan%mem_free_ptr(in, ierr); DTFFT_CHECK(ierr)
-  ! call plan%mem_free_ptr(out, ierr); DTFFT_CHECK(ierr)
+  call plan%mem_free_ptr(out, ierr); DTFFT_CHECK(ierr)
 
   call mem_free_host(check)
 

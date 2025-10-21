@@ -18,17 +18,20 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_abstract_backend
-!! This module describes Abstraction for all GPU Backends: [[abstract_backend]]
+!! This module describes Abstraction for all Backends: [[abstract_backend]]
 use iso_c_binding
 use iso_fortran_env
+use dtfft_abstract_kernel,  only: abstract_kernel
 use dtfft_config, only: get_env
+use dtfft_errors
+#ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
+#endif
 #ifdef DTFFT_WITH_NCCL
 use dtfft_interface_nccl
 #endif
-use dtfft_nvrtc_kernel,   only: nvrtc_kernel
 use dtfft_parameters
-use dtfft_pencil,         only: pencil
+use dtfft_pencil,           only: pencil
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
@@ -62,8 +65,9 @@ public :: abstract_backend, backend_helper
   end type backend_helper
 
   type, abstract :: abstract_backend
-  !! The most Abstract GPU Backend
+  !! The most Abstract Backend
     type(dtfft_backend_t)             :: backend                !! Backend type
+    type(dtfft_platform_t)            :: platform               !! Platform to use
     logical                           :: is_selfcopy            !! If backend is self-copying
     logical                           :: is_pipelined           !! If backend is pipelined
     integer(int64)                    :: aux_size               !! Number of bytes required by aux buffer
@@ -77,61 +81,66 @@ public :: abstract_backend, backend_helper
     integer(int64),       allocatable :: recv_displs(:)         !! Recv data displacements, in float elements
     integer(int64),       allocatable :: recv_floats(:)         !! Recv data elements, in float elements
     ! Self copy params
+#ifdef DTFFT_WITH_CUDA
     type(cudaEvent)                   :: execution_event        !! Event for main execution stream
     type(cudaEvent)                   :: copy_event             !! Event for copy stream
+#endif
     type(dtfft_stream_t)              :: copy_stream            !! Stream for copy operations
     integer(int64)                    :: self_copy_bytes        !! Number of bytes to copy it itself
     integer(int64)                    :: self_send_displ        !! Displacement for send buffer
     integer(int64)                    :: self_recv_displ        !! Displacement for recv buffer
     ! Pipelined params
-    type(nvrtc_kernel),       pointer :: unpack_kernel          !! Kernel for unpacking data
-    type(nvrtc_kernel),       pointer :: unpack_kernel2         !! Kernel for unpacking data
+    class(abstract_kernel),  pointer  :: unpack_kernel          !! Kernel for unpacking data
+    ! class(abstract_kernel),  pointer  :: unpack_kernel2         !! Kernel for unpacking data
   contains
-    procedure,            non_overridable,  pass(self)  :: create           !! Creates Abstract GPU Backend
-    procedure,            non_overridable,  pass(self)  :: execute          !! Executes GPU Backend
-    procedure,            non_overridable,  pass(self)  :: destroy          !! Destroys Abstract GPU Backend
+    procedure,            non_overridable,  pass(self)  :: create           !! Creates Abstract Backend
+    procedure,            non_overridable,  pass(self)  :: execute          !! Executes Backend
+    procedure,            non_overridable,  pass(self)  :: destroy          !! Destroys Abstract Backend
     procedure,            non_overridable,  pass(self)  :: get_aux_size     !! Returns number of bytes required by aux buffer
     procedure,            non_overridable,  pass(self)  :: set_unpack_kernel!! Sets unpack kernel for pipelined backend
+    procedure,                              pass(self)  :: execute_end      !! Ends execution of Backend
+    procedure,                              pass(self)  :: get_async_active !! Returns if async execution is active
     procedure(create_interface),  deferred, pass(self)  :: create_private   !! Creates overring class
-    procedure(execute_interface), deferred, pass(self)  :: execute_private  !! Executes GPU Backend
+    procedure(execute_interface), deferred, pass(self)  :: execute_private  !! Executes Backend
     procedure(destroy_interface), deferred, pass(self)  :: destroy_private  !! Destroys overring class
   end type abstract_backend
 
   abstract interface
-    subroutine create_interface(self, helper, tranpose_type, base_storage)
+    subroutine create_interface(self, helper, base_storage)
     !! Creates overring class
     import
-      class(abstract_backend),  intent(inout) :: self           !! Abstract GPU Backend
+      class(abstract_backend),  intent(inout) :: self           !! Abstract Backend
       type(backend_helper),     intent(in)    :: helper         !! Backend helper
-      type(dtfft_transpose_t),  intent(in)    :: tranpose_type  !! Type of transpose to create
       integer(int64),           intent(in)    :: base_storage   !! Number of bytes to store single element
     end subroutine create_interface
 
-    subroutine execute_interface(self, in, out, stream, aux)
-    !! Executes GPU Backend
+    subroutine execute_interface(self, in, out, stream, aux, exec_type, error_code)
+    !! Executes Backend
     import
-      class(abstract_backend),  intent(inout) :: self       !! Abstract GPU Backend
+      class(abstract_backend),  intent(inout) :: self       !! Abstract Backend
       real(real32),   target,   intent(inout) :: in(:)      !! Send pointer
       real(real32),   target,   intent(inout) :: out(:)     !! Recv pointer
       type(dtfft_stream_t),     intent(in)    :: stream     !! Main execution CUDA stream
       real(real32),   target,   intent(inout) :: aux(:)     !! Aux pointer
+      type(async_exec_t),       intent(in)    :: exec_type  !! Type of async execution
+      integer(int32),           intent(out)   :: error_code !! Error code
     end subroutine execute_interface
 
     subroutine destroy_interface(self)
     !! Destroys overring class
     import
-      class(abstract_backend),    intent(inout) :: self       !! Abstract GPU Backend
+      class(abstract_backend),    intent(inout) :: self       !! Abstract Backend
     end subroutine destroy_interface
   end interface
 
 contains
 
-  subroutine create(self, backend, tranpose_type, helper, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
-  !! Creates Abstract GPU Backend
-    class(abstract_backend),      intent(inout) :: self           !! Abstract GPU Backend
-    type(dtfft_backend_t),        intent(in)    :: backend        !! GPU Backend type
-    type(dtfft_transpose_t),      intent(in)    :: tranpose_type  !! Type of transpose to create
+  subroutine create(self, backend, helper, platform, comm_id, send_displs, send_counts, recv_displs, recv_counts, base_storage)
+  !! Creates Abstract Backend
+    class(abstract_backend),      intent(inout) :: self           !! Abstract Backend
+    type(dtfft_backend_t),        intent(in)    :: backend        !! Backend type
     type(backend_helper),         intent(in)    :: helper         !! Backend helper
+    type(dtfft_platform_t),       intent(in)    :: platform       !! Platform to use
     integer(int8),                intent(in)    :: comm_id        !! Id of communicator to use
     integer(int32),               intent(in)    :: send_displs(:) !! Send data displacements, in original elements
     integer(int32),               intent(in)    :: send_counts(:) !! Send data elements, in float elements
@@ -145,6 +154,7 @@ contains
 
     scaler = base_storage / FLOAT_STORAGE_SIZE
 
+    self%platform = platform
     send_size = sum(send_counts) * scaler
     recv_size = sum(recv_counts) * scaler
     self%send_recv_buffer_size = max(send_size, recv_size)
@@ -179,108 +189,147 @@ contains
       self%aux_size = self%send_recv_buffer_size * FLOAT_STORAGE_SIZE
     endif
 
+    self%self_copy_bytes = 0_int64
     if ( self%is_selfcopy ) then
       self%self_send_displ = self%send_displs(self%comm_rank)
       self%self_recv_displ = self%recv_displs(self%comm_rank)
       self%self_copy_bytes = self%send_floats(self%comm_rank) * FLOAT_STORAGE_SIZE
       self%send_floats(self%comm_rank) = 0
       self%recv_floats(self%comm_rank) = 0
-
+#ifdef DTFFT_WITH_CUDA
       CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%execution_event, cudaEventDisableTiming) )
       CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%copy_event, cudaEventDisableTiming) )
       CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(self%copy_stream) )
+#endif
     endif
 
-    call self%create_private(helper, tranpose_type, base_storage)
+    call self%create_private(helper, base_storage)
   end subroutine create
 
-  subroutine execute(self, in, out, stream, aux)
-  !! Executes GPU Backend
-    class(abstract_backend),    intent(inout) :: self     !! Self-copying backend
-    real(real32),               intent(inout) :: in(:)    !! Send pointer
-    real(real32),               intent(inout) :: out(:)   !! Recv pointer
-    type(dtfft_stream_t),       intent(in)    :: stream   !! CUDA stream
-    real(real32),               intent(inout) :: aux(:)   !! Aux pointer
+  subroutine execute(self, in, out, stream, aux, exec_type, error_code)
+  !! Executes Backend
+    class(abstract_backend),    intent(inout) :: self       !! Self-copying backend
+    real(real32),               intent(inout) :: in(:)      !! Send pointer
+    real(real32),               intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),       intent(in)    :: stream     !! CUDA stream
+    real(real32),               intent(inout) :: aux(:)     !! Aux pointer
+    type(async_exec_t),         intent(in)    :: exec_type  !! Type of async execution
+    integer(int32),             intent(out)   :: error_code !! Error code
 
     if ( .not. self%is_selfcopy ) then
-      call self%execute_private(in, out, stream, aux)
-#ifdef DTFFT_DEBUG
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      call self%execute_private(in, out, stream, aux, exec_type, error_code)
+#if defined(DTFFT_DEBUG) && defined(DTFFT_WITH_CUDA)
+      if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
+        CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      endif
 #endif
       return
     endif
 
-    CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%execution_event, stream) )
-    ! Waiting for transpose kernel to finish execution on stream `stream`
-    CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(self%copy_stream, self%execution_event, 0) )
-
-    if( self%self_copy_bytes > 0 ) then
-      if ( self%is_pipelined ) then
-        ! Tranposed data is actually located in aux buffer for pipelined algorithm
-        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(aux( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
-        ! Data can be unpacked in same stream as `cudaMemcpyAsync`
-        call self%unpack_kernel%execute(aux, out, self%copy_stream, self%comm_rank + 1)
-      else
-        CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
+    if ( self%platform == DTFFT_PLATFORM_HOST ) then
+      if( self%self_copy_bytes > 0 ) then
+        if ( self%is_pipelined ) then
+          aux(self%self_recv_displ:self%self_recv_displ + self%self_copy_bytes / FLOAT_STORAGE_SIZE - 1) = &
+               in(self%self_send_displ:self%self_send_displ + self%self_copy_bytes / FLOAT_STORAGE_SIZE - 1)
+          call self%unpack_kernel%execute(aux, out, stream, self%comm_rank + 1)
+        else
+          out(self%self_recv_displ:self%self_recv_displ + self%self_copy_bytes / FLOAT_STORAGE_SIZE - 1) = &
+               in(self%self_send_displ:self%self_send_displ + self%self_copy_bytes / FLOAT_STORAGE_SIZE - 1)
+        endif
       endif
+#ifdef DTFFT_WITH_CUDA
+    else
+      CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%execution_event, stream) )
+      ! Waiting for transpose kernel to finish execution on stream `stream`
+      CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(self%copy_stream, self%execution_event, 0) )
+
+      if( self%self_copy_bytes > 0 ) then
+        if ( self%is_pipelined ) then
+          ! Tranposed data is actually located in aux buffer for pipelined algorithm
+          CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(aux( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
+          ! Data can be unpacked in same stream as `cudaMemcpyAsync`
+          call self%unpack_kernel%execute(aux, out, self%copy_stream, self%comm_rank + 1)
+        else
+          CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(out( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
+        endif
+      endif
+#endif
     endif
-    call self%execute_private(in, out, stream, aux)
-    ! Making future events, like FFT, on `stream` to wait for `copy_event`
-    CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%copy_event, self%copy_stream) )
-    CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(stream, self%copy_event, 0) )
-#ifdef DTFFT_DEBUG
+    call self%execute_private(in, out, stream, aux, exec_type, error_code)
+#ifdef DTFFT_WITH_CUDA
+    if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
+      ! Making future events, like FFT, on `stream` to wait for `copy_event`
+      CUDA_CALL( "cudaEventRecord", cudaEventRecord(self%copy_event, self%copy_stream) )
+      CUDA_CALL( "cudaStreamWaitEvent", cudaStreamWaitEvent(stream, self%copy_event, 0) )
+    endif
+#endif
+#if defined(DTFFT_DEBUG) && defined(DTFFT_WITH_CUDA)
+    if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
       CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+    endif
 #endif
   end subroutine execute
 
-  subroutine destroy(self)
-  !! Destroys Abstract GPU Backend
-    class(abstract_backend),    intent(inout) :: self     !! Abstract GPU backend
+  subroutine execute_end(self, error_code)
+  !! Ends execution of Backend
+    class(abstract_backend),    intent(inout) :: self       !! Abstract backend
+    integer(int32),             intent(out)   :: error_code !! Error code
+    error_code = DTFFT_SUCCESS
+    if ( self%platform == DTFFT_PLATFORM_HOST ) return
+  end subroutine execute_end
 
-    if ( allocated( self%send_displs ) ) deallocate( self%send_displs )
-    if ( allocated( self%send_floats ) ) deallocate( self%send_floats )
-    if ( allocated( self%recv_displs ) ) deallocate( self%recv_displs )
-    if ( allocated( self%recv_floats ) ) deallocate( self%recv_floats )
-    if ( allocated( self%comm_mapping) ) deallocate( self%comm_mapping)
+  elemental logical function get_async_active(self)
+  !! Returns if async execution is active
+    class(abstract_backend),    intent(in)    :: self       !! Abstract backend
+    get_async_active = .false.
+  end function get_async_active
+
+  subroutine destroy(self)
+  !! Destroys Abstract Backend
+    class(abstract_backend),    intent(inout) :: self       !! Abstract backend
+
+    if ( allocated( self%send_displs ) )    deallocate( self%send_displs )
+    if ( allocated( self%send_floats ) )    deallocate( self%send_floats )
+    if ( allocated( self%recv_displs ) )    deallocate( self%recv_displs )
+    if ( allocated( self%recv_floats ) )    deallocate( self%recv_floats )
+    if ( allocated( self%comm_mapping) )    deallocate( self%comm_mapping )
     self%comm = MPI_COMM_NULL
-    if ( self%is_selfcopy ) then
+#ifdef DTFFT_WITH_CUDA
+    if ( self%is_selfcopy .and. self%platform == DTFFT_PLATFORM_CUDA ) then
       CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(self%execution_event) )
       CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(self%copy_event) )
       CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(self%copy_stream) )
     endif
-    if ( self%is_pipelined ) then
-      nullify( self%unpack_kernel )
-      if ( associated(self%unpack_kernel2) ) nullify( self%unpack_kernel2 )
-    endif
+#endif
+    nullify( self%unpack_kernel )
     self%is_pipelined = .false.
     self%is_selfcopy = .false.
     call self%destroy_private()
   end subroutine destroy
 
-  integer(int64) function get_aux_size(self)
+  pure integer(int64) function get_aux_size(self)
   !! Returns number of bytes required by aux buffer
-    class(abstract_backend),    intent(in)    :: self     !! Abstract GPU backend
+    class(abstract_backend),    intent(in)    :: self     !! Abstract backend
     get_aux_size = self%aux_size
   end function get_aux_size
 
-  subroutine set_unpack_kernel(self, unpack_kernel, unpack_kernel2)
+  subroutine set_unpack_kernel(self, unpack_kernel)
   !! Sets unpack kernel for pipelined backend
-    class(abstract_backend),    intent(inout)             :: self           !! Pipelined backend
-    type(nvrtc_kernel), target, intent(in)                :: unpack_kernel  !! Kernel for unpacking data
-    type(nvrtc_kernel), target, intent(in), optional      :: unpack_kernel2  !! Kernel for unpacking data
+    class(abstract_backend),        intent(inout)             :: self           !! Pipelined backend
+    class(abstract_kernel), target, intent(in)                :: unpack_kernel  !! Kernel for unpacking data
 
     self%unpack_kernel => unpack_kernel
-    if ( present( unpack_kernel2 ) ) self%unpack_kernel2 => unpack_kernel2
   end subroutine set_unpack_kernel
 
-  subroutine create_helper(self, base_comm, comms, is_nccl_needed, pencils)
+  subroutine create_helper(self, platform, base_comm, comms, is_nccl_needed, pencils)
   !! Creates helper
     class(backend_helper),  intent(inout) :: self                 !! Backend helper
+    type(dtfft_platform_t), intent(in)    :: platform             !! Platform to use
     TYPE_MPI_COMM,          intent(in)    :: base_comm            !! MPI communicator
     TYPE_MPI_COMM,          intent(in)    :: comms(:)             !! 1D Communicators
     logical,                intent(in)    :: is_nccl_needed       !! If nccl communicator will be needed
     type(pencil), target,   intent(in)    :: pencils(:)           !! Pencils
-    integer :: i, n_comms
+    integer(int32)  :: i, n_comms
 
     call self%destroy()
 
@@ -295,6 +344,7 @@ contains
     enddo
     self%is_nccl_created = .false.
     if ( .not.is_nccl_needed ) return
+    if ( platform == DTFFT_PLATFORM_HOST ) return
 
 #ifdef DTFFT_WITH_NCCL
     block

@@ -21,10 +21,11 @@ module dtfft_backend_cufftmp_m
 !! cuFFTMp GPU Backend [[backend_cufftmp]]
 use iso_fortran_env
 use iso_c_binding
-use dtfft_interface_nvshmem
 use dtfft_abstract_backend,     only: abstract_backend, backend_helper
+use dtfft_interface_nvshmem
 use dtfft_interface_cuda_runtime
 use dtfft_interface_cufft
+use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil,               only: pencil
 use dtfft_utils
@@ -36,9 +37,10 @@ private
 public :: backend_cufftmp
 
   type :: Box3D
-    integer(c_long_long)  :: lower(3)
-    integer(c_long_long)  :: upper(3)
-    integer(c_long_long)  :: strides(3)
+  !! cuFFTMp Box
+    integer(c_long_long)  :: lower(3)   !! Lower box boundaries
+    integer(c_long_long)  :: upper(3)   !! Upper box boundaries
+    integer(c_long_long)  :: strides(3) !! Strides in memory
   end type Box3D
 
   type, extends(abstract_backend) :: backend_cufftmp
@@ -53,16 +55,18 @@ public :: backend_cufftmp
 
 contains
 
-  subroutine create(self, helper, tranpose_type, base_storage)
+  subroutine create(self, helper, base_storage)
   !! Creates cuFFTMp GPU Backend
     class(backend_cufftmp),   intent(inout) :: self               !! cuFFTMp GPU Backend
     type(backend_helper),     intent(in)    :: helper             !! Backend helper
-    type(dtfft_transpose_t),  intent(in)    :: tranpose_type      !! Type of transpose to create
     integer(int64),           intent(in)    :: base_storage       !! Number of bytes to store single element
     type(Box3D)           :: inbox, outbox  !! Reshape boxes
     type(pencil), pointer :: in, out
     type(c_ptr) :: c_comm
     integer(int64) :: aux_size
+    type(dtfft_transpose_t) :: tranpose_type
+
+    tranpose_type = helper%tranpose_type
 
     select case ( tranpose_type%val )
     case ( DTFFT_TRANSPOSE_X_TO_Y%val )
@@ -88,24 +92,14 @@ contains
     endselect
 
     if ( in%rank == 3 ) then
-      if ( tranpose_type == DTFFT_TRANSPOSE_X_TO_Y .or. tranpose_type == DTFFT_TRANSPOSE_Y_TO_X ) then
-        inbox%lower   = [in%starts(3),                in%starts(1),                in%starts(2)]
-        inbox%upper   = [in%starts(3) + in%counts(3), in%starts(1) + in%counts(1), in%starts(2) + in%counts(2)]
-        inbox%strides = [in%counts(1) * in%counts(2), in%counts(2),                1]
-      elseif ( tranpose_type == DTFFT_TRANSPOSE_Y_TO_Z .or. tranpose_type == DTFFT_TRANSPOSE_Z_TO_Y ) then
-        inbox%lower   = [in%starts(1),                in%starts(2),                in%starts(3)]
-        inbox%upper   = [in%starts(1) + in%counts(1), in%starts(2) + in%counts(2), in%starts(3) + in%counts(3)]
-        inbox%strides = [in%counts(2) * in%counts(3), in%counts(3),                1]
-      else if ( tranpose_type == DTFFT_TRANSPOSE_X_TO_Z ) then
+      if ( any(tranpose_type == [DTFFT_TRANSPOSE_X_TO_Z, DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y]) ) then
         inbox%lower   = [in%starts(2),                in%starts(1),                in%starts(3)]
         inbox%upper   = [in%starts(2) + in%counts(2), in%starts(1) + in%counts(1), in%starts(3) + in%counts(3)]
         inbox%strides = [in%counts(1) * in%counts(3), in%counts(3),                1]
-      else if ( tranpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
+      else
         inbox%lower   = [in%starts(1),                in%starts(3),                in%starts(2)]
         inbox%upper   = [in%starts(1) + in%counts(1), in%starts(3) + in%counts(3), in%starts(2) + in%counts(2)]
         inbox%strides = [in%counts(2) * in%counts(3), in%counts(2),                1]
-      else
-        INTERNAL_ERROR("unknown transposition using cufftMp backend")
       endif
 
       outbox%lower   = [out%starts(3),                 out%starts(2),                 out%starts(1)]
@@ -129,19 +123,22 @@ contains
     self%aux_size = max(aux_size, self%aux_size)
   end subroutine create
 
-  subroutine execute(self, in, out, stream, aux)
+  subroutine execute(self, in, out, stream, aux, exec_type, error_code)
   !! Executes cuFFTMp GPU Backend
-    class(backend_cufftmp),     intent(inout) :: self       !! cuFFTMp GPU Backend
-    real(real32),     target,   intent(inout) :: in(:)      !! Send pointer
-    real(real32),     target,   intent(inout) :: out(:)     !! Recv pointer
-    type(dtfft_stream_t),       intent(in)    :: stream     !! Main execution CUDA stream
-    real(real32),     target,   intent(inout) :: aux(:)     !! Aux pointer
+    class(backend_cufftmp),   intent(inout) :: self       !! cuFFTMp GPU Backend
+    real(real32),   target,   intent(inout) :: in(:)      !! Send pointer
+    real(real32),   target,   intent(inout) :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),     intent(in)    :: stream     !! Main execution CUDA stream
+    real(real32),   target,   intent(inout) :: aux(:)     !! Aux pointer
+    type(async_exec_t),       intent(in)    :: exec_type  !! Type of async execution
+    integer(int32),           intent(out)   :: error_code !! Error code
     integer(int32) :: ierr
 
     ! call nvshmemx_sync_all_on_stream(stream)
     CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
     call MPI_Barrier(self%comm, ierr)
     CUFFT_CALL( "cufftMpExecReshapeAsync", cufftMpExecReshapeAsync(self%plan, c_loc(out), c_loc(in), c_loc(aux), stream) )
+    error_code = DTFFT_SUCCESS
   end subroutine execute
 
   subroutine destroy(self)

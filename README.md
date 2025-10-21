@@ -1,58 +1,111 @@
 # dtFFT - DataTyped Fast Fourier Transform
 
-[![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)]()
+[![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)](https://github.com/ShatrovOA/dtFFT/releases)
 [![Building](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml)
 [![codecov](https://codecov.io/gh/ShatrovOA/dtFFT/graph/badge.svg?token=6BI4AQVH7Z)](https://codecov.io/gh/ShatrovOA/dtFFT)
-[![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)]()
+[![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)](https://github.com/ShatrovOA/dtFFT/blob/main/LICENSE)
 [![Documentation Status](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)
 [![Build and Deploy Documentation](https://github.com/ShatrovOA/dtFFT/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gh-pages.yml)
 
 ![Pencils](docs/images/pencils.png)
 
-``dtFFT`` (DataTyped Fast Fourier Transform) is a high-performance library designed for parallel data transpositions and optional Fast Fourier Transforms (FFTs) in multidimensional computing environments.
+dtFFT is a high-performance library for parallel data transpositions and optional Fast Fourier Transforms (FFTs) in multidimensional computing environments. It minimizes memory overhead in distributed systems by using custom MPI datatypes for CPU clusters and runtime-compiled CUDA kernels for GPU workflows. Supports integration with FFT libraries like FFTW3, MKL, cuFFT, and VkFFT, or transpose-only mode.
 
-Initially developed to perform zero-copy transpositions using custom MPI datatypes on CPU clusters, ``dtFFT`` leverages these efficient data structures to minimize memory overhead in distributed systems. However, as the demand for GPU-accelerated computing grew, it became clear that MPI datatypes were suboptimal for GPU workflows. To address this, a parallel approach was crafted for GPU execution: instead of relying on custom datatypes, ``dtFFT`` compiles CUDA kernels at runtime using ``nvrtc``, tailoring them to the specific plan and data layout.
+Key benefits: Zero-copy transpositions, GPU acceleration, and seamless MPI/CUDA integration for scientific computing.
 
-The library supports MPI for distributed systems and GPU acceleration via CUDA, integrating seamlessly with external FFT libraries such as FFTW3, MKL DFTI, cuFFT, and VkFFT, or operating in transpose-only mode.
-
-Whether you're working on CPU clusters or GPU-enabled nodes, ``dtFFT`` provides a flexible and efficient framework for scientific computing tasks requiring large-scale data transformations.
+dtFFT aims to optimize the cycles of transformations (forward and backward):
+$$
+X \times \dfrac{Y}{P_1} \to Y \times \dfrac{X}{P_1}
+$$
+$$
+X \times \dfrac{Y}{P_1} \times \dfrac{Z}{P_2} \to Y \times \dfrac{Z}{P_2} \times \dfrac{X}{P_1} \to Z \times \dfrac{X}{P_1} \times \dfrac{Y}{P_2}
+$$
+where $X, Y, Z$ are the spatial dimensions of the data, and $P_1, P_2$ are the number of processes in the Y and Z directions, respectively.
 
 ## Features
-- R2C, C2C, and R2R transforms are supported
-- Single and Double precision
-- Fortran, C, and C++ interfaces
-- 2D and 3D transposition plans
-- Slab and Pencil decompositions
-- CUDA support
-- Can be linked with multiple FFT libraries simultaneously or with no library at all. The execution library can be specified during plan creation. Currently supported libraries are:
+- **Transform Types**: R2C, C2C, and R2R transforms
+- **Precision**: Single and double precision support
+- **Interfaces**: Fortran, C, and C++ APIs
+- **Decompositions**: 2D and 3D transposition plans with Slab and Pencil modes
+- **Transpositions**: Custom MPI datatypes enhanced with standard host-based transpositions
+- **GPU Support**: CUDA acceleration with runtime kernel compilation
+- **FFT Libraries**: built-in support:
   - [FFTW3](https://www.fftw.org/)
-  - [MKL](https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-fortran/2024-2/fourier-transform-functions.html)
+  - [MKL DFTI](https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-fortran/2024-2/fourier-transform-functions.html)
   - [cuFFT](https://docs.nvidia.com/cuda/cufft/)
   - [VkFFT](https://github.com/DTolm/VkFFT)
-- The CUDA version supports different backends for data exchange:
-  - MPI
-  - NCCL
-  - cuFFTMp
+- **CUDA Backends**: MPI, NCCL, cuFFTMp for data exchange
+
+## Limitations
+- Memory is assumed to be contiguous. Ghost boundaries are not allowed.
+- OpenMP for multicore parallelism is not supported.
+
+## Requirements
+- C/C++/Fortran compilers (GCC, Intel and NVHPC-SDK are tested)
+- MPI (OpenMPI, MPICH and Intel MPI are tested)
+
+## Installation
+1. Clone the repository: `git clone https://github.com/ShatrovOA/dtFFT.git`
+2. Configure with CMake: `mkdir build && cd build && cmake ..`
+3. Build: `make`
+4. Install: `make install`
+
+For detailed instructions, see the [Building the Library](https://dtfft.readthedocs.io/latest/build.html).
+
+## Quick Start
+```fortran
+use dtfft
+use mpi
+use iso_fortran_env
+type(dtfft_plan_c2c_t) :: plan
+complex(real64), pointer :: real_buffer(:,:)
+complex(real64), pointer :: fourier_buffer(:,:)
+integer(int32) :: in_counts(2), out_counts(2)
+integer(int64) :: alloc_size ! Can be bigger then `product(in_counts)` and `product(out_counts)`
+
+! Create plan
+call plan%create([100, 100], comm=MPI_COMM_WORLD)
+! Get memory requirements
+call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size)
+! Allocate memory
+call plan%mem_alloc(alloc_size, real_buffer, in_counts)
+call plan%mem_alloc(alloc_size, fourier_buffer, out_counts)
+
+! Execute plan
+call plan%execute(real_buffer, fourier_buffer, DTFFT_EXECUTE_FORWARD)
+! Now data is aligned in Y direction
+! Execute backwards
+call plan%execute(fourier_buffer, real_buffer, DTFFT_EXECUTE_BACKWARD)
+! Free all memory
+call plan%mem_free(real_buffer)
+call plan%mem_free(fourier_buffer)
+! Destroy plan
+call plan%destroy()
+```
+**More examples** can be found in the `tests` folder of the repository.
 
 ## Documentation
 
 The documentation consists of two parts:
 
-**User Documentation**:  
+**User Documentation**:
 Available at [dtFFT User Documentation](https://dtfft.readthedocs.io/latest/index.html), this section provides instructions on how to compile and use the library, as well as the public API documentation for C, C++, and Fortran. It is generated using [Sphinx](https://www.sphinx-doc.org/) and hosted on [Read the Docs](https://readthedocs.org/).
 
-**Internal Documentation**:  
+**Internal Documentation**:
 Available at [dtFFT Internal Documentation](https://shatrovoa.github.io/dtFFT/index.html), this section describes the internal structure of the library, including call graphs and detailed implementation insights. It is generated using [FORD](https://forddocs.readthedocs.io/en/latest/index.html).
 
-**Usage examples** can be found in the `tests` folder of the repository.
+## API Reference
+- [C API](https://dtfft.readthedocs.io/latest/api_c.html)
+- [C++ API](https://dtfft.readthedocs.io/latest/api_cxx.html)
+- [Fortran API](https://dtfft.readthedocs.io/latest/api_fortran.html)
 
-## Next Steps
-- Further optimization of CUDA NVRTC kernels
-- Add support for more ``nvshmem``-based backends
+## Roadmap
+- Add nvSHMEM backend support
 - Add HIP support
+- Add zfp compression support
 
-## Contribution
-You can help this project by reporting problems, suggesting improvements, localizing it, or contributing to the code. Go to the [issue tracker](https://github.com/ShatrovOA/dtFFT/issues) and check if your problem or suggestion has already been reported. If not, create a new issue with a descriptive title and detail your suggestion or steps to reproduce the problem.
+## Contributing
+We welcome contributions! Report issues or suggest improvements via the [issue tracker](https://github.com/ShatrovOA/dtFFT/issues). For code contributions, please follow standard GitHub workflows (fork, branch, PR).
 
 ## Licensing
-The source code is licensed under GPL v3. The license is available [here](/LICENSE).
+Licensed under GPL v3. See [LICENSE](LICENSE) for details.

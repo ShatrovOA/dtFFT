@@ -61,6 +61,13 @@ extern "C" {
     return;                                                       \
   endif
 
+#define CHECK_ERROR                                 \
+  if ( ierr /= DTFFT_SUCCESS ) then;                \
+    if ( present( error_code ) ) error_code = ierr; \
+    return;                                         \
+  endif
+
+
 #define CHECK_ERROR_AND_RETURN                      \
   if ( ierr /= DTFFT_SUCCESS ) then;                \
     if ( present( error_code ) ) error_code = ierr; \
@@ -87,6 +94,32 @@ extern "C" {
 #define CHECK_OPTIONAL_CALL( func )                 \
   ierr = func;                                      \
   CHECK_ERROR_AND_RETURN
+
+#define MAKE_EQ_FUN(datatype, name)                         \
+  pure elemental function name(left, right) result(res);    \
+    type(datatype), intent(in) :: left;                     \
+    type(datatype), intent(in) :: right;                    \
+    logical :: res;                                         \
+    res = left%val == right%val;                            \
+  end function name
+
+#define MAKE_NE_FUN(datatype, name)                         \
+  pure elemental function name(left, right) result(res);    \
+    type(datatype), intent(in) :: left;                     \
+    type(datatype), intent(in) :: right;                    \
+    logical :: res;                                         \
+    res = left%val /= right%val;                            \
+  end function name
+
+#define MAKE_VALID_FUN(type, name, valid_values)            \
+  pure elemental function name(param) result(res);          \
+    type, intent(in)  :: param;                             \
+    logical :: res;                                         \
+    res = any(param == valid_values);                       \
+  end function name
+
+#define MAKE_VALID_FUN_DTYPE(datatype, name, valid_values)  \
+  MAKE_VALID_FUN(type(datatype), name, valid_values)
 
 #ifdef __cplusplus
 }

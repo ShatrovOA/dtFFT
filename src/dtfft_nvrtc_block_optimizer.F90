@@ -17,8 +17,10 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_nvrtc_block_optimizer
+!! Module that provides functionality to analytically optimize CUDA kernel configurations
 use iso_fortran_env
-use dtfft_config
+use dtfft_abstract_kernel
+use dtfft_config,         only: get_conf_log_enabled
 use dtfft_interface_cuda, only: dim3
 use dtfft_interface_cuda_runtime
 use dtfft_parameters
@@ -47,9 +49,11 @@ public :: sort_candidates_by_score
     !! Maximum number of candidates to generate
 
   type, public :: kernel_config
-  !! Configuration for the kernel launch
-    type(dim3)      :: blocks     !! Number of blocks in the grid
-    type(dim3)      :: threads    !! Number of threads per block
+  !! Configuration for the potential kernel
+    ! type(dim3)      :: blocks     !! Number of blocks in the grid
+    ! type(dim3)      :: threads    !! Number of threads per block
+    integer(int32)  :: tile_size  !! Tile size (number of columns)
+    integer(int32)  :: block_rows !! Block rows
     integer(int32)  :: padding    !! Padding added to the tile
   end type kernel_config
 
@@ -57,7 +61,7 @@ contains
 
   function get_ampere_architecture() result(props)
   !! Ampere architecture (Compute Capability 8.0)
-    type(device_props) :: props
+    type(device_props) :: props !! Ampere architecture properties
 
     props%sm_count                   = 108
     props%max_threads_per_sm         = 2048
@@ -72,7 +76,7 @@ contains
 
   function get_volta_architecture() result(props)
   !! Volta architecture (Compute Capability 7.0)
-    type(device_props) :: props
+    type(device_props) :: props !! Volta architecture properties
 
     props%sm_count                   = 80
     props%max_threads_per_sm         = 2048
@@ -206,14 +210,14 @@ contains
     integer(int32) :: actual_conflicts      !! Actual number of bank conflicts for given configuration
     integer(int32) :: worst_case_conflicts  !! Worst-case number of bank conflicts for given configuration
 
-    actual_conflicts = count_bank_conflicts(config%threads%x, config%threads%y, base_storage, config%padding)
+    actual_conflicts = count_bank_conflicts(config%tile_size, config%block_rows, base_storage, config%padding)
     if (actual_conflicts == MAX_INT32) then
       ! Invalid configuration, return immediately
       ratio = 1.0
       return
     end if
     ! Worst case is using same configuration but without padding
-    worst_case_conflicts = count_bank_conflicts(config%threads%x, config%threads%y, base_storage, 0)
+    worst_case_conflicts = count_bank_conflicts(config%tile_size, config%block_rows, base_storage, 0)
 
     ! Worst case can also have no conflicts
     if (worst_case_conflicts > 0) then
@@ -237,7 +241,7 @@ contains
     integer(int64) :: shared_mem_per_block      !! Shared memory per block
 
     ! Limits by number of threads in multiprocessor
-    threads_per_block = config%threads%x * config%threads%y
+    threads_per_block = config%tile_size * config%block_rows
     if (threads_per_block > 0) then
       max_blocks_by_threads = props%max_threads_per_sm / threads_per_block
     else
@@ -245,7 +249,7 @@ contains
     end if
 
     ! Limits by shared memory in multiprocessor
-    shared_mem_per_block = config%threads%x * (config%threads%x + config%padding) * base_storage
+    shared_mem_per_block = config%tile_size * (config%tile_size + config%padding) * base_storage
     if (shared_mem_per_block > 0) then
       max_blocks_by_shared_mem = int(props%shared_mem_per_sm / shared_mem_per_block, int32)
     else
@@ -344,12 +348,15 @@ contains
     pressure = max(0.0, min(1.0, pressure))
   end function estimate_memory_pressure
 
-  function estimate_coalescing(dims, transpose_type, config, base_storage) result(score)
+  function estimate_coalescing(dims, tile_dim, other_dim, kernel_type, config, base_storage, neighbor_data) result(score)
   !! Estimate memory coalescing efficiency for a given kernel configuration and transpose type
     integer(int32),           intent(in)  :: dims(:)        !! Local dimensions of the input data
-    type(dtfft_transpose_t),  intent(in)  :: transpose_type !! Type of transpose operation
+    integer(int32),           intent(in)  :: tile_dim       !! Tile dimension
+    integer(int32),           intent(in)  :: other_dim      !! Other dimension (not tiled)
+    type(kernel_type_t),      intent(in)  :: kernel_type    !! Type of kernel
     type(kernel_config),      intent(in)  :: config         !! Kernel configuration
     integer(int64),           intent(in)  :: base_storage   !! Number of bytes needed to store single element
+    integer(int32), optional, intent(in)  :: neighbor_data(:) !! Neighboring data dimensions for pipelined kernels
     real(real32)                          :: score          !! Coalescing score
     real(real32)    :: read_efficiency     !! Read efficiency score
     real(real32)    :: write_efficiency    !! Write efficiency score
@@ -363,36 +370,33 @@ contains
     integer(int32)  :: write_stride        !! Stride for writing
     real(real32)    :: cache_efficiency    !! Cache line utilization efficiency
 
-    tile_size = config%threads%x
-    block_rows = config%threads%y
+    tile_size = config%tile_size
+    block_rows = config%block_rows
     threads_per_block = tile_size * block_rows
     nx = dims(1)
-    ny = dims(2)
-    nz = dims(3)
+    ny = dims(tile_dim)
+    nz = dims(other_dim)
 
     ! Analyze memory access patterns based on transpose type
-    select case (transpose_type%val)
-    case (DTFFT_TRANSPOSE_X_TO_Y%val, DTFFT_TRANSPOSE_Y_TO_X%val)
-      ! Read: in[x + y*nx + z*nx*ny]
-      ! Write: out[y + x*ny + z*nx*ny]
-      read_stride = nx
-      write_stride = ny
-    case (DTFFT_TRANSPOSE_Y_TO_Z%val, DTFFT_TRANSPOSE_Z_TO_Y%val)
-      ! Read: in[x + z*nx + y*nx*ny]
-      ! Write: out[y + x*ny*nz + z*nz]
-      read_stride = nx * ny
-      write_stride = nx * nz
-    case (DTFFT_TRANSPOSE_X_TO_Z%val)
-      ! Read: in[x + z*nx + y*nx*ny]
-      ! Write: out[y + x*nz + z*nx*nz]
-      read_stride = nx * ny
-      write_stride = nz
-    case (DTFFT_TRANSPOSE_Z_TO_X%val)
-      ! Read: in[x + y*nx + z*ny*nx]
-      ! Write: out[y + z*ny + x*ny*nz]
+    select case ( kernel_type%val )
+    case ( KERNEL_PERMUTE_FORWARD%val )
       read_stride = nx
       write_stride = ny * nz
-    end select
+    case ( KERNEL_PERMUTE_BACKWARD%val )
+      read_stride = nx * ny
+      write_stride = nz
+    case ( KERNEL_PERMUTE_BACKWARD_START%val )
+      read_stride = nx * ny
+      write_stride = ny * nz
+    case ( KERNEL_PERMUTE_BACKWARD_END_PIPELINED%val )
+      read_stride = neighbor_data(1) * neighbor_data(3)
+      write_stride = nx
+    case ( KERNEL_UNPACK_PIPELINED%val )
+      read_stride = neighbor_data(1)
+      write_stride = nx
+    case default
+      INTERNAL_ERROR("estimate_coalescing: unknown kernel_type")
+    endselect
 
     ! Calculate read efficiency based on memory access pattern
     if (tile_size >= WARP_SIZE) then
@@ -438,24 +442,8 @@ contains
     end if
 
     ! Apply dimension-specific penalties
-    select case (abs(transpose_type%val))
-    case (DTFFT_TRANSPOSE_X_TO_Y%val) ! XY transpose
-      if (min(nx, ny) < 32) then
-        dimension_penalty = 0.85
-      else if (min(nx, ny) < 64) then
-        dimension_penalty = 0.92
-      else
-        dimension_penalty = 1.0
-      end if
-    case (DTFFT_TRANSPOSE_Y_TO_Z%val) ! YZ transpose
-      if (min(ny, nz) < 16) then
-        dimension_penalty = 0.80
-      else if (min(ny, nz) < 32) then
-        dimension_penalty = 0.88
-      else
-        dimension_penalty = 0.95
-      end if
-    case (DTFFT_TRANSPOSE_X_TO_Z%val) ! XZ or ZX transpose
+    select case ( kernel_type%val )
+    case ( KERNEL_PERMUTE_BACKWARD_START%val, KERNEL_PERMUTE_BACKWARD%val )
       if (min(nx, nz) < 16) then
         dimension_penalty = 0.75
       else if (min(nx, nz) < 32) then
@@ -463,7 +451,15 @@ contains
       else
         dimension_penalty = 0.92
       end if
-    end select
+    case default
+      if (min(ny, nz) < 16) then
+        dimension_penalty = 0.80
+      else if (min(ny, nz) < 32) then
+        dimension_penalty = 0.88
+      else
+        dimension_penalty = 0.95
+      end if
+    endselect
 
     write_efficiency = write_efficiency * dimension_penalty
 
@@ -502,7 +498,7 @@ contains
     integer(int32),           intent(in)  :: tile_dim       !! Tile dimension
     integer(int32),           intent(in)  :: other_dim      !! Other dimension (not tiled)
     integer(int64),           intent(in)  :: base_storage   !! Number of bytes needed to store single element
-    type(device_props),       intent(in)  :: props           !! GPU architecture properties
+    type(device_props),       intent(in)  :: props          !! GPU architecture properties
     type(kernel_config),      intent(out) :: candidates(:)  !! Generated kernel configurations
     integer(int32),           intent(out) :: num_candidates !! Number of generated candidates
     integer(int32)  :: nx                 !! Local dimension X
@@ -606,17 +602,19 @@ contains
         ! Checking if candidate was added before
         is_found = .false.
         do k = 1, num_candidates
-          if ( candidates(k)%threads%x == tile_size .and. candidates(k)%threads%y == block_rows ) is_found = .true.
+          if ( candidates(k)%tile_size == tile_size .and. candidates(k)%block_rows == block_rows ) is_found = .true.
         enddo
         if ( is_found ) cycle
         WRITE_DEBUG("Adding candidate for consideration: "//to_str(tile_size)//"x"//to_str(block_rows)//", padding = "//to_str(padding))
         num_candidates = num_candidates + 1
-        candidates(num_candidates)%threads%x = tile_size
-        candidates(num_candidates)%threads%y = block_rows
-        candidates(num_candidates)%threads%z = 1
-        candidates(num_candidates)%blocks%x = (nx + tile_size - 1) / tile_size
-        candidates(num_candidates)%blocks%y = (ny + tile_size - 1) / tile_size
-        candidates(num_candidates)%blocks%z = dims(other_dim)
+        candidates(num_candidates)%tile_size = tile_size
+        candidates(num_candidates)%block_rows = block_rows
+        ! candidates(num_candidates)%threads%x = tile_size
+        ! candidates(num_candidates)%threads%y = block_rows
+        ! candidates(num_candidates)%threads%z = 1
+        ! candidates(num_candidates)%blocks%x = (nx + tile_size - 1) / tile_size
+        ! candidates(num_candidates)%blocks%y = (ny + tile_size - 1) / tile_size
+        ! candidates(num_candidates)%blocks%z = dims(other_dim)
         candidates(num_candidates)%padding = padding
       end do
       if (num_candidates > size(candidates)) exit
@@ -647,14 +645,17 @@ contains
     base_rows = best_rows
   end subroutine
 
-  function evaluate_analytical_performance(dims, transpose_type, config, props, base_storage) result(score)
+  function evaluate_analytical_performance(dims, tile_dim, other_dim, kernel_type, config, props, base_storage, neighbor_data) result(score)
   !! This function evaluates the performance of a kernel configuration
   !! based on various architectural and problem-specific parameters.
     integer(int32),           intent(in)  :: dims(:)        !! Problem dimensions
-    type(dtfft_transpose_t),  intent(in)  :: transpose_type !! Type of transposition to perform
+    integer(int32),           intent(in)  :: tile_dim       !! Tile dimension
+    integer(int32),           intent(in)  :: other_dim      !! Other dimension (not tiled)
+    type(kernel_type_t),      intent(in)  :: kernel_type    !! Type of kernel_type to evaluate
     type(kernel_config),      intent(in)  :: config         !! Kernel configuration
-    type(device_props),       intent(in)  :: props           !! GPU architecture properties
+    type(device_props),       intent(in)  :: props          !! GPU architecture properties
     integer(int64),           intent(in)  :: base_storage   !! Number of bytes needed to store single element
+    integer(int32), optional, intent(in)  :: neighbor_data(:) !! Neighboring data dimensions for pipelined kernels
     real(real32)                          :: score          !! Performance score
     integer(int32)  :: n_bank_conflicts             !! Number of bank conflicts
     integer(int32)  :: tile_size                    !! Tile size
@@ -662,16 +663,15 @@ contains
     real(real32)    :: occupancy_score              !! Occupancy score
     real(real32)    :: memory_access_score          !! Memory access score
     real(real32)    :: computation_efficiency_score !! Computation efficiency score
-    real(real32)    :: workload_balance_score       !! Workload balance score
     real(real32)    :: occupancy                    !! Raw occupancy score
     real(real32)    :: coalescing_efficiency        !! Coalescing efficiency score
     real(real32)    :: bank_conflict_ratio          !! Bank conflict ratio
-    real(real32)    :: x_waste                      !! X waste
-    real(real32)    :: y_waste                      !! Y waste
-    real(real32)    :: total_efficiency             !! Total efficiency
+    ! real(real32)    :: x_waste                      !! X waste
+    ! real(real32)    :: y_waste                      !! Y waste
+    ! real(real32)    :: total_efficiency             !! Total efficiency
 
-    tile_size = config%threads%x
-    block_rows = config%threads%y
+    tile_size = config%tile_size
+    block_rows = config%block_rows
 
     occupancy = estimate_occupancy(config, props, base_storage)
     if (occupancy >= 0.5 .and. occupancy <= 0.75) then
@@ -684,7 +684,7 @@ contains
       occupancy_score = 0.3
     end if
 
-    coalescing_efficiency = estimate_coalescing(dims, transpose_type, config, base_storage)
+    coalescing_efficiency = estimate_coalescing(dims, tile_dim, other_dim, kernel_type, config, base_storage, neighbor_data)
     bank_conflict_ratio = estimate_bank_conflict_ratio(config, base_storage)
     memory_access_score = 0.4 * coalescing_efficiency + 0.6 * (1.0 - bank_conflict_ratio)
 
@@ -698,27 +698,27 @@ contains
       computation_efficiency_score = 0.7
     end if
 
-    x_waste = real(config%blocks%x * tile_size - dims(1)) / real(config%blocks%x * tile_size)
-    y_waste = real(config%blocks%y * tile_size - dims(2)) / real(config%blocks%y * tile_size)
+    ! x_waste = real(config%blocks%x * tile_size - dims(1)) / real(config%blocks%x * tile_size)
+    ! y_waste = real(config%blocks%y * tile_size - dims(2)) / real(config%blocks%y * tile_size)
 
-    total_efficiency = (1.0 - x_waste) * (1.0 - y_waste)
+    ! total_efficiency = (1.0 - x_waste) * (1.0 - y_waste)
 
-    if (total_efficiency >= 0.95) then
-      workload_balance_score = 1.0
-    else if (total_efficiency >= 0.85) then
-      workload_balance_score = 0.9 + 0.1 * (total_efficiency - 0.85) / 0.10
-    else if (total_efficiency >= 0.75) then
-      workload_balance_score = 0.8 + 0.1 * (total_efficiency - 0.75) / 0.10
-    else if (total_efficiency >= 0.50) then
-      workload_balance_score = 0.6 + 0.2 * (total_efficiency - 0.50) / 0.25
-    else
-      workload_balance_score = 0.3 + 0.3 * total_efficiency / 0.50
-    end if
+    ! if (total_efficiency >= 0.95) then
+    !   workload_balance_score = 1.0
+    ! else if (total_efficiency >= 0.85) then
+    !   workload_balance_score = 0.9 + 0.1 * (total_efficiency - 0.85) / 0.10
+    ! else if (total_efficiency >= 0.75) then
+    !   workload_balance_score = 0.8 + 0.1 * (total_efficiency - 0.75) / 0.10
+    ! else if (total_efficiency >= 0.50) then
+    !   workload_balance_score = 0.6 + 0.2 * (total_efficiency - 0.50) / 0.25
+    ! else
+    !   workload_balance_score = 0.3 + 0.3 * total_efficiency / 0.50
+    ! end if
 
     score = 0.35 * occupancy_score                &
-          + 0.45 * memory_access_score            &
-          + 0.10 * computation_efficiency_score   &
-          + 0.10 * workload_balance_score
+          + 0.55 * memory_access_score            &
+          + 0.10 * computation_efficiency_score
+          ! + 0.10 * workload_balance_score
 
     score = max(0.0, min(1.0, score))
     n_bank_conflicts = count_bank_conflicts(tile_size, block_rows, base_storage, config%padding)

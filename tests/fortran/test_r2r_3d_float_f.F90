@@ -71,6 +71,11 @@ implicit none
   call attach_gpu_to_process()
 
   call dtfft_create_config(conf)
+  ! Using inplace transforms without FFTs
+  ! Making sure that Z-slab and Y-slab optimizations are off
+  ! Otherwise errors will occur
+  conf%enable_z_slab = .false.
+  conf%enable_y_slab = .false.
 
 #if defined(DTFFT_WITH_CUDA)
   block

@@ -82,15 +82,20 @@ int main(int argc, char *argv[])
 
   attach_gpu_to_process();
 
-#if defined(DTFFT_WITH_CUDA)
   dtfft_config_t conf;
   DTFFT_CALL( dtfft_create_config(&conf) )
+  conf.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
+  conf.enable_z_slab = false;
+  conf.enable_y_slab = false;
+
+#if defined(DTFFT_WITH_CUDA)
   conf.platform = DTFFT_PLATFORM_CUDA;
   // We want to use managed memory here.
   // Disabling symmetric heap possibilities.
   conf.enable_nvshmem_backends = false;
-  DTFFT_CALL( dtfft_set_config(&conf) )
 #endif
+
+  DTFFT_CALL( dtfft_set_config(&conf) )
 
   dtfft_pencil_t pencil;
   pencil.ndims = 3;
@@ -108,7 +113,14 @@ int main(int argc, char *argv[])
   const int32_t *dims;
   DTFFT_CALL( dtfft_get_dims(plan, &ndims, &dims) )
   if ( ndims != 3 || dims[0] != nz || dims[1] != ny || dims[2] != nx ) {
-    fprintf(stderr, "Plan created with wrong dimensions: ndims = %d: %d, %d, %d.\n", ndims, dims[0], dims[1], dims[2]);
+    fprintf(stderr, "Plan created with wrong dimensions: ndims = %d: %dx%dx%d.\n", ndims, dims[0], dims[1], dims[2]);
+    MPI_Abort(MPI_COMM_WORLD, -1);
+  }
+
+  const int *grid_dims;
+  DTFFT_CALL( dtfft_get_grid_dims(plan, NULL, &grid_dims) )
+  if ( grid_dims[0] != 1 || grid_dims[1] != 1 || grid_dims[2] != 2 ) {
+    fprintf(stderr, "Plan created with wrong grid dimensions: %dx%dx%d.\n", grid_dims[0], grid_dims[1], grid_dims[2]);
     MPI_Abort(MPI_COMM_WORLD, -1);
   }
 
