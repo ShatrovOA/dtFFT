@@ -77,6 +77,7 @@ if(DTFFT_BUILD_SHARED)
 else()
   add_library(dtfft STATIC)
 endif()
+set_target_properties(dtfft PROPERTIES LINKER_LANGUAGE Fortran)
 
 include(CheckMPIFeatures)
 
