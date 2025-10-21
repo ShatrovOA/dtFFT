@@ -264,7 +264,7 @@ contains
         ! print*,'MPI_Waitsome: ',self%recv%n_requests,self%recv%requests
         call MPI_Waitsome(self%recv%n_requests, self%recv%requests, n_completed, indices, MPI_STATUSES_IGNORE, mpi_ierr)
         ! print*,statuses(1)%mpi_error
-        ! print*,'n_completed = ',n_completed,' indices = ',indices(1:n_completed)
+        print*,'n_completed = ',n_completed,' indices = ',indices(1:n_completed)
         do i = 1, n_completed
           call self%unpack_kernel%execute(aux, out, stream, self%recv%process_map(indices(i)) + 1)
         enddo

@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.3% of total for procedures.">44 statements</a>
+                 title=" 0.2% of total for procedures.">27 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_executor_cufft_m.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_handle_datatype.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_cufft_m.f90.html'>dtfft_executor_cufft_m.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_executor_cufft_m.html'>dtfft_executor_cufft_m</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_datatype.f90.html'>dtfft_transpose_handle_datatype.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_datatype.html'>dtfft_transpose_handle_datatype</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -129,27 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute(self, a, b, sign)  
+    <h2>private  subroutine execute(self, in, out, kwargs, error_code)  
 </h2>
-        <div class="card mb-4">
-      <h3 class="card-header card-title bg-light">Uses</h3>
-      <div class="card-body">
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <ul class="list-inline">
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
-              </ul>
-            </li>
-        </ul>
-      </div>
-    </div>
+    
 
-
-    <p>Executes cuFFT plan</p>
+    <p>Executes transposition</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/cufft_executor.html'>cufft_executor</a></p>
+    <p><a href='../type/transpose_handle_datatype.html'>transpose_handle_datatype</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -164,62 +151,77 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~15"></span>
-              class(<a href='../type/cufft_executor.html'>cufft_executor</a>),
+              <span class="anchor" id="variable-self~93"></span>
+              class(<a href='../type/transpose_handle_datatype.html'>transpose_handle_datatype</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>cuFFT FFT Executor</p>
+                <p>Transpose handle</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-a"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-in~43"></span>
+              real(kind=real32),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>a</strong></td>
+            <td><strong>in</strong>(:)</td>
             <td>
-                <p>Source pointer</p>
+                <p>Send pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-b"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-out~43"></span>
+              real(kind=real32),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>b</strong></td>
+            <td><strong>out</strong>(:)</td>
             <td>
-                <p>Target pointer</p>
+                <p>Recv pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-sign"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-kwargs~4"></span>
+              type(<a href='../type/execute_args.html'>execute_args</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>sign</strong></td>
+            <td><strong>kwargs</strong></td>
             <td>
-                <p>Sign of transform</p>
+                <p>Additional arguments</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~74"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Result of execution</p>
             </td>
         </tr>
     </tbody>
