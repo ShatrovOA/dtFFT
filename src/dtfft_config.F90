@@ -525,24 +525,6 @@ contains
     is_mpi_enabled = config%enable_mpi_backends
     is_pipelined_enabled = config%enable_pipelined_backends
 
-    if ( config%backend /= BACKEND_NOT_SET .and. .not.is_valid_backend(config%backend)) then
-      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_BACKEND
-      return
-    endif
-    if ( config%backend == BACKEND_NOT_SET ) then
-#ifdef DTFFT_WITH_CUDA
-# ifdef DTFFT_WITH_NCCL
-      backend = DTFFT_BACKEND_NCCL
-# else
-      backend = DTFFT_BACKEND_MPI_P2P
-# endif
-#else
-      backend = DTFFT_BACKEND_MPI_DATATYPE
-#endif
-    else
-      backend = config%backend
-    endif
-
 #ifdef DTFFT_WITH_CUDA
     if ( .not.is_null_ptr(config%stream%stream) ) then
       block
@@ -573,24 +555,37 @@ contains
       is_kernel_optimization_enabled = .false.
     endif
 #endif
+
+    if ( config%backend /= BACKEND_NOT_SET .and. .not.is_valid_backend(config%backend)) then
+      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_BACKEND
+      return
+    endif
+    backend = get_correct_backend(config%backend)
+
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine dtfft_set_config
 
-  elemental type(dtfft_backend_t) function get_default_backend() result(default_backend)
-    if( backend == BACKEND_NOT_SET ) then
+  elemental type(dtfft_backend_t) function get_correct_backend(back)
+    type(dtfft_backend_t), intent(in) :: back
+
+    if ( back == BACKEND_NOT_SET ) then
 #ifdef DTFFT_WITH_CUDA
+      if ( get_conf_platform() == DTFFT_PLATFORM_CUDA ) then
 # ifdef DTFFT_WITH_NCCL
-      default_backend = DTFFT_BACKEND_NCCL
+        get_correct_backend = DTFFT_BACKEND_NCCL
 # else
-      default_backend = DTFFT_BACKEND_MPI_P2P
+        get_correct_backend = DTFFT_BACKEND_MPI_P2P
 # endif
+      else
+        get_correct_backend = DTFFT_BACKEND_MPI_DATATYPE
+      endif
 #else
-      default_backend = DTFFT_BACKEND_MPI_DATATYPE
+      get_correct_backend = DTFFT_BACKEND_MPI_DATATYPE
 #endif
     else
-      default_backend = backend
+      get_correct_backend = back
     endif
-end function get_default_backend
+  end function get_correct_backend
 
   elemental logical function get_conf_internal_logical(from_conf, from_env)
   !! Returns value from configuration unless environment variable is set
@@ -669,7 +664,7 @@ end function get_default_backend
 
   elemental type(dtfft_backend_t) function get_conf_backend()
   !! Returns backend set by the user or default one
-    get_conf_backend = get_default_backend()
+    get_conf_backend = get_correct_backend(backend)
     if ( backend_from_env /= BACKEND_NOT_SET) get_conf_backend = backend_from_env
   end function get_conf_backend
 

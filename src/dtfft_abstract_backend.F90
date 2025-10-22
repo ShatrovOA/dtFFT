@@ -197,9 +197,11 @@ contains
       self%send_floats(self%comm_rank) = 0
       self%recv_floats(self%comm_rank) = 0
 #ifdef DTFFT_WITH_CUDA
-      CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%execution_event, cudaEventDisableTiming) )
-      CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%copy_event, cudaEventDisableTiming) )
-      CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(self%copy_stream) )
+      if ( platform == DTFFT_PLATFORM_CUDA ) then
+        CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%execution_event, cudaEventDisableTiming) )
+        CUDA_CALL( "cudaEventCreateWithFlags", cudaEventCreateWithFlags(self%copy_event, cudaEventDisableTiming) )
+        CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(self%copy_stream) )
+      endif
 #endif
     endif
 
