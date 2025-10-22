@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         run: |
+          cat /usr/lib/x86_64-linux-gnu/openmpi/include/mpi.h
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_RUNNING_CICD=on \
@@ -34,8 +35,8 @@ jobs:
             -DDTFFT_BUILD_C_CXX_API=on
           cmake --build build
       - name: Test
-        # run: cmake --build build --target coverage
-        run: ctest --test-dir build --output-on-failure
+        run: cmake --build build --target coverage
+        # run: ctest --test-dir build --output-on-failure
       - name: Install
         run: sudo cmake --install build
       # - name: Test install

@@ -108,6 +108,7 @@ endif()
 
 
 check_ompi_fix_required(${MPI_C_INCLUDE_DIRS})
+message(STATUS "MPI_C_INCLUDE_DIRS = ${MPI_C_INCLUDE_DIRS}")
 
 if ( OMPI_FIX_REQUIRED )
   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:OMPI_FIX_REQUIRED>)

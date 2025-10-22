@@ -76,10 +76,14 @@ function(check_ompi_fix_required MPI_INCLUDES)
       }
     ")
   try_run(OMPI_LESS_5 compile_result ${PROJECT_BINARY_DIR} ${file}
-          CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MPI_INCLUDES}")
+          CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MPI_INCLUDES}"
+          COMPILE_OUTPUT_VARIABLE compile_output
+          RUN_OUTPUT_VARIABLE run_output)
   if(NOT compile_result)
+    message(STATUS "COMPILE_OUTPUT_VARIABLE = ${compile_output}")
     SET(OMPI_FIX_REQUIRED FALSE PARENT_SCOPE)
   else()
+    message(STATUS "RUN_OUTPUT_VARIABLE = ${run_output}")
     if (OMPI_LESS_5)
       SET(OMPI_FIX_REQUIRED TRUE PARENT_SCOPE)
     else()

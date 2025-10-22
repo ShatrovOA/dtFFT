@@ -14,12 +14,13 @@ dtFFT is a high-performance library for parallel data transpositions and optiona
 Key benefits: Zero-copy transpositions, GPU acceleration, and seamless MPI/CUDA integration for scientific computing.
 
 dtFFT aims to optimize the cycles of transformations (forward and backward):
-$$
+
+```math
 X \times \dfrac{Y}{P_1} \to Y \times \dfrac{X}{P_1}
-$$
-$$
+```
+```math
 X \times \dfrac{Y}{P_1} \times \dfrac{Z}{P_2} \to Y \times \dfrac{Z}{P_2} \times \dfrac{X}{P_1} \to Z \times \dfrac{X}{P_1} \times \dfrac{Y}{P_2}
-$$
+```
 where $X, Y, Z$ are the spatial dimensions of the data, and $P_1, P_2$ are the number of processes in the Y and Z directions, respectively.
 
 ## Features

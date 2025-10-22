@@ -39,9 +39,11 @@ implicit none
   real(real64) :: tf, tb
   type(dtfft_executor_t) :: executor
   integer(int32) :: ierr
+  type(dtfft_config_t) :: conf
 #if defined(DTFFT_WITH_CUDA)
   type(dtfft_backend_t) :: backend
   type(dtfft_platform_t) :: platform
+  logical :: is_cuda_platform
 #endif
 
   call MPI_Init(ierr)
@@ -72,7 +74,9 @@ implicit none
 
     call get_environment_variable("DTFFT_PLATFORM", platform_env, env_len)
 
+    is_cuda_platform = .false.
     if ( env_len == 0 .or. trim(adjustl(platform_env)) == "cuda" ) then
+      is_cuda_platform = .true.
 # if defined( DTFFT_WITH_CUFFT )
       executor = DTFFT_EXECUTOR_CUFFT
 # elif defined( DTFFT_WITH_VKFFT )
@@ -86,20 +90,22 @@ implicit none
 
   call attach_gpu_to_process()
 
-#if defined(DTFFT_WITH_CUDA)
-  block
-    type(dtfft_config_t) :: conf
+  conf = dtfft_config_t(backend=DTFFT_BACKEND_MPI_P2P)
 
-    conf = dtfft_config_t(platform=DTFFT_PLATFORM_CUDA)
+#if defined(DTFFT_WITH_CUDA)
+    ! Can be redefined by environment variable
+    conf%platform = DTFFT_PLATFORM_CUDA
+
+    if ( is_cuda_platform ) then
 #if defined(DTFFT_WITH_NVSHMEM)
-    backend = DTFFT_BACKEND_CUFFTMP
-#else
-    backend = DTFFT_BACKEND_MPI_P2P
+      conf%backend = DTFFT_BACKEND_CUFFTMP_PIPELINED
+#elif defined(DTFFT_WITH_NCCL)
+      conf%backend = DTFFT_BACKEND_NCCL_PIPELINED
 #endif
-    conf%backend = backend
-    call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
-  endblock
+    endif
 #endif
+
+  call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
   call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_starts=in_starts, in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
