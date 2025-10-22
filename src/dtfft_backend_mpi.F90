@@ -258,9 +258,9 @@ contains
       do while (.true.)
         ! Testing that all data has been recieved so we can unpack it
         ! print*,'MPI_Waitsome: ',self%recv%n_requests,self%recv%requests
+        indices(:) = -33
         call MPI_Waitsome(self%recv%n_requests, self%recv%requests, n_completed, indices, MPI_STATUSES_IGNORE, mpi_ierr)
-        print*,'mpi_ierr = ',mpi_ierr
-        print*,'all = ',indices
+        print*,'indices = ',indices
         print*,'n_completed = ',n_completed,' indices = ',indices(1:n_completed)
         do i = 1, n_completed
           call self%unpack_kernel%execute(aux, out, stream, self%recv%process_map(indices(i)) + 1)

@@ -107,8 +107,6 @@ contains
     type(dtfft_r2r_kind_t),             pointer   :: fkinds(:)            !! Fortran R2R kinds
     type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
     type(dtfft_pencil_t)                          :: pencil_              !! Fortran pencil
-    type(dtfft_config_t),               pointer   :: config               !! dtFFT configuration
-
 
     call pencil_c2f(pencil, pencil_, error_code)
     if ( error_code /= DTFFT_SUCCESS ) return
