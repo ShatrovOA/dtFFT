@@ -59,10 +59,12 @@ int main(int argc, char *argv[]) {
   executor = DTFFT_EXECUTOR_FFTW3;
 #endif
 #ifdef DTFFT_WITH_CUDA
+  bool is_cuda_platform = false;
   char* platform_env = getenv("DTFFT_PLATFORM");
 
   if ( platform_env == NULL || strcmp(platform_env, "cuda") == 0 )
   {
+    is_cuda_platform = true;
 # if defined(DTFFT_WITH_VKFFT)
     executor = DTFFT_EXECUTOR_VKFFT;
 # else
@@ -76,11 +78,13 @@ int main(int argc, char *argv[]) {
   config.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
 
 #if defined(DTFFT_WITH_CUDA)
+  if ( is_cuda_platform ) {
 #if defined(DTFFT_WITH_NCCL)
-  config.backend = DTFFT_BACKEND_NCCL_PIPELINED;
+    config.backend = DTFFT_BACKEND_NCCL_PIPELINED;
 #elif defined(DTFFT_WITH_NVSHMEM)
-  config.backend = DTFFT_BACKEND_CUFFTMP;
+    config.backend = DTFFT_BACKEND_CUFFTMP;
 #endif
+  }
   config.platform = DTFFT_PLATFORM_CUDA;
 #endif
 

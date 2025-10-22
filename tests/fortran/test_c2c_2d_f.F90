@@ -95,13 +95,12 @@ implicit none
     type(dtfft_config_t) :: conf
     conf = dtfft_config_t(platform=DTFFT_PLATFORM_CUDA)
 
+    conf%backend = DTFFT_BACKEND_MPI_A2A
     if ( is_cuda_platform ) then
 #ifdef DTFFT_WITH_NCCL
       conf%backend = DTFFT_BACKEND_NCCL
-#else
-      conf%backend = DTFFT_BACKEND_MPI_A2A
 #endif
-    endif
+    end if
     call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
   endblock
 #endif

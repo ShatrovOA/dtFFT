@@ -76,14 +76,6 @@ implicit none
 # else
       executor = DTFFT_EXECUTOR_NONE;
 # endif
-    else
-# if defined(__NVCOMPILER)
-      if ( comm_rank == 0 ) then
-        write(error_unit, "(a)") "This test can only run on a CUDA Device, due to `DEVICE_PTR` specification of pointers"
-      endif
-      call MPI_Finalize(ierr)
-      stop
-#endif
     endif
   endblock
 #endif

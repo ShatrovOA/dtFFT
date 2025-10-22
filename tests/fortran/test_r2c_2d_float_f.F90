@@ -42,6 +42,7 @@ implicit none
   integer(int64) :: alloc_size, element_size, in_size
 #if defined(DTFFT_WITH_CUDA)
   type(dtfft_platform_t) :: platform
+  logical :: is_cuda_platform
 #endif
 
   call MPI_Init(ierr)
@@ -78,7 +79,9 @@ implicit none
 
     call get_environment_variable("DTFFT_PLATFORM", platform_env, env_len)
 
+    is_cuda_platform = .false.
     if ( env_len == 0 .or. trim(adjustl(platform_env)) == "cuda" ) then
+      is_cuda_platform = .true.
 # if defined( DTFFT_WITH_CUFFT )
       executor = DTFFT_EXECUTOR_CUFFT
 # elif defined( DTFFT_WITH_VKFFT )
@@ -100,10 +103,14 @@ implicit none
 #if defined(DTFFT_WITH_CUDA)
   block
     type(dtfft_config_t) :: conf
-    conf = dtfft_config_t(platform=DTFFT_PLATFORM_CUDA, backend=DTFFT_BACKEND_NCCL_PIPELINED)
-#ifndef DTFFT_WITH_NCCL
-    conf%backend = DTFFT_BACKEND_MPI_P2P_PIPELINED
+    conf = dtfft_config_t(platform=DTFFT_PLATFORM_CUDA)
+    if ( is_cuda_platform ) then
+#ifdef DTFFT_WITH_NCCL
+      conf%backend = DTFFT_BACKEND_NCCL_PIPELINED
+#else
+      conf%backend = DTFFT_BACKEND_MPI_P2P_PIPELINED 
 #endif
+    endif
     call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
   endblock
 #endif
