@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.6% of total for procedures.">80 statements</a>
+                 title=" 0.6% of total for procedures.">78 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_nvrtc_module.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_handle_datatype.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_nvrtc_module.f90.html'>dtfft_nvrtc_module.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_nvrtc_module.html'>dtfft_nvrtc_module</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_datatype.f90.html'>dtfft_transpose_handle_datatype.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_datatype.html'>dtfft_transpose_handle_datatype</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,27 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self, ndims, kernel_type, base_storage, configs, props)  
+    <h2>private  subroutine create(self, comm, send, recv, transpose_type, base_storage, kwargs)  
 </h2>
-        <div class="card mb-4">
-      <h3 class="card-header card-title bg-light">Uses</h3>
-      <div class="card-body">
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <ul class="list-inline">
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
-              </ul>
-            </li>
-        </ul>
-      </div>
-    </div>
+    
 
-
-    <p>Creates module with given parameters, compiles nvRTC program and loads it as CUDA module</p>
+    <p>Creates <code>transpose_handle_datatype</code> class</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/nvrtc_module.html'>nvrtc_module</a></p>
+    <p><a href='../type/transpose_handle_datatype.html'>transpose_handle_datatype</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -164,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~48"></span>
-              class(<a href='../type/nvrtc_module.html'>nvrtc_module</a>),
+              <span class="anchor" id="variable-self~108"></span>
+              class(<a href='../type/transpose_handle_datatype.html'>transpose_handle_datatype</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -174,42 +161,72 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>This module</p>
+                <p>Transpose handle</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ndims~9"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-comm~29"></span>
+              type(MPI_Comm),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>ndims</strong></td>
+            <td><strong>comm</strong></td>
             <td>
-                <p>Number of dimensions, used only for forward permutation</p>
+                <p>MPI Communicator</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kernel_type~13"></span>
-              type(<a href='../type/kernel_type_t.html'>kernel_type_t</a>),
+              <span class="anchor" id="variable-send~4"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>kernel_type</strong></td>
+            <td><strong>send</strong></td>
             <td>
-                <p>Type of kernel to build</p>
+                <p>Send pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_storage~18"></span>
+              <span class="anchor" id="variable-recv~4"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+                <p>Recv pencil</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transpose_type~11"></span>
+              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transpose_type</strong></td>
+            <td>
+                <p>Type of transpose to create</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~23"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -219,37 +236,22 @@
             <td>::</td>
             <td><strong>base_storage</strong></td>
             <td>
-                <p>Number of bytes needed to store single element</p>
+                <p>Base storage</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-configs~3"></span>
-              type(<a href='../type/kernel_config.html'>kernel_config</a>),
+              <span class="anchor" id="variable-kwargs~5"></span>
+              type(<a href='../type/create_args.html'>create_args</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>configs</strong>(:)</td>
+            <td><strong>kwargs</strong></td>
             <td>
-                <p>Kernel configurations that this module should be compiled for</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-props~4"></span>
-              type(<a href='../type/device_props.html'>device_props</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>props</strong></td>
-            <td>
-                <p>GPU architecture properties</p>
+                <p>Additional arguments</p>
             </td>
         </tr>
     </tbody>

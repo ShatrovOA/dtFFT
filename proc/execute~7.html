@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">10 statements</a>
+                 title=" 0.1% of total for procedures.">19 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_handle_generic.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_generic.f90.html'>dtfft_transpose_handle_generic.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_generic.html'>dtfft_transpose_handle_generic</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute(self, in, out, sign)  
+    <h2>private  subroutine execute(self, in, out, kwargs, error_code)  
 </h2>
     
 
-    <p>Executes plan</p>
+    <p>Executes transpose - exchange - unpack</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_executor.html'>abstract_executor</a></p>
+    <p><a href='../type/transpose_handle_generic.html'>transpose_handle_generic</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,62 +151,77 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~57"></span>
-              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
+              <span class="anchor" id="variable-self~119"></span>
+              class(<a href='../type/transpose_handle_generic.html'>transpose_handle_generic</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFT Executor</p>
+                <p>Generic Transpose Handle</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~56"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-in~64"></span>
+              real(kind=real32),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>in</strong></td>
+            <td><strong>in</strong>(:)</td>
             <td>
-                <p>Source buffer</p>
+                <p>Send pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~56"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-out~64"></span>
+              real(kind=real32),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>out</strong></td>
+            <td><strong>out</strong>(:)</td>
             <td>
-                <p>Target buffer</p>
+                <p>Recv pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-sign~8"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-kwargs~9"></span>
+              type(<a href='../type/execute_args.html'>execute_args</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>sign</strong></td>
+            <td><strong>kwargs</strong></td>
             <td>
-                <p>Sign of transform</p>
+                <p>Additional arguments</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~105"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Error code</p>
             </td>
         </tr>
     </tbody>

@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.8% of total for procedures.">108 statements</a>
+                 title=" 0.3% of total for procedures.">32 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_kernel_device.F90"> Source File</a>
+              <a href="../src/dtfft_backend_cufftmp.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_kernel_device.f90.html'>dtfft_kernel_device.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_kernel_device.html'>dtfft_kernel_device</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_backend_cufftmp.f90.html'>dtfft_backend_cufftmp.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_backend_cufftmp_m.html'>dtfft_backend_cufftmp_m</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -129,7 +129,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute(self, in, out, stream, neighbor)  
+    <h2>private  subroutine execute(self, in, out, stream, aux, exec_type, error_code)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -146,10 +146,10 @@
     </div>
 
 
-    <p>Executes kernel on stream</p>
+    <p>Executes cuFFTMp GPU Backend</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/kernel_device.html'>kernel_device</a></p>
+    <p><a href='../type/backend_cufftmp.html'>backend_cufftmp</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -164,8 +164,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~29"></span>
-              class(<a href='../type/kernel_device.html'>kernel_device</a>),
+              <span class="anchor" id="variable-self~89"></span>
+              class(<a href='../type/backend_cufftmp.html'>backend_cufftmp</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -174,27 +174,27 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Device kernel class</p>
+                <p>cuFFTMp GPU Backend</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~50"></span>
+              <span class="anchor" id="variable-in~35"></span>
               real(kind=real32),
             </td>
-<td>intent(in),</td>
+<td>intent(inout),</td>
               <td></td>            <td>
               target
             </td>
             <td>::</td>
             <td><strong>in</strong>(:)</td>
             <td>
-                <p>Device pointer</p>
+                <p>Send pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~50"></span>
+              <span class="anchor" id="variable-out~35"></span>
               real(kind=real32),
             </td>
 <td>intent(inout),</td>
@@ -204,12 +204,12 @@
             <td>::</td>
             <td><strong>out</strong>(:)</td>
             <td>
-                <p>Device pointer</p>
+                <p>Recv pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~14"></span>
+              <span class="anchor" id="variable-stream~18"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
@@ -219,22 +219,52 @@
             <td>::</td>
             <td><strong>stream</strong></td>
             <td>
-                <p>Stream to execute on</p>
+                <p>Main execution CUDA stream</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-neighbor~10"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-aux~10"></span>
+              real(kind=real32),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>aux</strong>(:)</td>
+            <td>
+                <p>Aux pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-exec_type~3"></span>
+              type(<a href='../type/async_exec_t.html'>async_exec_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>neighbor</strong></td>
+            <td><strong>exec_type</strong></td>
             <td>
-                <p>Source rank for pipelined unpacking</p>
+                <p>Type of async execution</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~93"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Error code</p>
             </td>
         </tr>
     </tbody>
