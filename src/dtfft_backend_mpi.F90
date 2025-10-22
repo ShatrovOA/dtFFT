@@ -138,6 +138,7 @@ contains
         integer(int32), allocatable :: all_displs(:,:)
 
         self%is_rma = .true.
+        self%win = MPI_WIN_NULL
         allocate( all_displs(0:self%comm_size - 1, 0:self%comm_size - 1) )
         call MPI_Allgather(self%send%displs, self%comm_size, MPI_INTEGER, all_displs, self%comm_size, MPI_INTEGER, self%comm, mpi_err)
         self%send%displs(:) = all_displs(self%comm_rank, :) - 1
@@ -159,9 +160,8 @@ contains
 
 #ifdef DTFFT_WITH_RMA
     if ( self%is_rma ) then
-      ! REGION_BEGIN("MPI_Win_free", 0)
-      call MPI_Win_free(self%win, mpi_ierr)
-      ! REGION_END("MPI_Win_free")
+      if ( self%win /= MPI_WIN_NULL )       &
+        call MPI_Win_free(self%win, mpi_ierr)
     endif
 #endif
     self%is_request_created = .false.
@@ -209,15 +209,11 @@ contains
         call run_mpi_p2p(self%comm, self%send, self%recv, in, out, self%is_request_created)
         ! Waiting for all recv requests to finish
         if ( self%platform == DTFFT_PLATFORM_CUDA  .or. exec_type == EXEC_BLOCKING ) then
-          REGION_BEGIN("MPI_Waitall recv", 0)
           call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, mpi_ierr)
-          REGION_END("MPI_Waitall recv")
         endif
       endif
       if ( self%platform == DTFFT_PLATFORM_CUDA  .or. exec_type == EXEC_BLOCKING ) then
-         REGION_BEGIN("MPI_Waitall send", 0)
         call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
-         REGION_END("MPI_Waitall send")
       else
         self%is_active = .true.
       endif
@@ -225,21 +221,9 @@ contains
     else if ( self%backend == DTFFT_BACKEND_MPI_RMA ) then
       call run_mpi_rma(self%comm, self%send, self%recv, in, out, self%win, self%is_request_created)
       if ( self%platform == DTFFT_PLATFORM_CUDA  .or. exec_type == EXEC_BLOCKING ) then
-        ! REGION_BEGIN("MPI_Win_wait", 0)
-        ! call MPI_Win_wait(self%win, mpi_ierr)
-        ! REGION_END("MPI_Win_wait")
-
-    ! REGION_BEGIN("MPI_Win_complete", 0)
-    ! call MPI_Win_complete(self%win, error_code)
-    ! REGION_END("MPI_Win_complete")
         call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, error_code)
-        REGION_BEGIN("MPI_Win_fence", 0)
         call MPI_Win_fence(0, self%win, error_code)
         REGION_END("MPI_Win_fence")
-
-        ! REGION_BEGIN("MPI_Win_unlock_all", 0)
-        ! call MPI_Win_unlock_all(self%win, mpi_ierr)
-        ! REGION_END("MPI_Win_unlock_all")
       else
         self%is_active = .true.
       endif
@@ -290,9 +274,7 @@ contains
         call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
       endif
       if ( self%is_rma ) then
-        REGION_BEGIN("MPI_Win_fence end", 0)
         call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, error_code)
-        REGION_END("MPI_Win_fence end")
       endif
     endif
   end subroutine execute_mpi
@@ -314,9 +296,7 @@ contains
       call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, error_code)
     endif
     if ( self%is_rma ) then
-      REGION_BEGIN("MPI_Win_fence", 0)
       call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, error_code)
-      REGION_END("MPI_Win_fence")
     endif
     self%is_active = .false.
   end subroutine execute_end_mpi
@@ -436,9 +416,7 @@ contains
       is_created = .true.
     endif
 
-    REGION_BEGIN("MPI_Win_fence start", 0)
     call MPI_Win_fence(MPI_MODE_NOPRECEDE, win, mpi_ierr)
-    REGION_END("MPI_Win_fence start")
 
     recv_request_counter = 0
     do i = 0, comm_size - 1

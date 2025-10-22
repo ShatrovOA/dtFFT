@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.8% of total for procedures.">108 statements</a>
+                 title=" 0.1% of total for procedures.">16 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_kernel_device.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_kernel.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_kernel_device.f90.html'>dtfft_kernel_device.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_kernel_device.html'>dtfft_kernel_device</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_kernel.f90.html'>dtfft_abstract_kernel.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_kernel.html'>dtfft_abstract_kernel</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -131,25 +131,12 @@
     <div class="col-md-9" id='text'>
     <h2>private  subroutine execute(self, in, out, stream, neighbor)  
 </h2>
-        <div class="card mb-4">
-      <h3 class="card-header card-title bg-light">Uses</h3>
-      <div class="card-body">
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <ul class="list-inline">
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
-              </ul>
-            </li>
-        </ul>
-      </div>
-    </div>
+    
 
-
-    <p>Executes kernel on stream</p>
+    <p>Executes kernel</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/kernel_device.html'>kernel_device</a></p>
+    <p><a href='../type/abstract_kernel.html'>abstract_kernel</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -164,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~18"></span>
-              class(<a href='../type/kernel_device.html'>kernel_device</a>),
+              <span class="anchor" id="variable-self~10"></span>
+              class(<a href='../type/abstract_kernel.html'>abstract_kernel</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -174,42 +161,42 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Device kernel class</p>
+                <p>Abstract kernel</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~4"></span>
+              <span class="anchor" id="variable-in~7"></span>
               real(kind=real32),
             </td>
-<td>intent(in),</td>
+<td>intent(in)</td>
               <td></td>            <td>
-              target
+              
             </td>
             <td>::</td>
             <td><strong>in</strong>(:)</td>
             <td>
-                <p>Device pointer</p>
+                <p>Source buffer, can be device or host pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~4"></span>
+              <span class="anchor" id="variable-out~7"></span>
               real(kind=real32),
             </td>
-<td>intent(inout),</td>
+<td>intent(inout)</td>
               <td></td>            <td>
-              target
+              
             </td>
             <td>::</td>
             <td><strong>out</strong>(:)</td>
             <td>
-                <p>Device pointer</p>
+                <p>Target buffer, can be device or host pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~5"></span>
+              <span class="anchor" id="variable-stream~10"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
@@ -219,12 +206,12 @@
             <td>::</td>
             <td><strong>stream</strong></td>
             <td>
-                <p>Stream to execute on</p>
+                <p>Stream to execute on, used only for device pointers</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-neighbor"></span>
+              <span class="anchor" id="variable-neighbor~2"></span>
               integer(kind=int32),
             </td>
 <td>intent(in),</td>
