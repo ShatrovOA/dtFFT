@@ -257,13 +257,14 @@ contains
       allocate( indices(self%recv%n_requests) )
       do while (.true.)
         ! Testing that all data has been recieved so we can unpack it
-        ! print*,'MPI_Waitsome: ',self%recv%n_requests,self%recv%requests
-        indices(:) = -33
         call MPI_Waitsome(self%recv%n_requests, self%recv%requests, n_completed, indices, MPI_STATUSES_IGNORE, mpi_ierr)
-        print*,'indices = ',indices
-        print*,'n_completed = ',n_completed,' indices = ',indices(1:n_completed)
+
         do i = 1, n_completed
+#ifdef MPICH_FIX_REQUIRED
+          call self%unpack_kernel%execute(aux, out, stream, self%recv%process_map(indices(i) + 1) + 1)
+#else
           call self%unpack_kernel%execute(aux, out, stream, self%recv%process_map(indices(i)) + 1)
+#endif
         enddo
         is_complete_comm( indices(1:n_completed) ) = .true.
         ! request_counter = 0
