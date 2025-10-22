@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">12 statements</a>
+                 title=" 0.1% of total for procedures.">16 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_plan.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_kernel.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_kernel.f90.html'>dtfft_abstract_kernel.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_kernel.html'>dtfft_abstract_kernel</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute(self, in, out, execute_type, aux, error_code)  
+    <h2>private  subroutine execute(self, in, out, stream, neighbor)  
 </h2>
     
 
-    <p>Executes plan</p>
+    <p>Executes kernel</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
+    <p><a href='../type/abstract_kernel.html'>abstract_kernel</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~7"></span>
-              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
+              <span class="anchor" id="variable-self~5"></span>
+              class(<a href='../type/abstract_kernel.html'>abstract_kernel</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,84 +161,67 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Abstract plan</p>
+                <p>Abstract kernel</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~7"></span>
-              type(*),
-            </td>
-<td>intent(inout),</td>
-              <td></td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>in</strong>(..)</td>
-            <td>
-                <p>Incoming buffer of any rank and kind</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-out~7"></span>
-              type(*),
-            </td>
-<td>intent(inout),</td>
-              <td></td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>out</strong>(..)</td>
-            <td>
-                <p>Resulting buffer of any rank and kind</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-execute_type"></span>
-              type(<a href='../type/dtfft_execute_t.html'>dtfft_execute_t</a>),
+              <span class="anchor" id="variable-in~18"></span>
+              real(kind=real32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>execute_type</strong></td>
+            <td><strong>in</strong>(:)</td>
             <td>
-                <p>Type of execution.</p>
+                <p>Source buffer, can be device or host pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-aux"></span>
-              type(*),
+              <span class="anchor" id="variable-out~18"></span>
+              real(kind=real32),
             </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
             </td>
             <td>::</td>
-            <td><strong>aux</strong>(..)</td>
+            <td><strong>out</strong>(:)</td>
             <td>
-                <p>Optional auxiliary buffer.
-Size of buffer must be greater than value
-returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.html#boundprocedure-get_local_sizes">get_local_sizes</a> subroutine</p>
+                <p>Target buffer, can be device or host pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~7"></span>
+              <span class="anchor" id="variable-stream~4"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+                <p>Stream to execute on, used only for device pointers</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-neighbor~2"></span>
               integer(kind=int32),
             </td>
-<td>intent(out),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>error_code</strong></td>
+            <td><strong>neighbor</strong></td>
             <td>
-                <p>Optional error code returned to user</p>
+                <p>Source rank for pipelined unpacking</p>
             </td>
         </tr>
     </tbody>
