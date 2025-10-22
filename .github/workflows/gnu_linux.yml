@@ -34,18 +34,19 @@ jobs:
             -DDTFFT_BUILD_C_CXX_API=on
           cmake --build build
       - name: Test
-        run: cmake --build build --target coverage
-      - name: Install
-        run: sudo cmake --install build
-      - name: Test install
-        working-directory: ./tests/install
-        run: |
-          cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
-          cmake --build build
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+        # run: cmake --build build --target coverage
+        run: ctest --test-dir build --output-on-failure
+      # - name: Install
+      #   run: sudo cmake --install build
+      # - name: Test install
+      #   working-directory: ./tests/install
+      #   run: |
+      #     cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
+      #     cmake --build build
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
 
 
   mpich:

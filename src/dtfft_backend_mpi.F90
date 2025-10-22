@@ -184,11 +184,10 @@ contains
     type(async_exec_t),           intent(in)    :: exec_type  !! Type of async execution
     integer(int32),               intent(out)   :: error_code !! Error code
     integer(int32)          :: mpi_ierr             !! MPI error code
-    logical,  allocatable   :: is_complete_comm(:)  !! Testing for request completion
     integer(int32), allocatable :: indices(:)
-    integer(int32)          :: n_completed      !! Request counter
+    integer(int32)          :: total_completed, n_completed      !! Request counter
+    integer(int32)          :: need_completed
     integer(int32)          :: i                    !! Loop index
-    ! type(mpi_status), allocatable :: statuses(:)
 
     error_code = DTFFT_SUCCESS
     if ( self%is_active ) then
@@ -253,11 +252,13 @@ contains
         call run_mpi_rma(self%comm, self%send, self%recv, in, aux, self%win, self%is_request_created)
 #endif
       endif
-      allocate( is_complete_comm(self%recv%n_requests), source=.false. )
       allocate( indices(self%recv%n_requests) )
+      need_completed = self%recv%n_requests
+      total_completed = 0
       do while (.true.)
         ! Testing that all data has been recieved so we can unpack it
         call MPI_Waitsome(self%recv%n_requests, self%recv%requests, n_completed, indices, MPI_STATUSES_IGNORE, mpi_ierr)
+        if ( n_completed == MPI_UNDEFINED .or. need_completed == 0) exit
 
         do i = 1, n_completed
 #ifdef MPICH_FIX_REQUIRED
@@ -266,7 +267,9 @@ contains
           call self%unpack_kernel%execute(aux, out, stream, self%recv%process_map(indices(i)) + 1)
 #endif
         enddo
-        is_complete_comm( indices(1:n_completed) ) = .true.
+        total_completed = total_completed + n_completed
+        if ( total_completed == need_completed ) exit
+
         ! request_counter = 0
         ! do i = 0, self%comm_size - 1
         !   if ( self%recv_floats(i) == 0 ) cycle
@@ -281,9 +284,8 @@ contains
         ! !   call self%unpack_kernel%execute(aux, out, stream, i + 1)
         ! ! endif
         ! enddo
-        if ( all( is_complete_comm ) ) exit
       enddo
-      deallocate( is_complete_comm, indices )
+      deallocate( indices )
       if ( self%send%n_requests > 0 ) then
         call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
       endif
