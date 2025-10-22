@@ -412,6 +412,7 @@ contains
       allocate(recv%process_map(comm_size))
     endif
     if( .not. is_created) then
+      print*,'MPI_Win_create: ',size(in), GET_MPI_VALUE(win)
       call MPI_Win_create(in, int( size(in) * FLOAT_STORAGE_SIZE, MPI_ADDRESS_KIND ), int(FLOAT_STORAGE_SIZE, int32), MPI_INFO_NULL, comm, win, mpi_ierr)
       is_created = .true.
     endif

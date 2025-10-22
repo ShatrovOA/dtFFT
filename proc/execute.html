@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.3% of total for procedures.">32 statements</a>
+                 title=" 0.1% of total for procedures.">19 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_backend_cufftmp.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_handle_generic.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_backend_cufftmp.f90.html'>dtfft_backend_cufftmp.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_backend_cufftmp_m.html'>dtfft_backend_cufftmp_m</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_generic.f90.html'>dtfft_transpose_handle_generic.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_generic.html'>dtfft_transpose_handle_generic</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -129,27 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute(self, in, out, stream, aux, exec_type, error_code)  
+    <h2>private  subroutine execute(self, in, out, kwargs, error_code)  
 </h2>
-        <div class="card mb-4">
-      <h3 class="card-header card-title bg-light">Uses</h3>
-      <div class="card-body">
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <ul class="list-inline">
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
-              </ul>
-            </li>
-        </ul>
-      </div>
-    </div>
+    
 
-
-    <p>Executes cuFFTMp GPU Backend</p>
+    <p>Executes transpose - exchange - unpack</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/backend_cufftmp.html'>backend_cufftmp</a></p>
+    <p><a href='../type/transpose_handle_generic.html'>transpose_handle_generic</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -165,7 +152,7 @@
         <tr>
             <td>
               <span class="anchor" id="variable-self~4"></span>
-              class(<a href='../type/backend_cufftmp.html'>backend_cufftmp</a>),
+              class(<a href='../type/transpose_handle_generic.html'>transpose_handle_generic</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -174,7 +161,7 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>cuFFTMp GPU Backend</p>
+                <p>Generic Transpose Handle</p>
             </td>
         </tr>
         <tr>
@@ -182,9 +169,9 @@
               <span class="anchor" id="variable-in~2"></span>
               real(kind=real32),
             </td>
-<td>intent(inout),</td>
+<td>intent(inout)</td>
               <td></td>            <td>
-              target
+              
             </td>
             <td>::</td>
             <td><strong>in</strong>(:)</td>
@@ -197,9 +184,9 @@
               <span class="anchor" id="variable-out~2"></span>
               real(kind=real32),
             </td>
-<td>intent(inout),</td>
+<td>intent(inout)</td>
               <td></td>            <td>
-              target
+              
             </td>
             <td>::</td>
             <td><strong>out</strong>(:)</td>
@@ -209,47 +196,17 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream"></span>
-              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+              <span class="anchor" id="variable-kwargs~2"></span>
+              type(<a href='../type/execute_args.html'>execute_args</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>stream</strong></td>
+            <td><strong>kwargs</strong></td>
             <td>
-                <p>Main execution CUDA stream</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-aux"></span>
-              real(kind=real32),
-            </td>
-<td>intent(inout),</td>
-              <td></td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>aux</strong>(:)</td>
-            <td>
-                <p>Aux pointer</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-exec_type"></span>
-              type(<a href='../type/async_exec_t.html'>async_exec_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>exec_type</strong></td>
-            <td>
-                <p>Type of async execution</p>
+                <p>Additional arguments</p>
             </td>
         </tr>
         <tr>

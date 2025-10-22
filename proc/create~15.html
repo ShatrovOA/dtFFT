@@ -60,7 +60,7 @@
     <div class="container">
   <div class="row">
     <h1>create
-      <small>Function</small>
+      <small>Subroutine</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.7% of total for procedures.">86 statements</a>
+                 title=" 0.6% of total for procedures.">78 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_handle_datatype.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_datatype.f90.html'>dtfft_transpose_handle_datatype.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_datatype.html'>dtfft_transpose_handle_datatype</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  function create(self, fft_rank, fft_type, precision, real_pencil, complex_pencil, r2r_kinds)  
+    <h2>private  subroutine create(self, comm, send, recv, transpose_type, base_storage, kwargs)  
 </h2>
     
 
-    <p>Creates FFT plan</p>
+    <p>Creates <code>transpose_handle_datatype</code> class</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_executor.html'>abstract_executor</a></p>
+    <p><a href='../type/transpose_handle_datatype.html'>transpose_handle_datatype</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~167"></span>
-              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
+              <span class="anchor" id="variable-self~161"></span>
+              class(<a href='../type/transpose_handle_datatype.html'>transpose_handle_datatype</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,109 +161,102 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFT Executor</p>
+                <p>Transpose handle</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fft_rank~9"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-comm~39"></span>
+              type(MPI_Comm),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>fft_rank</strong></td>
+            <td><strong>comm</strong></td>
             <td>
-                <p>Rank of fft: 1 or 2</p>
+                <p>MPI Communicator</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fft_type~5"></span>
-              integer(kind=int8),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>fft_type</strong></td>
-            <td>
-                <p>Type of fft: r2r, r2c, c2c</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-precision~25"></span>
-              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>precision</strong></td>
-            <td>
-                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-real_pencil~2"></span>
+              <span class="anchor" id="variable-send~7"></span>
               type(<a href='../type/pencil.html'>pencil</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(in)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>real_pencil</strong></td>
+            <td><strong>send</strong></td>
             <td>
-                <p>Real data layout</p>
+                <p>Send pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-complex_pencil"></span>
+              <span class="anchor" id="variable-recv~7"></span>
               type(<a href='../type/pencil.html'>pencil</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(in)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>complex_pencil</strong></td>
+            <td><strong>recv</strong></td>
             <td>
-                <p>Complex data layout</p>
+                <p>Recv pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-r2r_kinds~6"></span>
-              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
+              <span class="anchor" id="variable-transpose_type~13"></span>
+              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(in)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>r2r_kinds</strong>(:)</td>
+            <td><strong>transpose_type</strong></td>
             <td>
-                <p>Kinds of r2r transform</p>
+                <p>Type of transpose to create</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~37"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+                <p>Base storage</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kwargs~6"></span>
+              type(<a href='../type/create_args.html'>create_args</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kwargs</strong></td>
+            <td>
+                <p>Additional arguments</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-create~17"></span>
-          integer(kind=int32)
-        </small>
-      </h3>
-      
     <br>
 
 
