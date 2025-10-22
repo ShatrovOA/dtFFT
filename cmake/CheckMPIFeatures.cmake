@@ -66,12 +66,12 @@ endfunction()
 
 function(check_ompi_fix_required MPI_INCLUDES)
   # Set required includes and libraries for MPI
-  set(file "${PROJECT_BINARY_DIR}/detect_ompi_version.cc")
+  set(file "${PROJECT_BINARY_DIR}/detect_ompi_version.c")
   file(WRITE ${file} "
-      #include <iostream>
+      #include <stdio.h>
       #include <mpi.h>
       int main() {
-        std::cout << OMPI_MAJOR_VERSION << std::endl;
+        printf(\"%d\\n\", OMPI_MAJOR_VERSION);
         return OMPI_MAJOR_VERSION < 5 ? 1 : 0;
       }
     ")
@@ -91,3 +91,33 @@ function(check_ompi_fix_required MPI_INCLUDES)
     endif()
   endif()
 endfunction(check_ompi_fix_required)
+
+function(check_mpich_fix_required MPI_INCLUDES)
+  # Set required includes and libraries for MPI
+  set(file "${PROJECT_BINARY_DIR}/detect_mpich_version.c")
+  file(WRITE ${file} "
+      #include <stdio.h>
+      #include <mpi.h>
+      int main() {
+        const int correct_version = MPICH_CALC_VERSION(4, 1, 0, 0, 0);
+        printf(\"Valid version = %d\\n\", correct_version);
+        printf(\"Current version = %d\\n\", MPICH_NUMVERSION);
+        return correct_version >= MPICH_NUMVERSION ? 1 : 0;
+      }
+    ")
+  try_run(MPICH_LESS_41 compile_result ${PROJECT_BINARY_DIR} ${file}
+          CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MPI_INCLUDES}"
+          COMPILE_OUTPUT_VARIABLE compile_output
+          RUN_OUTPUT_VARIABLE run_output)
+  if(NOT compile_result)
+    message(STATUS "COMPILE_OUTPUT_VARIABLE = ${compile_output}")
+    SET(MPICH_FIX_REQUIRED FALSE PARENT_SCOPE)
+  else()
+    message(STATUS "RUN_OUTPUT_VARIABLE = ${run_output}")
+    if (MPICH_LESS_41)
+      SET(MPICH_FIX_REQUIRED TRUE PARENT_SCOPE)
+    else()
+      SET(MPICH_FIX_REQUIRED FALSE PARENT_SCOPE)
+    endif()
+  endif()
+endfunction(check_mpich_fix_required)

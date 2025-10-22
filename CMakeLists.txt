@@ -108,11 +108,15 @@ endif()
 
 
 check_ompi_fix_required(${MPI_C_INCLUDE_DIRS})
-message(STATUS "MPI_C_INCLUDE_DIRS = ${MPI_C_INCLUDE_DIRS}")
+check_mpich_fix_required(${MPI_C_INCLUDE_DIRS})
 
 if ( OMPI_FIX_REQUIRED )
   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:OMPI_FIX_REQUIRED>)
   message(STATUS "OpenMPI < 5 detected. Applying workaround for Collective non-blocking calls")
+endif()
+if ( MPICH_FIX_REQUIRED AND NOT DTFFT_USE_MPI )
+  target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:MPICH_FIX_REQUIRED>)
+  message(STATUS "MPICH < 4.1 detected. Applying workaround for MPI_Waitsome 0 indexes returned")
 endif()
 
 
