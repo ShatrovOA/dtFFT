@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">10 statements</a>
+                 title=" 0.1% of total for procedures.">16 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_transpose_handle_generic.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_plan.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_generic.f90.html'>dtfft_transpose_handle_generic.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_generic.html'>dtfft_transpose_handle_generic</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_plan.f90.html'>dtfft_transpose_plan.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_plan.html'>dtfft_transpose_plan</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute_end</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute_end(self, kwargs, error_code)  
+    <h2>private  subroutine execute_end(self, in, out, transpose_type, error_code)  
 </h2>
     
 
-    <p>Ends execution of transposition</p>
+    <p>Finishes asynchronous transposition</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/transpose_handle_generic.html'>transpose_handle_generic</a></p>
+    <p><a href='../type/transpose_plan.html'>transpose_plan</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~5"></span>
-              class(<a href='../type/transpose_handle_generic.html'>transpose_handle_generic</a>),
+              <span class="anchor" id="variable-self~29"></span>
+              class(<a href='../type/transpose_plan.html'>transpose_plan</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,27 +161,57 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Generic Transpose Handle</p>
+                <p>Transposition class</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kwargs~3"></span>
-              type(<a href='../type/execute_args.html'>execute_args</a>),
+              <span class="anchor" id="variable-in~28"></span>
+              type(c_ptr),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>kwargs</strong></td>
+            <td><strong>in</strong></td>
             <td>
-                <p>Additional arguments</p>
+                <p>Incoming buffer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~2"></span>
+              <span class="anchor" id="variable-out~28"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+                <p>Resulting buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transpose_type~4"></span>
+              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transpose_type</strong></td>
+            <td>
+                <p>Type of transpose</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~7"></span>
               integer(kind=int32),
             </td>
 <td>intent(out)</td>

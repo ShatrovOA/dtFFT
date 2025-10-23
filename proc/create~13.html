@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.6% of total for procedures.">80 statements</a>
+                 title=" 0.7% of total for procedures.">94 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_nvrtc_module.F90"> Source File</a>
+              <a href="../src/dtfft_executor_fftw_m.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_nvrtc_module.f90.html'>dtfft_nvrtc_module.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_nvrtc_module.html'>dtfft_nvrtc_module</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_fftw_m.f90.html'>dtfft_executor_fftw_m.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,27 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self, ndims, kernel_type, base_storage, configs, props)  
+    <h2>private  subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)  
 </h2>
-        <div class="card mb-4">
-      <h3 class="card-header card-title bg-light">Uses</h3>
-      <div class="card-body">
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <ul class="list-inline">
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
-              </ul>
-            </li>
-        </ul>
-      </div>
-    </div>
+    
 
-
-    <p>Creates module with given parameters, compiles nvRTC program and loads it as CUDA module</p>
+    <p>Creates FFT plan via FFTW3 Interface</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/nvrtc_module.html'>nvrtc_module</a></p>
+    <p><a href='../type/fftw_executor.html'>fftw_executor</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -164,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~78"></span>
-              class(<a href='../type/nvrtc_module.html'>nvrtc_module</a>),
+              <span class="anchor" id="variable-self~145"></span>
+              class(<a href='../type/fftw_executor.html'>fftw_executor</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -174,12 +161,57 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>This module</p>
+                <p>FFTW FFT Executor</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ndims~18"></span>
+              <span class="anchor" id="variable-fft_rank~10"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_rank</strong></td>
+            <td>
+                <p>Rank of fft: 1 or 2</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_type~6"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_type</strong></td>
+            <td>
+                <p>Type of fft: r2r, r2c, c2c</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-precision~20"></span>
+              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>precision</strong></td>
+            <td>
+                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idist~20"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -187,69 +219,114 @@
               
             </td>
             <td>::</td>
-            <td><strong>ndims</strong></td>
+            <td><strong>idist</strong></td>
             <td>
-                <p>Number of dimensions, used only for forward permutation</p>
+                <p>Distance between the first element of two consecutive signals in a batch of the input data.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kernel_type~15"></span>
-              type(<a href='../type/kernel_type_t.html'>kernel_type_t</a>),
+              <span class="anchor" id="variable-odist~20"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>kernel_type</strong></td>
+            <td><strong>odist</strong></td>
             <td>
-                <p>Type of kernel to build</p>
+                <p>Distance between the first element of two consecutive signals in a batch of the output data.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_storage~27"></span>
-              integer(kind=int64),
+              <span class="anchor" id="variable-how_many~8"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>base_storage</strong></td>
+            <td><strong>how_many</strong></td>
             <td>
-                <p>Number of bytes needed to store single element</p>
+                <p>Number of transforms to create</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-configs~3"></span>
-              type(<a href='../type/kernel_config.html'>kernel_config</a>),
+              <span class="anchor" id="variable-fft_sizes~7"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>configs</strong>(:)</td>
+            <td><strong>fft_sizes</strong>(:)</td>
             <td>
-                <p>Kernel configurations that this module should be compiled for</p>
+                <p>Dimensions of transform</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-props~11"></span>
-              type(<a href='../type/device_props.html'>device_props</a>),
+              <span class="anchor" id="variable-inembed~18"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>props</strong></td>
+            <td><strong>inembed</strong>(:)</td>
             <td>
-                <p>GPU architecture properties</p>
+                <p>Storage dimensions of the input data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-onembed~18"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>onembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the output data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~87"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Error code to be returned to user</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r2r_kinds~7"></span>
+              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>r2r_kinds</strong>(:)</td>
+            <td>
+                <p>Kinds of r2r transform</p>
             </td>
         </tr>
     </tbody>

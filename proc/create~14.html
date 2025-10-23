@@ -60,7 +60,7 @@
     <div class="container">
   <div class="row">
     <h1>create
-      <small>Function</small>
+      <small>Subroutine</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.9% of total for procedures.">244 statements</a>
+                 title=" 1.5% of total for procedures.">185 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_transpose_plan.F90"> Source File</a>
+              <a href="../src/dtfft_transpose_handle_generic.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_plan.f90.html'>dtfft_transpose_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_plan.html'>dtfft_transpose_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_handle_generic.f90.html'>dtfft_transpose_handle_generic.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_handle_generic.html'>dtfft_transpose_handle_generic</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  function create(self, platform, dims, base_comm, effort, base_dtype, base_storage, cart_comm, comms, pencils, ipencil) result(error_code)  
+    <h2>private  subroutine create(self, comm, send, recv, transpose_type, base_storage, kwargs)  
 </h2>
     
 
-    <p>Creates transposition plan</p>
+    <p>Creates Generic Transpose Handle</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/transpose_plan.html'>transpose_plan</a></p>
+    <p><a href='../type/transpose_handle_generic.html'>transpose_handle_generic</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~149"></span>
-              class(<a href='../type/transpose_plan.html'>transpose_plan</a>),
+              <span class="anchor" id="variable-self~150"></span>
+              class(<a href='../type/transpose_handle_generic.html'>transpose_handle_generic</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,42 +161,12 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Transposition class</p>
+                <p>Generic Transpose Handle</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~8"></span>
-              type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>platform</strong></td>
-            <td>
-                <p>Platform to create plan for</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-dims~48"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>dims</strong>(:)</td>
-            <td>
-                <p>Global sizes of the transform requested</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-base_comm~2"></span>
+              <span class="anchor" id="variable-comm~32"></span>
               type(MPI_Comm),
             </td>
 <td>intent(in)</td>
@@ -204,44 +174,59 @@
               
             </td>
             <td>::</td>
-            <td><strong>base_comm</strong></td>
+            <td><strong>comm</strong></td>
             <td>
-                <p>Base communicator</p>
+                <p>MPI Communicator</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-effort~23"></span>
-              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
+              <span class="anchor" id="variable-send~10"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>effort</strong></td>
+            <td><strong>send</strong></td>
             <td>
-                <p><code>dtFFT</code> planner type of effort</p>
+                <p>Send pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_dtype~2"></span>
-              type(MPI_Datatype),
+              <span class="anchor" id="variable-recv~10"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>base_dtype</strong></td>
+            <td><strong>recv</strong></td>
             <td>
-                <p>Base MPI_Datatype</p>
+                <p>Recv pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_storage~30"></span>
+              <span class="anchor" id="variable-transpose_type~12"></span>
+              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transpose_type</strong></td>
+            <td>
+                <p>Type of transpose to create</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~42"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -251,79 +236,27 @@
             <td>::</td>
             <td><strong>base_storage</strong></td>
             <td>
-                <p>Number of bytes needed to store single element</p>
+                <p>Base storage</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-cart_comm"></span>
-              type(MPI_Comm),
+              <span class="anchor" id="variable-kwargs~10"></span>
+              type(<a href='../type/create_args.html'>create_args</a>),
             </td>
-<td>intent(out)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>cart_comm</strong></td>
+            <td><strong>kwargs</strong></td>
             <td>
-                <p>Cartesian communicator</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-comms~6"></span>
-              type(MPI_Comm),
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>comms</strong>(:)</td>
-            <td>
-                <p>Array of 1d communicators</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-pencils~5"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>pencils</strong>(:)</td>
-            <td>
-                <p>Data distributing meta</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-ipencil"></span>
-              type(<a href='../type/pencil_init.html'>pencil_init</a>),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>ipencil</strong></td>
-            <td>
-                <p>Pencil passed by user</p>
+                <p>Additional arguments</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-error_code~112"></span>
-          integer(kind=int32)
-        </small>
-      </h3>
-      <p>Error code</p>
     <br>
 
 
