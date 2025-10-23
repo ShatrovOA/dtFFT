@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.4% of total for procedures.">53 statements</a>
+                 title=" 0.5% of total for procedures.">59 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_pencil.F90"> Source File</a>
+              <a href="../src/dtfft_executor_mkl_m.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_pencil.f90.html'>dtfft_pencil.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_pencil.html'>dtfft_pencil</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_mkl_m.f90.html'>dtfft_executor_mkl_m.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_executor_mkl_m.html'>dtfft_executor_mkl_m</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self, rank, aligned_dim, counts, comms, lstarts, lcounts, order)  
+    <h2>private  subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)  
 </h2>
     
 
-    <p>Creates pencil</p>
+    <p>Creates FFT plan via MKL DFTI Interface</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/pencil.html'>pencil</a></p>
+    <p><a href='../type/mkl_executor.html'>mkl_executor</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~163"></span>
-              class(<a href='../type/pencil.html'>pencil</a>),
+              <span class="anchor" id="variable-self~160"></span>
+              class(<a href='../type/mkl_executor.html'>mkl_executor</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,12 +161,12 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Pencil</p>
+                <p>MKL FFT Executor</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rank~17"></span>
+              <span class="anchor" id="variable-fft_rank~10"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -174,14 +174,14 @@
               
             </td>
             <td>::</td>
-            <td><strong>rank</strong></td>
+            <td><strong>fft_rank</strong></td>
             <td>
-                <p>Rank of buffer</p>
+                <p>Rank of fft: 1 or 2</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-aligned_dim~2"></span>
+              <span class="anchor" id="variable-fft_type~6"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -189,14 +189,29 @@
               
             </td>
             <td>::</td>
-            <td><strong>aligned_dim</strong></td>
+            <td><strong>fft_type</strong></td>
             <td>
-                <p>Position of aligned dimension</p>
+                <p>Type of fft: r2r, r2c, c2c</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-counts~9"></span>
+              <span class="anchor" id="variable-precision~26"></span>
+              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>precision</strong></td>
+            <td>
+                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idist~20"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -204,69 +219,114 @@
               
             </td>
             <td>::</td>
-            <td><strong>counts</strong>(:)</td>
+            <td><strong>idist</strong></td>
             <td>
-                <p>Global counts</p>
+                <p>Distance between the first element of two consecutive signals in a batch of the input data.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comms~8"></span>
-              type(MPI_Comm),
+              <span class="anchor" id="variable-odist~20"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>comms</strong>(:)</td>
+            <td><strong>odist</strong></td>
             <td>
-                <p>Grid communicators</p>
+                <p>Distance between the first element of two consecutive signals in a batch of the output data.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-lstarts"></span>
+              <span class="anchor" id="variable-how_many~8"></span>
               integer(kind=int32),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(in)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>lstarts</strong>(:)</td>
+            <td><strong>how_many</strong></td>
             <td>
-                <p>Local starts</p>
+                <p>Number of transforms to create</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-lcounts"></span>
+              <span class="anchor" id="variable-fft_sizes~7"></span>
               integer(kind=int32),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(in)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>lcounts</strong>(:)</td>
+            <td><strong>fft_sizes</strong>(:)</td>
             <td>
-                <p>Local counts</p>
+                <p>Dimensions of transform</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-order~2"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-inembed~18"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the input data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-onembed~18"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>onembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the output data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~121"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Error code to be returned to user</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r2r_kinds~7"></span>
+              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>order</strong>(:)</td>
+            <td><strong>r2r_kinds</strong>(:)</td>
             <td>
-                <p>Order of dimensions</p>
+                <p>Kinds of r2r transform</p>
             </td>
         </tr>
     </tbody>

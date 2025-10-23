@@ -60,7 +60,7 @@
     <div class="container">
   <div class="row">
     <h1>create
-      <small>Function</small>
+      <small>Subroutine</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.7% of total for procedures.">86 statements</a>
+                 title=" 0.2% of total for procedures.">31 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_kernel.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_kernel.f90.html'>dtfft_abstract_kernel.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_kernel.html'>dtfft_abstract_kernel</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  function create(self, fft_rank, fft_type, precision, real_pencil, complex_pencil, r2r_kinds)  
+    <h2>private  subroutine create(self, dims, effort, base_storage, kernel_type, neighbor_data, force_effort)  
 </h2>
     
 
-    <p>Creates FFT plan</p>
+    <p>Creates kernel</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_executor.html'>abstract_executor</a></p>
+    <p><a href='../type/abstract_kernel.html'>abstract_kernel</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~142"></span>
-              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
+              <span class="anchor" id="variable-self~143"></span>
+              class(<a href='../type/abstract_kernel.html'>abstract_kernel</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,109 +161,102 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFT Executor</p>
+                <p>Abstract kernel</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fft_rank~9"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-dims~21"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>fft_rank</strong></td>
+            <td><strong>dims</strong>(:)</td>
             <td>
-                <p>Rank of fft: 1 or 2</p>
+                <p>Local dimensions to process</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fft_type~5"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-effort~23"></span>
+              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>fft_type</strong></td>
+            <td><strong>effort</strong></td>
             <td>
-                <p>Type of fft: r2r, r2c, c2c</p>
+                <p>Effort level for generating transpose kernels</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-precision~19"></span>
-              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
+              <span class="anchor" id="variable-base_storage~23"></span>
+              integer(kind=int64),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>precision</strong></td>
+            <td><strong>base_storage</strong></td>
             <td>
-                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
+                <p>Number of bytes needed to store single element</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-real_pencil~2"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
+              <span class="anchor" id="variable-kernel_type~11"></span>
+              type(<a href='../type/kernel_type_t.html'>kernel_type_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kernel_type</strong></td>
+            <td>
+                <p>Type of kernel to build</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-neighbor_data~3"></span>
+              integer(kind=int32),
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>real_pencil</strong></td>
+            <td><strong>neighbor_data</strong>(:,:)</td>
             <td>
-                <p>Real data layout</p>
+                <p>Optional pointers for unpack kernels</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-complex_pencil"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
+              <span class="anchor" id="variable-force_effort~2"></span>
+              logical,
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>complex_pencil</strong></td>
+            <td><strong>force_effort</strong></td>
             <td>
-                <p>Complex data layout</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-r2r_kinds~6"></span>
-              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>r2r_kinds</strong>(:)</td>
-            <td>
-                <p>Kinds of r2r transform</p>
+                <p>Should effort be forced or not</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-create~14"></span>
-          integer(kind=int32)
-        </small>
-      </h3>
-      
     <br>
 
 

@@ -60,7 +60,7 @@
     <div class="container">
   <div class="row">
     <h1>create
-      <small>Subroutine</small>
+      <small>Function</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">7 statements</a>
+                 title=" 0.7% of total for procedures.">86 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_nvrtc_module_cache.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_nvrtc_module_cache.f90.html'>dtfft_nvrtc_module_cache.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_nvrtc_module_cache.html'>dtfft_nvrtc_module_cache</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self)  
+    <h2>private  function create(self, fft_rank, fft_type, precision, real_pencil, complex_pencil, r2r_kinds)  
 </h2>
     
 
-    <p>Creates cache</p>
+    <p>Creates FFT plan</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/nvrtc_module_cache.html'>nvrtc_module_cache</a></p>
+    <p><a href='../type/abstract_executor.html'>abstract_executor</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,8 +151,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~106"></span>
-              class(<a href='../type/nvrtc_module_cache.html'>nvrtc_module_cache</a>),
+              <span class="anchor" id="variable-self~21"></span>
+              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -161,12 +161,109 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Cache instance</p>
+                <p>FFT Executor</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_rank~4"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_rank</strong></td>
+            <td>
+                <p>Rank of fft: 1 or 2</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_type~4"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_type</strong></td>
+            <td>
+                <p>Type of fft: r2r, r2c, c2c</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-precision~4"></span>
+              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>precision</strong></td>
+            <td>
+                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-real_pencil"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>real_pencil</strong></td>
+            <td>
+                <p>Real data layout</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-complex_pencil"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>complex_pencil</strong></td>
+            <td>
+                <p>Complex data layout</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r2r_kinds~4"></span>
+              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>r2r_kinds</strong>(:)</td>
+            <td>
+                <p>Kinds of r2r transform</p>
             </td>
         </tr>
     </tbody>
   </table>
 
+      <h3>Return Value
+        <small>
+          <span class="anchor" id="variable-create~4"></span>
+          integer(kind=int32)
+        </small>
+      </h3>
+      
     <br>
 
 
