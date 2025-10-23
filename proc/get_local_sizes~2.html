@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.3% of total for procedures.">41 statements</a>
+                 title=" 0.2% of total for procedures.">23 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_plan.F90"> Source File</a>
+              <a href="../src/dtfft_pencil.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_pencil.f90.html'>dtfft_pencil.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_pencil.html'>dtfft_pencil</a></li>
             <li class="breadcrumb-item active" aria-current="page">get_local_sizes</li>
           </ol>
         </nav>
@@ -129,14 +129,12 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine get_local_sizes(self, in_starts, in_counts, out_starts, out_counts, alloc_size, error_code)  
+    <h2>public  subroutine get_local_sizes(pencils, in_starts, in_counts, out_starts, out_counts, alloc_size, is_y_slab)  
 </h2>
     
 
     <p>Obtain local starts and counts in <code>real</code> and <code>fourier</code> spaces</p>
 
-    <h3>Type Bound</h3>
-    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,22 +149,22 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~68"></span>
-              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
+              <span class="anchor" id="variable-pencils~7"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>self</strong></td>
+            <td><strong>pencils</strong>(:)</td>
             <td>
-                <p>Abstract plan</p>
+                <p>Array of pencils</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in_starts~2"></span>
+              <span class="anchor" id="variable-in_starts~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(out),</td>
@@ -176,12 +174,12 @@
             <td>::</td>
             <td><strong>in_starts</strong>(:)</td>
             <td>
-                <p>Starts of local portion of data in <code>real</code> space (0-based)</p>
+                <p>Start indexes in <code>real</code> space (0-based)</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in_counts~2"></span>
+              <span class="anchor" id="variable-in_counts~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(out),</td>
@@ -191,12 +189,12 @@
             <td>::</td>
             <td><strong>in_counts</strong>(:)</td>
             <td>
-                <p>Number of elements of local portion of data in &lsquo;real&rsquo; space</p>
+                <p>Number of elements in <code>real</code> space</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out_starts~2"></span>
+              <span class="anchor" id="variable-out_starts~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(out),</td>
@@ -206,12 +204,12 @@
             <td>::</td>
             <td><strong>out_starts</strong>(:)</td>
             <td>
-                <p>Starts of local portion of data in <code>fourier</code> space (0-based)</p>
+                <p>Start indexes in <code>fourier</code> space (0-based)</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out_counts~2"></span>
+              <span class="anchor" id="variable-out_counts~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(out),</td>
@@ -221,12 +219,12 @@
             <td>::</td>
             <td><strong>out_counts</strong>(:)</td>
             <td>
-                <p>Number of elements of local portion of data in <code>fourier</code> space</p>
+                <p>Number of elements in <code>fourier</code> space</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alloc_size~4"></span>
+              <span class="anchor" id="variable-alloc_size~22"></span>
               integer(kind=int64),
             </td>
 <td>intent(out),</td>
@@ -241,17 +239,17 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~40"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-is_y_slab~2"></span>
+              logical,
             </td>
-<td>intent(out),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>error_code</strong></td>
+            <td><strong>is_y_slab</strong></td>
             <td>
-                <p>Optional error code returned to user</p>
+                <p>Is Y-slab optimization used</p>
             </td>
         </tr>
     </tbody>

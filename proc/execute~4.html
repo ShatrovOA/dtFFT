@@ -70,20 +70,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">10 statements</a>
+                 title=" 0.1% of total for procedures.">12 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
+              <a href="../src/dtfft_plan.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -129,14 +129,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute(self, in, out, sign)  
+    <h2>private  subroutine execute(self, in, out, execute_type, aux, error_code)  
 </h2>
     
 
     <p>Executes plan</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_executor.html'>abstract_executor</a></p>
+    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -151,62 +151,94 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~22"></span>
-              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
+              <span class="anchor" id="variable-self~25"></span>
+              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFT Executor</p>
+                <p>Abstract plan</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~4"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-in~17"></span>
+              type(*),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(..)</td>
+            <td>
+                <p>Incoming buffer of any rank and kind</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~17"></span>
+              type(*),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(..)</td>
+            <td>
+                <p>Resulting buffer of any rank and kind</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-execute_type~2"></span>
+              type(<a href='../type/dtfft_execute_t.html'>dtfft_execute_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>in</strong></td>
+            <td><strong>execute_type</strong></td>
             <td>
-                <p>Source buffer</p>
+                <p>Type of execution.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~4"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-aux~2"></span>
+              type(*),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
             </td>
             <td>::</td>
-            <td><strong>out</strong></td>
+            <td><strong>aux</strong>(..)</td>
             <td>
-                <p>Target buffer</p>
+                <p>Optional auxiliary buffer.
+Size of buffer must be greater than value
+returned by <code>alloc_size</code> parameter of <a href="../type/dtfft_plan_t.html#boundprocedure-get_local_sizes">get_local_sizes</a> subroutine</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-sign~4"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-error_code~39"></span>
+              integer(kind=int32),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>sign</strong></td>
+            <td><strong>error_code</strong></td>
             <td>
-                <p>Sign of transform</p>
+                <p>Optional error code returned to user</p>
             </td>
         </tr>
     </tbody>
