@@ -43,8 +43,10 @@ jobs:
           cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
           cmake --build build
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
+          file: ./build/coverage.info
+          verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
 
