@@ -254,6 +254,7 @@ contains
     integer(int32),               intent(out)   :: error_code !! Error code
 
     error_code = DTFFT_SUCCESS
+    if ( self%is_pipelined ) return
     if ( .not. self%is_active ) then
       error_code = DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE
       return
