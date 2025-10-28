@@ -24,7 +24,7 @@ subroutine FUNC_NAME (executor, buffer, buf_size, scale_value      &
 #if defined(DTFFT_WITH_CUDA)
   if ( dtfft_platform_t(platform) == DTFFT_PLATFORM_CUDA ) then
     call CONCAT(FUNC_NAME,CUDA)(buffer, buf_size, scale_value, stream)
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   else
     call CONCAT(FUNC_NAME,Host)(buffer, buf_size, scale_value)
   endif

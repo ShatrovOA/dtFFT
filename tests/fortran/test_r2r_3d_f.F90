@@ -138,7 +138,7 @@ implicit none
     call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
     endif
 #endif
     tf = tf + temp + MPI_Wtime()
@@ -153,7 +153,7 @@ implicit none
     call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
     endif
 #endif
     tb = tb + temp + MPI_Wtime()

@@ -109,14 +109,14 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Disables use of NVSHMEM-based backends shipped with HPC-SDK.
-   * - ``DTFFT_WITH_DEVICE_CHECKS``
+   * - ``DTFFT_ENABLE_DEVICE_CHECKS``
      - ``ON`` / ``OFF``
      - ``ON``
-     - Enable error checking for all GPU libraries calls
+     - Enable error checking for all GPU libraries calls. Can be turned off for best performance.
    * - ``DTFFT_WITH_RMA``
      - ``ON`` / ``OFF``
      - ``OFF``
-     - Enable MPI RMA backends (currently in beta)
+     - Enable MPI RMA backends (currently in beta). It has been noticed that call to ``MPI_Win_create`` fails with OpenMPI 4.0.5 with UCX enabled.
    * - ``DTFFT_WITH_SIMD``
      - ``ON`` / ``OFF``
      - ``OFF``
@@ -124,7 +124,7 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
    * - ``DTFFT_ENABLE_INPUT_CHECK``
      - ``ON`` / ``OFF``
      - ``ON``
-     - Enables input parameter checks for plan execution functions.
+     - Enables input parameter checks for plan execution functions. Should be turned off by advanced users to best performance.
 
 Building the Library
 ====================

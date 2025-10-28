@@ -40,8 +40,8 @@ implicit none
   type(dtfft_executor_t) :: executor
   integer(int32) :: ierr
   type(dtfft_config_t) :: conf
-#if defined(DTFFT_WITH_CUDA)
   type(dtfft_backend_t) :: backend
+#if defined(DTFFT_WITH_CUDA)
   type(dtfft_platform_t) :: platform
   logical :: is_cuda_platform
 #endif
@@ -90,7 +90,8 @@ implicit none
 
   call attach_gpu_to_process()
 
-  conf = dtfft_config_t(backend=DTFFT_BACKEND_MPI_P2P)
+  backend = DTFFT_BACKEND_MPI_P2P
+  conf = dtfft_config_t(backend=backend)
 
 #if defined(DTFFT_WITH_CUDA)
     ! Can be redefined by environment variable
@@ -98,12 +99,13 @@ implicit none
 
     if ( is_cuda_platform ) then
 #if defined(DTFFT_WITH_NVSHMEM)
-      conf%backend = DTFFT_BACKEND_CUFFTMP_PIPELINED
+      backend = DTFFT_BACKEND_CUFFTMP_PIPELINED
 #elif defined(DTFFT_WITH_NCCL)
-      conf%backend = DTFFT_BACKEND_NCCL_PIPELINED
+      backend = DTFFT_BACKEND_NCCL_PIPELINED
 #endif
     endif
 #endif
+  conf%backend = backend
 
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
@@ -151,7 +153,7 @@ implicit none
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tf = tf + MPI_Wtime()
@@ -166,7 +168,7 @@ implicit none
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tb = tb + MPI_Wtime()

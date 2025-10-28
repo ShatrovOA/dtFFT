@@ -84,7 +84,7 @@ contains
     if ( self%kernel_type == KERNEL_PERMUTE_BACKWARD_END )  &
       self%internal_kernel_type = KERNEL_PERMUTE_BACKWARD_END_PIPELINED
 
-    CUDA_CALL( "cudaGetDevice", cudaGetDevice(device_id) )
+    CUDA_CALL( cudaGetDevice(device_id) )
     call get_device_props(device_id, props)
     if ( allocated( self%neighbor_data ) ) then
       call get_kernel(self%dims, self%internal_kernel_type, effort, base_storage, props,    &
@@ -107,9 +107,9 @@ contains
     type(dim3) :: blocks, threads
 
     if ( self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
-      CUDA_CALL( "cudaMemcpyAsync", cudaMemcpyAsync(c_loc(out), c_loc(in), self%copy_bytes, cudaMemcpyDeviceToDevice, stream) )
+      CUDA_CALL( cudaMemcpyAsync(c_loc(out), c_loc(in), self%copy_bytes, cudaMemcpyDeviceToDevice, stream) )
 #ifdef DTFFT_DEBUG
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
       return
     endif
@@ -117,9 +117,9 @@ contains
     if( any(self%kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD, KERNEL_PERMUTE_BACKWARD_START]) ) then
       call get_kernel_launch_params(self%kernel_type, self%dims, self%tile_size, self%block_rows, blocks, threads)
       call get_kernel_args(self%kernel_type, self%dims, nargs, args)
-      CUDA_CALL( "cuLaunchKernel", cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
+      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
 #ifdef DTFFT_DEBUG
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
       return
     endif
@@ -127,9 +127,9 @@ contains
     if ( any(self%kernel_type == [KERNEL_UNPACK_PIPELINED, KERNEL_PERMUTE_BACKWARD_END_PIPELINED]) ) then
       call get_kernel_launch_params(self%kernel_type, self%neighbor_data(1:3, neighbor), self%tile_size, self%block_rows, blocks, threads )
       call get_kernel_args(self%kernel_type, self%dims, nargs, args, self%neighbor_data(:, neighbor))
-      CUDA_CALL( "cuLaunchKernel", cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
+      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
 #ifdef DTFFT_DEBUG
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
       return
     endif
@@ -138,9 +138,9 @@ contains
     do n = 1, neighbor_count
       call get_kernel_launch_params(self%internal_kernel_type, self%neighbor_data(1:3, n), self%tile_size, self%block_rows, blocks, threads )
       call get_kernel_args(self%internal_kernel_type, self%dims, nargs, args, self%neighbor_data(:, n))
-      CUDA_CALL( "cuLaunchKernel", cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
+      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
 #ifdef DTFFT_DEBUG
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
     enddo
   end subroutine execute
@@ -296,10 +296,10 @@ contains
       return
     endif
 
-    CUDA_CALL( "cudaMalloc", cudaMalloc(in, base_storage * product(dims)) )
-    CUDA_CALL( "cudaMalloc", cudaMalloc(out, base_storage * product(dims)) )
-    CUDA_CALL( "cudaEventCreate", cudaEventCreate(timer_start) )
-    CUDA_CALL( "cudaEventCreate", cudaEventCreate(timer_stop) )
+    CUDA_CALL( cudaMalloc(in, base_storage * product(dims)) )
+    CUDA_CALL( cudaMalloc(out, base_storage * product(dims)) )
+    CUDA_CALL( cudaEventCreate(timer_start) )
+    CUDA_CALL( cudaEventCreate(timer_stop) )
     stream = get_conf_stream()
 
     global_phase = "Testing nvRTC kernel: '"//get_kernel_string(kernel_type)//"' perfomances..."
@@ -329,21 +329,21 @@ contains
 
       REGION_BEGIN("Warmup", COLOR_TRANSPOSE)
       do iter = 1, n_warmup_iters
-        CUDA_CALL( "cuLaunchKernel", cuLaunchKernel(kernel, in, out, blocks, threads, stream, nargs, args) )
+        CUDA_CALL( cuLaunchKernel(kernel, in, out, blocks, threads, stream, nargs, args) )
       enddo
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
       REGION_END("Warmup")
 
       REGION_BEGIN("Measure", COLOR_EXECUTE)
-      CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_start, stream) )
+      CUDA_CALL( cudaEventRecord(timer_start, stream) )
       do iter = 1, n_iters
-        CUDA_CALL( "cuLaunchKernel", cuLaunchKernel(kernel, in, out, blocks, threads, stream, nargs, args) )
+        CUDA_CALL( cuLaunchKernel(kernel, in, out, blocks, threads, stream, nargs, args) )
       enddo
 
-      CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_stop, stream) )
-      CUDA_CALL( "cudaEventSynchronize", cudaEventSynchronize(timer_stop) )
+      CUDA_CALL( cudaEventRecord(timer_stop, stream) )
+      CUDA_CALL( cudaEventSynchronize(timer_stop) )
       REGION_END("Measure")
-      CUDA_CALL( "cudaEventElapsedTime", cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
+      CUDA_CALL( cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
       execution_time = execution_time / real(n_iters, real32)
       bandwidth = 2.0 * 1000.0 * real(base_storage * product(fixed_dims), real32) / real(1024 * 1024 * 1024, real32) / execution_time
       WRITE_INFO("        Average execution time = "//to_str(real(execution_time, real64))//" [ms]")
@@ -362,10 +362,10 @@ contains
     kernel = get_kernel_instance(ndims, kernel_type, base_storage, tile_size, block_rows)
     WRITE_INFO("  Best configuration is: "//to_str(tile_size)//"x"//to_str(block_rows))
 
-    CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(timer_start) )
-    CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(timer_stop) )
-    CUDA_CALL( "cudaFree", cudaFree(in) )
-    CUDA_CALL( "cudaFree", cudaFree(out) )
+    CUDA_CALL( cudaEventDestroy(timer_start) )
+    CUDA_CALL( cudaEventDestroy(timer_stop) )
+    CUDA_CALL( cudaFree(in) )
+    CUDA_CALL( cudaFree(out) )
     deallocate(scores, sorted)
     deallocate(global_phase, local_phase)
   end subroutine get_kernel

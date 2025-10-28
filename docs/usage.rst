@@ -70,42 +70,64 @@ Error codes are defined in the API sections (e.g., :f:var:`DTFFT_SUCCESS`, :f:va
 Plan Creation
 =============
 
-There are two ways to create a plan in ``dtFFT``. 
-
-First one involves specifying global dimensions of the data and discussed in this section along with other options such as the MPI communicator, precision, and FFT executor type. 
-
-Second one involves specifying local portion of the data on each MPI process and discussed in the `Plan Creation Using Pencil Decomposition`_ section below.
-
-There are three plan types supported by the library:
+dtFFT supports three plan categories, each tailored to specific transformation requirements:
 
 - Real-to-Real (R2R)
 - Complex-to-Complex (C2C)
 - Real-to-Complex (R2C)
 
-.. note:: The Real-to-Complex plan is not available in the API if the library was not compiled with any FFT support.
+.. note:: The Real-to-Complex plan is available only when the library is built with FFT support.
 
-Each is tailored to specific transformation needs.
-Plans are created using the ``create`` method or corresponding constructor, as detailed in the Fortran, C, and C++ API sections.
-For every plan type, an MPI communicator can be specified to define the process distribution (see `Grid Decomposition`_ below).
-The optimization level applied during plan creation can be controlled via the effort parameter (see `Selecting plan effort`_ below). Additional parameters include:
+dtFFT provides two complementary workflows for constructing a plan:
 
-- **Precision**: Controlled by :f:type:`dtfft_precision_t` with the following options:
+1. **Global-dimension workflow** – supply the global lattice extents and allow ``dtFFT`` to derive the process decomposition. 
+   This workflow is detailed in `Global-Dimension Workflow`_.
+2. **Local-decomposition workflow** – supply the portion of the domain owned by each MPI rank via a pencil descriptor. 
+   This workflow is described in `Local-Decomposition Workflow`_.
 
-  - ``DTFFT_SINGLE``: Single precision
-  - ``DTFFT_DOUBLE``: Double precision
+Both workflows share the same configuration surface (plan category, precision, executor, and effort level); 
+they differ only in how the data distribution is communicated to the library.
 
-- **FFT Executor**: Specified via :f:type:`dtfft_executor_t` to determine the external FFT library or ``Transpose-Only`` mode, with the following options:
+Global-Dimension Workflow
+-------------------------
 
-  - ``DTFFT_EXECUTOR_NONE``: ``Transpose-Only`` (no FFT)
-  - ``DTFFT_EXECUTOR_FFTW3``: FFTW3 (host only, available if compiled with FFTW3 support)
-  - ``DTFFT_EXECUTOR_MKL``: MKL DFTI (host only, available if compiled with MKL support)
-  - ``DTFFT_EXECUTOR_CUFFT``: cuFFT (GPU only, available if compiled with CUDA support)
-  - ``DTFFT_EXECUTOR_VKFFT``: VkFFT (GPU only, available if compiled with VkFFT support)
+This default workflow constructs a plan by providing the global array dimensions (in Fortran order) together with the MPI communicator. 
+``dtFFT`` deduces the process decomposition from that information, optionally complemented by the optimization effort and FFT executor parameters.
 
-Additional optional settings can be specified before plan creation using :f:type:`dtfft_config_t` (see `Setting Additional Configurations`_ below),
-allowing users to customize behavior such as Z-slab optimization or GPU backend selection.
+Plans are instantiated through the ``create`` method or the corresponding language-specific constructor, as described in the Fortran, 
+C, and C++ API sections. Every plan accepts an MPI communicator that defines the process distribution. 
 
-The following example creates a 3D C2C double-precision ``Transpose-Only`` plan:
+When the global-dimension workflow is used, ``dtFFT`` must derive how the global domain is partitioned across MPI ranks. 
+The subsections below outline the default strategy and how to supply a custom topology. 
+Users employing the local-decomposition workflow already provide this information explicitly through the pencil descriptor and can skim this section.
+
+**Default Behavior**
+
+When the communicator passed during plan creation is ``MPI_COMM_WORLD`` with :math:`P` processes, ``dtFFT`` attempts the following steps in order:
+
+- If :math:`P <= N_z` (and :math:`N_z / P >= 32` for the GPU version), split the grid as :math:`N_x \times N_y \times N_z / P`. 
+  This distributes the Z-dimension across :math:`P` processes. Division need not be even, and the local size per process may vary.
+- If the Z-split fails (e.g., :math:`P > N_z` or :math:`N_z / P < 32` on GPU), attempt :math:`N_x \times N_y / P \times N_z`. 
+  This distributes the Y-dimension across ``P`` processes, provided :math:`N_x <= P` to remain compatible with future transpositions (e.g., X-to-Y).
+- If both attempts fail, ``dtFFT`` constructs a 3D communicator by fixing the X-dimension split to 1 and using ``MPI_Dims_create(P, 2, dims)`` 
+  to balance the remaining :math:`P` processes across :math:`Y` and :math:`Z`, resulting in :math:`N_x \times N_y / P_1 \times N_z / P_2` 
+  (where :math:`P_1 \times P_2 = P`).
+- If this 3D decomposition is not viable (e.g., :math:`N_y < P_1` or :math:`N_z < P_2`), ``dtFFT`` proceeds but prints a warning message. 
+  Ensure :ref:`DTFFT_ENABLE_LOG<dtfft_enable_log_env>` is enabled to observe it.
+
+**User-Controlled Decomposition**
+
+Applications may supply a communicator with an attached Cartesian topology. Grid dimensions must be provided in Fortran order (X, Y, Z).
+
+- **1D Communicator**: A one-dimensional communicator with :math:`P` processes splits the grid as :math:`N_x \times N_y \times N_z / P`, 
+  distributing the Z-dimension across :math:`P` processes.
+- **2D Communicator**: A two-dimensional communicator with topology :math:`P_1 \times P_2` (where :math:`P_1 * P_2 = P`) decomposes the grid 
+  as :math:`N_x \times N_y / P_1 \times N_z / P_2`, splitting :math:`Y` by :math:`P_1` and :math:`Z` by :math:`P_2` while keeping :math:`X` indivisible.
+- **3D Communicator**: A three-dimensional communicator with topology :math:`P_0 \times P_1 \times P_2` (where :math:`P_0 * P_1 * P_2 = P`) 
+  is supported, but :math:`P_0` (the X split) must be 1 to preserve the fastest-varying dimension. 
+  Violating this constraint triggers :f:var:`DTFFT_ERROR_INVALID_COMM_FAST_DIM`.
+
+The example below illustrates the global-dimension workflow by creating a 3D C2C double-precision ``Transpose-Only`` plan:
 
 .. tabs::
 
@@ -176,58 +198,160 @@ The following example creates a 3D C2C double-precision ``Transpose-Only`` plan:
       return 0;
     }
 
-Grid Decomposition
+.. _plan_creation_pencil:
+
+Local-Decomposition Workflow
+----------------------------
+
+The alternative workflow constructs a plan from a user-defined pencil decomposition. 
+Instead of supplying global dimensions, the application provides, for each MPI rank, 
+the starting indices and extents of the local sub-domain. 
+This workflow affords full control over data locality and aligns ``dtFFT`` with pre-existing domain decompositions.
+
+Use this approach when you need to:
+
+- Reuse a decomposition generated by another solver or library.
+- Guarantee specific locality constraints (for example, to co-locate data with accelerators or I/O tasks).
+- Persist a previously tuned decomposition and avoid re-running autotuning logic.
+
+Both constructors and ``create`` methods accept the :f:type:`dtfft_pencil_t` descriptor. 
+The descriptor stores the dimensionality, the local starting indices (0-based), and the counts along each dimension.
+
+The example below decomposes a :math:`64 \times 64 \times 64` grid by splitting only along the slowest (Z) dimension. 
+Each rank describes its local block and then creates a plan using the pencil descriptor.
+
+.. tabs::
+
+  .. code-tab:: fortran
+
+    #include "dtfft.f03"
+    use iso_fortran_env
+    use dtfft
+    use mpi
+
+    type(dtfft_plan_c2c_t) :: plan
+    type(dtfft_pencil_t) :: my_pencil
+    integer(int32) :: error_code
+    integer(int32) :: starts(3), counts(3)
+    integer :: rank, size, ierr
+
+    call MPI_Init(ierr)
+    call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
+    call MPI_Comm_size(MPI_COMM_WORLD, size, ierr)
+
+    starts = [0, 0, rank * (64 / size)]
+    counts = [64, 64, 64 / size]
+
+    my_pencil = dtfft_pencil_t(starts, counts)
+
+    call plan%create(my_pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, error_code)
+    DTFFT_CHECK(error_code)
+
+  .. code-tab:: c
+
+    #include <dtfft.h>
+    #include <mpi.h>
+
+    int main(int argc, char *argv[]) {
+      dtfft_plan_t plan;
+      dtfft_pencil_t pencil;
+      int rank, size;
+
+      MPI_Init(&argc, &argv);
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+      pencil.ndims = 3;
+      pencil.starts[0] = 0;
+      pencil.starts[1] = 0;
+      pencil.starts[2] = rank * (64 / size);
+      pencil.counts[0] = 64;
+      pencil.counts[1] = 64;
+      pencil.counts[2] = 64 / size;
+
+      DTFFT_CALL( dtfft_create_plan_c2c_pencil(&pencil, MPI_COMM_WORLD,
+                    DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, &plan) );
+
+      return 0;
+    }
+
+  .. code-tab:: c++
+
+    #include <dtfft.hpp>
+
+    int main(int argc, char *argv[]) {
+      MPI_Init(&argc, &argv);
+
+      int rank, size;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+      std::vector<int32_t> starts = {0, 0, rank * (64 / size)};
+      std::vector<int32_t> counts = {64, 64, 64 / size};
+
+      auto pencil = dtfft::Pencil(starts, counts);
+
+      dtfft::PlanC2C plan(pencil, MPI_COMM_WORLD, dtfft::Precision::DOUBLE,
+                          dtfft::Effort::ESTIMATE, dtfft::Executor::NONE);
+
+      return 0;
+    }
+
+The pencil API validates that the provided communicator and local shapes collectively form a consistent global domain. 
+Refer to the Fortran, C, and C++ API references for the full descriptor layout and helper constructors.
+
+Slab Optimizations
 ------------------
 
-``dtFFT`` decomposes multidimensional data into a grid to distribute it across MPI processes for parallel execution.
-The decomposition strategy depends on the global dimensions ``NX × NY × NZ`` (in Fortran order), the number of MPI
-processes ``P``, and the provided communicator.
-
-Default Behavior
-________________
-
-When the communicator passed during plan creation is ``MPI_COMM_WORLD`` with ``P`` processes, ``dtFFT`` attempts the following steps in order:
-  - If ``P <= NZ`` (and ``NZ / P >= 16`` for the GPU version), split the grid as ``NX × NY × NZ / P``.
-    This distributes the Z-dimension across ``P`` processes. Division need not be even, and the local size per process may vary slightly.
-  - If the Z-split fails (e.g., ``P > NZ`` or ``NZ / P < 16`` on GPU), attempt ``NX × NY / P × NZ``.
-    This distributes the Y-dimension across ``P`` processes, provided ``NX <= P`` to ensure compatibility with future transpositions (e.g., X-to-Y).
-  - If both attempts fail, ``dtFFT`` constructs a 3D communicator by fixing the X-dimension split to 1 and using
-    ``MPI_Dims_create(P, 2, dims)`` to balance the remaining ``P`` processes across Y and Z, resulting in ``NX × NY / P1 × NZ / P2``
-    (where ``P1 × P2 = P``).
-  - If this 3D decomposition is not viable (e.g., ``NY < P1`` or ``NZ < P2``), ``dtFFT`` will continue, but warning message will be printed.
-    Make sure that :ref:`DTFFT_ENABLE_LOG<dtfft_enable_log_env>` is set in order to see it.
-
-User-Controlled Decomposition
-_____________________________
-
-Users can specify a custom MPI communicator with grid topology attached. Its grid dimensions must be defined in Fortran order (X, Y, Z):
-  - **1D Communicator**: A one-dimensional communicator with ``P`` processes splits the grid as ``NX × NY × NZ / P``,
-    distributing the Z-dimension across ``P`` processes.
-  - **2D Communicator**: A two-dimensional communicator with topology ``P1 × P2`` (where ``P1 * P2 = P``) decomposes the grid as
-    ``NX × NY / P1 × NZ / P2``, splitting Y by ``P1`` and Z by ``P2`` while keeping X indivisible.
-  - **3D Communicator**: A three-dimensional communicator with topology ``P0 × P1 × P2`` (where ``P0 * P1 * P2 = P``) is supported,
-    but ``P0`` (X-dimension split) must be 1 to preserve the fastest-varying dimension. This results in ``NX × NY / P1 × NZ / P2``.
-    Violating this condition triggers :f:var:`DTFFT_ERROR_INVALID_COMM_FAST_DIM`.
+dtFFT supports two slab optimizations that can reduce the number of data transpositions during FFT execution by employing 
+two-dimensional FFT algorithms where applicable. 
+These optimizations are controlled via the :f:type:`dtfft_config_t` structure or corresponding environment variables.
 
 Z-Slab Optimization
 ___________________
 
-When the grid is decomposed as ``NX × NY × NZ / P`` (e.g., via a 1D communicator or the first default step), the Z-slab optimization
-becomes available. If enabled, it reduces the number of network data transfers by employing a two-dimensional FFT algorithm during
-calls to the :f:func:`execute` method. This also enables the use of ``DTFFT_TRANSPOSE_X_TO_Z`` and ``DTFFT_TRANSPOSE_Z_TO_X`` in
-the :f:func:`transpose` method, while all other transpose types (e.g., ``DTFFT_TRANSPOSE_X_TO_Y``, ``DTFFT_TRANSPOSE_Y_TO_Z``)
-remain available to the user.
+When the grid is decomposed as :math:`N_x \times N_y \times N_z / P` (e.g., via a 1D communicator or the first default step), 
+the Z-slab optimization becomes available. If enabled (default), it reduces the number of data transpositions by employing 
+a two-dimensional FFT algorithm in X-Y directions during calls to :f:func:`execute`. 
+This also enables ``DTFFT_TRANSPOSE_X_TO_Z`` and ``DTFFT_TRANSPOSE_Z_TO_X`` in :f:func:`transpose`, 
+while other transpose types remain available.
 
-This optimization can be disabled by passing the appropriate parameter in :f:type:`dtfft_config_t` (see configuration details below) or by providing 
-:ref:`DTFFT_ENABLE_Z_SLAB<dtfft_enable_z_slab_env>` environment variable, but it cannot be forcibly enabled by passing an ``MPI_COMM_WORLD`` 
-communicator if conditions for its applicability are not met.
+This optimization can be disabled through the ``enable_z_slab`` field in :f:type:`dtfft_config_t` or the 
+:ref:`DTFFT_ENABLE_Z_SLAB<dtfft_enable_z_slab_env>` environment variable. 
+It cannot be forced when the decomposition is incompatible with Z-slab requirements. 
+Consider disabling it to resolve ``DTFFT_ERROR_VKFFT_R2R_2D_PLAN`` errors or when the underlying 2D FFT implementation is too slow. 
+In all other cases, Z-slab is considered faster.
 
----------
+Y-Slab Optimization
+___________________
 
-The resulting local data extents for each process can be retrieved using :f:func:`get_local_sizes` or :f:func:`get_pencil`,
-providing the necessary information for memory allocation and interfacing with external FFT libraries. The starting indices
-("starts") of each process's local data portion are determined based on its coordinates within the MPI grid topology.
+When the grid is decomposed as :math:`N_x \times N_y / P \times N_z` (e.g., via a 2D communicator splitting along Y), 
+the Y-slab optimization can be enabled. If set (disabled by default), dtFFT will skip the transpose step between Y and Z aligned 
+layouts during calls to :f:func:`execute`, employing a two-dimensional FFT algorithm instead.
 
+This optimization can be enabled through the ``enable_y_slab`` field in :f:type:`dtfft_config_t`. 
+Consider disabling it when the underlying 2D FFT implementation is too slow. In all other cases, Y-slab is considered faster.
+
+.. note:: When Y-slab is enabled,
+
+
+Precision and FFT Executor
+--------------------------
+
+Two parameters govern the numerical representation and FFT backend selection:
+
+- **Precision** (:f:type:`dtfft_precision_t`):
+
+  - ``DTFFT_SINGLE`` – single precision
+  - ``DTFFT_DOUBLE`` – double precision
+
+- **FFT Executor** (:f:type:`dtfft_executor_t`):
+
+  - ``DTFFT_EXECUTOR_NONE`` – ``Transpose-Only`` (no FFT)
+  - ``DTFFT_EXECUTOR_FFTW3`` – FFTW3 (host only, available when compiled with FFTW3 support)
+  - ``DTFFT_EXECUTOR_MKL`` – MKL DFTI (host only, available when compiled with MKL support)
+  - ``DTFFT_EXECUTOR_CUFFT`` – cuFFT (GPU only, available when compiled with CUDA support)
+  - ``DTFFT_EXECUTOR_VKFFT`` – VkFFT (GPU only, available when compiled with VkFFT support)
 
 Selecting plan effort
 ---------------------
@@ -243,9 +367,9 @@ ______________
 
 This minimal-effort option prioritizes fast plan creation.
 
-On the host, ``dtFFT`` selects a default grid decomposition (see `Grid Decomposition`_ above) and constructs MPI datatypes based
+On the host, ``dtFFT`` selects a default grid decomposition and if selected backend is ``DTFFT_BACKEND_MPI_DATATYPE`` constructs MPI datatypes based
 on environment variables such as ``DTFFT_DTYPE_X_Y`` and ``DTFFT_DTYPE_Y_Z`` (see :ref:`MPI Datatype Selection variables <datatype_selection>`),
-which define the default send and receive strategies.
+which define the default send and receive strategies. In a case of other backends preparations are minimal to none.
 
 On the GPU, it uses a pre-selected backend specified via :f:type:`dtfft_config_t` (see configuration details below), compiling an nvRTC
 kernel tailored to the chosen backend.
@@ -264,9 +388,10 @@ DTFFT_PATIENT
 _____________
 
 This maximum-effort option extends ``DTFFT_MEASURE`` by exhaustively optimizing transposition strategies. On the host, it cycles
-through various custom MPI datatype combinations (e.g., contiguous send with sparse receive, sparse send with contiguous receive) to
-minimize network latency and maximize throughput. On the GPU, it cycles through available GPU backends (e.g., NCCL, MPI P2P) to select
-the fastest available backend and optimizes transposition kernel configurations.
+through various custom MPI datatype combinations, optionally including MPI backends if enabled to minimize network latency and maximize throughput. 
+
+On the GPU, it cycles through available backends (e.g., NCCL, MPI P2P). Additionally, it performs kernel autotuning by 
+launching multiple kernel configurations and measuring their performance to select the best one.
 
 .. note:: Kernel optimization can be enabled with both ``DTFFT_MEASURE`` and ``DTFFT_PATIENT`` effort levels by setting field 
   ``force_kernel_optimization`` of :f:type:`dtfft_config_t` to ``true``.
@@ -311,6 +436,11 @@ Configurations must be set prior to creating a plan to take effect. The availabl
      - ``.true.``
      - 
      - Enable Z-slab optimization (fewer transfers, enables X↔Z transpose path). Disable to work around 2D FFT issues (e.g. ``DTFFT_ERROR_VKFFT_R2R_2D_PLAN``).
+   * - ``enable_y_slab``
+     - logical
+     - ``.false.``
+     - 
+     - Enable Y-slab optimization (fewer transfers, enables Y↔Z transpose path). Disable to work around 2D FFT issues.
    * - ``n_measure_warmup_iters``
      - integer
      - ``2``
@@ -333,18 +463,23 @@ Configurations must be set prior to creating a plan to take effect. The availabl
      - Custom CUDA stream override (user destroys it after plan). Otherwise internally managed.
    * - ``backend``
      - :f:type:`dtfft_backend_t`
-     - ``DTFFT_BACKEND_NCCL``
-     - ✓
-     - GPU backend used for ``DTFFT_ESTIMATE`` / ``DTFFT_MEASURE``. Falls back to ``DTFFT_BACKEND_MPI_P2P`` if NCCL unavailable.
+     - differs between HOST / CUDA
+     - 
+     - Backend used for ``DTFFT_ESTIMATE`` / ``DTFFT_MEASURE``. Default is ``DTFFT_BACKEND_MPI_DATATYPE`` when executed on host. When executed on GPU default is ``DTFFT_BACKEND_NCCL`` if available, otherwise falls back to ``DTFFT_BACKEND_MPI_P2P``.
+   * - ``enable_datatype_backend``
+     - logical
+     - ``.true.``
+     - 
+     - Allow MPI datatype backend during autotuning on host.
    * - ``enable_mpi_backends``
      - logical
      - ``.false.``
-     - ✓
-     - Allow MPI GPU backends (tested in ``DTFFT_PATIENT``). Disabled by default due to OpenMPI leak (see docs).
+     - 
+     - Allow MPI backends (tested in ``DTFFT_PATIENT``). Disabled by default due to OpenMPI leak (see docs)
    * - ``enable_pipelined_backends``
      - logical
      - ``.true.``
-     - ✓
+     - 
      - Try pipelined variants (overlap copy/unpack); may need internal aux buffer.
    * - ``enable_nccl_backends``
      - logical
@@ -463,119 +598,6 @@ Following example creates config object, disables Z-slab, enables MPI Backends a
 
     // Now we can create a plan
 
-Plan Creation Using Pencil Decomposition
-========================================
-
-In addition to the standard plan creation using global dimensions, ``dtFFT`` supports creating plans using the :f:type:`dtfft_pencil_t` structure. 
-This advanced feature allows users to define custom grid decompositions and provides greater control over data distribution across MPI processes.
-
-When to Use Pencil-Based Plan Creation
---------------------------------------
-
-Pencil-based plan creation is useful when:
-
-- You need custom grid decomposition that differs from ``dtFFT``'s default strategy
-- You want to integrate with existing domain decomposition from other libraries
-- You need to ensure specific data locality requirements
-- You want to reuse decomposition information from previous computations
-
-
-Creating Plans with Pencil Structure
-------------------------------------
-
-All plan types support pencil-based constructors. Both Fortran and C++ overload the existing plan constructors to accept a pencil structure.
-In the C API, a separate function is provided to create plans using a pencil structure. The pencil structure must be defined before plan creation, specifying the local data portion for each MPI process.
-Fortran users should call ``dtfft_pencil_t`` constructor and provide two arrays: ``starts`` and ``counts`` which must provide the local data portion for each MPI process.
-
-The following example demonstrates how to create a C2C plan using a pencil structure for a 64x64x64 grid, splitting only in the Z (slowest) dimension across MPI processes:
-
-.. tabs::
-
-  .. code-tab:: fortran
-
-    #include "dtfft.f03"
-    use iso_fortran_env
-    use dtfft
-    use mpi
-
-    type(dtfft_plan_c2c_t) :: plan
-    type(dtfft_pencil_t) :: my_pencil
-    integer(int32) :: error_code
-    integer(int32) :: starts(3), counts(3)
-    integer(int32) :: rank, size
-
-    call MPI_Init()
-    call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
-    call MPI_Comm_size(MPI_COMM_WORLD, size, ierr)
-
-    ! Define custom decomposition for 64x64x64 grid
-    ! Example: split only in Z dimension
-    starts = [0, 0, rank * (64 / size)]
-    counts = [64, 64, 64 / size]
-
-    ! Create pencil structure
-    my_pencil = dtfft_pencil_t(starts, counts)
-
-    ! Create C2C plan using pencil
-    call plan%create(my_pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, error_code)
-    DTFFT_CHECK(error_code)
-
-  .. code-tab:: c
-
-    #include <dtfft.h>
-    #include <mpi.h>
-
-    int main(int argc, char *argv[]) {
-      dtfft_plan_t plan;
-      dtfft_pencil_t pencil;
-      int rank, size;
-
-      MPI_Init(&argc, &argv);
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-      // Define custom decomposition for 64x64x64 grid
-      pencil.ndims = 3;
-      pencil.starts[0] = 0;
-      pencil.starts[1] = 0; 
-      pencil.starts[2] = rank * (64 / size);
-      pencil.counts[0] = 64;
-      pencil.counts[1] = 64;
-      pencil.counts[2] = 64 / size;
-
-      // Create C2C plan using pencil
-      DTFFT_CALL( dtfft_create_plan_c2c_pencil(&pencil, MPI_COMM_WORLD, 
-                    DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, &plan) );
-
-      return 0;
-    }
-
-  .. code-tab:: c++
-
-    #include <dtfft.hpp>
-    // dtfft.hpp also includes <mpi.h> and <vector>
-
-    int main(int argc, char *argv[]) {
-      MPI_Init(&argc, &argv);
-
-      int rank, size;
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-      // Define custom decomposition for 64x64x64 grid
-      std::vector<int32_t> starts = {0, 0, rank * (64 / size)};
-      std::vector<int32_t> counts = {64, 64, 64 / size};
-
-      // Create pencil
-      auto pencil = dtfft::Pencil(starts, counts);
-
-      // Create C2C plan using pencil
-      dtfft::PlanC2C plan(pencil, MPI_COMM_WORLD, dtfft::Precision::DOUBLE, 
-                          dtfft::Effort::ESTIMATE, dtfft::Executor::NONE);
-
-      return 0;
-    }
-
 Memory Allocation
 =================
 
@@ -589,6 +611,8 @@ minimum number of elements that must be allocated:
 - **out_starts**: Start indices of the local data portion in Fourier space (0-based)
 - **out_counts**: Number of elements in the local data portion in Fourier space
 - **alloc_size**: Minimum number of elements needed for ``in``, ``out``, or ``aux`` buffers
+
+.. note:: If Y-slab optimization is enabled (see :f:func:`get_y_slab_enabled`), the Fourier space layout is Y-aligned instead of Z-aligned, and ``out_*`` values reflect the Y-aligned layout.
 
 Arrays ``in_starts``, ``in_counts``, ``out_starts``, and ``out_counts`` must have at least as many elements as the plan's dimensions.
 
@@ -664,7 +688,7 @@ Fortran interface provides additional methods for memory allocation and dealloca
 Host Version
 ------------
 
-Allocates memory based on the FFT library: 
+Allocates memory based on the :f:type:`dtfft_executor_t`: 
 
 - ``fftw_malloc`` for FFTW3
 - ``mkl_malloc`` for MKL DFT
@@ -678,8 +702,6 @@ Allocates memory based on the :f:type:`dtfft_backend_t`:
 - ``ncclMemAlloc`` for NCCL (if available)
 - ``nvshmem_malloc`` for NVSHMEM-based backends
 - ``cudaMalloc`` otherwise.
-
-Future versions may support HIP-based allocations.
 
 If NCCL is used and supports buffer registration via ``ncclCommRegister``, and the environment variable 
 :ref:`DTFFT_NCCL_BUFFER_REGISTER<dtfft_nccl_buffer_register_env>` is not set to ``0``, the allocated buffer will also be registered. 
@@ -709,9 +731,9 @@ which is particularly beneficial for workloads with repeated communication patte
     integer(int64) :: alloc_bytes
 
     alloc_bytes = alloc_size * element_size
-    call plan%mem_alloc_ptr(alloc_bytes, a_ptr, error_code=error_code); DTFFT_CHECK(error_code)
-    call plan%mem_alloc_ptr(alloc_bytes, b_ptr, error_code=error_code); DTFFT_CHECK(error_code)
-    call plan%mem_alloc_ptr(alloc_bytes, aux_ptr, error_code=error_code); DTFFT_CHECK(error_code)
+    a_ptr = plan%mem_alloc_ptr(alloc_bytes, error_code=error_code); DTFFT_CHECK(error_code)
+    b_ptr = plan%mem_alloc_ptr(alloc_bytes, error_code=error_code); DTFFT_CHECK(error_code)
+    aux_ptr = plan%mem_alloc_ptr(alloc_bytes, error_code=error_code); DTFFT_CHECK(error_code)
 
 
   .. code-tab:: c
@@ -807,10 +829,13 @@ particularly useful for debugging or integrating with custom workflows. The foll
   as configured via :f:type:`dtfft_config_t` (see `Setting Additional Configurations`_).
   This helps users confirm if the optimization is applied, especially when troubleshooting performance or compatibility issues.
 
-- :f:func:`get_backend`:
-  Retrieves the GPU backend (e.g., NCCL, MPI P2P) selected during plan creation or autotuning with ``DTFFT_PATIENT`` effort (see `Selecting plan effort`_).
+- :f:func:`get_y_slab_enabled`:
+  Returns a logical value indicating whether Y-slab optimization is active in the plan,
+  as configured via :f:type:`dtfft_config_t` (see `Setting Additional Configurations`_).
+  This allows users to verify the optimization status, which can impact performance and data layout during execution.
 
-  Available only in CUDA-enabled builds, this method allows users to verify the transposition strategy chosen for GPU execution.
+- :f:func:`get_backend`:
+  Retrieves the backend (e.g., NCCL, MPI P2P) selected during plan creation or autotuning with ``DTFFT_PATIENT`` effort (see `Selecting plan effort`_).
 
 - :f:func:`get_stream`:
   Returns the CUDA stream associated with the plan, either the default stream managed by ``dtFFT`` or a custom one set via
@@ -831,6 +856,9 @@ particularly useful for debugging or integrating with custom workflows. The foll
 - :f:func:`get_dims`:
   Returns global dimensions of the plan. This can be useful for validating the plan's setup against expected sizes.
 
+- :f:func:`get_grid_dims`:
+  Returns the grid decomposition dimensions used in the plan, reflecting how the global domain is partitioned across MPI ranks.
+
 - :f:func:`get_platform`:
   Returns the execution platform (:f:var:`DTFFT_PLATFORM_HOST` or :f:var:`DTFFT_PLATFORM_CUDA`) of the plan.
 
@@ -848,7 +876,9 @@ Below, we detail each method, including their behavior for host and GPU versions
 Transpose
 ---------
 
-The first method is to call the :f:func:`transpose` method of the plan.
+The first method is to call the :f:func:`transpose` method of the plan. 
+There are two ways to invoke it: asynchronously by executing :f:func:`transpose_start` followed by :f:func:`transpose_end`, 
+or synchronously by calling :f:func:`transpose` directly.
 
 Signature
 _________
@@ -873,6 +903,25 @@ The signature is as follows:
       integer(int32),   optional, intent(out)   :: error_code
     end subroutine
 
+    type(dtfft_request_t) function dtfft_plan_t%transpose_start(in, out, transpose_type, error_code)
+      type(*)                     intent(inout) :: in(..)
+      type(*)                     intent(inout) :: out(..)
+      type(dtfft_transpose_t),    intent(in)    :: transpose_type
+      integer(int32),   optional, intent(out)   :: error_code
+    end function
+
+    type(dtfft_request_t) function dtfft_plan_t%transpose_start_ptr(in, out, transpose_type, error_code)
+      type(c_ptr)                 intent(in)    :: in
+      type(c_ptr)                 intent(in)    :: out
+      type(dtfft_transpose_t),    intent(in)    :: transpose_type
+      integer(int32),   optional, intent(out)   :: error_code
+    end function
+
+    subroutine dtfft_plan_t%transpose_end(request, error_code)
+      type(dtfft_request_t),      intent(inout) :: request
+      integer(int32),   optional, intent(out)   :: error_code
+    end subroutine
+
   .. code-tab:: c
 
       dtfft_error_t
@@ -882,6 +931,19 @@ The signature is as follows:
         void *out,
         const dtfft_transpose_t transpose_type);
 
+      dtfft_error_t
+      dtfft_transpose_start(
+        dtfft_plan_t plan,
+        void *in,
+        void *out,
+        const dtfft_transpose_t transpose_type,
+        dtfft_request_t *request);
+
+      dtfft_error_t
+      dtfft_transpose_end(
+        dtfft_plan_t plan,
+        dtfft_request_t request);
+
   .. code-tab:: c++
 
       dtfft::Error
@@ -889,6 +951,17 @@ The signature is as follows:
           void *in,
           void *out,
           const dtfft::Transpose transpose_type);
+
+      dtfft::Error
+      dtfft::Plan::transpose_start(
+          void *in,
+          void *out,
+          const dtfft::Transpose transpose_type,
+          dtfft_request_t* request);
+
+      dtfft::Error
+      dtfft::Plan::transpose_end(
+          dtfft_request_t request);
 
 Description
 ___________
@@ -909,8 +982,11 @@ This method transposes data according to the specified ``transpose_type``. Suppo
 
   Calling :f:func:`transpose` for R2C plan is not allowed.
 
-**Host Version**: Executes a single ``MPI_Alltoall(w)`` call using non-contiguous MPI Datatypes and returns once the ``out`` 
-buffer contains the transposed data, leaving the ``in`` buffer unchanged.
+When the backend is ``DTFFT_BACKEND_MPI_DATATYPE``, calling :f:func:`transpose` executes a single ``MPI_Ialltoall(w)`` call 
+followed by ``MPI_Wait`` to complete the operation. In contrast :f:func:`transpose_start` initiates an asynchronous 
+``MPI_Ialltoall(w)`` call, creating the corresponding MPI request and returning a ``dtfft_request_t`` object containing 
+information about the started transposition. 
+In both cases, non-contiguous MPI Datatypes are used, and the ``out`` buffer contains the transposed data once the operation completes, leaving the ``in`` buffer unchanged.
 
 **GPU Version**: Performs a two-step transposition:
 
@@ -991,6 +1067,11 @@ _____________________________
   such as when the environment variable ``CUFFT_RESHAPE_USE_PACKING=1`` is set.
 
   In all other cases, transposition requires only the ``in`` and ``out`` buffers.
+
+.. note::
+
+  Host version of MPI-based does practically the same as GPU version, but uses host memory buffers and performs
+  transpositions and data unpacking using precompiled host kernels.
 
 Example
 _______
@@ -1166,6 +1247,9 @@ For 3D plans, the method operates as follows:
 - If ``Transpose-Only`` with Z-slab and distinct ``in`` and ``out``:
 
   - Transpose from X to Z
+- If ``Transpose-Only`` with Y-slab and distinct ``in`` and ``out``:
+
+  - Transpose from X to Y
 - If using FFT:
 
   - Forward FFT in X direction
@@ -1178,6 +1262,11 @@ For 3D plans, the method operates as follows:
   - Forward 2D FFT in X-Y directions
   - Transpose from X to Z
   - Forward FFT in Z direction
+- If using FFT with Y-slab:
+
+  - Forward FFT in X direction
+  - Transpose from X to Y
+  - Forward 2D FFT in Y-Z directions
 
 **Backward Execution** (``DTFFT_EXECUTE_BACKWARD``):
 
@@ -1188,6 +1277,9 @@ For 3D plans, the method operates as follows:
 - If ``Transpose-Only`` with Z-slab and distinct ``in`` and ``out``:
 
   - Transpose from Z to X
+- If ``Transpose-Only`` with Y-slab and distinct ``in`` and ``out``:
+
+  - Transpose from Y to X
 - If using FFT:
 
   - Backward FFT in Z direction
@@ -1200,6 +1292,11 @@ For 3D plans, the method operates as follows:
   - Backward FFT in Z direction
   - Transpose from Z to X
   - Backward 2D FFT in X-Y directions
+- If using FFT with Y-slab:
+
+  - Backward 2D FFT in Y-Z directions
+  - Transpose from Y to X
+  - Backward FFT in X direction
 
 .. note::
 

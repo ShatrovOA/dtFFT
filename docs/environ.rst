@@ -4,9 +4,9 @@
 Environment Variables
 #####################
 
-This page lists all environment variables that can modify ``dtFFT`` behavior at runtime, offering users granular control over logging, performance measurement, and data transposition strategies.
+This page lists all environment variables that can modify ``dtFFT`` behavior at runtime, providing users with granular control over logging, performance measurement, and data transposition strategies.
 
-Most of these variables override settings specified in the :f:type:`dtfft_config_t` structure, allowing users to adjust configurations without changing code.
+Most of these variables override settings specified in the :f:type:`dtfft_config_t` structure, allowing users to adjust configurations without modifying code.
 
 .. _dtfft_enable_log_env:
 
@@ -125,6 +125,8 @@ Accepted Values
   - ``mpi_p2p``: MPI peer-to-peer backend.
   - ``mpi_a2a``: MPI backend using ``MPI_Alltoallv``.
   - ``mpi_p2p_pipe``: Pipelined MPI peer-to-peer backend with overlapping data copying and unpacking.
+  - ``mpi_rma``: MPI RMA backend that uses MPI_Rget for data transfers.
+  - ``mpi_rma_pipe``: Pipelined MPI RMA backend with overlapping data copying and unpacking.
   - ``nccl``: NCCL backend.
   - ``nccl_pipe``: Pipelined NCCL backend with overlapping data copying and unpacking.
   - ``cufftmp``: cuFFTMp backend.

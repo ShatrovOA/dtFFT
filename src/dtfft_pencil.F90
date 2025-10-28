@@ -251,8 +251,8 @@ contains
 ! #ifdef DTFFT_WITH_CUDA
 !     allocate( buf( product(self%counts) ) )
 !     if ( is_device_ptr(c_loc(vec)) ) then
-!       CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize())
-!       CUDA_CALL( "cudaMemcpy", cudaMemcpy(c_loc(buf), c_loc(vec), int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
+!       CUDA_CALL( cudaDeviceSynchronize())
+!       CUDA_CALL( cudaMemcpy(c_loc(buf), c_loc(vec), int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
 !     endif
 ! #endif
 

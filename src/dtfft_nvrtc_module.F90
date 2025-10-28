@@ -110,7 +110,7 @@ contains
 #endif
     config = self%configs(config_id)
     mangled = get_mangled_name(self%basic_name, self%prog, config%tile_size, config%block_rows, config%padding)
-    CUDA_CALL("cuModuleGetFunction", cuModuleGetFunction(fun, self%cumod, mangled))
+    CUDA_CALL( cuModuleGetFunction(fun, self%cumod, mangled) )
   end function get
 
   logical function check_instance(self, ndims, kernel_type, base_storage, tile_size, block_rows)
@@ -197,10 +197,10 @@ contains
     self%prog = compile_program(code, self%basic_name, configs, props)
     call code%destroy()
 
-    NVRTC_CALL( "nvrtcGetCUBINSize", nvrtcGetCUBINSize(self%prog, cubinSizeRet) )
+    NVRTC_CALL( nvrtcGetCUBINSize(self%prog, cubinSizeRet) )
     cubin = mem_alloc_host(cubinSizeRet)
-    NVRTC_CALL( "nvrtcGetCUBIN", nvrtcGetCUBIN(self%prog, cubin) )
-    CUDA_CALL( "cuModuleLoadData", cuModuleLoadData(self%cumod, cubin) )
+    NVRTC_CALL( nvrtcGetCUBIN(self%prog, cubin) )
+    CUDA_CALL( cuModuleLoadData(self%cumod, cubin) )
     call mem_free_host(cubin)
     REGION_END(region_name)
 
@@ -215,8 +215,8 @@ contains
     if ( .not. self%is_created ) return
     if ( is_null_ptr(self%cumod%ptr) .or. is_null_ptr(self%prog%cptr) ) INTERNAL_ERROR("nvrtc_module.destroy: is_null_ptr(self%cumod%ptr)")
 
-    NVRTC_CALL( "nvrtcDestroyProgram", nvrtcDestroyProgram(self%prog) )
-    CUDA_CALL( "cuModuleUnload", cuModuleUnload(self%cumod) )
+    NVRTC_CALL( nvrtcDestroyProgram(self%prog) )
+    CUDA_CALL( cuModuleUnload(self%cumod) )
     self%cumod = CUmodule(c_null_ptr)
     self%prog = nvrtcProgram(c_null_ptr)
     if( allocated( self%configs ) ) deallocate(self%configs)
@@ -236,6 +236,7 @@ contains
     character(c_char),    allocatable :: c_code(:)          !! CUDA C Code to compile
     integer(int32)  :: i              !! Loop variable
     integer(int32)  :: compile_result !! Result of compilation
+    character(len=:),     allocatable :: prog_name_
 
 #ifdef DTFFT_DEBUG
     num_options = 3
@@ -254,8 +255,9 @@ contains
     enddo
 
     call astring_f2c(code%raw, c_code)
-    NVRTC_CALL( "nvrtcCreateProgram", nvrtcCreateProgram(prog, c_code, prog_name//".cu"//c_null_char, 0, c_null_ptr, c_null_ptr) )
-    deallocate( c_code )
+    prog_name_ = prog_name//".cu"//c_null_char
+    NVRTC_CALL( nvrtcCreateProgram(prog, c_code, prog_name_, 0, c_null_ptr, c_null_ptr) )
+    deallocate( c_code, prog_name_ )
 
     do i = 1, size(configs)
       call set_name_expression(prog, prog_name, configs(i)%tile_size, configs(i)%block_rows, configs(i)%padding)
@@ -268,9 +270,9 @@ contains
         integer(c_size_t) :: log_size
         character(len=:), allocatable :: f_log
 
-        NVRTC_CALL( "nvrtcGetProgramLogSize", nvrtcGetProgramLogSize(prog, log_size) )
+        NVRTC_CALL( nvrtcGetProgramLogSize(prog, log_size) )
         c_log = mem_alloc_host(log_size)
-        NVRTC_CALL( "nvrtcGetProgramLog", nvrtcGetProgramLog(prog, c_log))
+        NVRTC_CALL( nvrtcGetProgramLog(prog, c_log) )
         call string_c2f(c_log, f_log)
 
         write(error_unit, "(a)") "dtFFT Internal Error: failed to compile kernel"
@@ -315,7 +317,7 @@ contains
     character(c_char), allocatable  :: expression(:)!! Name expression
 
     expression = get_name_expression(basic_name, tile_dim, block_rows, padding)
-    NVRTC_CALL("nvrtcAddNameExpression", nvrtcAddNameExpression(prog, expression))
+    NVRTC_CALL( nvrtcAddNameExpression(prog, expression) )
     deallocate (expression)
   end subroutine set_name_expression
 
@@ -330,7 +332,7 @@ contains
     character(c_char), allocatable  :: expression(:)!! Name expression
 
     expression = get_name_expression(basic_name, tile_dim, block_rows, padding)
-    NVRTC_CALL("nvrtcGetLoweredName", nvrtcGetLoweredName(prog, expression, mangled))
+    NVRTC_CALL( nvrtcGetLoweredName(prog, expression, mangled) )
     deallocate (expression)
   end function get_mangled_name
 

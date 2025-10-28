@@ -39,11 +39,11 @@ preprocessor: gfortran -E
 display: public
     protected
     private
-warn: true
-graph: false
-coloured_edges: false
+warn: false
+graph: true
+coloured_edges: true
 sort: permission
-search: false
+search: true
 
 <img src="./media/pencils.png" alt="pencils" width="850"/>
 

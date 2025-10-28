@@ -67,9 +67,11 @@ int main(int argc, char *argv[])
 
 #ifdef DTFFT_WITH_CUDA
   char* platform_env = std::getenv("DTFFT_PLATFORM");
+  bool running_cuda = false;
 
   if ( platform_env == nullptr || std::strcmp(platform_env, "cuda") == 0 )
   {
+    running_cuda = true;
 # if defined(DTFFT_WITH_CUFFT)
     executor = Executor::CUFFT;
 # elif defined(DTFFT_WITH_VKFFT)
@@ -86,18 +88,20 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-#ifdef DTFFT_WITH_CUDA
   Config conf;
-  Backend backend;
+  auto backend = Backend::MPI_P2P;
+#ifdef DTFFT_WITH_CUDA
+  if ( running_cuda ) {
 # ifdef DTFFT_WITH_NVSHMEM
-  backend = Backend::CUFFTMP_PIPELINED;
-# else
-  backend = Backend::MPI_P2P;
+    backend = Backend::CUFFTMP_PIPELINED;
+# elif defined(DTFFT_WITH_NCCL)
+    backend = Backend::NCCL_PIPELINED;
 # endif
-  conf.set_backend(backend)
-    .set_platform(Platform::CUDA);
-  DTFFT_CXX_CALL( set_config(conf) )
+  }
 #endif
+  conf.set_backend(backend);
+
+  DTFFT_CXX_CALL( set_config(conf) )
 
   attach_gpu_to_process();
 

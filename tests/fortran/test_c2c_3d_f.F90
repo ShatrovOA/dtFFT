@@ -155,7 +155,7 @@ implicit none
 
 #if defined(DTFFT_WITH_CUDA)
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
     endif
 #endif
     tf = tf + ts + MPI_Wtime()
@@ -170,7 +170,7 @@ implicit none
     call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, aux, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
     endif
 #endif
     tb = tb + ts + MPI_Wtime()
@@ -179,7 +179,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA)
   call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check, platform%val)
 #else
-    call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check)
+  call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check)
 #endif
 
   call plan%mem_free(inout, error_code=ierr); DTFFT_CHECK(ierr)

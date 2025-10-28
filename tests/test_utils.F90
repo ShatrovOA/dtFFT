@@ -165,7 +165,7 @@ contains
     ! Default execution on device
     if ( trim(adjustl(platform_env)) == "host" ) return
 
-    CUDA_CALL( "cudaGetDeviceCount", cudaGetDeviceCount(num_devices) )
+    CUDA_CALL( cudaGetDeviceCount(num_devices) )
     if ( num_devices == 0 ) return
 
     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
@@ -175,7 +175,7 @@ contains
     call MPI_Comm_free(host_comm, ierr)
 
     if ( host_size > num_devices ) return
-    CUDA_CALL( "cudaSetDevice", cudaSetDevice(host_rank) )
+    CUDA_CALL( cudaSetDevice(host_rank) )
 #endif
   end subroutine attach_gpu_to_process
 

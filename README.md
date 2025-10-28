@@ -13,15 +13,16 @@ dtFFT is a high-performance library for parallel data transpositions and optiona
 
 Key benefits: Zero-copy transpositions, GPU acceleration, and seamless MPI/CUDA integration for scientific computing.
 
-dtFFT aims to optimize the cycles of transformations (forward and backward):
+dtFFT aims to optimize following cycles of transformations (forward and backward):
 
 ```math
 X \times \dfrac{Y}{P_1} \to Y \times \dfrac{X}{P_1}
 ```
+for 2D case, and
 ```math
 X \times \dfrac{Y}{P_1} \times \dfrac{Z}{P_2} \to Y \times \dfrac{Z}{P_2} \times \dfrac{X}{P_1} \to Z \times \dfrac{X}{P_1} \times \dfrac{Y}{P_2}
 ```
-where $X, Y, Z$ are the spatial dimensions of the data, and $P_1, P_2$ are the number of processes in the Y and Z directions, respectively.
+for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, and $P_1, P_2$ are the number of processes in the $Y$ and $Z$ directions, respectively.
 
 ## Features
 - **Transform Types**: R2C, C2C, and R2R transforms
@@ -42,7 +43,7 @@ where $X, Y, Z$ are the spatial dimensions of the data, and $P_1, P_2$ are the n
 - OpenMP for multicore parallelism is not supported.
 
 ## Requirements
-- C/C++/Fortran compilers (GCC, Intel and NVHPC-SDK are tested)
+- Fortran/C/C++ compilers (GCC, Intel and NVHPC-SDK are tested)
 - MPI (OpenMPI, MPICH and Intel MPI are tested)
 
 ## Installation
@@ -101,9 +102,9 @@ Available at [dtFFT Internal Documentation](https://shatrovoa.github.io/dtFFT/in
 - [Fortran API](https://dtfft.readthedocs.io/latest/api_fortran.html)
 
 ## Roadmap
-- Add nvSHMEM backend support
-- Add HIP support
-- Add zfp compression support
+- nvSHMEM-based backends
+- HIP platform
+- zfp compression
 
 ## Contributing
 We welcome contributions! Report issues or suggest improvements via the [issue tracker](https://github.com/ShatrovOA/dtFFT/issues). For code contributions, please follow standard GitHub workflows (fork, branch, PR).

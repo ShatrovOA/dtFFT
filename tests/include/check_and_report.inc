@@ -35,9 +35,9 @@ subroutine FUNC_NAME (n_global, tf, tb, buffer, buf_size, check  &
   if ( dtfft_platform_t(platform) == DTFFT_PLATFORM_CUDA ) then
     buffer_h = mem_alloc_host(STORAGE_BYTES * buf_size)
 
-    CUDA_CALL( "cudaMemcpy", cudaMemcpy(buffer_h, buffer, STORAGE_BYTES * buf_size, cudaMemcpyDeviceToHost) )
+    CUDA_CALL( cudaMemcpy(buffer_h, buffer, STORAGE_BYTES * buf_size, cudaMemcpyDeviceToHost) )
     local_error = CHECK_FUNC(check, buffer_h, buf_size)
-    CUDA_CALL( "cudaGetLastError", cudaGetLastError() )
+    CUDA_CALL( cudaGetLastError() )
     call mem_free_host(buffer_h)
   else
     local_error = CHECK_FUNC(check, buffer, buf_size)

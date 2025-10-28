@@ -467,7 +467,7 @@ _____________________
 
 .. f:variable:: DTFFT_BACKEND_MPI_RMA_PIPELINED
 
-  MPI Pipelined RMA backend
+  Pipelined MPI RMA backend
 
 .. f:variable:: DTFFT_BACKEND_NCCL
 
@@ -564,8 +564,6 @@ dtfft_config_t
     Backend that will be used by dtFFT when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
 
     Default is :f:var:`DTFFT_BACKEND_NCCL`
-
-    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
   :f logical enable_mpi_backends:
 

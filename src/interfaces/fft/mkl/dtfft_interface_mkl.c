@@ -1,58 +1,57 @@
-#include <_dtfft_private.h>
+#include "_dtfft_private.h"
 #include "mkl.h"
 
-
-MKL_LONG mkl_dfti_create_desc(int precision, int domain, long int dim, long int *length, void **desc)
+MKL_LONG mkl_dfti_create_desc(int precision, int domain, long int dim, long int* length, void** desc)
 {
-  DFTI_DESCRIPTOR_HANDLE handle;
-  MKL_LONG ierr;
-  if ( dim == 1 ) {
-    ierr = DftiCreateDescriptor(&handle, precision, domain, dim, length[0]);
-  } else {
-    ierr = DftiCreateDescriptor(&handle, precision, domain, dim, length);
-  }
-  *desc = handle;
-  return ierr;
+    DFTI_DESCRIPTOR_HANDLE handle;
+    MKL_LONG ierr;
+    if (dim == 1) {
+        ierr = DftiCreateDescriptor(&handle, precision, domain, dim, length[0]);
+    } else {
+        ierr = DftiCreateDescriptor(&handle, precision, domain, dim, length);
+    }
+    *desc = handle;
+    return ierr;
 }
 
-MKL_LONG mkl_dfti_set_integer(void *desc, int param, int value)
+MKL_LONG mkl_dfti_set_integer(void* desc, int param, int value)
 {
-  return DftiSetValue(desc, param, value);
+    return DftiSetValue(desc, param, value);
 }
 
-MKL_LONG mkl_dfti_set_pointer(void *desc, int param, MKL_LONG *value)
+MKL_LONG mkl_dfti_set_pointer(void* desc, int param, MKL_LONG* value)
 {
-  return DftiSetValue(desc, param, value);
+    return DftiSetValue(desc, param, value);
 }
 
-MKL_LONG mkl_dfti_commit_desc(void * desc)
+MKL_LONG mkl_dfti_commit_desc(void* desc)
 {
-  return DftiCommitDescriptor(desc);
+    return DftiCommitDescriptor(desc);
 }
 
-MKL_LONG mkl_dfti_execute(void *desc, void *in, void *out, int sign)
+MKL_LONG mkl_dfti_execute(void* desc, void* in, void* out, int sign)
 {
-  if (sign == CONF_FFT_FORWARD) {
-    return DftiComputeForward(desc, in, out);
-  } else {
-    return DftiComputeBackward(desc, in, out);
-  }
+    if (sign == CONF_FFT_FORWARD) {
+        return DftiComputeForward(desc, in, out);
+    } else {
+        return DftiComputeBackward(desc, in, out);
+    }
 }
 
 MKL_LONG mkl_dfti_free_desc(DFTI_DESCRIPTOR_HANDLE desc)
 {
-  return DftiFreeDescriptor(&desc);
+    return DftiFreeDescriptor(&desc);
 }
 
-MKL_LONG mkl_dfti_mem_alloc(size_t alloc_bytes, void **ptr)
+MKL_LONG mkl_dfti_mem_alloc(size_t alloc_bytes, void** ptr)
 {
-  void *ptr_ = mkl_malloc(alloc_bytes, ALLOC_ALIGNMENT);
-  *ptr = ptr_;
-  return DFTI_NO_ERROR;
+    void* ptr_ = mkl_malloc(alloc_bytes, ALLOC_ALIGNMENT);
+    *ptr = ptr_;
+    return DFTI_NO_ERROR;
 }
 
-MKL_LONG mkl_dfti_mem_free(void *ptr)
+MKL_LONG mkl_dfti_mem_free(void* ptr)
 {
-  mkl_free(ptr);
-  return DFTI_NO_ERROR;
+    mkl_free(ptr);
+    return DFTI_NO_ERROR;
 }

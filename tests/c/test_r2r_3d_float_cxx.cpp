@@ -169,6 +169,7 @@ int main(int argc, char *argv[])
 #endif
 
   double tb = 0.0 - MPI_Wtime();
+  // Auxiliary pointer is not passed here and will be allocated internally
   inout = plan.backward(inout);
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == Platform::CUDA ) {
@@ -183,7 +184,6 @@ int main(int argc, char *argv[])
 #else
   checkAndReportFloat(nx * ny * nz, tf, tb, inout, in_size, check);
 #endif
-
 
   DTFFT_CXX_CALL( plan.mem_free(inout) )
   DTFFT_CXX_CALL( plan.mem_free(aux) )

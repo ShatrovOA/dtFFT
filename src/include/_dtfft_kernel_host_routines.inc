@@ -72,7 +72,7 @@ subroutine CONCAT(permute_backward,PREC)(in, out, dims)
                 out(oidx + z) = in(iidx + z * nx_ny)
             enddo
         enddo
-   enddo
+    enddo
 end subroutine CONCAT(permute_backward,PREC)
 
 subroutine CONCAT(permute_backward_start,PREC)(in, out, dims)
@@ -169,26 +169,26 @@ subroutine CONCAT(unpack_pipelined,PREC)(in, out, dims, neighbor_data)
     integer(int32) :: x,y,z,nx,ny, nxx,nyy,nzz,iidx,oidx,din,dout
     integer(int32) :: nx_ny, obase, ibase, nxx_nyy
 
-   nx = dims(1); ny = dims(2)
-   nxx = neighbor_data(1); nyy = neighbor_data(2)
-   din = neighbor_data(4); dout = neighbor_data(5)
+    nx = dims(1); ny = dims(2)
+    nxx = neighbor_data(1); nyy = neighbor_data(2)
+    din = neighbor_data(4); dout = neighbor_data(5)
 
-   if ( size(dims) == 2 ) then
-      do y = 0, nyy - 1
-        iidx = din + y * nxx + 1
-        oidx = dout + y * nx + 1
-    !$omp simd
-        do x = 0, nxx - 1
-            out(oidx + x) = in(iidx + x)
+    if ( size(dims) == 2 ) then
+        do y = 0, nyy - 1
+            iidx = din + y * nxx + 1
+            oidx = dout + y * nx + 1
+        !$omp simd
+            do x = 0, nxx - 1
+                out(oidx + x) = in(iidx + x)
+            enddo
+        !$omp end simd
         enddo
-    !$omp end simd
-      enddo
-      return
-   endif
-   nzz = neighbor_data(3)
-   nx_ny = nx * ny
-   nxx_nyy = nxx * nyy
-   do z = 0, nzz - 1
+        return
+    endif
+    nzz = neighbor_data(3)
+    nx_ny = nx * ny
+    nxx_nyy = nxx * nyy
+    do z = 0, nzz - 1
         ibase = din + z * nxx_nyy + 1
         obase = dout + z * nx_ny + 1
         do y = 0, nyy - 1
@@ -199,8 +199,8 @@ subroutine CONCAT(unpack_pipelined,PREC)(in, out, dims, neighbor_data)
                 out(oidx + x) = in(iidx + x)
             enddo
         !$omp end simd
-      enddo
-   enddo
+        enddo
+    enddo
 end subroutine CONCAT(unpack_pipelined,PREC)
 
 subroutine CONCAT(unpack,PREC)(in, out, dims, neighbor_data)

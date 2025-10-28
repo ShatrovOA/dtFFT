@@ -74,7 +74,7 @@ contains
       else
         cufft_type = CUFFT_Z2Z
       endif
-      CUFFT_CALL( "cufftPlanMany", cufftPlanMany(self%plan_forward, rnk, fft_sizes, inembed, 1, idist, onembed, 1, odist, cufft_type, how_many) )
+      CUFFT_CALL( cufftPlanMany(self%plan_forward, rnk, fft_sizes, inembed, 1, idist, onembed, 1, odist, cufft_type, how_many) )
       self%plan_backward = self%plan_forward
       self%is_inverse_copied = .true.
     case (FFT_R2C)
@@ -83,23 +83,23 @@ contains
       else
         cufft_type = CUFFT_D2Z
       endif
-      CUFFT_CALL( "cufftPlanMany", cufftPlanMany(self%plan_forward, rnk, fft_sizes, inembed, 1, idist, onembed, 1, odist, cufft_type, how_many) )
+      CUFFT_CALL( cufftPlanMany(self%plan_forward, rnk, fft_sizes, inembed, 1, idist, onembed, 1, odist, cufft_type, how_many) )
 
       if ( precision == DTFFT_SINGLE ) then
         cufft_type = CUFFT_C2R
       else
         cufft_type = CUFFT_Z2D
       endif
-      CUFFT_CALL( "cufftPlanMany", cufftPlanMany(self%plan_backward, rnk, fft_sizes, onembed, 1, odist, inembed, 1, idist, cufft_type, how_many) )
+      CUFFT_CALL( cufftPlanMany(self%plan_backward, rnk, fft_sizes, onembed, 1, odist, inembed, 1, idist, cufft_type, how_many) )
     case default
       error_code = DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
       if(present(r2r_kinds)) then
       endif
       return
     endselect
-    CUFFT_CALL( "cufftSetStream", cufftSetStream(self%plan_forward, get_conf_stream()) )
+    CUFFT_CALL( cufftSetStream(self%plan_forward, get_conf_stream()) )
     if ( .not.self%is_inverse_copied ) then
-      CUFFT_CALL( "cufftSetStream", cufftSetStream(self%plan_backward, get_conf_stream()) )
+      CUFFT_CALL( cufftSetStream(self%plan_backward, get_conf_stream()) )
     endif
   end subroutine create
 
@@ -114,13 +114,13 @@ contains
     sign_ = int(sign, c_int)
 
     if (self%is_inverse_copied) then
-      CUFFT_CALL( "cufftXtExec", cufftXtExec(self%plan_forward, a, b, sign_) )
+      CUFFT_CALL( cufftXtExec(self%plan_forward, a, b, sign_) )
       return
     endif
     if ( sign == FFT_FORWARD ) then
-      CUFFT_CALL( "cufftXtExec", cufftXtExec(self%plan_forward, a, b, sign_) )
+      CUFFT_CALL( cufftXtExec(self%plan_forward, a, b, sign_) )
     else
-      CUFFT_CALL( "cufftXtExec", cufftXtExec(self%plan_backward, a, b, sign_) )
+      CUFFT_CALL( cufftXtExec(self%plan_backward, a, b, sign_) )
     endif
   end subroutine execute
 
@@ -128,9 +128,9 @@ contains
   !! Destroys cuFFT plan
     class(cufft_executor), intent(inout)    :: self           !! cuFFT FFT Executor
 
-    CUFFT_CALL( "cufftDestroy", cufftDestroy(self%plan_forward) )
+    CUFFT_CALL( cufftDestroy(self%plan_forward) )
     if ( .not.self%is_inverse_copied ) then
-      CUFFT_CALL( "cufftDestroy", cufftDestroy(self%plan_backward) )
+      CUFFT_CALL( cufftDestroy(self%plan_backward) )
     endif
   end subroutine destroy
 

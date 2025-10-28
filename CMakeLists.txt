@@ -46,7 +46,7 @@ option(DTFFT_WITHOUT_NCCL "Build dtFFT without NCCL support.
 option(DTFFT_WITHOUT_NVSHMEM "Build dtFFT without NVSHMEM-enabled backends.
                               Disables automatic NVSHMEM usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
 
-option(DTFFT_WITH_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
+option(DTFFT_ENABLE_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
 
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
@@ -157,7 +157,7 @@ if(DTFFT_WITH_CUDA)
   target_link_libraries(dtfft PUBLIC CUDA::cudart)
   target_link_libraries(dtfft PRIVATE ${CMAKE_DL_LIBS})
 
-  if ( NOT DTFFT_WITH_DEVICE_CHECKS )
+  if ( NOT DTFFT_ENABLE_DEVICE_CHECKS )
     target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DEVICE_NO_ERROR_CHECK>)
   endif()
 
@@ -349,9 +349,9 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATC
   set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -check bounds -ftrapuv -debug all -gen-interfaces -traceback -warn all")
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -ipo")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
-  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mnobounds -Mchkptr")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C")
-  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast")
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mcontiguous -Mnodepchk -Minfo=all")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr")
+  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -Mnobounds")
 endif()
 
 if( CMAKE_C_COMPILER_ID MATCHES GNU )

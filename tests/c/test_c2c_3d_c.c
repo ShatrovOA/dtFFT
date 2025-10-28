@@ -18,6 +18,7 @@
 */
 
 #include <dtfft.h>
+#include <complex.h>
 #include <mpi.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
 {
   dtfft_plan_t plan;
   int32_t nx = 512, ny = 64, nz = 32;
-  dtfft_complex *in, *out, *check, *aux;
+  double complex *in, *out, *check, *aux;
   int comm_rank, comm_size;
   int32_t in_counts[3], in_starts[3], out_counts[3];
 
@@ -138,7 +139,7 @@ int main(int argc, char *argv[])
   size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
   size_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
 
-  check = (dtfft_complex*) malloc(sizeof(dtfft_complex) * in_size);
+  check = (double complex *) malloc(sizeof(double complex) * in_size);
 
 #if defined(DTFFT_WITH_CUDA)
   dtfft_platform_t platform;
