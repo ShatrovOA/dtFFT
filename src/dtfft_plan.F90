@@ -1278,8 +1278,8 @@ contains
 
         allocate( local_devices(local_size) )
 
-        CUDA_CALL( "cudaGetDeviceCount", cudaGetDeviceCount(n_devices) )
-        CUDA_CALL( "cudaGetDevice", cudaGetDevice(current_device) )
+        CUDA_CALL( cudaGetDeviceCount(n_devices) )
+        CUDA_CALL( cudaGetDevice(current_device) )
 
         call MPI_Allgather(current_device, 1, MPI_INTEGER4, local_devices, 1, MPI_INTEGER4, local_comm, ierr)
         call MPI_Comm_free(local_comm, ierr)

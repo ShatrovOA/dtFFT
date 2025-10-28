@@ -561,7 +561,6 @@ contains
       return
     endif
     backend = get_correct_backend(config%backend)
-
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine dtfft_set_config
 
@@ -647,7 +646,7 @@ contains
       return
     endif
     if (.not.is_stream_created) then
-      CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(main_stream) )
+      CUDA_CALL( cudaStreamCreate(main_stream) )
       is_stream_created = .true.
     endif
     stream = main_stream
@@ -656,7 +655,7 @@ contains
   subroutine destroy_stream
   !! Destroy the default stream if it was created
     if ( is_stream_created ) then
-      CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(main_stream) )
+      CUDA_CALL( cudaStreamDestroy(main_stream) )
       is_stream_created = .false.
     endif
   end subroutine destroy_stream

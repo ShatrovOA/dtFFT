@@ -294,10 +294,10 @@ contains
 
 
 
-    if ( platform == DTFFT_PLATFORM_HOST .and. is_backend_nccl(self%backend) .or. is_backend_nvshmem(self%backend) ) then
-    ! Do not raise error here, just fallback to MPI_P2P
-      self%backend = DTFFT_BACKEND_MPI_DATATYPE
-    endif
+    ! if ( platform == DTFFT_PLATFORM_HOST .and. (is_backend_nccl(self%backend) .or. is_backend_nvshmem(self%backend)) ) then
+    ! ! Do not raise error here, just fallback to MPI_P2P
+    !   self%backend = DTFFT_BACKEND_MPI_DATATYPE
+    ! endif
 
     allocate( best_decomposition(ndims) )
     best_decomposition(:) = comm_dims(:)
@@ -819,8 +819,8 @@ contains
 
 #ifdef DTFFT_WITH_CUDA
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaEventCreate", cudaEventCreate(timer_start) )
-      CUDA_CALL( "cudaEventCreate", cudaEventCreate(timer_stop) )
+      CUDA_CALL( cudaEventCreate(timer_start) )
+      CUDA_CALL( cudaEventCreate(timer_stop) )
     endif
 #endif
 
@@ -905,7 +905,7 @@ contains
         enddo
 #ifdef DTFFT_WITH_CUDA
         if ( platform == DTFFT_PLATFORM_CUDA ) then
-          CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+          CUDA_CALL( cudaStreamSynchronize(stream) )
         endif
 #endif
         REGION_END("Warmup")
@@ -917,7 +917,7 @@ contains
           ts = MPI_Wtime()
 #ifdef DTFFT_WITH_CUDA
         else
-          CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_start, stream) )
+          CUDA_CALL( cudaEventRecord(timer_start, stream) )
 #endif
         endif
         do iter = 1, n_iters
@@ -930,9 +930,9 @@ contains
           execution_time = real(te - ts, real32) * 1000._real32
 #ifdef DTFFT_WITH_CUDA
         else
-          CUDA_CALL( "cudaEventRecord", cudaEventRecord(timer_stop, stream) )
-          CUDA_CALL( "cudaEventSynchronize", cudaEventSynchronize(timer_stop) )
-          CUDA_CALL( "cudaEventElapsedTime", cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
+          CUDA_CALL( cudaEventRecord(timer_stop, stream) )
+          CUDA_CALL( cudaEventSynchronize(timer_stop) )
+          CUDA_CALL( cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
 #endif
         endif
         REGION_END("Measure")
@@ -970,8 +970,8 @@ contains
     deallocate( plans )
 #ifdef DTFFT_WITH_CUDA
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(timer_start) )
-      CUDA_CALL( "cudaEventDestroy", cudaEventDestroy(timer_stop) )
+      CUDA_CALL( cudaEventDestroy(timer_start) )
+      CUDA_CALL( cudaEventDestroy(timer_stop) )
     endif
 #endif
     call helper%destroy()
@@ -1331,7 +1331,7 @@ contains
       ptr = mem_alloc_host(alloc_bytes)
 #ifdef DTFFT_WITH_CUDA
     else
-      CUDA_CALL( "cudaMemGetInfo", cudaMemGetInfo(free_mem_avail, total_mem_avail) )
+      CUDA_CALL( cudaMemGetInfo(free_mem_avail, total_mem_avail) )
 # ifdef DTFFT_DEBUG
       block
         integer(int64) :: min_mem, max_mem, min_free_mem, max_free_mem
@@ -1370,7 +1370,7 @@ contains
             endif
             helper%nccl_register_size = helper%nccl_register_size + 1
 
-            NCCL_CALL( "ncclCommRegister", ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes, handle) )
+            NCCL_CALL( ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes, handle) )
             helper%nccl_register(1, helper%nccl_register_size) = ptr
             helper%nccl_register(2, helper%nccl_register_size) = handle
             WRITE_DEBUG("Registered pointer "//to_str(transfer(ptr, int64)))
@@ -1421,7 +1421,7 @@ contains
 
           do i = 1, size(helper%nccl_register, dim=2)
             if ( .not. is_same_ptr(ptr, helper%nccl_register(1, i)) ) cycle
-            NCCL_CALL( "ncclCommDeregister", ncclCommDeregister(helper%nccl_comm, helper%nccl_register(2, i)) )
+            NCCL_CALL( ncclCommDeregister(helper%nccl_comm, helper%nccl_register(2, i)) )
             helper%nccl_register(1, i) = c_null_ptr
             helper%nccl_register(2, i) = c_null_ptr
             helper%nccl_register_size = helper%nccl_register_size - 1

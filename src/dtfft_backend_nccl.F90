@@ -20,8 +20,8 @@
 module dtfft_backend_nccl_m
 !! NCCL Based GPU Backends [[backend_nccl]]
 use iso_fortran_env
-use iso_c_binding,                  only: c_ptr, c_f_pointer
-use dtfft_abstract_backend,         only: abstract_backend, backend_helper
+use iso_c_binding, only: c_ptr, c_f_pointer
+use dtfft_abstract_backend, only: abstract_backend, backend_helper
 use dtfft_interface_cuda_runtime
 use dtfft_interface_nccl
 use dtfft_errors
@@ -34,79 +34,77 @@ implicit none
 private
 public :: backend_nccl
 
-  type, extends(abstract_backend) :: backend_nccl
-  !! NCCL backend
-  private
-    type(ncclComm)                :: nccl_comm
-      !! NCCL Communicator
-  contains
-    procedure         :: create_private => create_nccl        !! Creates NCCL backend
-    procedure         :: execute_private => execute_nccl      !! Executes NCCL backend
-    procedure         :: destroy_private => destroy_nccl      !! Destroys NCCL backend
-  end type backend_nccl
+type, extends(abstract_backend) :: backend_nccl
+!! NCCL backend
+private
+    type(ncclComm) :: nccl_comm     !! NCCL Communicator
+contains
+    procedure :: create_private => create_nccl        !! Creates NCCL backend
+    procedure :: execute_private => execute_nccl      !! Executes NCCL backend
+    procedure :: destroy_private => destroy_nccl      !! Destroys NCCL backend
+end type backend_nccl
 
 contains
 
-  subroutine create_nccl(self, helper, base_storage)
-  !! Creates NCCL backend
-    class(backend_nccl),      intent(inout) :: self               !! NCCL backend
-    type(backend_helper),     intent(in)    :: helper             !! Backend helper
-    integer(int64),           intent(in)    :: base_storage       !! Number of bytes to store single element (unused)
+subroutine create_nccl(self, helper, base_storage)
+!! Creates NCCL backend
+class(backend_nccl),    intent(inout)   :: self               !! NCCL backend
+type(backend_helper),   intent(in)      :: helper             !! Backend helper
+integer(int64),         intent(in)      :: base_storage       !! Number of bytes to store single element (unused)
 #ifdef DTFFT_DEBUG
-    if ( .not. is_backend_nccl(self%backend) ) INTERNAL_ERROR(".not. is_backend_nccl")
-    if ( .not. helper%is_nccl_created ) INTERNAL_ERROR(".not. helper%is_nccl_created")
+    if (.not. is_backend_nccl(self%backend)) INTERNAL_ERROR(".not. is_backend_nccl")
+    if (.not. helper%is_nccl_created) INTERNAL_ERROR(".not. helper%is_nccl_created")
 #endif
     self%nccl_comm = helper%nccl_comm
-  end subroutine create_nccl
+end subroutine create_nccl
 
-  subroutine execute_nccl(self, in, out, stream, aux, exec_type, error_code)
-  !! Executes NCCL backend
-    class(backend_nccl),      intent(inout) :: self       !! NCCL backend
-    real(real32),   target,   intent(inout) :: in(:)      !! Send pointer
-    real(real32),   target,   intent(inout) :: out(:)     !! Recv pointer
-    type(dtfft_stream_t),     intent(in)    :: stream     !! Main execution CUDA stream
-    real(real32),   target,   intent(inout) :: aux(:)     !! Aux pointer
-    type(async_exec_t),       intent(in)    :: exec_type  !! Type of async execution
-    integer(int32),           intent(out)   :: error_code !! Error code
-    integer(int32)                          :: i        !! Counter
-    integer(int32)                          :: rnk      !! Rank to send-recv
+subroutine execute_nccl(self, in, out, stream, aux, exec_type, error_code)
+!! Executes NCCL backend
+    class(backend_nccl),    intent(inout)   :: self       !! NCCL backend
+    real(real32),   target, intent(inout)   :: in(:)      !! Send pointer
+    real(real32),   target, intent(inout)   :: out(:)     !! Recv pointer
+    type(dtfft_stream_t),   intent(in)      :: stream     !! Main execution CUDA stream
+    real(real32),   target, intent(inout)   :: aux(:)     !! Aux pointer
+    type(async_exec_t),     intent(in)      :: exec_type  !! Type of async execution
+    integer(int32),         intent(out)     :: error_code !! Error code
+    integer(int32) :: i        !! Counter
+    integer(int32) :: rnk      !! Rank to send-recv
     real(real32), pointer :: pin(:), pout(:)
 
-    if ( self%is_pipelined ) then
-      pin => in(:)
-      pout => aux(:)
+    if (self%is_pipelined) then
+        pin => in(:)
+        pout => aux(:)
     else
-      pin => in(:)
-      pout => out(:)
-    endif
+        pin => in(:)
+        pout => out(:)
+    end if
 
-    NCCL_CALL( "ncclGroupStart", ncclGroupStart() )
+    NCCL_CALL( ncclGroupStart() )
     do i = 0, self%comm_size - 1
-      if ( i == self%comm_rank .and. self%is_pipelined) cycle
-      rnk = self%comm_mapping(i)
-      if ( self%send_floats(i) > 0 ) then
-        NCCL_CALL( "ncclSend", ncclSend(pin( self%send_displs(i) ), self%send_floats(i), ncclFloat, rnk, self%nccl_comm, stream) )
-      endif
-      if ( self%recv_floats(i) > 0) then
-        NCCL_CALL( "ncclRecv", ncclRecv(pout( self%recv_displs(i) ), self%recv_floats(i), ncclFloat, rnk, self%nccl_comm, stream) )
-      endif
-    enddo
-    NCCL_CALL( "ncclGroupEnd", ncclGroupEnd() )
+        if (i == self%comm_rank .and. self%is_pipelined) cycle
+        rnk = self%comm_mapping(i)
+        if (self%send_floats(i) > 0) then
+            NCCL_CALL( ncclSend(pin(self%send_displs(i)), self%send_floats(i), ncclFloat, rnk, self%nccl_comm, stream) )
+        end if
+        if (self%recv_floats(i) > 0) then
+            NCCL_CALL( ncclRecv(pout(self%recv_displs(i)), self%recv_floats(i), ncclFloat, rnk, self%nccl_comm, stream) )
+        end if
+    end do
+    NCCL_CALL( ncclGroupEnd() )
 
-    if ( self%is_pipelined ) then
-      do i = 0, self%comm_size - 1
-        if ( self%recv_floats(i) > 0 ) then
-          call self%unpack_kernel%execute(pout, out, stream, i + 1)
-        endif
-      enddo
-      ! call self%unpack_kernel2%execute(pout, out, stream, self%comm_rank + 1)
-    endif
+    if (self%is_pipelined) then
+        do i = 0, self%comm_size - 1
+            if (self%recv_floats(i) > 0) then
+                call self%unpack_kernel%execute(pout, out, stream, i + 1)
+            end if
+        end do
+    end if
     error_code = DTFFT_SUCCESS
-  end subroutine execute_nccl
+end subroutine execute_nccl
 
-  subroutine destroy_nccl(self)
-  !! Destroys NCCL backend
-    class(backend_nccl),  intent(inout) :: self       !! NCCL backend
+subroutine destroy_nccl(self)
+!! Destroys NCCL backend
+    class(backend_nccl), intent(inout) :: self       !! NCCL backend
 
-  end subroutine destroy_nccl
+end subroutine destroy_nccl
 end module dtfft_backend_nccl_m
