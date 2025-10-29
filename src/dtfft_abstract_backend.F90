@@ -265,7 +265,7 @@ integer(int32) :: i, upper_bound
 #endif
     end if
     call self%execute_private(in, out, stream, aux, exec_type, error_code)
-    if ( exec_type == EXEC_BLOCKING ) then
+    if ( exec_type == EXEC_BLOCKING .or. self%platform == DTFFT_PLATFORM_CUDA) then
         call self%execute_end(error_code)
     endif
 #ifdef DTFFT_WITH_CUDA
