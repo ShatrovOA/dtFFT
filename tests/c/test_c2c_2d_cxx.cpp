@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 
     // Create plan
     const vector<int32_t> dims = { ny, nx };
-    PlanC2C plan(dims, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, Executor::NONE);
+    PlanC2C plan(dims, Precision::DOUBLE, Effort::PATIENT);
 
     DTFFT_CXX_CALL(plan.report())
 

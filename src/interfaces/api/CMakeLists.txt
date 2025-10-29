@@ -30,5 +30,5 @@ target_include_directories(dtfft PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:${CMAKE_CUR
 target_include_directories(dtfft PRIVATE $<$<COMPILE_LANGUAGE:C,CXX>:${PROJECT_SOURCE_DIR}/include>)
 target_sources(dtfft PRIVATE
   dtfft_api_c.c
-  dtfft_api_cxx.cxx
+  dtfft_api_cxx.cpp
   dtfft_api.F90)
