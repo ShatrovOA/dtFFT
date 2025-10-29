@@ -79,6 +79,10 @@ Types
 
 .. doxygentypedef:: dtfft_stream_t
 
+---------
+
+.. doxygentypedef:: dtfft_request_t
+
 Functions
 =========
 
@@ -159,6 +163,14 @@ Plan execution
 
 .. doxygenfunction:: dtfft_transpose
 
+---------
+
+.. doxygenfunction:: dtfft_transpose_start
+
+---------
+
+.. doxygenfunction:: dtfft_transpose_end 
+
 Plan information
 ======================
 
@@ -190,6 +202,10 @@ Plan information
 
 ---------
 
+.. doxygenfunction:: dtfft_get_y_slab_enabled
+
+---------
+
 .. doxygenfunction:: dtfft_get_stream
 
 ---------
@@ -211,3 +227,7 @@ Plan information
 ---------
 
 .. doxygenfunction:: dtfft_get_dims
+
+---------
+
+.. doxygenfunction:: dtfft_get_grid_dims

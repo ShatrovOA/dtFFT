@@ -46,10 +46,11 @@ public :: abstract_executor
   type, abstract :: abstract_executor
   !! The "most" abstract executor.
   !! All FFT executors are extending this class.
-    type(c_ptr)         :: plan_forward                 !! Pointer to forward plan
-    type(c_ptr)         :: plan_backward                !! Pointer to backward plan
-    logical,    private :: is_created = .false.         !! Is plan created?
-    logical             :: is_inverse_copied = .false.  !! Is inverse plan copied?
+    type(c_ptr)             :: plan_forward                 !! Pointer to forward plan
+    type(c_ptr)             :: plan_backward                !! Pointer to backward plan
+    logical,    private     :: is_created = .false.         !! Is plan created?
+    logical                 :: is_inverse_copied = .false.  !! Is inverse plan copied?
+    character(len=:),  allocatable :: profile
   contains
     procedure,  non_overridable,              pass(self), public  :: create               !! Creates FFT plan
     procedure,  non_overridable,              pass(self), public  :: execute              !! Executes plan
@@ -128,16 +129,17 @@ contains
     create = DTFFT_SUCCESS
     if ( self%is_created .and. .not.is_null_ptr(self%plan_forward) .and. .not.is_null_ptr(self%plan_backward) ) return
 
-    PHASE_BEGIN("Creating FFT", COLOR_FFT)
+    
 
     self%plan_forward = c_null_ptr
     self%plan_backward = c_null_ptr
     self%is_created = .false.
     self%is_inverse_copied = .false.
+#ifdef DTFFT_DEBUG
     if ( fft_rank /= FFT_1D .and. fft_rank /= FFT_2D ) INTERNAL_ERROR("fft_rank /= FFT_1D .and. fft_rank /= FFT_2D")
     if ( (fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil)) ) INTERNAL_ERROR("(fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil))")
     if ( (fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds)) ) INTERNAL_ERROR("(fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds))")
-
+#endif
     allocate( fft_sizes(fft_rank), inembed(fft_rank), onembed(fft_rank) )
 
     how_many = 0
@@ -185,16 +187,25 @@ contains
       how_many = product(real_pencil%counts) / idist
     endselect
     if ( how_many == 0 ) then
-      PHASE_END("Creating FFT")
       return
     endif
 
+    if ( fft_rank == 1) then
+      self%profile = "1D "
+    else
+      self%profile = "2D "
+    endif
+    self%profile = self%profile//to_str(fft_sizes(1))
+    if ( fft_rank == 2 ) self%profile = self%profile // "x" // to_str(fft_sizes(2))
+    self%profile = self%profile // "x" // to_str(how_many)
+
+    REGION_BEGIN("dtfft_create_fft: "//self%profile, COLOR_FFT)
     call self%create_private(fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, create, r2r_kinds)
+    REGION_END("dtfft_create_fft: "//self%profile)
     ! This should only happen when current process do not have any data, so FFT plan is not required here
     if ( is_null_ptr(self%plan_forward) .or. is_null_ptr(self%plan_backward) ) return
-    if( create == DTFFT_SUCCESS ) self%is_created = .true.
+    if ( create == DTFFT_SUCCESS ) self%is_created = .true.
     deallocate( fft_sizes, inembed, onembed )
-    PHASE_END("Creating FFT")
   end function create
 
   subroutine execute(self, in, out, sign)
@@ -204,14 +215,15 @@ contains
     type(c_ptr),              intent(in)  :: out    !! Target buffer
     integer(int8),            intent(in)  :: sign   !! Sign of transform
     if ( .not.self%is_created ) return
-    PHASE_BEGIN("Executing FFT", COLOR_FFT)
+    REGION_BEGIN("dtfft_execute_fft "//self%profile, COLOR_FFT)
     call self%execute_private(in, out, sign)
-    PHASE_END("Executing FFT")
+    REGION_END("dtfft_execute_fft "//self%profile)
   end subroutine execute
 
   subroutine destroy(self)
   !! Destroys plan
     class(abstract_executor), intent(inout) :: self             !! FFT Executor
+    if ( allocated(self%profile) ) deallocate(self%profile)
     if ( self%is_created ) call self%destroy_private()
     self%plan_forward = c_null_ptr
     self%plan_backward = c_null_ptr

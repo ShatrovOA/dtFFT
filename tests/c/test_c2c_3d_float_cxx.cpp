@@ -81,13 +81,17 @@ int main(int argc, char *argv[])
 #endif
 
   Config conf;
-  conf.set_enable_z_slab(true);
+  conf.set_enable_z_slab(false)
+    .set_enable_y_slab(true)
+    .set_backend(Backend::MPI_P2P);
   DTFFT_CXX_CALL( set_config(conf) );
 
-  Plan *plan = new PlanC2C(dims, grid_comm, Precision::SINGLE, Effort::MEASURE, executor);
+  auto plan = new PlanC2C(dims, grid_comm, Precision::SINGLE, Effort::MEASURE, executor);
   DTFFT_CXX_CALL( plan->report() )
   vector<int32_t> in_counts(3), out_counts(3);
   DTFFT_CXX_CALL( plan->get_local_sizes(nullptr, in_counts.data(), nullptr, out_counts.data()) )
+
+  MPI_Comm_free(&grid_comm);
 
 #if defined(DTFFT_WITH_CUDA)
   const Platform platform = plan->get_platform();
@@ -113,11 +117,14 @@ int main(int argc, char *argv[])
   }
 
   bool is_z_slab = plan->get_z_slab_enabled();
+  bool is_y_slab = plan->get_y_slab_enabled();
   double tf = 0.0 - MPI_Wtime();
 
   if ( executor == Executor::NONE ) {
     if ( is_z_slab ) {
       DTFFT_CXX_CALL( plan->transpose(in.data(), out.data(), Transpose::X_TO_Z) )
+    } else if ( is_y_slab ) {
+      DTFFT_CXX_CALL( plan->transpose(in.data(), out.data(), Transpose::X_TO_Y) )
     } else {
       DTFFT_CXX_CALL( plan->transpose(in.data(), aux.data(), Transpose::X_TO_Y) )
       DTFFT_CXX_CALL( plan->transpose(aux.data(), out.data(), Transpose::Y_TO_Z) )

@@ -181,12 +181,12 @@ implicit none
   if ( any( sizes /= test%counts ) ) error stop " any( sizes /= test%counts )"
 
   test = plan%get_pencil(2, error_code=ierr); DTFFT_CHECK(ierr)
-  if ( test%starts(3) /= lbounds(3) ) error stop "test%starts(3) /= lbounds(3)"
-  if ( test%counts(3) /= sizes(3) ) error stop "test%counts(3) /= sizes(3)"
+  if ( test%starts(2) /= lbounds(3) ) error stop "test%starts(2) /= lbounds(3)"
+  if ( test%counts(2) /= sizes(3) ) error stop "test%counts(2) /= sizes(3)"
 
   test2 = plan%get_pencil(3, error_code=ierr); DTFFT_CHECK(ierr)
-  if ( test2%starts(2) /= test%starts(2) ) error stop "test2%starts(2) /= test%starts(2)"
-  if ( test2%counts(2) /= test%counts(2) ) error stop "test2%counts(2) /= test%counts(2)"
+  if ( test2%starts(2) /= test%starts(3) ) error stop "test2%starts(2) /= test%starts(2)"
+  if ( test2%counts(2) /= test%counts(3) ) error stop "test2%counts(2) /= test%counts(2)"
 
 
   call plan%get_dims(dims, error_code=ierr); DTFFT_CHECK(ierr)

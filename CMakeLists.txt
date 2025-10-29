@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(dtfft VERSION 2.2.0
+project(dtfft VERSION 2.3.0
               DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
@@ -12,7 +12,9 @@ if (NOT CMAKE_BUILD_TYPE)
 endif (NOT CMAKE_BUILD_TYPE)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(C_STANDARD_REQUIRED ON)
+set(CXX_STANDARD_REQUIRED ON)
 
 # FFT Libraries
 option(DTFFT_WITH_FFTW "Build dtFFT with FFTW support" OFF)
@@ -25,12 +27,12 @@ option(DTFFT_BUILD_SHARED "Build shared library" ON)
 option(DTFFT_BUILD_C_CXX_API "Create C API" ON)
 
 option(DTFFT_ENABLE_COVERAGE "Create coverage with gcov utility" OFF)
-
 option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
-
 option(DTFFT_ENABLE_PERSISTENT_COMM "Enable MPI persistent calls" OFF)
-
 option(DTFFT_WITH_PROFILER "Build dtFFT with profiler support" OFF)
+option(DTFFT_WITH_RMA "Enable support of MPI RMA backends" OFF)
+option(DTFFT_WITH_SIMD "Enable SIMD operations for some host kernels (OpenMP Required)" OFF)
+option(DTFFT_ENABLE_INPUT_CHECK "Enable checks for user input for all dtFFT functions" ON)
 
 # Device libraries
 option(DTFFT_WITH_CUDA "Build dtFFT with CUDA support" OFF)
@@ -44,7 +46,7 @@ option(DTFFT_WITHOUT_NCCL "Build dtFFT without NCCL support.
 option(DTFFT_WITHOUT_NVSHMEM "Build dtFFT without NVSHMEM-enabled backends.
                               Disables automatic NVSHMEM usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
 
-option(DTFFT_WITH_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
+option(DTFFT_ENABLE_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
 
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
@@ -70,11 +72,39 @@ else()
   set(mpi_mod "mpi_f08")
 endif()
 
+if( CMAKE_BUILD_TYPE MATCHES Release)
+  set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
+
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT result)
+  if(result)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  endif()
+endif()
 
 if(DTFFT_BUILD_SHARED)
   add_library(dtfft SHARED)
 else()
   add_library(dtfft STATIC)
+endif()
+set_target_properties(dtfft PROPERTIES LINKER_LANGUAGE Fortran)
+
+include(CheckMPIFeatures)
+
+# if ( DTFFT_USE_MPI )
+#   set(HAVE_MPI_INT64 OFF)
+# else()
+#   check_int64_supported(${MPI_Fortran_MODULE_DIR} ${MPI_Fortran_LIBRARIES})
+# endif()
+# if ( HAVE_MPI_INT64 )
+#   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=MPI_COUNT_KIND;ADDR_KIND=MPI_ADDRESS_KIND>)
+# else()
+#   message(WARNING "MPI 64bit integer indexing is disabled. Overflows might occur if MPI Backends will be used")
+  target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=int32;ADDR_KIND=int32>)
+# endif()
+
+if ( DTFFT_ENABLE_INPUT_CHECK )
+  target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:ENABLE_INPUT_CHECK>)
 endif()
 
 include(CheckFortranFeatures)
@@ -86,7 +116,19 @@ if (NOT HAVE_ASSUMED_RANK_AND_TYPE OR NOT HAVE_BLOCK_STATEMENT)
   message(FATAL_ERROR "Both assumed-rank arrays and Block statement are required")
 endif()
 
-include(CheckMPIFeatures)
+
+check_ompi_fix_required(${MPI_C_INCLUDE_DIRS})
+check_mpich_fix_required(${MPI_C_INCLUDE_DIRS})
+
+if ( OMPI_FIX_REQUIRED )
+  target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:OMPI_FIX_REQUIRED>)
+  message(STATUS "OpenMPI < 5 detected. Applying workaround for Collective non-blocking calls")
+endif()
+if ( MPICH_FIX_REQUIRED AND NOT DTFFT_USE_MPI )
+  target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:MPICH_FIX_REQUIRED>)
+  message(STATUS "MPICH < 4.1 detected. Applying workaround for MPI_Waitsome 0 indexes returned")
+endif()
+
 
 if ( DTFFT_ENABLE_PERSISTENT_COMM )
   check_persistent_collectives(${MPI_Fortran_MODULE_DIR} "${MPI_Fortran_LIBRARIES}" ${mpi_mod})
@@ -100,6 +142,10 @@ if ( DTFFT_ENABLE_PERSISTENT_COMM )
   else()
     message(WARNING "MPI implementation do not support collective persistent functions")
   endif()
+endif()
+
+if ( DTFFT_WITH_RMA )
+  target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_WITH_RMA>)
 endif()
 
 if( NOT DTFFT_WITH_FFTW
@@ -121,7 +167,7 @@ if(DTFFT_WITH_CUDA)
   target_link_libraries(dtfft PUBLIC CUDA::cudart)
   target_link_libraries(dtfft PRIVATE ${CMAKE_DL_LIBS})
 
-  if ( NOT DTFFT_WITH_DEVICE_CHECKS )
+  if ( NOT DTFFT_ENABLE_DEVICE_CHECKS )
     target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:DEVICE_NO_ERROR_CHECK>)
   endif()
 
@@ -250,7 +296,12 @@ if ( DTFFT_WITH_PROFILER )
   endif()
 endif()
 
-set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -D__DEBUG -g")
+if ( DTFFT_WITH_SIMD )
+  find_package(OpenMP REQUIRED)
+  target_link_libraries(dtfft PRIVATE OpenMP::OpenMP_Fortran)
+endif()
+
+set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g")
 if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
   set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -ffree-line-length-none -std=f2018 -pedantic-errors -fbacktrace -Wall")
   set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -Og -g -Waliasing -Wampersand -Wconversion -Wsurprising \
@@ -265,6 +316,12 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
   if(DTFFT_ENABLE_COVERAGE)
     set(DTFFT_BUILD_TESTS ON)
 
+    find_program(LCOV_PATH lcov)
+    if ( NOT LCOV_PATH )
+      message(FATAL_ERROR "Unable to find lcov utility")
+    endif()
+    message(STATUS "Found lcov: ${LCOV_PATH}")
+
     string(REPLACE "." ";" GCOV_VERSION ${CMAKE_C_COMPILER_VERSION})
     list(LENGTH GCOV_VERSION len)
     list(GET GCOV_VERSION 0 GCOV_VERSION_MAJOR)
@@ -274,37 +331,52 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
     endif()
     message(STATUS "Found gcov: ${GCOV_PATH}")
 
+    if (NOT DTFFT_RUNNING_CICD)
+      find_program(GENHTML_PATH genhtml)
+      if ( GENHTML_PATH )
+        set(GENHTML_COMMAND ${GENHTML_PATH} coverage.info --output-directory coverage_html)
+      endif()
+    endif()
+
     add_custom_target(coverage
       COMMAND ${CMAKE_MAKE_PROGRAM} test
-      COMMAND ${GCOV_PATH} "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/*.gcno"
-        "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/interfaces/api/*.gcno"
-        "${CMAKE_BINARY_DIR}/CMakeFiles/dtfft.dir/src/interfaces/fft/fftw/*.gcno"
-      COMMAND mv "${CMAKE_BINARY_DIR}/*.gcov" "${PROJECT_SOURCE_DIR}/"
+      COMMAND ${LCOV_PATH} --capture --directory "CMakeFiles" --output-file coverage.info --gcov-tool ${GCOV_PATH}
+      COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '/opt/*'  --output-file coverage.info
+      COMMAND ${GENHTML_COMMAND}
+      # '${PROJECT_SOURCE_DIR}/include/*'
     )
 
     target_link_libraries(dtfft PRIVATE gcov)
     set_target_properties(dtfft
       PROPERTIES
       COMPILE_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage"
-      LINK_FLAGS "-lgcov --coverage"
+      LINK_FLAGS "--coverage"
     )
   endif()
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATCHES IntelLLVM)
-  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -free -warn all -traceback")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -check bounds -ftrapuv -debug all -gen-interfaces")
-  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -march=native")
-elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
-  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mnobounds")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C")
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -free")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -check bounds -ftrapuv -debug all -gen-interfaces -traceback -warn all")
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast")
+elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mcontiguous -Mnodepchk")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr")
+  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -Mnobounds")
 endif()
 
 if( CMAKE_C_COMPILER_ID MATCHES GNU )
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpedantic -Wall -Wextra")
+elseif(CMAKE_C_COMPILER_ID MATCHES Intel OR CMAKE_C_COMPILER_ID MATCHES IntelLLVM)
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast")
+elseif(CMAKE_C_COMPILER_ID MATCHES NVHPC)
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast")
 endif()
 
 if( CMAKE_CXX_COMPILER_ID MATCHES GNU )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES Intel OR CMAKE_CXX_COMPILER_ID MATCHES IntelLLVM)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES NVHPC)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 endif()
 
 math(EXPR DTFFT_VERSION_CODE

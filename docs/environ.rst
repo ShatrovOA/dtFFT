@@ -4,7 +4,9 @@
 Environment Variables
 #####################
 
-This page lists all environment variables that can modify ``dtFFT`` behavior at runtime, offering users granular control over logging, performance measurement, and data transposition strategies.
+This page lists all environment variables that can modify ``dtFFT`` behavior at runtime, providing users with granular control over logging, performance measurement, and data transposition strategies.
+
+Most of these variables override settings specified in the :f:type:`dtfft_config_t` structure, allowing users to adjust configurations without modifying code.
 
 .. _dtfft_enable_log_env:
 
@@ -18,10 +20,8 @@ Purpose
 
 Logging enables monitoring of key operations, including:
 
-- **Z-Slab Usage**: Indicates whether the plan utilizes Z-slab optimization.
 - **Selected Datatype IDs**: Reports the :ref:`datatype IDs<datatype_selection>` or GPU backend chosen during autotuning when ``effort`` is :f:var:`DTFFT_PATIENT`.
 - **Execution Times During Autotune**: Logs timing data for autotuning stages.
-- **Detected Input Errors**: Highlights errors from invalid user input for easier diagnosis.
 
 Accepted Values
 ---------------
@@ -59,7 +59,7 @@ Specifies the number of measurement iterations for transposition and data exchan
 Purpose
 -------
 
-Single measurements may be inconsistent due to system noise or cache effects. By repeating transpositions, ``dtFFT`` averages performance data, ensuring robust selection of optimal GPU backends or MPI datatypes during autotuning.
+Single measurements may be inconsistent due to system noise or cache effects. By repeating transpositions, ``dtFFT`` averages performance data, ensuring robust selection of optimal backends or MPI datatypes during autotuning.
 
 Accepted Values
 ---------------
@@ -101,21 +101,19 @@ Accepted Values
      defaults to the host.
    - If an unsupported value is provided, it is silently ignored, and the default (``host``) is used.
 
-.. _dtfft_gpu_backend_env:
-
 DTFFT_BACKEND
 =============
 
-Specifies the GPU backend used by ``dtFFT`` for data transposition and communication when executing plans on a CUDA device.
+Specifies the backend used by ``dtFFT`` for data transposition and communication when executing plans.
 This environment variable allows users to override the backend selected through the ``dtfft_config_t`` structure,
 taking precedence over API configuration.
 
 Purpose
 -------
 
-The ``DTFFT_BACKEND`` variable enables users to select a specific GPU backend for optimizing data movement and computation in ``dtFFT`` plans.
+The ``DTFFT_BACKEND`` variable enables users to select a specific backend for optimizing data movement and computation in ``dtFFT`` plans.
 Different backends offer varying performance characteristics depending on the system configuration, workload, and MPI implementation,
-allowing fine-tuned control over GPU execution without modifying code.
+allowing fine-tuned control over execution without modifying code.
 
 Accepted Values
 ---------------
@@ -127,17 +125,18 @@ Accepted Values
   - ``mpi_p2p``: MPI peer-to-peer backend.
   - ``mpi_a2a``: MPI backend using ``MPI_Alltoallv``.
   - ``mpi_p2p_pipe``: Pipelined MPI peer-to-peer backend with overlapping data copying and unpacking.
+  - ``mpi_rma``: MPI RMA backend that uses MPI_Rget for data transfers.
+  - ``mpi_rma_pipe``: Pipelined MPI RMA backend with overlapping data copying and unpacking.
   - ``nccl``: NCCL backend.
   - ``nccl_pipe``: Pipelined NCCL backend with overlapping data copying and unpacking.
   - ``cufftmp``: cuFFTMp backend.
   - ``cufftmp_pipe``: cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance.
 
-- **Default**: ``nccl`` if NCCL is available in the library build; otherwise, ``mpi_p2p``.
+- **Default**: When built with CUDA Support: ``nccl`` if NCCL is available in the library build; otherwise, ``mpi_p2p``.
+  When built without CUDA Support: ``mpi_dt``.
 
 .. note::
    - Case-insensitive (e.g., ``MPI_DT`` is equivalent to ``mpi_dt``).
-   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
-     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
    - If an unsupported value is provided, it is silently ignored, and the default backend (``nccl`` or ``mpi_p2p``, depending on build) is used.
    - Availability of some backends (e.g., ``nccl``, ``cufftmp``) depends on additional library
      support (e.g., NCCL, cuFFTMp) during compilation.
@@ -193,20 +192,64 @@ Accepted Values
 
 - **Default**: ``1``
 
-.. note::
-   If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
+DTFFT_ENABLE_Y_SLAB
+===================
+
+Specifies whether to enable Y-slab optimization for ``dtFFT`` plans.
+When enabled, Y-slab optimization reduces network data transfers by employing a two-dimensional FFT algorithm.
+
+Purpose
+-------
+
+Y-slab optimization is designed to improve performance for plans decomposed as ``NX × NY / P × NZ``.
+Disabling it may resolve issues like :f:var:`DTFFT_ERROR_VKFFT_R2R_2D_PLAN` or improve performance if the underlying 2D FFT implementation is suboptimal.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Disable Y-slab optimization.
+  - ``1``: Enable Y-slab optimization.
+
+- **Default**: ``0``
+
+DTFFT_ENABLE_MPI_DT
+===================
+
+Specifies whether to enable MPI datatype backend when ``effort`` is :f:var:`DTFFT_PATIENT`.
+When enabled, the MPI datatype backend is tested during autotuning.
+
+Purpose
+-------
+
+The MPI datatype backend is a simple and robust method for data transposition using MPI derived datatypes.
+However, it may not be the most efficient option for large-scale systems or specific data layouts.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Disable MPI datatype backend.
+  - ``1``: Enable MPI datatype backend.
+
+- **Default**: ``1``
 
 .. _dtfft_enable_mpi_env:
 
 DTFFT_ENABLE_MPI
 ================
 
-Specifies whether to enable MPI-based GPU backends for ``dtFFT`` plans.
+Specifies whether to enable MPI-based backends for ``dtFFT`` when ``effort`` is :f:var:`DTFFT_PATIENT`.
 When enabled, MPI backends (e.g., MPI P2P) are tested during autotuning.
 
 Purpose
 -------
 
+The following applies only to CUDA builds: 
 MPI backends are useful for distributed GPU systems but may cause GPU memory leaks in certain OpenMPI versions.
 Disabling this option can prevent such issues.
 
@@ -216,23 +259,17 @@ Accepted Values
 - **Type**: Integer
 - **Accepted Values**:
 
-  - ``0``: Disable MPI-based GPU backends.
-  - ``1``: Enable MPI-based GPU backends.
+  - ``0``: Disable MPI-based backends.
+  - ``1``: Enable MPI-based backends.
 
 - **Default**: ``0``
-
-.. note::
-
-  - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
-    to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
 
 .. _dtfft_enable_nccl:
 
 DTFFT_ENABLE_NCCL
 =================
 
-Specifies whether to enable NCCL backends for ``dtFFT`` plans.
+Specifies whether to enable NCCL backends when ``effort`` is :f:var:`DTFFT_PATIENT`.
 When enabled, NCCL backends are tested during autotuning.
 
 Purpose
@@ -255,14 +292,13 @@ Accepted Values
 
   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
 
 .. _dtfft_enable_nvshmem:
 
 DTFFT_ENABLE_NVSHMEM
 ====================
 
-Specifies whether to enable NVSHMEM backends for ``dtFFT`` plans.
+Specifies whether to enable NVSHMEM backends when ``effort`` is :f:var:`DTFFT_PATIENT`.
 When enabled, NVSHMEM backends are tested during autotuning.
 
 Purpose
@@ -285,14 +321,12 @@ Accepted Values
 
   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
 
-.. _dtfft_enable_pipe:
 
 DTFFT_ENABLE_PIPE
 =================
 
-Specifies whether to enable pipelined GPU backends for ``dtFFT`` plans.
+Specifies whether to enable pipelined backends when ``effort`` is :f:var:`DTFFT_PATIENT`.
 When enabled, pipelined backends (e.g., overlapping data copy and unpack) are tested during autotuning.
 
 Purpose
@@ -306,16 +340,10 @@ Accepted Values
 - **Type**: Integer
 - **Accepted Values**:
 
-  - ``0``: Disable pipelined GPU backends.
-  - ``1``: Enable pipelined GPU backends.
+  - ``0``: Disable pipelined backends.
+  - ``1``: Enable pipelined backends.
 
 - **Default**: ``1``
-
-.. note::
-
-  - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
-    to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
 
 
 .. _enable_kernel_optimization:
@@ -323,7 +351,7 @@ Accepted Values
 DTFFT_ENABLE_KERNEL_OPTIMIZATION
 ================================
 
-Specifies whether to enable transposition kernels optimizations when effort is :f:var:`DTFFT_PATIENT`.
+Specifies whether to enable transposition kernels optimizations when ``effort`` is :f:var:`DTFFT_PATIENT`.
 When enabled, optimized CUDA kernels are used for data transposition on GPUs.
 
 Purpose
@@ -347,7 +375,6 @@ Accepted Values
 
   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
 
 
 DTFFT_CONFIGS_TO_TEST
@@ -372,7 +399,6 @@ Accepted Values
 
   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
   - Setting this variable to zero or one disables kernel optimizations, equivalent to setting
     :ref:`DTFFT_ENABLE_KERNEL_OPTIMIZATION<enable_kernel_optimization>` to ``0``.
 
@@ -380,7 +406,7 @@ Accepted Values
 DTFFT_FORCE_KERNEL_OPTIMIZATION
 ===============================
 
-Forces to run kernnel optimizations when effort is NOT :f:var:`DTFFT_PATIENT`.
+Forces to run kernel optimizations when effort is NOT :f:var:`DTFFT_PATIENT`.
 
 Purpose
 -------
@@ -402,7 +428,6 @@ Accepted Values
 
   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - If this environment variable is set, it takes precedence over the value specified in :f:type:`dtfft_config_t`.
 
 
 .. _datatype_selection:
@@ -426,40 +451,37 @@ Accepted Values
 ---------------
 
 - **Type**: Integer
-- **Values**: ``1`` (Method 1), ``2`` (Method 2)
+- **Values**:
+
+  - ``1`` (Method 1)
+  - ``2`` (Method 2)
 
 DTFFT_DTYPE_X_Y
 _______________
 
 Controls datatype construction for X-to-Y transposition.
-- **Default**: ``2``
 
 DTFFT_DTYPE_Y_Z
 _______________
 
 Controls datatype construction for Y-to-Z transposition.
-- **Default**: ``2``
 
 DTFFT_DTYPE_X_Z
 _______________
 
 Controls datatype construction for X-to-Z transposition.
-- **Default**: ``2``
 
 DTFFT_DTYPE_Y_X
 _______________
 
 Controls datatype construction for Y-to-X transposition.
-- **Default**: ``2``
 
 DTFFT_DTYPE_Z_Y
 _______________
 
 Controls datatype construction for Z-to-Y transposition.
-- **Default**: ``2``
 
 DTFFT_DTYPE_Z_X
 _______________
 
 Controls datatype construction for Z-to-X transposition.
-- **Default**: ``2``

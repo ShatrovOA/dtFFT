@@ -15,9 +15,9 @@ use dtfft_interface_cuda_runtime
 implicit none
 private
 public :: COMPLEX_STORAGE_SIZE, DOUBLE_COMPLEX_STORAGE_SIZE, DOUBLE_STORAGE_SIZE, FLOAT_STORAGE_SIZE
+public :: to_str
 #if defined(DTFFT_WITH_CUDA)
 public :: NULL_STREAM
-public :: to_str
 #endif
 public :: mem_alloc_host, mem_free_host
 public :: attach_gpu_to_process
@@ -165,7 +165,7 @@ contains
     ! Default execution on device
     if ( trim(adjustl(platform_env)) == "host" ) return
 
-    CUDA_CALL( "cudaGetDeviceCount", cudaGetDeviceCount(num_devices) )
+    CUDA_CALL( cudaGetDeviceCount(num_devices) )
     if ( num_devices == 0 ) return
 
     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
@@ -175,7 +175,7 @@ contains
     call MPI_Comm_free(host_comm, ierr)
 
     if ( host_size > num_devices ) return
-    CUDA_CALL( "cudaSetDevice", cudaSetDevice(host_rank) )
+    CUDA_CALL( cudaSetDevice(host_rank) )
 #endif
   end subroutine attach_gpu_to_process
 

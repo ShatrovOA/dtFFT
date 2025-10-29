@@ -39,6 +39,7 @@ implicit none
   real(real64) :: tf, tb
   type(dtfft_r2r_kind_t) :: kinds(2)
   type(dtfft_executor_t) :: executor
+  type(dtfft_config_t) :: config
 #if defined(DTFFT_WITH_CUDA)
   type(dtfft_platform_t) :: platform
 #endif
@@ -86,6 +87,9 @@ implicit none
     scaler = 4 * (nx - 1) * (ny - 1)
   endif
 
+  config = dtfft_config_t()
+  config%enable_mpi_backends = .true.
+  call dtfft_set_config(config, error_code=ierr); DTFFT_CHECK(ierr)
 
   call plan%create([nx, ny], kinds=kinds, effort=DTFFT_PATIENT, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
@@ -111,7 +115,7 @@ implicit none
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tf = tf + MPI_Wtime()
@@ -126,7 +130,7 @@ implicit none
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tb = tb + MPI_Wtime()

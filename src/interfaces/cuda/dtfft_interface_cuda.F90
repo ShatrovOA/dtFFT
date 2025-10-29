@@ -37,16 +37,7 @@ public :: dim3
     integer(c_int) :: x,y,z
   end type
 
-public :: kernelArgs
-  type, bind(C) :: kernelArgs
-  !! Arguments passed to nvrtc-compiled kernels
-    ! integer(c_int)    :: n_longs = 0
-    ! integer(c_size_t) :: longs(1)
-    integer(c_int)    :: n_ints = 0   !! Number of integers provided
-    integer(c_int)    :: ints(5)      !! Integer array
-    integer(c_int)    :: n_ptrs = 0   !! Number of pointers provided
-    type(c_ptr)       :: ptrs(3)      !! Pointer array
-  end type kernelArgs
+  integer(int32), parameter, public :: MAX_KERNEL_ARGS = 9
 
 public :: CUmodule
   type, bind(C) :: CUmodule
@@ -69,7 +60,7 @@ public :: CUfunction
     !! The image may be a cubin or fatbin as output by nvcc, or a NULL-terminated PTX, either as output by nvcc or hand-written.
     import
       type(CUmodule)        :: mod          !! Returned module
-      character(c_char)     :: image(*)     !! Module data to load
+      type(c_ptr),    value :: image        !! Module data to load
       integer(c_int)        :: cuResult     !! Driver result code
     end function cuModuleLoadData_interface
 
@@ -94,7 +85,7 @@ public :: CUfunction
     import
       type(CUfunction)      :: hfunc        !! Returns a function handle.
       type(CUmodule), value :: hmod         !! Module to retrieve function from
-      character(c_char)     :: name(*)      !! Name of function to retrieve
+      type(c_ptr),    value :: name         !! Name of function to retrieve
       integer(c_int)        :: cuResult     !! Driver result code
     end function cuModuleGetFunction_interface
 
@@ -160,7 +151,7 @@ contains
     is_loaded = .true.
   end function load_cuda
 
-  function cuLaunchKernel(func, in, out, blocks, threads, stream, kernelParams) result(cuResult)
+  function cuLaunchKernel(func, in, out, blocks, threads, stream, nargs, args) result(cuResult)
   !! Launches a CUDA kernel
     type(CUfunction),         intent(in)  :: func             !! Function CUfunction or Kernel CUkernel to launch
     type(c_ptr),      target, intent(in)  :: in               !! Input pointer
@@ -168,31 +159,21 @@ contains
     type(dim3),               intent(in)  :: blocks           !! Grid in blocks
     type(dim3),               intent(in)  :: threads          !! Thread block
     type(dtfft_stream_t),     intent(in)  :: stream           !! Stream identifier
-    type(kernelArgs), target, intent(in)  :: kernelParams     !! Input parameters of kernel `func`
+    integer(int32),           intent(in)  :: nargs
+    integer(int32),   target, intent(in)  :: args(MAX_KERNEL_ARGS)     !! Input parameters of kernel `func`
     integer(c_int)                        :: cuResult         !! Driver result code
-    type(c_ptr)                           :: args(10)
-    ! integer(int32), pointer :: param
+    type(c_ptr)                           :: params(15)
     integer(int32) :: i, temp
 
-    args(:) = c_null_ptr
+    params(:) = c_null_ptr
     ! Addresses of pointers are required, not the pointers themselves
-    args(1) = c_loc(out)
-    args(2) = c_loc(in)
+    params(1) = c_loc(out)
+    params(2) = c_loc(in)
 
     temp = 2
-    ! do i = 1, kernelParams%n_longs
-    !   args(temp + i) = c_loc(kernelParams%longs(i))
-    ! enddo
-
-    ! temp = temp + kernelParams%n_longs
-    do i = 1, kernelParams%n_ints
-      args(temp + i) = c_loc(kernelParams%ints(i))
+    do i = 1, nargs
+      params(temp + i) = c_loc(args(i))
     enddo
-
-    temp = temp + kernelParams%n_ints
-    do i = 1, kernelParams%n_ptrs
-      args(temp + i) = c_loc(kernelParams%ptrs(i))
-    enddo
-    cuResult = cuLaunchKernel_(func, blocks%x, blocks%y, blocks%z, threads%x, threads%y, threads%z, 0, stream, args, c_null_ptr)
+    cuResult = cuLaunchKernel_(func, blocks%x, blocks%y, blocks%z, threads%x, threads%y, threads%z, 0, stream, params, c_null_ptr)
   end function cuLaunchKernel
 end module dtfft_interface_cuda

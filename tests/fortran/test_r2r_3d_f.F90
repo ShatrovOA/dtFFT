@@ -80,7 +80,9 @@ implicit none
 #endif
 
   conf = dtfft_config_t()
-  conf%enable_z_slab = .false.
+  conf%enable_z_slab = .true.
+  conf%enable_y_slab = .true.
+  conf%enable_mpi_backends = .true.
 
 #if defined(DTFFT_WITH_CUDA)
   block
@@ -100,14 +102,15 @@ implicit none
 #endif
 
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
-
   allocate( dtfft_plan_r2r_t :: plan )
   select type (plan)
   class is ( dtfft_plan_r2r_t )
-    call plan%create([nx, ny, nz], kinds, comm=comm, effort=DTFFT_ESTIMATE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%create([nx, ny, nz], kinds, comm=comm, effort=DTFFT_PATIENT, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   endselect
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
+
+  call MPI_Comm_free(comm, ierr)
 
   call plan%mem_alloc(alloc_size, in, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%mem_alloc(alloc_size, out, error_code=ierr); DTFFT_CHECK(ierr)
@@ -130,12 +133,12 @@ implicit none
 
   tf = 0.0_real64
   tb = 0.0_real64
-  do iter = 1, 10
+  do iter = 1, 1
     temp = 0.0_real64 - MPI_Wtime()
     call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
     endif
 #endif
     tf = tf + temp + MPI_Wtime()
@@ -150,7 +153,7 @@ implicit none
     call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
     endif
 #endif
     tb = tb + temp + MPI_Wtime()

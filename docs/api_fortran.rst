@@ -162,6 +162,26 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Pencil is not initialized, i.e. constructor subroutine was not called
 
+.. f:variable:: DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS
+
+  Invalid `n_measure_warmup_iters` provided
+
+.. f:variable:: DTFFT_ERROR_INVALID_MEASURE_ITERS
+
+  Invalid `n_measure_iters` provided
+
+.. f:variable:: DTFFT_ERROR_INVALID_REQUEST
+
+  Invalid `dtfft_request_t` provided
+
+.. f:variable:: DTFFT_ERROR_TRANSPOSE_ACTIVE
+
+  Attempting to execute already active transposition
+
+.. f:variable:: DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE
+
+  Attempting to finalize non-active transposition
+
 .. f:variable:: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 
   Selected ``executor`` do not support R2R FFTs
@@ -170,9 +190,9 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Invalid stream provided
 
-.. f:variable:: DTFFT_ERROR_GPU_INVALID_BACKEND
+.. f:variable:: DTFFT_ERROR_INVALID_BACKEND
 
-  Invalid GPU backend provided
+  Invalid backend provided
 
 .. f:variable:: DTFFT_ERROR_GPU_NOT_SET
 
@@ -182,9 +202,9 @@ All error codes that ``dtFFT`` can return are listed below.
 
   When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions
 
-.. f:variable:: DTFFT_ERROR_GPU_BACKENDS_DISABLED
+.. f:variable:: DTFFT_ERROR_BACKENDS_DISABLED
 
-  Passed ``effort`` ==  :f:var:`DTFFT_PATIENT` but all GPU Backends has been disabled by :f:type:`dtfft_config_t`.
+  Passed ``effort`` ==  :f:var:`DTFFT_PATIENT` but all Backends has been disabled by :f:type:`dtfft_config_t`.
 
 .. f:variable:: DTFFT_ERROR_NOT_DEVICE_PTR
 
@@ -198,9 +218,13 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Invalid platform provided
 
-.. f:variable:: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE
+.. f:variable:: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR
 
   Invalid executor provided for selected platform
+
+.. f:variable:: DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+
+  Invalid backend provided for selected platform
 
 Basic types
 ===========
@@ -415,8 +439,6 @@ dtfft_backend_t
 
   Type that specifies various GPU Backend present in ``dtFFT``
 
-.. note:: This type is only present in the API when ``dtFFT`` was compiled with CUDA Support.
-
 Type Parameters
 _____________________
 
@@ -438,6 +460,14 @@ _____________________
 .. f:variable:: DTFFT_BACKEND_MPI_A2A
 
   MPI backend using MPI_Alltoallv
+
+.. f:variable:: DTFFT_BACKEND_MPI_RMA
+
+  MPI RMA backend
+
+.. f:variable:: DTFFT_BACKEND_MPI_RMA_PIPELINED
+
+  Pipelined MPI RMA backend
 
 .. f:variable:: DTFFT_BACKEND_NCCL
 
@@ -461,8 +491,6 @@ _______________________
 .. f:function:: dtfft_get_backend_string(backend)
 
   Gets the string description of a GPU backend
-
-  This function is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
   :p dtfft_backend_t backend [in]:
     GPU backend
@@ -537,8 +565,6 @@ dtfft_config_t
 
     Default is :f:var:`DTFFT_BACKEND_NCCL`
 
-    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
-
   :f logical enable_mpi_backends:
 
     Should MPI GPU Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
@@ -556,8 +582,6 @@ dtfft_config_t
     Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to ``mpiexec``,
     but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
 
-    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
-
   :f logical enable_pipelined_backends:
 
     Should pipelined GPU backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
@@ -565,8 +589,6 @@ dtfft_config_t
     Default is ``.true.``
 
     Pipelined backends require additional buffer that user has no control over.
-
-    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
   :f logical enable_nccl_backends:
     Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
@@ -777,6 +799,15 @@ ______________________
   :p dtfft_stream_t stream [in]: Stream object
   :r integer(cuda_stream_kind): CUDA-Fortran stream
 
+dtfft_request_t
+---------------
+
+.. f:type:: dtfft_request_t
+
+  Helper type to manage asynchronous operations
+
+  See :f:func:`transpose_start`, :f:func:`transpose_end`
+
 
 Version handling
 ================
@@ -863,6 +894,60 @@ _____________
     Resulting pointer
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
+transpose_start
+_______________
+
+.. f:function:: transpose_start(in, out, transpose_type [, error_code])
+
+  Starts an asynchronous transpose operation.
+
+  :p type(*), dimension(..) in [inout]:
+    Incoming buffer of any rank and kind.
+  :p type(*), dimension(..) out [inout]:
+    Resulting buffer of any rank and kind
+  :p dtfft_transpose_t transpose_type [in]:
+    Type of transposition
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r dtfft_request_t request:
+    Asynchronous handle describing started transpose operation
+
+------
+
+transpose_start_ptr
+___________________
+
+.. f:function:: transpose_start_ptr(in, out, transpose_type [, error_code])
+
+  Starts an asynchronous transpose operation using type(c_ptr) pointers instead of buffers
+
+  :p type(c_ptr) in [in]:
+    Incoming pointer
+  :p type(c_ptr) out [in]:
+    Resulting pointer
+  :p dtfft_transpose_t transpose_type [in]:
+    Type of transposition
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r dtfft_request_t request:
+    Asynchronous handle describing started transpose operation
+
+------
+
+transpose_end
+_____________
+
+.. f:subroutine:: transpose_end(request [, error_code])
+
+  Ends previously started transposition
+
+  :p dtfft_request_t request [inout]:
+    Asynchronous handle describing started transpose operation
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -1011,11 +1096,11 @@ _____________
 
 Allocates memory tailored to the specific needs of the plan.
 
-.. f:subroutine:: mem_alloc_ptr(alloc_bytes, ptr [, error_code])
+.. f:function:: mem_alloc_ptr(alloc_bytes [, error_code])
 
   :p integer(int64) alloc_bytes [in]: Number of bytes to allocate
-  :p type(c_ptr) ptr [out]: Allocated pointer
   :o integer(int32) error_code [out, optional]: Optional error code returned to user
+  :r type(c_ptr): Allocated pointer
 
 ------
 
@@ -1054,9 +1139,22 @@ __________________
 
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
-
   :r logical:
     Boolean value if Z-slab is used.
+
+------
+
+get_y_slab_enabled
+__________________
+
+.. f:function:: get_y_slab_enabled([error_code])
+
+  Returns logical value is Y-slab optimization enabled internally
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r logical:
+    Boolean value if Y-slab is used.
 
 ------
 
@@ -1134,6 +1232,22 @@ ________
 
 ------
 
+get_grid_dims
+_____________
+
+.. f:subroutine:: get_grid_dims(dims [, error_code])
+
+  Returns grid decomposition dimensions
+
+  :p integer(int32) dims [out, pointer]:
+    Grid dimensions of the plan.
+
+    Users should not attempt to change values in this pointer.
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
 get_backend
 ___________
 
@@ -1143,8 +1257,6 @@ ___________
 
   If ``effort`` is :f:var:`DTFFT_ESTIMATE` or :f:var:`DTFFT_MEASURE`, returns the value set by :f:func:`dtfft_set_config`
   or via environment variable DTFFT_BACKEND, or the default, :f:var:`DTFFT_BACKEND_NCCL`.
-
-  .. note:: This method is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user

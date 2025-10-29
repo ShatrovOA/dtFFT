@@ -10,7 +10,7 @@ jobs:
       CXX: "g++-14"
       FC: "gfortran-14"
       DTFFT_ENABLE_LOG: "1"
-      DTFFT_MEASURE_WARMUP_ITERS: "cuda"
+      DTFFT_MEASURE_WARMUP_ITERS: "CUDA"
       DTFFT_MEASURE_ITERS: "-1"
     steps:
       - name: Get Requirements
@@ -20,6 +20,7 @@ jobs:
           sudo apt-get -y install gfortran-14
           sudo apt-get install libopenmpi-dev openmpi-bin
           sudo apt-get install libfftw3-dev
+          sudo apt-get install lcov
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
@@ -41,8 +42,10 @@ jobs:
           cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
           cmake --build build
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
+          file: ./build/coverage.info
+          verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
 
@@ -62,6 +65,7 @@ jobs:
           sudo apt-get -y install gfortran-12
           sudo apt-get install mpich libmpich-dev
           sudo apt-get install libfftw3-dev
+          sudo apt-get install lcov
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
@@ -72,7 +76,8 @@ jobs:
             -DDTFFT_WITH_FFTW=on \
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
             -DDTFFT_BUILD_SHARED=off \
-            -DDTFFT_BUILD_C_CXX_API=on
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_WITH_RMA=on
           cmake --build build
       - name: Test
         run: ctest --test-dir build --output-on-failure
@@ -97,7 +102,7 @@ jobs:
         run: |
           sudo apt-get -q update
           sudo apt-get -y install libopenmpi-dev openmpi-bin
-
+          sudo apt-get install lcov
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
@@ -143,6 +148,7 @@ jobs:
           sudo apt-get -y install gfortran-12
           sudo apt-get install libopenmpi-dev openmpi-bin
           sudo apt-get install libfftw3-dev
+          sudo apt-get install lcov
           sudo apt-get -y install cuda-toolkit-12-8
 
           wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb

@@ -71,6 +71,11 @@ implicit none
   call attach_gpu_to_process()
 
   call dtfft_create_config(conf)
+  ! Using inplace transforms without FFTs
+  ! Making sure that Z-slab and Y-slab optimizations are off
+  ! Otherwise errors will occur
+  conf%enable_z_slab = .false.
+  conf%enable_y_slab = .false.
 
 #if defined(DTFFT_WITH_CUDA)
   block
@@ -87,7 +92,7 @@ implicit none
       conf%backend = backend_to_use
 
 # if defined(__NVCOMPILER)
-      CUDA_CALL( "cudaStreamCreate", cudaStreamCreate(stream) )
+      CUDA_CALL( cudaStreamCreate(stream) )
       conf%stream = dtfft_stream_t(stream)
 # else
       if ( comm_rank == 0 ) &
@@ -150,7 +155,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   call plan%execute(inout_m, inout_m, DTFFT_EXECUTE_FORWARD, error_code=ierr)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+    CUDA_CALL( cudaStreamSynchronize(stream) )
   endif
 #else
   call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
@@ -162,7 +167,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   call plan%execute(inout_m, inout_m, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+    CUDA_CALL( cudaStreamSynchronize(stream) )
   endif
   inout(:) = inout_m(:)
 #else
@@ -184,7 +189,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   deallocate(inout_m)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaStreamDestroy", cudaStreamDestroy(stream) )
+    CUDA_CALL( cudaStreamDestroy(stream) )
   endif
 #endif
 

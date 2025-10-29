@@ -23,7 +23,6 @@ module dtfft_plan
 use iso_c_binding,                    only: c_loc, c_f_pointer, c_ptr, c_bool, c_null_ptr
 use iso_fortran_env,                  only: int8, int32, int64, real32, real64, output_unit, error_unit
 use dtfft_abstract_executor,          only: abstract_executor, FFT_1D, FFT_2D, FFT_C2C, FFT_R2C, FFT_R2R
-use dtfft_abstract_transpose_plan,    only: abstract_transpose_plan
 #ifdef DTFFT_WITH_FFTW
 use dtfft_executor_fftw_m,            only: fftw_executor
 #endif
@@ -40,11 +39,10 @@ use dtfft_config
 use dtfft_errors
 use dtfft_pencil,                     only: pencil, pencil_init, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
 use dtfft_parameters
-use dtfft_transpose_plan_host,        only: transpose_plan_host
+use dtfft_transpose_plan,             only: transpose_plan
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
-use dtfft_transpose_plan_cuda,        only: transpose_plan_cuda
 #endif
 #ifdef DTFFT_WITH_NVSHMEM
 use dtfft_interface_nvshmem,          only: is_nvshmem_ptr
@@ -60,6 +58,14 @@ public :: dtfft_plan_c2c_t
 public :: dtfft_plan_r2c_t
 public :: dtfft_plan_r2r_t
 
+  type :: transpose_request
+  !! Handle for async transpose operation
+    type(dtfft_transpose_t) :: transpose_type       !! Type of transposition requested
+    logical                 :: is_started = .false. !! Flag that indicates if transpose was started
+    type(c_ptr)             :: in                   !! Input pointer
+    type(c_ptr)             :: out                  !! Output pointer
+  end type transpose_request
+
   type :: fft_executor
   !! FFT handle
     class(abstract_executor), allocatable :: fft
@@ -73,6 +79,8 @@ public :: dtfft_plan_r2r_t
       !! Number of global dimensions
     integer(int32),                   allocatable :: dims(:)
       !! Global dimensions
+    integer(int32),                   allocatable :: grid_dims(:)
+      !! Grid decomposition dimensions
     type(dtfft_precision_t)                       :: precision
       !! Precision of transform
     logical                                       :: is_created = .false.
@@ -89,9 +97,18 @@ public :: dtfft_plan_r2r_t
       !! When .true., then data is distributed only Z direction and it creates a possibility for optimization:
       !!
       !! - 2 dimensional FFT plan is created for both X and Y dimensions
-      !! - Single call to MPI_Alltoall is required to transpose data from X-align to Z align
+      !! - Single call to MPI_Alltoall is required to transpose data from X-align to Z-align
       !!
       !! For CUDA build this optimization means single CUDA kernel that tranposes data directly from X to Z
+    logical                                       :: is_y_slab = .false.
+      !! Using Y-slab optimization
+      !!
+      !! Only 3D plan.
+      !!
+      !! When .true., then data is distributed only Y direction and it creates a possibility for optimization:
+      !!
+      !! - 2 dimensional FFT plan is created for both Y and Z dimensions
+      !! - Transpose from Y-align to Z-align is skipped
     type(dtfft_effort_t)                          :: effort
       !! User defined type of effort
     integer(int64)                                :: storage_size
@@ -102,7 +119,7 @@ public :: dtfft_plan_r2r_t
       !! Grid communicator
     TYPE_MPI_COMM,                    allocatable :: comms(:)
       !! Local 1d communicators
-    class(abstract_transpose_plan),   allocatable :: plan
+    type(transpose_plan)                          :: plan
       !! Transpose plan handle
     type(pencil),                     allocatable :: pencils(:)
       !! Information about data aligment and datatypes
@@ -124,17 +141,22 @@ public :: dtfft_plan_r2r_t
   private
     procedure,  pass(self), non_overridable, public :: transpose          !! Performs single transposition
     procedure,  pass(self), non_overridable, public :: transpose_ptr      !! Performs single transposition using type(c_ptr) pointers instead of buffers
+    procedure,  pass(self), non_overridable, public :: transpose_start    !! Starts an asynchronous transpose operation
+    procedure,  pass(self), non_overridable, public :: transpose_start_ptr!! Starts an asynchronous transpose operation using type(c_ptr) pointers instead of buffers
+    procedure,  pass(self), non_overridable, public :: transpose_end      !! Ends previously started transposition
     procedure,  pass(self), non_overridable, public :: execute            !! Executes plan
     procedure,  pass(self), non_overridable, public :: execute_ptr        !! Executes plan using type(c_ptr) pointers instead of buffers
     procedure,  pass(self), non_overridable, public :: destroy            !! Destroys plan
     procedure,  pass(self), non_overridable, public :: get_local_sizes    !! Returns local starts and counts in `real` and `fourier` spaces
     procedure,  pass(self), non_overridable, public :: get_alloc_size     !! Wrapper around ``get_local_sizes`` to obtain number of elements only
     procedure,  pass(self), non_overridable, public :: get_z_slab_enabled !! Returns logical value is Z-slab optimization is enabled
+    procedure,  pass(self), non_overridable, public :: get_y_slab_enabled !! Returns logical value is Y-slab optimization is enabled
     procedure,  pass(self), non_overridable, public :: get_pencil         !! Returns pencil decomposition
     procedure,  pass(self), non_overridable, public :: get_element_size   !! Returns number of bytes required to store single element.
     procedure,  pass(self), non_overridable, public :: get_alloc_bytes    !! Returns minimum number of bytes required to execute plan
     procedure,  pass(self), non_overridable, public :: get_executor       !! Returns FFT Executor associated with plan
     procedure,  pass(self), non_overridable, public :: get_dims           !! Returns global dimensions
+    procedure,  pass(self), non_overridable, public :: get_grid_dims      !! Returns grid decomposition dimensions
     procedure,  pass(self), non_overridable, public :: get_precision      !! Returns precision of plan
     procedure,  pass(self), non_overridable, public :: report             !! Prints plan details
     procedure,  pass(self), non_overridable, public :: mem_alloc_ptr      !! Allocates memory for type(c_ptr)
@@ -167,9 +189,9 @@ public :: dtfft_plan_r2r_t
                                                        mem_free_c64_2d,   &
                                                        mem_free_c64_3d
     !! Frees previously allocated memory specific for this plan
+    procedure,  pass(self), non_overridable, public :: get_backend        !! Returns selected backend during autotuning
 #ifdef DTFFT_WITH_CUDA
     procedure,  pass(self), non_overridable, public :: get_platform       !! Returns plan execution platform
-    procedure,  pass(self), non_overridable, public :: get_backend        !! Returns selected GPU backend during autotuning
     generic,                                 public :: get_stream       & !! Returns CUDA stream associated with plan
                                                     => get_stream_ptr,  &
                                                        get_stream_int64
@@ -177,6 +199,10 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable         :: get_stream_int64   !! Returns CUDA stream associated with plan
 #endif
     procedure,  pass(self), non_overridable         :: execute_private    !! Executes plan
+    procedure,  pass(self), non_overridable         :: execute_2d         !! Executes 2d plan
+    procedure,  pass(self), non_overridable         :: execute_z_slab     !! Executes Z slab plan
+    procedure,  pass(self), non_overridable         :: execute_generic    !! Executes plan with specified auxiliary buffer
+    procedure,  pass(self), non_overridable         :: transpose_private  !! Performs single transposition using type(c_ptr) pointers instead of buffers
     procedure,  pass(self), non_overridable         :: check_create_args  !! Check arguments provided to `create` subroutines
     procedure,  pass(self), non_overridable         :: create_private     !! Creates core
     procedure,  pass(self), non_overridable         :: alloc_fft_plans    !! Allocates `fft_executor` classes
@@ -296,9 +322,131 @@ contains
       !! Type of transposition.
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
+    PHASE_BEGIN("dtfft_transpose", COLOR_TRANSPOSE)
+    call self%transpose_private(in, out, transpose_type, EXEC_BLOCKING, error_code)
+    PHASE_END("dtfft_transpose")
+  end subroutine transpose_ptr
+
+  function transpose_start(self, in, out, transpose_type, error_code) result(request)
+  !! Starts an asynchronous transpose operation
+  !!
+  !! @note
+  !! Buffers `in` and `out` cannot be the same
+  !! @endnote
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(*),  target,           intent(inout) :: in(..)
+      !! Incoming buffer of any rank and kind. Note that this buffer
+      !! will be modified in GPU build
+    type(*),  target,           intent(inout) :: out(..)
+      !! Resulting buffer of any rank and kind
+    type(dtfft_transpose_t),    intent(in)    :: transpose_type
+      !! Type of transposition.
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    type(dtfft_request_t)                      :: request
+      !! Asynchronous handle describing started transpose operation
+    request = self%transpose_start_ptr(c_loc(in), c_loc(out), transpose_type, error_code)
+  end function transpose_start
+
+  function transpose_start_ptr(self, in, out, transpose_type, error_code) result(request)
+  !! Starts an asynchronous transpose operation using type(c_ptr) pointers instead of buffers
+  !!
+  !! @note
+  !! Buffers `in` and `out` cannot be the same
+  !! @endnote
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Incoming pointer. Note that values of this pointer
+      !! will be modified in GPU build
+    type(c_ptr),                intent(in)    :: out
+      !! Resulting pointer
+    type(dtfft_transpose_t),    intent(in)    :: transpose_type
+      !! Type of transposition.
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    type(dtfft_request_t)                     :: request
+      !! Asynchronous handle describing started transpose operation
+    integer(int32)  :: ierr     !! Error code
+    type(transpose_request),     pointer      :: internal_handle
+      !! Handle to internal transpose structure
+
+    PHASE_BEGIN("dtfft_transpose_start", COLOR_TRANSPOSE)
+    request = dtfft_request_t(c_null_ptr)
+    call self%transpose_private(in, out, transpose_type, EXEC_NONBLOCKING, ierr)
+    if( ierr == DTFFT_SUCCESS ) then
+      allocate(internal_handle)
+      internal_handle%transpose_type = transpose_type
+      internal_handle%is_started = .true.
+      internal_handle%in = in
+      internal_handle%out = out
+      request%val = c_loc(internal_handle)
+    endif
+    if ( present( error_code ) ) error_code = ierr
+    PHASE_END("dtfft_transpose_start")
+  end function transpose_start_ptr
+
+  subroutine transpose_end(self, request, error_code)
+  !! Ends previously started transposition
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(dtfft_request_t),      intent(inout) :: request
+      !! Handle obtained from [[dtfft_plan_t(type):transpose_start]] or [[dtfft_plan_t(type):transpose_start_ptr]]
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    type(transpose_request),    pointer       :: internal_handle
+      !! Handle to internal transpose structure
     integer(int32)  :: ierr    !! Error code
 
     ierr = DTFFT_SUCCESS
+#ifdef ENABLE_INPUT_CHECK
+    if( is_null_ptr(request%val) ) ierr = DTFFT_ERROR_INVALID_REQUEST
+    CHECK_ERROR_AND_RETURN
+#endif
+    call c_f_pointer(request%val, internal_handle)
+#ifdef ENABLE_INPUT_CHECK
+    if ( .not. internal_handle%is_started                                 &
+      .or. .not. is_valid_transpose_type(internal_handle%transpose_type)  &
+      .or. is_null_ptr(internal_handle%in)                                &
+      .or. is_null_ptr(internal_handle%out)) ierr = DTFFT_ERROR_INVALID_REQUEST
+    CHECK_ERROR_AND_RETURN
+#endif
+
+    PHASE_BEGIN("dtfft_transpose_end", COLOR_TRANSPOSE)
+    call self%plan%execute_end(internal_handle%in, internal_handle%out, internal_handle%transpose_type, ierr)
+    PHASE_END("dtfft_transpose_end")
+#ifdef ENABLE_INPUT_CHECK
+    CHECK_ERROR_AND_RETURN
+#endif
+    deallocate(internal_handle)
+    request = dtfft_request_t(c_null_ptr)
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine transpose_end
+
+  subroutine transpose_private(self, in, out, transpose_type, exec_type, error_code)
+  !! Performs single transposition using type(c_ptr) pointers instead of buffers
+  !!
+  !! @note
+  !! Buffers `in` and `out` cannot be the same
+  !! @endnote
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Incoming pointer. Note that values of this pointer
+      !! will be modified in GPU build
+    type(c_ptr),                intent(in)    :: out
+      !! Resulting pointer
+    type(dtfft_transpose_t),    intent(in)    :: transpose_type
+      !! Type of transposition.
+    type(async_exec_t),         intent(in)    :: exec_type
+      !! Type of asynchronous execution.
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr    !! Error code
+
+    ierr = DTFFT_SUCCESS
+#ifdef ENABLE_INPUT_CHECK
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
     if ( .not.is_valid_transpose_type(transpose_type)                                           &
@@ -314,18 +462,19 @@ contains
       ierr = DTFFT_ERROR_R2C_TRANSPOSE_CALLED
       CHECK_ERROR_AND_RETURN
     endselect
-#ifdef DTFFT_WITH_CUDA
-    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+# ifdef DTFFT_WITH_CUDA
+    if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
       ierr = check_device_pointers(in, out, self%plan%get_backend(), c_null_ptr)
       CHECK_ERROR_AND_RETURN
     endif
+# endif
 #endif
-
-    REGION_BEGIN("dtfft_transpose", COLOR_TRANSPOSE)
-    call self%plan%execute(in, out, transpose_type)
-    REGION_END("dtfft_transpose")
+    call self%plan%execute(in, out, transpose_type, exec_type, ierr)
+#ifdef ENABLE_INPUT_CHECK
+    CHECK_ERROR_AND_RETURN
+#endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine transpose_ptr
+  end subroutine transpose_private
 
   subroutine execute(self, in, out, execute_type, aux, error_code)
   !! Executes plan
@@ -371,29 +520,33 @@ contains
 
     inplace = is_same_ptr(in, out)
     ierr = DTFFT_SUCCESS
+#ifdef ENABLE_INPUT_CHECK
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
       CHECK_ERROR_AND_RETURN
     if ( .not.is_valid_execute_type(execute_type) ) ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
       CHECK_ERROR_AND_RETURN
-    if ( self%is_transpose_plan .and. self%ndims == 2 .and. inplace ) ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
+    if ( self%is_transpose_plan .and. (self%ndims == 2 .or. self%is_y_slab) .and. inplace ) ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
       CHECK_ERROR_AND_RETURN
     if ( is_same_ptr(in, aux) .or. is_same_ptr(out, aux) ) ierr = DTFFT_ERROR_INVALID_AUX
       CHECK_ERROR_AND_RETURN
-#ifdef DTFFT_WITH_CUDA
-    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+    if ( self%plan%get_async_active() ) ierr = DTFFT_ERROR_TRANSPOSE_ACTIVE
+      CHECK_ERROR_AND_RETURN
+# ifdef DTFFT_WITH_CUDA
+    if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
       ierr = check_device_pointers(in, out, self%plan%get_backend(), aux)
         CHECK_ERROR_AND_RETURN
     endif
+# endif
 #endif
 
-    REGION_BEGIN("dtfft_execute", COLOR_EXECUTE)
+    PHASE_BEGIN("dtfft_execute", COLOR_EXECUTE)
     call self%check_aux(aux)
     if ( .not.is_null_ptr(aux) ) then
       call self%execute_private( in, out, execute_type, aux, inplace )
     else
       call self%execute_private( in, out, execute_type, self%aux_ptr, inplace )
     endif
-    REGION_END("dtfft_execute")
+    PHASE_END("dtfft_execute")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine execute_ptr
 
@@ -412,82 +565,147 @@ contains
     logical,                    intent(in)    :: inplace
       !! Inplace execution flag
 
-    if ( self%is_transpose_plan ) then
-      select case ( self%ndims )
-      case (2)
-        select case( execute_type%val )
-        case ( DTFFT_EXECUTE_FORWARD%val )
-          call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y)
-        case ( DTFFT_EXECUTE_BACKWARD%val )
-          call self%plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_X)
-        endselect
-      case (3)
-        select case( execute_type%val )
-        case ( DTFFT_EXECUTE_FORWARD%val )
-          if ( inplace .or. .not. self%is_z_slab ) then
-            call self%plan%execute(in, aux, DTFFT_TRANSPOSE_X_TO_Y)
-            call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_Z)
-            return
-          endif
-          call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Z)
-        case ( DTFFT_EXECUTE_BACKWARD%val )
-          if ( inplace .or. .not. self%is_z_slab ) then
-            call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_Y)
-            call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_X)
-            return
-          endif
-          call self%plan%execute(in, out, DTFFT_TRANSPOSE_Z_TO_X)
-        endselect
-      endselect
-      return
-    endif ! self%is_transpose_plan
+    if ( self%ndims == 2 .or. self%is_y_slab ) then
+      call self%execute_2d(in, out, execute_type, aux)
+    else if ( self%is_z_slab ) then
+      call self%execute_z_slab(in, out, execute_type, aux, inplace)
+    else
+      call self%execute_generic(in, out, execute_type, aux)
+    endif
+  end subroutine execute_private
 
-    select case ( execute_type%val )
-    case ( DTFFT_EXECUTE_FORWARD%val )
-      ! 1d direct FFT X direction || 2d X-Y FFT
-      call self%fft(1)%fft%execute(in, aux, FFT_FORWARD)
-      if ( self%is_z_slab ) then
-        ! Transpose X -> Z
-        call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Z)
-        ! 1d direct FFT Z direction
-        call self%fft(3)%fft%execute(out, out, FFT_FORWARD)
-        return
+  subroutine execute_2d(self, in, out, execute_type, aux)
+  !! Executes plan with specified auxiliary buffer
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Source pointer
+    type(c_ptr),                intent(in)    :: out
+      !! Target pointer
+    type(dtfft_execute_t),      intent(in)    :: execute_type
+      !! Type of execution.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary pointer.
+
+    if ( self%is_transpose_plan ) then
+      if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y, EXEC_BLOCKING)
+      else
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_X, EXEC_BLOCKING)
       endif
+      return
+    endif
+
+    if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+      ! 1d direct FFT X direction
+      call self%fft(1)%fft%execute(in, aux, FFT_FORWARD)
       ! Transpose X -> Y
-      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y)
+      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y, EXEC_BLOCKING)
       ! 1d FFT Y direction
       call self%fft(self%fft_mapping(2))%fft%execute(out, out, FFT_FORWARD)
-      if ( self%ndims == 2 ) then
-        return
-      endif
-      ! Transpose Y -> Z
-      call self%plan%execute(out, aux, DTFFT_TRANSPOSE_Y_TO_Z)
-      ! 1d direct FFT Z direction
-      call self%fft(self%fft_mapping(3))%fft%execute(aux, out, FFT_FORWARD)
-    case ( DTFFT_EXECUTE_BACKWARD%val )
-      if ( self%is_z_slab ) then
-        ! 1d inverse FFT Z direction
-        call self%fft(3)%fft%execute(in, in, FFT_BACKWARD)
-        ! Transpose Z -> X
-        call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_X)
-        ! 2d inverse FFT X-Y direction
-        call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
-        return
-      endif
-      if ( self%ndims == 3 ) then
-        ! 1d inverse FFT Z direction
-        call self%fft(self%fft_mapping(3))%fft%execute(in, aux, FFT_BACKWARD)
-        ! Transpose Z -> Y
-        call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Z_TO_Y)
-      endif
+    else
       ! 1d inverse FFT Y direction
       call self%fft(self%fft_mapping(2))%fft%execute(in, in, FFT_BACKWARD)
       ! Transpose Y -> X
-      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X)
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X, EXEC_BLOCKING)
       ! 1d inverse FFT X direction
       call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
-    endselect
-  end subroutine execute_private
+    endif
+  end subroutine execute_2d
+
+  subroutine execute_z_slab(self, in, out, execute_type, aux, inplace)
+  !! Executes plan with specified auxiliary buffer
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Source pointer
+    type(c_ptr),                intent(in)    :: out
+      !! Target pointer
+    type(dtfft_execute_t),      intent(in)    :: execute_type
+      !! Type of execution.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary pointer.
+    logical,                    intent(in)    :: inplace
+      !! Inplace execution flag
+
+    if ( self%is_transpose_plan ) then
+      if ( inplace ) then
+        call self%execute_generic(in, out, execute_type, aux)
+        return
+      endif
+      if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Z, EXEC_BLOCKING)
+      else
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Z_TO_X, EXEC_BLOCKING)
+      endif
+      return
+    endif
+
+    if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+      ! 2d direct FFT X-Y directions
+      call self%fft(1)%fft%execute(in, aux, FFT_FORWARD)
+      ! Transpose X -> Z
+      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Z, EXEC_BLOCKING)
+      ! 1d direct FFT Z direction
+      call self%fft(3)%fft%execute(out, out, FFT_FORWARD)
+    else
+      ! 1d inverse FFT Z direction
+      call self%fft(3)%fft%execute(in, in, FFT_BACKWARD)
+      ! Transpose Z -> X
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_X, EXEC_BLOCKING)
+      ! 2d inverse FFT X-Y direction
+      call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
+    endif
+  end subroutine execute_z_slab
+
+  subroutine execute_generic(self, in, out, execute_type, aux)
+  !! Executes plan with specified auxiliary buffer
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Source pointer
+    type(c_ptr),                intent(in)    :: out
+      !! Target pointer
+    type(dtfft_execute_t),      intent(in)    :: execute_type
+      !! Type of execution.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary pointer.
+
+    if ( self%is_transpose_plan ) then
+      if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+        call self%plan%execute(in, aux, DTFFT_TRANSPOSE_X_TO_Y, EXEC_BLOCKING)
+        call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_Z, EXEC_BLOCKING)
+      else
+        call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_Y, EXEC_BLOCKING)
+        call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_X, EXEC_BLOCKING)
+      endif
+      return
+    endif
+
+    if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+      ! 1d direct FFT X direction
+      call self%fft(1)%fft%execute(in, aux, FFT_FORWARD)
+      ! Transpose X -> Y
+      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y, EXEC_BLOCKING)
+      ! 1d FFT Y direction
+      call self%fft(self%fft_mapping(2))%fft%execute(out, out, FFT_FORWARD)
+      ! Transpose Y -> Z
+      call self%plan%execute(out, aux, DTFFT_TRANSPOSE_Y_TO_Z, EXEC_BLOCKING)
+      ! 1d direct FFT Z direction
+      call self%fft(self%fft_mapping(3))%fft%execute(aux, out, FFT_FORWARD)
+    else
+      ! 1d inverse FFT Z direction
+      call self%fft(self%fft_mapping(3))%fft%execute(in, aux, FFT_BACKWARD)
+      ! Transpose Z -> Y
+      call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Z_TO_Y, EXEC_BLOCKING)
+      ! 1d inverse FFT Y direction
+      call self%fft(self%fft_mapping(2))%fft%execute(in, in, FFT_BACKWARD)
+      ! Transpose Y -> X
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X, EXEC_BLOCKING)
+      ! 1d inverse FFT X direction
+      call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
+    endif
+  end subroutine execute_generic
 
   subroutine destroy(self, error_code)
   !! Destroys plan, frees all memory
@@ -502,9 +720,10 @@ contains
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
 
-    REGION_BEGIN("dtfft_destroy", COLOR_DESTROY)
+    PHASE_BEGIN("dtfft_destroy", COLOR_DESTROY)
 
     if ( allocated(self%dims) ) deallocate(self%dims)
+    if ( allocated(self%grid_dims) ) deallocate( self%grid_dims )
 
     select type ( self )
     class is ( dtfft_plan_r2c_t )
@@ -548,10 +767,7 @@ contains
       CHECK_ERROR_AND_RETURN
     end block
 
-    if ( allocated( self%plan ) ) then
-      call self%plan%destroy()
-      deallocate( self%plan )
-    endif
+    call self%plan%destroy()
 
     if ( allocated(self%comms) ) then
       do d = 1, self%ndims
@@ -563,7 +779,8 @@ contains
 
     self%ndims = -1
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-    REGION_END("dtfft_destroy")
+    PHASE_END("dtfft_destroy")
+    ! call cali_flush(0)
   end subroutine destroy
 
   logical function get_z_slab_enabled(self, error_code)
@@ -577,29 +794,46 @@ contains
     ierr = DTFFT_SUCCESS
     get_z_slab_enabled = .false.
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
-    if ( present( error_code ) ) error_code = ierr
-    if ( ierr /= DTFFT_SUCCESS ) return
+    CHECK_ERROR_AND_RETURN
 
     get_z_slab_enabled = self%is_z_slab
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_z_slab_enabled
 
-  type(dtfft_pencil_t) function get_pencil(self, dim, error_code)
+  logical function get_y_slab_enabled(self, error_code)
+  !! Returns logical value is Y-slab optimization enabled internally
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr     !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_y_slab_enabled = .false.
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    get_y_slab_enabled = self%is_y_slab
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_y_slab_enabled
+
+  type(dtfft_pencil_t) function get_pencil(self, layout, error_code)
   !! Returns pencil decomposition
     class(dtfft_plan_t),        intent(in)    :: self
       !! Abstract plan
-    integer(int32),             intent(in)    :: dim
-      !! Required dimension:
+    integer(int32),             intent(in)    :: layout
+      !! Required layout:
       !!
       !!  - 0 for XYZ layout (real space, R2C only)
       !!  - 1 for XYZ layout
-      !!  - 2 for YXZ layout
+      !!  - 2 for YZX layout
       !!  - 3 for ZXY layout
       !!
       !! [//]: # (ListBreak)
     integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
-    integer(int32)  :: min_dim
+    integer(int32)  :: min_layout
 
     ierr = DTFFT_SUCCESS
     ! get_pencil = dtfft_pencil_t(-1,-1,-1,-1)
@@ -607,21 +841,20 @@ contains
     CHECK_ERROR_AND_RETURN
     select type (self)
     class is ( dtfft_plan_r2c_t )
-      min_dim = 0
+      min_layout = 0
     class default
-      min_dim = 1
+      min_layout = 1
     endselect
 
-    if ( dim < min_dim .or. dim > self%ndims ) ierr = DTFFT_ERROR_INVALID_DIM
+    if ( layout < min_layout .or. layout > self%ndims ) ierr = DTFFT_ERROR_INVALID_DIM
     CHECK_ERROR_AND_RETURN
-
-    if ( dim == 0 ) then
+    if ( layout == 0 ) then
       select type (self)
       class is ( dtfft_plan_r2c_t )
         get_pencil = self%real_pencil%make_public()
       endselect
     else
-      get_pencil = self%pencils(dim)%make_public()
+      get_pencil = self%pencils(layout)%make_public()
     endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_pencil
@@ -703,6 +936,24 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine get_dims
 
+  subroutine get_grid_dims(self, grid_dims, error_code)
+  !! Returns grid decomposition dimensions
+    class(dtfft_plan_t), target,  intent(in)  :: self
+      !! Abstract plan
+    integer(int32),     pointer,  intent(out) :: grid_dims(:)
+      !! Grid dimensions
+    integer(int32),    optional,  intent(out) :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr     !! Error code
+
+    ierr = DTFFT_SUCCESS
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    grid_dims => self%grid_dims
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine get_grid_dims
+
   type(dtfft_precision_t) function get_precision(self, error_code)
   !! Returns precision of the plan
     class(dtfft_plan_t),        intent(in)    :: self
@@ -770,15 +1021,33 @@ contains
       else
         WRITE_REPORT("  Z-slab enabled       :  False")
       endif
+      if ( self%is_y_slab ) then
+        WRITE_REPORT("  Y-slab enabled       :  True")
+      else
+        WRITE_REPORT("  Y-slab enabled       :  False")
+      endif
     endif
-#ifdef DTFFT_WITH_CUDA
-    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
-      WRITE_REPORT("  GPU Backend          :  "//dtfft_get_backend_string(self%plan%get_backend()))
-    endif
-#endif
+    WRITE_REPORT("  Backend              :  "//dtfft_get_backend_string(self%plan%get_backend()))
     WRITE_REPORT("**End of report**")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine report
+
+  type(dtfft_backend_t) function get_backend(self, error_code)
+  !! Returns selected GPU backend during autotuning
+    class(dtfft_plan_t),        intent(in)  :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out) :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr     !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_backend = BACKEND_NOT_SET
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    get_backend = self%plan%get_backend()
+    if ( present( error_code ) ) error_code = ierr
+  end function get_backend
 
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_platform_t) function get_platform(self, error_code)
@@ -792,28 +1061,11 @@ contains
     ierr = DTFFT_SUCCESS
     get_platform = PLATFORM_NOT_SET
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
-    if ( present( error_code ) ) error_code = ierr
-    if ( ierr /= DTFFT_SUCCESS ) return
+    CHECK_ERROR_AND_RETURN
 
     get_platform = self%platform
-  end function get_platform
-
-  type(dtfft_backend_t) function get_backend(self, error_code)
-  !! Returns selected GPU backend during autotuning
-    class(dtfft_plan_t),        intent(in)  :: self
-      !! Abstract plan
-    integer(int32), optional,   intent(out) :: error_code
-      !! Optional error code returned to user
-    integer(int32)  :: ierr     !! Error code
-
-    ierr = DTFFT_SUCCESS
-    get_backend = BACKEND_NOT_SET
-    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     if ( present( error_code ) ) error_code = ierr
-    if ( ierr /= DTFFT_SUCCESS ) return
-
-    get_backend = self%plan%get_backend()
-  end function get_backend
+  end function get_platform
 
   subroutine get_stream_ptr(self, stream, error_code)
   !! Returns CUDA stream associated with plan
@@ -833,7 +1085,7 @@ contains
     CHECK_ERROR_AND_RETURN
 
     stream = self%stream
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+    if ( present( error_code ) ) error_code = ierr
   end subroutine get_stream_ptr
 
   subroutine get_stream_int64(self, stream, error_code)
@@ -848,7 +1100,7 @@ contains
     type(dtfft_stream_t)  :: stream_  !! dtFFT Stream
 
     call self%get_stream(stream_, error_code=ierr)
-    if ( ierr == DTFFT_SUCCESS ) stream = dtfft_get_cuda_stream(stream_)
+    if ( ierr == DTFFT_SUCCESS) stream = dtfft_get_cuda_stream(stream_)
     if ( present( error_code ) ) error_code = ierr
   end subroutine get_stream_int64
 
@@ -912,10 +1164,10 @@ contains
     class is (dtfft_plan_r2c_t)
       if (present( in_starts ) )    in_starts(1:self%ndims)   = self%real_pencil%starts(1:self%ndims)
       if (present( in_counts ) )    in_counts(1:self%ndims)   = self%real_pencil%counts(1:self%ndims)
-      call get_local_sizes_private(self%pencils, out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size)
+      call get_local_sizes_private(self%pencils, out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size, is_y_slab=self%is_y_slab)
       if ( present( alloc_size ) ) alloc_size = max(int(product(self%real_pencil%counts), int64), 2 * alloc_size)
     class default
-      call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size)
+      call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size, is_y_slab=self%is_y_slab)
     endselect
 #ifdef DTFFT_WITH_CUDA
     if ( is_backend_nvshmem( self%plan%get_backend() ) .and. present(alloc_size) ) then
@@ -978,6 +1230,7 @@ contains
     integer(int64)          :: base_storage         !! Number of bytes needed to store single element
     TYPE_MPI_COMM           :: comm_                !! MPI Communicator
     integer(int8)           :: d                    !! Counter
+    integer(int32)          :: ierr
 
     create_private = DTFFT_SUCCESS
     CHECK_INTERNAL_CALL( self%check_create_args(dims, pencil, comm, precision, effort, executor, kinds) )
@@ -1002,24 +1255,21 @@ contains
     endif
 
     if ( allocated(self%comms) ) then
-      ! Can potentially lose some memory
+      ! Can potentially leak some memory
       deallocate( self%comms )
     endif
 
-    if ( allocated( self%plan ) ) then
-      call self%plan%destroy()
-      deallocate( self%plan )
-    endif
+    call self%plan%destroy()
 
     allocate(self%pencils(self%ndims))
     allocate(self%comms(self%ndims))
 
     comm_ = MPI_COMM_WORLD; if ( present( comm ) ) comm_ = comm
 #ifdef DTFFT_WITH_CUDA
-    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+    if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
       block
         TYPE_MPI_COMM   :: local_comm
-        integer(int32)  :: n_devices, current_device, local_rank, local_size, ierr
+        integer(int32)  :: n_devices, current_device, local_rank, local_size
         integer(int32), allocatable :: local_devices(:)
 
         call MPI_Comm_split_Type(comm_, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, local_comm, ierr)
@@ -1028,8 +1278,8 @@ contains
 
         allocate( local_devices(local_size) )
 
-        CUDA_CALL( "cudaGetDeviceCount", cudaGetDeviceCount(n_devices) )
-        CUDA_CALL( "cudaGetDevice", cudaGetDevice(current_device) )
+        CUDA_CALL( cudaGetDeviceCount(n_devices) )
+        CUDA_CALL( cudaGetDevice(current_device) )
 
         call MPI_Allgather(current_device, 1, MPI_INTEGER4, local_devices, 1, MPI_INTEGER4, local_comm, ierr)
         call MPI_Comm_free(local_comm, ierr)
@@ -1039,17 +1289,10 @@ contains
         endif
 
         deallocate( local_devices )
+
+        self%stream = get_conf_stream()
       endblock
     endif
-
-    if ( get_conf_backend() == DTFFT_BACKEND_MPI_DATATYPE .or. self%platform == DTFFT_PLATFORM_HOST ) then
-      allocate( transpose_plan_host :: self%plan )
-    else
-      allocate( transpose_plan_cuda :: self%plan )
-      self%stream = get_conf_stream()
-    endif
-#else
-    allocate( transpose_plan_host :: self%plan )
 #endif
 
     if ( present(pencil) ) then
@@ -1067,20 +1310,31 @@ contains
           fixed_dims(1) = fixed_dims(1) / 2 + 1
           ipencil%counts(1) = ipencil%counts(1) / 2 + 1
         endselect
-        CHECK_INTERNAL_CALL( self%plan%create(fixed_dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils, ipencil) )
+        CHECK_INTERNAL_CALL( self%plan%create(self%platform, fixed_dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils, ipencil) )
 
         select type( self )
         class is ( dtfft_plan_r2c_t )
           ipencil%counts(1) = (ipencil%counts(1) - 1) * 2
           call self%real_pencil%create(self%ndims, 1_int8, self%dims, self%comms, ipencil%starts, ipencil%counts)
         endselect
-        deallocate( fixed_dims)
+        deallocate( fixed_dims )
         call ipencil%destroy()
       endblock
     else
-      CHECK_INTERNAL_CALL( self%plan%create(dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils) )
+      CHECK_INTERNAL_CALL( self%plan%create(self%platform, dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils) )
     endif
-    self%is_z_slab = self%plan%is_z_slab
+    self%is_z_slab = self%plan%get_z_slab()
+
+    if ( allocated( self%grid_dims ) ) deallocate( self%grid_dims )
+    allocate( self%grid_dims(self%ndims) )
+    do d = 1, self%ndims
+      call MPI_Comm_size(self%comms(d), self%grid_dims(d), ierr)
+    enddo
+
+    self%is_y_slab = .false.
+    if( self%ndims == 3 .and. .not. self%is_z_slab .and. self%grid_dims(self%ndims) == 1 .and. get_conf_y_slab_enabled() ) then
+      self%is_y_slab = .true.
+    endif
     call self%alloc_fft_plans(kinds)
 
     self%is_aux_alloc = .false.
@@ -1110,18 +1364,19 @@ contains
     integer(int32)          :: top_type         !! MPI Comm topology type
     integer(int32)          :: dim              !! Counter
 
+    check_create_args = DTFFT_SUCCESS
     CHECK_INTERNAL_CALL( init_internal() )
 
     self%platform = get_conf_platform()
-
+#ifdef DTFFT_DEBUG
     if ( .not.present(dims) .and. .not.present(pencil) ) INTERNAL_ERROR(".not.present(dims) .and. .not.present(pencil)")
     if ( present(dims) .and. present(pencil) ) INTERNAL_ERROR("present(dims) .and. present(pencil)")
-
+#endif
     if ( allocated(self%dims) ) deallocate(self%dims)
     if ( present(dims) ) then
       self%ndims = size(dims, kind=int8)
       CHECK_INPUT_PARAMETER(self%ndims, is_valid_dimension, DTFFT_ERROR_INVALID_N_DIMENSIONS)
-      if ( any([(dims(dim) <= 0, dim=1,self%ndims)]) ) then
+      if ( any(dims <= 0) ) then
         check_create_args = DTFFT_ERROR_INVALID_DIMENSION_SIZE
         return
       endif
@@ -1157,14 +1412,32 @@ contains
       CHECK_INPUT_PARAMETER(executor, is_valid_executor, DTFFT_ERROR_INVALID_EXECUTOR)
 #ifdef DTFFT_WITH_CUDA
       if ( self%platform == DTFFT_PLATFORM_HOST ) then
-        CHECK_INPUT_PARAMETER(executor, is_host_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE)
-      else if ( self%platform == DTFFT_PLATFORM_CUDA ) then
-        CHECK_INPUT_PARAMETER(executor, is_cuda_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR_TYPE)
+        CHECK_INPUT_PARAMETER(executor, is_host_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR)
+      else if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
+        CHECK_INPUT_PARAMETER(executor, is_cuda_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR)
       endif
 #endif
       self%executor = executor
     endif
     if ( self%executor == DTFFT_EXECUTOR_NONE ) self%is_transpose_plan = .true.
+
+#ifdef DTFFT_WITH_CUDA
+    ! Platform is used to check correctness of both executor and backend
+    ! DTFFT_PATIENT ignores backend set by user:
+    if ( self%effort%val < DTFFT_PATIENT%val ) then
+      block
+        type(dtfft_backend_t) :: backend
+
+        backend = get_conf_backend()
+        if ( self%platform == DTFFT_PLATFORM_HOST ) then
+          if ( is_backend_nccl(backend) .or. is_backend_nvshmem(backend) ) then
+            __FUNC__ = DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+            return
+          endif
+        endif
+      endblock
+    endif
+#endif
 
     if ( present(kinds) .and. .not. self%is_transpose_plan ) then
       do dim = 1, self%ndims
@@ -1215,7 +1488,7 @@ contains
         INTERNAL_ERROR("Executor type unrecognized")
       endselect
     enddo
-    if( self%is_z_slab ) return
+    if( self%is_z_slab .or. self%is_y_slab ) return
 
     allocate(kinds_(self%ndims))
     kinds_(:) = dtfft_r2r_kind_t(-1); if ( present(kinds) ) kinds_(:) = kinds(:)
@@ -1253,7 +1526,7 @@ contains
 
     alloc_size = self%get_alloc_size() * self%get_element_size()
     WRITE_DEBUG("Allocating auxiliary buffer of "//to_str(alloc_size)//" bytes")
-    call self%mem_alloc_ptr(alloc_size, self%aux_ptr, ierr);  DTFFT_CHECK(ierr)
+    self%aux_ptr = self%mem_alloc_ptr(alloc_size, ierr);  DTFFT_CHECK(ierr)
     self%is_aux_alloc = .true.
   end subroutine check_aux
 
@@ -1334,7 +1607,7 @@ contains
       return
     endif
 
-    REGION_BEGIN("dtfft_create_r2r", COLOR_CREATE)
+    PHASE_BEGIN("dtfft_create_r2r", COLOR_CREATE)
     CHECK_INTERNAL_CALL( self%create_private(MPI_REAL, FLOAT_STORAGE_SIZE, MPI_REAL8, DOUBLE_STORAGE_SIZE, dims=dims, pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor, kinds=kinds) )
 
     if ( .not. self%is_transpose_plan ) then
@@ -1350,13 +1623,18 @@ contains
           r2r_kinds(1) = kinds(2)
           r2r_kinds(2) = kinds(1)
           fft_rank = FFT_2D
+        else if ( self%is_y_slab .and. dim == 2 ) then
+          r2r_kinds(1) = kinds(3)
+          r2r_kinds(2) = kinds(2)
+          fft_rank = FFT_2D
         endif
         if ( self%is_z_slab .and. dim == 2 ) cycle
+        if ( self%is_y_slab .and. dim == 3 ) cycle
         CHECK_INTERNAL_CALL( self%fft(self%fft_mapping(dim))%fft%create(fft_rank, FFT_R2R, self%precision, real_pencil=self%pencils(dim), r2r_kinds=r2r_kinds) )
       enddo
     endif
     self%is_created = .true.
-    REGION_END("dtfft_create_r2r")
+    PHASE_END("dtfft_create_r2r")
 #undef __FUNC__
   end function create_r2r_internal
 
@@ -1428,10 +1706,10 @@ contains
       return
     endif
 
-    REGION_BEGIN("create_c2c", COLOR_CREATE)
+    PHASE_BEGIN("dtfft_create_c2c", COLOR_CREATE)
     CHECK_INTERNAL_CALL( self%create_c2c_core(dims, pencil, comm, precision, effort, executor) )
     self%is_created = .true.
-    REGION_END("create_c2c")
+    PHASE_END("dtfft_create_c2c")
 #undef __FUNC__
   end function create_c2c_internal
 
@@ -1465,8 +1743,9 @@ contains
       fft_start = 2
     endselect
     do dim = fft_start, self%ndims
-      fft_rank = FFT_1D;  if( self%is_z_slab .and. dim == 1) fft_rank = FFT_2D
-      if ( self%is_z_slab .and. dim == 2_int8 ) cycle
+      fft_rank = FFT_1D
+      if ( (self%is_z_slab .and. dim == 1) .or. (self%is_y_slab .and. dim == 2) ) fft_rank = FFT_2D
+      if ( (self%is_z_slab .and. dim == 2) .or. (self%is_y_slab .and. dim == 3) ) cycle
       CHECK_INTERNAL_CALL( self%fft(self%fft_mapping(dim))%fft%create(fft_rank, FFT_C2C, self%precision, complex_pencil=self%pencils(dim)) )
     enddo
 #undef __FUNC__
@@ -1542,7 +1821,7 @@ contains
       return
     endif
 
-    REGION_BEGIN("create_r2c", COLOR_CREATE)
+    PHASE_BEGIN("dtfft_create_r2c", COLOR_CREATE)
     if ( present(dims) ) then
       allocate(fixed_dims, source=dims)
       fixed_dims(1) = int(dims(1) / 2, int32) + 1
@@ -1562,18 +1841,18 @@ contains
 
     fft_rank = FFT_1D;  if ( self%is_z_slab ) fft_rank = FFT_2D
     CHECK_INTERNAL_CALL( self%fft(1)%fft%create(fft_rank, FFT_R2C, self%precision, real_pencil=self%real_pencil, complex_pencil=self%pencils(1)) )
-    REGION_END("create_r2c")
+    PHASE_END("dtfft_create_r2c")
     self%is_created = .true.
 #undef __FUNC__
   end function create_r2c_internal
 
-  subroutine mem_alloc_ptr(self, alloc_bytes, ptr, error_code)
+  function mem_alloc_ptr(self, alloc_bytes, error_code) result(ptr)
   !! Allocates memory specific for this plan
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
     integer(int64),             intent(in)    :: alloc_bytes
       !! Number of bytes to allocate
-    type(c_ptr),                intent(out)   :: ptr
+    type(c_ptr)                               :: ptr
       !! Allocated pointer
     integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
@@ -1600,9 +1879,9 @@ contains
     endif
     CHECK_ERROR_AND_RETURN
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine mem_alloc_ptr
+  end function mem_alloc_ptr
 
-  subroutine  mem_free_ptr(self, ptr, error_code)
+  subroutine mem_free_ptr(self, ptr, error_code)
   !! Frees previously allocated memory specific for this plan
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan

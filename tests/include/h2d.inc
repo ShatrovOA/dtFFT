@@ -27,7 +27,7 @@
     call c_f_pointer(target, target_, [count])
 #if defined(DTFFT_WITH_CUDA)
   if ( dtfft_platform_t(platform) == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaMemcpy", cudaMemcpy(target, source, count * STORAGE_BYTES, cudaMemcpyHostToDevice) )
+    CUDA_CALL( cudaMemcpy(target, source, count * STORAGE_BYTES, cudaMemcpyHostToDevice) )
   else
     do i = 1, count
       target_(i) = source_(i)

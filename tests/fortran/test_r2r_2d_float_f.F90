@@ -38,6 +38,7 @@ implicit none
   integer(int32) :: in_counts(2), out_counts(2)
   real(real64) :: tf, tb
   TYPE_MPI_COMM :: comm_1d
+  type(dtfft_config_t) :: config
 #if defined(DTFFT_WITH_CUDA)
   type(dtfft_platform_t) :: platform
 #endif
@@ -80,12 +81,16 @@ implicit none
 
   call MPI_Cart_create(MPI_COMM_WORLD, 1, [comm_size], [.false.], .true., comm_1d, ierr)
 
+  config = dtfft_config_t()
+  config%backend = DTFFT_BACKEND_MPI_P2P_PIPELINED
+  call dtfft_set_config(config, error_code=ierr); DTFFT_CHECK(ierr)
+
   call plan%create([nx, ny], [DTFFT_DST_2, DTFFT_DST_3], comm=comm_1d, precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
   element_size = plan%get_element_size(error_code=ierr); DTFFT_CHECK(ierr)
-  call plan%mem_alloc_ptr(element_size * alloc_size, in, error_code=ierr); DTFFT_CHECK(ierr)
-  call plan%mem_alloc_ptr(element_size * alloc_size, out, error_code=ierr); DTFFT_CHECK(ierr)
+  in = plan%mem_alloc_ptr(element_size * alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
+  out = plan%mem_alloc_ptr(element_size * alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
 
   in_size = product(in_counts)
   out_size = product(out_counts)
@@ -104,7 +109,7 @@ implicit none
   call plan%execute_ptr(in, out, DTFFT_EXECUTE_FORWARD, c_null_ptr, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tf = tf + MPI_Wtime()
@@ -121,7 +126,7 @@ implicit none
   call plan%execute_ptr(out, in, DTFFT_EXECUTE_BACKWARD, c_null_ptr, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tb = tb + MPI_Wtime()

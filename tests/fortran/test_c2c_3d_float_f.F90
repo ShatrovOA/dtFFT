@@ -32,16 +32,18 @@ implicit none
   type(c_ptr) :: check
   complex(real32), pointer :: in(:,:,:), out(:)
   integer(int32), parameter :: nx = 13, ny = 45, nz = 29
-  integer(int32) :: comm_size, comm_rank
+  integer(int32) :: comm_size, comm_rank, i
   type(dtfft_plan_c2c_t) :: plan
   integer(int32) :: in_counts(3), out_counts(3), in_starts(3)
   integer(int64) :: alloc_size, in_size, out_size, element_size
   real(real64) :: tf, tb
   type(dtfft_executor_t) :: executor
   integer(int32) :: ierr
-#if defined(DTFFT_WITH_CUDA)
+  type(dtfft_config_t) :: conf
   type(dtfft_backend_t) :: backend
+#if defined(DTFFT_WITH_CUDA)
   type(dtfft_platform_t) :: platform
+  logical :: is_cuda_platform
 #endif
 
   call MPI_Init(ierr)
@@ -72,7 +74,9 @@ implicit none
 
     call get_environment_variable("DTFFT_PLATFORM", platform_env, env_len)
 
+    is_cuda_platform = .false.
     if ( env_len == 0 .or. trim(adjustl(platform_env)) == "cuda" ) then
+      is_cuda_platform = .true.
 # if defined( DTFFT_WITH_CUFFT )
       executor = DTFFT_EXECUTOR_CUFFT
 # elif defined( DTFFT_WITH_VKFFT )
@@ -86,20 +90,24 @@ implicit none
 
   call attach_gpu_to_process()
 
-#if defined(DTFFT_WITH_CUDA)
-  block
-    type(dtfft_config_t) :: conf
+  backend = DTFFT_BACKEND_MPI_P2P
+  conf = dtfft_config_t(backend=backend)
 
-    conf = dtfft_config_t(platform=DTFFT_PLATFORM_CUDA)
+#if defined(DTFFT_WITH_CUDA)
+    ! Can be redefined by environment variable
+    conf%platform = DTFFT_PLATFORM_CUDA
+
+    if ( is_cuda_platform ) then
 #if defined(DTFFT_WITH_NVSHMEM)
-    backend = DTFFT_BACKEND_CUFFTMP
-#else
-    backend = DTFFT_BACKEND_MPI_P2P
+      backend = DTFFT_BACKEND_CUFFTMP_PIPELINED
+#elif defined(DTFFT_WITH_NCCL)
+      backend = DTFFT_BACKEND_NCCL_PIPELINED
 #endif
-    conf%backend = backend
-    call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
-  endblock
+    endif
 #endif
+  conf%backend = backend
+
+  call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
   call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_starts=in_starts, in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
@@ -126,6 +134,10 @@ implicit none
   out_size = product(out_counts)
 
   call plan%mem_alloc(alloc_size, in, in_counts, lbounds=in_starts, error_code=ierr)
+  do i = 1, 3
+    if ( lbound(in, dim=i) /= in_starts(i) ) error stop "invalid lbound, dim = "//to_str(i)//""
+    if ( ubound(in, dim=i) /= in_starts(i) + in_counts(i) - 1 ) error stop "invalid ubound, dim = "//to_str(i)
+  enddo
   call plan%mem_alloc(alloc_size, out, error_code=ierr)
 
   check = mem_alloc_host(in_size * element_size)
@@ -141,7 +153,7 @@ implicit none
   call plan%execute(in, out, DTFFT_EXECUTE_FORWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tf = tf + MPI_Wtime()
@@ -156,7 +168,7 @@ implicit none
   call plan%execute(out, in, DTFFT_EXECUTE_BACKWARD, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tb = tb + MPI_Wtime()

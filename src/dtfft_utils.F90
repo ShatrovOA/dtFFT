@@ -35,14 +35,14 @@ public :: write_message
 public :: get_inverse_kind
 public :: is_same_ptr, is_null_ptr
 public :: mem_alloc_host, mem_free_host
+public :: create_subcomm_include_all, create_subcomm
 public :: string
+public :: destroy_strings
 
 #if defined(DTFFT_WITH_CUDA) || defined(DTFFT_WITH_MKL)
 public :: string_c2f
 #endif
-
 #ifdef DTFFT_WITH_CUDA
-public :: destroy_strings
 public :: astring_f2c
 public :: count_unique
 public :: Comm_f2c
@@ -182,7 +182,6 @@ contains
     if ( allocated(self%raw) ) deallocate( self%raw )
   end subroutine destroy_string
 
-#ifdef DTFFT_WITH_CUDA
   subroutine destroy_strings(strings)
   !! Destroys array of [[string]] objects
     type(string), intent(inout), allocatable :: strings(:)  !! Array of strings
@@ -194,7 +193,6 @@ contains
     end do
     deallocate( strings )
   end subroutine destroy_strings
-#endif
 
   subroutine string_f2c(fstring, cstring, string_size)
   !! Convert Fortran string to C string
@@ -226,10 +224,24 @@ contains
   !! Convert C string to Fortran string
     type(c_ptr)                     :: cstring    !! C string
     character(len=:),   allocatable :: fstring    !! Fortran string
-    character(len=1024), pointer     :: fstring_  !! Temporary Fortran string
+    character(c_char),  pointer     :: cstring_(:)
+    character(len=4096)             :: fstring_  !! Temporary Fortran string
+    integer(int32) :: l
 
-    call c_f_pointer(cstring, fstring_)
-    allocate( fstring, source=fstring_(1:max(len(fstring_), index(fstring_, c_null_char)) - 1) )
+    if ( is_null_ptr(cstring) ) then
+      allocate(fstring, source="")
+      return
+    endif
+
+    call c_f_pointer(cstring, cstring_, [len(fstring_)])
+    l = 0
+    do while (.true.)
+      l = l + 1
+      if ( cstring_(l) == c_null_char ) exit
+      if ( l == len(fstring_) - 1 ) exit
+      fstring_(l:l) = cstring_(l)
+    enddo
+    allocate( fstring, source=fstring_(1:l) )
   end subroutine string_c2f
 #endif
 
@@ -483,25 +495,56 @@ contains
     ptr = aligned_alloc(int(ALLOC_ALIGNMENT, c_size_t), alloc_size_)
   end function mem_alloc_host
 
+  subroutine create_subcomm_include_all(old_comm, new_comm)
+  !! Creates communicator including all processes from `old_comm`
+    TYPE_MPI_COMM,        intent(in)    :: old_comm     !! Communicator to create group from
+    TYPE_MPI_COMM,        intent(out)   :: new_comm     !! New communicator
+    integer(int32), allocatable :: ranks(:)
+    integer(int32) :: i, comm_size, ierr
+
+    call MPI_Comm_size(old_comm, comm_size, ierr)
+    allocate(ranks(0:comm_size - 1))
+    do i = 0, comm_size - 1_int32
+      ranks(i) = i
+    enddo
+    call create_subcomm(old_comm, ranks, new_comm)
+    deallocate(ranks)
+  end subroutine create_subcomm_include_all
+
+  subroutine create_subcomm(old_comm, processes, new_comm)
+  !! Creates communicator with selected processes from `old_comm`
+    TYPE_MPI_COMM,        intent(in)    :: old_comm     !! Communicator to create group from
+    integer(int32),       intent(in)    :: processes(:) !! Ranks of processes in `old_comm` to include in new group
+    TYPE_MPI_COMM,        intent(out)   :: new_comm     !! New communicator
+    TYPE_MPI_GROUP :: group, new_group
+    integer(int32) :: ierr
+
+    call MPI_Comm_group(old_comm, group, ierr)
+    call MPI_Group_incl(group, size(processes), processes, new_group, ierr)
+    call MPI_Comm_create(old_comm, new_group, new_comm, ierr)
+    call MPI_Group_free(group, ierr)
+    call MPI_Group_free(new_group, ierr)
+  end subroutine create_subcomm
+
 #if defined(DTFFT_USE_MPI)
 ! Some bug was noticed in mpich for macos
 ! For some reason MPI_IN_PLACE has not been recognized.
 ! This is some stupid workaround
-  subroutine all_reduce_inplace_i64(buffer, op, comm)
+  subroutine all_reduce_inplace_i64(buffer, op, comm, ierr)
     integer(int64), intent(inout) :: buffer
     integer(int32), intent(in)    :: op, comm
+    integer(int32), intent(out)   :: ierr
     integer(int64) :: tmp
-    integer(int32) :: ierr
 
     call MPI_Allreduce(buffer, tmp, 1, MPI_INTEGER8, op, comm, ierr)
     buffer = tmp
   end subroutine all_reduce_inplace_i64
 
-  subroutine all_reduce_inplace_i32(buffer, op, comm)
+  subroutine all_reduce_inplace_i32(buffer, op, comm, ierr)
     integer(int32), intent(inout) :: buffer
     integer(int32), intent(in)    :: op, comm
+    integer(int32), intent(out)   :: ierr
     integer(int32) :: tmp
-    integer(int32) :: ierr
 
     call MPI_Allreduce(buffer, tmp, 1, MPI_INTEGER4, op, comm, ierr)
     buffer = tmp

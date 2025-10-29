@@ -76,14 +76,6 @@ implicit none
 # else
       executor = DTFFT_EXECUTOR_NONE;
 # endif
-    else
-# if defined(__NVCOMPILER)
-      if ( comm_rank == 0 ) then
-        write(error_unit, "(a)") "This test can only run on a CUDA Device, due to `DEVICE_PTR` specification of pointers"
-      endif
-      call MPI_Finalize(ierr)
-      stop
-#endif
     endif
   endblock
 #endif
@@ -106,8 +98,8 @@ implicit none
 
   alloc_bytes = alloc_size * element_size
 
-  call plan%mem_alloc_ptr(alloc_bytes, in, ierr); DTFFT_CHECK(ierr)
-  call plan%mem_alloc_ptr(alloc_bytes, out, ierr); DTFFT_CHECK(ierr)
+  in = plan%mem_alloc_ptr(alloc_bytes, ierr); DTFFT_CHECK(ierr)
+  out = plan%mem_alloc_ptr(alloc_bytes, ierr); DTFFT_CHECK(ierr)
 
   in_size = int(product(in_counts), int64)
   check = mem_alloc_host(in_size * element_size)
@@ -124,7 +116,7 @@ implicit none
   call plan%execute_ptr(in, out, DTFFT_EXECUTE_FORWARD, c_null_ptr, ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tf = tf + MPI_Wtime()
@@ -139,7 +131,7 @@ implicit none
   call plan%execute_ptr(out, in, DTFFT_EXECUTE_BACKWARD, c_null_ptr, ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaDeviceSynchronize", cudaDeviceSynchronize() )
+    CUDA_CALL( cudaDeviceSynchronize() )
   endif
 #endif
   tb = tb + MPI_Wtime()
@@ -151,7 +143,7 @@ implicit none
 #endif
 
   call plan%mem_free_ptr(in, ierr); DTFFT_CHECK(ierr)
-  ! call plan%mem_free_ptr(out, ierr); DTFFT_CHECK(ierr)
+  call plan%mem_free_ptr(out, ierr); DTFFT_CHECK(ierr)
 
   call mem_free_host(check)
 

@@ -30,7 +30,7 @@ use dtfft_interface_cuda_runtime
 #include "_dtfft_mpi.h"
 #include "dtfft.f03"
 implicit none
-  complex(real64),  pointer :: inout(:), aux(:)
+  complex(real64),  pointer :: inout(:,:,:), aux(:)
   type(c_ptr) :: check
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   integer(int32), parameter :: nx = 255, ny = 333, nz = 135
@@ -45,9 +45,10 @@ implicit none
   real(real64) :: ts, tf, tb
 #if defined(DTFFT_WITH_CUDA)
   type(dtfft_stream_t)  :: stream
-  type(dtfft_backend_t) :: selected_backend
   type(dtfft_platform_t) :: platform
 #endif
+  type(dtfft_backend_t) :: selected_backend
+  type(dtfft_config_t) :: conf
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -100,9 +101,13 @@ implicit none
   endblock
 #endif
 
+  conf = dtfft_config_t()
+  conf%enable_mpi_backends = .true.
+  call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
+
   ! Setting effort=DTFFT_PATIENT will ignore value of `conf%backend` and will run autotune to find best backend
   ! Fastest backend will be selected
-  call plan%create([nx, ny, nz], executor=executor, effort=DTFFT_ESTIMATE, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%create([nx, ny, nz], executor=executor, effort=DTFFT_PATIENT, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, error_code=ierr); DTFFT_CHECK(ierr)
   alloc_size = plan%get_alloc_size(ierr); DTFFT_CHECK(ierr)
   element_size = plan%get_element_size(ierr); DTFFT_CHECK(ierr)
@@ -119,13 +124,14 @@ implicit none
   if ( platform == DTFFT_PLATFORM_CUDA ) then
     call plan%get_stream(stream, error_code=ierr); DTFFT_CHECK(ierr)
   endif
+#endif
+
   selected_backend = plan%get_backend(error_code=ierr); DTFFT_CHECK(ierr)
   if(comm_rank == 0) then
     write(output_unit, '(a)') "Selected backend: '"//dtfft_get_backend_string(selected_backend)//"'"
   endif
-#endif
 
-  call plan%mem_alloc(alloc_size, inout, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%mem_alloc(alloc_size, inout, in_counts, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%mem_alloc(alloc_size, aux, error_code=ierr); DTFFT_CHECK(ierr)
 
   check = mem_alloc_host(in_size * element_size)
@@ -149,7 +155,7 @@ implicit none
 
 #if defined(DTFFT_WITH_CUDA)
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
     endif
 #endif
     tf = tf + ts + MPI_Wtime()
@@ -164,7 +170,7 @@ implicit none
     call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD, aux, error_code=ierr); DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
     if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(stream) )
+      CUDA_CALL( cudaStreamSynchronize(stream) )
     endif
 #endif
     tb = tb + ts + MPI_Wtime()
@@ -173,7 +179,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA)
   call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check, platform%val)
 #else
-    call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check)
+  call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check)
 #endif
 
   call plan%mem_free(inout, error_code=ierr); DTFFT_CHECK(ierr)

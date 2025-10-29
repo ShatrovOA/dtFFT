@@ -16,11 +16,11 @@ Since ``dtFFT`` is primarily written in Fortran, a modern Fortran compiler (2008
 - **Intel Fortran (ifort / ifx)**: Version 18 and above
 - **NVHPC Fortran (nvfortran)**: Version 24.5 and above
 
-Currently, ``dtFFT`` can only be built using CMake (version 3.20 or higher recommended). Ensure CMake is installed and available in your PATH before proceeding.
+Currently, ``dtFFT`` can only be built using CMake (version 3.25 or higher recommended). Ensure CMake is installed and available in your PATH before proceeding.
 
 **Requirements**:
 
-- **CMake**: Version 3.20 or higher
+- **CMake**: Version 3.25 or higher
 - **Modern Fortran compiler**: 2008 standard or later
 - **MPI**: Message Passing Interface (MPI) implementation
 - **Caliper** (optional): For performance profiling and analysis
@@ -109,10 +109,22 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Disables use of NVSHMEM-based backends shipped with HPC-SDK.
-   * - ``DTFFT_WITH_DEVICE_CHECKS``
+   * - ``DTFFT_ENABLE_DEVICE_CHECKS``
      - ``ON`` / ``OFF``
      - ``ON``
-     - Enable error checking for all GPU libraries calls
+     - Enable error checking for all GPU libraries calls. Can be turned off for best performance.
+   * - ``DTFFT_WITH_RMA``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enable MPI RMA backends (currently in beta). It has been noticed that call to ``MPI_Win_create`` fails with OpenMPI 4.0.5 with UCX enabled.
+   * - ``DTFFT_WITH_SIMD``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables SIMD optimizations for some host kernels (requires OpenMP support in the compiler).
+   * - ``DTFFT_ENABLE_INPUT_CHECK``
+     - ``ON`` / ``OFF``
+     - ``ON``
+     - Enables input parameter checks for plan execution functions. Should be turned off by advanced users to best performance.
 
 Building the Library
 ====================

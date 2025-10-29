@@ -6,6 +6,13 @@
 #include <mpi.h>
 #include <stdbool.h>
 
+// #ifdef DTFFT_WITH_NVSHMEM
+// #include <nvshmemx.h>
+// #endif
+
+
+// extern "C" {
+
 bool is_device_ptr(const void *ptr)
 {
   struct cudaPointerAttributes attrs;
@@ -49,5 +56,20 @@ Comm_f2c(MPI_Fint fcomm)
 {
   return MPI_Comm_f2c(fcomm);
 }
+
+
+// # ifdef DTFFT_WITH_NVSHMEM
+// void
+// init_nvshmem(MPI_Fint fcomm)
+// {
+//   MPI_Comm comm = MPI_Comm_f2c(fcomm);
+
+//   nvshmemx_init_attr_t attr;
+//   attr.mpi_comm = &comm;
+//   nvshmemx_init_attr(NVSHMEMX_INIT_WITH_MPI_COMM, &attr);
+// }
+// # endif
+// }
+
 
 #endif

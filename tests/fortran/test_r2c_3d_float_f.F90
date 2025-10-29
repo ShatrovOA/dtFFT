@@ -166,7 +166,7 @@ implicit none
   DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(dtfft_stream) )
+    CUDA_CALL( cudaStreamSynchronize(dtfft_stream) )
   endif
 #endif
   tf = tf + MPI_Wtime()
@@ -186,7 +186,7 @@ implicit none
   DTFFT_CHECK(ierr)
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
-    CUDA_CALL( "cudaStreamSynchronize", cudaStreamSynchronize(dtfft_stream) )
+    CUDA_CALL( cudaStreamSynchronize(dtfft_stream) )
   endif
 #endif
   tb = tb + MPI_Wtime()
