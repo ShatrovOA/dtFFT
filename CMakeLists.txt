@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(dtfft VERSION 2.2.0
+project(dtfft VERSION 2.3.0
               DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
@@ -70,6 +70,16 @@ if ( DTFFT_USE_MPI )
   set(mpi_mod "mpi")
 else()
   set(mpi_mod "mpi_f08")
+endif()
+
+if( CMAKE_BUILD_TYPE MATCHES Release)
+  set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
+
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT result)
+  if(result)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  endif()
 endif()
 
 if(DTFFT_BUILD_SHARED)
@@ -299,7 +309,6 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
   -Wrealloc-lhs-all -Wdo-subscript -Wundefined-do-loop -Wextra -ggdb -fopt-info -fopt-info-optall-optimized -fbacktrace -fdump-fortran-optimized\
   -ftree-vectorize -Wimplicit-interface -Wunused-parameter -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow -ffpe-summary=none \
   -Warray-bounds -Wimplicit-procedure -Wunderflow -Wuninitialized -fimplicit-none -fdump-core -finit-real=nan")
-  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -flto")
 
   if(DTFFT_RUNNING_CICD)
     set(DTFFT_ENABLE_COVERAGE ON)
@@ -347,27 +356,25 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATCHES IntelLLVM)
   set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -free")
   set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -check bounds -ftrapuv -debug all -gen-interfaces -traceback -warn all")
-  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -ipo")
+  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
-  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mcontiguous -Mnodepchk -Minfo=all")
+  set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mcontiguous -Mnodepchk")
   set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr")
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -Mnobounds")
 endif()
 
 if( CMAKE_C_COMPILER_ID MATCHES GNU )
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wpedantic -Wall -Wextra")
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto")
 elseif(CMAKE_C_COMPILER_ID MATCHES Intel OR CMAKE_C_COMPILER_ID MATCHES IntelLLVM)
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast -ipo")
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast")
 elseif(CMAKE_C_COMPILER_ID MATCHES NVHPC)
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Ofast")
 endif()
 
 if( CMAKE_CXX_COMPILER_ID MATCHES GNU )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -Wall -Wextra")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES Intel OR CMAKE_CXX_COMPILER_ID MATCHES IntelLLVM)
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -ipo")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES NVHPC)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 endif()
