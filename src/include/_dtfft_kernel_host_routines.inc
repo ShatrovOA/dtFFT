@@ -90,11 +90,19 @@ subroutine GET_SUB_NAME(select_access_mode)(self, in, out, n_warmup_iters, n_ite
     if ( write_time < read_time ) then
         self%access_mode = ACCESS_MODE_WRITE
         execution_time = write_time
-        WRITE_INFO("      Selected WRITE access mode, which is "//to_str(real(read_time / write_time, real32))//"x times faster")
+        if ( write_time > 0._real64 ) then
+            WRITE_INFO("      Selected WRITE access mode, which is "//to_str(real(read_time / write_time, real32))//"x times faster")
+        else
+            WRITE_INFO("      Selected WRITE access mode")
+        endif
     else
         self%access_mode = ACCESS_MODE_READ
         execution_time = read_time
-        WRITE_INFO("      Selected READ access mode, which is "//to_str(real(write_time / read_time, real32))//"x times faster")
+        if ( read_time > 0._real64 ) then
+            WRITE_INFO("      Selected READ access mode, which is "//to_str(real(write_time / read_time, real32))//"x times faster")
+        else
+            WRITE_INFO("      Selected READ access mode")
+        endif
     endif
 end subroutine GET_SUB_NAME(select_access_mode)
 
