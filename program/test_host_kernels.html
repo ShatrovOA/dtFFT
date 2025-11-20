@@ -1,0 +1,1743 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>test_host_kernels &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>test_host_kernels      <small>Program</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title="100.0% of total for programs.">153 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/test_host_kernels.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/test_host_kernels.f90.html'>test_host_kernels.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">test_host_kernels</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_host_kernels.html#variable-in~2">in</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#variable-out~2">out</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#variable-gold">gold</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#variable-dims3">dims3</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#variable-dims2">dims2</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#variable-i">i</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_host_kernels.html#proc-run_permute_forward">run_permute_forward</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#proc-run_permute_backward">run_permute_backward</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#proc-run_permute_backward_start">run_permute_backward_start</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#proc-run_permute_backward_end">run_permute_backward_end</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#proc-run_unpack">run_unpack</a>
+            <a class="list-group-item" href="../program/test_host_kernels.html#proc-compare">compare</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_kernel_host.html'>dtfft_kernel_host</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: program~~test_host_kernels~~UsesGraph Pages: 1 -->
+<svg id="programtest_host_kernelsUsesGraph" width="641pt" height="289pt"
+ viewBox="0.00 0.00 641.00 289.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="program~~test_host_kernels~~UsesGraph" class="graph" transform="scale(0.66 0.66) rotate(0) translate(4 435.14)">
+<title>program~~test_host_kernels~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-435.14 970,-435.14 970,4 -4,4"/>
+<!-- program~test_host_kernels -->
+<g id="program~~test_host_kernels~~UsesGraph_node1" class="node">
+<title>program~test_host_kernels</title>
+<polygon fill="none" stroke="black" points="966,-41.84 862,-41.84 862,-17.84 966,-17.84 966,-41.84"/>
+<text text-anchor="middle" x="914" y="-27.44" font-family="Helvetica,sans-Serif" font-size="10.50">test_host_kernels</text>
+</g>
+<!-- iso_fortran_env -->
+<g id="program~~test_host_kernels~~UsesGraph_node2" class="node">
+<title>iso_fortran_env</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-59.84 0,-59.84 0,-35.84 94,-35.84 94,-59.84"/>
+<text text-anchor="middle" x="47" y="-45.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- program~test_host_kernels&#45;&gt;iso_fortran_env -->
+<g id="program~~test_host_kernels~~UsesGraph_edge1" class="edge">
+<title>program~test_host_kernels&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M861.83,-23.94C764.68,-13.72 546.96,4.39 365,-14.84 335.4,-17.97 328.85,-33.82 299.5,-28.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-28.84C267.34,-23.04 262.31,-11.8 232,-6.84 187.26,0.47 174.12,3.57 130,-6.84 110.5,-11.45 90.35,-21.43 74.91,-30.4"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="72.71,-27.64 65.95,-35.79 76.32,-33.63 72.71,-27.64"/>
+</g>
+<!-- module~dtfft_kernel_host -->
+<g id="program~~test_host_kernels~~UsesGraph_node3" class="node">
+<title>module~dtfft_kernel_host</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node3"><a xlink:href="../module/dtfft_kernel_host.html" xlink:title="dtfft_kernel_host">
+<polygon fill="#337ab7" stroke="#337ab7" points="826,-80.84 725,-80.84 725,-56.84 826,-56.84 826,-80.84"/>
+<text text-anchor="middle" x="775.5" y="-66.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_kernel_host</text>
+</a>
+</g>
+</g>
+<!-- program~test_host_kernels&#45;&gt;module~dtfft_kernel_host -->
+<g id="program~~test_host_kernels~~UsesGraph_edge2" class="edge">
+<title>program~test_host_kernels&#45;&gt;module~dtfft_kernel_host</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M870.93,-41.86C857.57,-45.68 842.63,-49.95 828.64,-53.94"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="827.32,-50.68 818.66,-56.8 829.24,-57.41 827.32,-50.68"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;iso_fortran_env -->
+<g id="program~~test_host_kernels~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M736.68,-56.74C675.76,-38.91 552.28,-9.67 449,-28.84"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M447,-28.84C382.36,-39.73 364.13,-39.79 299.5,-28.84"/>
+</g>
+<!-- iso_c_binding -->
+<g id="program~~test_host_kernels~~UsesGraph_node4" class="node">
+<title>iso_c_binding</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node4"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-215.84 5,-215.84 5,-191.84 89,-191.84 89,-215.84"/>
+<text text-anchor="middle" x="47" y="-201.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;iso_c_binding -->
+<g id="program~~test_host_kernels~~UsesGraph_edge3" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M447,-411.84C330.07,-397.77 293.42,-450.01 182,-411.84"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M180,-411.84C100.91,-380.94 65.1,-272.87 53.01,-225.91"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="56.39,-224.99 50.61,-216.11 49.59,-226.66 56.39,-224.99"/>
+</g>
+<!-- module~dtfft_abstract_kernel -->
+<g id="program~~test_host_kernels~~UsesGraph_node5" class="node">
+<title>module~dtfft_abstract_kernel</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node5"><a xlink:href="../module/dtfft_abstract_kernel.html" xlink:title="dtfft_abstract_kernel">
+<polygon fill="#337ab7" stroke="#337ab7" points="689,-122.84 567,-122.84 567,-98.84 689,-98.84 689,-122.84"/>
+<text text-anchor="middle" x="628" y="-108.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_kernel</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_abstract_kernel -->
+<g id="program~~test_host_kernels~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_abstract_kernel</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M732.81,-80.88C716.52,-85.58 697.68,-91.02 680.55,-95.96"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="679.34,-92.67 670.7,-98.8 681.28,-99.39 679.34,-92.67"/>
+</g>
+<!-- module~dtfft_config -->
+<g id="program~~test_host_kernels~~UsesGraph_node6" class="node">
+<title>module~dtfft_config</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node6"><a xlink:href="../module/dtfft_config.html" xlink:title="dtfft_config">
+<polygon fill="#337ab7" stroke="#337ab7" points="664.5,-80.84 591.5,-80.84 591.5,-56.84 664.5,-56.84 664.5,-80.84"/>
+<text text-anchor="middle" x="628" y="-66.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_config -->
+<g id="program~~test_host_kernels~~UsesGraph_edge6" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M724.83,-68.84C708.63,-68.84 690.71,-68.84 674.8,-68.84"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="674.67,-65.34 664.67,-68.84 674.67,-72.34 674.67,-65.34"/>
+</g>
+<!-- module~dtfft_interface_nvtx -->
+<g id="program~~test_host_kernels~~UsesGraph_node7" class="node">
+<title>module~dtfft_interface_nvtx</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node7"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
+<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-329.84 390.5,-329.84 390.5,-305.84 505.5,-305.84 505.5,-329.84"/>
+<text text-anchor="middle" x="448" y="-315.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="program~~test_host_kernels~~UsesGraph_edge7" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M774.34,-80.95C772.88,-134.28 758.89,-348.36 629,-411.84"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M627,-411.84C566.54,-441.39 496.32,-373.3 465.24,-337.74"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="467.69,-335.22 458.54,-329.88 462.36,-339.76 467.69,-335.22"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="program~~test_host_kernels~~UsesGraph_node8" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node8"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-235.84 130,-235.84 130,-211.84 232,-211.84 232,-235.84"/>
+<text text-anchor="middle" x="181" y="-221.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_host_kernels~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M627,-411.84C555.92,-446.58 526.8,-426.17 449,-411.84"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M447,-411.84C335.73,-391.35 236.15,-287.56 198.24,-243.58"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="200.83,-241.23 191.69,-235.86 195.49,-245.75 200.83,-241.23"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="program~~test_host_kernels~~UsesGraph_node9" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node9"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-155.84 268,-155.84 268,-131.84 329,-131.84 329,-155.84"/>
+<text text-anchor="middle" x="298.5" y="-141.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_host_kernels~~UsesGraph_edge9" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M447,-28.84C431.9,-31.65 358.56,-93.11 321.31,-125.01"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="318.82,-122.53 313.52,-131.7 323.38,-127.84 318.82,-122.53"/>
+</g>
+<!-- mpi_f08 -->
+<g id="program~~test_host_kernels~~UsesGraph_node10" class="node">
+<title>mpi_f08</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node10"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-423.84 19.5,-423.84 19.5,-399.84 74.5,-399.84 74.5,-423.84"/>
+<text text-anchor="middle" x="47" y="-409.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;mpi_f08 -->
+<g id="program~~test_host_kernels~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M180,-411.84C149.43,-399.9 111.76,-401.32 84.49,-404.89"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="83.98,-401.42 74.59,-406.34 84.99,-408.35 83.98,-401.42"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env -->
+<g id="program~~test_host_kernels~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M583.76,-98.76C547.9,-89.07 495.44,-75.68 449,-66.84"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="program~~test_host_kernels~~UsesGraph_edge12" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M622.59,-123.07C611.43,-152.57 579.45,-228.6 531,-274.84 519.57,-285.75 504.82,-294.63 491,-301.42"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="489.21,-298.39 481.62,-305.78 492.16,-304.73 489.21,-298.39"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_host_kernels~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M622.14,-123.19C610.85,-149.89 580.04,-212.55 531,-236.84 464.89,-269.59 438.31,-245.13 365,-236.84 335.32,-233.49 329.31,-223.57 299.5,-221.84"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_host_kernels~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M566.93,-116.89C500.7,-123.57 396.02,-134.12 339.26,-139.84"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="338.84,-136.36 329.25,-140.84 339.55,-143.32 338.84,-136.36"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;mpi_f08 -->
+<g id="program~~test_host_kernels~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M626.04,-123.1C622.26,-162.17 604.76,-284.37 531,-338.84 405.6,-431.45 327.68,-318.34 182,-373.84"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;iso_fortran_env -->
+<g id="program~~test_host_kernels~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M591.17,-72.11C554.96,-74.55 497.58,-76.08 449,-66.84"/>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M447,-66.84C380.5,-54.19 366.24,-40.15 299.5,-28.84"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;iso_c_binding -->
+<g id="program~~test_host_kernels~~UsesGraph_edge16" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M297.5,-103.84C222.94,-92.12 198.19,-99.48 130,-131.84 103.97,-144.2 79.92,-167.29 64.69,-184"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="61.96,-181.8 57.95,-191.61 67.2,-186.44 61.96,-181.8"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_host_kernels~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M591.19,-75.42C582.34,-78.53 573.53,-83.11 567,-89.84 530.01,-127.99 570.01,-167.77 531,-203.84 503.53,-229.24 483.25,-207.8 449,-222.84"/>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M447,-222.84C386.98,-249.2 365.02,-223.91 299.5,-221.84"/>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M297.5,-221.84C279.57,-221.28 260.07,-221.35 242.29,-221.69"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="241.96,-218.19 232.04,-221.91 242.11,-225.19 241.96,-218.19"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_host_kernels~~UsesGraph_edge21" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M447,-104.84C410.51,-110.8 400.66,-109.09 365,-118.84 355.77,-121.36 346.04,-124.69 336.98,-128.1"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="335.53,-124.91 327.47,-131.78 338.06,-131.43 335.53,-124.91"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;mpi_f08 -->
+<g id="program~~test_host_kernels~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_config&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M447,-222.84C322.88,-277.34 307.5,-322.61 182,-373.84"/>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M180,-373.84C147.78,-383.82 110.87,-394.37 84.29,-401.82"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="83.33,-398.45 74.64,-404.51 85.21,-405.19 83.33,-398.45"/>
+</g>
+<!-- module~dtfft_errors -->
+<g id="program~~test_host_kernels~~UsesGraph_node11" class="node">
+<title>module~dtfft_errors</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node11"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
+<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-39.84 145.5,-39.84 145.5,-15.84 216.5,-15.84 216.5,-39.84"/>
+<text text-anchor="middle" x="181" y="-25.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_host_kernels~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M591.35,-76.88C555.51,-84.76 498.63,-96.74 449,-104.84"/>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M447,-104.84C382.3,-115.41 364.26,-114.02 299.5,-103.84"/>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M297.5,-103.84C258.18,-97.66 221.34,-67.6 200.26,-47.19"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="202.53,-44.51 192.98,-39.91 197.58,-49.46 202.53,-44.51"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_host_kernels~~UsesGraph_node12" class="node">
+<title>module~dtfft_interface_cuda_runtime</title>
+<g id="a_program~~test_host_kernels~~UsesGraph_node12"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
+<polygon fill="#337ab7" stroke="#337ab7" points="531,-194.84 365,-194.84 365,-170.84 531,-170.84 531,-194.84"/>
+<text text-anchor="middle" x="448" y="-180.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_host_kernels~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M591.23,-79.11C583.03,-82.08 574.52,-85.66 567,-89.84 549.04,-99.83 547.1,-106.08 531,-118.84 511.48,-134.32 489.19,-151.7 472.78,-164.44"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="470.53,-161.75 464.78,-170.64 474.82,-167.28 470.53,-161.75"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
+<g id="program~~test_host_kernels~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M390.3,-308.97C325.97,-297.96 218.49,-276.64 130,-244.84 112.01,-238.38 92.86,-228.96 77.59,-220.78"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="79.08,-217.6 68.63,-215.88 75.73,-223.75 79.08,-217.6"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_host_kernels~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M432.35,-305.78C414.85,-290.86 385.38,-264.08 365,-236.84 344.75,-209.77 350.01,-196.32 329,-169.84 327.13,-167.49 325.03,-165.17 322.83,-162.95"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="324.91,-160.1 315.2,-155.86 320.14,-165.23 324.91,-160.1"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="program~~test_host_kernels~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M170.3,-211.66C160.14,-198.85 143.78,-178.06 130,-159.84 106,-128.11 78.85,-90.73 62.6,-68.18"/>
+<polygon fill="#0091ff" stroke="#0091ff" points="65.42,-66.1 56.74,-60.03 59.74,-70.19 65.42,-66.1"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="program~~test_host_kernels~~UsesGraph_edge25" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M129.72,-216.22C119.77,-214.72 109.31,-213.13 99.33,-211.62"/>
+<polygon fill="#0091ff" stroke="#0091ff" points="99.55,-208.11 89.14,-210.08 98.5,-215.03 99.55,-208.11"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="program~~test_host_kernels~~UsesGraph_edge27" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M171.54,-235.89C149.52,-267.25 90.21,-351.72 62.56,-391.1"/>
+<polygon fill="#0091ff" stroke="#0091ff" points="59.44,-389.46 56.56,-399.65 65.17,-393.48 59.44,-389.46"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="program~~test_host_kernels~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#4800ff" stroke-dasharray="5,2" d="M267.9,-132.45C223.49,-115.36 139.46,-83.03 89.12,-63.66"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="90.11,-60.3 79.52,-59.97 87.6,-66.83 90.11,-60.3"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="program~~test_host_kernels~~UsesGraph_edge28" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#4800ff" stroke-dasharray="5,2" d="M267.95,-137.81C243.64,-134.34 208.93,-132.89 182,-145.84"/>
+<path fill="none" stroke="#4800ff" stroke-dasharray="5,2" d="M180,-145.84C148.86,-160.82 112.92,-176.51 86.41,-187.79"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="84.94,-184.61 77.1,-191.74 87.67,-191.06 84.94,-184.61"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_host_kernels~~UsesGraph_edge31" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#4800ff" stroke-dasharray="5,2" d="M279.96,-155.99C260.68,-169.34 229.54,-190.91 207.55,-206.14"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="205.56,-203.27 199.33,-211.84 209.54,-209.02 205.56,-203.27"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="program~~test_host_kernels~~UsesGraph_edge32" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#4800ff" stroke-dasharray="5,2" d="M180,-145.84C85.03,-191.53 57.56,-333.86 50.35,-389.36"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="46.85,-389.19 49.13,-399.53 53.8,-390.02 46.85,-389.19"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_host_kernels~~UsesGraph_edge30" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#4800ff" stroke-dasharray="5,2" d="M281.86,-131.78C277.09,-127.66 272.04,-122.83 268,-117.84 247.47,-92.47 255.45,-76.54 232,-53.84 228.71,-50.66 224.95,-47.77 221,-45.17"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="222.56,-42.02 212.17,-39.95 219,-48.05 222.56,-42.02"/>
+</g>
+<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<g id="program~~test_host_kernels~~UsesGraph_edge33" class="edge">
+<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M145.32,-33.1C132.78,-35 118.28,-37.19 104.36,-39.3"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="103.73,-35.86 94.36,-40.82 104.78,-42.78 103.73,-35.86"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
+<g id="program~~test_host_kernels~~UsesGraph_edge34" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M364.97,-181.05C343.62,-181.22 320.67,-181.98 299.5,-183.84"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-183.84C228.86,-189.87 149.52,-196.11 99.08,-199.98"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="98.78,-196.49 89.08,-200.74 99.31,-203.47 98.78,-196.49"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_host_kernels~~UsesGraph_edge35" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-183.84C268.46,-186.39 237.33,-197.73 214.71,-207.68"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="213.23,-204.51 205.57,-211.83 216.12,-210.88 213.23,-204.51"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_host_kernels~~UsesGraph_edge36" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M401.54,-170.82C381.5,-165.52 358.18,-159.36 338.89,-154.26"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="339.78,-150.87 329.21,-151.7 337.99,-157.64 339.78,-150.87"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprogramtest_host_kernelsUsesGraph = svgPanZoom('#programtest_host_kernelsUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+    
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: program~~test_host_kernels~~CallsGraph Pages: 1 -->
+<svg id="programtest_host_kernelsCallsGraph" width="641pt" height="1472pt"
+ viewBox="0.00 0.00 641.00 1472.14" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="program~~test_host_kernels~~CallsGraph" class="graph" transform="scale(0.98 0.98) rotate(0) translate(4 1498)">
+<title>program~~test_host_kernels~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1498 650,-1498 650,4 -4,4"/>
+<!-- program~test_host_kernels -->
+<g id="program~~test_host_kernels~~CallsGraph_node1" class="node">
+<title>program~test_host_kernels</title>
+<polygon fill="none" stroke="black" points="104,-696 0,-696 0,-672 104,-672 104,-696"/>
+<text text-anchor="middle" x="52" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50">test_host_kernels</text>
+</g>
+<!-- proc~run_permute_backward -->
+<g id="program~~test_host_kernels~~CallsGraph_node2" class="node">
+<title>proc~run_permute_backward</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node2"><a xlink:href="../proc/run_permute_backward.html" xlink:title="run_permute_backward">
+<polygon fill="#d9534f" stroke="#d9534f" points="293.5,-213 154.5,-213 154.5,-189 293.5,-189 293.5,-213"/>
+<text text-anchor="middle" x="224" y="-198.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_permute_backward</text>
+</a>
+</g>
+</g>
+<!-- program~test_host_kernels&#45;&gt;proc~run_permute_backward -->
+<g id="program~~test_host_kernels~~CallsGraph_edge1" class="edge">
+<title>program~test_host_kernels&#45;&gt;proc~run_permute_backward</title>
+<path fill="none" stroke="#ff0000" d="M57.11,-671.92C69.49,-635.58 107.55,-524.11 140,-432 167.22,-354.72 200.37,-263.23 215.19,-222.46"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="218.5,-223.6 218.63,-213.01 211.92,-221.21 218.5,-223.6"/>
+</g>
+<!-- proc~run_permute_backward_end -->
+<g id="program~~test_host_kernels~~CallsGraph_node3" class="node">
+<title>proc~run_permute_backward_end</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node3"><a xlink:href="../proc/run_permute_backward_end.html" xlink:title="run_permute_backward_end">
+<polygon fill="#d9534f" stroke="#d9534f" points="306,-1326 142,-1326 142,-1302 306,-1302 306,-1326"/>
+<text text-anchor="middle" x="224" y="-1311.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_permute_backward_end</text>
+</a>
+</g>
+</g>
+<!-- program~test_host_kernels&#45;&gt;proc~run_permute_backward_end -->
+<g id="program~~test_host_kernels~~CallsGraph_edge2" class="edge">
+<title>program~test_host_kernels&#45;&gt;proc~run_permute_backward_end</title>
+<path fill="none" stroke="#ff0000" d="M56.06,-696.23C67.08,-740.12 105.85,-893.78 140,-1020 167.63,-1122.09 202.58,-1243.53 216.68,-1292.22"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="213.36,-1293.35 219.51,-1301.98 220.08,-1291.4 213.36,-1293.35"/>
+</g>
+<!-- proc~run_permute_backward_start -->
+<g id="program~~test_host_kernels~~CallsGraph_node4" class="node">
+<title>proc~run_permute_backward_start</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node4"><a xlink:href="../proc/run_permute_backward_start.html" xlink:title="run_permute_backward_start">
+<polygon fill="#d9534f" stroke="#d9534f" points="308,-1011 140,-1011 140,-987 308,-987 308,-1011"/>
+<text text-anchor="middle" x="224" y="-996.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_permute_backward_start</text>
+</a>
+</g>
+</g>
+<!-- program~test_host_kernels&#45;&gt;proc~run_permute_backward_start -->
+<g id="program~~test_host_kernels~~CallsGraph_edge3" class="edge">
+<title>program~test_host_kernels&#45;&gt;proc~run_permute_backward_start</title>
+<path fill="none" stroke="#ff0000" d="M59.66,-696.35C85.42,-744.08 178.68,-916.88 211.49,-977.67"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="208.55,-979.6 216.38,-986.74 214.71,-976.27 208.55,-979.6"/>
+</g>
+<!-- proc~run_permute_forward -->
+<g id="program~~test_host_kernels~~CallsGraph_node5" class="node">
+<title>proc~run_permute_forward</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node5"><a xlink:href="../proc/run_permute_forward.html" xlink:title="run_permute_forward">
+<polygon fill="#d9534f" stroke="#d9534f" points="288,-696 160,-696 160,-672 288,-672 288,-696"/>
+<text text-anchor="middle" x="224" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_permute_forward</text>
+</a>
+</g>
+</g>
+<!-- program~test_host_kernels&#45;&gt;proc~run_permute_forward -->
+<g id="program~~test_host_kernels~~CallsGraph_edge4" class="edge">
+<title>program~test_host_kernels&#45;&gt;proc~run_permute_forward</title>
+<path fill="none" stroke="#ff0000" d="M104.01,-684C118.45,-684 134.46,-684 149.93,-684"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="149.99,-687.5 159.99,-684 149.99,-680.5 149.99,-687.5"/>
+</g>
+<!-- proc~run_unpack -->
+<g id="program~~test_host_kernels~~CallsGraph_node6" class="node">
+<title>proc~run_unpack</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node6"><a xlink:href="../proc/run_unpack.html" xlink:title="run_unpack">
+<polygon fill="#d9534f" stroke="#d9534f" points="261.5,-465 186.5,-465 186.5,-441 261.5,-441 261.5,-465"/>
+<text text-anchor="middle" x="224" y="-450.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_unpack</text>
+</a>
+</g>
+</g>
+<!-- program~test_host_kernels&#45;&gt;proc~run_unpack -->
+<g id="program~~test_host_kernels~~CallsGraph_edge5" class="edge">
+<title>program~test_host_kernels&#45;&gt;proc~run_unpack</title>
+<path fill="none" stroke="#ff0000" d="M61.9,-671.91C89.43,-634.49 173.44,-520.34 207.95,-473.44"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="210.87,-475.38 213.98,-465.25 205.24,-471.23 210.87,-475.38"/>
+</g>
+<!-- proc~compare -->
+<g id="program~~test_host_kernels~~CallsGraph_node7" class="node">
+<title>proc~compare</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node7"><a xlink:href="../proc/compare.html" xlink:title="compare">
+<polygon fill="#d9534f" stroke="#d9534f" points="525,-612 465,-612 465,-588 525,-588 525,-612"/>
+<text text-anchor="middle" x="495" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compare</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~compare -->
+<g id="program~~test_host_kernels~~CallsGraph_edge6" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~compare</title>
+<path fill="none" stroke="#ff0000" d="M229.96,-213.37C243.62,-247.68 282.44,-347.13 308,-432 327.4,-496.41 294.1,-533.9 344,-579 373.66,-605.81 421,-608.18 454.56,-605.68"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="455.29,-609.13 464.93,-604.73 454.65,-602.16 455.29,-609.13"/>
+</g>
+<!-- proc~permute_backward_read_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node15" class="node">
+<title>proc~permute_backward_read_f32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node15"><a xlink:href="../proc/permute_backward_read_f32.html" xlink:title="permute_backward_read_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="578.5,-150 411.5,-150 411.5,-126 578.5,-126 578.5,-150"/>
+<text text-anchor="middle" x="495" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_read_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~permute_backward_read_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge7" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~permute_backward_read_f32</title>
+<path fill="none" stroke="#ff0000" d="M253.85,-188.98C277.65,-179.52 312.5,-166.68 344,-159 362.38,-154.52 382.28,-150.9 401.39,-148"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="401.91,-151.47 411.3,-146.56 400.9,-144.54 401.91,-151.47"/>
+</g>
+<!-- proc~permute_backward_read_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node16" class="node">
+<title>proc~permute_backward_read_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node16"><a xlink:href="../proc/permute_backward_read_f32_block_16.html" xlink:title="permute_backward_read_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="605,-108 385,-108 385,-84 605,-84 605,-108"/>
+<text text-anchor="middle" x="495" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_read_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~permute_backward_read_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge8" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~permute_backward_read_f32_block_16</title>
+<path fill="none" stroke="#ff0000" d="M237.68,-188.87C258.19,-170.03 300.74,-134.12 344,-117 353.83,-113.11 364.27,-109.92 374.88,-107.32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="375.7,-110.72 384.67,-105.08 374.14,-103.9 375.7,-110.72"/>
+</g>
+<!-- proc~permute_backward_read_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node17" class="node">
+<title>proc~permute_backward_read_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node17"><a xlink:href="../proc/permute_backward_read_f32_block_32.html" xlink:title="permute_backward_read_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="605,-66 385,-66 385,-42 605,-42 605,-66"/>
+<text text-anchor="middle" x="495" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_read_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~permute_backward_read_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge9" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~permute_backward_read_f32_block_32</title>
+<path fill="none" stroke="#ff0000" d="M232.41,-188.74C248.83,-162.76 291.06,-102.33 344,-75 353.66,-70.01 364.11,-66.09 374.85,-63.02"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="375.98,-66.34 384.77,-60.43 374.22,-59.56 375.98,-66.34"/>
+</g>
+<!-- proc~permute_backward_read_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node18" class="node">
+<title>proc~permute_backward_read_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node18"><a xlink:href="../proc/permute_backward_read_f32_block_64.html" xlink:title="permute_backward_read_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="605,-24 385,-24 385,0 605,0 605,-24"/>
+<text text-anchor="middle" x="495" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_read_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~permute_backward_read_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge10" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~permute_backward_read_f32_block_64</title>
+<path fill="none" stroke="#ff0000" d="M229.65,-188.66C242.38,-156.74 281.11,-71.28 344,-33 353.55,-27.18 364.08,-22.72 374.98,-19.32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="375.97,-22.68 384.64,-16.6 374.07,-15.94 375.97,-22.68"/>
+</g>
+<!-- proc~permute_backward_write_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node27" class="node">
+<title>proc~permute_backward_write_f32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node27"><a xlink:href="../proc/permute_backward_write_f32.html" xlink:title="permute_backward_write_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="579.5,-318 410.5,-318 410.5,-294 579.5,-294 579.5,-318"/>
+<text text-anchor="middle" x="495" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_write_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~permute_backward_write_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge11" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~permute_backward_write_f32</title>
+<path fill="none" stroke="#ff0000" d="M237.68,-213.13C258.19,-231.97 300.74,-267.88 344,-285 361.7,-292 381.38,-296.73 400.51,-299.9"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="400.03,-303.37 410.45,-301.42 401.09,-296.45 400.03,-303.37"/>
+</g>
+<!-- proc~permute_backward_write_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node28" class="node">
+<title>proc~permute_backward_write_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node28"><a xlink:href="../proc/permute_backward_write_f32_block_16.html" xlink:title="permute_backward_write_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="606,-276 384,-276 384,-252 606,-252 606,-276"/>
+<text text-anchor="middle" x="495" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_write_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~permute_backward_write_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge12" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~permute_backward_write_f32_block_16</title>
+<path fill="none" stroke="#ff0000" d="M253.85,-213.02C277.65,-222.48 312.5,-235.32 344,-243 355.18,-245.73 366.91,-248.13 378.69,-250.25"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="378.14,-253.71 388.59,-251.96 379.33,-246.81 378.14,-253.71"/>
+</g>
+<!-- proc~permute_backward_write_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node29" class="node">
+<title>proc~permute_backward_write_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node29"><a xlink:href="../proc/permute_backward_write_f32_block_32.html" xlink:title="permute_backward_write_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="606,-234 384,-234 384,-210 606,-210 606,-234"/>
+<text text-anchor="middle" x="495" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_write_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~permute_backward_write_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge13" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~permute_backward_write_f32_block_32</title>
+<path fill="none" stroke="#ff0000" d="M293.58,-206.35C318.05,-208.26 346.38,-210.48 373.9,-212.62"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="373.76,-216.12 384,-213.41 374.3,-209.14 373.76,-216.12"/>
+</g>
+<!-- proc~permute_backward_write_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node30" class="node">
+<title>proc~permute_backward_write_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node30"><a xlink:href="../proc/permute_backward_write_f32_block_64.html" xlink:title="permute_backward_write_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="606,-192 384,-192 384,-168 606,-168 606,-192"/>
+<text text-anchor="middle" x="495" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_write_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward&#45;&gt;proc~permute_backward_write_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge14" class="edge">
+<title>proc~run_permute_backward&#45;&gt;proc~permute_backward_write_f32_block_64</title>
+<path fill="none" stroke="#ff0000" d="M293.58,-195.65C318.05,-193.74 346.38,-191.52 373.9,-189.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="374.3,-192.86 384,-188.59 373.76,-185.88 374.3,-192.86"/>
+</g>
+<!-- proc~run_permute_backward_end&#45;&gt;proc~compare -->
+<g id="program~~test_host_kernels~~CallsGraph_edge15" class="edge">
+<title>proc~run_permute_backward_end&#45;&gt;proc~compare</title>
+<path fill="none" stroke="#cbff00" d="M229.31,-1301.87C243.24,-1262.07 287.39,-1131.61 308,-1020 324.16,-932.45 282.61,-685.48 344,-621 371.85,-591.75 420.29,-590.04 454.57,-593.35"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="454.39,-596.85 464.72,-594.52 455.19,-589.9 454.39,-596.85"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_read_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node8" class="node">
+<title>proc~permute_backward_end_pipelined_read_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node8"><a xlink:href="../proc/permute_backward_end_pipelined_read_f32_block_16.html" xlink:title="permute_backward_end_pipelined_read_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="645,-1368 345,-1368 345,-1344 645,-1344 645,-1368"/>
+<text text-anchor="middle" x="495" y="-1353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_read_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_read_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge16" class="edge">
+<title>proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_read_f32_block_16</title>
+<path fill="none" stroke="#cbff00" d="M290.71,-1326.03C308.02,-1329.08 326.7,-1332.26 344,-1335 360.13,-1337.55 377.26,-1340.1 393.96,-1342.5"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="393.9,-1346.03 404.29,-1343.97 394.89,-1339.1 393.9,-1346.03"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_read_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node9" class="node">
+<title>proc~permute_backward_end_pipelined_read_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node9"><a xlink:href="../proc/permute_backward_end_pipelined_read_f32_block_32.html" xlink:title="permute_backward_end_pipelined_read_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="645,-1326 345,-1326 345,-1302 645,-1302 645,-1326"/>
+<text text-anchor="middle" x="495" y="-1311.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_read_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_read_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge17" class="edge">
+<title>proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_read_f32_block_32</title>
+<path fill="none" stroke="#cbff00" d="M306.07,-1314C315.26,-1314 324.84,-1314 334.6,-1314"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="334.84,-1317.5 344.84,-1314 334.84,-1310.5 334.84,-1317.5"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_read_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node10" class="node">
+<title>proc~permute_backward_end_pipelined_read_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node10"><a xlink:href="../proc/permute_backward_end_pipelined_read_f32_block_64.html" xlink:title="permute_backward_end_pipelined_read_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="645,-1284 345,-1284 345,-1260 645,-1260 645,-1284"/>
+<text text-anchor="middle" x="495" y="-1269.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_read_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_read_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge18" class="edge">
+<title>proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_read_f32_block_64</title>
+<path fill="none" stroke="#cbff00" d="M290.71,-1301.97C308.02,-1298.92 326.7,-1295.74 344,-1293 360.13,-1290.45 377.26,-1287.9 393.96,-1285.5"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="394.89,-1288.9 404.29,-1284.03 393.9,-1281.97 394.89,-1288.9"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_write_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node11" class="node">
+<title>proc~permute_backward_end_pipelined_write_f32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node11"><a xlink:href="../proc/permute_backward_end_pipelined_write_f32.html" xlink:title="permute_backward_end_pipelined_write_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="620,-1242 370,-1242 370,-1218 620,-1218 620,-1242"/>
+<text text-anchor="middle" x="495" y="-1227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_write_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_write_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge19" class="edge">
+<title>proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_write_f32</title>
+<path fill="none" stroke="#cbff00" d="M243.07,-1301.85C265.65,-1287.28 305.97,-1263.31 344,-1251 351.91,-1248.44 360.16,-1246.19 368.54,-1244.22"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="369.41,-1247.61 378.42,-1242.02 367.9,-1240.77 369.41,-1247.61"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_write_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node12" class="node">
+<title>proc~permute_backward_end_pipelined_write_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node12"><a xlink:href="../proc/permute_backward_end_pipelined_write_f32_block_16.html" xlink:title="permute_backward_end_pipelined_write_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="646,-1494 344,-1494 344,-1470 646,-1470 646,-1494"/>
+<text text-anchor="middle" x="495" y="-1479.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_write_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_write_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge20" class="edge">
+<title>proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_write_f32_block_16</title>
+<path fill="none" stroke="#cbff00" d="M230.73,-1326.07C245.15,-1354.98 285.98,-1428.19 344,-1461 347.13,-1462.77 350.35,-1464.41 353.64,-1465.93"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="352.54,-1469.26 363.11,-1469.9 355.25,-1462.8 352.54,-1469.26"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_write_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node13" class="node">
+<title>proc~permute_backward_end_pipelined_write_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node13"><a xlink:href="../proc/permute_backward_end_pipelined_write_f32_block_32.html" xlink:title="permute_backward_end_pipelined_write_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="646,-1452 344,-1452 344,-1428 646,-1428 646,-1452"/>
+<text text-anchor="middle" x="495" y="-1437.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_write_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_write_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge21" class="edge">
+<title>proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_write_f32_block_32</title>
+<path fill="none" stroke="#cbff00" d="M234.58,-1326.26C253.03,-1348.89 295.94,-1396.9 344,-1419 348.66,-1421.14 353.48,-1423.08 358.41,-1424.83"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="357.41,-1428.19 368,-1427.98 359.59,-1421.54 357.41,-1428.19"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_write_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node14" class="node">
+<title>proc~permute_backward_end_pipelined_write_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node14"><a xlink:href="../proc/permute_backward_end_pipelined_write_f32_block_64.html" xlink:title="permute_backward_end_pipelined_write_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="646,-1410 344,-1410 344,-1386 646,-1386 646,-1410"/>
+<text text-anchor="middle" x="495" y="-1395.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_write_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_write_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge22" class="edge">
+<title>proc~run_permute_backward_end&#45;&gt;proc~permute_backward_end_pipelined_write_f32_block_64</title>
+<path fill="none" stroke="#cbff00" d="M243.07,-1326.15C265.65,-1340.72 305.97,-1364.69 344,-1377 351.91,-1379.56 360.16,-1381.81 368.54,-1383.78"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="367.9,-1387.23 378.42,-1385.98 369.41,-1380.39 367.9,-1387.23"/>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~compare -->
+<g id="program~~test_host_kernels~~CallsGraph_edge23" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~compare</title>
+<path fill="none" stroke="#00ff66" d="M228.42,-986.88C246.33,-923.61 329.03,-633.67 344,-621 374.43,-595.25 421.42,-592.63 454.68,-594.78"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="454.71,-598.29 464.96,-595.62 455.28,-591.32 454.71,-598.29"/>
+</g>
+<!-- proc~permute_backward_start_read_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node19" class="node">
+<title>proc~permute_backward_start_read_f32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node19"><a xlink:href="../proc/permute_backward_start_read_f32.html" xlink:title="permute_backward_start_read_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="593,-1032 397,-1032 397,-1008 593,-1008 593,-1032"/>
+<text text-anchor="middle" x="495" y="-1017.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_read_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_read_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge24" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_read_f32</title>
+<path fill="none" stroke="#00ff66" d="M308.27,-1005.5C333.06,-1007.44 360.59,-1009.58 386.68,-1011.62"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="386.75,-1015.14 396.99,-1012.43 387.29,-1008.16 386.75,-1015.14"/>
+</g>
+<!-- proc~permute_backward_start_read_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node20" class="node">
+<title>proc~permute_backward_start_read_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node20"><a xlink:href="../proc/permute_backward_start_read_f32_block_16.html" xlink:title="permute_backward_start_read_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="619.5,-990 370.5,-990 370.5,-966 619.5,-966 619.5,-990"/>
+<text text-anchor="middle" x="495" y="-975.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_read_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_read_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge25" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_read_f32_block_16</title>
+<path fill="none" stroke="#00ff66" d="M308.27,-992.5C324.65,-991.22 342.23,-989.85 359.79,-988.48"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="360.43,-991.94 370.13,-987.67 359.88,-984.96 360.43,-991.94"/>
+</g>
+<!-- proc~permute_backward_start_read_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node21" class="node">
+<title>proc~permute_backward_start_read_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node21"><a xlink:href="../proc/permute_backward_start_read_f32_block_32.html" xlink:title="permute_backward_start_read_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="619.5,-948 370.5,-948 370.5,-924 619.5,-924 619.5,-948"/>
+<text text-anchor="middle" x="495" y="-933.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_read_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_read_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge26" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_read_f32_block_32</title>
+<path fill="none" stroke="#00ff66" d="M253.85,-986.98C277.65,-977.52 312.5,-964.68 344,-957 355.18,-954.27 366.91,-951.87 378.69,-949.75"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="379.33,-953.19 388.59,-948.04 378.14,-946.29 379.33,-953.19"/>
+</g>
+<!-- proc~permute_backward_start_read_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node22" class="node">
+<title>proc~permute_backward_start_read_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node22"><a xlink:href="../proc/permute_backward_start_read_f32_block_64.html" xlink:title="permute_backward_start_read_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="619.5,-906 370.5,-906 370.5,-882 619.5,-882 619.5,-906"/>
+<text text-anchor="middle" x="495" y="-891.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_read_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_read_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge27" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_read_f32_block_64</title>
+<path fill="none" stroke="#00ff66" d="M237.68,-986.87C258.19,-968.03 300.74,-932.12 344,-915 349.86,-912.68 355.93,-910.61 362.13,-908.77"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="363.26,-912.09 371.96,-906.05 361.39,-905.34 363.26,-912.09"/>
+</g>
+<!-- proc~permute_backward_start_write_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node23" class="node">
+<title>proc~permute_backward_start_write_f32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node23"><a xlink:href="../proc/permute_backward_start_write_f32.html" xlink:title="permute_backward_start_write_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="594.5,-1200 395.5,-1200 395.5,-1176 594.5,-1176 594.5,-1200"/>
+<text text-anchor="middle" x="495" y="-1185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_write_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_write_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge28" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_write_f32</title>
+<path fill="none" stroke="#00ff66" d="M229.65,-1011.34C242.38,-1043.26 281.11,-1128.72 344,-1167 356.5,-1174.61 370.66,-1179.9 385.16,-1183.53"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="384.71,-1187.01 395.23,-1185.78 386.24,-1180.18 384.71,-1187.01"/>
+</g>
+<!-- proc~permute_backward_start_write_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node24" class="node">
+<title>proc~permute_backward_start_write_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node24"><a xlink:href="../proc/permute_backward_start_write_f32_block_16.html" xlink:title="permute_backward_start_write_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="620.5,-1158 369.5,-1158 369.5,-1134 620.5,-1134 620.5,-1158"/>
+<text text-anchor="middle" x="495" y="-1143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_write_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_write_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge29" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_write_f32_block_16</title>
+<path fill="none" stroke="#00ff66" d="M232.41,-1011.26C248.83,-1037.24 291.06,-1097.67 344,-1125 348.97,-1127.56 354.14,-1129.85 359.45,-1131.88"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="358.56,-1135.27 369.16,-1135.26 360.87,-1128.66 358.56,-1135.27"/>
+</g>
+<!-- proc~permute_backward_start_write_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node25" class="node">
+<title>proc~permute_backward_start_write_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node25"><a xlink:href="../proc/permute_backward_start_write_f32_block_32.html" xlink:title="permute_backward_start_write_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="620.5,-1116 369.5,-1116 369.5,-1092 620.5,-1092 620.5,-1116"/>
+<text text-anchor="middle" x="495" y="-1101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_write_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_write_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge30" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_write_f32_block_32</title>
+<path fill="none" stroke="#00ff66" d="M237.68,-1011.13C258.19,-1029.97 300.74,-1065.88 344,-1083 349.86,-1085.32 355.93,-1087.39 362.13,-1089.23"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="361.39,-1092.66 371.96,-1091.95 363.26,-1085.91 361.39,-1092.66"/>
+</g>
+<!-- proc~permute_backward_start_write_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node26" class="node">
+<title>proc~permute_backward_start_write_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node26"><a xlink:href="../proc/permute_backward_start_write_f32_block_64.html" xlink:title="permute_backward_start_write_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="620.5,-1074 369.5,-1074 369.5,-1050 620.5,-1050 620.5,-1074"/>
+<text text-anchor="middle" x="495" y="-1059.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_write_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_write_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge31" class="edge">
+<title>proc~run_permute_backward_start&#45;&gt;proc~permute_backward_start_write_f32_block_64</title>
+<path fill="none" stroke="#00ff66" d="M253.85,-1011.02C277.65,-1020.48 312.5,-1033.32 344,-1041 355.18,-1043.73 366.91,-1046.13 378.69,-1048.25"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="378.14,-1051.71 388.59,-1049.96 379.33,-1044.81 378.14,-1051.71"/>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~compare -->
+<g id="program~~test_host_kernels~~CallsGraph_edge32" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~compare</title>
+<path fill="none" stroke="#0066ff" d="M243.07,-671.85C265.65,-657.28 305.97,-633.31 344,-621 380.37,-609.23 423.8,-604.06 454.54,-601.78"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="455.11,-605.25 464.86,-601.09 454.65,-598.27 455.11,-605.25"/>
+</g>
+<!-- proc~permute_forward_read_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node31" class="node">
+<title>proc~permute_forward_read_f32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node31"><a xlink:href="../proc/permute_forward_read_f32.html" xlink:title="permute_forward_read_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="573.5,-864 416.5,-864 416.5,-840 573.5,-840 573.5,-864"/>
+<text text-anchor="middle" x="495" y="-849.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_read_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~permute_forward_read_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge33" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~permute_forward_read_f32</title>
+<path fill="none" stroke="#0066ff" d="M230.73,-696.07C245.15,-724.98 285.98,-798.19 344,-831 362.77,-841.62 384.91,-847.59 406.33,-850.8"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="406.07,-854.29 416.44,-852.12 406.98,-847.35 406.07,-854.29"/>
+</g>
+<!-- proc~permute_forward_read_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node32" class="node">
+<title>proc~permute_forward_read_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node32"><a xlink:href="../proc/permute_forward_read_f32_block_16.html" xlink:title="permute_forward_read_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="599.5,-822 390.5,-822 390.5,-798 599.5,-798 599.5,-822"/>
+<text text-anchor="middle" x="495" y="-807.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_read_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~permute_forward_read_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge34" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~permute_forward_read_f32_block_16</title>
+<path fill="none" stroke="#0066ff" d="M234.58,-696.26C253.03,-718.89 295.94,-766.9 344,-789 355.4,-794.24 367.77,-798.26 380.35,-801.33"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="379.94,-804.83 390.46,-803.59 381.47,-798 379.94,-804.83"/>
+</g>
+<!-- proc~permute_forward_read_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node33" class="node">
+<title>proc~permute_forward_read_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node33"><a xlink:href="../proc/permute_forward_read_f32_block_32.html" xlink:title="permute_forward_read_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="599.5,-780 390.5,-780 390.5,-756 599.5,-756 599.5,-780"/>
+<text text-anchor="middle" x="495" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_read_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~permute_forward_read_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge35" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~permute_forward_read_f32_block_32</title>
+<path fill="none" stroke="#0066ff" d="M243.07,-696.15C265.65,-710.72 305.97,-734.69 344,-747 355.65,-750.77 368.02,-753.86 380.47,-756.4"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="379.97,-759.87 390.45,-758.32 381.29,-752.99 379.97,-759.87"/>
+</g>
+<!-- proc~permute_forward_read_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node34" class="node">
+<title>proc~permute_forward_read_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node34"><a xlink:href="../proc/permute_forward_read_f32_block_64.html" xlink:title="permute_forward_read_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="599.5,-738 390.5,-738 390.5,-714 599.5,-714 599.5,-738"/>
+<text text-anchor="middle" x="495" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_read_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~permute_forward_read_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge36" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~permute_forward_read_f32_block_64</title>
+<path fill="none" stroke="#0066ff" d="M288.23,-695.59C306.23,-698.77 325.87,-702.13 344,-705 360.13,-707.55 377.26,-710.1 393.96,-712.5"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="393.9,-716.03 404.29,-713.97 394.89,-709.1 393.9,-716.03"/>
+</g>
+<!-- proc~permute_forward_write_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node35" class="node">
+<title>proc~permute_forward_write_f32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node35"><a xlink:href="../proc/permute_forward_write_f32.html" xlink:title="permute_forward_write_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="574.5,-696 415.5,-696 415.5,-672 574.5,-672 574.5,-696"/>
+<text text-anchor="middle" x="495" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_write_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~permute_forward_write_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge37" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~permute_forward_write_f32</title>
+<path fill="none" stroke="#0066ff" d="M288.07,-684C322.99,-684 366.97,-684 405.31,-684"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="405.44,-687.5 415.44,-684 405.44,-680.5 405.44,-687.5"/>
+</g>
+<!-- proc~permute_forward_write_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node36" class="node">
+<title>proc~permute_forward_write_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node36"><a xlink:href="../proc/permute_forward_write_f32_block_16.html" xlink:title="permute_forward_write_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="600.5,-654 389.5,-654 389.5,-630 600.5,-630 600.5,-654"/>
+<text text-anchor="middle" x="495" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_write_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~permute_forward_write_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge38" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~permute_forward_write_f32_block_16</title>
+<path fill="none" stroke="#0066ff" d="M288.23,-672.41C306.23,-669.23 325.87,-665.87 344,-663 360.13,-660.45 377.26,-657.9 393.96,-655.5"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="394.89,-658.9 404.29,-654.03 393.9,-651.97 394.89,-658.9"/>
+</g>
+<!-- proc~permute_forward_write_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node37" class="node">
+<title>proc~permute_forward_write_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node37"><a xlink:href="../proc/permute_forward_write_f32_block_32.html" xlink:title="permute_forward_write_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="600.5,-570 389.5,-570 389.5,-546 600.5,-546 600.5,-570"/>
+<text text-anchor="middle" x="495" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_write_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~permute_forward_write_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge39" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~permute_forward_write_f32_block_32</title>
+<path fill="none" stroke="#0066ff" d="M234.58,-671.74C253.03,-649.11 295.94,-601.1 344,-579 355.12,-573.89 367.16,-569.94 379.41,-566.9"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="380.3,-570.29 389.27,-564.65 378.74,-563.46 380.3,-570.29"/>
+</g>
+<!-- proc~permute_forward_write_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node38" class="node">
+<title>proc~permute_forward_write_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node38"><a xlink:href="../proc/permute_forward_write_f32_block_64.html" xlink:title="permute_forward_write_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="600.5,-528 389.5,-528 389.5,-504 600.5,-504 600.5,-528"/>
+<text text-anchor="middle" x="495" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_write_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_permute_forward&#45;&gt;proc~permute_forward_write_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge40" class="edge">
+<title>proc~run_permute_forward&#45;&gt;proc~permute_forward_write_f32_block_64</title>
+<path fill="none" stroke="#0066ff" d="M230.73,-671.93C245.15,-643.02 285.98,-569.81 344,-537 354.93,-530.82 366.99,-526.22 379.4,-522.81"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="380.54,-526.14 389.4,-520.33 378.85,-519.34 380.54,-526.14"/>
+</g>
+<!-- proc~run_unpack&#45;&gt;proc~compare -->
+<g id="program~~test_host_kernels~~CallsGraph_edge41" class="edge">
+<title>proc~run_unpack&#45;&gt;proc~compare</title>
+<path fill="none" stroke="#cc00ff" d="M232.41,-465.26C248.83,-491.24 291.06,-551.67 344,-579 378.53,-596.83 423.19,-601.07 454.77,-601.47"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="454.94,-604.97 464.94,-601.47 454.94,-597.97 454.94,-604.97"/>
+</g>
+<!-- proc~unpack_pipelined_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node39" class="node">
+<title>proc~unpack_pipelined_f32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node39"><a xlink:href="../proc/unpack_pipelined_f32.html" xlink:title="unpack_pipelined_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="559.5,-486 430.5,-486 430.5,-462 559.5,-462 559.5,-486"/>
+<text text-anchor="middle" x="495" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_pipelined_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_unpack&#45;&gt;proc~unpack_pipelined_f32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge42" class="edge">
+<title>proc~run_unpack&#45;&gt;proc~unpack_pipelined_f32</title>
+<path fill="none" stroke="#cc00ff" d="M261.56,-455.85C302.16,-459.02 368.78,-464.22 420.31,-468.25"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="420.16,-471.75 430.4,-469.03 420.7,-464.77 420.16,-471.75"/>
+</g>
+<!-- proc~unpack_pipelined_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_node40" class="node">
+<title>proc~unpack_pipelined_f32_block_16</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node40"><a xlink:href="../proc/unpack_pipelined_f32_block_16.html" xlink:title="unpack_pipelined_f32_block_16">
+<polygon fill="#d9534f" stroke="#d9534f" points="585.5,-444 404.5,-444 404.5,-420 585.5,-420 585.5,-444"/>
+<text text-anchor="middle" x="495" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_pipelined_f32_block_16</text>
+</a>
+</g>
+</g>
+<!-- proc~run_unpack&#45;&gt;proc~unpack_pipelined_f32_block_16 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge43" class="edge">
+<title>proc~run_unpack&#45;&gt;proc~unpack_pipelined_f32_block_16</title>
+<path fill="none" stroke="#cc00ff" d="M261.56,-450.15C295.62,-447.49 347.98,-443.4 394.39,-439.78"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="394.8,-443.25 404.5,-438.99 394.26,-436.28 394.8,-443.25"/>
+</g>
+<!-- proc~unpack_pipelined_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_node41" class="node">
+<title>proc~unpack_pipelined_f32_block_32</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node41"><a xlink:href="../proc/unpack_pipelined_f32_block_32.html" xlink:title="unpack_pipelined_f32_block_32">
+<polygon fill="#d9534f" stroke="#d9534f" points="585.5,-402 404.5,-402 404.5,-378 585.5,-378 585.5,-402"/>
+<text text-anchor="middle" x="495" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_pipelined_f32_block_32</text>
+</a>
+</g>
+</g>
+<!-- proc~run_unpack&#45;&gt;proc~unpack_pipelined_f32_block_32 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge44" class="edge">
+<title>proc~run_unpack&#45;&gt;proc~unpack_pipelined_f32_block_32</title>
+<path fill="none" stroke="#cc00ff" d="M253.85,-440.98C277.65,-431.52 312.5,-418.68 344,-411 360.12,-407.07 377.41,-403.8 394.32,-401.1"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="394.86,-404.56 404.21,-399.58 393.8,-397.64 394.86,-404.56"/>
+</g>
+<!-- proc~unpack_pipelined_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_node42" class="node">
+<title>proc~unpack_pipelined_f32_block_64</title>
+<g id="a_program~~test_host_kernels~~CallsGraph_node42"><a xlink:href="../proc/unpack_pipelined_f32_block_64.html" xlink:title="unpack_pipelined_f32_block_64">
+<polygon fill="#d9534f" stroke="#d9534f" points="585.5,-360 404.5,-360 404.5,-336 585.5,-336 585.5,-360"/>
+<text text-anchor="middle" x="495" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_pipelined_f32_block_64</text>
+</a>
+</g>
+</g>
+<!-- proc~run_unpack&#45;&gt;proc~unpack_pipelined_f32_block_64 -->
+<g id="program~~test_host_kernels~~CallsGraph_edge45" class="edge">
+<title>proc~run_unpack&#45;&gt;proc~unpack_pipelined_f32_block_64</title>
+<path fill="none" stroke="#cc00ff" d="M237.68,-440.87C258.19,-422.03 300.74,-386.12 344,-369 359.74,-362.77 377.04,-358.35 394.14,-355.21"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="394.89,-358.64 404.16,-353.51 393.72,-351.73 394.89,-358.64"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprogramtest_host_kernelsCallsGraph = svgPanZoom('#programtest_host_kernelsCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<br>
+
+    <section>
+    <h2>Variables</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~2"></span>
+              real(kind=real32),
+            </td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~2"></span>
+              real(kind=real32),
+            </td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-gold"></span>
+              real(kind=real32),
+            </td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>gold</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims3"></span>
+              integer(kind=int32)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims3</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims2"></span>
+              integer(kind=int32)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims2</strong>(2)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-i"></span>
+              integer(kind=int32)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </section>
+    <br>
+    
+    
+    
+
+    
+
+
+    <section>
+    <h2>Subroutines</h2>
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-run_permute_forward"></span> <h3> subroutine <a href='../proc/run_permute_forward.html'>run_permute_forward</a>(dims)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-run_permute_backward"></span> <h3> subroutine <a href='../proc/run_permute_backward.html'>run_permute_backward</a>(dims)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~2"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-run_permute_backward_start"></span> <h3> subroutine <a href='../proc/run_permute_backward_start.html'>run_permute_backward_start</a>(dims)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-run_permute_backward_end"></span> <h3> subroutine <a href='../proc/run_permute_backward_end.html'>run_permute_backward_end</a>(dims)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~4"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-run_unpack"></span> <h3> subroutine <a href='../proc/run_unpack.html'>run_unpack</a>(dims)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-compare"></span> <h3> subroutine <a href='../proc/compare.html'>compare</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+    </section>    
+    
+
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

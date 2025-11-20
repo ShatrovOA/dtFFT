@@ -150,6 +150,7 @@ public :: DTFFT_BACKEND_MPI_P2P_PIPELINED
 public :: DTFFT_BACKEND_MPI_A2A
 public :: DTFFT_BACKEND_MPI_RMA
 public :: DTFFT_BACKEND_MPI_RMA_PIPELINED
+public :: DTFFT_BACKEND_MPI_P2P_SCHEDULED
 
 public :: dtfft_backend_t
 public :: dtfft_get_backend_string

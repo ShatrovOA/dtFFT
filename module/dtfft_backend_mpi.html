@@ -52,6 +52,9 @@
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                </li>
             </ul>
               <div class="d-flex align-items-end flex-grow-1">
                 <form action="../search.html" role="search" class="ms-auto">
@@ -76,7 +79,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.9% of total for modules and submodules.">241 statements</a>
+                 title=" 1.9% of total for modules and submodules.">322 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -137,7 +140,7 @@
       </a>
       <div id="funcs-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-get_async_active~4">get_async_active</a>
+            <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-get_async_active~3">get_async_active</a>
         </div>
       </div>
     </div>
@@ -155,8 +158,10 @@
             <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-destroy_mpi">destroy_mpi</a>
             <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-execute_mpi">execute_mpi</a>
             <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-execute_end_mpi">execute_end_mpi</a>
-            <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-run_mpi_p2p">run_mpi_p2p</a>
-            <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-run_mpi_a2a">run_mpi_a2a</a>
+            <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-execute_p2p">execute_p2p</a>
+            <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-execute_p2p_scheduled">execute_p2p_scheduled</a>
+            <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-execute_a2a">execute_a2a</a>
+            <a class="list-group-item" href="../module/dtfft_backend_mpi.html#proc-compute_alltoall_schedule">compute_alltoall_schedule</a>
         </div>
       </div>
     </div>
@@ -182,14 +187,14 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='dtfft_interface_nvtx.html'>dtfft_interface_nvtx</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
                   <li class="list-inline-item"><a href='dtfft_abstract_backend.html'>dtfft_abstract_backend</a></li>
-                  <li class="list-inline-item"><a href='dtfft_errors.html'>dtfft_errors</a></li>
                   <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='dtfft_interface_nvtx.html'>dtfft_interface_nvtx</a></li>
                   <li class="list-inline-item"><a href='dtfft_interface_cuda_runtime.html'>dtfft_interface_cuda_runtime</a></li>
-                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='dtfft_errors.html'>dtfft_errors</a></li>
                   <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
               </ul>
             </li>
@@ -969,7 +974,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-backend~17"></span>
+              <span class="anchor" id="variable-backend~15"></span>
               type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
             </td>
               <td>public</td>
@@ -986,7 +991,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~16"></span>
+              <span class="anchor" id="variable-platform~15"></span>
               type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
               <td>public</td>
@@ -1037,7 +1042,24 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-aux_size~3"></span>
+              <span class="anchor" id="variable-is_even"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_even</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>If all processes send/recv same amount of memory</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aux_size~4"></span>
               integer(kind=int64),
             </td>
               <td>public</td>
@@ -1071,7 +1093,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~43"></span>
+              <span class="anchor" id="variable-comm~22"></span>
               type(MPI_Comm),
             </td>
               <td>public</td>
@@ -1105,7 +1127,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm_size~15"></span>
+              <span class="anchor" id="variable-comm_size~8"></span>
               integer(kind=int32),
             </td>
               <td>public</td>
@@ -1122,7 +1144,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm_rank~5"></span>
+              <span class="anchor" id="variable-comm_rank~3"></span>
               integer(kind=int32),
             </td>
               <td>public</td>
@@ -1326,7 +1348,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_active~2"></span>
+              <span class="anchor" id="variable-is_active"></span>
               logical,
             </td>
               <td>private</td>
@@ -1343,7 +1365,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-send~11"></span>
+              <span class="anchor" id="variable-send~4"></span>
               type(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
             </td>
               <td>private</td>
@@ -1360,7 +1382,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-recv~11"></span>
+              <span class="anchor" id="variable-recv~4"></span>
               type(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
             </td>
               <td>private</td>
@@ -1411,7 +1433,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_request_created~2"></span>
+              <span class="anchor" id="variable-is_request_created"></span>
               logical,
             </td>
               <td>private</td>
@@ -1426,6 +1448,23 @@ large graphs.</div>
 <p>Request created flag. Used for persistent functions</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-schedule"></span>
+              integer(kind=int32),
+            </td>
+              <td>private,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>schedule</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Communication schedule for all-to-all</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -1437,17 +1476,17 @@ large graphs.</div>
           <tbody>
               <tr>
                 <td>  procedure, public, non_overridable, pass(self) ::
-  <strong><a href='../type/abstract_backend.html#boundprocedure-create~18'>create</a></strong></td>
+  <strong><a href='../type/abstract_backend.html#boundprocedure-create~9'>create</a></strong></td>
                 <td>../../<p>Creates Abstract Backend</p></td>
               </tr>
               <tr>
                 <td>  procedure, public, non_overridable, pass(self) ::
-  <strong><a href='../type/abstract_backend.html#boundprocedure-execute~9'>execute</a></strong></td>
+  <strong><a href='../type/abstract_backend.html#boundprocedure-execute~6'>execute</a></strong></td>
                 <td>../../<p>Executes Backend</p></td>
               </tr>
               <tr>
                 <td>  procedure, public, non_overridable, pass(self) ::
-  <strong><a href='../type/abstract_backend.html#boundprocedure-destroy~18'>destroy</a></strong></td>
+  <strong><a href='../type/abstract_backend.html#boundprocedure-destroy~11'>destroy</a></strong></td>
                 <td>../../<p>Destroys Abstract Backend</p></td>
               </tr>
               <tr>
@@ -1461,8 +1500,13 @@ large graphs.</div>
                 <td>../../<p>Sets unpack kernel for pipelined backend</p></td>
               </tr>
               <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/abstract_backend.html#boundprocedure-execute_self_copy'>execute_self_copy</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
                 <td>  procedure, public ::
-  <strong><a href='../type/backend_mpi.html#boundprocedure-create_private~13'>create_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create_mpi.html'>create_mpi</a></td>
+  <strong><a href='../type/backend_mpi.html#boundprocedure-create_private~11'>create_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create_mpi.html'>create_mpi</a></td>
                 <td>../../<p>Creates MPI backend</p></td>
               </tr>
               <tr>
@@ -1472,18 +1516,38 @@ large graphs.</div>
               </tr>
               <tr>
                 <td>  procedure, public ::
-  <strong><a href='../type/backend_mpi.html#boundprocedure-destroy_private~8'>destroy_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/destroy_mpi.html'>destroy_mpi</a></td>
+  <strong><a href='../type/backend_mpi.html#boundprocedure-destroy_private~9'>destroy_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/destroy_mpi.html'>destroy_mpi</a></td>
                 <td>../../<p>Destroys MPI backend</p></td>
               </tr>
               <tr>
                 <td>  procedure, public ::
-  <strong><a href='../type/backend_mpi.html#boundprocedure-execute_end~5'>execute_end</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/execute_end_mpi.html'>execute_end_mpi</a></td>
+  <strong><a href='../type/backend_mpi.html#boundprocedure-execute_end~4'>execute_end</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/execute_end_mpi.html'>execute_end_mpi</a></td>
                 <td>../../<p>Finalizes async transpose</p></td>
               </tr>
               <tr>
                 <td>  procedure, public ::
-  <strong><a href='../type/backend_mpi.html#boundprocedure-get_async_active~8'>get_async_active</a></strong></td>
+  <strong><a href='../type/backend_mpi.html#boundprocedure-get_async_active~6'>get_async_active</a></strong></td>
                 <td>../../<p>Overrides abstract method and returns if async transpose is active</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/backend_mpi.html#boundprocedure-execute_p2p'>execute_p2p</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/backend_mpi.html#boundprocedure-execute_a2a'>execute_a2a</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/backend_mpi.html#boundprocedure-execute_p2p_scheduled'>execute_p2p_scheduled</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/backend_mpi.html#boundprocedure-compute_alltoall_schedule'>compute_alltoall_schedule</a></strong></td>
+                <td></td>
               </tr>
           </tbody>
         </table>
@@ -1515,7 +1579,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-counts~3"></span>
+              <span class="anchor" id="variable-counts~2"></span>
               integer(kind=CNT_KIND),
             </td>
               <td>public,</td>
@@ -1532,7 +1596,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-displs~3"></span>
+              <span class="anchor" id="variable-displs~2"></span>
               integer(kind=ADDR_KIND),
             </td>
               <td>public,</td>
@@ -1549,7 +1613,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-requests~2"></span>
+              <span class="anchor" id="variable-requests"></span>
               type(MPI_Request),
             </td>
               <td>public,</td>
@@ -1583,7 +1647,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-n_requests~2"></span>
+              <span class="anchor" id="variable-n_requests"></span>
               integer(kind=int32),
             </td>
               <td>public</td>
@@ -1609,12 +1673,12 @@ large graphs.</div>
           <tbody>
               <tr>
                 <td>  procedure, public, pass(self) ::
-  <strong><a href='../type/mpi_backend_helper.html#boundprocedure-create~12'>create</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create_helper.html'>create_helper</a></td>
+  <strong><a href='../type/mpi_backend_helper.html#boundprocedure-create~7'>create</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create_helper.html'>create_helper</a></td>
                 <td>../../<p>Creates MPI helper</p></td>
               </tr>
               <tr>
                 <td>  procedure, public, pass(self) ::
-  <strong><a href='../type/mpi_backend_helper.html#boundprocedure-destroy~10'>destroy</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/destroy_helper.html'>destroy_helper</a></td>
+  <strong><a href='../type/mpi_backend_helper.html#boundprocedure-destroy~9'>destroy</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/destroy_helper.html'>destroy_helper</a></td>
                 <td>../../<p>Destroys MPI helper</p></td>
               </tr>
           </tbody>
@@ -1628,7 +1692,7 @@ large graphs.</div>
         <section>
           <h2>Functions</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_async_active~4"></span> <h3>private elemental function <a href='../proc/get_async_active~4.html'>get_async_active</a>(self)  
+    <div class="card-header codesum"><span class="anchor" id="proc-get_async_active~3"></span> <h3>private elemental function <a href='../proc/get_async_active~3.html'>get_async_active</a>(self)  
 </h3></div>
     <div class="card-body">
           
@@ -1647,7 +1711,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~138"></span>
+              <span class="anchor" id="variable-self~81"></span>
               class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
             </td>
 <td>intent(in)</td>
@@ -1697,7 +1761,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~134"></span>
+              <span class="anchor" id="variable-self~77"></span>
               class(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
             </td>
 <td>intent(inout)</td>
@@ -1712,7 +1776,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-counts~4"></span>
+              <span class="anchor" id="variable-counts~3"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -1727,7 +1791,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-displs~4"></span>
+              <span class="anchor" id="variable-displs~3"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -1782,7 +1846,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~135"></span>
+              <span class="anchor" id="variable-self~78"></span>
               class(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
             </td>
 <td>intent(inout)</td>
@@ -1797,7 +1861,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_request_created~3"></span>
+              <span class="anchor" id="variable-is_request_created~2"></span>
               logical,
             </td>
 <td>intent(in)</td>
@@ -1837,7 +1901,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~136"></span>
+              <span class="anchor" id="variable-self~79"></span>
               class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
             </td>
 <td>intent(inout)</td>
@@ -1852,7 +1916,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-helper~10"></span>
+              <span class="anchor" id="variable-helper~12"></span>
               type(<a href='../type/backend_helper.html'>backend_helper</a>),
             </td>
 <td>intent(in)</td>
@@ -1867,7 +1931,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_storage~30"></span>
+              <span class="anchor" id="variable-base_storage~31"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -1907,7 +1971,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~137"></span>
+              <span class="anchor" id="variable-self~80"></span>
               class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
             </td>
 <td>intent(inout)</td>
@@ -1928,7 +1992,7 @@ large graphs.</div>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-execute_mpi"></span> <h3>private  subroutine <a href='../proc/execute_mpi.html'>execute_mpi</a>(self, in, out, stream, aux, exec_type, error_code)  
+    <div class="card-header codesum"><span class="anchor" id="proc-execute_mpi"></span> <h3>private  subroutine <a href='../proc/execute_mpi.html'>execute_mpi</a>(self, in, out, stream, aux, error_code)  
 </h3></div>
     <div class="card-body">
           
@@ -1947,7 +2011,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~139"></span>
+              <span class="anchor" id="variable-self~82"></span>
               class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
             </td>
 <td>intent(inout)</td>
@@ -1962,7 +2026,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~66"></span>
+              <span class="anchor" id="variable-in~202"></span>
               real(kind=real32),
             </td>
 <td>intent(inout),</td>
@@ -1977,7 +2041,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~66"></span>
+              <span class="anchor" id="variable-out~202"></span>
               real(kind=real32),
             </td>
 <td>intent(inout),</td>
@@ -1992,7 +2056,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~30"></span>
+              <span class="anchor" id="variable-stream~29"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
@@ -2007,7 +2071,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-aux~12"></span>
+              <span class="anchor" id="variable-aux~7"></span>
               real(kind=real32),
             </td>
 <td>intent(inout),</td>
@@ -2022,22 +2086,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-exec_type~4"></span>
-              type(<a href='../type/async_exec_t.html'>async_exec_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>exec_type</strong></td>
-            <td>
-<p>Type of async execution</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-error_code~82"></span>
+              <span class="anchor" id="variable-error_code~55"></span>
               integer(kind=int32),
             </td>
 <td>intent(out)</td>
@@ -2077,7 +2126,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~140"></span>
+              <span class="anchor" id="variable-self~83"></span>
               class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
             </td>
 <td>intent(inout)</td>
@@ -2092,7 +2141,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~83"></span>
+              <span class="anchor" id="variable-error_code~56"></span>
               integer(kind=int32),
             </td>
 <td>intent(out)</td>
@@ -2113,11 +2162,11 @@ large graphs.</div>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-run_mpi_p2p"></span> <h3>private  subroutine <a href='../proc/run_mpi_p2p.html'>run_mpi_p2p</a>(comm, send, recv, in, out, is_request_created)  
+    <div class="card-header codesum"><span class="anchor" id="proc-execute_p2p"></span> <h3>private  subroutine <a href='../proc/execute_p2p.html'>execute_p2p</a>(self, in, out)  
 </h3></div>
     <div class="card-body">
           
-  <p>Executes MPI point-to-point communication</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2132,52 +2181,22 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~32"></span>
-              type(MPI_Comm),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>comm</strong></td>
-            <td>
-<p>MPI communicator</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-send~12"></span>
-              type(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
+              <span class="anchor" id="variable-self~84"></span>
+              class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>send</strong></td>
+            <td><strong>self</strong></td>
             <td>
-<p>MPI Helper for send data</p>
+<p>MPI Backend</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-recv~12"></span>
-              type(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>recv</strong></td>
-            <td>
-<p>MPI Helper for recv data</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-in~67"></span>
+              <span class="anchor" id="variable-in~203"></span>
               real(kind=real32),
             </td>
 <td>intent(in)</td>
@@ -2192,7 +2211,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~67"></span>
+              <span class="anchor" id="variable-out~203"></span>
               real(kind=real32),
             </td>
 <td>intent(inout)</td>
@@ -2203,21 +2222,6 @@ large graphs.</div>
             <td><strong>out</strong>(:)</td>
             <td>
 <p>Data to be received</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-is_request_created~4"></span>
-              logical,
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>is_request_created</strong></td>
-            <td>
-
             </td>
         </tr>
     </tbody>
@@ -2228,11 +2232,11 @@ large graphs.</div>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-run_mpi_a2a"></span> <h3>private  subroutine <a href='../proc/run_mpi_a2a.html'>run_mpi_a2a</a>(comm, send, recv, in, out, is_request_created)  
+    <div class="card-header codesum"><span class="anchor" id="proc-execute_p2p_scheduled"></span> <h3>private  subroutine <a href='../proc/execute_p2p_scheduled.html'>execute_p2p_scheduled</a>(self, in, out)  
 </h3></div>
     <div class="card-body">
           
-  <p>Executes MPI all-to-all communication</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2247,52 +2251,22 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~33"></span>
-              type(MPI_Comm),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>comm</strong></td>
-            <td>
-<p>MPI communicator</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-send~13"></span>
-              type(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
+              <span class="anchor" id="variable-self~85"></span>
+              class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>send</strong></td>
+            <td><strong>self</strong></td>
             <td>
-<p>MPI Helper for send data</p>
+<p>MPI Backend</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-recv~13"></span>
-              type(<a href='../type/mpi_backend_helper.html'>mpi_backend_helper</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>recv</strong></td>
-            <td>
-<p>MPI Helper for recv data</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-in~68"></span>
+              <span class="anchor" id="variable-in~204"></span>
               real(kind=real32),
             </td>
 <td>intent(in)</td>
@@ -2307,7 +2281,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~68"></span>
+              <span class="anchor" id="variable-out~204"></span>
               real(kind=real32),
             </td>
 <td>intent(inout)</td>
@@ -2320,19 +2294,114 @@ large graphs.</div>
 <p>Data to be received</p>
             </td>
         </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-execute_a2a"></span> <h3>private  subroutine <a href='../proc/execute_a2a.html'>execute_a2a</a>(self, in, out)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_request_created~5"></span>
-              logical,
+              <span class="anchor" id="variable-self~86"></span>
+              class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>is_request_created</strong></td>
+            <td><strong>self</strong></td>
             <td>
+<p>MPI Backend</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~205"></span>
+              real(kind=real32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+<p>Data to be sent</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~205"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+<p>Data to be received</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
 
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_alltoall_schedule"></span> <h3>private  subroutine <a href='../proc/compute_alltoall_schedule.html'>compute_alltoall_schedule</a>(self)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Generate optimal round-robin communication schedule for all-to-all pattern</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~87"></span>
+              class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>MPI Backend</p>
             </td>
         </tr>
     </tbody>

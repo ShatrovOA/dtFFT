@@ -223,7 +223,7 @@ public :: operator(==)
     module procedure r2r_kind_eq        !! Check if two `dtfft_r2r_kind_t` are equal
     module procedure platform_eq        !! Check if two `dtfft_platform_t` are equal
     module procedure exec_eq
-    module procedure gpu_backend_eq     !! Check if two `dtfft_backend_t` are equal
+    module procedure backend_eq     !! Check if two `dtfft_backend_t` are equal
   end interface
 
 public :: operator(/=)
@@ -235,7 +235,7 @@ public :: operator(/=)
     module procedure precision_ne       !! Check if two `dtfft_precision_t` are not equal
     module procedure r2r_kind_ne        !! Check if two `dtfft_r2r_kind_t` are not equal
     module procedure platform_ne        !! Check if two `dtfft_platform_t` are not equal
-    module procedure gpu_backend_ne     !! Check if two `dtfft_backend_t` are not equal
+    module procedure backend_ne     !! Check if two `dtfft_backend_t` are not equal
   end interface
 
 !------------------------------------------------------------------------------------------------
@@ -316,6 +316,8 @@ public :: operator(/=)
     !! NCCL backend
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_PIPELINED)
     !! MPI peer-to-peer algorithm with overlapping data copying and unpacking
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_SCHEDULED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_SCHEDULED)
+    !! MPI peer-to-peer algorithm with overlapping data copying and unpacking using MPI_Schedule
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_NCCL_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_NCCL_PIPELINED)
     !! NCCL backend with overlapping data copying and unpacking
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_CUFFTMP = dtfft_backend_t(CONF_DTFFT_BACKEND_CUFFTMP)
@@ -326,7 +328,7 @@ public :: operator(/=)
     !! Backend is not used
   type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED, DTFFT_BACKEND_CUFFTMP_PIPELINED, DTFFT_BACKEND_MPI_RMA_PIPELINED]
     !! List of pipelined backends
-  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED]
+  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED, DTFFT_BACKEND_MPI_P2P_SCHEDULED]
     !! List of MPI backends
   type(dtfft_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_BACKEND_NCCL, DTFFT_BACKEND_NCCL_PIPELINED]
     !! List of NCCL backends
@@ -338,6 +340,7 @@ public :: operator(/=)
                                                                     ,DTFFT_BACKEND_MPI_P2P              &
                                                                     ,DTFFT_BACKEND_MPI_A2A              &
                                                                     ,DTFFT_BACKEND_MPI_P2P_PIPELINED    &
+                                                                    ,DTFFT_BACKEND_MPI_P2P_SCHEDULED    &
 #ifdef DTFFT_WITH_RMA
                                                                     ,DTFFT_BACKEND_MPI_RMA              &
                                                                     ,DTFFT_BACKEND_MPI_RMA_PIPELINED    &
@@ -351,7 +354,7 @@ public :: operator(/=)
                                                                     ,DTFFT_BACKEND_CUFFTMP_PIPELINED    &
 #endif
                                                                     ]
-    !! List of valid GPU backends that `dtFFT` was compiled for
+    !! List of valid backends that `dtFFT` was compiled for
 
   type, bind(C) :: dtfft_stream_t
   !! `dtFFT` stream representation.
@@ -480,8 +483,8 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
   end function dtfft_get_executor_string
 
   function dtfft_get_backend_string(backend) result(string)
-  !! Gets the string description of a GPU backend
-    type(dtfft_backend_t),  intent(in)  :: backend    !! GPU backend
+  !! Gets the string description of a backend
+    type(dtfft_backend_t),  intent(in)  :: backend    !! Backend ID
     character(len=:),       allocatable :: string     !! Backend string
 
     select case ( backend%val )
@@ -495,6 +498,8 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(string, source="MPI_RMA" )
     case ( DTFFT_BACKEND_MPI_RMA_PIPELINED%val )
       allocate(string, source="MPI_RMA_PIPELINED" )
+    case ( DTFFT_BACKEND_MPI_P2P_SCHEDULED%val )
+      allocate(string, source="MPI_P2P_SCHEDULED")
     case ( DTFFT_BACKEND_NCCL%val )
       allocate(string, source="NCCL")
     case ( DTFFT_BACKEND_CUFFTMP%val )
@@ -512,8 +517,8 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     endselect
   end function dtfft_get_backend_string
 
-  MAKE_EQ_FUN(dtfft_backend_t, gpu_backend_eq)
-  MAKE_NE_FUN(dtfft_backend_t, gpu_backend_ne)
+  MAKE_EQ_FUN(dtfft_backend_t, backend_eq)
+  MAKE_NE_FUN(dtfft_backend_t, backend_ne)
 
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_mpi, MPI_BACKENDS)

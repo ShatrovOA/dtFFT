@@ -1,0 +1,839 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>execute_self_copy &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>execute_self_copy
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.3% of total for procedures.">55 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_abstract_backend.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_backend.f90.html'>dtfft_abstract_backend.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_backend.html'>dtfft_abstract_backend</a></li>
+            <li class="breadcrumb-item active" aria-current="page">execute_self_copy</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private  subroutine execute_self_copy(self, in, out, stream)  
+</h2>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_self_copy~~UsesGraph Pages: 1 -->
+<svg id="procexecute_self_copyUsesGraph" width="352pt" height="74pt"
+ viewBox="0.00 0.00 352.00 74.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_self_copy~~UsesGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 70)">
+<title>proc~~execute_self_copy~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-70 348,-70 348,4 -4,4"/>
+<!-- proc~execute_self_copy -->
+<g id="proc~~execute_self_copy~~UsesGraph_node1" class="node">
+<title>proc~execute_self_copy</title>
+<polygon fill="none" stroke="black" points="344,-45 130,-45 130,-21 344,-21 344,-45"/>
+<text text-anchor="middle" x="237" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_backend%execute_self_copy</text>
+</g>
+<!-- iso_c_binding -->
+<g id="proc~~execute_self_copy~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_proc~~execute_self_copy~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-66 5,-66 5,-42 89,-42 89,-66"/>
+<text text-anchor="middle" x="47" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;iso_c_binding -->
+<g id="proc~~execute_self_copy~~UsesGraph_edge1" class="edge">
+<title>proc~execute_self_copy&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M129.91,-44.85C119.27,-46.04 108.84,-47.2 99.17,-48.28"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="98.56,-44.83 89.01,-49.42 99.34,-51.79 98.56,-44.83"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="proc~~execute_self_copy~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_proc~~execute_self_copy~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-24 0,-24 0,0 94,0 94,-24"/>
+<text text-anchor="middle" x="47" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;iso_fortran_env -->
+<g id="proc~~execute_self_copy~~UsesGraph_edge2" class="edge">
+<title>proc~execute_self_copy&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M129.91,-21.15C121.13,-20.17 112.49,-19.2 104.3,-18.29"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="104.53,-14.79 94.2,-17.16 103.75,-21.75 104.53,-14.79"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+
+
+    <h3>Type Bound</h3>
+    <p><a href='../type/abstract_backend.html'>abstract_backend</a></p>
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~94"></span>
+              class(<a href='../type/abstract_backend.html'>abstract_backend</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+                <p>Abstract backend</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~208"></span>
+              real(kind=real32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(*)</td>
+            <td>
+                <p>Send pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~208"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(*)</td>
+            <td>
+                <p>Recv pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~35"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+                <p>CUDA stream</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_self_copy~~CallsGraph Pages: 1 -->
+<svg id="procexecute_self_copyCallsGraph" width="641pt" height="218pt"
+ viewBox="0.00 0.00 641.00 218.37" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_self_copy~~CallsGraph" class="graph" transform="scale(0.83 0.83) rotate(0) translate(4 259)">
+<title>proc~~execute_self_copy~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-259 768,-259 768,4 -4,4"/>
+<!-- proc~execute_self_copy -->
+<g id="proc~~execute_self_copy~~CallsGraph_node1" class="node">
+<title>proc~execute_self_copy</title>
+<polygon fill="none" stroke="black" points="214,-150 0,-150 0,-126 214,-126 214,-150"/>
+<text text-anchor="middle" x="107" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_backend%execute_self_copy</text>
+</g>
+<!-- fname -->
+<g id="proc~~execute_self_copy~~CallsGraph_node2" class="node">
+<title>fname</title>
+<polygon fill="#777777" stroke="#777777" points="342,-255 288,-255 288,-231 342,-231 342,-255"/>
+<text text-anchor="middle" x="315" y="-240.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fname</text>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;fname -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge1" class="edge">
+<title>proc~execute_self_copy&#45;&gt;fname</title>
+<path fill="none" stroke="#ff0000" d="M125.7,-150.19C151.92,-167.83 203.04,-200.71 250,-222 258.92,-226.04 268.85,-229.69 278.17,-232.76"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="277.39,-236.18 287.98,-235.86 279.5,-229.51 277.39,-236.18"/>
+</g>
+<!-- interface~cudaeventrecord -->
+<g id="proc~~execute_self_copy~~CallsGraph_node3" class="node">
+<title>interface~cudaeventrecord</title>
+<g id="a_proc~~execute_self_copy~~CallsGraph_node3"><a xlink:href="../interface/cudaeventrecord.html" xlink:title="cudaEventRecord">
+<polygon fill="#a7506f" stroke="#a7506f" points="368,-213 262,-213 262,-189 368,-189 368,-213"/>
+<text text-anchor="middle" x="315" y="-198.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEventRecord</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;interface~cudaeventrecord -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge2" class="edge">
+<title>proc~execute_self_copy&#45;&gt;interface~cudaeventrecord</title>
+<path fill="none" stroke="#ff0000" d="M147.72,-150.15C181.17,-160.38 229.16,-175.05 264.99,-186.01"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="264.17,-189.42 274.75,-189 266.21,-182.73 264.17,-189.42"/>
+</g>
+<!-- interface~cudamemcpyasync -->
+<g id="proc~~execute_self_copy~~CallsGraph_node4" class="node">
+<title>interface~cudamemcpyasync</title>
+<g id="a_proc~~execute_self_copy~~CallsGraph_node4"><a xlink:href="../interface/cudamemcpyasync.html" xlink:title="cudaMemcpyAsync">
+<polygon fill="#a7506f" stroke="#a7506f" points="372.5,-171 257.5,-171 257.5,-147 372.5,-147 372.5,-171"/>
+<text text-anchor="middle" x="315" y="-156.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMemcpyAsync</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;interface~cudamemcpyasync -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge3" class="edge">
+<title>proc~execute_self_copy&#45;&gt;interface~cudamemcpyasync</title>
+<path fill="none" stroke="#ff0000" d="M214.02,-148.81C225.37,-149.97 236.68,-151.12 247.38,-152.21"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="247.14,-155.7 257.45,-153.23 247.85,-148.74 247.14,-155.7"/>
+</g>
+<!-- interface~cudastreamwaitevent -->
+<g id="proc~~execute_self_copy~~CallsGraph_node5" class="node">
+<title>interface~cudastreamwaitevent</title>
+<g id="a_proc~~execute_self_copy~~CallsGraph_node5"><a xlink:href="../interface/cudastreamwaitevent.html" xlink:title="cudaStreamWaitEvent">
+<polygon fill="#a7506f" stroke="#a7506f" points="380,-129 250,-129 250,-105 380,-105 380,-129"/>
+<text text-anchor="middle" x="315" y="-114.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamWaitEvent</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;interface~cudastreamwaitevent -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge4" class="edge">
+<title>proc~execute_self_copy&#45;&gt;interface~cudastreamwaitevent</title>
+<path fill="none" stroke="#ff0000" d="M214.02,-127.19C222.71,-126.31 231.37,-125.42 239.76,-124.57"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="240.24,-128.04 249.83,-123.54 239.53,-121.07 240.24,-128.04"/>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~execute_self_copy~~CallsGraph_node6" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="348.5,-87 281.5,-87 281.5,-63 348.5,-63 348.5,-87"/>
+<text text-anchor="middle" x="315" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;mpi_abort -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge5" class="edge">
+<title>proc~execute_self_copy&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ff0000" d="M147.72,-125.85C183.2,-115 235.04,-99.15 271.38,-88.04"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="272.65,-91.31 281.19,-85.03 270.6,-84.61 272.65,-91.31"/>
+</g>
+<!-- proc~cudageterrorstring -->
+<g id="proc~~execute_self_copy~~CallsGraph_node7" class="node">
+<title>proc~cudageterrorstring</title>
+<g id="a_proc~~execute_self_copy~~CallsGraph_node7"><a xlink:href="../proc/cudageterrorstring.html" xlink:title="cudaGetErrorString">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="372.5,-45 257.5,-45 257.5,-21 372.5,-21 372.5,-45"/>
+<text text-anchor="middle" x="315" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;proc~cudageterrorstring -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge6" class="edge">
+<title>proc~execute_self_copy&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#ff0000" d="M125.7,-125.81C151.92,-108.17 203.04,-75.29 250,-54 254.3,-52.05 258.84,-50.19 263.43,-48.45"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="264.66,-51.73 272.87,-45.03 262.27,-45.14 264.66,-51.73"/>
+</g>
+<!-- interface~cudageterrorstring_c -->
+<g id="proc~~execute_self_copy~~CallsGraph_node8" class="node">
+<title>interface~cudageterrorstring_c</title>
+<g id="a_proc~~execute_self_copy~~CallsGraph_node8"><a xlink:href="../interface/cudageterrorstring_c.html" xlink:title="cudaGetErrorString_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="543,-66 416,-66 416,-42 543,-42 543,-66"/>
+<text text-anchor="middle" x="479.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString_c</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge7" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c</title>
+<path fill="none" stroke="#ff00ff" d="M372.83,-40.34C383.49,-41.72 394.75,-43.18 405.81,-44.61"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="405.51,-48.1 415.88,-45.91 406.41,-41.15 405.51,-48.1"/>
+</g>
+<!-- proc~string_c2f -->
+<g id="proc~~execute_self_copy~~CallsGraph_node9" class="node">
+<title>proc~string_c2f</title>
+<g id="a_proc~~execute_self_copy~~CallsGraph_node9"><a xlink:href="../proc/string_c2f.html" xlink:title="string_c2f">
+<polygon fill="#d9534f" stroke="#d9534f" points="511.5,-24 447.5,-24 447.5,0 511.5,0 511.5,-24"/>
+<text text-anchor="middle" x="479.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_c2f</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;proc~string_c2f -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge8" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#ff00ff" d="M372.83,-25.66C394.09,-22.91 417.81,-19.84 437.38,-17.31"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="438.02,-20.76 447.49,-16.01 437.12,-13.82 438.02,-20.76"/>
+</g>
+<!-- interface~is_null_ptr -->
+<g id="proc~~execute_self_copy~~CallsGraph_node10" class="node">
+<title>interface~is_null_ptr</title>
+<g id="a_proc~~execute_self_copy~~CallsGraph_node10"><a xlink:href="../interface/is_null_ptr.html" xlink:title="is_null_ptr">
+<polygon fill="#a7506f" stroke="#a7506f" points="645,-24 579,-24 579,0 645,0 645,-24"/>
+<text text-anchor="middle" x="612" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~string_c2f&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge9" class="edge">
+<title>proc~string_c2f&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#00ffff" d="M511.76,-12C528.73,-12 549.96,-12 568.42,-12"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="568.63,-15.5 578.63,-12 568.63,-8.5 568.63,-15.5"/>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge10" class="edge">
+<title>interface~is_null_ptr&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M593.81,-24.01C587.46,-32.97 593.52,-42 612,-42 623.26,-42 629.91,-38.65 631.95,-34"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="635.37,-33.25 630.19,-24.01 628.48,-34.47 635.37,-33.25"/>
+</g>
+<!-- proc~is_null_funptr -->
+<g id="proc~~execute_self_copy~~CallsGraph_node11" class="node">
+<title>proc~is_null_funptr</title>
+<g id="a_proc~~execute_self_copy~~CallsGraph_node11"><a xlink:href="../proc/is_null_funptr.html" xlink:title="is_null_funptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="764,-24 681,-24 681,0 764,0 764,-24"/>
+<text text-anchor="middle" x="722.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_funptr</text>
+</a>
+</g>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;proc~is_null_funptr -->
+<g id="proc~~execute_self_copy~~CallsGraph_edge11" class="edge">
+<title>interface~is_null_ptr&#45;&gt;proc~is_null_funptr</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M645.26,-12C653.25,-12 662.01,-12 670.65,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="670.69,-15.5 680.69,-12 670.69,-8.5 670.69,-15.5"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute_self_copyCallsGraph = svgPanZoom('#procexecute_self_copyCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_self_copy~~CalledByGraph Pages: 1 -->
+<svg id="procexecute_self_copyCalledByGraph" width="641pt" height="89pt"
+ viewBox="0.00 0.00 641.00 89.13" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_self_copy~~CalledByGraph" class="graph" transform="scale(0.95 0.95) rotate(0) translate(4 90)">
+<title>proc~~execute_self_copy~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-90 672,-90 672,4 -4,4"/>
+<!-- proc~execute_self_copy -->
+<g id="proc~~execute_self_copy~~CalledByGraph_node1" class="node">
+<title>proc~execute_self_copy</title>
+<polygon fill="none" stroke="black" points="668,-66 454,-66 454,-42 668,-42 668,-66"/>
+<text text-anchor="middle" x="561" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_backend%execute_self_copy</text>
+</g>
+<!-- proc~execute_mpi -->
+<g id="proc~~execute_self_copy~~CalledByGraph_node2" class="node">
+<title>proc~execute_mpi</title>
+<g id="a_proc~~execute_self_copy~~CalledByGraph_node2"><a xlink:href="../proc/execute_mpi.html" xlink:title="backend_mpi%execute_mpi">
+<polygon fill="#d9534f" stroke="#d9534f" points="161,-86 0,-86 0,-62 161,-62 161,-86"/>
+<text text-anchor="middle" x="80.5" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_mpi%execute_mpi</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_mpi&#45;&gt;proc~execute_self_copy -->
+<g id="proc~~execute_self_copy~~CalledByGraph_edge1" class="edge">
+<title>proc~execute_mpi&#45;&gt;proc~execute_self_copy</title>
+<path fill="none" stroke="#ff0000" d="M161.03,-74.78C173.08,-74.87 185.37,-74.95 197,-75 295.22,-75.43 320.04,-82.2 418,-75 439.04,-73.45 461.69,-70.63 482.59,-67.55"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="483.33,-70.98 492.69,-66.02 482.28,-64.06 483.33,-70.98"/>
+</g>
+<!-- proc~execute_p2p_scheduled -->
+<g id="proc~~execute_self_copy~~CalledByGraph_node3" class="node">
+<title>proc~execute_p2p_scheduled</title>
+<g id="a_proc~~execute_self_copy~~CalledByGraph_node3"><a xlink:href="../proc/execute_p2p_scheduled.html" xlink:title="backend_mpi%execute_p2p_scheduled">
+<polygon fill="#d9534f" stroke="#d9534f" points="418,-66 197,-66 197,-42 418,-42 418,-66"/>
+<text text-anchor="middle" x="307.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_mpi%execute_p2p_scheduled</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_mpi&#45;&gt;proc~execute_p2p_scheduled -->
+<g id="proc~~execute_self_copy~~CalledByGraph_edge4" class="edge">
+<title>proc~execute_mpi&#45;&gt;proc~execute_p2p_scheduled</title>
+<path fill="none" stroke="#00ff00" d="M161.14,-66.92C169.41,-66.19 177.94,-65.43 186.53,-64.66"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="186.97,-68.14 196.62,-63.77 186.35,-61.17 186.97,-68.14"/>
+</g>
+<!-- proc~execute_p2p_scheduled&#45;&gt;proc~execute_self_copy -->
+<g id="proc~~execute_self_copy~~CalledByGraph_edge2" class="edge">
+<title>proc~execute_p2p_scheduled&#45;&gt;proc~execute_self_copy</title>
+<path fill="none" stroke="#ff0000" d="M418.08,-54C426.64,-54 435.31,-54 443.91,-54"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="443.97,-57.5 453.97,-54 443.97,-50.5 443.97,-57.5"/>
+</g>
+<!-- proc~execute~9 -->
+<g id="proc~~execute_self_copy~~CalledByGraph_node4" class="node">
+<title>proc~execute~9</title>
+<g id="a_proc~~execute_self_copy~~CalledByGraph_node4"><a xlink:href="../proc/execute~9.html" xlink:title="abstract_backend%execute">
+<polygon fill="#d9534f" stroke="#d9534f" points="387,-24 228,-24 228,0 387,0 387,-24"/>
+<text text-anchor="middle" x="307.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend%execute</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~9&#45;&gt;proc~execute_self_copy -->
+<g id="proc~~execute_self_copy~~CalledByGraph_edge3" class="edge">
+<title>proc~execute~9&#45;&gt;proc~execute_self_copy</title>
+<path fill="none" stroke="#ff0000" d="M380.57,-24.04C410.96,-29.11 446.49,-35.04 477.88,-40.29"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="477.48,-43.77 487.92,-41.96 478.63,-36.86 477.48,-43.77"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute_self_copyCalledByGraph = svgPanZoom('#procexecute_self_copyCalledByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

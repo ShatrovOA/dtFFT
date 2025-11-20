@@ -58,14 +58,13 @@ integer(int64),         intent(in)      :: base_storage       !! Number of bytes
     self%nccl_comm = helper%nccl_comm
 end subroutine create_nccl
 
-subroutine execute_nccl(self, in, out, stream, aux, exec_type, error_code)
+subroutine execute_nccl(self, in, out, stream, aux, error_code)
 !! Executes NCCL backend
     class(backend_nccl),    intent(inout)   :: self       !! NCCL backend
     real(real32),   target, intent(inout)   :: in(:)      !! Send pointer
     real(real32),   target, intent(inout)   :: out(:)     !! Recv pointer
     type(dtfft_stream_t),   intent(in)      :: stream     !! Main execution CUDA stream
     real(real32),   target, intent(inout)   :: aux(:)     !! Aux pointer
-    type(async_exec_t),     intent(in)      :: exec_type  !! Type of async execution
     integer(int32),         intent(out)     :: error_code !! Error code
     integer(int32) :: i        !! Counter
     integer(int32) :: rnk      !! Rank to send-recv

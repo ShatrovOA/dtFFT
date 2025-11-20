@@ -1,0 +1,586 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>execute_f128 &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>execute_f128
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.3% of total for procedures.">53 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_kernel_host.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_kernel_host.f90.html'>dtfft_kernel_host.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_kernel_host.html'>dtfft_kernel_host</a></li>
+            <li class="breadcrumb-item active" aria-current="page">execute_f128</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private  subroutine execute_f128(self, in, out, neighbor)  
+</h2>
+    
+
+    <p>Executes kernel based on its type and access mode, complex(real64) version</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~53"></span>
+              class(<a href='../type/kernel_host.html'>kernel_host</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+                <p>Host kernel class</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~25"></span>
+              real(kind=real32),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+                <p>Source host-allocated buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~25"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+                <p>Target host-allocated buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-neighbor~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>neighbor</strong></td>
+            <td>
+                <p>Source rank for pipelined unpacking</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_f128~~CallsGraph Pages: 1 -->
+<svg id="procexecute_f128CallsGraph" width="625pt" height="505pt"
+ viewBox="0.00 0.00 625.00 504.71" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_f128~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 500.71)">
+<title>proc~~execute_f128~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-500.71 621,-500.71 621,4 -4,4"/>
+<!-- proc~execute_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node1" class="node">
+<title>proc~execute_f128</title>
+<polygon fill="none" stroke="black" points="84,-263.61 0,-263.61 0,-239.61 84,-239.61 84,-263.61"/>
+<text text-anchor="middle" x="42" y="-249.21" font-family="Helvetica,sans-Serif" font-size="10.50">execute_f128</text>
+</g>
+<!-- proc~permute_backward_end_pipelined_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node2" class="node">
+<title>proc~permute_backward_end_pipelined_read_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node2"><a xlink:href="../proc/permute_backward_end_pipelined_read_f128.html" xlink:title="permute_backward_end_pipelined_read_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="616,-458.61 362,-458.61 362,-434.61 616,-434.61 616,-458.61"/>
+<text text-anchor="middle" x="489" y="-444.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_read_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_backward_end_pipelined_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge1" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_backward_end_pipelined_read_f128</title>
+<path fill="none" stroke="#ff0000" d="M43.15,-263.68C44.33,-300.47 53.5,-411.47 120,-457.61 219.94,-526.94 374.65,-487.12 447.47,-462.11"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="448.92,-465.31 457.19,-458.69 446.6,-458.71 448.92,-465.31"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node3" class="node">
+<title>proc~permute_backward_end_pipelined_write_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node3"><a xlink:href="../proc/permute_backward_end_pipelined_write_f128.html" xlink:title="permute_backward_end_pipelined_write_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="617,-397.61 361,-397.61 361,-373.61 617,-373.61 617,-397.61"/>
+<text text-anchor="middle" x="489" y="-383.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_write_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_backward_end_pipelined_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge2" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_backward_end_pipelined_write_f128</title>
+<path fill="none" stroke="#ff0000" d="M46.18,-263.78C53.78,-290.14 75.78,-352.17 120,-377.61 158.34,-399.66 262.8,-400.2 350.67,-396.05"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="350.94,-399.54 360.75,-395.55 350.59,-392.55 350.94,-399.54"/>
+</g>
+<!-- proc~permute_backward_end_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node4" class="node">
+<title>proc~permute_backward_end_read_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node4"><a xlink:href="../proc/permute_backward_end_read_f128.html" xlink:title="permute_backward_end_read_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="322,-448.61 123,-448.61 123,-424.61 322,-424.61 322,-448.61"/>
+<text text-anchor="middle" x="222.5" y="-434.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_read_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_backward_end_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge3" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_backward_end_read_f128</title>
+<path fill="none" stroke="#ff0000" d="M45.24,-263.72C51.42,-293.55 71.56,-371.01 120,-410.61 124.6,-414.37 129.68,-417.59 135.04,-420.36"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="133.75,-423.61 144.3,-424.59 136.66,-417.25 133.75,-423.61"/>
+</g>
+<!-- proc~permute_backward_end_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node5" class="node">
+<title>proc~permute_backward_end_write_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node5"><a xlink:href="../proc/permute_backward_end_write_f128.html" xlink:title="permute_backward_end_write_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="323.5,-368.61 121.5,-368.61 121.5,-344.61 323.5,-344.61 323.5,-368.61"/>
+<text text-anchor="middle" x="222.5" y="-354.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_write_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_backward_end_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge4" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_backward_end_write_f128</title>
+<path fill="none" stroke="#ff0000" d="M50.53,-263.84C62.7,-282.49 88.52,-317.73 120,-335.61 123.42,-337.55 127,-339.31 130.69,-340.92"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="129.44,-344.19 140.03,-344.57 131.99,-337.67 129.44,-344.19"/>
+</g>
+<!-- proc~permute_backward_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node6" class="node">
+<title>proc~permute_backward_read_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node6"><a xlink:href="../proc/permute_backward_read_f128.html" xlink:title="permute_backward_read_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="309.5,-326.61 135.5,-326.61 135.5,-302.61 309.5,-302.61 309.5,-326.61"/>
+<text text-anchor="middle" x="222.5" y="-312.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_read_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_backward_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge5" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_backward_read_f128</title>
+<path fill="none" stroke="#ff0000" d="M61.56,-263.77C76.72,-273.19 98.99,-285.89 120,-293.61 126.41,-295.96 133.16,-298.08 139.99,-299.98"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="139.48,-303.46 150.04,-302.6 141.25,-296.69 139.48,-303.46"/>
+</g>
+<!-- proc~permute_backward_start_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node7" class="node">
+<title>proc~permute_backward_start_read_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node7"><a xlink:href="../proc/permute_backward_start_read_f128.html" xlink:title="permute_backward_start_read_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="324,-284.61 121,-284.61 121,-260.61 324,-260.61 324,-284.61"/>
+<text text-anchor="middle" x="222.5" y="-270.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_read_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_backward_start_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge6" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_backward_start_read_f128</title>
+<path fill="none" stroke="#ff0000" d="M84.4,-256.48C92.57,-257.44 101.5,-258.49 110.75,-259.58"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="110.56,-263.08 120.9,-260.77 111.38,-256.13 110.56,-263.08"/>
+</g>
+<!-- proc~permute_backward_start_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node8" class="node">
+<title>proc~permute_backward_start_write_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node8"><a xlink:href="../proc/permute_backward_start_write_f128.html" xlink:title="permute_backward_start_write_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="325,-242.61 120,-242.61 120,-218.61 325,-218.61 325,-242.61"/>
+<text text-anchor="middle" x="222.5" y="-228.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_write_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_backward_start_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge7" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_backward_start_write_f128</title>
+<path fill="none" stroke="#ff0000" d="M84.4,-246.74C92.26,-245.81 100.82,-244.8 109.69,-243.76"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="110.31,-247.21 119.83,-242.57 109.49,-240.26 110.31,-247.21"/>
+</g>
+<!-- proc~permute_backward_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node9" class="node">
+<title>proc~permute_backward_write_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node9"><a xlink:href="../proc/permute_backward_write_f128.html" xlink:title="permute_backward_write_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="310.5,-200.61 134.5,-200.61 134.5,-176.61 310.5,-176.61 310.5,-200.61"/>
+<text text-anchor="middle" x="222.5" y="-186.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_write_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_backward_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge8" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_backward_write_f128</title>
+<path fill="none" stroke="#ff0000" d="M61.56,-239.44C76.72,-230.02 98.99,-217.32 120,-209.61 126.41,-207.25 133.16,-205.14 139.99,-203.24"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="141.25,-206.52 150.04,-200.61 139.48,-199.75 141.25,-206.52"/>
+</g>
+<!-- proc~permute_forward_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node10" class="node">
+<title>proc~permute_forward_read_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node10"><a xlink:href="../proc/permute_forward_read_f128.html" xlink:title="permute_forward_read_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="304,-158.61 141,-158.61 141,-134.61 304,-134.61 304,-158.61"/>
+<text text-anchor="middle" x="222.5" y="-144.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_read_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_forward_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge9" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_forward_read_f128</title>
+<path fill="none" stroke="#ff0000" d="M50.53,-239.37C62.7,-220.73 88.52,-185.48 120,-167.61 123.65,-165.53 127.48,-163.66 131.43,-161.97"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="132.74,-165.22 140.81,-158.36 130.22,-158.69 132.74,-165.22"/>
+</g>
+<!-- proc~permute_forward_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node11" class="node">
+<title>proc~permute_forward_write_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node11"><a xlink:href="../proc/permute_forward_write_f128.html" xlink:title="permute_forward_write_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="305.5,-116.61 139.5,-116.61 139.5,-92.61 305.5,-92.61 305.5,-116.61"/>
+<text text-anchor="middle" x="222.5" y="-102.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_write_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~permute_forward_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge10" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~permute_forward_write_f128</title>
+<path fill="none" stroke="#ff0000" d="M46.8,-239.24C55.36,-213.62 78.7,-154.67 120,-125.61 123.26,-123.31 126.71,-121.26 130.31,-119.42"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="131.81,-122.58 139.49,-115.28 128.93,-116.2 131.81,-122.58"/>
+</g>
+<!-- proc~unpack_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node12" class="node">
+<title>proc~unpack_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node12"><a xlink:href="../proc/unpack_f128.html" xlink:title="unpack_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="263,-74.61 182,-74.61 182,-50.61 263,-50.61 263,-74.61"/>
+<text text-anchor="middle" x="222.5" y="-60.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~unpack_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge11" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~unpack_f128</title>
+<path fill="none" stroke="#ff0000" d="M44.75,-239.6C49.94,-208.47 68.3,-124.78 120,-83.61 134.47,-72.08 153.69,-66.42 171.51,-63.78"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="172.28,-67.22 181.8,-62.56 171.45,-60.27 172.28,-67.22"/>
+</g>
+<!-- proc~unpack_pipelined_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_node13" class="node">
+<title>proc~unpack_pipelined_f128</title>
+<g id="a_proc~~execute_f128~~CallsGraph_node13"><a xlink:href="../proc/unpack_pipelined_f128.html" xlink:title="unpack_pipelined_f128">
+<polygon fill="#d9534f" stroke="#d9534f" points="557,-54.61 421,-54.61 421,-30.61 557,-30.61 557,-54.61"/>
+<text text-anchor="middle" x="489" y="-40.21" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_pipelined_f128</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f128&#45;&gt;proc~unpack_pipelined_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge12" class="edge">
+<title>proc~execute_f128&#45;&gt;proc~unpack_pipelined_f128</title>
+<path fill="none" stroke="#ff0000" d="M43.05,-239.57C43.95,-202.36 52.35,-88.86 120,-41.61 217.92,26.79 369.09,-5.25 443.5,-27.5"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="442.89,-30.98 453.48,-30.57 444.95,-24.28 442.89,-30.98"/>
+</g>
+<!-- proc~permute_backward_end_read_f128&#45;&gt;proc~permute_backward_end_pipelined_read_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge13" class="edge">
+<title>proc~permute_backward_end_read_f128&#45;&gt;proc~permute_backward_end_pipelined_read_f128</title>
+<path fill="none" stroke="#ffff00" d="M322.37,-440.34C331.95,-440.71 341.78,-441.08 351.65,-441.45"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="351.8,-444.96 361.93,-441.84 352.07,-437.96 351.8,-444.96"/>
+</g>
+<!-- proc~permute_backward_end_write_f128&#45;&gt;proc~permute_backward_end_pipelined_write_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge14" class="edge">
+<title>proc~permute_backward_end_write_f128&#45;&gt;proc~permute_backward_end_pipelined_write_f128</title>
+<path fill="none" stroke="#7fff00" d="M323.87,-367.61C338.36,-369.2 353.39,-370.85 368.21,-372.47"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="368.1,-375.98 378.42,-373.59 368.86,-369.02 368.1,-375.98"/>
+</g>
+<!-- proc~unpack_f128&#45;&gt;proc~unpack_pipelined_f128 -->
+<g id="proc~~execute_f128~~CallsGraph_edge15" class="edge">
+<title>proc~unpack_f128&#45;&gt;proc~unpack_pipelined_f128</title>
+<path fill="none" stroke="#ff00ff" d="M263.1,-59.61C301.98,-56.67 362.34,-52.11 410.74,-48.45"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="411.17,-51.93 420.87,-47.68 410.64,-44.95 411.17,-51.93"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

@@ -52,6 +52,9 @@
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                </li>
             </ul>
               <div class="d-flex align-items-end flex-grow-1">
                 <form action="../search.html" role="search" class="ms-auto">
@@ -76,20 +79,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.3% of total for procedures.">34 statements</a>
+                 title=" 0.1% of total for procedures.">21 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_transpose_handle.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_kernel.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_transpose_handle.f90.html'>dtfft_abstract_transpose_handle.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_transpose_handle.html'>dtfft_abstract_transpose_handle</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_kernel.f90.html'>dtfft_abstract_kernel.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_kernel.html'>dtfft_abstract_kernel</a></li>
             <li class="breadcrumb-item active" aria-current="page">create_interface</li>
           </ol>
         </nav>
@@ -137,7 +140,7 @@
     
     <div class="col-md-9" id='text'>
       <h2>interface <br>
-      private  subroutine create_interface(self, comm, send, recv, transpose_type, base_storage, kwargs)  
+      private  subroutine create_interface(self, effort, base_storage, force_effort)  
 </h2>    
 
     
@@ -155,8 +158,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~90"></span>
-              class(<a href='../type/abstract_transpose_handle.html'>abstract_transpose_handle</a>),
+              <span class="anchor" id="variable-self~19"></span>
+              class(<a href='../type/abstract_kernel.html'>abstract_kernel</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -165,67 +168,22 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Abstract transpose handle</p>
+                <p>Abstract kernel</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm~16"></span>
-              type(MPI_Comm),
+              <span class="anchor" id="variable-effort~2"></span>
+              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>comm</strong></td>
+            <td><strong>effort</strong></td>
             <td>
-                <p>MPI Communicator</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-send~2"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>send</strong></td>
-            <td>
-                <p>Send pencil</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-recv~2"></span>
-              type(<a href='../type/pencil.html'>pencil</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>recv</strong></td>
-            <td>
-                <p>Recv pencil</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-transpose_type~8"></span>
-              type(<a href='../type/dtfft_transpose_t.html'>dtfft_transpose_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>transpose_type</strong></td>
-            <td>
-                <p>Type of transpose to create</p>
+                <p>Effort level for generating transpose kernels</p>
             </td>
         </tr>
         <tr>
@@ -240,29 +198,29 @@
             <td>::</td>
             <td><strong>base_storage</strong></td>
             <td>
-                <p>Base storage</p>
+                <p>Number of bytes needed to store single element</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kwargs~4"></span>
-              type(<a href='../type/create_args.html'>create_args</a>),
+              <span class="anchor" id="variable-force_effort~2"></span>
+              logical,
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>kwargs</strong></td>
+            <td><strong>force_effort</strong></td>
             <td>
-                <p>Additional arguments</p>
+                <p>Should effort be forced or not</p>
             </td>
         </tr>
     </tbody>
   </table>
 
     <h3>Description</h3>
-    <p>Creates transpose handle</p>
+    <p>Creates underlying kernel</p>
     <br>
 
  </div>

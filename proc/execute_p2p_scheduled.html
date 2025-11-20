@@ -1,0 +1,675 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>execute_p2p_scheduled &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>execute_p2p_scheduled
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for procedures.">16 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_backend_mpi.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_backend_mpi.f90.html'>dtfft_backend_mpi.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_backend_mpi.html'>dtfft_backend_mpi</a></li>
+            <li class="breadcrumb-item active" aria-current="page">execute_p2p_scheduled</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private  subroutine execute_p2p_scheduled(self, in, out)  
+</h2>
+    
+
+
+    <h3>Type Bound</h3>
+    <p><a href='../type/backend_mpi.html'>backend_mpi</a></p>
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~85"></span>
+              class(<a href='../type/backend_mpi.html'>backend_mpi</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+                <p>MPI Backend</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~204"></span>
+              real(kind=real32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+                <p>Data to be sent</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~204"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+                <p>Data to be received</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_p2p_scheduled~~CallsGraph Pages: 1 -->
+<svg id="procexecute_p2p_scheduledCallsGraph" width="641pt" height="164pt"
+ viewBox="0.00 0.00 641.00 163.83" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_p2p_scheduled~~CallsGraph" class="graph" transform="scale(0.62 0.62) rotate(0) translate(4 259)">
+<title>proc~~execute_p2p_scheduled~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-259 1025,-259 1025,4 -4,4"/>
+<!-- proc~execute_p2p_scheduled -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node1" class="node">
+<title>proc~execute_p2p_scheduled</title>
+<polygon fill="none" stroke="black" points="221,-171 0,-171 0,-147 221,-147 221,-171"/>
+<text text-anchor="middle" x="110.5" y="-156.6" font-family="Helvetica,sans-Serif" font-size="10.50">backend_mpi%execute_p2p_scheduled</text>
+</g>
+<!-- mpi_sendrecv -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node2" class="node">
+<title>mpi_sendrecv</title>
+<polygon fill="#777777" stroke="#777777" points="407,-192 321,-192 321,-168 407,-168 407,-192"/>
+<text text-anchor="middle" x="364" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_sendrecv</text>
+</g>
+<!-- proc~execute_p2p_scheduled&#45;&gt;mpi_sendrecv -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge1" class="edge">
+<title>proc~execute_p2p_scheduled&#45;&gt;mpi_sendrecv</title>
+<path fill="none" stroke="#ff0000" d="M221.08,-168.15C252.28,-170.76 284.83,-173.47 310.88,-175.65"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="310.63,-179.14 320.89,-176.48 311.22,-172.16 310.63,-179.14"/>
+</g>
+<!-- proc~execute_self_copy -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node3" class="node">
+<title>proc~execute_self_copy</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node3"><a xlink:href="../proc/execute_self_copy.html" xlink:title="abstract_backend%execute_self_copy">
+<polygon fill="#d9534f" stroke="#d9534f" points="471,-150 257,-150 257,-126 471,-126 471,-150"/>
+<text text-anchor="middle" x="364" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend%execute_self_copy</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_p2p_scheduled&#45;&gt;proc~execute_self_copy -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge2" class="edge">
+<title>proc~execute_p2p_scheduled&#45;&gt;proc~execute_self_copy</title>
+<path fill="none" stroke="#ff0000" d="M221.08,-149.85C229.64,-149.14 238.31,-148.41 246.91,-147.69"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="247.3,-151.17 256.97,-146.85 246.72,-144.2 247.3,-151.17"/>
+</g>
+<!-- fname -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node4" class="node">
+<title>fname</title>
+<polygon fill="#777777" stroke="#777777" points="599,-255 545,-255 545,-231 599,-231 599,-255"/>
+<text text-anchor="middle" x="572" y="-240.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fname</text>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;fname -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge3" class="edge">
+<title>proc~execute_self_copy&#45;&gt;fname</title>
+<path fill="none" stroke="#00ffff" d="M455.25,-150.05C460.82,-152.54 466.13,-155.49 471,-159 497.18,-177.83 482.01,-201.61 507,-222 515.09,-228.6 525.31,-233.15 535.21,-236.28"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="534.32,-239.66 544.89,-238.95 536.19,-232.92 534.32,-239.66"/>
+</g>
+<!-- interface~cudaeventrecord -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node5" class="node">
+<title>interface~cudaeventrecord</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node5"><a xlink:href="../interface/cudaeventrecord.html" xlink:title="cudaEventRecord">
+<polygon fill="#a7506f" stroke="#a7506f" points="625,-213 519,-213 519,-189 625,-189 625,-213"/>
+<text text-anchor="middle" x="572" y="-198.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEventRecord</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;interface~cudaeventrecord -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge4" class="edge">
+<title>proc~execute_self_copy&#45;&gt;interface~cudaeventrecord</title>
+<path fill="none" stroke="#00ffff" d="M441.71,-150.03C451.71,-152.52 461.7,-155.48 471,-159 488.32,-165.56 490.11,-172.4 507,-180 511.31,-181.94 515.85,-183.78 520.44,-185.52"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="519.29,-188.83 529.88,-188.93 521.67,-182.25 519.29,-188.83"/>
+</g>
+<!-- interface~cudamemcpyasync -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node6" class="node">
+<title>interface~cudamemcpyasync</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node6"><a xlink:href="../interface/cudamemcpyasync.html" xlink:title="cudaMemcpyAsync">
+<polygon fill="#a7506f" stroke="#a7506f" points="629.5,-171 514.5,-171 514.5,-147 629.5,-147 629.5,-171"/>
+<text text-anchor="middle" x="572" y="-156.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMemcpyAsync</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;interface~cudamemcpyasync -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge5" class="edge">
+<title>proc~execute_self_copy&#45;&gt;interface~cudamemcpyasync</title>
+<path fill="none" stroke="#00ffff" d="M471.02,-148.81C482.37,-149.97 493.68,-151.12 504.38,-152.21"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="504.14,-155.7 514.45,-153.23 504.85,-148.74 504.14,-155.7"/>
+</g>
+<!-- interface~cudastreamwaitevent -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node7" class="node">
+<title>interface~cudastreamwaitevent</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node7"><a xlink:href="../interface/cudastreamwaitevent.html" xlink:title="cudaStreamWaitEvent">
+<polygon fill="#a7506f" stroke="#a7506f" points="637,-129 507,-129 507,-105 637,-105 637,-129"/>
+<text text-anchor="middle" x="572" y="-114.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamWaitEvent</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;interface~cudastreamwaitevent -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge6" class="edge">
+<title>proc~execute_self_copy&#45;&gt;interface~cudastreamwaitevent</title>
+<path fill="none" stroke="#00ffff" d="M471.02,-127.19C479.71,-126.31 488.37,-125.42 496.76,-124.57"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="497.24,-128.04 506.83,-123.54 496.53,-121.07 497.24,-128.04"/>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node8" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="605.5,-87 538.5,-87 538.5,-63 605.5,-63 605.5,-87"/>
+<text text-anchor="middle" x="572" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;mpi_abort -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge7" class="edge">
+<title>proc~execute_self_copy&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#00ffff" d="M404.72,-125.85C440.2,-115 492.04,-99.15 528.38,-88.04"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="529.65,-91.31 538.19,-85.03 527.6,-84.61 529.65,-91.31"/>
+</g>
+<!-- proc~cudageterrorstring -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node9" class="node">
+<title>proc~cudageterrorstring</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node9"><a xlink:href="../proc/cudageterrorstring.html" xlink:title="cudaGetErrorString">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="629.5,-45 514.5,-45 514.5,-21 629.5,-21 629.5,-45"/>
+<text text-anchor="middle" x="572" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_self_copy&#45;&gt;proc~cudageterrorstring -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge8" class="edge">
+<title>proc~execute_self_copy&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#00ffff" d="M382.7,-125.81C408.92,-108.17 460.04,-75.29 507,-54 511.3,-52.05 515.84,-50.19 520.43,-48.45"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="521.66,-51.73 529.87,-45.03 519.27,-45.14 521.66,-51.73"/>
+</g>
+<!-- interface~cudageterrorstring_c -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node10" class="node">
+<title>interface~cudageterrorstring_c</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node10"><a xlink:href="../interface/cudageterrorstring_c.html" xlink:title="cudaGetErrorString_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="800,-66 673,-66 673,-42 800,-42 800,-66"/>
+<text text-anchor="middle" x="736.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString_c</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge9" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c</title>
+<path fill="none" stroke="#ff00ff" d="M629.83,-40.34C640.49,-41.72 651.75,-43.18 662.81,-44.61"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="662.51,-48.1 672.88,-45.91 663.41,-41.15 662.51,-48.1"/>
+</g>
+<!-- proc~string_c2f -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node11" class="node">
+<title>proc~string_c2f</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node11"><a xlink:href="../proc/string_c2f.html" xlink:title="string_c2f">
+<polygon fill="#d9534f" stroke="#d9534f" points="768.5,-24 704.5,-24 704.5,0 768.5,0 768.5,-24"/>
+<text text-anchor="middle" x="736.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_c2f</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;proc~string_c2f -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge10" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#ff00ff" d="M629.83,-25.66C651.09,-22.91 674.81,-19.84 694.38,-17.31"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="695.02,-20.76 704.49,-16.01 694.12,-13.82 695.02,-20.76"/>
+</g>
+<!-- interface~is_null_ptr -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node12" class="node">
+<title>interface~is_null_ptr</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node12"><a xlink:href="../interface/is_null_ptr.html" xlink:title="is_null_ptr">
+<polygon fill="#a7506f" stroke="#a7506f" points="902,-24 836,-24 836,0 902,0 902,-24"/>
+<text text-anchor="middle" x="869" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~string_c2f&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge11" class="edge">
+<title>proc~string_c2f&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#00ffff" d="M768.76,-12C785.73,-12 806.96,-12 825.42,-12"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="825.63,-15.5 835.63,-12 825.63,-8.5 825.63,-15.5"/>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge12" class="edge">
+<title>interface~is_null_ptr&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M850.81,-24.01C844.46,-32.97 850.52,-42 869,-42 880.26,-42 886.91,-38.65 888.95,-34"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="892.37,-33.25 887.19,-24.01 885.48,-34.47 892.37,-33.25"/>
+</g>
+<!-- proc~is_null_funptr -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_node13" class="node">
+<title>proc~is_null_funptr</title>
+<g id="a_proc~~execute_p2p_scheduled~~CallsGraph_node13"><a xlink:href="../proc/is_null_funptr.html" xlink:title="is_null_funptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1021,-24 938,-24 938,0 1021,0 1021,-24"/>
+<text text-anchor="middle" x="979.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_funptr</text>
+</a>
+</g>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;proc~is_null_funptr -->
+<g id="proc~~execute_p2p_scheduled~~CallsGraph_edge13" class="edge">
+<title>interface~is_null_ptr&#45;&gt;proc~is_null_funptr</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M902.26,-12C910.25,-12 919.01,-12 927.65,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="927.69,-15.5 937.69,-12 927.69,-8.5 927.69,-15.5"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute_p2p_scheduledCallsGraph = svgPanZoom('#procexecute_p2p_scheduledCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_p2p_scheduled~~CalledByGraph Pages: 1 -->
+<svg id="procexecute_p2p_scheduledCalledByGraph" width="426pt" height="32pt"
+ viewBox="0.00 0.00 426.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_p2p_scheduled~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>proc~~execute_p2p_scheduled~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 422,-28 422,4 -4,4"/>
+<!-- proc~execute_p2p_scheduled -->
+<g id="proc~~execute_p2p_scheduled~~CalledByGraph_node1" class="node">
+<title>proc~execute_p2p_scheduled</title>
+<polygon fill="none" stroke="black" points="418,-24 197,-24 197,0 418,0 418,-24"/>
+<text text-anchor="middle" x="307.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">backend_mpi%execute_p2p_scheduled</text>
+</g>
+<!-- proc~execute_mpi -->
+<g id="proc~~execute_p2p_scheduled~~CalledByGraph_node2" class="node">
+<title>proc~execute_mpi</title>
+<g id="a_proc~~execute_p2p_scheduled~~CalledByGraph_node2"><a xlink:href="../proc/execute_mpi.html" xlink:title="backend_mpi%execute_mpi">
+<polygon fill="#d9534f" stroke="#d9534f" points="161,-24 0,-24 0,0 161,0 161,-24"/>
+<text text-anchor="middle" x="80.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_mpi%execute_mpi</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_mpi&#45;&gt;proc~execute_p2p_scheduled -->
+<g id="proc~~execute_p2p_scheduled~~CalledByGraph_edge1" class="edge">
+<title>proc~execute_mpi&#45;&gt;proc~execute_p2p_scheduled</title>
+<path fill="none" stroke="#ff0000" d="M161.14,-12C169.41,-12 177.94,-12 186.53,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="186.62,-15.5 196.62,-12 186.62,-8.5 186.62,-15.5"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>
