@@ -85,7 +85,7 @@ public :: operator(/=)
 
   type(kernel_type_t), parameter          :: TRANSPOSE_KERNELS(*) = [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD, KERNEL_PERMUTE_BACKWARD_START]
     !! List of all transpose kernel types
-  type(kernel_type_t), parameter          :: UNPACK_KERNELS(*) = [KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED]
+  type(kernel_type_t), parameter          :: UNPACK_KERNELS(*) = [KERNEL_PERMUTE_BACKWARD_END, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED]
     !! List of all unpack kernel types
 
   type, abstract :: abstract_kernel
@@ -192,8 +192,7 @@ contains
       if ( size(dims) /= 3 ) INTERNAL_ERROR("2-step permutation is only valid for 3d grid")
     endif
 #endif
-    if ( any(kernel_type == [KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED,                                  &
-                             KERNEL_PERMUTE_BACKWARD_END, KERNEL_PERMUTE_BACKWARD_END_PIPELINED]) ) then
+    if ( is_unpack_kernel(kernel_type) ) then
 #ifdef DTFFT_DEBUG
       if ( .not. present(neighbor_data) ) INTERNAL_ERROR("Neighbor data required")
 #endif

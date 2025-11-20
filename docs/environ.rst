@@ -124,11 +124,12 @@ Accepted Values
   - ``mpi_dt``: Backend using MPI datatypes.
   - ``mpi_p2p``: MPI peer-to-peer backend.
   - ``mpi_a2a``: MPI backend using ``MPI_Alltoallv``.
-  - ``mpi_p2p_pipe``: Pipelined MPI peer-to-peer backend with overlapping data copying and unpacking.
+  - ``mpi_p2p_pipe``: Pipelined MPI peer-to-peer backend with overlapping data transfers and unpacking.
+  - ``mpi_p2p_sched``: MPI peer-to-peer backend with scheduled communication.
   - ``mpi_rma``: MPI RMA backend that uses MPI_Rget for data transfers.
-  - ``mpi_rma_pipe``: Pipelined MPI RMA backend with overlapping data copying and unpacking.
+  - ``mpi_rma_pipe``: Pipelined MPI RMA backend with overlapping data transfers and unpacking.
   - ``nccl``: NCCL backend.
-  - ``nccl_pipe``: Pipelined NCCL backend with overlapping data copying and unpacking.
+  - ``nccl_pipe``: Pipelined NCCL backend with overlapping data transfers and unpacking.
   - ``cufftmp``: cuFFTMp backend.
   - ``cufftmp_pipe``: cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance.
 

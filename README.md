@@ -41,6 +41,7 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, and $P_1, P
 ## Limitations
 - Memory is assumed to be contiguous. Ghost boundaries are not allowed.
 - OpenMP for multicore parallelism is not supported.
+- Maximum number of elements per process/GPU cannot exceed $2^{31} - 1$ - max value of int32
 
 ## Requirements
 - Fortran/C/C++ compilers (GCC, Intel and NVHPC-SDK are tested)
@@ -102,9 +103,14 @@ Available at [dtFFT Internal Documentation](https://shatrovoa.github.io/dtFFT/in
 - [Fortran API](https://dtfft.readthedocs.io/latest/api_fortran.html)
 
 ## Roadmap
+The following is an ambitious list of features to implement. The items are in no particular order.
+
 - nvSHMEM-based backends
 - HIP platform
 - zfp compression
+- 3d grid decomposition (bricks)
+- Ghost boundaries and support for halo exchange
+- long double/quad precision
 
 ## Contributing
 We welcome contributions! Report issues or suggest improvements via the [issue tracker](https://github.com/ShatrovOA/dtFFT/issues). For code contributions, please follow standard GitHub workflows (fork, branch, PR).

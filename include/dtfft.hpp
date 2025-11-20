@@ -365,6 +365,9 @@ enum class Backend {
     /** MPI backend using pipelined one-sided communications */
     MPI_RMA_PIPELINED = DTFFT_BACKEND_MPI_RMA_PIPELINED,
 
+    /** MPI peer-to-peer algorithm with scheduled communication */
+    MPI_P2P_SCHEDULED = DTFFT_BACKEND_MPI_P2P_SCHEDULED,
+
     /** NCCL backend */
     NCCL = DTFFT_BACKEND_NCCL,
 
@@ -464,7 +467,7 @@ public:
      * used to create Plan
      *
      * @param[in]    n_dims                 Number of dimensions in pencil, must
-     * be 2 or 3
+     *                                      be 2 or 3
      * @param[in]    starts                 Local starts in natural Fortran order
      * @param[in]    counts                 Local counts in natural Fortran order
      */
@@ -561,9 +564,9 @@ public:
     /**
      * @brief Sets number of warmup iterations to underlying C structure
      *
-     * @param[in] n_measure_warmup_iters  Number of warmup iterations for
-     * transposition and data exchange to perform when `effort` exceeds
-     * `::DTFFT_ESTIMATE`.
+     * @param[in] n_measure_warmup_iters    Number of warmup iterations for
+     *                                      transposition and data exchange to
+     *                                      perform when `effort` exceeds `::DTFFT_ESTIMATE`.
      */
     Config& set_measure_warmup_iters(int32_t n_measure_warmup_iters) noexcept
     {
@@ -572,9 +575,9 @@ public:
     }
     /**
      * @brief Sets number of actual iterations to underlying C structure
-     * @param[in] n_measure_iters         Number of actual iterations for
-     * transposition and data exchange to perform when `effort` exceeds
-     * `::DTFFT_ESTIMATE`.
+     * @param[in] n_measure_iters           Number of actual iterations for
+     *                                      transposition and data exchange to
+     *                                      perform when `effort` exceeds `::DTFFT_ESTIMATE`.
      */
     Config& set_measure_iters(int32_t n_measure_iters) noexcept
     {
@@ -714,6 +717,7 @@ public:
         config.enable_nvshmem_backends = enable_nvshmem_backends;
         return *this;
     }
+#endif
     /**
      * @brief Should dtFFT try to optimize NVRTC kernel block size when `effort`
      * is `::DTFFT_PATIENT` or not.
@@ -752,7 +756,6 @@ public:
         config.force_kernel_optimization = force_kernel_optimization;
         return *this;
     }
-#endif
 
     /** @return Underlying C structure */
     dtfft_config_t c_struct() const { return config; }
@@ -826,9 +829,9 @@ public:
      *
      * @param[in]     dim             Required dimension:
      *                                  - 0 for XYZ layout (real space, valid for
-     * PlanR2C only)
+     *                                    PlanR2C only)
      *                                  - 1 for XYZ layout (real space for C2C and
-     * R2R plans and fourier space for R2C plans)
+     *                                    R2R plans and fourier space for R2C plans)
      *                                  - 2 for YZX layout
      *                                  - 3 for ZXY layout
      * @param[out]    pencil          Created Pencil object
@@ -842,9 +845,9 @@ public:
      *
      * @param[in]     dim             Required dimension:
      *                                  - 0 for XYZ layout (real space, valid for
-     * PlanR2C only)
+     *                                    PlanR2C only)
      *                                  - 1 for XYZ layout (real space for C2C and
-     * R2R plans and fourier space for R2C plans)
+     *                                    R2R plans and fourier space for R2C plans)
      *                                  - 2 for YZX layout
      *                                  - 3 for ZXY layout
      * @return Created Pencil object
@@ -881,10 +884,12 @@ public:
      * @endcode
      *
      * @tparam            Tr            Type of returned data. This should be a
-     * basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @param[inout]      inout         Input/output pointer
      * @param[in]         execute_type  Direction of execution
      * @param[inout]      aux           Optional Auxiliary pointer
+     *
      * @return Pointer to the processed data casted to type `Tr`
      * @throws Exception if underlying call fails
      * @note Not all plans support in-place plan executing. Refer to the manual
@@ -913,12 +918,15 @@ public:
      * @endcode
      *
      * @tparam            T             Type of input/output data. This should be
-     * a basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  a basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @tparam            Tr            Type of returned data. This should be a
-     * basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @param[inout]      inout         Input/output pointer
      * @param[in]         execute_type  Direction of execution
      * @param[inout]      aux           Optional Auxiliary pointer
+     *
      * @return Pointer to the processed data casted to type `Tr`
      * @throws Exception if underlying call fails
      * @note Not all plans support in-place plan executing. Refer to the manual
@@ -957,9 +965,11 @@ public:
      * @endcode
      *
      * @tparam            Tr            Type of returned data. This should be a
-     * basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @param[inout]      inout         Input/output pointer
      * @param[inout]      aux           Optional Auxiliary pointer
+     *
      * @return Pointer to the processed data casted to type `Tr`
      * @throws Exception if underlying call fails
      * @note Not all plans support in-place plan executing. Refer to the manual
@@ -986,11 +996,14 @@ public:
      * @endcode
      *
      * @tparam            T             Type of input/output data. This should be
-     * a basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  a basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @tparam            Tr            Type of returned data. This should be a
-     * basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @param[inout]      inout         Input/output pointer
      * @param[inout]      aux           Optional Auxiliary pointer
+     *
      * @return Pointer to the processed data casted to type `Tr`
      * @throws Exception if underlying call fails
      * @note Not all plans support in-place plan executing. Refer to the manual
@@ -1026,9 +1039,11 @@ public:
      * @endcode
      *
      * @tparam            Tr            Type of returned data. This should be a
-     * basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @param[inout]      inout         Input/output pointer
      * @param[inout]      aux           Optional Auxiliary pointer
+     *
      * @return Pointer to the processed data casted to type `Tr`
      * @throws Exception if underlying call fails
      * @note Not all plans support in-place plan executing. Refer to the manual
@@ -1056,11 +1071,14 @@ public:
      * @endcode
      *
      * @tparam            T             Type of input/output data. This should be
-     * a basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  a basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @tparam            Tr            Type of returned data. This should be a
-     * basic pointer type, e.g. float, double or std::complex of any of those
+     *                                  basic pointer type, e.g. float, double
+     *                                  or std::complex of any of those
      * @param[inout]      inout         Input/output pointer
      * @param[inout]      aux           Optional Auxiliary pointer
+     *
      * @return Pointer to the processed data casted to type `Tr`
      * @throws Exception if underlying call fails
      * @note Not all plans support in-place plan executing. Refer to the manual
@@ -1092,7 +1110,7 @@ public:
      * @param[out]     out                  Output pointer
      * @param[in]      transpose_type       Type of transpose to perform
      * @param[out]     request              Handle to manage the asynchronous
-     * operation
+     *                                      operation
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
@@ -1252,9 +1270,9 @@ public:
     /**
      * @brief Returns global dimensions of the plan.
      * @param[out]    ndims     Number of dimensions in the plan. User can pass
-     * nullptr if this value is not needed.
+     *                          nullptr if this value is not needed.
      * @param[out]    dims      Array of dimensions in natural Fortran order. User
-     * can pass nullptr if this value is not needed.
+     *                          can pass nullptr if this value is not needed.
      *
      * @note Do not free the array, it is freed when the Plan is destroyed.
      *
@@ -1274,12 +1292,12 @@ public:
     /**
      * @brief Returns grid decomposition dimensions of the plan.
      *
-     * @param[out]     ndims          Number of dimensions in plan. User can pass
-     * NULL if this value is not needed.
-     * @param[out]     grid_dims      Pointer of size `ndims` containing grid
-     * decomposition dimensions in reverse order grid_dims[0] is the fastest
-     * varying and is always equal to 1. User can pass NULL if this value is not
-     * needed.
+     * @param[out]     ndims            Number of dimensions in plan. User can pass
+     *                                  nullptr if this value is not needed.
+     * @param[out]     grid_dims        Pointer of size `ndims` containing grid
+     *                                  decomposition dimensions in reverse order:
+     *                                  grid_dims[0] is the fastest varying and is always equal to 1.
+     *                                  User can pass nullptr if this value is not needed.
      *
      * @note Do not free `grid_dims` array, it is freed when the Plan is
      * destroyed.
@@ -1433,12 +1451,12 @@ public:
     /** @brief Complex-to-Complex Plan constructor.
      *
      * @param[in]    dims                   Vector with global dimensions in
-     * reversed order. `dims.size()` must be 2 or 3
+     *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor
      *
      * @throws Exception In case error occurs during plan creation
@@ -1452,10 +1470,10 @@ public:
     /** @brief Complex-to-Complex Transpose-only Plan constructor.
      *
      * @param[in]    dims                   Vector with global dimensions in
-     * reversed order. `dims.size()` must be 2 or 3
+     *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1466,12 +1484,12 @@ public:
      *
      * @param[in]    ndims                  Number of dimensions: 2 or 3
      * @param[in]    dims                   Buffer of size `ndims` with global
-     * dimensions in reversed order.
+     *                                      dimensions in reversed order.
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor
      *
      * @throws Exception In case error occurs during plan creation
@@ -1488,7 +1506,7 @@ public:
      * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      *
      * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
      * instead.
@@ -1503,10 +1521,10 @@ public:
      *
      * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor
      *
      * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
@@ -1532,13 +1550,13 @@ public:
     /** @brief Real-to-Complex Plan constructor.
      *
      * @param[in]    dims                   Vector with global dimensions in
-     * reversed order. `dims.size()` must be 2 or 3
+     *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    executor               Type of external FFT executor
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      *
      * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
      * instead.
@@ -1554,12 +1572,12 @@ public:
      *
      * @param[in]    ndims                  Number of dimensions: 2 or 3
      * @param[in]    dims                   Buffer of size `ndims` with global
-     * dimensions in reversed order.
+     *                                      dimensions in reversed order.
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor
      *
      * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
@@ -1577,10 +1595,10 @@ public:
      * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    executor               Type of external FFT executor
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      *
      * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
      * instead.
@@ -1600,15 +1618,14 @@ public:
     /** @brief Real-to-Real Plan constructor.
      *
      * @param[in]    dims                   Vector with global dimensions in
-     * reversed order. `dims.size()` must be 2 or 3
+     *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    kinds                  Real FFT kinds in reversed order.
-     *                                      Can be empty vector if `executor` ==
-     * Executor::NONE
+     *                                      Can be empty vector if `executor` == Executor::NONE
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor.
      *
      * @throws Exception In case error occurs during plan creation
@@ -1623,10 +1640,10 @@ public:
     /** @brief Real-to-Real Transpose-only Plan constructor.
      *
      * @param[in]    dims                   Vector with global dimensions in
-     * reversed order. `dims.size()` must be 2 or 3
+     *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1637,14 +1654,15 @@ public:
      *
      * @param[in]    ndims                  Number of dimensions: 2 or 3
      * @param[in]    dims                   Buffer of size `ndims` with global
-     * dimensions in reversed order.
+     *                                      dimensions in reversed order.
      * @param[in]    kinds                  Buffer of size `ndims` with Real FFT
-     * kinds in reversed order. Can be nullptr if `executor` == Executor::NONE
+     *                                      kinds in reversed order.
+     *                                      Can be nullptr if `executor` == Executor::NONE
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor.
      *
      * @throws Exception In case error occurs during plan creation
@@ -1661,7 +1679,7 @@ public:
      * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1672,13 +1690,12 @@ public:
      *
      * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    kinds                  Real FFT kinds in reversed order.
-     *                                      Can be empty vector if `executor` ==
-     * Executor::NONE
+     *                                      Can be empty vector if `executor` == Executor::NONE
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor.
      *
      * @throws Exception In case error occurs during plan creation
@@ -1693,12 +1710,12 @@ public:
      *
      * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    kinds                  Buffer of size `ndims` with Real FFT
-     * kinds in reversed order. Can be nullptr if `executor` == Executor::NONE
+     *                                      kinds in reversed order. Can be nullptr if `executor` == Executor::NONE
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
-     * Cartesian communicator
+     *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     * the optimal plan
+     *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor.
      *
      * @throws Exception In case error occurs during plan creation

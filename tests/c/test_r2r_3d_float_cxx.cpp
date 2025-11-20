@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 #endif
   tf += MPI_Wtime();
 
-  size_t scale_value = 8 * nx * ny * nz;
+  size_t scale_value = static_cast<size_t>(8) * nx * ny * nz;
 
 #if defined(DTFFT_WITH_CUDA)
   scaleFloat(static_cast<int32_t>(executor), inout, out_size, scale_value, static_cast<int32_t>(platform), stream);

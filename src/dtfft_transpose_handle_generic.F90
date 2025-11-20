@@ -66,7 +66,7 @@ public :: transpose_handle_generic
   type, extends(abstract_transpose_handle) :: transpose_handle_generic
   !! Generic Transpose Handle
   !! Executes transposition in 3 steps:
-  !! 
+  !!
   !! - Transpose kernel execution
   !! - Data exchange between processes
   !! - Unpacking kernel execution
@@ -363,7 +363,8 @@ contains
 
     self%is_async_supported = is_backend_mpi(kwargs%backend)                                                &
                               .and. .not. self%is_pipelined                                                 &
-                              .and. kwargs%platform == DTFFT_PLATFORM_HOST
+                              .and. kwargs%platform == DTFFT_PLATFORM_HOST                                  &
+                              .and. .not.(kwargs%backend == DTFFT_BACKEND_MPI_P2P_SCHEDULED)
     call self%comm_handle%create(kwargs%backend, kwargs%helper, kwargs%platform, kwargs%comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
     if ( self%is_pipelined ) then
       call self%comm_handle%set_unpack_kernel(self%unpack_kernel)

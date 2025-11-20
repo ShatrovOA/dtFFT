@@ -753,6 +753,9 @@ typedef enum {
     /** MPI backend using pipelined one-sided communications */
     DTFFT_BACKEND_MPI_RMA_PIPELINED = CONF_DTFFT_BACKEND_MPI_RMA_PIPELINED,
 
+    /** MPI peer-to-peer algorithm with scheduled communication */
+    DTFFT_BACKEND_MPI_P2P_SCHEDULED = CONF_DTFFT_BACKEND_MPI_P2P_SCHEDULED,
+
     /** NCCL backend */
     DTFFT_BACKEND_NCCL = CONF_DTFFT_BACKEND_NCCL,
 
@@ -982,6 +985,7 @@ typedef struct
      * @note This option is only defined when dtFFT is built with CUDA support.
      */
     bool enable_nvshmem_backends;
+#endif
 
     /**
      * @brief Should dtFFT try to optimize NVRTC kernel block size when `effort` is `::DTFFT_PATIENT` or not.
@@ -1017,7 +1021,6 @@ typedef struct
      * @note This option is only defined when dtFFT is built with CUDA support.
      */
     bool force_kernel_optimization;
-#endif
 } dtfft_config_t;
 
 /**

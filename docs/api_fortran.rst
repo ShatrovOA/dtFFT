@@ -446,8 +446,7 @@ _____________________
 
   Backend that uses MPI datatypes.
 
-  Not really recommended to use, since it is a million times slower than other backends.
-  It is present here just to show how slow MPI Datatypes are for GPU usage
+  Not really recommended to use when `platform` is :f:var:`DTFFT_PLATFORM_CUDA`, since it is a million times slower than other backends. It is present here just to show how slow MPI Datatypes are for GPU usage
 
 .. f:variable:: DTFFT_BACKEND_MPI_P2P
 
@@ -468,6 +467,10 @@ _____________________
 .. f:variable:: DTFFT_BACKEND_MPI_RMA_PIPELINED
 
   Pipelined MPI RMA backend
+
+.. f:variable:: DTFFT_BACKEND_MPI_P2P_SCHEDULED
+
+  MPI peer-to-peer algorithm with scheduled communication
 
 .. f:variable:: DTFFT_BACKEND_NCCL
 
@@ -516,8 +519,7 @@ dtfft_config_t
 
     Default is ``.true.``
 
-    One should consider disabling Z-slab optimization in order to resolve :f:var:`DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error
-    OR when underlying FFT implementation of 2D plan is too slow.
+    One should consider disabling Z-slab optimization in order to resolve :f:var:`DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error or when underlying FFT implementation of 2D plan is too slow.
 
     In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
 
@@ -540,8 +542,7 @@ dtfft_config_t
 
     Default is :f:var:`DTFFT_PLATFORM_HOST`
 
-    This option is only defined in a build with device support.
-    Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
+    This option is only defined in a build with device support. Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
 
     .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
@@ -571,16 +572,11 @@ dtfft_config_t
 
     Default is ``.false.``
 
-    MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849
-    It was noticed that during plan autotuning GPU memory not being freed completely.
-    For example:
-    1024x1024x512 C2C, double precision, single GPU, using Z-slab optimization, with MPI backends enabled, plan autotuning will leak 8Gb GPU memory.
-    Without Z-slab optimization, running on 4 GPUs, will leak 24Gb on each of the GPUs.
+    MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849 It was noticed that during plan autotuning GPU memory not being freed completely. For example: 1024x1024x512 C2C, double precision, single GPU, using Z-slab optimization, with MPI backends enabled, plan autotuning will leak 8Gb GPU memory. Without Z-slab optimization, running on 4 GPUs, will leak 24Gb on each of the GPUs.
 
     One of the workarounds is to disable MPI Backends by default, which is done here.
 
-    Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to ``mpiexec``,
-    but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
+    Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to ``mpiexec``, but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
 
   :f logical enable_pipelined_backends:
 
@@ -609,28 +605,19 @@ dtfft_config_t
 
     Default is ``.true.``
 
-    When enabled, during plan creation dtFFT will try to find optimal block of threads for NVRTC transpose kernel.
-    It does so by running multiple iterations of transpose with different blocks of threads and measuring time taken.
-    This optimization is done only once during plan creation.
-
-    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+    When enabled, during plan creation dtFFT will try to find optimal block of threads for NVRTC transpose kernel. It does so by running multiple iterations of transpose with different blocks of threads and measuring time taken. This optimization is done only once during plan creation.
 
   :f integer(int32) n_configs_to_test:
     Number of different blocks of threads to test when ``enable_kernel_optimization`` is ``.true.``
 
     Default is 5
 
-    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
-
   :f logical force_kernel_optimization:
     Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
 
     Default is ``.false.``
 
-    Enabling this option will make plan creation process longer, but may result in better performance for a long run.
-    Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
-
-    .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+    Enabling this option will make plan creation process longer, but may result in better performance for a long run. Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
 
 
 Related Type functions

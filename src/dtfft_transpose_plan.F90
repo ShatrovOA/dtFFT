@@ -1357,7 +1357,7 @@ contains
         error_code = cudaMalloc(ptr, alloc_bytes)
 #   endif
 #   ifdef NCCL_HAVE_COMMREGISTER
-        if ( error_code == cudaSuccess .and. helper%should_register) then
+        if ( error_code == cudaSuccess .and. helper%should_register ) then
           block
             type(c_ptr), allocatable :: temp(:,:)
             type(c_ptr) :: handle

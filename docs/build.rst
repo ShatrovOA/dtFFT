@@ -117,10 +117,6 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Enable MPI RMA backends (currently in beta). It has been noticed that call to ``MPI_Win_create`` fails with OpenMPI 4.0.5 with UCX enabled.
-   * - ``DTFFT_WITH_SIMD``
-     - ``ON`` / ``OFF``
-     - ``OFF``
-     - Enables SIMD optimizations for some host kernels (requires OpenMP support in the compiler).
    * - ``DTFFT_ENABLE_INPUT_CHECK``
      - ``ON`` / ``OFF``
      - ``ON``
@@ -139,7 +135,7 @@ Building the Library
 Replace ``/path/to/install`` with your target installation directory.
 
 .. note:: CUDA support in ``dtFFT`` does not replace the host version but extends it. For more details, refer to the guide 
-  :ref:`here<dtfft_platform_conf>` and the environment variable :ref:`DTFFT_PLATFORM<dtfft_platform_env>`.
+  :ref:`here<config_link>` and the environment variable :ref:`DTFFT_PLATFORM<dtfft_platform_env>`.
 
 2. **Build the Library**:
    Compile the library using:

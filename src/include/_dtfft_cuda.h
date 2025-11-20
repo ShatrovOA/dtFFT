@@ -11,13 +11,13 @@ use iso_c_binding, only: c_int32_t; \
 integer(c_int32_t) :: ierr, mpi_err, pos; \
 character(len=:), allocatable :: fname; \
     ierr = func; \
-    allocate (fname, source=adjustl(STRINGIFY_(func))); \
-    pos = index(fname, "("); \
     if (ierr /= 0_c_int32_t) then; \
+        allocate (fname, source=adjustl(STRINGIFY_(func))); \
+        pos = index(fname, "("); \
         write(error_unit, '(a,i0)') "'"//fname(1:pos - 1)//"' returned non-zero error code: '"//trim(getErrorString(ierr))//"' at "//__FILE__//":",__LINE__; \
+        deallocate (fname); \
         call MPI_Abort(MPI_COMM_WORLD, ierr, mpi_err); \
     end if; \
-    deallocate (fname); \
 end block
 
 #define GPU_CALL_NOCHECK(func) \
