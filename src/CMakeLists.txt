@@ -35,3 +35,7 @@ if (DTFFT_WITH_CUDA)
 endif()
 
 add_subdirectory(interfaces)
+
+if(DTFFT_BUILD_TESTS)
+  add_subdirectory(tests)
+endif()

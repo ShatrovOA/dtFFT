@@ -107,7 +107,7 @@ public :: dtfft_get_error_string
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
     !! Invalid stream provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_BACKEND = CONF_DTFFT_ERROR_INVALID_BACKEND
-    !! Invalid GPU backend provided
+    !! Invalid backend provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_NOT_SET = CONF_DTFFT_ERROR_GPU_NOT_SET
     !! Multiple MPI Processes located on same host share same GPU which is not supported
   integer(int32),  parameter,  public  :: DTFFT_ERROR_VKFFT_R2R_2D_PLAN = CONF_DTFFT_ERROR_VKFFT_R2R_2D_PLAN

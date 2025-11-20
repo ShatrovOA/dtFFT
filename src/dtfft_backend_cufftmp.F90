@@ -123,14 +123,13 @@ type(dtfft_transpose_t) :: tranpose_type
     self%aux_size = max(aux_size, self%aux_size)
 end subroutine create
 
-subroutine execute(self, in, out, stream, aux, exec_type, error_code)
+subroutine execute(self, in, out, stream, aux, error_code)
 !! Executes cuFFTMp GPU Backend
 class(backend_cufftmp), intent(inout)   :: self       !! cuFFTMp GPU Backend
 real(real32),   target, intent(inout)   :: in(:)      !! Send pointer
 real(real32),   target, intent(inout)   :: out(:)     !! Recv pointer
 type(dtfft_stream_t),   intent(in)      :: stream     !! Main execution CUDA stream
 real(real32),   target, intent(inout)   :: aux(:)     !! Aux pointer
-type(async_exec_t),     intent(in)      :: exec_type  !! Type of async execution
 integer(int32),         intent(out)     :: error_code !! Error code
 integer(int32) :: ierr
 

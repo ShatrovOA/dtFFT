@@ -92,16 +92,12 @@ implicit none
 
   call attach_gpu_to_process()
 
-#if defined(DTFFT_WITH_CUDA)
-  block
-    type(dtfft_config_t) :: conf
+  conf = dtfft_config_t()
 
-    conf = dtfft_config_t(backend=DTFFT_BACKEND_NCCL_PIPELINED, platform=DTFFT_PLATFORM_CUDA)
-    call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
-  endblock
+#if defined(DTFFT_WITH_CUDA)
+  conf%platform = DTFFT_PLATFORM_CUDA
 #endif
 
-  conf = dtfft_config_t()
   conf%enable_mpi_backends = .true.
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 

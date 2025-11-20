@@ -66,11 +66,12 @@ contains
 end type backend_helper
 
 type, abstract :: abstract_backend
-  !! The most Abstract Backend
+!! The most Abstract Backend
     type(dtfft_backend_t)           :: backend                  !! Backend type
     type(dtfft_platform_t)          :: platform                 !! Platform to use
     logical                         :: is_selfcopy              !! If backend is self-copying
     logical                         :: is_pipelined             !! If backend is pipelined
+    logical                         :: is_even                  !! If all processes send/recv same amount of memory
     integer(int64)                  :: aux_size                 !! Number of bytes required by aux buffer
     integer(int64)                  :: send_recv_buffer_size    !! Number of float elements used in ``c_f_pointer``
     TYPE_MPI_COMM                   :: comm                     !! MPI Communicator
@@ -98,6 +99,7 @@ contains
     procedure,  non_overridable,                pass(self) :: get_aux_size     !! Returns number of bytes required by aux buffer
     procedure,  non_overridable,                pass(self) :: set_unpack_kernel!! Sets unpack kernel for pipelined backend
     procedure,                                  pass(self) :: execute_end      !! Ends execution of Backend
+    procedure,                                  pass(self) :: execute_self_copy
     procedure,                                  pass(self) :: get_async_active !! Returns if async execution is active
     procedure(create_interface),    deferred,   pass(self) :: create_private   !! Creates overriding class
     procedure(execute_interface),   deferred,   pass(self) :: execute_private  !! Executes Backend
@@ -113,7 +115,7 @@ abstract interface
         integer(int64),             intent(in)      :: base_storage   !! Number of bytes to store single element
     end subroutine create_interface
 
-    subroutine execute_interface(self, in, out, stream, aux, exec_type, error_code)
+    subroutine execute_interface(self, in, out, stream, aux, error_code)
     !! Executes Backend
         import
         class(abstract_backend),    intent(inout)   :: self       !! Abstract Backend
@@ -121,7 +123,6 @@ abstract interface
         real(real32),   target,     intent(inout)   :: out(:)     !! Recv pointer
         type(dtfft_stream_t),       intent(in)      :: stream     !! Main execution CUDA stream
         real(real32),   target,     intent(inout)   :: aux(:)     !! Aux pointer
-        type(async_exec_t),         intent(in)      :: exec_type  !! Type of async execution
         integer(int32),             intent(out)     :: error_code !! Error code
     end subroutine execute_interface
 
@@ -181,7 +182,11 @@ integer(int64) :: scaler         !! Scaling data amount to float size
 
     self%backend = backend
     self%is_pipelined = is_backend_pipelined(backend)
-    self%is_selfcopy = self%is_pipelined .or. is_backend_mpi(backend)
+    self%is_selfcopy = (self%is_pipelined .or. is_backend_mpi(backend)) .and. backend /= DTFFT_BACKEND_CUFFTMP_PIPELINED
+    self%is_even = all(send_counts(1) == send_counts(:)) .and. all(recv_counts(1) == recv_counts(:))
+    if (self%is_selfcopy .and. self%is_even .and. backend == DTFFT_BACKEND_MPI_A2A .and. platform == DTFFT_PLATFORM_HOST) then
+        self%is_selfcopy = .false.
+    endif
 
     self%aux_size = 0_int64
     if (self%is_pipelined) then
@@ -216,10 +221,15 @@ type(dtfft_stream_t),       intent(in)      :: stream     !! CUDA stream
 real(real32),               intent(inout)   :: aux(:)     !! Aux pointer
 type(async_exec_t),         intent(in)      :: exec_type  !! Type of async execution
 integer(int32),             intent(out)     :: error_code !! Error code
-integer(int32) :: i, upper_bound
+integer(int32) :: dummy
 
     if (.not. self%is_selfcopy) then
-        call self%execute_private(in, out, stream, aux, exec_type, error_code)
+        call self%execute_private(in, out, stream, aux, error_code)
+        if ( error_code /= DTFFT_SUCCESS ) return
+
+        if ( exec_type == EXEC_BLOCKING .or. self%platform == DTFFT_PLATFORM_CUDA) then
+            call self%execute_end(error_code)
+        endif
 #if defined(DTFFT_DEBUG) && defined(DTFFT_WITH_CUDA)
         if (self%platform == DTFFT_PLATFORM_CUDA) then
             CUDA_CALL( cudaStreamSynchronize(stream) )
@@ -228,55 +238,31 @@ integer(int32) :: i, upper_bound
         return
     end if
 
-    if (self%platform == DTFFT_PLATFORM_HOST) then
-        if (self%self_copy_bytes > 0) then
-            upper_bound = int(self%self_copy_bytes / FLOAT_STORAGE_SIZE - 1, int32)
-            if (self%is_pipelined) then
-            !$omp simd
-                do i = 0, upper_bound
-                    aux(self%self_recv_displ + i) = in(self%self_send_displ + i)
-                end do
-            !$omp end simd
-                call self%unpack_kernel%execute(aux, out, stream, self%comm_rank + 1)
-            else
-            !$omp simd
-                do i = 0, upper_bound
-                    out(self%self_recv_displ + i) = in(self%self_send_displ + i)
-                end do
-            !$omp end simd
-            end if
-        end if
-#ifdef DTFFT_WITH_CUDA
-    else
-        CUDA_CALL( cudaEventRecord(self%execution_event, stream) )
-        ! Waiting for transpose kernel to finish execution on stream `stream`
-        CUDA_CALL( cudaStreamWaitEvent(self%copy_stream, self%execution_event, 0) )
+    if ( self%self_copy_bytes > 0 .and. self%platform == DTFFT_PLATFORM_CUDA ) then
+        if ( self%is_pipelined ) then
+            call self%execute_self_copy(in, aux, stream)
+            call self%unpack_kernel%execute(aux, out, self%copy_stream, self%comm_rank + 1)
+        else
+            call self%execute_self_copy(in, out, stream)
+        endif
+    endif
 
-        if (self%self_copy_bytes > 0) then
-            if (self%is_pipelined) then
-                ! Tranposed data is actually located in aux buffer for pipelined algorithm
-                CUDA_CALL( cudaMemcpyAsync(aux( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
-                ! Data can be unpacked in same stream as `cudaMemcpyAsync`
-                call self%unpack_kernel%execute(aux, out, self%copy_stream, self%comm_rank + 1)
-            else
-                CUDA_CALL( cudaMemcpyAsync(out( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
-            end if
-        end if
-#endif
-    end if
-    call self%execute_private(in, out, stream, aux, exec_type, error_code)
+    call self%execute_private(in, out, stream, aux, error_code)
+    if ( error_code /= DTFFT_SUCCESS ) return
+
     if ( exec_type == EXEC_BLOCKING .or. self%platform == DTFFT_PLATFORM_CUDA) then
-        call self%execute_end(error_code)
+        ! Do not want to return error in case execution is not active, like in mpi scheduled
+        call self%execute_end(dummy)
     endif
 #ifdef DTFFT_WITH_CUDA
-    if (self%platform == DTFFT_PLATFORM_CUDA) then
+    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
         ! Making future events, like FFT, on `stream` to wait for `copy_event`
         CUDA_CALL( cudaEventRecord(self%copy_event, self%copy_stream) )
         CUDA_CALL( cudaStreamWaitEvent(stream, self%copy_event, 0) )
     end if
 #endif
 #if defined(DTFFT_DEBUG) && defined(DTFFT_WITH_CUDA)
-    if (self%platform == DTFFT_PLATFORM_CUDA) then
+    if ( self%platform == DTFFT_PLATFORM_CUDA ) then
         CUDA_CALL( cudaStreamSynchronize(stream) )
     end if
 #endif
@@ -289,6 +275,29 @@ integer(int32),             intent(out)     :: error_code !! Error code
     error_code = DTFFT_SUCCESS
     if (self%platform == DTFFT_PLATFORM_HOST) return
 end subroutine execute_end
+
+subroutine execute_self_copy(self, in, out, stream)
+class(abstract_backend),    intent(in)      :: self       !! Abstract backend
+real(real32),               intent(in)      :: in(*)      !! Send pointer
+real(real32),               intent(inout)   :: out(*)     !! Recv pointer
+type(dtfft_stream_t),       intent(in)      :: stream     !! CUDA stream
+integer(int64) :: float_count
+
+    if (self%self_copy_bytes == 0) return
+
+    if (self%platform == DTFFT_PLATFORM_HOST) then
+        float_count = self%self_copy_bytes / FLOAT_STORAGE_SIZE
+        out(self%self_recv_displ:self%self_recv_displ + float_count - 1) = in(self%self_send_displ:self%self_send_displ + float_count - 1)
+#ifdef DTFFT_WITH_CUDA
+    else
+        CUDA_CALL( cudaEventRecord(self%execution_event, stream) )
+        ! Waiting for transpose kernel to finish execution on stream `stream`
+        CUDA_CALL( cudaStreamWaitEvent(self%copy_stream, self%execution_event, 0) )
+
+        CUDA_CALL( cudaMemcpyAsync(out( self%self_recv_displ ), in( self%self_send_displ ), self%self_copy_bytes, cudaMemcpyDeviceToDevice, self%copy_stream) )
+#endif
+    endif
+end subroutine execute_self_copy
 
 elemental logical function get_async_active(self)
 !! Returns if async execution is active

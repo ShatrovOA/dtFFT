@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(dtfft VERSION 2.3.0
+project(dtfft VERSION 2.4.0
               DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
@@ -31,7 +31,6 @@ option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
 option(DTFFT_ENABLE_PERSISTENT_COMM "Enable MPI persistent calls" OFF)
 option(DTFFT_WITH_PROFILER "Build dtFFT with profiler support" OFF)
 option(DTFFT_WITH_RMA "Enable support of MPI RMA backends" OFF)
-option(DTFFT_WITH_SIMD "Enable SIMD operations for some host kernels (OpenMP Required)" OFF)
 option(DTFFT_ENABLE_INPUT_CHECK "Enable checks for user input for all dtFFT functions" ON)
 
 # Device libraries
@@ -296,11 +295,6 @@ if ( DTFFT_WITH_PROFILER )
   endif()
 endif()
 
-if ( DTFFT_WITH_SIMD )
-  find_package(OpenMP REQUIRED)
-  target_link_libraries(dtfft PRIVATE OpenMP::OpenMP_Fortran)
-endif()
-
 set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g")
 if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
   set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -ffree-line-length-none -std=f2018 -pedantic-errors -fbacktrace -Wall")
@@ -359,7 +353,7 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATC
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
   set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mcontiguous -Mnodepchk")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkptr")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C")
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -Mnobounds")
 endif()
 
@@ -468,11 +462,11 @@ install(DIRECTORY ${DTFFT_MODULE_DIR}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.mod")
 
-add_subdirectory(src)
 if(DTFFT_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
+add_subdirectory(src)
 
 message(STATUS "dtFFT configuration summary:")
 message(STATUS "Version                    : ${dtfft_VERSION}")
