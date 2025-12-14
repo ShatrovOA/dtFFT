@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 
     if (comm_rank == 0) {
         printf("----------------------------------------\n");
-        printf("| DTFFT test C interface: c2c_2d_float |\n");
+        printf("| dtFFT test C interface: c2c_2d_float |\n");
         printf("----------------------------------------\n");
         printf("Nx = %d, Ny = %d\n", nx, ny);
         printf("Number of processors: %d\n", comm_size);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
     attach_gpu_to_process();
 
     dtfft_plan_t plan;
-    DTFFT_CALL(dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_PATIENT, executor, &plan))
+    DTFFT_CALL(dtfft_create_plan_c2c(2, n, MPI_COMM_WORLD, DTFFT_SINGLE, DTFFT_EXHAUSTIVE, executor, &plan))
 
     int32_t in_counts[2], out_counts[2];
     size_t alloc_size, element_size;

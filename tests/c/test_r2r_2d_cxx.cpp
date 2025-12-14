@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
   if(comm_rank == 0) {
     cout << "----------------------------------------" << endl;
-    cout << "|   DTFFT test C++ interface: r2r_2d   |" << endl;
+    cout << "|   dtFFT test C++ interface: r2r_2d   |" << endl;
     cout << "----------------------------------------" << endl;
     cout << "Nx = " << nx << ", Ny = " << ny           << endl;
     cout << "Number of processors: " << comm_size      << endl;
@@ -71,35 +71,38 @@ int main(int argc, char *argv[])
 
   // Create plan
   vector<int32_t> dims = {ny, nx};
-  vector<R2RKind> kinds = {R2RKind::DCT_3, R2RKind::DCT_3};
-  auto temp_plan = PlanR2R(dims, Precision::DOUBLE);
-  vector<int32_t> lbounds(2), sizes(2);
-  DTFFT_CXX_CALL( temp_plan.get_local_sizes(lbounds.data(), sizes.data()) )
-  DTFFT_CXX_CALL( temp_plan.destroy() )
 
-  auto pencil = Pencil(lbounds, sizes);
+  // Create 2D MPI grid decomposition
+  int grid_dims[2] = { 0, 0 };
+  vector<int32_t> starts(2), counts(2);
+  createGridDims(2, dims.data(), grid_dims, starts.data(), counts.data());
+  
+  auto pencil = Pencil(starts, counts);
+  vector<R2RKind> kinds = {R2RKind::DCT_3, R2RKind::DCT_3};
+
   auto plan = PlanR2R(pencil, kinds, MPI_COMM_WORLD, Precision::DOUBLE, Effort::PATIENT, executor);
   DTFFT_CXX_CALL( plan.report() )
-  size_t alloc_size = plan.get_alloc_size();
+  size_t alloc_size;
+  int32_t out_sizes[2];
+  DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, nullptr, nullptr, out_sizes, &alloc_size) )
 
   vector<double> in(alloc_size),
                  out(alloc_size),
                  check(alloc_size);
 
-  for (size_t i = 0; i < alloc_size; i++) {
+  size_t in_size = static_cast<size_t>(counts[0]) * static_cast<size_t>(counts[1]);
+  size_t out_size = static_cast<size_t>(out_sizes[0]) * static_cast<size_t>(out_sizes[1]);
+
+  // setTestValuesDouble(check.data(), in_size);
+  for (size_t i = 0; i < in_size; i++) {
     in[i] = ((double)(i) / (double)(nx) / (double)(ny));
     check[i] = in[i];
+    // in[i] = check[i];
   }
 
   double tf = 0.0 - MPI_Wtime();
   DTFFT_CXX_CALL( plan.execute(in.data(), out.data(), Execute::FORWARD) );
   tf += MPI_Wtime();
-
-  Pencil in_pencil = plan.get_pencil(1);
-  size_t in_size = in_pencil.get_size();
-
-  Pencil out_pencil = plan.get_pencil(2);
-  size_t out_size = out_pencil.get_size();
 
   if ( executor != Executor::NONE ) {
     for (size_t i = 0; i < out_size; i++) {

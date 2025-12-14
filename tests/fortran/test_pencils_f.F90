@@ -138,24 +138,26 @@ implicit none
     error stop "ierr /= DTFFT_ERROR_PENCIL_NOT_CONTINUOUS"
   endif
 
-  if ( comm_rank == 0 ) then
-    lbounds = [0, 0, 0]
-    sizes = [4, 8, 12]
-  elseif ( comm_rank == 1 ) then
-    lbounds = [4, 0, 0]
-    sizes = [4, 8, 12]
-  else if ( comm_rank == 2 ) then
-    lbounds = [8, 0, 0]
-    sizes = [4, 8, 12]
-  else
-    lbounds = [12, 0, 0]
-    sizes = [4, 8, 12]
-  endif
-  pencil = dtfft_pencil_t(lbounds, sizes)
-  call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
-  if ( ierr /= DTFFT_ERROR_INVALID_COMM_FAST_DIM ) then
-    error stop "ierr /= DTFFT_ERROR_INVALID_COMM_FAST_DIM"
-  endif
+  ! Allowed since 3.0.0
+  !
+  ! if ( comm_rank == 0 ) then
+  !   lbounds = [0, 0, 0]
+  !   sizes = [4, 8, 12]
+  ! elseif ( comm_rank == 1 ) then
+  !   lbounds = [4, 0, 0]
+  !   sizes = [4, 8, 12]
+  ! else if ( comm_rank == 2 ) then
+  !   lbounds = [8, 0, 0]
+  !   sizes = [4, 8, 12]
+  ! else
+  !   lbounds = [12, 0, 0]
+  !   sizes = [4, 8, 12]
+  ! endif
+  ! pencil = dtfft_pencil_t(lbounds, sizes)
+  ! call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
+  ! if ( ierr /= DTFFT_ERROR_INVALID_COMM_FAST_DIM ) then
+  !   error stop "ierr /= DTFFT_ERROR_INVALID_COMM_FAST_DIM"
+  ! endif
 
   if ( comm_rank == 0 ) then
     lbounds = [0, 0, 0]
@@ -176,15 +178,15 @@ implicit none
     error stop "ierr /= DTFFT_SUCCESS"
   endif
 
-  test = plan%get_pencil(1, error_code=ierr); DTFFT_CHECK(ierr)
+  test = plan%get_pencil(DTFFT_LAYOUT_X_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
   if ( any( lbounds /= test%starts ) ) error stop "any( lbounds /= test%starts )"
   if ( any( sizes /= test%counts ) ) error stop " any( sizes /= test%counts )"
 
-  test = plan%get_pencil(2, error_code=ierr); DTFFT_CHECK(ierr)
+  test = plan%get_pencil(DTFFT_LAYOUT_Y_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
   if ( test%starts(2) /= lbounds(3) ) error stop "test%starts(2) /= lbounds(3)"
   if ( test%counts(2) /= sizes(3) ) error stop "test%counts(2) /= sizes(3)"
 
-  test2 = plan%get_pencil(3, error_code=ierr); DTFFT_CHECK(ierr)
+  test2 = plan%get_pencil(DTFFT_LAYOUT_Z_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
   if ( test2%starts(2) /= test%starts(3) ) error stop "test2%starts(2) /= test%starts(2)"
   if ( test2%counts(2) /= test%counts(3) ) error stop "test2%counts(2) /= test%counts(2)"
 

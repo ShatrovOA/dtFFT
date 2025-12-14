@@ -185,6 +185,8 @@ contains
       self%basic_name = self%basic_name//"backward_end"
     case (KERNEL_UNPACK_PIPELINED%val)
       self%basic_name = self%basic_name//"unpack"
+    case (KERNEL_PACK%val)
+      self%basic_name = self%basic_name//"pack"
     case default
       INTERNAL_ERROR("nvrtc_module.create: Unknown kernel type")
     end select
@@ -342,10 +344,10 @@ contains
     integer(int32),       intent(in)  :: ndims        !! Number of dimensions
     integer(int64),       intent(in)  :: base_storage !! Number of bytes needed to store single element
     type(kernel_type_t),  intent(in)  :: kernel_type  !! Type of kernel to generate code for
-    type(codegen_t)                  :: code          !! Resulting code
-    character(len=:), allocatable :: buffer_type      !! Type of buffer that should be used
+    type(codegen_t)                   :: code          !! Resulting code
+    character(len=:), allocatable     :: buffer_type      !! Type of buffer that should be used
     character(len=2)  :: temp       !! Temporary string
-    logical           :: is_unpack  !! Is this unpack kernel
+    logical           :: is_packer  !! Is this pack/unpack kernel
 
     select case (base_storage)
     case (FLOAT_STORAGE_SIZE)
@@ -358,7 +360,7 @@ contains
       INTERNAL_ERROR("get_code: unknown `base_storage`")
     end select
 
-    is_unpack = is_unpack_kernel(kernel_type)
+    is_packer = is_unpack_kernel(kernel_type) .or. kernel_type == KERNEL_PACK
 
     if (kernel_type == KERNEL_PERMUTE_FORWARD) then
       temp = "ny"
@@ -374,8 +376,8 @@ contains
     call code%add("    ,const "//buffer_type//" * __restrict__ in")
     call code%add("    ,const int nx")
     call code%add("    ,const int ny")
-    if (ndims == 3 .and. .not.is_unpack) call code%add("    ,const int nz")
-    if (is_unpack) then
+    if (ndims == 3 .and. .not.is_packer) call code%add("    ,const int nz")
+    if (is_packer) then
       call code%add("   ,const int nxx")
       call code%add("   ,const int nyy")
       if( kernel_type == KERNEL_PERMUTE_BACKWARD_END_PIPELINED ) call code%add("   ,const int nzz")
@@ -388,11 +390,11 @@ contains
     call code%add("    const int x_in = threadIdx.x + TILE_DIM * blockIdx.x;")
     call code%add("    const int y_in = threadIdx.y + TILE_DIM * blockIdx.y;")
     call code%add("    const int z = blockIdx.z;")
-    if (.not. is_unpack) then
+    if (.not. is_packer) then
       call code%add("    const int x_out = threadIdx.y + TILE_DIM * blockIdx.x;")
       call code%add("    const int y_out = threadIdx.x + TILE_DIM * blockIdx.y;")
     end if
-    if (ndims == 2 .and. .not. is_unpack) then
+    if (ndims == 2 .and. .not. is_packer) then
       call code%add("    const int ibase = x_in;")
       call code%add("    const int obase = y_out;")
     else
@@ -412,18 +414,21 @@ contains
       case (KERNEL_UNPACK_PIPELINED%val)
         call code%add("    const int ibase = din + x_in + z * nxx * nyy;")
         call code%add("    const int obase = dout + x_in + z * nx * ny;")
+      case (KERNEL_PACK%val)
+        call code%add("    const int ibase = din + x_in + z * nx * ny;")
+        call code%add("    const int obase = dout + x_in + z * nxx * nyy;")
       end select
     end if
     call code%add("    #pragma unroll")
     call code%add("    for(int offset = 0; offset < TILE_DIM; offset+=BLOCK_ROWS) {")
     call code%add("        int y = y_in + offset;")
-    if (is_unpack) then
+    if (is_packer) then
       call code%add("        if( x_in < nxx && y < nyy) {")
     else
       call code%add("        if( x_in < nx && y < "//temp//") {")
     end if
     select case (kernel_type%val)
-    case (KERNEL_PERMUTE_FORWARD%val)
+    case (KERNEL_PERMUTE_FORWARD%val, KERNEL_PACK%val)
       call code%add("            int iidx = ibase + y * nx;")
     case (KERNEL_PERMUTE_BACKWARD_END_PIPELINED%val)
       call code%add("            int iidx = ibase + y * nxx * nzz;")
@@ -438,30 +443,32 @@ contains
     call code%add("    __syncthreads();")
     call code%add("    #pragma unroll")
     call code%add("    for(int offset = 0; offset < TILE_DIM; offset+=BLOCK_ROWS) {")
-    if (is_unpack_kernel(kernel_type)) then
+    if (is_packer) then
       call code%add("      int y = y_in + offset;")
       call code%add("      if( x_in < nxx && y < nyy ) {")
     else
       call code%add("      int x = x_out + offset;")
       call code%add("      if( x < nx && y_out < "//temp//" ) {")
     end if
-    if (ndims == 2 .and. .not. is_unpack) then
+    if (ndims == 2 .and. .not. is_packer) then
       call code%add("        int oidx = obase + x * ny;")
     else
       if (any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD_START])) then
         call code%add("        int oidx = obase + x * ny * nz;")
       else if (is_unpack_kernel(kernel_type)) then
         call code%add("        int oidx = obase + y * nx;")
+      else if (kernel_type == KERNEL_PACK) then
+        call code%add("        int oidx = obase + y * nxx;")
       else
         call code%add("        int oidx = obase + x * nz;")
       end if
     end if
-    if (is_unpack_kernel(kernel_type)) then
+    if (is_packer) then
       call code%add("        out[oidx] = tile[threadIdx.x][threadIdx.y + offset];")
     else
       call code%add("        out[oidx] = tile[threadIdx.y + offset][threadIdx.x];")
     end if
-    call code%add("        }")
+    call code%add("      }")
     call code%add("    }")
     call code%add("}")
     deallocate (buffer_type)

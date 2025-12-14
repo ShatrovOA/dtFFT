@@ -19,7 +19,7 @@
 #include "dtfft_config.h"
 program test_r2r_3d
 !------------------------------------------------------------------------------------------------
-!< This program shows how to use DTFFT with Real-to-Real 3d transform
+!< This program shows how to use dtFFT with Real-to-Real 3d transform
 !< It also tests user-defined 1d communicator
 !------------------------------------------------------------------------------------------------
 use iso_fortran_env
@@ -61,7 +61,7 @@ implicit none
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
-    write(output_unit, '(a)') "|       DTFFT test: r2r_3d             |"
+    write(output_unit, '(a)') "|       dtFFT test: r2r_3d             |"
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a, i0, a, i0, a, i0)') 'Nx = ',nx, ', Ny = ',ny, ', Nz = ',nz
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size

@@ -47,7 +47,7 @@ implicit none
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
-    write(output_unit, '(a)') "|       DTFFT test: c2c_2d_float       |"
+    write(output_unit, '(a)') "|       dtFFT test: c2c_2d_float       |"
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a, i0, a, i0)') 'Nx = ',nx, ', Ny = ',ny
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size

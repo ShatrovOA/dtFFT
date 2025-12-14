@@ -64,51 +64,82 @@ type(Box3D) :: inbox, outbox  !! Reshape boxes
 type(pencil), pointer :: in, out
 type(c_ptr) :: c_comm
 integer(int64) :: aux_size
-type(dtfft_transpose_t) :: tranpose_type
+logical :: is_transpose
 
-    tranpose_type = helper%tranpose_type
-
-    select case (tranpose_type%val)
-    case (DTFFT_TRANSPOSE_X_TO_Y%val)
-        in => helper%pencils(1)
-        out => helper%pencils(2)
-    case (DTFFT_TRANSPOSE_Y_TO_X%val)
-        in => helper%pencils(2)
-        out => helper%pencils(1)
-    case (DTFFT_TRANSPOSE_Y_TO_Z%val)
-        in => helper%pencils(2)
-        out => helper%pencils(3)
-    case (DTFFT_TRANSPOSE_Z_TO_Y%val)
-        in => helper%pencils(3)
-        out => helper%pencils(2)
-    case (DTFFT_TRANSPOSE_X_TO_Z%val)
-        in => helper%pencils(1)
-        out => helper%pencils(3)
-    case (DTFFT_TRANSPOSE_Z_TO_X%val)
-        in => helper%pencils(3)
-        out => helper%pencils(1)
-    case default
-        INTERNAL_ERROR("unknown `tranpose_type`")
-    end select
+    is_transpose = .false.
+    if ( is_valid_transpose_type(helper%transpose_type) ) then
+        is_transpose = .true.
+        select case (helper%transpose_type%val)
+        case (DTFFT_TRANSPOSE_X_TO_Y%val)
+            in => helper%pencils(1)
+            out => helper%pencils(2)
+        case (DTFFT_TRANSPOSE_Y_TO_X%val)
+            in => helper%pencils(2)
+            out => helper%pencils(1)
+        case (DTFFT_TRANSPOSE_Y_TO_Z%val)
+            in => helper%pencils(2)
+            out => helper%pencils(3)
+        case (DTFFT_TRANSPOSE_Z_TO_Y%val)
+            in => helper%pencils(3)
+            out => helper%pencils(2)
+        case (DTFFT_TRANSPOSE_X_TO_Z%val)
+            in => helper%pencils(1)
+            out => helper%pencils(3)
+        case (DTFFT_TRANSPOSE_Z_TO_X%val)
+            in => helper%pencils(3)
+            out => helper%pencils(1)
+        case default
+            INTERNAL_ERROR("backend_cufftmp: unknown `transpose_type`")
+        end select
+    else
+        select case (helper%reshape_type%val)
+        case ( DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val)
+            in => helper%pencils(1)
+            out => helper%pencils(3)
+        case ( DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val )
+            in => helper%pencils(3)
+            out => helper%pencils(1)
+        case ( DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS%val )
+            in => helper%pencils(2)
+            out => helper%pencils(4)
+        case ( DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val )
+            in => helper%pencils(4)
+            out => helper%pencils(2)
+        case default
+            INTERNAL_ERROR("backend_cufftmp: unknown `transpose_type`")
+        endselect
+    endif
 
     if (in%rank == 3) then
-        if (any(tranpose_type == [DTFFT_TRANSPOSE_X_TO_Z, DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y])) then
-            inbox%lower = [in%starts(2), in%starts(1), in%starts(3)]
-            inbox%upper = [in%starts(2) + in%counts(2), in%starts(1) + in%counts(1), in%starts(3) + in%counts(3)]
-            inbox%strides = [in%counts(1) * in%counts(3), in%counts(3), 1]
+        if ( is_transpose ) then
+            if (any(helper%transpose_type == [DTFFT_TRANSPOSE_X_TO_Z, DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y])) then
+                inbox%lower = [in%starts(2), in%starts(1), in%starts(3)]
+                inbox%upper = [in%starts(2) + in%counts(2), in%starts(1) + in%counts(1), in%starts(3) + in%counts(3)]
+                inbox%strides = [in%counts(1) * in%counts(3), in%counts(3), 1]
+            else
+                inbox%lower = [in%starts(1), in%starts(3), in%starts(2)]
+                inbox%upper = [in%starts(1) + in%counts(1), in%starts(3) + in%counts(3), in%starts(2) + in%counts(2)]
+                inbox%strides = [in%counts(2) * in%counts(3), in%counts(2), 1]
+            end if
         else
-            inbox%lower = [in%starts(1), in%starts(3), in%starts(2)]
-            inbox%upper = [in%starts(1) + in%counts(1), in%starts(3) + in%counts(3), in%starts(2) + in%counts(2)]
-            inbox%strides = [in%counts(2) * in%counts(3), in%counts(2), 1]
-        end if
+            inbox%lower = [in%starts(3), in%starts(2), in%starts(1)]
+            inbox%upper = [in%starts(3) + in%counts(3), in%starts(2) + in%counts(2), in%starts(1) + in%counts(1)]
+            inbox%strides = [in%counts(1) * in%counts(2), in%counts(1), 1]
+        endif
 
         outbox%lower = [out%starts(3), out%starts(2), out%starts(1)]
         outbox%upper = [out%starts(3) + out%counts(3), out%starts(2) + out%counts(2), out%starts(1) + out%counts(1)]
         outbox%strides = [out%counts(1) * out%counts(2), out%counts(1), 1]
     else
-        inbox%lower = [0, in%starts(1), in%starts(2)]
-        inbox%upper = [1, in%starts(1) + in%counts(1), in%starts(2) + in%counts(2)]
-        inbox%strides = [in%counts(1) * in%counts(2), in%counts(2), 1]
+        if ( is_transpose ) then
+            inbox%lower = [0, in%starts(1), in%starts(2)]
+            inbox%upper = [1, in%starts(1) + in%counts(1), in%starts(2) + in%counts(2)]
+            inbox%strides = [in%counts(1) * in%counts(2), in%counts(2), 1]
+        else
+            inbox%lower = [0, in%starts(2), in%starts(1)]
+            inbox%upper = [1, in%starts(2) + in%counts(2), in%starts(1) + in%counts(1)]
+            inbox%strides = [in%counts(1) * in%counts(2), in%counts(1), 1]
+        endif
 
         outbox%lower = [0, out%starts(2), out%starts(1)]
         outbox%upper = [1, out%starts(2) + out%counts(2), out%starts(1) + out%counts(1)]
@@ -120,7 +151,7 @@ type(dtfft_transpose_t) :: tranpose_type
     CUFFT_CALL( cufftMpAttachReshapeComm(self%plan, CUFFT_COMM_MPI, c_comm) )
     CUFFT_CALL( cufftMpMakeReshape(self%plan, base_storage, 3, inbox%lower, inbox%upper, outbox%lower, outbox%upper, inbox%strides, outbox%strides) )
     CUFFT_CALL( cufftMpGetReshapeSize(self%plan, aux_size) )
-    self%aux_size = max(aux_size, self%aux_size)
+    self%aux_bytes = max(aux_size, self%aux_bytes)
 end subroutine create
 
 subroutine execute(self, in, out, stream, aux, error_code)

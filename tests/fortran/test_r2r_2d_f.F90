@@ -50,7 +50,7 @@ implicit none
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
-    write(output_unit, '(a)') "|       DTFFT test: r2r_2d             |"
+    write(output_unit, '(a)') "|       dtFFT test: r2r_2d             |"
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a, i0, a, i0)') 'Nx = ',nx, ', Ny = ',ny
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
@@ -91,7 +91,7 @@ implicit none
   config%enable_mpi_backends = .true.
   call dtfft_set_config(config, error_code=ierr); DTFFT_CHECK(ierr)
 
-  call plan%create([nx, ny], kinds=kinds, effort=DTFFT_PATIENT, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%create([nx, ny], kinds=kinds, effort=DTFFT_EXHAUSTIVE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
 

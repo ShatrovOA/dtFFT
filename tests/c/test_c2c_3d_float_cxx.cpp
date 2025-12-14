@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
   if(comm_rank == 0) {
     cout << "----------------------------------------"          << endl;
-    cout << "|DTFFT test C++ interface: c2c_3d_float|"          << endl;
+    cout << "|dtFFT test C++ interface: c2c_3d_float|"          << endl;
     cout << "----------------------------------------"          << endl;
     cout << "Nx = " << nx << ", Ny = " << ny << ", Nz = " << nz << endl;
     cout << "Number of processors: " << comm_size               << endl;
@@ -105,10 +105,11 @@ int main(int argc, char *argv[])
   size_t out_size = std::accumulate(out_counts.begin(), out_counts.end(), 1, multiplies<int>());
 
   size_t alloc_size = plan->get_alloc_size();
+  size_t aux_size = plan->get_aux_size();
 
   vector<complex<float>> in(alloc_size),
                           out(alloc_size),
-                          aux(alloc_size),
+                          aux(aux_size),
                           check(alloc_size);
 
   setTestValuesComplexFloat(check.data(), in_size);

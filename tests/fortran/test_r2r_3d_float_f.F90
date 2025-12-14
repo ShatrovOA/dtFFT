@@ -31,28 +31,31 @@ use cudafor, only: cuda_stream_kind, cudaStreamCreate, cudaStreamDestroy, cudaSt
 #include "dtfft.f03"
 implicit none
   type(c_ptr) :: check
-  real(real32),  allocatable, target :: inout(:)
+  real(real32),  allocatable, target :: r(:), f(:)
   real(real32), pointer :: check_(:)
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  real(real32), managed, allocatable :: inout_m(:)
+  real(real32), managed, allocatable :: r_m(:), f_m(:)
 #endif
-  integer(int32), parameter :: nx = 512, ny = 64, nz = 4
-  integer(int32) :: comm_size, comm_rank, ierr, in_counts(3), in_starts(3)
-  integer(int32), allocatable :: all_starts(:,:), all_counts(:, :)
+  integer(int32), parameter :: nx = 55, ny = 32, nz = 19
+  integer(int32) :: comm_size, comm_rank, ierr, in_counts(3), in_starts(3), comm_dims(3), out_counts(3), iter
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2r_t) :: plan
   real(real64) :: tf, tb
   integer(int64)  :: alloc_size, in_size
-#if defined(DTFFT_WITH_CUDA)
   type(dtfft_backend_t) :: backend_to_use
-# if defined(__NVCOMPILER)
+  type(dtfft_backend_t) :: reshape_backend_to_use
   type(dtfft_backend_t) :: actual_backend_used
+#if defined(DTFFT_WITH_CUDA)
   type(dtfft_platform_t) :: platform
+# if defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
 # endif
 #endif
   type(dtfft_config_t) :: conf
   type(dtfft_pencil_t) :: pencil
+  TYPE_MPI_COMM :: comm
+  integer(int32), pointer :: dims(:) => null()
+  type(dtfft_request_t) :: request
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -60,7 +63,7 @@ implicit none
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
-    write(output_unit, '(a)') "|       DTFFT test: r2r_3d_float       |"
+    write(output_unit, '(a)') "|       dtFFT test: r2r_3d_float       |"
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a, i0, a, i0, a, i0)') 'Nx = ',nx, ', Ny = ',ny, ', Nz = ',nz
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
@@ -71,11 +74,9 @@ implicit none
   call attach_gpu_to_process()
 
   call dtfft_create_config(conf)
-  ! Using inplace transforms without FFTs
-  ! Making sure that Z-slab and Y-slab optimizations are off
-  ! Otherwise errors will occur
-  conf%enable_z_slab = .false.
-  conf%enable_y_slab = .false.
+
+  backend_to_use = DTFFT_BACKEND_MPI_A2A
+  reshape_backend_to_use = DTFFT_BACKEND_MPI_DATATYPE
 
 #if defined(DTFFT_WITH_CUDA)
   block
@@ -85,11 +86,9 @@ implicit none
     call get_environment_variable("DTFFT_PLATFORM", platform_env, env_len)
 
     if ( env_len == 0 .or. trim(adjustl(platform_env)) == "cuda" ) then
-      backend_to_use = DTFFT_BACKEND_MPI_A2A
 # if defined (DTFFT_WITH_NCCL)
       backend_to_use = DTFFT_BACKEND_NCCL_PIPELINED
 # endif
-      conf%backend = backend_to_use
 
 # if defined(__NVCOMPILER)
       CUDA_CALL( cudaStreamCreate(stream) )
@@ -104,95 +103,156 @@ implicit none
   endblock
 #endif
 
+  conf%backend = backend_to_use
+  conf%reshape_backend = reshape_backend_to_use
+
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
+  
+  do iter = 2, 4
+    comm_dims(:) = 0
+    if ( iter < 4 ) comm_dims(iter) = 1
+    call createGridDims(3, [nx, ny, nz], comm_dims, in_starts, in_counts)
+    pencil = dtfft_pencil_t(in_starts, in_counts)
 
-  ! Creating basic plan for single purpose: extracting grid decomposition
-  ! in order to test plan creation using dtfft_pencil_t
-  call plan%create([nx, ny, nz], precision=DTFFT_SINGLE, error_code=ierr); DTFFT_CHECK(ierr)
-  call plan%get_local_sizes(in_starts=in_starts, in_counts=in_counts, error_code=ierr); DTFFT_CHECK(ierr)
-  call plan%destroy(error_code=ierr); DTFFT_CHECK(ierr)
+    comm = MPI_COMM_WORLD
+    if ( iter == 4 ) then
+      block
+        logical :: periods(3)
+        integer(int32) :: temp_dims(3)
 
-  allocate(all_starts(3, comm_size), all_counts(3, comm_size))
-  call MPI_Allgather(in_starts, 3, MPI_INTEGER, all_starts, 3, MPI_INTEGER, MPI_COMM_WORLD, ierr)
-  call MPI_Allgather(in_counts, 3, MPI_INTEGER, all_counts, 3, MPI_INTEGER, MPI_COMM_WORLD, ierr)
-  ! Selecting for current pencil other decomposition
-  in_starts(:) = all_starts(:, comm_size - comm_rank)
-  in_counts(:) = all_counts(:, comm_size - comm_rank)
+        temp_dims(:) = comm_dims(:)
+        ! Would like that number of processes in X direction be redistributed into Y direction
+        temp_dims(2) = temp_dims(2) * temp_dims(1)
+        temp_dims(1) = 1
+        periods = .false.
+        call MPI_Cart_create(MPI_COMM_WORLD, 3, temp_dims, periods, .false., comm, ierr)
+      endblock
+    endif
 
-  deallocate(all_starts, all_counts)
-  pencil = dtfft_pencil_t(in_starts, in_counts)
-  ! Creating plan using new pencil
-  call plan%create(pencil, precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%create(pencil, comm=comm, precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   alloc_size = plan%get_alloc_size(error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%get_local_sizes(out_counts=out_counts, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   actual_backend_used = plan%get_backend(error_code=ierr);  DTFFT_CHECK(ierr)
   if(comm_rank == 0) then
     write(output_unit, '(a)') "Using backend: "//dtfft_get_backend_string(actual_backend_used)
   endif
-  platform = plan%get_platform()
-  if ( platform == DTFFT_PLATFORM_CUDA .and. comm_size > 1 .and. actual_backend_used /= backend_to_use ) then
-    error stop "Invalid backend: actual_backend_used /= backend_to_use"
+  if ( comm_dims(1) > 1 ) then
+    actual_backend_used = plan%get_reshape_backend(error_code=ierr);  DTFFT_CHECK(ierr)
+    if(comm_rank == 0) then
+      write(output_unit, '(a)') "Using reshape backend: "//dtfft_get_backend_string(actual_backend_used)
+    endif
   endif
+
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+  platform = plan%get_platform()
 #endif
 
   in_size = product(in_counts)
-  allocate(inout(alloc_size))
-  check = mem_alloc_host(in_size * FLOAT_STORAGE_SIZE)
+  allocate(r(alloc_size), f(alloc_size))
+  check = mem_alloc_host(alloc_size * FLOAT_STORAGE_SIZE)
   call setTestValuesFloat(check, in_size)
 
   call c_f_pointer(check, check_, [in_size])
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  allocate(inout_m(alloc_size))
-  inout_m(:in_size) = check_(:)
+  allocate(r_m(alloc_size), f_m(alloc_size))
+  r_m(:) = check_(:)
 #else
-  inout(:in_size) = check_(:)
+  r(:in_size) = check_(:)
 #endif
 
   tf = 0.0_real64 - MPI_Wtime()
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  call plan%execute(inout_m, inout_m, DTFFT_EXECUTE_FORWARD, error_code=ierr)
+  if ( comm_dims(1) > 1 ) then
+    call plan%reshape(r_m, f_m, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS, error_code=ierr);  DTFFT_CHECK(ierr)
+    call plan%transpose(f_m, r_m, DTFFT_TRANSPOSE_X_TO_Y, error_code=ierr);  DTFFT_CHECK(ierr)
+    call plan%transpose(r_m, f_m, DTFFT_TRANSPOSE_Y_TO_Z, error_code=ierr);  DTFFT_CHECK(ierr)
+    call plan%reshape(f_m, r_m, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS, error_code=ierr);  DTFFT_CHECK(ierr)
+  else
+    call plan%transpose(r_m, f_m, DTFFT_TRANSPOSE_X_TO_Y, error_code=ierr);  DTFFT_CHECK(ierr)
+    call plan%transpose(f_m, r_m, DTFFT_TRANSPOSE_Y_TO_Z, error_code=ierr);  DTFFT_CHECK(ierr)
+  endif
   if ( platform == DTFFT_PLATFORM_CUDA ) then
     CUDA_CALL( cudaStreamSynchronize(stream) )
   endif
 #else
-  call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, error_code=ierr)
+  if ( comm_dims(1) > 1 ) then
+    call plan%reshape(r, f, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS, error_code=ierr);  DTFFT_CHECK(ierr)
+    call plan%transpose(f, r, DTFFT_TRANSPOSE_X_TO_Y, error_code=ierr);  DTFFT_CHECK(ierr)
+    call plan%transpose(r, f, DTFFT_TRANSPOSE_Y_TO_Z, error_code=ierr);  DTFFT_CHECK(ierr)
+    call plan%reshape(f, r, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS, error_code=ierr);  DTFFT_CHECK(ierr)
+  else
+    call plan%transpose(r, f, DTFFT_TRANSPOSE_X_TO_Y, error_code=ierr);  DTFFT_CHECK(ierr)
+    call plan%transpose(f, r, DTFFT_TRANSPOSE_Y_TO_Z, error_code=ierr);  DTFFT_CHECK(ierr)
+  endif
 #endif
   DTFFT_CHECK(ierr)
   tf = tf + MPI_Wtime()
 
   tb = 0.0_real64 - MPI_Wtime()
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  call plan%execute(inout_m, inout_m, DTFFT_EXECUTE_BACKWARD, error_code=ierr)
+  if ( comm_dims(1) > 1 ) then
+    call plan%reshape(r_m, f_m, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%transpose(f_m, r_m, DTFFT_TRANSPOSE_Z_TO_Y, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%transpose(r_m, f_m, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%reshape(f_m, r_m, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS, error_code=ierr); DTFFT_CHECK(ierr)
+  else
+    call plan%transpose(r_m, f_m, DTFFT_TRANSPOSE_Z_TO_Y, error_code=ierr)
+    call plan%transpose(f_m, r_m, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr)
+  endif
   if ( platform == DTFFT_PLATFORM_CUDA ) then
     CUDA_CALL( cudaStreamSynchronize(stream) )
   endif
-  inout(:) = inout_m(:)
+  r(:) = r_m(:)
 #else
-  call plan%execute(inout, inout, DTFFT_EXECUTE_BACKWARD)
+  if ( comm_dims(1) > 1 ) then
+    request = plan%reshape_start(r, f, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%reshape_end(request, error_code=ierr); DTFFT_CHECK(ierr)
+    request = plan%transpose_start(f, r, DTFFT_TRANSPOSE_Z_TO_Y, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%transpose_end(request, error_code=ierr); DTFFT_CHECK(ierr)
+    request = plan%transpose_start(r, f, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%transpose_end(request, error_code=ierr); DTFFT_CHECK(ierr)
+    request = plan%reshape_start(f, r, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%reshape_end(request, error_code=ierr); DTFFT_CHECK(ierr)
+  else
+    call plan%transpose(r, f, DTFFT_TRANSPOSE_Z_TO_Y, error_code=ierr)
+    call plan%transpose(f, r, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr)
+  endif
 #endif
   DTFFT_CHECK(ierr)
   tb = tb + MPI_Wtime()
 
+  call plan%get_dims(dims, error_code=ierr); DTFFT_CHECK(ierr)
+
 #if defined(DTFFT_WITH_CUDA)
-  call checkAndReportFloat(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check, DTFFT_PLATFORM_HOST%val)
+  call checkAndReportFloat(int(product(dims), int64), tf, tb, c_loc(r), in_size, check, DTFFT_PLATFORM_HOST%val)
 #else
-  call checkAndReportFloat(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check)
+  call checkAndReportFloat(int(product(dims), int64), tf, tb, c_loc(r), in_size, check)
 #endif
 
-  deallocate(inout)
+  deallocate(r, f)
   call mem_free_host(check)
   nullify(check_)
 
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
-  deallocate(inout_m)
+  deallocate(r_m, f_m)
+#endif
+
+  call plan%destroy()
+
+  if ( iter == 4 ) then
+    call MPI_Comm_free(comm, ierr)
+  endif
+
+  enddo
+
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   if ( platform == DTFFT_PLATFORM_CUDA ) then
     CUDA_CALL( cudaStreamDestroy(stream) )
   endif
 #endif
 
-  call plan%destroy()
   call MPI_Finalize(ierr)
 end program test_r2r_3d_float

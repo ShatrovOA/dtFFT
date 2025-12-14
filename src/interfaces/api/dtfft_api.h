@@ -60,13 +60,22 @@ extern int32_t
 dtfft_execute_c(const void*, void*, void*, const int32_t*, void*);
 
 extern int32_t
-dtfft_transpose_c(const void*, void*, void*, const int32_t*);
+dtfft_transpose_c(const void*, void*, void*, const int32_t*, void*);
 
 extern int32_t
-dtfft_transpose_start_c(const void*, void*, void*, const int32_t*, void**);
+dtfft_transpose_start_c(const void*, void*, void*, const int32_t*, void*, void**);
 
 extern int32_t
 dtfft_transpose_end_c(const void*, void**);
+
+extern int32_t
+dtfft_reshape_c(const void*, void*, void*, const int32_t*, void*);
+
+extern int32_t
+dtfft_reshape_start_c(const void*, void*, void*, const int32_t*, void*, void**);
+
+extern int32_t
+dtfft_reshape_end_c(const void*, void**);
 
 extern int32_t
 dtfft_destroy_c(void**);
@@ -76,6 +85,12 @@ dtfft_get_local_sizes_c(const void*, int32_t*, int32_t*, int32_t*, int32_t*, siz
 
 extern int32_t
 dtfft_get_alloc_size_c(const void*, size_t*);
+
+extern int32_t
+dtfft_get_aux_size_c(const void*, size_t*);
+
+extern int32_t
+dtfft_get_aux_bytes_c(const void*, size_t*);
 
 extern int32_t
 dtfft_mem_alloc_c(const void*, size_t, void**);
@@ -125,8 +140,14 @@ dtfft_get_grid_dims_c(const void*, int8_t*, int32_t**);
 extern int32_t
 dtfft_get_backend_c(const void*, int32_t*);
 
+extern int32_t
+dtfft_get_reshape_backend_c(const void*, int32_t*);
+
 extern void
 dtfft_get_backend_string_c(const int32_t*, char*, size_t*);
+
+extern
+bool dtfft_get_backend_pipelined_c(int32_t*);
 
 #ifdef DTFFT_WITH_CUDA
 extern int32_t

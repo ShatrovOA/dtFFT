@@ -28,12 +28,18 @@ subroutine GET_SUB_NAME(execute)(self, in, out, neighbor)
     CONVERT_POINTER(in, inbuf)
     CONVERT_POINTER(out, outbuf)
 
-    if ( self%kernel_type == KERNEL_UNPACK .or. self%kernel_type == KERNEL_UNPACK_PIPELINED ) then
+    if (  any(self%kernel_type == [KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED, KERNEL_PACK, KERNEL_COPY, KERNEL_COPY_PIPELINED]) ) then
         select case( self%kernel_type%val )
         case( KERNEL_UNPACK%val )
             call GET_SUB_NAME(unpack)(inbuf, outbuf, self%dims, self%neighbor_data)
         case( KERNEL_UNPACK_PIPELINED%val )
             call GET_SUB_NAME(unpack_pipelined)(inbuf, outbuf, self%dims, self%neighbor_data(:, neighbor))
+        case ( KERNEL_PACK%val )
+            call GET_SUB_NAME(pack)(inbuf, outbuf, self%dims, self%neighbor_data)
+        case ( KERNEL_COPY%val )
+            call GET_SUB_NAME(copy)(inbuf, outbuf, self%dims)
+        case ( KERNEL_COPY_PIPELINED%val )
+            call GET_SUB_NAME(copy)(inbuf, outbuf, self%neighbor_data(1:3, neighbor), self%neighbor_data(4:5, neighbor))
         endselect
         return
     endif
@@ -114,8 +120,8 @@ pure subroutine GET_SUB_NAME(permute_forward_write)(in, out, dims)
 !!   out(x,y,z) = in(z,x,y) for 3D arrays
 !!
 !!   out(x,y)   = in(y,x)   for 2D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)    !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)   !! Target host-allocated buffer
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)  !! Dimensions of the array
     integer(int32) :: x,y,z,nx,ny,nz,iidx,oidx
     integer(int32) :: nx_ny, ny_nz, obase, ibase
@@ -156,8 +162,8 @@ pure subroutine GET_SUB_NAME(permute_forward_read)(in, out, dims)
 !!   out(x,y,z) = in(z,x,y) for 3D arrays
 !!
 !!   out(x,y)   = in(y,x)   for 2D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)    !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)   !! Target host-allocated buffer
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)  !! Dimensions of the array
     integer(int32) :: x,y,z,nx,ny,nz,iidx,oidx
     integer(int32) :: nx_ny, ny_nz, obase, ibase
@@ -196,8 +202,8 @@ pure subroutine GET_SUB_NAME(permute_backward_write)(in, out, dims)
 !! Backward permutation is defined as:
 !!
 !!   out(x,y,z) = in(y,z,x) for 3D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)    !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)   !! Target host-allocated buffer
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)  !! Dimensions of the array
     integer(int32) :: x,y,z,nx,ny,nz,iidx,oidx
     integer(int32) :: nx_ny, obase, ibase, nz_nx
@@ -224,8 +230,8 @@ pure subroutine GET_SUB_NAME(permute_backward_read)(in, out, dims)
 !! Backward permutation is defined as:
 !!
 !!   out(x,y,z) = in(y,z,x) for 3D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)    !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)   !! Target host-allocated buffer
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)  !! Dimensions of the array
     integer(int32) :: x,y,z,nx,ny,nz,iidx
     integer(int32) :: nx_ny, obase, ibase, nz_nx
@@ -251,8 +257,8 @@ pure subroutine GET_SUB_NAME(permute_backward_start_write)(in, out, dims)
 !! Backward permutation start is defined as:
 !!
 !!   out(x,y,z) = in(z,y,x) for 3D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)    !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)   !! Target host-allocated buffer
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)  !! Dimensions of the array
     integer(int32) :: x,y,z,nx,ny,nz,oidx
     integer(int32) :: nx_ny, nz_ny, obase, ibase
@@ -279,8 +285,8 @@ pure subroutine GET_SUB_NAME(permute_backward_start_read)(in, out, dims)
 !! Backward permutation start is defined as:
 !!
 !!   out(x,y,z) = in(z,y,x) for 3D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)    !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)   !! Target host-allocated buffer
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)  !! Dimensions of the array
     integer(int32) :: x,y,z,nx,ny,nz,iidx
     integer(int32) :: nx_ny, nz_ny, obase, ibase
@@ -307,10 +313,10 @@ pure subroutine GET_SUB_NAME(permute_backward_end_pipelined_write)(in, out, dims
 !! Backward permutation end is defined as:
 !!
 !!   out(x,y,z) = in(x,z,y) for 3D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)              !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)             !! Target host-allocated buffer
-    integer(int32), intent(in)    :: dims(*)            !! Dimensions of the array
-    integer(int32), intent(in)    :: locals(*)   !! Neighbor data
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(BUFFER_SPEC)            !! Dimensions of the array
+    integer(int32), intent(in)    :: locals(BUFFER_SPEC)   !! Neighbor data
     integer(int32) :: y,z,nx,ny,nz,nxx,nyy,nzz,iidx,oidx,din,dout
     integer(int32) :: nx_ny, obase, ibase, nzz_nxx
 
@@ -337,9 +343,9 @@ pure subroutine GET_SUB_NAME(permute_backward_end_write)(in, out, dims, locals)
 !! Backward permutation end is defined as:
 !!
 !!   out(z,x,y) = in(z,y,x) for 3D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)              !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)             !! Target host-allocated buffer
-    integer(int32), intent(in)    :: dims(*)            !! Dimensions of the array
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(BUFFER_SPEC)            !! Dimensions of the array
     integer(int32), intent(in)    :: locals(:,:)        !! Neighbor data
     integer(int32)  :: neighbor !! Neighbor index
 
@@ -354,10 +360,10 @@ pure subroutine GET_SUB_NAME(permute_backward_end_pipelined_read)(in, out, dims,
 !! Backward permutation end is defined as:
 !!
 !!   out(x,y,z) = in(x,z,y) for 3D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)              !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)             !! Target host-allocated buffer
-    integer(int32), intent(in)    :: dims(*)            !! Dimensions of the array
-    integer(int32), intent(in)    :: locals(*)   !! Neighbor data
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(BUFFER_SPEC)            !! Dimensions of the array
+    integer(int32), intent(in)    :: locals(BUFFER_SPEC)   !! Neighbor data
     integer(int32) :: y,z,nx,ny,nz,nxx,nyy,nzz,iidx,oidx,din,dout
     integer(int32) :: nx_ny, obase, ibase, nzz_nxx
 
@@ -384,9 +390,9 @@ pure subroutine GET_SUB_NAME(permute_backward_end_read)(in, out, dims, locals)
 !! Backward permutation end is defined as:
 !!
 !!   out(z,x,y) = in(z,y,x) for 3D arrays
-    BUFFER_TYPE,    intent(in)    :: in(*)          !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)         !! Target host-allocated buffer
-    integer(int32), intent(in)    :: dims(*)        !! Dimensions of the array
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)          !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)         !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(BUFFER_SPEC)        !! Dimensions of the array
     integer(int32), intent(in)    :: locals(:,:)    !! Neighbor data
     integer(int32)                :: local          !! Neighbor index
 
@@ -400,13 +406,13 @@ pure subroutine GET_SUB_NAME(unpack_pipelined)(in, out, dims, locals)
 !!
 !! For 3D arrays:
 !!
-!!  out(x + in_displacement, y, z) = in(out_displacement + z * nxx * nyy + y * nxx + x)
+!!  out(x + out_displacement, y, z) = in(in_displacement + z * nxx * nyy + y * nxx + x)
 !!
 !! where `out` buffer x,y,z are full slab indices, while `in` buffer x,y,z are indices that were sent from neighbor rank.
-    BUFFER_TYPE,    intent(in)    :: in(*)              !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)             !! Target host-allocated buffer
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)            !! Dimensions of the array
-    integer(int32), intent(in)    :: locals(*)          !! Neighbor data
+    integer(int32), intent(in)    :: locals(BUFFER_SPEC)          !! Neighbor data
     integer(int32) :: y,z,nx,ny, nxx,nyy,nzz,iidx,oidx,din,dout
     integer(int32) :: nx_ny, obase, ibase, nxx_nyy
 
@@ -438,8 +444,8 @@ end subroutine GET_SUB_NAME(unpack_pipelined)
 
 pure subroutine GET_SUB_NAME(unpack)(in, out, dims, locals)
 !! Unpacks pack of contiguous buffer recieved from all ranks, BUFFER_TYPE version.
-    BUFFER_TYPE,    intent(in)    :: in(*)              !! Source host-allocated buffer
-    BUFFER_TYPE,    intent(inout) :: out(*)             !! Target host-allocated buffer
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)            !! Dimensions of the array
     integer(int32), intent(in)    :: locals(:,:) !! Neighbor data
     integer(int32)  :: neighbor !! Neighbor index
@@ -448,6 +454,74 @@ pure subroutine GET_SUB_NAME(unpack)(in, out, dims, locals)
         call GET_SUB_NAME(unpack_pipelined)(in, out, dims, locals(:, neighbor))
     enddo
 end subroutine GET_SUB_NAME(unpack)
+
+pure subroutine GET_SUB_NAME(pack_pipelined)(in, out, dims, locals)
+!! Pack part `in` buffer into contiguous buffer in order to send to a single rank, BUFFER_TYPE version.
+!!
+!! For 3D arrays:
+!!
+!!  out(out_displacement + z * nxx * nyy + y * nxx + x) = in(x + in_displacement, y, z)
+!!
+!! where `in` buffer x,y,z are full slab indices, while `out` buffer x,y,z are indices that are to be send to neighbor rank.
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(:)            !! Dimensions of the array
+    integer(int32), intent(in)    :: locals(BUFFER_SPEC)          !! Neighbor data
+    integer(int32) :: y,z,nx,ny, nxx,nyy,nzz,iidx,oidx,din,dout
+    integer(int32) :: nx_ny, obase, ibase, nxx_nyy
+
+    nx = dims(1); ny = dims(2)
+    nxx = locals(1); nyy = locals(2)
+    din = locals(4); dout = locals(5)
+
+    if ( size(dims) == 2 ) then
+        do y = 0, nyy - 1
+            iidx = din + y * nx + 1
+            oidx = dout + y * nxx + 1
+            out(oidx:oidx + nxx - 1) = in(iidx:iidx + nxx - 1)
+        enddo
+        return
+    endif
+
+    nzz = locals(3)
+    nx_ny = nx * ny
+    nxx_nyy = nxx * nyy
+    do z = 0, nzz - 1
+        ibase = din + z * nx_ny + 1
+        obase = dout + z * nxx_nyy + 1
+        do y = 0, nyy - 1
+            iidx = ibase + y * nx
+            oidx = obase + y * nxx
+            out(oidx:oidx + nxx - 1) = in(iidx:iidx + nxx - 1)
+        enddo
+    enddo
+end subroutine GET_SUB_NAME(pack_pipelined)
+
+pure subroutine GET_SUB_NAME(pack)(in, out, dims, locals)
+!! Unpacks pack of contiguous buffer recieved from all ranks, BUFFER_TYPE version.
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(:)            !! Dimensions of the array
+    integer(int32), intent(in)    :: locals(:,:) !! Neighbor data
+    integer(int32)  :: neighbor !! Neighbor index
+
+    do neighbor = 1, size(locals, dim=2)
+        call GET_SUB_NAME(pack_pipelined)(in, out, dims, locals(:, neighbor))
+    enddo
+end subroutine GET_SUB_NAME(pack)
+
+pure subroutine GET_SUB_NAME(copy)(in, out, dims, starts)
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(:)            !! Dimensions of the array
+    integer(int32), intent(in), optional :: starts(2)
+    integer(int32) :: n_elements, starts_(2)
+
+    starts_(:) = 1; if ( present(starts) ) starts_(:) = starts_(:) + starts(:)
+    n_elements = product(dims)
+    out(starts_(2):starts_(2) + n_elements - 1) = in(starts_(1):starts_(1) + n_elements - 1)
+end subroutine GET_SUB_NAME(copy)
+
 
 #define BLOCK_SIZE 16
 #include "_dtfft_kernel_host_block_routines.inc"

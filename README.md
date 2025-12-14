@@ -16,19 +16,19 @@ Key benefits: Zero-copy transpositions, GPU acceleration, and seamless MPI/CUDA 
 dtFFT aims to optimize following cycles of transformations (forward and backward):
 
 ```math
-X \times \dfrac{Y}{P_1} \to Y \times \dfrac{X}{P_1}
+\dfrac{X}{P_0} \times \dfrac{Y}{P_1} \xrightarrow[]{reshape} X \times \dfrac{Y}{P_0P_1} \xrightarrow[]{transpose}  Y \times \dfrac{X}{P_0P_1} \xrightarrow[]{reshape} \dfrac{Y}{P_1} \times \dfrac{X}{P_0}
 ```
 for 2D case, and
 ```math
-X \times \dfrac{Y}{P_1} \times \dfrac{Z}{P_2} \to Y \times \dfrac{Z}{P_2} \times \dfrac{X}{P_1} \to Z \times \dfrac{X}{P_1} \times \dfrac{Y}{P_2}
+\dfrac{X}{P_0} \times \dfrac{Y}{P_1} \times \dfrac{Z}{P_2} \xrightarrow[]{reshape} X \times \dfrac{Y}{Q_1} \times \dfrac{Z}{Q_2} \xrightarrow[]{transpose} Y \times \dfrac{Z}{Q_2} \times \dfrac{X}{Q_1} \xrightarrow[]{transpose} Z \times \dfrac{X}{Q_1} \times \dfrac{Y}{Q_2} \xrightarrow[]{reshape} \dfrac{Z}{P_2} \times \dfrac{X}{Q_1} \times \dfrac{Y}{Q_2'}
 ```
-for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, and $P_1, P_2$ are the number of processes in the $Y$ and $Z$ directions, respectively.
+for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being the fastest varying index and $P_0, P_1, P_2, Q_1, Q_2, Q_2'$ are the number of processes in the appropriate direction.
 
 ## Features
 - **Transform Types**: R2C, C2C, and R2R transforms
 - **Precision**: Single and double precision support
 - **Interfaces**: Fortran, C, and C++ APIs
-- **Decompositions**: 2D and 3D transposition plans with Slab and Pencil modes
+- **Decompositions**: 2D and 3D transposition plans with Bricks, Pencils and Slab decompositions support
 - **Transpositions**: Custom MPI datatypes enhanced with standard host-based transpositions
 - **GPU Support**: CUDA acceleration with runtime kernel compilation
 - **FFT Libraries**: built-in support:
@@ -108,7 +108,6 @@ The following is an ambitious list of features to implement. The items are in no
 - nvSHMEM-based backends
 - HIP platform
 - zfp compression
-- 3d grid decomposition (bricks)
 - Ghost boundaries and support for halo exchange
 - long double/quad precision
 

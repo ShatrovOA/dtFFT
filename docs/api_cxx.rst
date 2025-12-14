@@ -34,6 +34,10 @@ Enumerators
 
 .. doxygenenum:: dtfft::Platform
 
+.. doxygenenum:: dtfft::Layout
+
+.. doxygenenum:: dtfft::Reshape
+
 Functions
 =========
 
@@ -46,6 +50,8 @@ Functions
 .. doxygenfunction:: dtfft::get_executor_string
 
 .. doxygenfunction:: dtfft::set_config
+
+.. doxygenfunction:: dtfft::get_backend_pipelined
 
 Structs
 =======

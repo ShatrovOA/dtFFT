@@ -17,17 +17,16 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
-module dtfft_transpose_handle_datatype
-!! This module describes [[transpose_handle_datatype]] class
-!! This class implements transposition using MPI_Ialltoall(w)
-!! with custom MPI datatypes
+module dtfft_reshape_handle_datatype
+!! This module describes [[reshape_handle_datatype]] class
+!! It executes either transposition or reshaping from bricks to pencils and vice versa using MPI_Ialltoall(w) with custom MPI datatypes
 !! For the end user this is `DTFFT_BACKEND_MPI_DATATYPE` - backend.
-!! But since it does not perform sequence: transpose -> exchange -> unpack, it is internally treated as tranpose_handle.
+!! But since it does not perform sequence: transpose -> exchange -> unpack, it is internally treated as reshape_handle.
 use iso_fortran_env
-use dtfft_abstract_transpose_handle,  only: abstract_transpose_handle, create_args, execute_args
+use dtfft_abstract_reshape_handle,  only: abstract_reshape_handle, create_args, execute_args
 use dtfft_errors
 use dtfft_parameters
-use dtfft_pencil,     only: pencil, get_transpose_type
+use dtfft_pencil,     only: pencil
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
@@ -35,7 +34,7 @@ use dtfft_utils
 #include "_dtfft_cuda.h"
 implicit none
 private
-public :: transpose_handle_datatype
+public :: reshape_handle_datatype
 
   integer(MPI_ADDRESS_KIND), parameter :: LB = 0
   !! Lower bound for all derived datatypes
@@ -69,8 +68,9 @@ public :: transpose_handle_datatype
     procedure, pass(self) :: destroy => destroy_handle        !! Destroys transposition handle
   end type handle_t
 
-  type, extends(abstract_transpose_handle) :: transpose_handle_datatype
-  !! Tranpose backend that uses MPI_Ialltoall(w) with custom MPI datatypes
+
+  type, extends(abstract_reshape_handle) :: reshape_handle_datatype
+  !! Transpose backend that uses MPI_Ialltoall(w) with custom MPI datatypes
   private
     TYPE_MPI_COMM                   :: comm                   !! 1d communicator
     logical                         :: is_even = .false.      !! Is decomposition even
@@ -89,13 +89,13 @@ public :: transpose_handle_datatype
     procedure, pass(self),  public  :: execute_end            !! Waits for MPI_Ialltoall(w) to complete
     procedure, pass(self),  public  :: destroy                !! Destroys class
     procedure, pass(self),  public  :: get_async_active       !! Returns .true. if async transposition is active
-  end type transpose_handle_datatype
+  end type reshape_handle_datatype
 
 contains
 
   subroutine create_handle(self, n)
-  !! Creates transposition handle
-    class(handle_t),  intent(inout) :: self   !! Transposition handle
+  !! Creates reshape handle
+    class(handle_t),  intent(inout) :: self   !! Reshape handle
     integer(int32),   intent(in)    :: n      !! Number of datatypes to be created
 
     call self%destroy()
@@ -105,8 +105,8 @@ contains
   end subroutine create_handle
 
   subroutine destroy_handle(self)
-  !! Destroys transposition handle
-    class(handle_t),  intent(inout)   :: self   !! Transposition handle
+  !! Destroys reshape handle
+    class(handle_t),  intent(inout)   :: self   !! Reshape handle
     integer(int32)                    :: i      !! Counter
     integer(int32)                    :: ierr   !! Error code
 
@@ -120,14 +120,12 @@ contains
     if ( allocated(self%counts) ) deallocate(self%counts)
   end subroutine destroy_handle
 
-  subroutine create(self, comm, send, recv, transpose_type, base_storage, kwargs)
-  !! Creates `transpose_handle_datatype` class
-    class(transpose_handle_datatype), intent(inout) :: self           !! Transpose handle
+  subroutine create(self, comm, send, recv, kwargs)
+  !! Creates `reshape_handle_datatype` class
+    class(reshape_handle_datatype),   intent(inout) :: self           !! Reshape handle
     TYPE_MPI_COMM,                    intent(in)    :: comm           !! MPI Communicator
     type(pencil),                     intent(in)    :: send           !! Send pencil
     type(pencil),                     intent(in)    :: recv           !! Recv pencil
-    type(dtfft_transpose_t),          intent(in)    :: transpose_type !! Type of transpose to create
-    integer(int64),                   intent(in)    :: base_storage   !! Base storage
     type(create_args),                intent(in)    :: kwargs         !! Additional arguments
     integer(int32)                              :: comm_size          !! Size of 1d communicator
     integer(int32)                              :: n_neighbors        !! Number of datatypes to be created
@@ -136,6 +134,11 @@ contains
     integer(int32)                              :: i                  !! Counter
     integer(int32)                              :: ierr               !! Error code
     integer(int32) :: send_displ, recv_displ
+    type(dtfft_transpose_t) :: transpose_type
+    type(dtfft_reshape_t)   :: reshape_type
+    integer(int8) :: plan_id
+    TYPE_MPI_DATATYPE :: base_type
+    integer(int64) :: base_storage
 
     call self%destroy()
     self%comm = comm
@@ -157,22 +160,49 @@ contains
     allocate(send_counts, source = recv_counts)
     call MPI_Allgather(recv%counts, int(recv%rank, int32), MPI_INTEGER4, recv_counts, int(recv%rank, int32), MPI_INTEGER4, comm, ierr)
     call MPI_Allgather(send%counts, int(send%rank, int32), MPI_INTEGER4, send_counts, int(send%rank, int32), MPI_INTEGER4, comm, ierr)
+
+    transpose_type = kwargs%helper%transpose_type
+    reshape_type = kwargs%helper%reshape_type
+    plan_id = kwargs%datatype_id
+    base_type = kwargs%base_type
+    base_storage = kwargs%base_storage
+
     do i = 1, n_neighbors
-      if ( send%rank == 2 ) then
-        call create_transpose_2d(send, send_counts(:,i), recv, recv_counts(:,i), kwargs%datatype_id, kwargs%base_type, base_storage,      &
-          self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
-      else if ( any( transpose_type == [DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_Z]) ) then
-        call create_forw_permutation(send, send_counts(:,i), recv, recv_counts(:,i), kwargs%datatype_id, kwargs%base_type, base_storage,  &
-          self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
-      else if ( any( transpose_type == [DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y]) ) then
-        call create_back_permutation(send, send_counts(:,i), recv, recv_counts(:,i), kwargs%datatype_id, kwargs%base_type, base_storage,  &
-          self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
-      else if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z ) then
-        call create_transpose_XZ(send, send_counts(:,i), recv, recv_counts(:,i), kwargs%datatype_id, kwargs%base_type, base_storage,      &
-          self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+      if ( self%is_transpose ) then
+        if ( send%rank == 2 ) then
+          call create_transpose_2d(send, send_counts(:,i), recv, recv_counts(:,i), plan_id, base_type, base_storage,      &
+            self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+        else if ( any( transpose_type == [DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_Z]) ) then
+          call create_forw_permutation(send, send_counts(:,i), recv, recv_counts(:,i), plan_id, base_type, base_storage,  &
+            self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+        else if ( any( transpose_type == [DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y]) ) then
+          call create_back_permutation(send, send_counts(:,i), recv, recv_counts(:,i), plan_id, base_type, base_storage,  &
+            self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+        else if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z ) then
+          call create_transpose_XZ(send, send_counts(:,i), recv, recv_counts(:,i), plan_id, base_type, base_storage,      &
+            self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+        else
+          call create_transpose_ZX(send, send_counts(:,i), recv, recv_counts(:,i), plan_id, base_type, base_storage,      &
+            self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+        endif
       else
-        call create_transpose_ZX(send, send_counts(:,i), recv, recv_counts(:,i), kwargs%datatype_id, kwargs%base_type, base_storage,      &
-          self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+        if ( reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS ) then
+          if ( send%rank == 2 ) then
+            call create_reshape_21(send, send_counts(:,i), recv, recv_counts(:,i), base_type, base_storage,               &
+              self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+          else
+            call create_reshape_32(send, send_counts(:,i), recv, recv_counts(:,i), base_type, base_storage,               &
+              self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+          endif
+        else
+          if ( send%rank == 2 ) then
+            call create_reshape_12(send, send_counts(:,i), recv, recv_counts(:,i), base_type, base_storage,               &
+              self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+          else
+            call create_reshape_23(send, send_counts(:,i), recv, recv_counts(:,i), base_type, base_storage,               &
+              self%send%dtypes(i), send_displ, self%recv%dtypes(i), recv_displ)
+          endif
+        endif
       endif
       if ( self%is_even ) then
         self%send%displs(i) = send_displ
@@ -214,8 +244,8 @@ contains
   end subroutine create
 
   subroutine execute(self, in, out, kwargs, error_code)
-  !! Executes transposition
-    class(transpose_handle_datatype), intent(inout) :: self       !! Transpose handle
+  !! Executes transposition/reshaping
+    class(reshape_handle_datatype),   intent(inout) :: self       !! Datatype handle
     real(real32),                     intent(inout) :: in(:)      !! Send pointer
     real(real32),                     intent(inout) :: out(:)     !! Recv pointer
     type(execute_args),               intent(inout) :: kwargs     !! Additional arguments
@@ -229,7 +259,6 @@ contains
     endif
 
     call MPI_Comm_size(self%comm, comm_size, ierr)
-
 #if defined (ENABLE_PERSISTENT_COMM)
     if ( .not. self%is_request_created ) then
 # if defined(ENABLE_PERSISTENT_COLLECTIVES)
@@ -336,8 +365,8 @@ contains
   end subroutine execute
 
   subroutine execute_end(self, kwargs, error_code)
-  !! Ends execution of transposition
-    class(transpose_handle_datatype), intent(inout) :: self       !! Transpose handle
+  !! Ends execution of transposition/reshaping
+    class(reshape_handle_datatype),   intent(inout) :: self       !! Datatype handle
     type(execute_args),               intent(inout) :: kwargs     !! Additional arguments
     integer(int32),                   intent(out)   :: error_code !! Error code
     integer(int32)  :: ierr         !! Error code
@@ -352,14 +381,14 @@ contains
   end subroutine execute_end
 
   elemental logical function get_async_active(self)
-  !! Returns if async transpose is active
-    class(transpose_handle_datatype), intent(in)    :: self         !! Transpose handle
+  !! Returns if async transpose/reshape is active
+    class(reshape_handle_datatype),   intent(in)    :: self         !! Datatype handle
     get_async_active = self%is_active
   end function get_async_active
 
   subroutine destroy(self)
-  !! Destroys `transpose_handle_datatype` class
-    class(transpose_handle_datatype), intent(inout) :: self         !! Transpose handle
+  !! Destroys `reshape_handle_datatype` class
+    class(reshape_handle_datatype),   intent(inout) :: self         !! Datatype handle
 
     call self%send%destroy()
     call self%recv%destroy()
@@ -622,6 +651,127 @@ contains
     call MPI_Type_commit(recv_dtype, ierr)
   end subroutine create_transpose_ZX
 
+  subroutine create_reshape_32(send, send_counts, recv, recv_counts, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)
+  !! Creates reshape datatypes from 3d bricks to 2d pencils
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE,            intent(out)   :: send_dtype         !! Datatype used to send data
+    integer(int32),               intent(out)   :: send_displ         !! Send displacement in bytes
+    TYPE_MPI_DATATYPE,            intent(out)   :: recv_dtype         !! Datatype used to recv data
+    integer(int32),               intent(out)   :: recv_displ         !! Recv displacement in bytes
+    TYPE_MPI_DATATYPE   :: temp1
+    integer(int32)      :: ierr                 !! Error code
+
+    if ( send%counts(2) == recv_counts(2) ) then
+    ! Z - slab
+      send_displ = send%counts(1) * send%counts(2) * recv_counts(3) * int(base_storage, int32)
+      call MPI_Type_contiguous(send%counts(1) * send%counts(2) * recv_counts(3), base_type, send_dtype, ierr)
+    else
+    ! Pencil or Y - slab
+      send_displ = send%counts(1) * recv_counts(2) * int(base_storage, int32)
+      call MPI_Type_vector(recv_counts(3), send%counts(1) * recv_counts(2), send%counts(1) * send%counts(2), base_type, temp1, ierr)
+      call MPI_Type_create_resized(temp1, LB, int(send_displ, MPI_ADDRESS_KIND), send_dtype, ierr)
+      call free_datatypes(temp1)
+    endif
+    call MPI_Type_commit(send_dtype, ierr)
+
+    recv_displ = send_counts(1) * int(base_storage, int32)
+    call MPI_Type_vector(recv%counts(2) * recv%counts(3), send_counts(1), recv%counts(1), base_type, temp1, ierr)
+    call MPI_Type_create_resized(temp1, LB, int(recv_displ, MPI_ADDRESS_KIND), recv_dtype, ierr)
+    call MPI_Type_commit(recv_dtype, ierr)
+    call free_datatypes(temp1)
+  end subroutine create_reshape_32
+
+  subroutine create_reshape_23(send, send_counts, recv, recv_counts, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)
+  !! Creates reshape datatypes from 2d pencils to 3d bricks
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE,            intent(out)   :: send_dtype         !! Datatype used to send data
+    integer(int32),               intent(out)   :: send_displ         !! Send displacement in bytes
+    TYPE_MPI_DATATYPE,            intent(out)   :: recv_dtype         !! Datatype used to recv data
+    integer(int32),               intent(out)   :: recv_displ         !! Recv displacement in bytes
+    TYPE_MPI_DATATYPE   :: temp1
+    integer(int32)      :: ierr                 !! Error code
+
+
+    send_displ = recv_counts(1) * int(base_storage, int32)
+    call MPI_Type_vector(send%counts(2) * send%counts(3), recv_counts(1), send%counts(1), base_type, temp1, ierr)
+    call MPI_Type_create_resized(temp1, LB, int(send_displ, MPI_ADDRESS_KIND), send_dtype, ierr)
+    call free_datatypes(temp1)
+    call MPI_Type_commit(send_dtype, ierr)
+
+    if ( send%counts(2) == recv_counts(2) ) then
+      recv_displ = recv%counts(1) * recv%counts(2) * send_counts(3) * int(base_storage, int32)
+      call MPI_Type_contiguous(recv%counts(1) * recv%counts(2) * send_counts(3), base_type, recv_dtype, ierr)
+    else
+      recv_displ = recv%counts(1) * send_counts(2) * int(base_storage, int32)
+      call MPI_Type_vector(send_counts(3), recv%counts(1) * send_counts(2), recv%counts(1) * recv%counts(2), base_type, temp1, ierr)
+      call MPI_Type_create_resized(temp1, LB, int(recv_displ, MPI_ADDRESS_KIND), recv_dtype, ierr)
+      call free_datatypes(temp1)
+    endif
+    call MPI_Type_commit(recv_dtype, ierr)
+  end subroutine create_reshape_23
+
+  subroutine create_reshape_21(send, send_counts, recv, recv_counts, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)
+  !! Creates reshape datatypes for 2D data: from 2d bricks to 1d slabs
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE,            intent(out)   :: send_dtype         !! Datatype used to send data
+    integer(int32),               intent(out)   :: send_displ         !! Send displacement in bytes
+    TYPE_MPI_DATATYPE,            intent(out)   :: recv_dtype         !! Datatype used to recv data
+    integer(int32),               intent(out)   :: recv_displ         !! Recv displacement in bytes
+    TYPE_MPI_DATATYPE   :: temp1
+    integer(int32)      :: ierr                 !! Error code
+
+    send_displ = send%counts(1) * recv_counts(2) * int(base_storage, int32)
+    call MPI_Type_contiguous(send%counts(1) * recv_counts(2), base_type, send_dtype, ierr)
+    call MPI_Type_commit(send_dtype, ierr)
+
+    recv_displ = send_counts(1) * int(base_storage, int32)
+    call MPI_Type_vector(recv%counts(2), send_counts(1), recv%counts(1), base_type, temp1, ierr)
+    call MPI_Type_create_resized(temp1, LB, int(recv_displ, MPI_ADDRESS_KIND), recv_dtype, ierr)
+    call MPI_Type_commit(recv_dtype, ierr)
+    call free_datatypes(temp1)
+  end subroutine create_reshape_21
+
+  subroutine create_reshape_12(send, send_counts, recv, recv_counts, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)
+  !! Creates reshape datatypes for 2D data: from 1d slabs to 2d bricks
+    class(pencil),                intent(in)    :: send               !! Information about send buffer
+    integer(int32),               intent(in)    :: send_counts(:)     !! Rank i is sending this counts
+    class(pencil),                intent(in)    :: recv               !! Information about send buffer
+    integer(int32),               intent(in)    :: recv_counts(:)     !! Rank i is recieving this counts
+    TYPE_MPI_DATATYPE,            intent(in)    :: base_type          !! Base MPI_Datatype
+    integer(int64),               intent(in)    :: base_storage       !! Number of bytes needed to store single element
+    TYPE_MPI_DATATYPE,            intent(out)   :: send_dtype         !! Datatype used to send data
+    integer(int32),               intent(out)   :: send_displ         !! Send displacement in bytes
+    TYPE_MPI_DATATYPE,            intent(out)   :: recv_dtype         !! Datatype used to recv data
+    integer(int32),               intent(out)   :: recv_displ         !! Recv displacement in bytes
+    TYPE_MPI_DATATYPE   :: temp1
+    integer(int32)      :: ierr                 !! Error code
+
+    send_displ = recv_counts(1) * int(base_storage, int32)
+    call MPI_Type_vector(send%counts(2), recv_counts(1), send%counts(1), base_type, temp1, ierr)
+    call MPI_Type_create_resized(temp1, LB, int(send_displ, MPI_ADDRESS_KIND), send_dtype, ierr)
+    call MPI_Type_commit(send_dtype, ierr)
+    call free_datatypes(temp1)
+
+    recv_displ = recv%counts(1) * send_counts(2) * int(base_storage, int32)
+    call MPI_Type_contiguous(recv%counts(1) * send_counts(2), base_type, recv_dtype, ierr)
+    call MPI_Type_commit(recv_dtype, ierr)
+  end subroutine create_reshape_12
+
   subroutine free_datatypes(t1, t2, t3, t4)
   !! Frees temporary datatypes
     TYPE_MPI_DATATYPE,  intent(inout), optional :: t1     !! Temporary datatype
@@ -635,4 +785,4 @@ contains
     if ( present(t3) ) call MPI_Type_free(t3, ierr)
     if ( present(t4) ) call MPI_Type_free(t4, ierr)
   end subroutine free_datatypes
-end module dtfft_transpose_handle_datatype
+end module dtfft_reshape_handle_datatype

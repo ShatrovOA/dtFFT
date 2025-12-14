@@ -24,7 +24,8 @@
  * @brief File containing C++ API of dtFFT Library
  */
 
-#pragma once
+#ifndef DTFFT_HPP
+#define DTFFT_HPP
 
 #include "dtfft.h"
 #include <cstdint>
@@ -124,8 +125,8 @@ enum class Error {
     INPLACE_TRANSPOSE = DTFFT_ERROR_INPLACE_TRANSPOSE,
     /** Invalid `aux` buffer provided */
     INVALID_AUX = DTFFT_ERROR_INVALID_AUX,
-    /** Invalid `dim` passed to `Plan.get_pencil` */
-    INVALID_DIM = DTFFT_ERROR_INVALID_DIM,
+    /** Invalid `layout` passed to `Plan.get_pencil` */
+    INVALID_LAYOUT = DTFFT_ERROR_INVALID_LAYOUT,
     /** Invalid API Usage. */
     INVALID_USAGE = DTFFT_ERROR_INVALID_USAGE,
     /** Trying to create already created plan */
@@ -142,8 +143,8 @@ enum class Error {
     DLOPEN_FAILED = DTFFT_ERROR_DLOPEN_FAILED,
     /** Failed to dynamically load symbol */
     DLSYM_FAILED = DTFFT_ERROR_DLSYM_FAILED,
-    /** Calling to Plan.transpose for R2C plan is not allowed */
-    R2C_TRANSPOSE_CALLED = DTFFT_ERROR_R2C_TRANSPOSE_CALLED,
+    /** Deprecated/unused: R2C transpose call restriction (kept for backward compatibility of error code numbering) */
+    // R2C_TRANSPOSE_CALLED = DTFFT_ERROR_R2C_TRANSPOSE_CALLED,
     /** Sizes of `starts` and `counts` arrays passed to Pencil constructor do not
        match */
     PENCIL_ARRAYS_SIZE_MISMATCH = DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH,
@@ -174,6 +175,24 @@ enum class Error {
     TRANSPOSE_ACTIVE = DTFFT_ERROR_TRANSPOSE_ACTIVE,
     /** Attempting to finalize non-active transposition */
     TRANSPOSE_NOT_ACTIVE = DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE,
+    /** Invalid `reshape_type` provided */
+    INVALID_RESHAPE_TYPE = DTFFT_ERROR_INVALID_RESHAPE_TYPE,
+    /** Attempting to execute already active reshape */
+    RESHAPE_ACTIVE = DTFFT_ERROR_RESHAPE_ACTIVE,
+    /** Attempting to finalize non-active reshape */
+    RESHAPE_NOT_ACTIVE = DTFFT_ERROR_RESHAPE_NOT_ACTIVE,
+    /** Inplace reshape is not supported */
+    INPLACE_RESHAPE = DTFFT_ERROR_INPLACE_RESHAPE,
+    /** R2C reshape was called */
+    // R2C_RESHAPE_CALLED = DTFFT_ERROR_R2C_RESHAPE_CALLED,
+    /** Invalid `execute_type` provided */
+    INVALID_EXECUTE_TYPE = DTFFT_ERROR_INVALID_EXECUTE_TYPE,
+    /** Reshape is not supported for this plan */
+    RESHAPE_NOT_SUPPORTED = DTFFT_ERROR_RESHAPE_NOT_SUPPORTED,
+    /** Execute called for transpose-only R2C Plan */
+    R2C_EXECUTE_CALLED = DTFFT_ERROR_R2C_EXECUTE_CALLED,
+    /** Invalid cartesian communicator provided */
+    INVALID_CART_COMM = DTFFT_ERROR_INVALID_CART_COMM,
     /** Invalid stream provided */
     GPU_INVALID_STREAM = DTFFT_ERROR_GPU_INVALID_STREAM,
     /** Invalid backend provided */
@@ -247,6 +266,45 @@ enum class Transpose {
     Z_TO_X = DTFFT_TRANSPOSE_Z_TO_X
 };
 
+/** This enum lists valid `reshape_type` parameters that can be passed to
+ * Plan.reshape */
+enum class Reshape {
+    /** Reshape from X bricks to X pencils */
+    X_BRICKS_TO_PENCILS = DTFFT_RESHAPE_X_BRICKS_TO_PENCILS,
+    /** Reshape from X pencils to X bricks */
+    X_PENCILS_TO_BRICKS = DTFFT_RESHAPE_X_PENCILS_TO_BRICKS,
+    /** Reshape from Z bricks to Z pencils */
+    Z_BRICKS_TO_PENCILS = DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS,
+    /** Reshape from Z pencils to Z bricks */
+    Z_PENCILS_TO_BRICKS = DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS,
+    /** Reshape from Y-bricks to Y-pencils
+     * This is to be used in 2D Plans.
+     */
+    Y_BRICKS_TO_PENCILS = DTFFT_RESHAPE_Y_BRICKS_TO_PENCILS,
+    /** Reshape from Y-pencils to Y-bricks
+     * This is to be used in 2D Plans.
+     */
+    Y_PENCILS_TO_BRICKS = DTFFT_RESHAPE_Y_PENCILS_TO_BRICKS,
+};
+
+/** This enum represents different data layouts used in dtFFT and it should be
+ * used to retrieve layout information from plans. */
+enum class Layout {
+    /** X-brick layout: data is distributed along all dimensions */
+    X_BRICKS = DTFFT_LAYOUT_X_BRICKS,
+    /** X-pencil layout: data is distributed along Y and Z dimensions */
+    X_PENCILS = DTFFT_LAYOUT_X_PENCILS,
+    /** X-pencil layout obtained after executing FFT for R2C plan: data is
+       distributed along Y and Z dimensions */
+    X_PENCILS_FOURIER = DTFFT_LAYOUT_X_PENCILS_FOURIER,
+    /** Y-pencil layout: data is distributed along X and Z dimensions */
+    Y_PENCILS = DTFFT_LAYOUT_Y_PENCILS,
+    /** Z-pencil layout: data is distributed along X and Y dimensions */
+    Z_PENCILS = DTFFT_LAYOUT_Z_PENCILS,
+    /** Z-brick layout: data is distributed along all dimensions */
+    Z_BRICKS = DTFFT_LAYOUT_Z_BRICKS
+};
+
 /** This enum lists valid `precision` parameters that can be passed to Plan
  * constructors.
  * @see get_precision_string
@@ -254,7 +312,6 @@ enum class Transpose {
 enum class Precision {
     /** Use Single precision */
     SINGLE = DTFFT_SINGLE,
-
     /** Use Double precision */
     DOUBLE = DTFFT_DOUBLE
 };
@@ -281,7 +338,12 @@ enum class Effort {
 
     /** Same as Effort::MEASURE plus autotune will try to find best backend
      */
-    PATIENT = DTFFT_PATIENT
+    PATIENT = DTFFT_PATIENT,
+
+    /** Same as Effort::PATIENT plus will autotune all possible kernels
+     * and reshape backends to find best configuration.
+     */
+    EXHAUSTIVE = DTFFT_EXHAUSTIVE
 };
 
 /** This enum lists available FFT executors.
@@ -346,7 +408,7 @@ enum class Backend {
      *
      * Not really recommended to use for GPU usage, since it is a 'million' times
      * slower than other backends. Not available for autotune when `effort` is
-     * Effort::DTFFT_PATIENT in GPU build.
+     * Effort::PATIENT in GPU build.
      */
     MPI_DATATYPE = DTFFT_BACKEND_MPI_DATATYPE,
 
@@ -390,6 +452,15 @@ enum class Backend {
  * @return String representation of `backend`.
  */
 std::string get_backend_string(Backend backend);
+
+/**
+ * @brief Returns true if passed backend is pipelined and false otherwise.
+ *
+ * @param[in]         backend    Backend to check
+ *
+ * @return Logical flag
+ */
+bool get_backend_pipelined(Backend backend);
 
 #ifdef DTFFT_WITH_CUDA
 /** Enum that specifies runtime platform, e.g. Host, CUDA, HIP */
@@ -564,9 +635,7 @@ public:
     /**
      * @brief Sets number of warmup iterations to underlying C structure
      *
-     * @param[in] n_measure_warmup_iters    Number of warmup iterations for
-     *                                      transposition and data exchange to
-     *                                      perform when `effort` exceeds `::DTFFT_ESTIMATE`.
+     * @param[in] n_measure_warmup_iters    Number of warmup iterations to execute during backend and kernel autotuning when effort level is Effort::MEASURE or higher.
      */
     Config& set_measure_warmup_iters(int32_t n_measure_warmup_iters) noexcept
     {
@@ -575,9 +644,7 @@ public:
     }
     /**
      * @brief Sets number of actual iterations to underlying C structure
-     * @param[in] n_measure_iters           Number of actual iterations for
-     *                                      transposition and data exchange to
-     *                                      perform when `effort` exceeds `::DTFFT_ESTIMATE`.
+     * @param[in] n_measure_iters           Number of iterations to execute during backend and kernel autotuning when effort level is Effort::MEASURE or higher.
      */
     Config& set_measure_iters(int32_t n_measure_iters) noexcept
     {
@@ -589,11 +656,11 @@ public:
     /**
      * @brief Sets platform to execute plan.
      *
-     * Default is Platform::HOST
+     * @details Default is Platform::HOST.
      *
-     * @details This option is only defined with device support build.
-     * Even when dtFFT is build with device support it does not necessary means
-     * that all plans must be related to device.
+     * This option is only available when dtFFT is built with device support.
+     * Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
+     * This enables a single library installation to support both host and CUDA plans.
      */
     Config& set_platform(Platform platform) noexcept
     {
@@ -623,7 +690,9 @@ public:
      * @brief Sets Backend that will be used by dtFFT when `effort` is
      * Effort::ESTIMATE or Effort::MEASURE.
      *
-     * @details Default is Backend::NCCL
+     * @details Default for HOST platform is Backend::MPI_DATATYPE.
+     *
+     * Default for CUDA platform is Backend::NCCL if NCCL is enabled, otherwise Backend::MPI_P2P.
      */
     Config& set_backend(Backend backend) noexcept
     {
@@ -632,12 +701,26 @@ public:
     }
 
     /**
-     * @brief Should Backend::MPI_DATATYPE be enabled when `effort` is
-     * Effort::PATIENT or not.
+     * @brief Sets Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when `effort` is Effort::ESTIMATE or Effort::MEASURE.
      *
-     * @details Default is `true`
+     * @details Default for HOST platform is Backend::MPI_DATATYPE.
      *
-     * This option works only when executing on a host.
+     * Default for CUDA platform is Backend::NCCL if NCCL is enabled, otherwise Backend::MPI_P2P.
+     */
+    Config& set_reshape_backend(Backend backend) noexcept
+    {
+        config.reshape_backend = static_cast<dtfft_backend_t>(backend);
+        return *this;
+    }
+
+    /**
+     * @brief Should Backend::MPI_DATATYPE be considered for autotuning when `effort` is
+     * Effort::PATIENT or Effort::EXHAUSTIVE.
+     *
+     * @details Default is `true`.
+     *
+     * This option only works when `platform` is Platform::HOST.
+     * When `platform` is Platform::CUDA, Backend::MPI_DATATYPE is always disabled during autotuning.
      */
     Config& set_enable_datatype_backend(bool enable_datatype_backend) noexcept
     {
@@ -646,10 +729,9 @@ public:
     }
 
     /**
-     * @brief Should MPI Backends be enabled when `effort` is Effort:PATIENT or
-     * not.
+     * @brief Should MPI Backends be enabled when `effort` is Effort::PATIENT or Effort::EXHAUSTIVE.
      *
-     * @details Default is `false`
+     * @details Default is `false`.
      *
      * The following applies only to CUDA builds.
      * MPI Backends are disabled by default during autotuning process due to
@@ -677,12 +759,9 @@ public:
 
     /**
      * @brief Sets whether pipelined backends be enabled when `effort` is
-     * Effort::PATIENT or not.
+     * Effort::PATIENT or Effort::EXHAUSTIVE.
      *
-     * @details Default is `true`
-     *
-     * @note Pipelined backends require additional buffer that user has no control
-     * over.
+     * @details Default is `true`.
      */
     Config&
     set_enable_pipelined_backends(bool enable_pipelined_backends) noexcept
@@ -694,7 +773,7 @@ public:
 #ifdef DTFFT_WITH_CUDA
     /**
      * @brief Sets whether NCCL backends be enabled when `effort` is
-     * Effort::PATIENT or not.
+     * Effort::PATIENT or Effort::EXHAUSTIVE.
      * @details Default is `true`.
      * @note This method is only present in the API when ``dtFFT`` was compiled
      * with CUDA Support.
@@ -707,7 +786,7 @@ public:
 
     /**
      * @brief Should NVSHMEM backends be enabled when `effort` is Effort::PATIENT
-     * or not.
+     * or Effort::EXHAUSTIVE.
      * @details Default is `true`.
      * @note This method is only present in the API when ``dtFFT`` was compiled
      * with CUDA Support.
@@ -719,41 +798,35 @@ public:
     }
 #endif
     /**
-     * @brief Should dtFFT try to optimize NVRTC kernel block size when `effort`
-     * is `::DTFFT_PATIENT` or not.
-     * @details Default is `true`
-     * @note This method is only present in the API when ``dtFFT`` was compiled
-     * with CUDA Support.
-     */
-    Config&
-    set_enable_kernel_optimization(bool enable_kernel_optimization) noexcept
-    {
-        config.enable_kernel_optimization = enable_kernel_optimization;
-        return *this;
-    }
-    /**
-     * @brief Set number of NVRTC kernels to try when `effort` is
-     * `::DTFFT_PATIENT`.
-     * @details Default is 5.
-     * @note This method is only present in the API when ``dtFFT`` was compiled
-     * with CUDA Support.
-     */
-    Config& set_n_configs_to_test(int32_t n_configs_to_test) noexcept
-    {
-        config.n_configs_to_test = n_configs_to_test;
-        return *this;
-    }
-    /**
-     * @brief Sets whether kernel optimization should be enabled if `effort` is
-     * not `::DTFFT_PATIENT` or not.
+     * @brief Should dtFFT try to optimize kernel launch parameters during plan creation when `effort` is below Effort::EXHAUSTIVE.
+     *
      * @details Default is `false`.
-     * @note This method is only present in the API when ``dtFFT`` was compiled
-     * with CUDA Support.
+     *
+     * Kernel optimization is always enabled for Effort::EXHAUSTIVE effort level.
+     * Setting this option to true enables kernel optimization for lower effort levels (Effort::ESTIMATE, Effort::MEASURE, Effort::PATIENT).
+     * This may increase plan creation time but can improve runtime performance.
+     * Since kernel optimization is performed without data transfers, the time increase is usually minimal.
      */
     Config&
-    set_force_kernel_optimization(bool force_kernel_optimization) noexcept
+    set_enable_kernel_autotune(bool enable_kernel_autotune) noexcept
     {
-        config.force_kernel_optimization = force_kernel_optimization;
+        config.enable_kernel_autotune = enable_kernel_autotune;
+        return *this;
+    }
+
+    /**
+     * @brief Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to execute.
+     *
+     * @details Default is `false`.
+     *
+     * When enabled, data will be in brick layout in Fourier space, which may be useful for certain operations
+     * between forward and backward transforms. However, this requires additional data transpositions
+     * and will reduce overall FFT performance.
+     */
+    Config&
+    set_enable_fourier_reshape(bool enable_fourier_reshape) noexcept
+    {
+        config.enable_fourier_reshape = enable_fourier_reshape;
         return *this;
     }
 
@@ -827,41 +900,29 @@ public:
      * @brief Obtains pencil information from plan. This can be useful when user
      * wants to use own FFT implementation, that is unavailable in dtFFT.
      *
-     * @param[in]     dim             Required dimension:
-     *                                  - 0 for XYZ layout (real space, valid for
-     *                                    PlanR2C only)
-     *                                  - 1 for XYZ layout (real space for C2C and
-     *                                    R2R plans and fourier space for R2C plans)
-     *                                  - 2 for YZX layout
-     *                                  - 3 for ZXY layout
+     * @param[in]     layout          Required layout of the pencil
      * @param[out]    pencil          Created Pencil object
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
-    Error get_pencil(int32_t dim, Pencil& pencil) const noexcept;
+    Error get_pencil(Layout layout, Pencil& pencil) const noexcept;
 
     /**
      * @brief Get the pencil object
      *
-     * @param[in]     dim             Required dimension:
-     *                                  - 0 for XYZ layout (real space, valid for
-     *                                    PlanR2C only)
-     *                                  - 1 for XYZ layout (real space for C2C and
-     *                                    R2R plans and fourier space for R2C plans)
-     *                                  - 2 for YZX layout
-     *                                  - 3 for ZXY layout
+     * @param[in]     layout          Required layout of the pencil
      * @return Created Pencil object
      *
      * @throws Exception if underlying call fails
      */
-    Pencil get_pencil(int32_t dim) const;
+    Pencil get_pencil(Layout layout) const;
 
     /** @brief Plan execution
      *
      * @param[inout]   in                   Input pointer
      * @param[out]     out                  Result pointer
      * @param[in]      execute_type         Direction of execution
-     * @param[inout]   aux                  Optional Auxiliary pointer
+     * @param[inout]   aux                  Optional Auxiliary pointer. If provided, must be at least get_aux_bytes() bytes.
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
@@ -942,7 +1003,7 @@ public:
      *
      * @param[inout]   in                   Input pointer
      * @param[out]     out                  Result pointer
-     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`
+     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_aux_bytes() bytes.
      *
      * @return Error::SUCCESS on success or error code on failure.
      * @note Not all plans support in-place plan executing. Refer to the manual
@@ -1096,10 +1157,11 @@ public:
      * @param[inout]   in                    Input pointer
      * @param[out]     out                   Pointer of transposed data
      * @param[in]      transpose_type        Type of transpose to perform.
+     * @param[inout]   aux                   Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_alloc_size() elements.
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
-    Error transpose(void* in, void* out, Transpose transpose_type) const noexcept;
+    Error transpose(void* in, void* out, Transpose transpose_type, void* aux = nullptr) const noexcept;
 
     /**
      * @brief Starts an asynchronous transpose operation in single dimension, e.g.
@@ -1109,9 +1171,24 @@ public:
      * @param[inout]   in                   Input pointer
      * @param[out]     out                  Output pointer
      * @param[in]      transpose_type       Type of transpose to perform
+     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_alloc_bytes() bytes.
      * @param[out]     request              Handle to manage the asynchronous
      *                                      operation
      *
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error transpose_start(void* in, void* out, Transpose transpose_type, void* aux,
+        dtfft_request_t* request) const noexcept;
+
+    /** @brief Starts an asynchronous transpose operation in single dimension, e.g.
+     * X align -> Y align
+     * @attention `in` and `out` cannot be the same pointers
+     *
+     * @param[inout]   in                   Input pointer
+     * @param[out]     out                  Output pointer
+     * @param[in]      transpose_type       Type of transpose to perform
+     * @param[out]     request              Handle to manage the asynchronous
+     *                                      operation
      * @return Error::SUCCESS on success or error code on failure.
      */
     Error transpose_start(void* in, void* out, Transpose transpose_type,
@@ -1125,11 +1202,64 @@ public:
      */
     Error transpose_end(dtfft_request_t request) const noexcept;
 
+    /** @brief Reshape data from bricks to pencils and vice versa
+     * @attention `in` and `out` cannot be the same pointers
+     *
+     * @param[inout]   in                    Input pointer
+     * @param[out]     out                   Pointer of reshaped data
+     * @param[in]      reshape_type          Type of reshape to perform.
+     * @param[inout]   aux                   Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_alloc_size() elements.
+     *
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error reshape(void* in, void* out, Reshape reshape_type, void* aux=nullptr) const noexcept;
+
+    /** @brief Starts an asynchronous reshape operation from bricks to pencils
+     * and vice versa
+     * @attention `in` and `out` cannot be the same pointers
+     *
+     * @param[inout]   in                   Input pointer
+     * @param[out]     out                  Output pointer
+     * @param[in]      reshape_type         Type of reshape to perform
+     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_alloc_size() elements.
+     * @param[out]     request              Handle to manage the asynchronous
+     *                                      operation
+     *
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error reshape_start(void* in, void* out, Reshape reshape_type, void* aux, dtfft_request_t* request) const noexcept;
+
+    /** @brief Starts an asynchronous reshape operation from bricks to pencils
+     * and vice versa
+     * @attention `in` and `out` cannot be the same pointers
+     *
+     * @param[inout]   in                   Input pointer
+     * @param[out]     out                  Output pointer
+     * @param[in]      reshape_type         Type of reshape to perform
+     * @param[out]     request              Handle to manage the asynchronous
+     *                                      operation
+     *
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error reshape_start(void* in, void* out, Reshape reshape_type, dtfft_request_t* request) const noexcept;
+
+    /**
+     * @brief Ends an asynchronous reshape operation.
+     *
+     * @param[inout] request Handle to manage the asynchronous operation
+     * @return  Error::SUCCESS on success or error code on failure.
+     */
+    Error reshape_end(dtfft_request_t request) const noexcept;
+
     /** @brief Wrapper around `Plan.get_local_sizes` to obtain `alloc_size` only
      *
      * @param[out]     alloc_size       Minimum number of elements to be allocated
-     * for `in`, `out` or `aux` buffers. Size of each element in bytes can be
-     * obtained by calling `Plan.get_element_size`.
+     *                                  for `in` and `out` buffers required by `Plan.execute`.
+     *                                  This also returns minimum number of elements required for `aux` buffer
+     *                                  required by `Plan.transpose` and `Plan.reshape`.
+     *                                  Minimum number of `aux` elements required by `Plan.execute` can be obtained
+     *                                  by calling `Plan.get_aux_size`.
+     *                                  Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
@@ -1137,12 +1267,48 @@ public:
 
     /** @brief Wrapper around Plan.get_local_sizes to obtain `alloc_size` only
      *
-     * @return Minimum number of elements to be allocated for `in`, `out` or `aux`
-     * buffers.
+     * @return Minimum number of elements to be allocated for `in` and `out` buffers required by `Plan.execute`.
+     *         This also returns minimum number of elements required for `aux` buffer required by `Plan.transpose` and `Plan.reshape`.
+     *         Minimum number of `aux` elements required by `Plan.execute` can be obtained by calling `Plan.get_aux_size`.
      *
      * @throws Exception if underlying call fails
      */
-    size_t get_alloc_size() const;
+    std::size_t get_alloc_size() const;
+
+    /** @brief Get auxiliary buffer size required to execute the plan
+     *
+     * @param[out]   aux_size              Number of elements required for
+     *                                     auxiliary buffer. Size of each element in bytes can be obtained by calling
+     *                                     `Plan.get_element_size`.
+     *
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_aux_size(std::size_t* aux_size) const noexcept;
+
+    /** @brief Get auxiliary buffer size required to execute the plan
+     *
+     * @return Number of elements required for auxiliary buffer.
+     *
+     * @throws Exception if underlying call fails
+     */
+    std::size_t get_aux_size() const;
+
+    /** @brief Get auxiliary buffer size in bytes required to execute the plan
+     *
+     * @param[out]   aux_bytes              Number of bytes required for
+     *                                     auxiliary buffer.
+     *
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_aux_bytes(std::size_t* aux_bytes) const noexcept;
+
+    /** @brief Get auxiliary buffer size in bytes required to execute the plan
+     *
+     * @return Number of bytes required for auxiliary buffer.
+     *
+     * @throws Exception if underlying call fails
+     */
+    std::size_t get_aux_bytes() const;
 
     /** @brief Get grid decomposition information. Results may differ on different
      * MPI processes
@@ -1169,7 +1335,7 @@ public:
         std::vector<int32_t>& in_counts,
         std::vector<int32_t>& out_starts,
         std::vector<int32_t>& out_counts,
-        size_t* alloc_size) const noexcept;
+        std::size_t* alloc_size) const noexcept;
 
     /** @brief Get grid decomposition information. Results may differ on different
      * MPI processes
@@ -1215,10 +1381,13 @@ public:
     size_t get_element_size() const;
 
     /**
-     * @brief Returns minimum number of bytes required to execute plan.
+     * @brief Returns minimum number of bytes required for in and out buffers.
      *
      * This function is a combination of two calls: Plan.get_alloc_size and
-     * Plan.get_element_size
+     * Plan.get_element_size.
+     * Returns minimum number of bytes to be allocated for `in` and `out` buffers required by `Plan.execute`.
+     * This also returns minimum number of bytes required for `aux` buffer required by `Plan.transpose` and `Plan.reshape`.
+     * Minimum number of `aux` bytes required by `Plan.execute` can be obtained by calling `Plan.get_aux_bytes`.
      *
      * @param[out]    alloc_bytes    Number of bytes required
      *
@@ -1227,10 +1396,13 @@ public:
     Error get_alloc_bytes(size_t* alloc_bytes) const noexcept;
 
     /**
-     * @brief Returns minimum number of bytes required to execute plan.
+     * @brief Returns minimum number of bytes required for in and out buffers.
      *
      * This function is a combination of two calls: Plan.get_alloc_size and
-     * Plan.get_element_size
+     * Plan.get_element_size.
+     * Returns minimum number of bytes to be allocated for `in` and `out` buffers required by `Plan.execute`.
+     * This also returns minimum number of bytes required for `aux` buffer required by `Plan.transpose` and `Plan.reshape`.
+     * Minimum number of `aux` bytes required by `Plan.execute` can be obtained by calling `Plan.get_aux_bytes`.
      *
      * @return  Number of bytes of each buffer required to execute plan
      *
@@ -1391,6 +1563,24 @@ public:
      */
     Backend get_backend() const;
 
+    /**
+     * @brief Returns backend used for reshape operations.
+     *
+     * @param[out]    backend         Backend used for reshape operations
+     *
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_reshape_backend(Backend& backend) const noexcept;
+
+    /**
+     * @brief Returns backend used for reshape operations.
+     *
+     * @return Backend used for reshape operations
+     *
+     * @throws Exception if underlying call fails
+     */
+    Backend get_reshape_backend() const;
+
 #ifdef DTFFT_WITH_CUDA
     /**
      * @brief Returns stream associated with current Plan.
@@ -1538,13 +1728,7 @@ public:
         Executor executor = Executor::NONE);
 };
 
-#ifndef DTFFT_TRANSPOSE_ONLY
-
-/** Real-to-Complex Plan
- *
- * @note This class is only present in the API when ``dtFFT`` was compiled with
- * any external FFT.
- */
+/** Real-to-Complex Plan */
 class PlanR2C final : public Plan {
 public:
     /** @brief Real-to-Complex Plan constructor.
@@ -1557,9 +1741,6 @@ public:
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
      *                                      the optimal plan
-     *
-     * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
-     * instead.
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1580,9 +1761,6 @@ public:
      *                                      the optimal plan
      * @param[in]    executor               Type of external FFT executor
      *
-     * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
-     * instead.
-     *
      * @throws Exception In case error occurs during plan creation
      */
     explicit PlanR2C(int8_t ndims, const int32_t* dims, Executor executor,
@@ -1600,9 +1778,6 @@ public:
      * @param[in]    effort                 How thoroughly `dtFFT` searches for
      *                                      the optimal plan
      *
-     * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
-     * instead.
-     *
      * @throws Exception In case error occurs during plan creation
      */
     explicit PlanR2C(const Pencil& pencil, Executor executor,
@@ -1610,7 +1785,6 @@ public:
         Precision precision = Precision::DOUBLE,
         Effort effort = Effort::ESTIMATE);
 };
-#endif
 
 /** Real-to-Real Plan */
 class PlanR2R final : public Plan {
@@ -1727,3 +1901,5 @@ public:
         Executor executor = Executor::NONE);
 };
 } // namespace dtfft
+
+#endif // DTFFT_HPP

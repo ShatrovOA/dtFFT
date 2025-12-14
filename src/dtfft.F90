@@ -34,18 +34,17 @@ public :: DTFFT_VERSION_PATCH
 ! Plans
 public :: dtfft_plan_t
 public :: dtfft_plan_c2c_t
-#ifndef DTFFT_TRANSPOSE_ONLY
 public :: dtfft_plan_r2c_t
-#endif
 public :: dtfft_plan_r2r_t
-public :: dtfft_request_t
 
+public :: dtfft_request_t
 public :: dtfft_pencil_t
+
 public :: dtfft_get_error_string
 public :: dtfft_get_precision_string
 public :: dtfft_get_executor_string
 
-public :: dtfft_execute_t, dtfft_transpose_t
+public :: dtfft_execute_t, dtfft_transpose_t, dtfft_reshape_t, dtfft_layout_t
 public :: dtfft_executor_t, dtfft_effort_t
 public :: dtfft_precision_t, dtfft_r2r_kind_t
 
@@ -63,6 +62,22 @@ public :: DTFFT_TRANSPOSE_X_TO_Y,                                   &
           DTFFT_TRANSPOSE_X_TO_Z,                                   &
           DTFFT_TRANSPOSE_Z_TO_X
 
+! Reshape types
+public :: DTFFT_RESHAPE_X_BRICKS_TO_PENCILS,                        &
+          DTFFT_RESHAPE_X_PENCILS_TO_BRICKS,                        &
+          DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS,                        &
+          DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS,                        &
+          DTFFT_RESHAPE_Y_BRICKS_TO_PENCILS,                        &
+          DTFFT_RESHAPE_Y_PENCILS_TO_BRICKS
+
+! Layout types
+public :: DTFFT_LAYOUT_X_BRICKS,                                    &
+          DTFFT_LAYOUT_Z_BRICKS,                                    &
+          DTFFT_LAYOUT_X_PENCILS,                                   &
+          DTFFT_LAYOUT_Y_PENCILS,                                   &
+          DTFFT_LAYOUT_Z_PENCILS,                                   &
+          DTFFT_LAYOUT_X_PENCILS_FOURIER
+
 ! 1d FFT External Executor types
 public :: DTFFT_EXECUTOR_NONE
 public :: DTFFT_EXECUTOR_FFTW3
@@ -73,7 +88,8 @@ public :: DTFFT_EXECUTOR_VKFFT
 ! Effort flags
 public :: DTFFT_ESTIMATE,                                           &
           DTFFT_MEASURE,                                            &
-          DTFFT_PATIENT
+          DTFFT_PATIENT,                                            &
+          DTFFT_EXHAUSTIVE
 
 ! Precision flags
 public :: DTFFT_SINGLE,                                             &
@@ -106,7 +122,7 @@ public :: DTFFT_ERROR_INVALID_R2R_KINDS
 public :: DTFFT_ERROR_R2C_TRANSPOSE_PLAN
 public :: DTFFT_ERROR_INPLACE_TRANSPOSE
 public :: DTFFT_ERROR_INVALID_AUX
-public :: DTFFT_ERROR_INVALID_DIM
+public :: DTFFT_ERROR_INVALID_LAYOUT
 public :: DTFFT_ERROR_INVALID_USAGE
 public :: DTFFT_ERROR_PLAN_IS_CREATED
 public :: DTFFT_ERROR_ALLOC_FAILED
@@ -114,7 +130,7 @@ public :: DTFFT_ERROR_FREE_FAILED
 public :: DTFFT_ERROR_INVALID_ALLOC_BYTES
 public :: DTFFT_ERROR_DLOPEN_FAILED
 public :: DTFFT_ERROR_DLSYM_FAILED
-public :: DTFFT_ERROR_R2C_TRANSPOSE_CALLED
+! public :: DTFFT_ERROR_R2C_TRANSPOSE_CALLED
 public :: DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH
 public :: DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES
 public :: DTFFT_ERROR_PENCIL_INVALID_COUNTS
@@ -154,6 +170,7 @@ public :: DTFFT_BACKEND_MPI_P2P_SCHEDULED
 
 public :: dtfft_backend_t
 public :: dtfft_get_backend_string
+public :: dtfft_get_backend_pipelined
 
 #ifdef DTFFT_WITH_CUDA
 

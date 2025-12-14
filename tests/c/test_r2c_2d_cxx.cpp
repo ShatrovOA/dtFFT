@@ -42,11 +42,11 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-  int nx = 35, ny = 44;
+  int nx = 35, ny = 57;
 
   if(comm_rank == 0) {
     cout << "----------------------------------------" << endl;
-    cout << "|   DTFFT test C++ interface: r2c_2d   |" << endl;
+    cout << "|   dtFFT test C++ interface: r2c_2d   |" << endl;
     cout << "----------------------------------------" << endl;
     cout << "Nx = " << nx << ", Ny = " << ny           << endl;
     cout << "Number of processors: " << comm_size      << endl;
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
   // Recreate plan with pencil
   auto pencil = Pencil(in_starts, in_counts);
   plan = new PlanR2C(pencil, executor);
-  auto reported_pencil = plan->get_pencil(0);
+  auto reported_pencil = plan->get_pencil(Layout::X_PENCILS);
   if ( reported_pencil.get_starts() != in_starts || reported_pencil.get_counts() != in_counts ) {
     cerr << "Plan reported wrong decomposition." << endl;
     MPI_Abort(MPI_COMM_WORLD, -1);

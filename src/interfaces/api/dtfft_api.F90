@@ -181,7 +181,6 @@ contains
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_c2c_pencil_c
 
-#ifndef DTFFT_TRANSPOSE_ONLY
   function dtfft_create_plan_r2c_c(ndims, dims, comm, precision, effort, executor, plan_ptr)                        &
     result(error_code)                                                                                              &
     bind(C)
@@ -205,7 +204,7 @@ contains
 
     select type(p => plan%p)
     class is (dtfft_plan_r2c_t)
-      call p%create(fdims, executor, get_comm(comm), precision, effort, error_code)
+      call p%create(fdims, get_comm(comm), precision, effort, executor, error_code)
     endselect
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_r2c_c
@@ -232,11 +231,10 @@ contains
     allocate( dtfft_plan_r2c_t :: plan%p )
     select type(p => plan%p)
     class is (dtfft_plan_r2c_t)
-      call p%create(pencil_, executor, get_comm(comm), precision, effort, error_code)
+      call p%create(pencil_, get_comm(comm), precision, effort, executor, error_code)
     endselect
     plan_ptr = c_loc(plan)
   end function dtfft_create_plan_r2c_pencil_c
-#endif
 
   function dtfft_get_z_slab_enabled_c(plan_ptr, is_z_slab_enabled)                                                  &
     result(error_code)                                                                                              &
@@ -283,7 +281,7 @@ contains
     call plan%p%execute_ptr(in, out, execute_type, aux, error_code)
   end function dtfft_execute_c
 
-  function dtfft_transpose_c(plan_ptr, in, out, transpose_type)                                                     &
+  function dtfft_transpose_c(plan_ptr, in, out, transpose_type, aux)                                                &
     result(error_code)                                                                                              &
     bind(C)
   !! Executes single transposition, C interface.
@@ -291,15 +289,16 @@ contains
     type(c_ptr),        value,      intent(in)    :: in                   !! Incomming pointer, not NULL
     type(c_ptr),        value,      intent(in)    :: out                  !! Outgoing buffer, not NULL
     type(dtfft_transpose_t),        intent(in)    :: transpose_type       !! Type of transposition.
+    type(c_ptr),        value,      intent(in)    :: aux                  !! Aux buffer, can be NULL
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
-    call plan%p%transpose_ptr(in, out, transpose_type, error_code)
+    call plan%p%transpose_ptr(in, out, transpose_type, aux, error_code)
   end function dtfft_transpose_c
 
-  function dtfft_transpose_start_c(plan_ptr, in, out, transpose_type, request)                                      &
+  function dtfft_transpose_start_c(plan_ptr, in, out, transpose_type, aux, request)                                 &
     result(error_code)                                                                                              &
     bind(C)
   !! Starts asynchronous transposition, returns transpose handle, C interface.
@@ -307,13 +306,14 @@ contains
     type(c_ptr),        value,      intent(in)    :: in                   !! Incomming pointer, not NULL
     type(c_ptr),        value,      intent(in)    :: out                  !! Outgoing buffer, not NULL
     type(dtfft_transpose_t),        intent(in)    :: transpose_type       !! Type of transposition.
+    type(c_ptr),        value,      intent(in)    :: aux                  !! Aux buffer, can be NULL
     type(dtfft_request_t),          intent(out)   :: request              !! Async transpose handle
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
-    request = plan%p%transpose_start_ptr(in, out, transpose_type, error_code)
+    request = plan%p%transpose_start_ptr(in, out, transpose_type, aux, error_code)
   end function dtfft_transpose_start_c
 
   function dtfft_transpose_end_c(plan_ptr, request)                                                                 &
@@ -329,6 +329,55 @@ contains
     CHECK_PLAN_CREATED(plan_ptr, plan)
     call plan%p%transpose_end(request, error_code)
   end function dtfft_transpose_end_c
+
+  function dtfft_reshape_c(plan_ptr, in, out, reshape_type, aux)                                                    &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Executes dtFFT Reshape, C interface. `aux` can be NULL.
+    type(c_ptr),        value,    intent(in)      :: plan_ptr             !! C pointer to Fortran plan
+    type(c_ptr),        value,    intent(in)      :: in                   !! Incomming pointer, not NULL
+    type(c_ptr),        value,    intent(in)      :: out                  !! Outgoing buffer, not NULL
+    type(dtfft_reshape_t),        intent(in)      :: reshape_type         !! Type of reshape
+    type(c_ptr),        value,    intent(in)      :: aux                  !! Aux buffer, can be NULL
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    call plan%p%reshape_ptr(in, out, reshape_type, aux, error_code)
+  end function dtfft_reshape_c
+
+  function dtfft_reshape_start_c(plan_ptr, in, out, reshape_type, aux, request)                                      &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Starts asynchronous reshape, returns reshape handle, C interface.
+    type(c_ptr),        value,      intent(in)    :: plan_ptr             !! C pointer to Fortran plan
+    type(c_ptr),        value,      intent(in)    :: in                   !! Incomming pointer, not NULL
+    type(c_ptr),        value,      intent(in)    :: out                  !! Outgoing buffer, not NULL
+    type(dtfft_reshape_t),          intent(in)    :: reshape_type         !! Type of reshape
+    type(c_ptr),        value,      intent(in)    :: aux                  !! Aux buffer, can be NULL
+    type(dtfft_request_t),          intent(out)   :: request              !! Async reshape handle
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    request = plan%p%reshape_start_ptr(in, out, reshape_type, aux, error_code)
+  end function dtfft_reshape_start_c
+
+  function dtfft_reshape_end_c(plan_ptr, request)                                                                 &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Finishes asynchronous reshape, C interface.
+    type(c_ptr),          value,    intent(in)    :: plan_ptr             !! C pointer to Fortran plan
+    type(dtfft_request_t),          intent(inout) :: request              !! Async reshape handle
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                       pointer   :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    call plan%p%reshape_end(request, error_code)
+  end function dtfft_reshape_end_c
 
   function dtfft_destroy_c(plan_ptr)                                                                                &
     result(error_code)                                                                                              &
@@ -379,12 +428,40 @@ contains
     alloc_size = plan%p%get_alloc_size(error_code)
   end function dtfft_get_alloc_size_c
 
-  function dtfft_get_pencil_c(plan_ptr, dim, pencil)                                                                &
+  function dtfft_get_aux_size_c(plan_ptr, aux_size)                                                                 &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Returns size of auxiliary buffer in bytes, C interface
+    type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
+    integer(c_size_t),    intent(out)             :: aux_size             !! Size of auxiliary buffer in bytes
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    aux_size = plan%p%get_aux_size(error_code)
+  end function dtfft_get_aux_size_c
+
+  function dtfft_get_aux_bytes_c(plan_ptr, aux_bytes)                                                               &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Returns minimum number of bytes required for auxiliary buffer, C interface
+    type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
+    integer(c_size_t),    intent(out)             :: aux_bytes            !! Number of bytes required for auxiliary buffer
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    aux_bytes = plan%p%get_aux_bytes(error_code)
+  end function dtfft_get_aux_bytes_c
+
+  function dtfft_get_pencil_c(plan_ptr, layout, pencil)                                                             &
     result(error_code)                                                                                              &
     bind(C)
   !! Returns pencil decomposition info, C interface
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
-    integer(c_int32_t),  intent(in)               :: dim                  !! Dimension requested
+    type(dtfft_layout_t),  intent(in)             :: layout               !! Layout requested
     type(dtfft_pencil_c)                          :: pencil               !! Pencil pointer
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
@@ -392,7 +469,7 @@ contains
     type(dtfft_pencil_t) :: pencil_         !! Fortran pencil
 
     CHECK_PLAN_CREATED(plan_ptr, plan)
-    pencil_ = plan%p%get_pencil(dim, error_code)
+    pencil_ = plan%p%get_pencil(layout, error_code)
     call pencil_f2c(pencil_, pencil)
   end function dtfft_get_pencil_c
 
@@ -587,14 +664,35 @@ contains
     backend = plan%p%get_backend(error_code)
   end function dtfft_get_backend_c
 
+  function dtfft_get_reshape_backend_c(plan_ptr, backend)                                                           &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Returns selected [[dtfft_backend_t]] for reshapes during autotuning
+    type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
+    type(dtfft_backend_t),      intent(out)       :: backend              !! The enumerated type dtfft_backend_t
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    backend = plan%p%get_reshape_backend(error_code)
+  end function dtfft_get_reshape_backend_c
+
   subroutine dtfft_get_backend_string_c(backend, backend_string, backend_string_size) bind(C)
   !! Returns string representation of ``dtfft_backend_t``
-    type(dtfft_backend_t),  intent(in)       :: backend             !! The enumerated type dtfft_backend_t
-    character(c_char),      intent(out)      :: backend_string(*)   !! Resulting string
-    integer(c_size_t),      intent(out)      :: backend_string_size !! Size of string
+    type(dtfft_backend_t),  intent(in)  :: backend             !! The enumerated type dtfft_backend_t
+    character(c_char),      intent(out) :: backend_string(*)   !! Resulting string
+    integer(c_size_t),      intent(out) :: backend_string_size !! Size of string
 
     call string_f2c(dtfft_get_backend_string(backend), backend_string, backend_string_size)
   end subroutine dtfft_get_backend_string_c
+
+  logical(c_bool) function dtfft_get_backend_pipelined_c(backend) bind(C)
+  !! Returns true if passed backend is pipelined and false otherwise.
+    integer(c_int32_t),     intent(in)  :: backend             !! The enumerated type dtfft_backend_t
+
+    dtfft_get_backend_pipelined_c = dtfft_get_backend_pipelined(dtfft_backend_t(backend))
+  end function dtfft_get_backend_pipelined_c
 
 #ifdef DTFFT_WITH_CUDA
   function dtfft_get_stream_c(plan_ptr, stream)                                                                     &

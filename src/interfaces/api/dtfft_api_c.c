@@ -55,7 +55,6 @@ dtfft_create_plan_c2c_pencil(const dtfft_pencil_t* pencil,
     return (dtfft_error_t)dtfft_create_plan_c2c_pencil_c(pencil, MPI_Comm_c2f(comm), (int32_t*)&precision, (int32_t*)&effort, (int32_t*)&executor, plan);
 }
 
-#if !defined(DTFFT_TRANSPOSE_ONLY)
 dtfft_error_t
 dtfft_create_plan_r2c(const int8_t ndims, const int32_t* dims,
     MPI_Comm comm,
@@ -81,8 +80,6 @@ dtfft_create_plan_r2c_pencil(const dtfft_pencil_t* pencil,
         return DTFFT_ERROR_INVALID_USAGE;
     return (dtfft_error_t)dtfft_create_plan_r2c_pencil_c(pencil, MPI_Comm_c2f(comm), (int32_t*)&precision, (int32_t*)&effort, (int32_t*)&executor, plan);
 }
-
-#endif
 
 dtfft_error_t
 dtfft_create_plan_r2r(const int8_t ndims, const int32_t* dims,
@@ -137,25 +134,21 @@ dtfft_execute(dtfft_plan_t plan, void* in, void* out, const dtfft_execute_t exec
 }
 
 dtfft_error_t
-dtfft_transpose(dtfft_plan_t plan, void* in, void* out, const dtfft_transpose_t transpose_type)
+dtfft_transpose(dtfft_plan_t plan, void* in, void* out, const dtfft_transpose_t transpose_type, void* aux)
 {
     if (!in || !out)
         return DTFFT_ERROR_INVALID_USAGE;
-    if (in == out)
-        return DTFFT_ERROR_INPLACE_TRANSPOSE;
-    return (dtfft_error_t)dtfft_transpose_c(plan, in, out, (int32_t*)&transpose_type);
+    return (dtfft_error_t)dtfft_transpose_c(plan, in, out, (int32_t*)&transpose_type, aux);
 }
 
 dtfft_error_t
-dtfft_transpose_start(dtfft_plan_t plan, void* in, void* out, const dtfft_transpose_t transpose_type, dtfft_request_t* request)
+dtfft_transpose_start(dtfft_plan_t plan, void* in, void* out, const dtfft_transpose_t transpose_type, void* aux, dtfft_request_t* request)
 {
     if (!in || !out)
         return DTFFT_ERROR_INVALID_USAGE;
-    if (in == out)
-        return DTFFT_ERROR_INPLACE_TRANSPOSE;
     if (!request)
         return DTFFT_ERROR_INVALID_USAGE;
-    return (dtfft_error_t)dtfft_transpose_start_c(plan, in, out, (int32_t*)&transpose_type, request);
+    return (dtfft_error_t)dtfft_transpose_start_c(plan, in, out, (int32_t*)&transpose_type, aux, request);
 }
 
 dtfft_error_t
@@ -164,6 +157,34 @@ dtfft_transpose_end(dtfft_plan_t plan, dtfft_request_t request)
     if (!request)
         return DTFFT_ERROR_INVALID_USAGE;
     return (dtfft_error_t)dtfft_transpose_end_c(plan, &request);
+}
+
+dtfft_error_t
+dtfft_reshape(dtfft_plan_t plan, void* in, void* out, dtfft_reshape_t reshape_type, void* aux)
+{
+    if (!in || !out)
+        return DTFFT_ERROR_INVALID_USAGE;
+    return (dtfft_error_t)dtfft_reshape_c(plan, in, out, (int32_t*)&reshape_type, aux);
+}
+
+
+dtfft_error_t
+dtfft_reshape_start(dtfft_plan_t plan, void* in, void* out, dtfft_reshape_t reshape_type, void* aux, dtfft_request_t* request)
+{
+    if (!in || !out)
+        return DTFFT_ERROR_INVALID_USAGE;
+    if (!request)
+        return DTFFT_ERROR_INVALID_USAGE;
+    return (dtfft_error_t)dtfft_reshape_start_c(plan, in, out, (int32_t*)&reshape_type, aux, request);
+}
+
+
+dtfft_error_t
+dtfft_reshape_end(dtfft_plan_t plan, dtfft_request_t request)
+{
+    if (!request)
+        return DTFFT_ERROR_INVALID_USAGE;
+    return (dtfft_error_t)dtfft_reshape_end_c(plan, &request);
 }
 
 dtfft_error_t
@@ -188,6 +209,22 @@ dtfft_get_alloc_size(dtfft_plan_t plan, size_t* alloc_size)
     if (!alloc_size)
         return DTFFT_ERROR_INVALID_USAGE;
     return (dtfft_error_t)dtfft_get_alloc_size_c(plan, alloc_size);
+}
+
+dtfft_error_t
+dtfft_get_aux_size(dtfft_plan_t plan, size_t* aux_size)
+{
+    if (!aux_size)
+        return DTFFT_ERROR_INVALID_USAGE;
+    return (dtfft_error_t)dtfft_get_aux_size_c(plan, aux_size);
+}
+
+dtfft_error_t
+dtfft_get_aux_bytes(dtfft_plan_t plan, size_t* aux_bytes)
+{
+    if (!aux_bytes)
+        return DTFFT_ERROR_INVALID_USAGE;
+    return (dtfft_error_t)dtfft_get_aux_bytes_c(plan, aux_bytes);
 }
 
 static const char*
@@ -225,11 +262,11 @@ dtfft_get_executor_string(const dtfft_executor_t executor)
 }
 
 dtfft_error_t
-dtfft_get_pencil(dtfft_plan_t plan, int32_t dim, dtfft_pencil_t* pencil)
+dtfft_get_pencil(dtfft_plan_t plan, dtfft_layout_t layout, dtfft_pencil_t* pencil)
 {
     if (!pencil)
         return DTFFT_ERROR_INVALID_USAGE;
-    return (dtfft_error_t)dtfft_get_pencil_c(plan, &dim, (void*)pencil);
+    return (dtfft_error_t)dtfft_get_pencil_c(plan, (int32_t*)&layout, (void*)pencil);
 }
 
 dtfft_error_t
@@ -341,10 +378,28 @@ dtfft_get_backend(dtfft_plan_t plan, dtfft_backend_t* backend)
     return (dtfft_error_t)dtfft_get_backend_c(plan, (int32_t*)backend);
 }
 
+dtfft_error_t
+dtfft_get_reshape_backend(dtfft_plan_t plan, dtfft_backend_t* backend)
+{
+    if (!backend)
+        return DTFFT_ERROR_INVALID_USAGE;
+    return (dtfft_error_t)dtfft_get_reshape_backend_c(plan, (int32_t*)backend);
+}
+
 const char*
 dtfft_get_backend_string(const dtfft_backend_t backend)
 {
     return get_string_helper((int32_t)backend, 20, dtfft_get_backend_string_c);
+}
+
+dtfft_error_t
+dtfft_get_backend_pipelined(const dtfft_backend_t backend, bool *is_pipe)
+{
+    if (!is_pipe)
+        return DTFFT_ERROR_INVALID_USAGE;
+
+    *is_pipe = dtfft_get_backend_pipelined_c((int32_t*)&backend);
+    return DTFFT_SUCCESS;
 }
 
 #ifdef DTFFT_WITH_CUDA

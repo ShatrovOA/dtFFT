@@ -32,7 +32,7 @@
 int main(int argc, char *argv[])
 {
   dtfft_plan_t plan;
-  int32_t nx = 512, ny = 64, nz = 32;
+  int32_t nx = 512, ny = 64, nz = 96;
   double complex *in, *out, *check, *aux;
   int comm_rank, comm_size;
   int32_t in_counts[3], in_starts[3], out_counts[3];
@@ -43,9 +43,9 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-  if ( comm_size != 2 ) {
+  if ( comm_size != 2 && comm_size != 4 && comm_size !=8 ) {
     if ( comm_rank == 0 ) {
-      printf("This test requires exactly 2 MPI processes.\n");
+      printf("This test requires exactly 2, 4 or 8 MPI processes.\n");
     }
     MPI_Finalize();
     return 0;
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
   if(comm_rank == 0) {
     printf("----------------------------------------\n");
-    printf("| DTFFT test C interface: c2c_3d       |\n");
+    printf("| dtFFT test C interface: c2c_3d       |\n");
     printf("----------------------------------------\n");
     printf("Nx = %d, Ny = %d, Nz = %d\n", nx, ny, nz);
     printf("Number of processors: %d\n", comm_size);
@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
   conf.backend = DTFFT_BACKEND_MPI_P2P_PIPELINED;
   conf.enable_z_slab = false;
   conf.enable_y_slab = false;
+  conf.enable_fourier_reshape = true;
 
 #if defined(DTFFT_WITH_CUDA)
   conf.platform = DTFFT_PLATFORM_CUDA;
@@ -98,14 +99,42 @@ int main(int argc, char *argv[])
 
   DTFFT_CALL( dtfft_set_config(&conf) )
 
+  executor = DTFFT_EXECUTOR_NONE;
+
   dtfft_pencil_t pencil;
   pencil.ndims = 3;
-  if ( comm_rank == 0 ) {
-    pencil.starts[0] = 0; pencil.starts[1] = 0; pencil.starts[2] = nx / 4;
-    pencil.counts[0] = nz; pencil.counts[1] = ny; pencil.counts[2] = 3 * nx / 4;
-  } else {
-    pencil.starts[0] = 0; pencil.starts[1] = 0; pencil.starts[2] = 0;
-    pencil.counts[0] = nz; pencil.counts[1] = ny; pencil.counts[2] = nx / 4;
+  
+  // Calculate grid dimensions based on comm_size
+  int grid_z = (comm_size == 8) ? 2 : 1;
+  int grid_y = (comm_size >= 4) ? 2 : 1;
+  int grid_x = comm_size / (grid_z * grid_y);
+  
+  // Calculate rank position in 3D grid
+  int rank_z = comm_rank / (grid_y * grid_x);
+  int rank_y = (comm_rank / grid_x) % grid_y;
+  int rank_x = comm_rank % grid_x;
+  
+  // Set starts and counts based on rank position
+  pencil.starts[0] = rank_z * (nz / grid_z);
+  pencil.starts[1] = rank_y * (ny / grid_y);
+  pencil.starts[2] = rank_x * (nx / grid_x);
+  
+  pencil.counts[0] = nz / grid_z;
+  pencil.counts[1] = ny / grid_y;
+  pencil.counts[2] = nx / grid_x;
+  
+  // Special handling for comm_size == 2 (uneven split)
+  if (comm_size == 2) {
+    if (comm_rank == 0) {
+      pencil.starts[2] = nx / 4;
+      pencil.counts[2] = 3 * nx / 4;
+    } else {
+      pencil.starts[2] = 0;
+      pencil.counts[2] = nx / 4;
+    }
+  }
+  if ( comm_size == 8 ) {
+    executor = DTFFT_EXECUTOR_NONE;
   }
 
   // Create plan
@@ -120,21 +149,37 @@ int main(int argc, char *argv[])
 
   const int *grid_dims;
   DTFFT_CALL( dtfft_get_grid_dims(plan, NULL, &grid_dims) )
-  if ( grid_dims[0] != 1 || grid_dims[1] != 1 || grid_dims[2] != 2 ) {
-    fprintf(stderr, "Plan created with wrong grid dimensions: %dx%dx%d.\n", grid_dims[0], grid_dims[1], grid_dims[2]);
-    MPI_Abort(MPI_COMM_WORLD, -1);
+  if ( comm_size == 2 ) {
+    if ( grid_dims[0] != 1 || grid_dims[1] != 1 || grid_dims[2] != 2 ) {
+      fprintf(stderr, "Plan created with wrong grid dimensions: %dx%dx%d.\n", grid_dims[0], grid_dims[1], grid_dims[2]);
+      MPI_Abort(MPI_COMM_WORLD, -1);
+    }
+  } else if ( comm_size == 4 ) {
+    if ( grid_dims[0] != 1 || grid_dims[1] != 2 || grid_dims[2] != 2 ) {
+      fprintf(stderr, "Plan created with wrong grid dimensions: %dx%dx%d.\n", grid_dims[0], grid_dims[1], grid_dims[2]);
+      MPI_Abort(MPI_COMM_WORLD, -1);
+    }
+  } else if ( comm_size == 8 ) {
+    if ( grid_dims[0] != 1 || grid_dims[1] != 2 || grid_dims[2] != 4 ) {
+      fprintf(stderr, "Plan created with wrong grid dimensions: %dx%dx%d.\n", grid_dims[0], grid_dims[1], grid_dims[2]);
+      MPI_Abort(MPI_COMM_WORLD, -1);
+    }
   }
 
   DTFFT_CALL( dtfft_report(plan) )
   DTFFT_CALL( dtfft_get_local_sizes(plan, in_starts, in_counts, NULL, out_counts, NULL) )
-  for (int i = 0; i < 3; i++) {
-    if ( in_starts[i] != pencil.starts[i] || in_counts[i] != pencil.counts[i] ) {
-      fprintf(stderr, "Plan reported wrong decomposition.\n");
-      MPI_Abort(MPI_COMM_WORLD, -1);
+  if ( comm_size != 8 ) {
+    for (int i = 0; i < 3; i++) {
+      if ( in_starts[i] != pencil.starts[i] || in_counts[i] != pencil.counts[i] ) {
+        fprintf(stderr, "Plan reported wrong decomposition.\n");
+        MPI_Abort(MPI_COMM_WORLD, -1);
+      }
     }
   }
   size_t alloc_bytes;
   DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
+  size_t aux_bytes;
+  DTFFT_CALL( dtfft_get_aux_bytes(plan, &aux_bytes) )
 
   size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
   size_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
@@ -147,16 +192,16 @@ int main(int argc, char *argv[])
   if ( platform == DTFFT_PLATFORM_CUDA ) {
     CUDA_SAFE_CALL( cudaMallocManaged((void**)&in, alloc_bytes, cudaMemAttachGlobal) )
     CUDA_SAFE_CALL( cudaMallocManaged((void**)&out, alloc_bytes, cudaMemAttachGlobal) )
-    CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, alloc_bytes, cudaMemAttachGlobal) )
+    CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, aux_bytes, cudaMemAttachGlobal) )
   } else {
     DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&in) )
     DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&out) )
-    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
+    DTFFT_CALL( dtfft_mem_alloc(plan, aux_bytes, (void**)&aux) )
   }
 #else
   DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&in) )
   DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&out) )
-  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&aux) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, aux_bytes, (void**)&aux) )
 #endif
 
   setTestValuesComplexDouble(check, in_size);
@@ -172,10 +217,17 @@ int main(int argc, char *argv[])
     bool is_z_slab;
     DTFFT_CALL( dtfft_get_z_slab_enabled(plan, &is_z_slab) )
     if ( is_z_slab ) {
-      DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Z) )
+      DTFFT_CALL( dtfft_transpose(plan, in, out, DTFFT_TRANSPOSE_X_TO_Z, aux) )
     } else {
-      DTFFT_CALL( dtfft_transpose(plan, in, aux, DTFFT_TRANSPOSE_X_TO_Y) )
-      DTFFT_CALL( dtfft_transpose(plan, aux, out, DTFFT_TRANSPOSE_Y_TO_Z) )
+      if ( comm_size == 8 ) {
+        DTFFT_CALL( dtfft_reshape(plan, in, out, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS, aux) )
+        DTFFT_CALL( dtfft_transpose(plan, out, aux, DTFFT_TRANSPOSE_X_TO_Y, in) )
+        DTFFT_CALL( dtfft_transpose(plan, aux, in, DTFFT_TRANSPOSE_Y_TO_Z, out) )
+        DTFFT_CALL( dtfft_reshape(plan, in, out, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS, aux) )
+      } else {
+        DTFFT_CALL( dtfft_transpose(plan, in, aux, DTFFT_TRANSPOSE_X_TO_Y, out) )
+        DTFFT_CALL( dtfft_transpose(plan, aux, out, DTFFT_TRANSPOSE_Y_TO_Z, in) )
+      }
     }
   } else {
     DTFFT_CALL( dtfft_execute(plan, in, out, DTFFT_EXECUTE_FORWARD, aux) )

@@ -126,10 +126,6 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Dynamic library symbol lookup failed
 
-.. f:variable:: DTFFT_ERROR_R2C_TRANSPOSE_CALLED
-
-  Calling to ``transpose`` method for R2C plan is not allowed
-
 .. f:variable:: DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH
 
   Sizes of starts and counts arrays passed to dtfft_pencil_t constructor do not match.
@@ -286,6 +282,42 @@ _____________________
   Transpose from Fortran Z aligned to Fortran X aligned
 
 .. note:: This value is valid to pass only in 3D Plan and value returned by :f:func:`get_z_slab_enabled` must be ``.true.``
+
+------
+
+dtfft_reshape_t
+-----------------------
+
+.. f:type:: dtfft_reshape_t
+
+  Enumerated type used to specify the reshape direction in the :f:func:`reshape` method.
+
+Type Parameters
+_____________________
+
+.. f:variable:: DTFFT_RESHAPE_X_BRICKS_TO_PENCILS
+
+  Perform reshape to X-aligned pencils from X-aligned bricks
+
+.. f:variable:: DTFFT_RESHAPE_X_PENCILS_TO_BRICKS
+
+  Perform reshape to X-aligned bricks from X-aligned pencils
+
+.. f:variable:: DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS
+
+  Perform reshape to Z-aligned bricks from Z-aligned pencils
+
+.. f:variable:: DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS
+
+  Perform reshape to Z-aligned pencils from Z-aligned bricks
+
+.. f:variable:: DTFFT_RESHAPE_Y_PENCILS_TO_BRICKS
+
+  Perform reshape to Y-aligned bricks from Y-aligned pencils. This is an alias to :f:var:`DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS` for 2D plans
+
+.. f:variable:: DTFFT_RESHAPE_Y_BRICKS_TO_PENCILS
+
+  Perform reshape to Y-aligned pencils from Y-aligned bricks. This is an alias to :f:var:`DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS` for 2D plans
 
 ------
 
@@ -446,7 +478,7 @@ _____________________
 
   Backend that uses MPI datatypes.
 
-  Not really recommended to use when `platform` is :f:var:`DTFFT_PLATFORM_CUDA`, since it is a million times slower than other backends. It is present here just to show how slow MPI Datatypes are for GPU usage
+  Not really recommended to use when ``platform`` is :f:var:`DTFFT_PLATFORM_CUDA`, since it is a million times slower than other backends. It is present here just to show how slow MPI Datatypes are for GPU usage
 
 .. f:variable:: DTFFT_BACKEND_MPI_P2P
 
@@ -496,9 +528,17 @@ _______________________
   Gets the string description of a GPU backend
 
   :p dtfft_backend_t backend [in]:
-    GPU backend
+    Backend
   :r character(len=:), allocatable string:
     Backend string
+
+.. f:function:: dtfft_get_backend_pipelined(backend)
+
+  Check if backend is pipelined
+
+  :p dtfft_backend_t backend [in]: Backend to check
+  :r logical:
+    ``.true.`` if backend is pipelined, ``.false.`` otherwise
 
 ------
 
@@ -523,13 +563,22 @@ dtfft_config_t
 
     In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
 
+  :f logical enable_y_slab:
+    Should ``dtFFT`` use Y-slab optimization or not.
+
+    Default is ``.false.``
+
+    One should consider disabling Y-slab optimization in order to resolve :f:var:`DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error or when underlying FFT implementation of 2D plan is too slow.
+
+    In all other cases it is considered that Y-slab is always faster, since it reduces number of data transpositions.
+
   :f integer(int32) n_measure_warmup_iters:
-    Number of warmup iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+    Number of warmup iterations to execute during backend and kernel autotuning when effort level is ``DTFFT_MEASURE`` or higher.
 
     Default is 2
 
   :f integer(int32) n_measure_iters:
-    Number of iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+    Number of iterations to execute during backend and kernel autotuning when effort level is ``DTFFT_MEASURE`` or higher.
 
     Default is 5
 
@@ -564,74 +613,97 @@ dtfft_config_t
 
     Backend that will be used by dtFFT when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
 
-    Default is :f:var:`DTFFT_BACKEND_NCCL`
+    Default for HOST platform is :f:var:`DTFFT_BACKEND_MPI_DATATYPE`.
 
-  :f logical enable_mpi_backends:
+    Default for CUDA platform is :f:var:`DTFFT_BACKEND_NCCL` if NCCL is enabled, otherwise :f:var:`DTFFT_BACKEND_MPI_P2P`.
 
-    Should MPI GPU Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+  :f type(dtfft_backend_t) reshape_backend:
 
-    Default is ``.false.``
+    Backend that will be used by dtFFT for reshape operations.
 
-    MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849 It was noticed that during plan autotuning GPU memory not being freed completely. For example: 1024x1024x512 C2C, double precision, single GPU, using Z-slab optimization, with MPI backends enabled, plan autotuning will leak 8Gb GPU memory. Without Z-slab optimization, running on 4 GPUs, will leak 24Gb on each of the GPUs.
+    Defaults are same as `backend`.
 
-    One of the workarounds is to disable MPI Backends by default, which is done here.
-
-    Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to ``mpiexec``, but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
-
-  :f logical enable_pipelined_backends:
-
-    Should pipelined GPU backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+  :f logical enable_datatype_backend:
+    Should ``DTFFT_BACKEND_MPI_DATATYPE`` be considered for autotuning when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
 
     Default is ``.true.``
 
-    Pipelined backends require additional buffer that user has no control over.
+    This option only works when ``platform`` is ``DTFFT_PLATFORM_HOST``.
+    When ``platform`` is ``DTFFT_PLATFORM_CUDA``, ``DTFFT_BACKEND_MPI_DATATYPE`` is always disabled during autotuning.
+
+  :f logical enable_mpi_backends:
+
+    Should MPI Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+
+    Default is ``.false.``
+
+    The following applies only to CUDA builds.
+    MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849
+    It was noticed that during plan autotuning GPU memory not being freed completely.
+    For example:
+    1024x1024x512 C2C, double precision, single GPU, using Z-slab optimization, with MPI backends enabled, plan autotuning will leak 8Gb GPU memory.
+    Without Z-slab optimization, running on 4 GPUs, will leak 24Gb on each of the GPUs.
+
+    One of the workarounds is to disable MPI Backends by default, which is done here.
+
+    Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to ``mpiexec``,
+    but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
+
+  :f logical enable_pipelined_backends:
+
+    Should pipelined backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+
+    Default is ``.true.``
 
   :f logical enable_nccl_backends:
-    Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+    Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
 
     Default is ``.true.``
 
     .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
   :f logical enable_nvshmem_backends:
-    Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+    Should NVSHMEM Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
 
     Default is ``.true.``
 
     .. note:: This field is only present in the API when ``dtFFT`` was compiled with CUDA Support.
 
-  :f logical enable_kernel_optimization:
-    Should dtFFT try to optimize NVRTC transpose kernel launch parameters or not when ``effort`` is ``DTFFT_PATIENT``.
-
-    Default is ``.true.``
-
-    When enabled, during plan creation dtFFT will try to find optimal block of threads for NVRTC transpose kernel. It does so by running multiple iterations of transpose with different blocks of threads and measuring time taken. This optimization is done only once during plan creation.
-
-  :f integer(int32) n_configs_to_test:
-    Number of different blocks of threads to test when ``enable_kernel_optimization`` is ``.true.``
-
-    Default is 5
-
-  :f logical force_kernel_optimization:
-    Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
+  :f logical enable_kernel_autotune:
+    Should dtFFT try to optimize kernel launch parameters during plan creation when ``effort`` is below ``DTFFT_EXHAUSTIVE``.
 
     Default is ``.false.``
 
-    Enabling this option will make plan creation process longer, but may result in better performance for a long run. Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
+    Kernel optimization is always enabled for ``DTFFT_EXHAUSTIVE`` effort level.
+    Setting this option to true enables kernel optimization for lower effort levels (``DTFFT_ESTIMATE``, ``DTFFT_MEASURE``, ``DTFFT_PATIENT``).
+    This may increase plan creation time but can improve runtime performance.
+    Since kernel optimization is performed without data transfers, the time increase is usually minimal.
 
+    This option can also be controlled using the ``DTFFT_ENABLE_KERNEL_AUTOTUNE`` environment variable.
+
+  :f logical enable_fourier_reshape:
+    Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to ``execute``.
+
+    Default is ``.false.``
+
+    When enabled, data will be in brick layout in Fourier space, which may be useful for certain operations
+    between forward and backward transforms. However, this requires additional data transpositions
+    and will reduce overall FFT performance.
+
+    This option can also be controlled using the ``DTFFT_ENABLE_FOURIER_RESHAPE`` environment variable.
 
 Related Type functions
 _______________________
 
 .. f:function:: dtfft_create_config(config)
 
-  Creates dtfft_config_t objects and sets default values to it.
+  Creates dtfft_config_t object and sets default values to it.
 
   :p dtfft_config_t config [out]: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
 
 ------
 
-.. f:function:: dtfft_config_t(enable_log, enable_z_slab, n_measure_warmup_iters, n_measure_iters)
+.. f:function:: dtfft_config_t([enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, backend, reshape_backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_kernel_autotune, enable_fourier_reshape])
 
   Type bound constructor
 
@@ -641,15 +713,31 @@ _______________________
     Should dtFFT print additional information during plan creation or not.
   :o logical enable_z_slab [in, optional]:
     Should dtFFT use Z-slab optimization or not.
+  :o logical enable_y_slab [in, optional]:
+    Should dtFFT use Y-slab optimization or not.
   :o integer(int32) n_measure_warmup_iters [in, optional]:
-    Number of warmup iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+    Number of warmup iterations to execute during backend and kernel autotuning when effort level is ``DTFFT_MEASURE`` or higher.
   :o integer(int32) n_measure_iters [in, optional]:
-    Number of iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+    Number of iterations to execute during backend and kernel autotuning when effort level is ``DTFFT_MEASURE`` or higher.
+  :o dtfft_backend_t backend [in, optional]:
+    Backend that will be used by dtFFT when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
+  :o dtfft_backend_t reshape_backend [in, optional]:
+    Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
+  :o logical enable_datatype_backend [in, optional]:
+    Should ``DTFFT_BACKEND_MPI_DATATYPE`` be considered for autotuning when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+  :o logical enable_mpi_backends [in, optional]:
+    Should MPI Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+  :o logical enable_pipelined_backends [in, optional]:
+    Should pipelined backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+  :o logical enable_kernel_autotune [in, optional]:
+    Should dtFFT try to optimize kernel launch parameters during plan creation when ``effort`` is below ``DTFFT_EXHAUSTIVE``.
+  :o logical enable_fourier_reshape [in, optional]:
+    Should dtFFT execute reshapes from pencils to bricks in Fourier space.
   :r dtfft_config_t: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
 
 ------
 
-.. f:function:: dtfft_config_t(enable_log, enable_z_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_optimization, n_configs_to_test, force_kernel_optimization)
+.. f:function:: dtfft_config_t([enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, reshape_backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_autotune, enable_fourier_reshape])
 
   Type bound constructor
 
@@ -659,30 +747,34 @@ _______________________
     Should dtFFT print additional information during plan creation or not.
   :o logical enable_z_slab [in, optional]:
     Should dtFFT use Z-slab optimization or not.
+  :o logical enable_y_slab [in, optional]:
+    Should dtFFT use Y-slab optimization or not.
   :o integer(int32) n_measure_warmup_iters [in, optional]:
-    Number of warmup iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+    Number of warmup iterations to execute during backend and kernel autotuning when effort level is ``DTFFT_MEASURE`` or higher.
   :o integer(int32) n_measure_iters [in, optional]:
-    Number of iterations to run when ``effort`` is ``DTFFT_MEASURE`` or ``DTFFT_PATIENT``.
+    Number of iterations to execute during backend and kernel autotuning when effort level is ``DTFFT_MEASURE`` or higher.
   :o dtfft_platform_t platform [in, optional]:
     Selects platform to execute plan.
   :o dtfft_stream_t stream [in, optional]:
     Main CUDA stream that will be used in dtFFT.
   :o dtfft_backend_t backend [in, optional]:
     Backend that will be used by dtFFT when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
+  :o dtfft_backend_t reshape_backend [in, optional]:
+    Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
+  :o logical enable_datatype_backend [in, optional]:
+    Should ``DTFFT_BACKEND_MPI_DATATYPE`` be considered for autotuning when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o logical enable_mpi_backends [in, optional]:
-    Should MPI GPU Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+    Should MPI Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o logical enable_pipelined_backends [in, optional]:
-    Should pipelined GPU backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+    Should pipelined backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o logical enable_nccl_backends [in, optional]:
-    Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
+    Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o logical enable_nvshmem_backends [in, optional]:
-    Should NVSHMEM Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or not.
-  :o logical enable_kernel_optimization [in, optional]:
-    Should dtFFT try to optimize NVRTC transpose kernel launch parameters or not when ``effort`` is ``DTFFT_PATIENT``.
-  :o integer(int32) n_configs_to_test [in, optional]:
-    Number of different blocks of threads to test when ``enable_kernel_optimization`` is ``.true.``
-  :o logical force_kernel_optimization [in, optional]:
-    Whether to force kernel optimization when ``effort`` is not ``DTFFT_PATIENT``.
+    Should NVSHMEM Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+  :o logical enable_kernel_autotune [in, optional]:
+    Should dtFFT try to optimize kernel launch parameters during plan creation when ``effort`` is below ``DTFFT_EXHAUSTIVE``.
+  :o logical enable_fourier_reshape [in, optional]:
+    Should dtFFT execute reshapes from pencils to bricks in Fourier space.
   :r dtfft_config_t: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
 
 ------
@@ -701,7 +793,7 @@ _______________________
 ------
 
 dtfft_pencil_t
------------------------
+--------------
 
 .. f:type:: dtfft_pencil_t
 
@@ -793,7 +885,7 @@ dtfft_request_t
 
   Helper type to manage asynchronous operations
 
-  See :f:func:`transpose_start`, :f:func:`transpose_end`
+  See :f:func:`transpose_start`, :f:func:`transpose_end`, :f:func:`reshape_start`, :f:func:`reshape_end`
 
 
 Version handling
@@ -850,10 +942,108 @@ Abstract plan
 Type bound procedures
 -----------------------
 
+reshape
+_______
+
+.. f:subroutine:: reshape(in, out, reshape_type [, aux, error_code])
+
+  Performs reshape from bricks to pencils layout or vice versa
+
+  :p type(*), dimension(..) in [inout]:
+    Incoming buffer of any rank and kind.
+  :p type(*), dimension(..) out [inout]:
+    Resulting buffer of any rank and kind
+  :p dtfft_reshape_t reshape_type [in]:
+    Type of reshape
+  :o type(*), dimension(..) aux [inout, optional]:
+    Optional auxiliary buffer. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
+reshape_ptr
+___________
+
+.. f:subroutine:: reshape_ptr(in, out, reshape_type, aux [, error_code])
+
+  Performs reshape from bricks to pencils layout or vice versa using pointers
+
+  :p type(c_ptr) in [in]:
+    Incoming pointer
+  :p type(c_ptr) out [in]:
+    Resulting pointer
+  :p dtfft_reshape_t reshape_type [in]:
+    Type of reshape
+  :p type(c_ptr) aux [in]:
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
+reshape_start
+_____________
+
+.. f:function:: reshape_start(in, out, reshape_type [, aux, error_code]) result(request)
+
+  Starts asynchronous reshape operation
+
+  :p type(*), dimension(..) in [inout]:
+    Incoming buffer of any rank and kind.
+  :p type(*), dimension(..) out [inout]:
+    Resulting buffer of any rank and kind
+  :p dtfft_reshape_t reshape_type [in]:
+    Type of reshape
+  :o type(*), dimension(..) aux [inout, optional]:
+    Optional auxiliary buffer. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r dtfft_request_t request:
+    Asynchronous handle describing started reshape operation
+
+------
+
+reshape_start_ptr
+_________________
+
+.. f:function:: reshape_start_ptr(in, out, reshape_type, aux [, error_code]) result(request)
+
+  Starts asynchronous reshape operation using pointers
+
+  :p type(c_ptr) in [in]:
+    Incoming pointer
+  :p type(c_ptr) out [in]:
+    Resulting pointer
+  :p dtfft_reshape_t reshape_type [in]:
+    Type of reshape
+  :p type(c_ptr) aux [in]:
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r dtfft_request_t request:
+    Asynchronous handle describing started reshape operation
+
+------
+
+reshape_end
+___________
+
+.. f:subroutine:: reshape_end(request [, error_code])
+
+  Ends previously started reshape operation
+
+  :p dtfft_request_t request [inout]:
+    Asynchronous handle describing started reshape operation
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
 transpose
 _________
 
-.. f:subroutine:: transpose(in, out, transpose_type [, error_code])
+.. f:subroutine:: transpose(in, out, transpose_type [, aux, error_code])
 
   Performs single transposition
 
@@ -863,6 +1053,8 @@ _________
     Resulting buffer of any rank and kind
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
+  :o type(*), dimension(..) aux [inout, optional]:
+    Optional auxiliary buffer. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -871,7 +1063,7 @@ _________
 transpose_ptr
 _____________
 
-.. f:subroutine:: transpose_ptr(in, out, transpose_type [, error_code])
+.. f:subroutine:: transpose_ptr(in, out, transpose_type, aux [, error_code])
 
   Performs single transposition
 
@@ -881,6 +1073,8 @@ _____________
     Resulting pointer
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
+  :p type(c_ptr) aux [in]:
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -889,7 +1083,7 @@ _____________
 transpose_start
 _______________
 
-.. f:function:: transpose_start(in, out, transpose_type [, error_code])
+.. f:function:: transpose_start(in, out, transpose_type [, aux, error_code])
 
   Starts an asynchronous transpose operation.
 
@@ -899,6 +1093,8 @@ _______________
     Resulting buffer of any rank and kind
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
+  :o type(*), dimension(..) aux [inout, optional]:
+    Optional auxiliary buffer. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r dtfft_request_t request:
@@ -909,7 +1105,7 @@ _______________
 transpose_start_ptr
 ___________________
 
-.. f:function:: transpose_start_ptr(in, out, transpose_type [, error_code])
+.. f:function:: transpose_start_ptr(in, out, transpose_type, aux [, error_code])
 
   Starts an asynchronous transpose operation using type(c_ptr) pointers instead of buffers
 
@@ -919,6 +1115,8 @@ ___________________
     Resulting pointer
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
+  :p type(c_ptr) aux [in]:
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r dtfft_request_t request:
@@ -954,7 +1152,7 @@ _______
   :p dtfft_execute_t execute_type [in]:
     Type of execution
   :o type(*), dimension(..) aux [inout, optional]:
-    Optional auxiliary buffer.
+    Optional auxiliary buffer. If provided, size must be at least the value returned by :f:func:`get_aux_size`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -974,7 +1172,7 @@ ___________
   :p dtfft_execute_t execute_type [in]:
     Type of execution
   :p type(c_ptr) aux [in]:
-    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used.
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least the value returned by :f:func:`get_aux_bytes`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -1007,7 +1205,9 @@ _______________
   :o integer(int32) out_counts(:) [out, optional]:
     Number of elements in `fourier` space
   :o integer(int64) alloc_size(:) [out, optional]:
-    Minimum number of elements needs to be allocated for ``in``, ``out`` or ``aux`` buffers.
+    Minimum number of elements to be allocated for ``in``, ``out`` buffers required by :f:func:`execute`.
+    This also returns minimum number of elements required for ``aux`` buffer required by :f:func:`transpose` and :f:func:`reshape` in case underlying backend is pipelined.
+    Minimum number of ``aux`` elements required by :f:func:`execute` can be obtained by calling :f:func:`get_aux_size`.
     Size of each element in bytes can be obtained by calling :f:func:`get_element_size`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
@@ -1024,8 +1224,9 @@ ______________
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r integer(int64):
-    Minimum number of elements needs to be allocated for ``in``, ``out`` or ``aux`` buffers.
-    Size of each element in bytes can be obtained by calling :f:func:`get_element_size`.
+    Minimum number of elements to be allocated for ``in``, ``out`` buffers required by :f:func:`execute`.
+    This also returns minimum number of elements required for ``aux`` buffer required by :f:func:`transpose` and :f:func:`reshape`.
+    Minimum number of ``aux`` elements required by :f:func:`execute` can be obtained by calling :f:func:`get_aux_size`.
 
 ------
 
@@ -1047,12 +1248,45 @@ _______________
 
 .. f:function:: get_alloc_bytes([error_code])
 
-  Returns minimum number of bytes required to execute plan
+  Returns minimum number of bytes required for in and out buffers.
+  This also returns minimum number of bytes required for aux buffer in transpose and reshape operations.
+  Minimum number of aux bytes required by execute can be obtained by calling get_aux_bytes.
 
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r integer(int64):
-    Minimum number of bytes needs to be allocated for ``in``, ``out`` or ``aux`` buffers.
+    Minimum number of bytes to be allocated for ``in`` and ``out`` buffers required by execute.
+    This also returns minimum number of bytes required for ``aux`` buffer required by transpose and reshape.
+
+------
+
+get_aux_size
+____________
+
+.. f:function:: get_aux_size([error_code])
+
+  Returns minimum number of elements required for auxiliary buffer which may be different from ``alloc_size`` when backend is pipelined.
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r integer(int64):
+    Minimum number of elements required for auxiliary buffer.
+
+------
+
+get_aux_bytes
+_____________
+
+.. f:function:: get_aux_bytes([error_code])
+
+  Returns minimum number of bytes required for auxiliary buffer.
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r integer(int64):
+    Minimum number of bytes required for auxiliary buffer.
+
+------
 
 mem_alloc
 _________
@@ -1148,17 +1382,13 @@ __________________
 get_pencil
 __________
 
-.. f:function:: get_pencil(dim[, error_code])
+.. f:function:: get_pencil(layout[, error_code])
 
   Obtains pencil information from plan. This can be useful when user wants to use own FFT implementation,
   that is unavailable in ``dtFFT``.
 
-  :p integer(int32) dim [in]:
-    Required dimension:
-      - 0 for XYZ layout (real space, valid for PlanR2C only)
-      - 1 for XYZ layout (real space for C2C and R2R plans and fourier space for R2C plans)
-      - 2 for YXZ layout
-      - 3 for ZXY layout
+  :p type(dtfft_layout_t) layout [in]:
+    Required layout
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r dtfft_pencil_t: Pencil data
@@ -1240,15 +1470,32 @@ ___________
 
 .. f:function:: get_backend([error_code])
 
-  Returns the fastest detected GPU backend if ``effort`` is :f:var:`DTFFT_PATIENT`.
+  Returns backend that is used during data transpositions.
 
   If ``effort`` is :f:var:`DTFFT_ESTIMATE` or :f:var:`DTFFT_MEASURE`, returns the value set by :f:func:`dtfft_set_config`
-  or via environment variable DTFFT_BACKEND, or the default, :f:var:`DTFFT_BACKEND_NCCL`.
+  or via environment variable ``DTFFT_BACKEND``.
 
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
-  :r dtfft_backend_t: Selected GPU backend
+  :r dtfft_backend_t: Selected backend
+
+------
+
+get_reshape_backend
+___________________
+
+.. f:function:: get_reshape_backend([error_code])
+
+  Returns backend that is used during data reshapes from bricks to pencils and vice versa.
+
+  If ``effort`` is :f:var:`DTFFT_ESTIMATE` or :f:var:`DTFFT_MEASURE`, returns the value set by :f:func:`dtfft_set_config`
+  or via environment variable ``DTFFT_RESHAPE_BACKEND``.
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+  :r dtfft_backend_t: Selected backend
 
 ------
 
@@ -1392,8 +1639,6 @@ Real-to-Complex plan
 
   Extends :f:type:`dtfft_plan_t`
 
-.. note:: This type is only present in the API when ``dtFFT`` is compiled with FFT support.
-
 Type bound procedures
 ---------------------
 
@@ -1402,33 +1647,28 @@ Type bound procedures
 create
 ______
 
-.. f:subroutine:: create(dims, executor [, comm, precision, effort, error_code])
+.. f:subroutine:: create(dims [, comm, precision, effort, executor, error_code])
 
   R2C Plan Constructor.
 
   :p integer(int32) dims(:)[in]: Global dimensions of the transform as an integer array.
-  :p dtfft_executor_t executor [in]:
-    Type of external FFT executor.
-
-    Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
   :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
   :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
   :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
+  :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
   :o integer(int32) error_code [out, optional]: Optional error code returned to the user
 
 ------
 
-.. f:subroutine:: create(pencil, executor [, comm, precision, effort, error_code])
+.. f:subroutine:: create(pencil[, comm, precision, effort, executor, error_code])
 
   R2C Plan Constructor using local pencil information
 
   :p dtfft_pencil_t pencil[in]: Local pencil of data to be transformed
-  :p dtfft_executor_t executor [in]: Type of external FFT executor.
-
-    Must not be :f:var:`DTFFT_EXECUTOR_NONE`.
   :o MPI_Comm comm [in, optional]: Communicator for parallel execution, default = MPI_COMM_WORLD.
   :o dtfft_precision_t precision [in, optional]: Precision of the transform, default = :f:var:`DTFFT_DOUBLE`.
   :o dtfft_effort_t effort [in, optional]: How hard ``dtFFT`` should look for best plan, default = :f:var:`DTFFT_ESTIMATE`.
+  :o dtfft_executor_t executor [in, optional]: Type of external FFT executor, default = :f:var:`DTFFT_EXECUTOR_NONE`.
   :o integer(int32) error_code [out, optional]: Optional error code returned to the user
 
 
