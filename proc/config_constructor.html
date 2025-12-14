@@ -138,7 +138,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private pure function config_constructor(enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_optimization, n_configs_to_test, force_kernel_optimization) result(config)  
+    <h2>private pure function config_constructor(enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, reshape_backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_autotune, enable_fourier_reshape) result(config)  
 </h2>
     
 
@@ -168,7 +168,7 @@
             <td>::</td>
             <td><strong>enable_log</strong></td>
             <td>
-                <p>Should dtFFT use Z-slab optimization or not.</p>
+                <p>Should dtFFT print additional information during plan creation or not.</p>
             </td>
         </tr>
         <tr>
@@ -233,7 +233,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~13"></span>
+              <span class="anchor" id="variable-platform~23"></span>
               type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
 <td>intent(in),</td>
@@ -248,7 +248,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~31"></span>
+              <span class="anchor" id="variable-stream~35"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in),</td>
@@ -263,7 +263,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-backend~15"></span>
+              <span class="anchor" id="variable-backend~23"></span>
               type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
             </td>
 <td>intent(in),</td>
@@ -274,6 +274,21 @@
             <td><strong>backend</strong></td>
             <td>
                 <p>Backend that will be used by dtFFT when <code>effort</code> is <code>DTFFT_ESTIMATE</code> or <code>DTFFT_MEASURE</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-reshape_backend~3"></span>
+              type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>reshape_backend</strong></td>
+            <td>
+                <p>Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when <code>effort</code> is <code>DTFFT_ESTIMATE</code> or <code>DTFFT_MEASURE</code>.</p>
             </td>
         </tr>
         <tr>
@@ -353,7 +368,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-enable_kernel_optimization~2"></span>
+              <span class="anchor" id="variable-enable_kernel_autotune~2"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -361,29 +376,14 @@
               
             </td>
             <td>::</td>
-            <td><strong>enable_kernel_optimization</strong></td>
+            <td><strong>enable_kernel_autotune</strong></td>
             <td>
-                <p>Should dtFFT try to optimize NVRTC kernel block size during autotune or not.</p>
+                <p>Should dtFFT try to autotune transpose/packing/unpacking kernels size during autotune process or not.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-n_configs_to_test~3"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>n_configs_to_test</strong></td>
-            <td>
-                <p>Number of top theoretical best performing blocks of threads to test for transposition kernels when <code>effort</code> is <code>DTFFT_PATIENT</code>.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-force_kernel_optimization~2"></span>
+              <span class="anchor" id="variable-enable_fourier_reshape~2"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -391,9 +391,9 @@
               
             </td>
             <td>::</td>
-            <td><strong>force_kernel_optimization</strong></td>
+            <td><strong>enable_fourier_reshape</strong></td>
             <td>
-                <p>Whether to force kernel optimization when <code>effort</code> is not <code>DTFFT_PATIENT</code>.</p>
+                <p>Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to <code>execute</code> or not.</p>
             </td>
         </tr>
     </tbody>
@@ -401,7 +401,7 @@
 
       <h3>Return Value
         <small>
-          <span class="anchor" id="variable-config~8"></span>
+          <span class="anchor" id="variable-config~4"></span>
           type(<a href='../type/dtfft_config_t.html'>dtfft_config_t</a>)
         </small>
       </h3>

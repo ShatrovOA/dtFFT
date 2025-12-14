@@ -33,7 +33,7 @@ public :: to_str
 public :: write_message
 
 public :: get_inverse_kind
-public :: is_same_ptr, is_null_ptr
+public :: is_same_ptr, is_null_ptr, ptr_offset
 public :: mem_alloc_host, mem_free_host
 public :: create_subcomm_include_all, create_subcomm
 public :: string
@@ -168,6 +168,8 @@ public :: all_reduce_inplace
   !! Creates [[string]] object
     module procedure :: string_constructor
   end interface string
+
+  integer(int32), save :: write_rank = -1
 
 contains
 
@@ -393,17 +395,18 @@ contains
     character(len=*), intent(in)            :: message      !! Message to write
     character(len=*), intent(in), optional  :: prefix       !! Prefix to the message
     character(len=:), allocatable           :: prefix_      !! Dummy prefix
-    integer(int32)                          :: comm_rank    !! Size of world communicator
     integer(int32)                          :: ierr         !! Error code
     logical                                 :: is_finalized !! Is MPI Already finalized?
 
-    call MPI_Finalized(is_finalized, ierr)
-    if ( is_finalized ) then
-      comm_rank = 0
-    else
-      call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
+    if ( write_rank < 0 ) then
+      call MPI_Finalized(is_finalized, ierr)
+      if ( is_finalized ) then
+        write_rank = 0
+      else
+        call MPI_Comm_rank(MPI_COMM_WORLD, write_rank, ierr)
+      endif
     endif
-    if ( comm_rank /= 0 ) return
+    if ( write_rank /= 0 ) return
 
     if ( present( prefix ) ) then
       allocate( prefix_, source=prefix )
@@ -525,6 +528,17 @@ contains
     call MPI_Group_free(group, ierr)
     call MPI_Group_free(new_group, ierr)
   end subroutine create_subcomm
+
+  pure function ptr_offset(ptr, n_bytes) result(new_ptr)
+  !! Returns pointer offset by n_bytes
+    type(c_ptr),    intent(in)  :: ptr        !! Original pointer
+    integer(int64), intent(in)  :: n_bytes    !! Number of bytes to offset
+    type(c_ptr)                 :: new_ptr    !! New pointer
+    integer(c_intptr_t) :: addr
+
+    addr = transfer(ptr, addr) + n_bytes
+    new_ptr = transfer(addr, new_ptr)
+  end function ptr_offset
 
 #if defined(DTFFT_USE_MPI)
 ! Some bug was noticed in mpich for macos

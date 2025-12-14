@@ -37,8 +37,9 @@ use dtfft_executor_vkfft_m,           only: vkfft_executor
 #endif
 use dtfft_config
 use dtfft_errors
-use dtfft_pencil,                     only: pencil, pencil_init, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
+use dtfft_pencil,                     only: pencil_ => pencil, pencil_init, get_local_sizes_private => get_local_sizes, dtfft_pencil_t, from_bricks
 use dtfft_parameters
+use dtfft_reshape_plan,               only: reshape_plan
 use dtfft_transpose_plan,             only: transpose_plan
 use dtfft_utils
 #ifdef DTFFT_WITH_CUDA
@@ -58,13 +59,34 @@ public :: dtfft_plan_c2c_t
 public :: dtfft_plan_r2c_t
 public :: dtfft_plan_r2r_t
 
-  type :: transpose_request
+  type :: async_request
   !! Handle for async transpose operation
-    type(dtfft_transpose_t) :: transpose_type       !! Type of transposition requested
+    integer(int32)          :: request_type         !! Type of request
     logical                 :: is_started = .false. !! Flag that indicates if transpose was started
     type(c_ptr)             :: in                   !! Input pointer
     type(c_ptr)             :: out                  !! Output pointer
-  end type transpose_request
+  end type async_request
+
+#ifdef ENABLE_INPUT_CHECK
+#define CHECK_REQUEST(request, handle, converter, check_func)         \
+  if( is_null_ptr(request%val) ) ierr = DTFFT_ERROR_INVALID_REQUEST;  \
+  CHECK_ERROR_AND_RETURN;                                             \
+  call c_f_pointer(request%val, handle);                              \
+  if ( .not. handle%is_started                                        \
+    .or. .not. check_func(converter(handle%request_type))             \
+    .or. is_null_ptr(handle%in)                                       \
+    .or. is_null_ptr(handle%out)) ierr = DTFFT_ERROR_INVALID_REQUEST; \
+  CHECK_ERROR_AND_RETURN
+#else
+#define CHECK_REQUEST(request, handle, converter, check_func)         \
+  call c_f_pointer(request%val, handle)
+#endif
+
+
+  integer(int32), parameter :: CHECK_AUX_CALLED_BY_RESHAPE   = 2
+    !! Indicates that `check_aux` was called by reshape operation
+  integer(int32), parameter :: CHECK_AUX_CALLED_BY_EXECUTE   = 3
+    !! Indicates that `check_aux` was called by execute operation
 
   type :: fft_executor
   !! FFT handle
@@ -109,6 +131,11 @@ public :: dtfft_plan_r2r_t
       !!
       !! - 2 dimensional FFT plan is created for both Y and Z dimensions
       !! - Transpose from Y-align to Z-align is skipped
+    logical                                       :: is_reshape_enabled = .false.
+      !! Reshape operations from bricks to pencils and vice versa are enabled
+    logical                                       :: is_final_reshape_enabled = .false.
+      !! Final reshape from pencils to bricks in fourier space is enabled
+      !! Default is .false., which means data remains in pencils layout in fourier space
     type(dtfft_effort_t)                          :: effort
       !! User defined type of effort
     integer(int64)                                :: storage_size
@@ -121,8 +148,12 @@ public :: dtfft_plan_r2r_t
       !! Local 1d communicators
     type(transpose_plan)                          :: plan
       !! Transpose plan handle
-    type(pencil),                     allocatable :: pencils(:)
+    type(reshape_plan)                            :: rplan
+      !! Reshape plan handle
+    type(pencil_),                    allocatable :: pencils(:)
       !! Information about data aligment and datatypes
+    type(pencil_)                                 :: bricks(2)
+      !! Pencil decomposition info in `bricks` layout for both `real` and `fourier` spaces
     type(dtfft_platform_t)                        :: platform
       !! Execution platform
 #ifdef DTFFT_WITH_CUDA
@@ -146,6 +177,11 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: transpose_end      !! Ends previously started transposition
     procedure,  pass(self), non_overridable, public :: execute            !! Executes plan
     procedure,  pass(self), non_overridable, public :: execute_ptr        !! Executes plan using type(c_ptr) pointers instead of buffers
+    procedure,  pass(self), non_overridable, public :: reshape            !! Performs reshape from `bricks` to `pencils` layout or vice versa
+    procedure,  pass(self), non_overridable, public :: reshape_ptr        !! Performs reshape from `bricks` to `pencils` layout or vice versa using type(c_ptr) pointers instead of buffers
+    procedure,  pass(self), non_overridable, public :: reshape_start      !! Starts an asynchronous reshape operation
+    procedure,  pass(self), non_overridable, public :: reshape_start_ptr  !! Starts an asynchronous reshape operation using type(c_ptr) pointers instead of buffers
+    procedure,  pass(self), non_overridable, public :: reshape_end        !! Ends an asynchronous reshape operation
     procedure,  pass(self), non_overridable, public :: destroy            !! Destroys plan
     procedure,  pass(self), non_overridable, public :: get_local_sizes    !! Returns local starts and counts in `real` and `fourier` spaces
     procedure,  pass(self), non_overridable, public :: get_alloc_size     !! Wrapper around ``get_local_sizes`` to obtain number of elements only
@@ -154,6 +190,8 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: get_pencil         !! Returns pencil decomposition
     procedure,  pass(self), non_overridable, public :: get_element_size   !! Returns number of bytes required to store single element.
     procedure,  pass(self), non_overridable, public :: get_alloc_bytes    !! Returns minimum number of bytes required to execute plan
+    procedure,  pass(self), non_overridable, public :: get_aux_size       !! Returns size of auxiliary buffer in bytes
+    procedure,  pass(self), non_overridable, public :: get_aux_bytes      !! Returns minimum number of bytes required for auxiliary buffer
     procedure,  pass(self), non_overridable, public :: get_executor       !! Returns FFT Executor associated with plan
     procedure,  pass(self), non_overridable, public :: get_dims           !! Returns global dimensions
     procedure,  pass(self), non_overridable, public :: get_grid_dims      !! Returns grid decomposition dimensions
@@ -190,6 +228,7 @@ public :: dtfft_plan_r2r_t
                                                        mem_free_c64_3d
     !! Frees previously allocated memory specific for this plan
     procedure,  pass(self), non_overridable, public :: get_backend        !! Returns selected backend during autotuning
+    procedure,  pass(self), non_overridable, public :: get_reshape_backend!! Returns selected backend for reshape operations during autotuning
 #ifdef DTFFT_WITH_CUDA
     procedure,  pass(self), non_overridable, public :: get_platform       !! Returns plan execution platform
     generic,                                 public :: get_stream       & !! Returns CUDA stream associated with plan
@@ -200,14 +239,19 @@ public :: dtfft_plan_r2r_t
 #endif
     procedure,  pass(self), non_overridable         :: execute_private    !! Executes plan
     procedure,  pass(self), non_overridable         :: execute_2d         !! Executes 2d plan
+    procedure,  pass(self), non_overridable         :: execute_2d_reshape
     procedure,  pass(self), non_overridable         :: execute_z_slab     !! Executes Z slab plan
+    procedure,  pass(self), non_overridable         :: execute_z_slab_reshape
     procedure,  pass(self), non_overridable         :: execute_generic    !! Executes plan with specified auxiliary buffer
+    procedure,  pass(self), non_overridable         :: execute_generic_reshape
     procedure,  pass(self), non_overridable         :: transpose_private  !! Performs single transposition using type(c_ptr) pointers instead of buffers
+    procedure,  pass(self), non_overridable         :: reshape_private    !! Performs reshape from `bricks` to `pencils` layout or vice versa using type(c_ptr) pointers instead of buffers
     procedure,  pass(self), non_overridable         :: check_create_args  !! Check arguments provided to `create` subroutines
     procedure,  pass(self), non_overridable         :: create_private     !! Creates core
     procedure,  pass(self), non_overridable         :: alloc_fft_plans    !! Allocates `fft_executor` classes
     procedure,  pass(self), non_overridable         :: check_aux          !! Checks if aux buffer was passed
                                                                           !! and if not will allocate one internally
+    procedure,  pass(self), non_overridable         :: get_local_sizes_internal
     procedure,  pass(self), non_overridable         :: mem_alloc_r32_1d   !! Allocates memory for 1d real32 pointer
     procedure,  pass(self), non_overridable         :: mem_alloc_r64_1d   !! Allocates memory for 1d real64 pointer
     procedure,  pass(self), non_overridable         :: mem_alloc_r32_2d   !! Allocates memory for 2d real32 pointer
@@ -258,7 +302,7 @@ public :: dtfft_plan_r2r_t
   type, extends(dtfft_core_c2c) :: dtfft_plan_r2c_t
   !! R2C Plan
   private
-    type(pencil)  :: real_pencil
+    type(pencil_)  :: real_pencil
       !! "Real" pencil decomposition info
   contains
   private
@@ -285,7 +329,206 @@ public :: dtfft_plan_r2r_t
 
 contains
 
-  subroutine transpose(self, in, out, transpose_type, error_code)
+  subroutine reshape(self, in, out, reshape_type, aux, error_code)
+  !! Performs reshape from `bricks` to `pencils` layout or vice versa
+  !!
+  !! @note
+  !! Buffers `in` and `out` cannot be the same
+  !! @endnote
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(*),  target,           intent(inout) :: in(..)
+      !! Incoming buffer of any rank and kind. Note that this buffer
+      !! will be modified in GPU build
+    type(*),  target,           intent(inout) :: out(..)
+      !! Resulting buffer of any rank and kind
+    type(dtfft_reshape_t),      intent(in)    :: reshape_type
+      !! Type of reshape.
+    type(*),  target, optional, intent(inout) :: aux(..)
+      !! Optional auxiliary buffer.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    type(c_ptr)     :: aux_ptr
+
+    aux_ptr = c_null_ptr; if( present(aux) ) aux_ptr = c_loc(aux)
+    call self%reshape_ptr(c_loc(in), c_loc(out), reshape_type, aux_ptr, error_code)
+  end subroutine reshape
+
+  subroutine reshape_ptr(self, in, out, reshape_type, aux, error_code)
+  !! Performs reshape from `bricks` to `pencils` layout or vice versa using type(c_ptr) pointers instead of buffers
+  !! @note
+  !! Buffers `in` and `out` cannot be the same
+  !! @endnote
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Incoming pointer. Note that values of this pointer
+      !! will be modified in GPU build
+    type(c_ptr),                intent(in)    :: out
+      !! Resulting pointer
+    type(dtfft_reshape_t),      intent(in)    :: reshape_type
+      !! Type of reshape.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary buffer. Not optional. If not required, c_null_ptr must be passed.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    REGION_BEGIN("dtfft_reshape", COLOR_TRANSPOSE)
+    call self%reshape_private(in, out, reshape_type, aux, EXEC_BLOCKING, error_code)
+    REGION_END("dtfft_reshape")
+  end subroutine reshape_ptr
+
+  function reshape_start(self, in, out, reshape_type, aux, error_code) result(request)
+  !! Starts an asynchronous reshape operation
+  !! @note
+  !! Buffers `in` and `out` cannot be the same
+  !! @endnote
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(*),  target,           intent(inout) :: in(..)
+      !! Incoming buffer of any rank and kind. Note that this buffer
+      !! will be modified in GPU build
+    type(*),  target,           intent(inout) :: out(..)
+      !! Resulting buffer of any rank and kind
+    type(dtfft_reshape_t),      intent(in)    :: reshape_type
+      !! Type of reshape.
+    type(*),  target, optional, intent(inout) :: aux(..)
+      !! Optional auxiliary buffer.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    type(dtfft_request_t)                      :: request
+      !! Asynchronous handle describing started reshape operation
+    type(c_ptr)     :: aux_ptr
+
+    aux_ptr = c_null_ptr; if( present(aux) ) aux_ptr = c_loc(aux)
+    request = self%reshape_start_ptr(c_loc(in), c_loc(out), reshape_type, aux_ptr, error_code)
+  end function reshape_start
+
+  function reshape_start_ptr(self, in, out, reshape_type, aux, error_code) result(request)
+  !! Starts an asynchronous reshape operation using type(c_ptr) pointers instead of buffers
+  !! @note
+  !! Buffers `in` and `out` cannot be the same
+  !! @endnote
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Incoming pointer. Note that values of this pointer
+      !! will be modified in GPU build
+    type(c_ptr),                intent(in)    :: out
+      !! Resulting pointer
+    type(dtfft_reshape_t),      intent(in)    :: reshape_type
+      !! Type of reshape.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary buffer. Not optional. If not required, c_null_ptr must be passed.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    type(dtfft_request_t)                     :: request
+      !! Asynchronous handle describing started reshape operation
+    integer(int32)  :: ierr     !! Error code
+    type(async_request),     pointer          :: internal_handle
+      !! Handle to internal reshape structure
+
+    PHASE_BEGIN("dtfft_reshape_start", COLOR_TRANSPOSE)
+    request = dtfft_request_t(c_null_ptr)
+    call self%reshape_private(in, out, reshape_type, aux, EXEC_NONBLOCKING, ierr)
+    if( ierr == DTFFT_SUCCESS ) then
+      allocate(internal_handle)
+      internal_handle%request_type = reshape_type%val
+      internal_handle%is_started = .true.
+      internal_handle%in = in
+      internal_handle%out = out
+      request%val = c_loc(internal_handle)
+    endif
+    if ( present( error_code ) ) error_code = ierr
+    PHASE_END("dtfft_reshape_start")
+  end function reshape_start_ptr
+
+  subroutine reshape_end(self, request, error_code)
+  !! Ends an asynchronous reshape operation
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(dtfft_request_t),      intent(inout) :: request
+      !! Asynchronous handle describing started reshape operation
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    type(async_request),    pointer           :: internal_handle
+      !! Handle to internal reshape structure
+    integer(int32)  :: ierr    !! Error code
+
+    ierr = DTFFT_SUCCESS
+    CHECK_REQUEST(request, internal_handle, dtfft_reshape_t, is_valid_reshape_type)
+    PHASE_BEGIN("dtfft_reshape_end", COLOR_TRANSPOSE)
+    call self%rplan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, ierr)
+    PHASE_END("dtfft_reshape_end")
+    CHECK_ERROR_AND_RETURN
+    deallocate(internal_handle)
+    request = dtfft_request_t(c_null_ptr)
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine reshape_end
+
+  subroutine reshape_private(self, in, out, reshape_type, aux, exec_type, error_code)
+  !! Performs reshape from `bricks` to `pencils` layout or vice versa using type(c_ptr) pointers instead of buffers
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Incoming pointer. Note that values of this pointer
+      !! will be modified in GPU build
+    type(c_ptr),                intent(in)    :: out
+      !! Resulting pointer
+    type(dtfft_reshape_t),      intent(in)    :: reshape_type
+      !! Type of reshape.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary buffer. Not optional. If not required, c_null_ptr must be passed.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
+    type(async_exec_t),         intent(in)    :: exec_type
+      !! Type of asynchronous execution.
+    integer(int32),   optional, intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr    !! Error code
+    type(c_ptr)   :: aux1, aux2
+
+    ierr = DTFFT_SUCCESS
+#ifdef ENABLE_INPUT_CHECK
+    if ( .not. self%is_created )                                                                &
+      ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    if ( .not.is_valid_reshape_type(reshape_type) )                                             &
+      ierr = DTFFT_ERROR_INVALID_RESHAPE_TYPE
+    CHECK_ERROR_AND_RETURN
+    if ( is_same_ptr(in, out) )                                                                 &
+      ierr = DTFFT_ERROR_INPLACE_RESHAPE
+    CHECK_ERROR_AND_RETURN
+    if ( .not. self%is_reshape_enabled )                                                        &
+      ierr = DTFFT_ERROR_RESHAPE_NOT_SUPPORTED
+    CHECK_ERROR_AND_RETURN
+    if ( is_same_ptr(in, aux) .or. is_same_ptr(out, aux) )                                      &
+      ierr = DTFFT_ERROR_INVALID_AUX
+    CHECK_ERROR_AND_RETURN
+# ifdef DTFFT_WITH_CUDA
+    if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
+      ierr = check_device_pointers(in, out, self%plan%get_backend(), aux)
+      CHECK_ERROR_AND_RETURN
+    endif
+# endif
+#endif
+
+    call self%check_aux(aux, CHECK_AUX_CALLED_BY_RESHAPE, aux1, aux2)
+    call self%rplan%execute(in, out, reshape_type%val, exec_type, aux1, ierr)
+#ifdef ENABLE_INPUT_CHECK
+    CHECK_ERROR_AND_RETURN
+#endif
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end subroutine reshape_private
+
+  subroutine transpose(self, in, out, transpose_type, aux, error_code)
   !! Performs single transposition
   !!
   !! @note
@@ -300,12 +543,19 @@ contains
       !! Resulting buffer of any rank and kind
     type(dtfft_transpose_t),    intent(in)    :: transpose_type
       !! Type of transposition.
+    type(*),  target, optional, intent(inout) :: aux(..)
+      !! Optional auxiliary buffer.
+      !! If provided, size of buffer must be at least the value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
-    call self%transpose_ptr(c_loc(in), c_loc(out), transpose_type, error_code)
+    type(c_ptr)     :: aux_ptr
+
+    aux_ptr = c_null_ptr; if( present(aux) ) aux_ptr = c_loc(aux)
+    call self%transpose_ptr(c_loc(in), c_loc(out), transpose_type, aux_ptr, error_code)
   end subroutine transpose
 
-  subroutine transpose_ptr(self, in, out, transpose_type, error_code)
+  subroutine transpose_ptr(self, in, out, transpose_type, aux, error_code)
   !! Performs single transposition using type(c_ptr) pointers instead of buffers
   !!
   !! @note
@@ -320,14 +570,18 @@ contains
       !! Resulting pointer
     type(dtfft_transpose_t),    intent(in)    :: transpose_type
       !! Type of transposition.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary buffer. Not optional. If not required, c_null_ptr must be passed.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
     PHASE_BEGIN("dtfft_transpose", COLOR_TRANSPOSE)
-    call self%transpose_private(in, out, transpose_type, EXEC_BLOCKING, error_code)
+    call self%transpose_private(in, out, aux, transpose_type, EXEC_BLOCKING, error_code)
     PHASE_END("dtfft_transpose")
   end subroutine transpose_ptr
 
-  function transpose_start(self, in, out, transpose_type, error_code) result(request)
+  function transpose_start(self, in, out, transpose_type, aux, error_code) result(request)
   !! Starts an asynchronous transpose operation
   !!
   !! @note
@@ -342,14 +596,21 @@ contains
       !! Resulting buffer of any rank and kind
     type(dtfft_transpose_t),    intent(in)    :: transpose_type
       !! Type of transposition.
+    type(*),  target, optional, intent(inout) :: aux(..)
+      !! Optional auxiliary buffer.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
-    type(dtfft_request_t)                      :: request
+    type(dtfft_request_t)                     :: request
       !! Asynchronous handle describing started transpose operation
-    request = self%transpose_start_ptr(c_loc(in), c_loc(out), transpose_type, error_code)
+    type(c_ptr)     :: aux_ptr
+
+    aux_ptr = c_null_ptr; if( present(aux) ) aux_ptr = c_loc(aux)
+    request = self%transpose_start_ptr(c_loc(in), c_loc(out), transpose_type, aux_ptr, error_code)
   end function transpose_start
 
-  function transpose_start_ptr(self, in, out, transpose_type, error_code) result(request)
+  function transpose_start_ptr(self, in, out, transpose_type, aux, error_code) result(request)
   !! Starts an asynchronous transpose operation using type(c_ptr) pointers instead of buffers
   !!
   !! @note
@@ -364,20 +625,24 @@ contains
       !! Resulting pointer
     type(dtfft_transpose_t),    intent(in)    :: transpose_type
       !! Type of transposition.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary buffer. Not optional. If not required, c_null_ptr must be passed.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
     type(dtfft_request_t)                     :: request
       !! Asynchronous handle describing started transpose operation
     integer(int32)  :: ierr     !! Error code
-    type(transpose_request),     pointer      :: internal_handle
+    type(async_request),     pointer      :: internal_handle
       !! Handle to internal transpose structure
 
     PHASE_BEGIN("dtfft_transpose_start", COLOR_TRANSPOSE)
     request = dtfft_request_t(c_null_ptr)
-    call self%transpose_private(in, out, transpose_type, EXEC_NONBLOCKING, ierr)
+    call self%transpose_private(in, out, aux, transpose_type, EXEC_NONBLOCKING, ierr)
     if( ierr == DTFFT_SUCCESS ) then
       allocate(internal_handle)
-      internal_handle%transpose_type = transpose_type
+      internal_handle%request_type = transpose_type%val
       internal_handle%is_started = .true.
       internal_handle%in = in
       internal_handle%out = out
@@ -395,36 +660,23 @@ contains
       !! Handle obtained from [[dtfft_plan_t(type):transpose_start]] or [[dtfft_plan_t(type):transpose_start_ptr]]
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
-    type(transpose_request),    pointer       :: internal_handle
+    type(async_request),    pointer       :: internal_handle
       !! Handle to internal transpose structure
     integer(int32)  :: ierr    !! Error code
 
     ierr = DTFFT_SUCCESS
-#ifdef ENABLE_INPUT_CHECK
-    if( is_null_ptr(request%val) ) ierr = DTFFT_ERROR_INVALID_REQUEST
-    CHECK_ERROR_AND_RETURN
-#endif
-    call c_f_pointer(request%val, internal_handle)
-#ifdef ENABLE_INPUT_CHECK
-    if ( .not. internal_handle%is_started                                 &
-      .or. .not. is_valid_transpose_type(internal_handle%transpose_type)  &
-      .or. is_null_ptr(internal_handle%in)                                &
-      .or. is_null_ptr(internal_handle%out)) ierr = DTFFT_ERROR_INVALID_REQUEST
-    CHECK_ERROR_AND_RETURN
-#endif
+    CHECK_REQUEST(request, internal_handle, dtfft_transpose_t, is_valid_transpose_type)
 
     PHASE_BEGIN("dtfft_transpose_end", COLOR_TRANSPOSE)
-    call self%plan%execute_end(internal_handle%in, internal_handle%out, internal_handle%transpose_type, ierr)
+    call self%plan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, ierr)
     PHASE_END("dtfft_transpose_end")
-#ifdef ENABLE_INPUT_CHECK
     CHECK_ERROR_AND_RETURN
-#endif
     deallocate(internal_handle)
     request = dtfft_request_t(c_null_ptr)
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine transpose_end
 
-  subroutine transpose_private(self, in, out, transpose_type, exec_type, error_code)
+  subroutine transpose_private(self, in, out, aux, transpose_type, exec_type, error_code)
   !! Performs single transposition using type(c_ptr) pointers instead of buffers
   !!
   !! @note
@@ -437,6 +689,10 @@ contains
       !! will be modified in GPU build
     type(c_ptr),                intent(in)    :: out
       !! Resulting pointer
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary buffer. Not optional. If not required, c_null_ptr must be passed.
+      !! Size of buffer must be greater than value
+      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
     type(dtfft_transpose_t),    intent(in)    :: transpose_type
       !! Type of transposition.
     type(async_exec_t),         intent(in)    :: exec_type
@@ -444,6 +700,7 @@ contains
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr    !! Error code
+    type(c_ptr) :: aux1, aux2
 
     ierr = DTFFT_SUCCESS
 #ifdef ENABLE_INPUT_CHECK
@@ -457,22 +714,19 @@ contains
     if ( is_same_ptr(in, out) )                                                                 &
       ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
     CHECK_ERROR_AND_RETURN
-    select type( self )
-    class is ( dtfft_plan_r2c_t )
-      ierr = DTFFT_ERROR_R2C_TRANSPOSE_CALLED
-      CHECK_ERROR_AND_RETURN
-    endselect
+    if ( is_same_ptr(in, aux) .or. is_same_ptr(out, aux) )                                      &
+      ierr = DTFFT_ERROR_INVALID_AUX
+    CHECK_ERROR_AND_RETURN
 # ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
-      ierr = check_device_pointers(in, out, self%plan%get_backend(), c_null_ptr)
+      ierr = check_device_pointers(in, out, self%plan%get_backend(), aux)
       CHECK_ERROR_AND_RETURN
     endif
 # endif
 #endif
-    call self%plan%execute(in, out, transpose_type, exec_type, ierr)
-#ifdef ENABLE_INPUT_CHECK
+    call self%check_aux(aux, CHECK_AUX_CALLED_BY_RESHAPE, aux1, aux2)
+    call self%plan%execute(in, out, transpose_type%val, exec_type, aux1, ierr)
     CHECK_ERROR_AND_RETURN
-#endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine transpose_private
 
@@ -488,8 +742,8 @@ contains
       !! Type of execution.
     type(*),  target, optional, intent(inout) :: aux(..)
       !! Optional auxiliary buffer.
-      !! Size of buffer must be greater than value
-      !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
+      !! If provided, size of buffer must be at least the value
+      !! returned by [[dtfft_plan_t(type):get_aux_size]] function
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
     type(c_ptr)     :: aux_ptr
@@ -517,40 +771,56 @@ contains
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
     logical         :: inplace  !! Inplace execution flag
+    type(c_ptr)  :: aux1, aux2
 
     inplace = is_same_ptr(in, out)
     ierr = DTFFT_SUCCESS
 #ifdef ENABLE_INPUT_CHECK
-    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    if ( .not. self%is_created )                                                  &
+      ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    if ( .not.is_valid_execute_type(execute_type) )                               &
+      ierr = DTFFT_ERROR_INVALID_EXECUTE_TYPE
+    CHECK_ERROR_AND_RETURN
+    if ( self%is_transpose_plan .and. inplace .and.                               &
+      (self%ndims == 2 .or. self%is_y_slab                                        &
+      .or. (self%is_reshape_enabled .and.  .not.self%is_final_reshape_enabled)))  &
+      ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
+    CHECK_ERROR_AND_RETURN
+    if ( is_same_ptr(in, aux) .or. is_same_ptr(out, aux) )                        &
+      ierr = DTFFT_ERROR_INVALID_AUX
+    CHECK_ERROR_AND_RETURN
+    if ( self%plan%get_async_active() )                                           &
+      ierr = DTFFT_ERROR_TRANSPOSE_ACTIVE
+    CHECK_ERROR_AND_RETURN
+    if ( self%is_reshape_enabled ) then
+      if ( self%rplan%get_async_active() )                                        &
+        ierr = DTFFT_ERROR_RESHAPE_ACTIVE
       CHECK_ERROR_AND_RETURN
-    if ( .not.is_valid_execute_type(execute_type) ) ierr = DTFFT_ERROR_INVALID_TRANSPOSE_TYPE
+    endif
+    if ( self%is_transpose_plan ) then
+      select type( self )
+      class is ( dtfft_plan_r2c_t )
+        ierr = DTFFT_ERROR_R2C_EXECUTE_CALLED
       CHECK_ERROR_AND_RETURN
-    if ( self%is_transpose_plan .and. (self%ndims == 2 .or. self%is_y_slab) .and. inplace ) ierr = DTFFT_ERROR_INPLACE_TRANSPOSE
-      CHECK_ERROR_AND_RETURN
-    if ( is_same_ptr(in, aux) .or. is_same_ptr(out, aux) ) ierr = DTFFT_ERROR_INVALID_AUX
-      CHECK_ERROR_AND_RETURN
-    if ( self%plan%get_async_active() ) ierr = DTFFT_ERROR_TRANSPOSE_ACTIVE
-      CHECK_ERROR_AND_RETURN
+      endselect
+    endif
 # ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
       ierr = check_device_pointers(in, out, self%plan%get_backend(), aux)
-        CHECK_ERROR_AND_RETURN
+      CHECK_ERROR_AND_RETURN
     endif
 # endif
 #endif
 
     PHASE_BEGIN("dtfft_execute", COLOR_EXECUTE)
-    call self%check_aux(aux)
-    if ( .not.is_null_ptr(aux) ) then
-      call self%execute_private( in, out, execute_type, aux, inplace )
-    else
-      call self%execute_private( in, out, execute_type, self%aux_ptr, inplace )
-    endif
+    call self%check_aux(aux, CHECK_AUX_CALLED_BY_EXECUTE, aux1, aux2)
+    call self%execute_private(in, out, execute_type, aux1, inplace, aux2)
     PHASE_END("dtfft_execute")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine execute_ptr
 
-  subroutine execute_private(self, in, out, execute_type, aux, inplace)
+  subroutine execute_private(self, in, out, execute_type, aux, inplace, aux2)
   !! Executes plan with specified auxiliary buffer
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
@@ -564,17 +834,31 @@ contains
       !! Auxiliary pointer.
     logical,                    intent(in)    :: inplace
       !! Inplace execution flag
+    type(c_ptr),                intent(in)    :: aux2
+      !! Second Auxiliary pointer.
 
     if ( self%ndims == 2 .or. self%is_y_slab ) then
-      call self%execute_2d(in, out, execute_type, aux)
+      if ( self%is_reshape_enabled ) then
+        call self%execute_2d_reshape(in, out, execute_type, aux, aux2)
+      else
+        call self%execute_2d(in, out, execute_type, aux, aux2)
+      endif
     else if ( self%is_z_slab ) then
-      call self%execute_z_slab(in, out, execute_type, aux, inplace)
+      if ( self%is_reshape_enabled ) then
+        call self%execute_z_slab_reshape(in, out, execute_type, aux, aux2)
+      else
+        call self%execute_z_slab(in, out, execute_type, aux, inplace, aux2)
+      endif
     else
-      call self%execute_generic(in, out, execute_type, aux)
+      if ( self%is_reshape_enabled ) then
+        call self%execute_generic_reshape(in, out, execute_type, aux, aux2)
+      else
+        call self%execute_generic(in, out, execute_type, aux, aux2)
+      endif
     endif
   end subroutine execute_private
 
-  subroutine execute_2d(self, in, out, execute_type, aux)
+  subroutine execute_2d(self, in, out, execute_type, aux, aux2)
   !! Executes plan with specified auxiliary buffer
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
@@ -586,34 +870,89 @@ contains
       !! Type of execution.
     type(c_ptr),                intent(in)    :: aux
       !! Auxiliary pointer.
+    type(c_ptr),                intent(in)    :: aux2
+      !! Second Auxiliary pointer.
 
     if ( self%is_transpose_plan ) then
       if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
-        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y, EXEC_BLOCKING)
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
       else
-        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_X, EXEC_BLOCKING)
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
       endif
       return
     endif
 
     if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
-      ! 1d direct FFT X direction
       call self%fft(1)%fft%execute(in, aux, FFT_FORWARD)
-      ! Transpose X -> Y
-      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y, EXEC_BLOCKING)
-      ! 1d FFT Y direction
+      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
       call self%fft(self%fft_mapping(2))%fft%execute(out, out, FFT_FORWARD)
     else
-      ! 1d inverse FFT Y direction
       call self%fft(self%fft_mapping(2))%fft%execute(in, in, FFT_BACKWARD)
-      ! Transpose Y -> X
-      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X, EXEC_BLOCKING)
-      ! 1d inverse FFT X direction
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
       call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
     endif
   end subroutine execute_2d
 
-  subroutine execute_z_slab(self, in, out, execute_type, aux, inplace)
+  subroutine execute_2d_reshape(self, in, out, execute_type, aux, aux2)
+      !! Executes plan with specified auxiliary buffer
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Source pointer
+    type(c_ptr),                intent(in)    :: out
+      !! Target pointer
+    type(dtfft_execute_t),      intent(in)    :: execute_type
+      !! Type of execution.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary pointer.
+    type(c_ptr),                intent(in)    :: aux2
+      !! Second Auxiliary pointer.
+
+    if ( self%is_transpose_plan ) then
+      if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+        call self%rplan%execute(in, aux, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+        if ( self%is_final_reshape_enabled ) then
+          call self% plan%execute(aux, in, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+          call self%rplan%execute(in, out, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+        else
+          call self% plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+        endif
+      else
+        if ( self%is_final_reshape_enabled ) then
+          call self%rplan%execute(in, out, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+          call self% plan%execute(out, aux, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
+        else
+          call self% plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
+        endif
+        call self%rplan%execute(aux, out, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+      endif
+      return
+    endif
+
+    if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+      call self%rplan%execute(in, aux, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+      call self%fft(1)%fft%execute(aux, out, FFT_FORWARD)
+      call self% plan%execute(out, aux, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+      if ( self%is_final_reshape_enabled ) then
+        call self%fft(self%fft_mapping(2))%fft%execute(aux, aux, FFT_FORWARD)
+        call self%rplan%execute(aux, out, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+      else
+        call self%fft(self%fft_mapping(2))%fft%execute(aux, out, FFT_FORWARD)
+      endif
+    else
+      if ( self%is_final_reshape_enabled ) then
+        call self%rplan%execute(in, aux, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+        call self%fft(self%fft_mapping(2))%fft%execute(aux, aux, FFT_BACKWARD)
+      else
+        call self%fft(self%fft_mapping(2))%fft%execute(in, aux, FFT_BACKWARD)
+      endif
+      call self% plan%execute(aux, in, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
+      call self%fft(1)%fft%execute(in, aux, FFT_BACKWARD)
+      call self%rplan%execute(aux, out, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+    endif
+  end subroutine execute_2d_reshape
+
+  subroutine execute_z_slab(self, in, out, execute_type, aux, inplace, aux2)
   !! Executes plan with specified auxiliary buffer
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
@@ -627,38 +966,34 @@ contains
       !! Auxiliary pointer.
     logical,                    intent(in)    :: inplace
       !! Inplace execution flag
+    type(c_ptr),                intent(in)    :: aux2
+      !! Second Auxiliary pointer.
 
     if ( self%is_transpose_plan ) then
       if ( inplace ) then
-        call self%execute_generic(in, out, execute_type, aux)
+        call self%execute_generic(in, out, execute_type, aux, aux2)
         return
       endif
       if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
-        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Z, EXEC_BLOCKING)
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Z%val, EXEC_BLOCKING, aux2)
       else
-        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Z_TO_X, EXEC_BLOCKING)
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Z_TO_X%val, EXEC_BLOCKING, aux2)
       endif
       return
     endif
 
     if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
-      ! 2d direct FFT X-Y directions
       call self%fft(1)%fft%execute(in, aux, FFT_FORWARD)
-      ! Transpose X -> Z
-      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Z, EXEC_BLOCKING)
-      ! 1d direct FFT Z direction
+      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Z%val, EXEC_BLOCKING, aux2)
       call self%fft(3)%fft%execute(out, out, FFT_FORWARD)
     else
-      ! 1d inverse FFT Z direction
       call self%fft(3)%fft%execute(in, in, FFT_BACKWARD)
-      ! Transpose Z -> X
-      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_X, EXEC_BLOCKING)
-      ! 2d inverse FFT X-Y direction
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_X%val, EXEC_BLOCKING, aux2)
       call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
     endif
   end subroutine execute_z_slab
 
-  subroutine execute_generic(self, in, out, execute_type, aux)
+    subroutine execute_z_slab_reshape(self, in, out, execute_type, aux, aux2)
   !! Executes plan with specified auxiliary buffer
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
@@ -670,42 +1005,139 @@ contains
       !! Type of execution.
     type(c_ptr),                intent(in)    :: aux
       !! Auxiliary pointer.
+    type(c_ptr),                intent(in)    :: aux2
+      !! Second Auxiliary pointer.
 
     if ( self%is_transpose_plan ) then
       if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
-        call self%plan%execute(in, aux, DTFFT_TRANSPOSE_X_TO_Y, EXEC_BLOCKING)
-        call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_Z, EXEC_BLOCKING)
+        call self%rplan%execute(in, aux, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+        call self% plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Z%val, EXEC_BLOCKING, aux2)
       else
-        call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_Y, EXEC_BLOCKING)
-        call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_X, EXEC_BLOCKING)
+        call self% plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_X%val, EXEC_BLOCKING, aux2)
+        call self%rplan%execute(aux, out, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
       endif
       return
     endif
 
     if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
-      ! 1d direct FFT X direction
+      call self%rplan%execute(in, aux, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+      call self%fft(1)%fft%execute(aux, in, FFT_FORWARD)
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_X_TO_Z%val, EXEC_BLOCKING, aux2)
+      call self%fft(3)%fft%execute(aux, out, FFT_FORWARD)
+    else
+      call self%fft(3)%fft%execute(in, aux, FFT_BACKWARD)
+      call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Z_TO_X%val, EXEC_BLOCKING, aux2)
+      call self%fft(1)%fft%execute(in, aux, FFT_BACKWARD)
+      call self%rplan%execute(aux, out, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+    endif
+  end subroutine execute_z_slab_reshape
+
+  subroutine execute_generic(self, in, out, execute_type, aux, aux2)
+  !! Executes plan with specified auxiliary buffer
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Source pointer
+    type(c_ptr),                intent(in)    :: out
+      !! Target pointer
+    type(dtfft_execute_t),      intent(in)    :: execute_type
+      !! Type of execution.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary pointer.
+    type(c_ptr),                intent(in)    :: aux2
+      !! Second Auxiliary pointer.
+
+    if ( self%is_transpose_plan ) then
+      if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+        call self%plan%execute(in, aux, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+        call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_Z%val, EXEC_BLOCKING, aux2)
+      else
+        call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_Y%val, EXEC_BLOCKING, aux2)
+        call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
+      endif
+      return
+    endif
+
+    if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
       call self%fft(1)%fft%execute(in, aux, FFT_FORWARD)
-      ! Transpose X -> Y
-      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y, EXEC_BLOCKING)
-      ! 1d FFT Y direction
+      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
       call self%fft(self%fft_mapping(2))%fft%execute(out, out, FFT_FORWARD)
-      ! Transpose Y -> Z
-      call self%plan%execute(out, aux, DTFFT_TRANSPOSE_Y_TO_Z, EXEC_BLOCKING)
-      ! 1d direct FFT Z direction
+      call self%plan%execute(out, aux, DTFFT_TRANSPOSE_Y_TO_Z%val, EXEC_BLOCKING, aux2)
       call self%fft(self%fft_mapping(3))%fft%execute(aux, out, FFT_FORWARD)
     else
-      ! 1d inverse FFT Z direction
       call self%fft(self%fft_mapping(3))%fft%execute(in, aux, FFT_BACKWARD)
-      ! Transpose Z -> Y
-      call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Z_TO_Y, EXEC_BLOCKING)
-      ! 1d inverse FFT Y direction
+      call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Z_TO_Y%val, EXEC_BLOCKING, aux2)
       call self%fft(self%fft_mapping(2))%fft%execute(in, in, FFT_BACKWARD)
-      ! Transpose Y -> X
-      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X, EXEC_BLOCKING)
-      ! 1d inverse FFT X direction
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
       call self%fft(1)%fft%execute(aux, out, FFT_BACKWARD)
     endif
   end subroutine execute_generic
+
+  subroutine execute_generic_reshape(self, in, out, execute_type, aux, aux2)
+  !! Executes plan with specified auxiliary buffer
+    class(dtfft_plan_t),        intent(inout) :: self
+      !! Abstract plan
+    type(c_ptr),                intent(in)    :: in
+      !! Source pointer
+    type(c_ptr),                intent(in)    :: out
+      !! Target pointer
+    type(dtfft_execute_t),      intent(in)    :: execute_type
+      !! Type of execution.
+    type(c_ptr),                intent(in)    :: aux
+      !! Auxiliary pointer.
+    type(c_ptr),                intent(in)    :: aux2
+      !! Second Auxiliary pointer.
+
+    if ( self%is_transpose_plan ) then
+      if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+        call self%rplan%execute(in, aux, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+        call self% plan%execute(aux, in, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+        if ( self%is_final_reshape_enabled ) then
+          call self% plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_Z%val, EXEC_BLOCKING, aux2)
+          call self%rplan%execute(aux, out, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+        else
+          ! Should be ok, since DTFFT_ERROR_INPLACE_TRANSPOSE is checked earlier
+          call self% plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_Z%val, EXEC_BLOCKING, aux2)
+        endif
+      else
+        if ( self%is_final_reshape_enabled ) then
+          call self%rplan%execute(in, aux, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+          call self% plan%execute(aux, out, DTFFT_TRANSPOSE_Z_TO_Y%val, EXEC_BLOCKING, aux2)
+        else
+          call self% plan%execute(in, out, DTFFT_TRANSPOSE_Z_TO_Y%val, EXEC_BLOCKING, aux2)
+        endif
+        call self% plan%execute(out, aux, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
+        call self%rplan%execute(aux, out, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+      endif
+      return
+    endif
+
+    if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+      call self%rplan%execute(in, aux, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+      call self%fft(1)%fft%execute(aux, out, FFT_FORWARD)
+      call self%plan%execute(out, aux, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+      call self%fft(self%fft_mapping(2))%fft%execute(aux, in, FFT_FORWARD)
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_Z%val, EXEC_BLOCKING, aux2)
+      if ( self%is_final_reshape_enabled ) then
+        call self%fft(self%fft_mapping(3))%fft%execute(aux, aux, FFT_FORWARD)
+        call self%rplan%execute(aux, out, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+      else
+        call self%fft(self%fft_mapping(3))%fft%execute(aux, out, FFT_FORWARD)
+      endif
+    else
+      if ( self%is_final_reshape_enabled ) then
+        call self%rplan%execute(in, aux, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
+        call self%fft(self%fft_mapping(3))%fft%execute(aux, aux, FFT_BACKWARD)
+      else
+        call self%fft(self%fft_mapping(3))%fft%execute(in, aux, FFT_BACKWARD)
+      endif
+      call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Z_TO_Y%val, EXEC_BLOCKING, aux2)
+      call self%fft(self%fft_mapping(2))%fft%execute(in, aux, FFT_BACKWARD)
+      call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
+      call self%fft(1)%fft%execute(in, aux, FFT_BACKWARD)
+      call self%rplan%execute(aux, out, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
+    endif
+  end subroutine execute_generic_reshape
 
   subroutine destroy(self, error_code)
   !! Destroys plan, frees all memory
@@ -735,6 +1167,11 @@ contains
         call self%pencils(d)%destroy()
       enddo
       deallocate(self%pencils)
+    endif
+
+    if ( self%is_reshape_enabled ) then
+      call self%bricks(1)%destroy()
+      call self%bricks(2)%destroy()
     endif
 
     if ( self%is_aux_alloc ) then
@@ -768,6 +1205,8 @@ contains
     end block
 
     call self%plan%destroy()
+    if ( self%is_reshape_enabled ) call self%rplan%destroy()
+    self%is_reshape_enabled = .false.
 
     if ( allocated(self%comms) ) then
       do d = 1, self%ndims
@@ -821,41 +1260,51 @@ contains
   !! Returns pencil decomposition
     class(dtfft_plan_t),        intent(in)    :: self
       !! Abstract plan
-    integer(int32),             intent(in)    :: layout
-      !! Required layout:
-      !!
-      !!  - 0 for XYZ layout (real space, R2C only)
-      !!  - 1 for XYZ layout
-      !!  - 2 for YZX layout
-      !!  - 3 for ZXY layout
-      !!
-      !! [//]: # (ListBreak)
+    type(dtfft_layout_t),       intent(in)    :: layout
+      !! Required layout
     integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr     !! Error code
-    integer(int32)  :: min_layout
+    logical         :: is_valid
 
     ierr = DTFFT_SUCCESS
-    ! get_pencil = dtfft_pencil_t(-1,-1,-1,-1)
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
-    select type (self)
-    class is ( dtfft_plan_r2c_t )
-      min_layout = 0
-    class default
-      min_layout = 1
-    endselect
-
-    if ( layout < min_layout .or. layout > self%ndims ) ierr = DTFFT_ERROR_INVALID_DIM
+    if ( .not.is_valid_layout(layout) ) ierr = DTFFT_ERROR_INVALID_LAYOUT
     CHECK_ERROR_AND_RETURN
-    if ( layout == 0 ) then
+
+    is_valid = .true.
+    if ( .not. self%is_reshape_enabled .and. (layout == DTFFT_LAYOUT_X_BRICKS .or. layout == DTFFT_LAYOUT_Z_BRICKS) ) is_valid = .false.
+    if ( self%ndims == 2 .and. layout == DTFFT_LAYOUT_Z_PENCILS ) is_valid = .false.
+    if ( layout == DTFFT_LAYOUT_X_PENCILS_FOURIER ) then
       select type (self)
       class is ( dtfft_plan_r2c_t )
-        get_pencil = self%real_pencil%make_public()
+      class default
+        is_valid = .false.
       endselect
-    else
-      get_pencil = self%pencils(layout)%make_public()
     endif
+    if ( .not. is_valid ) ierr = DTFFT_ERROR_INVALID_LAYOUT
+    CHECK_ERROR_AND_RETURN
+
+    select case ( layout%val )
+    case ( CONF_DTFFT_LAYOUT_X_BRICKS )
+      get_pencil = self%bricks(1)%make_public()
+    case ( CONF_DTFFT_LAYOUT_X_PENCILS )
+      select type ( self )
+      class is ( dtfft_plan_r2c_t )
+        get_pencil = self%real_pencil%make_public()
+      class default
+        get_pencil = self%pencils(1)%make_public()
+      end select
+    case ( CONF_DTFFT_LAYOUT_Y_PENCILS )
+      get_pencil = self%pencils(2)%make_public()
+    case ( CONF_DTFFT_LAYOUT_Z_PENCILS )
+      get_pencil = self%pencils(3)%make_public()
+    case ( CONF_DTFFT_LAYOUT_X_PENCILS_FOURIER )
+      get_pencil = self%pencils(1)%make_public()
+    case ( CONF_DTFFT_LAYOUT_Z_BRICKS )
+      get_pencil = self%bricks(2)%make_public()
+    endselect
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_pencil
 
@@ -900,6 +1349,51 @@ contains
     get_alloc_bytes = alloc_size * element_size
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_alloc_bytes
+
+  integer(int64) function get_aux_size(self, error_code)
+  !! Returns minimum number of elements required for auxiliary buffer
+  !! which may be different from `alloc_size` when backend is pipelined
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr         !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_aux_size = 0
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    get_aux_size = self%rplan%get_aux_bytes() / self%storage_size
+    get_aux_size = max(get_aux_size, self%plan%get_aux_bytes() / self%storage_size)
+    get_aux_size = max(get_aux_size, self%get_alloc_size())
+    if ( is_backend_pipelined(self%plan%get_backend()) .or. is_backend_pipelined(self%rplan%get_backend()) ) then
+      get_aux_size = get_aux_size * 2_int64
+    endif
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_aux_size
+
+  integer(int64) function get_aux_bytes(self, error_code)
+  !! Returns minimum number of bytes required for auxiliary buffer
+  !! which may be different from `alloc_bytes` when backend is pipelined
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr         !! Error code
+    integer(int64)  :: aux_size     !! Number of elements required
+    integer(int64)  :: element_size !! Size of each element
+
+    ierr = DTFFT_SUCCESS
+    get_aux_bytes = 0
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    aux_size = self%get_aux_size()
+    element_size = self%get_element_size()
+    get_aux_bytes = aux_size * element_size
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_aux_bytes
 
   type(dtfft_executor_t) function get_executor(self, error_code)
   !! Returns FFT Executor associated with plan
@@ -978,8 +1472,6 @@ contains
     integer(int32), optional,   intent(out) :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr                   !! Error code
-    integer(int32)  :: comm_dims(self%ndims)  !! Communicator dimensions
-    integer(int32)  :: d                      !! Counter
 
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
@@ -987,53 +1479,71 @@ contains
     WRITE_REPORT("**Plan report**")
     WRITE_REPORT("  dtFFT Version        :  "//to_str(DTFFT_VERSION_MAJOR)//"."//to_str(DTFFT_VERSION_MINOR)//"."//to_str(DTFFT_VERSION_PATCH))
     WRITE_REPORT("  Number of dimensions :  "//to_str(self%ndims))
+    WRITE_REPORT("  Global dimensions    :  "//get_grid_str(self%dims))
+    WRITE_REPORT("  Grid decomposition   :  "//get_grid_str(self%grid_dims))
+    if ( self%is_reshape_enabled ) then
+      block
+        integer(int32), pointer :: comm_dims(:)
 
-    do d = 2, self%ndims
-      call MPI_Comm_size(self%comms(d), comm_dims(d), ierr)
-    enddo
-    if ( self%ndims == 2 ) then
-      WRITE_REPORT("  Global dimensions    :  "//to_str(self%dims(1))//"x"//to_str(self%dims(2)))
-      WRITE_REPORT("  Grid decomposition   :  1x"//to_str(comm_dims(2)))
-    else
-      WRITE_REPORT("  Global dimensions    :  "//to_str(self%dims(1))//"x"//to_str(self%dims(2))//"x"//to_str(self%dims(3)))
-      WRITE_REPORT("  Grid decomposition   :  1x"//to_str(comm_dims(2))//"x"//to_str(comm_dims(3)))
+        call self%rplan%get_grid(1_int8, comm_dims)
+    WRITE_REPORT("  Initial grid         :  "//get_grid_str(comm_dims))
+        call self%rplan%get_grid(2_int8, comm_dims)
+    WRITE_REPORT("  Final grid           :  "//get_grid_str(comm_dims))
+        nullify(comm_dims)
+      endblock
     endif
 #ifdef DTFFT_WITH_CUDA
     if ( self%platform == DTFFT_PLATFORM_HOST ) then
-      WRITE_REPORT("  Execution platform   :  HOST")
+    WRITE_REPORT("  Execution platform   :  HOST")
     else
-      WRITE_REPORT("  Execution platform   :  CUDA")
+    WRITE_REPORT("  Execution platform   :  CUDA")
     endif
 #endif
     select type( self )
     class is ( dtfft_plan_c2c_t )
-      WRITE_REPORT("  Plan type            :  Complex-to-Complex")
+    WRITE_REPORT("  Plan type            :  Complex-to-Complex")
     class is ( dtfft_plan_r2r_t )
-      WRITE_REPORT("  Plan type            :  Real-to-Real")
+    WRITE_REPORT("  Plan type            :  Real-to-Real")
     class is ( dtfft_plan_r2c_t )
-      WRITE_REPORT("  Plan type            :  Real-to-Complex")
+    WRITE_REPORT("  Plan type            :  Real-to-Complex")
     endselect
-      WRITE_REPORT("  Plan precision       :  "//dtfft_get_precision_string(self%precision))
-      WRITE_REPORT("  FFT Executor type    :  "//dtfft_get_executor_string(self%executor))
+    WRITE_REPORT("  Plan precision       :  "//dtfft_get_precision_string(self%precision))
+    WRITE_REPORT("  FFT Executor type    :  "//dtfft_get_executor_string(self%executor))
     if ( self%ndims == 3 ) then
       if ( self%is_z_slab ) then
-        WRITE_REPORT("  Z-slab enabled       :  True")
+    WRITE_REPORT("  Z-slab enabled       :  True")
       else
-        WRITE_REPORT("  Z-slab enabled       :  False")
+    WRITE_REPORT("  Z-slab enabled       :  False")
       endif
       if ( self%is_y_slab ) then
-        WRITE_REPORT("  Y-slab enabled       :  True")
+    WRITE_REPORT("  Y-slab enabled       :  True")
       else
-        WRITE_REPORT("  Y-slab enabled       :  False")
+    WRITE_REPORT("  Y-slab enabled       :  False")
       endif
     endif
     WRITE_REPORT("  Backend              :  "//dtfft_get_backend_string(self%plan%get_backend()))
+    if ( self%is_reshape_enabled ) then
+    WRITE_REPORT("  Reshape Backend      :  "//dtfft_get_backend_string(self%rplan%get_backend()))
+    endif
     WRITE_REPORT("**End of report**")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine report
 
+  function get_grid_str(dims) result(grid_str)
+  !! Returns grid dimensions as string
+    integer(int32), intent(in)    :: dims(:)
+      !! Grid dimensions
+    character(len=:), allocatable :: grid_str
+      !! Grid string
+    if ( size(dims) == 2 ) then
+      allocate(grid_str, source=to_str(dims(1))//"x"//to_str(dims(2)))
+    else
+      allocate(grid_str, source=to_str(dims(1))//"x"//to_str(dims(2))//"x"//to_str(dims(3)))
+    endif
+  end function get_grid_str
+
   type(dtfft_backend_t) function get_backend(self, error_code)
-  !! Returns selected GPU backend during autotuning
+  !! Returns selected backend during autotuning
     class(dtfft_plan_t),        intent(in)  :: self
       !! Abstract plan
     integer(int32), optional,   intent(out) :: error_code
@@ -1048,6 +1558,25 @@ contains
     get_backend = self%plan%get_backend()
     if ( present( error_code ) ) error_code = ierr
   end function get_backend
+
+  type(dtfft_backend_t) function get_reshape_backend(self, error_code)
+  !! Returns selected reshape backend during autotuning
+    class(dtfft_plan_t),        intent(in)  :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out) :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr     !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_reshape_backend = BACKEND_NOT_SET
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    if ( .not. self%is_reshape_enabled ) ierr = DTFFT_ERROR_RESHAPE_NOT_SUPPORTED
+    CHECK_ERROR_AND_RETURN
+
+    get_reshape_backend = self%rplan%get_backend()
+    if ( present( error_code ) ) error_code = ierr
+  end function get_reshape_backend
 
 #ifdef DTFFT_WITH_CUDA
   type(dtfft_platform_t) function get_platform(self, error_code)
@@ -1149,6 +1678,7 @@ contains
     integer(int32), optional,   intent(out) :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr                 !! Error code
+    integer(int64) :: alloc_size_, alloc_size2, alloc_size3
 
     ierr = DTFFT_SUCCESS
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
@@ -1160,15 +1690,31 @@ contains
     .and..not. present(alloc_size)) ierr = DTFFT_ERROR_INVALID_USAGE
     CHECK_ERROR_AND_RETURN
 
-    select type ( self )
-    class is (dtfft_plan_r2c_t)
-      if (present( in_starts ) )    in_starts(1:self%ndims)   = self%real_pencil%starts(1:self%ndims)
-      if (present( in_counts ) )    in_counts(1:self%ndims)   = self%real_pencil%counts(1:self%ndims)
-      call get_local_sizes_private(self%pencils, out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size, is_y_slab=self%is_y_slab)
-      if ( present( alloc_size ) ) alloc_size = max(int(product(self%real_pencil%counts), int64), 2 * alloc_size)
-    class default
-      call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size, is_y_slab=self%is_y_slab)
-    endselect
+    alloc_size_ = 0
+    alloc_size2 = 0
+    if ( self%is_reshape_enabled ) then
+      call get_local_sizes_private([self%bricks(1)], in_starts, in_counts, alloc_size=alloc_size_)
+      call get_local_sizes_private([self%bricks(2)], alloc_size=alloc_size3)
+      select type ( self )
+      class is (dtfft_plan_r2c_t)
+        alloc_size3 = alloc_size3 * 2
+      endselect
+      alloc_size_ = max(alloc_size_, alloc_size3)
+      if ( self%is_final_reshape_enabled ) then
+        call get_local_sizes_private([self%bricks(2)], out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size2)
+        select type ( self )
+        class is (dtfft_plan_r2c_t)
+          alloc_size2 = alloc_size2 * 2
+        endselect
+      else
+        call self%get_local_sizes_internal(out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size2)
+      endif
+      call self%get_local_sizes_internal(alloc_size=alloc_size)
+    else
+      call self%get_local_sizes_internal(in_starts, in_counts, out_starts, out_counts, alloc_size)
+    endif
+    if ( present( alloc_size ) ) alloc_size = max( max(alloc_size_, alloc_size2), alloc_size )
+
 #ifdef DTFFT_WITH_CUDA
     if ( is_backend_nvshmem( self%plan%get_backend() ) .and. present(alloc_size) ) then
       block
@@ -1177,7 +1723,7 @@ contains
         ! cufftMp pipelined may require aux buffer that is larger than
         ! required by dtfft. in such case we must make sure that
         ! buffer allocated by user is large enough
-        aux_size = self%plan%get_aux_size()
+        aux_size = self%plan%get_aux_bytes()
         alloc_size = max(alloc_size, aux_size / self%storage_size )
 
         ALL_REDUCE(alloc_size, MPI_INTEGER8, MPI_MAX, self%comm, ierr)
@@ -1186,6 +1732,32 @@ contains
 #endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine get_local_sizes
+
+  subroutine get_local_sizes_internal(self, in_starts, in_counts, out_starts, out_counts, alloc_size)
+  !! Obtain local starts and counts in ``real`` and ``fourier`` spaces
+    class(dtfft_plan_t),        intent(in)  :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out) :: in_starts(:)
+      !! Starts of local portion of data in ``real`` space (0-based)
+    integer(int32), optional,   intent(out) :: in_counts(:)
+      !! Number of elements of local portion of data in 'real' space
+    integer(int32), optional,   intent(out) :: out_starts(:)
+      !! Starts of local portion of data in ``fourier`` space (0-based)
+    integer(int32), optional,   intent(out) :: out_counts(:)
+      !! Number of elements of local portion of data in ``fourier`` space
+    integer(int64), optional,   intent(out) :: alloc_size
+      !! Minimal number of elements required to execute plan
+
+    select type ( self )
+    class is (dtfft_plan_r2c_t)
+      if (present( in_starts ) )    in_starts(1:self%ndims)   = self%real_pencil%starts(1:self%ndims)
+      if (present( in_counts ) )    in_counts(1:self%ndims)   = self%real_pencil%counts(1:self%ndims)
+      call get_local_sizes_private(self%pencils, out_starts=out_starts, out_counts=out_counts, alloc_size=alloc_size, is_y_slab=self%is_y_slab)
+      if ( present( alloc_size ) )  alloc_size = max(int(product(self%real_pencil%counts), int64), 2 * alloc_size)
+    class default
+      call get_local_sizes_private(self%pencils, in_starts, in_counts, out_starts, out_counts, alloc_size, is_y_slab=self%is_y_slab)
+    endselect
+  end subroutine get_local_sizes_internal
 
   function get_alloc_size(self, error_code) result(alloc_size)
   !! Wrapper around ``get_local_sizes`` to obtain number of elements only
@@ -1199,7 +1771,8 @@ contains
     call self%get_local_sizes(alloc_size=alloc_size, error_code=error_code)
   end function get_alloc_size
 
-  integer(int32) function create_private(self, sngl_type, sngl_storage_size, dbl_type, dbl_storage_size, dims, pencil, comm, precision, effort, executor, kinds)
+  integer(int32) function create_private(self, sngl_type, sngl_storage_size, dbl_type, dbl_storage_size, dims, pencil, &
+    comm, precision, effort, executor, kinds, sngl_type_init, sngl_storage_size_init, dbl_type_init, dbl_storage_size_init)
 #define __FUNC__ create_private
   !! Creates core
     class(dtfft_plan_t),              intent(inout) :: self
@@ -1226,11 +1799,21 @@ contains
       !! Type of External FFT Executor
     type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)
       !! Kinds of R2R transform
+    TYPE_MPI_DATATYPE,      optional, intent(in)    :: sngl_type_init
+      !! MPI_Datatype for single precision plan (should be passed only for R2C plans)
+    integer(int64),         optional, intent(in)    :: sngl_storage_size_init
+      !! Number of bytes needed to store single element (single precision) (should be passed only for R2C plans)
+    TYPE_MPI_DATATYPE,      optional, intent(in)    :: dbl_type_init
+      !! MPI_Datatype for double precision plan (should be passed only for R2C plans)
+    integer(int64),         optional, intent(in)    :: dbl_storage_size_init
+      !! Number of bytes needed to store single element (double precision) (should be passed only for R2C plans)
     TYPE_MPI_DATATYPE       :: base_dtype           !! MPI_Datatype for current precision
     integer(int64)          :: base_storage         !! Number of bytes needed to store single element
     TYPE_MPI_COMM           :: comm_                !! MPI Communicator
     integer(int8)           :: d                    !! Counter
     integer(int32)          :: ierr
+    TYPE_MPI_DATATYPE       :: base_dtype_init      !! MPI_Datatype for R2C initial precision
+    integer(int64)          :: base_storage_init    !! Number of bytes needed to store single element for R2C initial precision
 
     create_private = DTFFT_SUCCESS
     CHECK_INTERNAL_CALL( self%check_create_args(dims, pencil, comm, precision, effort, executor, kinds) )
@@ -1246,6 +1829,20 @@ contains
       INTERNAL_ERROR("unknown precision")
     endselect
     self%storage_size = base_storage
+
+    if ( present(sngl_type_init) ) then
+      select case ( self%precision%val )
+      case ( DTFFT_SINGLE%val )
+        base_storage_init = sngl_storage_size_init
+        base_dtype_init = sngl_type_init
+      case ( DTFFT_DOUBLE%val )
+        base_storage_init = dbl_storage_size_init
+        base_dtype_init = dbl_type_init
+      endselect
+    else
+      base_storage_init = base_storage
+      base_dtype_init = base_dtype
+    endif
 
     if ( allocated(self%pencils) ) then
       do d = 1, size(self%pencils, kind=int8)
@@ -1272,7 +1869,7 @@ contains
         integer(int32)  :: n_devices, current_device, local_rank, local_size
         integer(int32), allocatable :: local_devices(:)
 
-        call MPI_Comm_split_Type(comm_, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, local_comm, ierr)
+        call MPI_Comm_split_type(comm_, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, local_comm, ierr)
         call MPI_Comm_size(local_comm, local_size, ierr)
         call MPI_Comm_rank(local_comm, local_rank, ierr)
 
@@ -1295,46 +1892,90 @@ contains
     endif
 #endif
 
+    self%is_reshape_enabled = .false.
+    self%is_final_reshape_enabled = .false.
     if ( present(pencil) ) then
       block
         integer(int32), allocatable :: fixed_dims(:)
-        type(pencil_init) :: ipencil
+        type(pencil_init) :: ipencil, opencil
+        integer(int32) :: fsize
+        type(pencil_) :: temp_pencil
 
         CHECK_INTERNAL_CALL( ipencil%create(pencil, comm_) )
         ! After creating internal pencil and validating user passed pencil
         ! We finally know global dimensions `dims`
         allocate( self%dims, source=ipencil%dims )
         allocate( fixed_dims, source=self%dims )
-        select type( self )
-        class is ( dtfft_plan_r2c_t )
-          fixed_dims(1) = fixed_dims(1) / 2 + 1
-          ipencil%counts(1) = ipencil%counts(1) / 2 + 1
-        endselect
-        CHECK_INTERNAL_CALL( self%plan%create(self%platform, fixed_dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils, ipencil) )
 
         select type( self )
         class is ( dtfft_plan_r2c_t )
-          ipencil%counts(1) = (ipencil%counts(1) - 1) * 2
-          call self%real_pencil%create(self%ndims, 1_int8, self%dims, self%comms, ipencil%starts, ipencil%counts)
+          fixed_dims(1) = fixed_dims(1) / 2 + 1
         endselect
+
+        call MPI_Comm_size(ipencil%comms(1), fsize, ierr)
+        if ( fsize > 1 ) then
+          self%is_reshape_enabled = .true.
+
+          CHECK_INTERNAL_CALL( opencil%from_bricks(self%platform, ipencil, comm_) )
+
+          select type( self )
+          class is ( dtfft_plan_r2c_t )
+            opencil%counts(1) = fixed_dims(1)
+          endselect
+
+          CHECK_INTERNAL_CALL( self%plan%create(self%platform, fixed_dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils, opencil) )
+
+          select type( self )
+          class is ( dtfft_plan_r2c_t )
+            opencil%counts(1) = self%dims(1)
+            call self%real_pencil%create(self%ndims, 1_int8, self%dims, self%comms, opencil%starts, opencil%counts)
+            temp_pencil = self%pencils(1)
+            self%pencils(1) = self%real_pencil
+          endselect
+
+          CHECK_INTERNAL_CALL( self%rplan%create(self%platform, ipencil, self%pencils, comm_, self%comms, base_dtype, base_storage, self%effort, self%plan%get_backend(), base_dtype_init, base_storage_init, self%bricks, self%is_final_reshape_enabled) )
+          ! print*,'brick1 = ',self%bricks(1)%starts,self%bricks(1)%counts
+          ! print*,'pencils1 = ',self%pencils(1)%starts,self%pencils(1)%counts
+          ! print*,'pencils2 = ',self%pencils(2)%starts,self%pencils(2)%counts
+          ! if ( self%ndims == 3 ) print*,'pencils3 = ',self%pencils(3)%starts,self%pencils(3)%counts
+          ! print*,'brick2 = ',self%bricks(2)%starts,self%bricks(2)%counts
+
+          select type( self )
+          class is ( dtfft_plan_r2c_t )
+            self%pencils(1) = temp_pencil
+          endselect
+
+          call opencil%destroy()
+        else
+          select type( self )
+          class is ( dtfft_plan_r2c_t )
+            ipencil%counts(1) = fixed_dims(1)
+          endselect
+
+          CHECK_INTERNAL_CALL( self%plan%create(self%platform, fixed_dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils, ipencil) )
+
+          select type( self )
+          class is ( dtfft_plan_r2c_t )
+            ipencil%counts(1) = self%dims(1)
+            call self%real_pencil%create(self%ndims, 1_int8, self%dims, self%comms, ipencil%starts, ipencil%counts)
+          endselect
+        endif
         deallocate( fixed_dims )
         call ipencil%destroy()
       endblock
     else
       CHECK_INTERNAL_CALL( self%plan%create(self%platform, dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils) )
     endif
+
     self%is_z_slab = self%plan%get_z_slab()
+    self%is_y_slab = self%plan%get_y_slab()
+    if ( self%is_final_reshape_enabled .and. self%is_z_slab ) self%is_final_reshape_enabled = .false.
 
     if ( allocated( self%grid_dims ) ) deallocate( self%grid_dims )
     allocate( self%grid_dims(self%ndims) )
     do d = 1, self%ndims
       call MPI_Comm_size(self%comms(d), self%grid_dims(d), ierr)
     enddo
-
-    self%is_y_slab = .false.
-    if( self%ndims == 3 .and. .not. self%is_z_slab .and. self%grid_dims(self%ndims) == 1 .and. get_conf_y_slab_enabled() ) then
-      self%is_y_slab = .true.
-    endif
     call self%alloc_fft_plans(kinds)
 
     self%is_aux_alloc = .false.
@@ -1512,21 +2153,51 @@ contains
     deallocate(kinds_)
   end subroutine alloc_fft_plans
 
-  subroutine check_aux(self, aux)
+  subroutine check_aux(self, aux, called_by, aux_ptr, aux2_ptr)
   !! Checks if aux buffer was passed by user and if not will allocate one internally
     class(dtfft_plan_t),            intent(inout) :: self
       !! Abstract plan
     type(c_ptr),                    intent(in)    :: aux
       !! Optional auxiliary buffer.
-    integer(int64)                                :: alloc_size
+    integer(int32),                 intent(in)    :: called_by
+      !! Indicates which function called `check_aux` for correct allocation
+    type(c_ptr),                    intent(out)   :: aux_ptr
+      !! Auxiliary buffer pointer
+    type(c_ptr),                    intent(out)   :: aux2_ptr
+      !! Second Auxiliary buffer pointer (used transpose/reshape operations)
+    integer(int64)                                :: alloc_size, shift_size
       !! Number of elements to be allocated
     integer(int32) :: ierr
+    logical :: is_pipe
 
-    if ( self%is_aux_alloc .or. .not.is_null_ptr(aux) ) return
+    shift_size = self%get_alloc_bytes()
+    is_pipe = is_backend_pipelined(self%plan%get_backend()) .or. is_backend_pipelined(self%rplan%get_backend())
 
-    alloc_size = self%get_alloc_size() * self%get_element_size()
+    aux2_ptr = c_null_ptr
+    if ( self%is_aux_alloc .or. .not.is_null_ptr(aux) ) then
+      if ( self%is_aux_alloc ) then
+        aux_ptr = self%aux_ptr
+      else
+        aux_ptr = aux
+      endif
+      if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_pipe) then
+        aux2_ptr = ptr_offset(aux_ptr, shift_size)
+      endif
+      return
+    endif
+
+    if ( called_by == CHECK_AUX_CALLED_BY_RESHAPE .and. .not. is_pipe) then
+      aux_ptr = c_null_ptr
+      return
+    endif
+
+    alloc_size = self%get_aux_bytes()
     WRITE_DEBUG("Allocating auxiliary buffer of "//to_str(alloc_size)//" bytes")
     self%aux_ptr = self%mem_alloc_ptr(alloc_size, ierr);  DTFFT_CHECK(ierr)
+    aux_ptr = self%aux_ptr
+    if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_pipe) then
+      aux2_ptr = ptr_offset(self%aux_ptr, shift_size)
+    endif
     self%is_aux_alloc = .true.
   end subroutine check_aux
 
@@ -1713,7 +2384,7 @@ contains
 #undef __FUNC__
   end function create_c2c_internal
 
-  integer(int32) function create_c2c_core(self, dims, pencil, comm, precision, effort, executor)
+  integer(int32) function create_c2c_core(self, dims, pencil, comm, precision, effort, executor, sngl_type_init, sngl_storage_size_init, dbl_type_init, dbl_storage_size_init)
   !! Creates plan for both C2C and R2C
 #define __FUNC__ create_c2c_core
     class(dtfft_core_c2c),            intent(inout) :: self
@@ -1730,11 +2401,19 @@ contains
       !! How thoroughly `dtFFT` searches for the optimal plan
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
+    TYPE_MPI_DATATYPE,      optional, intent(in)    :: sngl_type_init
+      !! MPI_Datatype for single precision plan (should be passed only for R2C plans)
+    integer(int64),         optional, intent(in)    :: sngl_storage_size_init
+      !! Number of bytes needed to store single element (single precision) (should be passed only for R2C plans)
+    TYPE_MPI_DATATYPE,      optional, intent(in)    :: dbl_type_init
+      !! MPI_Datatype for double precision plan (should be passed only for R2C plans)
+    integer(int64),         optional, intent(in)    :: dbl_storage_size_init
+      !! Number of bytes needed to store single element (double precision) (should be passed only for R2C plans)
     integer(int8)           :: dim                  !! Counter
     integer(int8)           :: fft_start            !! 1 for c2c, 2 for r2c
     integer(int8)           :: fft_rank             !! Rank of FFT transform
 
-    CHECK_INTERNAL_CALL( self%create_private(MPI_COMPLEX, COMPLEX_STORAGE_SIZE, MPI_DOUBLE_COMPLEX, DOUBLE_COMPLEX_STORAGE_SIZE, dims=dims, pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor) )
+    CHECK_INTERNAL_CALL( self%create_private(MPI_COMPLEX, COMPLEX_STORAGE_SIZE, MPI_DOUBLE_COMPLEX, DOUBLE_COMPLEX_STORAGE_SIZE, dims=dims, pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor, sngl_type_init=sngl_type_init, sngl_storage_size_init=sngl_storage_size_init, dbl_type_init=dbl_type_init, dbl_storage_size_init=dbl_storage_size_init) )
 
     if ( self%is_transpose_plan ) return
     fft_start = 1
@@ -1751,57 +2430,55 @@ contains
 #undef __FUNC__
   end function create_c2c_core
 
-  subroutine create_r2c(self, dims, executor, comm, precision, effort, error_code)
+  subroutine create_r2c(self, dims, comm, precision, effort, executor, error_code)
   !! R2C Generic Plan Constructor
     class(dtfft_plan_r2c_t),          intent(inout) :: self
       !! C2C Plan
     integer(int32),                   intent(in)    :: dims(:)
       !! Global dimensions of transform
-    type(dtfft_executor_t),           intent(in)    :: executor
-    !! Type of External FFT Executor
     TYPE_MPI_COMM,          optional, intent(in)    :: comm
       !! Communicator
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
       !! How thoroughly `dtFFT` searches for the optimal plan
+    type(dtfft_executor_t), optional, intent(in)    :: executor
+    !! Type of External FFT Executor
     integer(int32),         optional, intent(out)   :: error_code
       !! Optional Error Code returned to user
     integer(int32)                    :: ierr               !! Error code
 
-    CHECK_OPTIONAL_CALL( self%create_r2c_internal(executor, dims=dims, comm=comm, precision=precision, effort=effort) )
+    CHECK_OPTIONAL_CALL( self%create_r2c_internal(dims=dims, comm=comm, precision=precision, effort=effort, executor=executor) )
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine create_r2c
 
-  subroutine create_r2c_pencil(self, pencil, executor, comm, precision, effort, error_code)
+  subroutine create_r2c_pencil(self, pencil, comm, precision, effort, executor, error_code)
   !! R2C Plan Constructor with pencil
     class(dtfft_plan_r2c_t),          intent(inout) :: self
       !! R2C Plan
     type(dtfft_pencil_t),             intent(in)    :: pencil
       !! Local pencil of data to be transformed
-    type(dtfft_executor_t),           intent(in)    :: executor
-      !! Type of External FFT Executor
     TYPE_MPI_COMM,          optional, intent(in)    :: comm
       !! Communicator
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
       !! How thoroughly `dtFFT` searches for the optimal plan
+    type(dtfft_executor_t), optional, intent(in)    :: executor
+    !! Type of External FFT Executor
     integer(int32),         optional, intent(out)   :: error_code
       !! Optional Error Code returned to user
     integer(int32)                    :: ierr               !! Error code
 
-    CHECK_OPTIONAL_CALL( self%create_r2c_internal(executor, pencil=pencil, comm=comm, precision=precision, effort=effort) )
+    CHECK_OPTIONAL_CALL( self%create_r2c_internal(pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor) )
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine create_r2c_pencil
 
-  integer(int32) function create_r2c_internal(self, executor, dims, pencil, comm, precision, effort)
+  integer(int32) function create_r2c_internal(self, dims, pencil, comm, precision, effort, executor)
   !! Private method that combines common logic for R2C plan creation
 #define __FUNC__ create_r2c_internal
     class(dtfft_plan_r2c_t),          intent(inout) :: self
       !! R2C Plan
-    type(dtfft_executor_t),           intent(in)    :: executor
-      !! Type of External FFT Executor
     integer(int32),         optional, intent(in)    :: dims(:)
       !! Global dimensions of transform
     type(dtfft_pencil_t),   optional, intent(in)    :: pencil
@@ -1812,6 +2489,8 @@ contains
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
       !! How thoroughly `dtFFT` searches for the optimal plan
+    type(dtfft_executor_t), optional, intent(in)    :: executor
+    !! Type of External FFT Executor
     integer(int32),   allocatable     :: fixed_dims(:)      !! Fixed dimensions for R2C
     integer(int8)                     :: fft_rank           !! Rank of FFT transform
 
@@ -1825,22 +2504,20 @@ contains
     if ( present(dims) ) then
       allocate(fixed_dims, source=dims)
       fixed_dims(1) = int(dims(1) / 2, int32) + 1
-      CHECK_INTERNAL_CALL( self%create_c2c_core(dims=fixed_dims, comm=comm, precision=precision, effort=effort, executor=executor) )
+      CHECK_INTERNAL_CALL( self%create_c2c_core(dims=fixed_dims, comm=comm, precision=precision, effort=effort, executor=executor, sngl_type_init=MPI_REAL, sngl_storage_size_init=FLOAT_STORAGE_SIZE, dbl_type_init=MPI_REAL8, dbl_storage_size_init=DOUBLE_STORAGE_SIZE) )
       deallocate( fixed_dims )
 
       call self%real_pencil%create(self%ndims, 1_int8, dims, self%comms)
     else
       ! Do not know global dimensions
       ! They are computed when private pencil is created
-      CHECK_INTERNAL_CALL( self%create_c2c_core(pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor) )
-    endif
-    if ( self%is_transpose_plan ) then
-      create_r2c_internal = DTFFT_ERROR_R2C_TRANSPOSE_PLAN
-      return
+      CHECK_INTERNAL_CALL( self%create_c2c_core(pencil=pencil, comm=comm, precision=precision, effort=effort, executor=executor, sngl_type_init=MPI_REAL, sngl_storage_size_init=FLOAT_STORAGE_SIZE, dbl_type_init=MPI_REAL8, dbl_storage_size_init=DOUBLE_STORAGE_SIZE) )
     endif
 
-    fft_rank = FFT_1D;  if ( self%is_z_slab ) fft_rank = FFT_2D
-    CHECK_INTERNAL_CALL( self%fft(1)%fft%create(fft_rank, FFT_R2C, self%precision, real_pencil=self%real_pencil, complex_pencil=self%pencils(1)) )
+    if ( .not. self%is_transpose_plan ) then
+      fft_rank = FFT_1D;  if ( self%is_z_slab ) fft_rank = FFT_2D
+      CHECK_INTERNAL_CALL( self%fft(1)%fft%create(fft_rank, FFT_R2C, self%precision, real_pencil=self%real_pencil, complex_pencil=self%pencils(1)) )
+    endif
     PHASE_END("dtfft_create_r2c")
     self%is_created = .true.
 #undef __FUNC__

@@ -1,0 +1,3680 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dtfft_reshape_handle_datatype &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>dtfft_reshape_handle_datatype
+      <small>Module</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 2.9% of total for modules and submodules.">546 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_reshape_handle_datatype.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_reshape_handle_datatype.f90.html'>dtfft_reshape_handle_datatype.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">dtfft_reshape_handle_datatype</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#variable-lb">LB</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#variable-is_p2p_enabled">IS_P2P_ENABLED</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#types-0"
+         aria-expanded="false" aria-controls="types-0">
+         <h4 class="card-header bg-primary text-white">Derived Types</h4>
+      </a>
+      <div id="types-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#type-reshape_handle_datatype">reshape_handle_datatype</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#type-handle_t">handle_t</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-get_async_active~4">get_async_active</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_handle">create_handle</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-destroy_handle">destroy_handle</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create~16">create</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-execute~12">execute</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-execute_end~4">execute_end</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-destroy~14">destroy</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_transpose_2d">create_transpose_2d</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_forw_permutation">create_forw_permutation</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_back_permutation">create_back_permutation</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_transpose_xz">create_transpose_XZ</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_transpose_zx">create_transpose_ZX</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_reshape_32">create_reshape_32</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_reshape_23">create_reshape_23</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_reshape_21">create_reshape_21</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-create_reshape_12">create_reshape_12</a>
+            <a class="list-group-item" href="../module/dtfft_reshape_handle_datatype.html#proc-free_datatypes">free_datatypes</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+
+    <div class="col-md-9" id='text'>
+      <p>This module describes <a href="../type/reshape_handle_datatype.html">reshape_handle_datatype</a> class
+It executes either transposition or reshaping from bricks to pencils and vice versa using MPI_Ialltoall(w) with custom MPI datatypes
+For the end user this is <code>DTFFT_BACKEND_MPI_DATATYPE</code> - backend.
+But since it does not perform sequence: transpose -&gt; exchange -&gt; unpack, it is internally treated as reshape_handle.</p>
+<br>          <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='dtfft_abstract_reshape_handle.html'>dtfft_abstract_reshape_handle</a></li>
+                  <li class="list-inline-item"><a href='dtfft_errors.html'>dtfft_errors</a></li>
+                  <li class="list-inline-item"><a href='dtfft_interface_nvtx.html'>dtfft_interface_nvtx</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='dtfft_pencil.html'>dtfft_pencil</a></li>
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_reshape_handle_datatype~~UsesGraph Pages: 1 -->
+<svg id="moduledtfft_reshape_handle_datatypeUsesGraph" width="641pt" height="348pt"
+ viewBox="0.00 0.00 641.00 347.60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph" class="graph" transform="scale(0.46 0.46) rotate(0) translate(4 753.57)">
+<title>module~~dtfft_reshape_handle_datatype~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-753.57 1393,-753.57 1393,4 -4,4"/>
+<!-- module~dtfft_reshape_handle_datatype -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node1" class="node">
+<title>module~dtfft_reshape_handle_datatype</title>
+<polygon fill="none" stroke="black" points="1389,-346.67 1212,-346.67 1212,-322.67 1389,-322.67 1389,-346.67"/>
+<text text-anchor="middle" x="1300.5" y="-332.27" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_reshape_handle_datatype</text>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node2" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-596.67 0,-596.67 0,-572.67 94,-572.67 94,-596.67"/>
+<text text-anchor="middle" x="47" y="-582.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_handle_datatype&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge1" class="edge">
+<title>module~dtfft_reshape_handle_datatype&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-736.67C839.55,-723.51 822.75,-732.54 762,-736.67"/>
+</g>
+<!-- module~dtfft_abstract_reshape_handle -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node3" class="node">
+<title>module~dtfft_abstract_reshape_handle</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node3"><a xlink:href="../module/dtfft_abstract_reshape_handle.html" xlink:title="dtfft_abstract_reshape_handle">
+<polygon fill="#337ab7" stroke="#337ab7" points="1176,-346.67 1003,-346.67 1003,-322.67 1176,-322.67 1176,-346.67"/>
+<text text-anchor="middle" x="1089.5" y="-332.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_reshape_handle</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_abstract_reshape_handle -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge2" class="edge">
+<title>module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_abstract_reshape_handle</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1211.77,-334.67C1203.43,-334.67 1194.95,-334.67 1186.54,-334.67"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1186.33,-331.17 1176.33,-334.67 1186.33,-338.17 1186.33,-331.17"/>
+</g>
+<!-- module~dtfft_errors -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node4" class="node">
+<title>module~dtfft_errors</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node4"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
+<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-636.67 145.5,-636.67 145.5,-612.67 216.5,-612.67 216.5,-636.67"/>
+<text text-anchor="middle" x="181" y="-622.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge3" class="edge">
+<title>module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M627,-698.67C548.25,-691.15 527.76,-706.09 449,-698.67"/>
+</g>
+<!-- module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node5" class="node">
+<title>module~dtfft_interface_nvtx</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node5"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
+<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-168.67 390.5,-168.67 390.5,-144.67 505.5,-144.67 505.5,-168.67"/>
+<text text-anchor="middle" x="448" y="-154.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-3.67C868.38,-9.71 860.32,-12.58 833,-27.67 815.26,-37.48 813.37,-43.71 797,-55.67 781.77,-66.8 778.46,-70.47 762,-79.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M760,-79.67C718.59,-102.82 594.27,-129.31 515.92,-144.41"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="514.83,-141.06 505.66,-146.37 516.14,-147.93 514.83,-141.06"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node6" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node6"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-385.67 130,-385.67 130,-361.67 232,-361.67 232,-385.67"/>
+<text text-anchor="middle" x="181" y="-371.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-736.67C780.86,-709.69 750.02,-705.04 629,-698.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M627,-698.67C567.43,-693.07 418.91,-662.62 365,-636.67 364.23,-636.3 268.53,-561.35 268,-560.67 226.47,-508.1 199.64,-432.23 188.26,-395.39"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="191.57,-394.25 185.34,-385.68 184.87,-396.26 191.57,-394.25"/>
+</g>
+<!-- module~dtfft_pencil -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node7" class="node">
+<title>module~dtfft_pencil</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node7"><a xlink:href="../module/dtfft_pencil.html" xlink:title="dtfft_pencil">
+<polygon fill="#337ab7" stroke="#337ab7" points="797,-366.67 725,-366.67 725,-342.67 797,-342.67 797,-366.67"/>
+<text text-anchor="middle" x="761" y="-352.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_pencil</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_pencil -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge6" class="edge">
+<title>module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_pencil</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1295.2,-346.92C1267.75,-422.95 1111.48,-824.3 901,-736.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-736.67C868.57,-729.72 853.32,-736.37 833,-712.67 789.04,-661.42 769.07,-447.36 763.61,-377.11"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="767.07,-376.48 762.83,-366.77 760.09,-377.01 767.07,-376.48"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node8" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node8"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-366.67 268,-366.67 268,-342.67 329,-342.67 329,-366.67"/>
+<text text-anchor="middle" x="298.5" y="-352.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge7" class="edge">
+<title>module~dtfft_reshape_handle_datatype&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M760,-79.67C715.63,-104.72 727.2,-135.96 689,-169.67 665.64,-190.29 478.98,-306.2 449,-314.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-314.67C410.44,-324.51 368.82,-335.8 339.13,-343.88"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="337.88,-340.59 329.15,-346.59 339.72,-347.35 337.88,-340.59"/>
+</g>
+<!-- mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node9" class="node">
+<title>mpi_f08</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node9"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-343.67 19.5,-343.67 19.5,-319.67 74.5,-319.67 74.5,-343.67"/>
+<text text-anchor="middle" x="47" y="-329.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_handle_datatype&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_reshape_handle_datatype&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1293.67,-322.66C1261.8,-258.84 1102.63,36.06 901,-3.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-3.67C835.83,-5.08 825.04,-37.39 762,-41.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M760,-41.67C701.91,-45.63 686.06,-53.27 629,-41.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M627,-41.67C549.47,-25.92 526.16,-58.16 449,-40.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-40.67C327.26,-13.54 279.93,-44.63 182,-118.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-118.67C111.5,-169 70.67,-266.58 55.17,-309.97"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="51.83,-308.95 51.86,-319.54 58.44,-311.24 51.83,-308.95"/>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge9" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M899,-698.67C836.34,-706.79 825.04,-732.39 762,-736.67"/>
+<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M760,-736.67C701.91,-740.63 686.86,-730.2 629,-736.67"/>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M899,-41.67C850.45,-26.45 845.84,-79.41 797,-93.67 611.83,-147.76 546.4,-70.04 365,-135.67 315.97,-153.42 297.77,-158.86 268,-201.67 229.85,-256.55 273.32,-295.15 232,-347.67 229.55,-350.79 226.63,-353.56 223.44,-356.04"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="221.5,-353.12 215.09,-361.56 225.36,-358.96 221.5,-353.12"/>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_pencil -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge12" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_pencil</title>
+<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M1087.99,-346.83C1084.68,-407.78 1061.03,-677.96 901,-698.67"/>
+<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M899,-698.67C829.88,-707.62 779.56,-454.61 765.79,-376.99"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="769.18,-376.11 764.02,-366.86 762.29,-377.32 769.18,-376.11"/>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M1085.86,-322.6C1074.46,-273.98 1024.34,-92.67 901,-41.67"/>
+<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M899,-41.67C842.73,-18.41 822.75,-37.54 762,-41.67"/>
+</g>
+<!-- module~dtfft_abstract_backend -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node11" class="node">
+<title>module~dtfft_abstract_backend</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node11"><a xlink:href="../module/dtfft_abstract_backend.html" xlink:title="dtfft_abstract_backend">
+<polygon fill="#337ab7" stroke="#337ab7" points="967,-346.67 833,-346.67 833,-322.67 967,-322.67 967,-346.67"/>
+<text text-anchor="middle" x="900" y="-332.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_backend</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_abstract_backend -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_abstract_backend</title>
+<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M1002.98,-334.67C994.4,-334.67 985.72,-334.67 977.24,-334.67"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="977.02,-331.17 967.02,-334.67 977.02,-338.17 977.02,-331.17"/>
+</g>
+<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M145.32,-614.16C130.77,-609.76 113.58,-604.55 97.72,-599.74"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="98.64,-596.36 88.06,-596.81 96.61,-603.06 98.64,-596.36"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge16" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M424.03,-168.87C406.08,-179.34 381.48,-195.85 365,-215.67 335.07,-251.66 315.4,-303.61 305.98,-332.74"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="302.62,-331.78 302.98,-342.37 309.3,-333.86 302.62,-331.78"/>
+</g>
+<!-- iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node10" class="node">
+<title>iso_c_binding</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node10"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-385.67 5,-385.67 5,-361.67 89,-361.67 89,-385.67"/>
+<text text-anchor="middle" x="47" y="-371.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M390.15,-148.93C362.25,-147.07 328.5,-147.73 299.5,-156.67"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M172.33,-385.93C150.55,-420.76 88.1,-520.58 60.91,-564.04"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="57.86,-562.31 55.52,-572.65 63.79,-566.03 57.86,-562.31"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M142.17,-361.64C123.92,-355.83 102.12,-348.9 84.1,-343.16"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="85.11,-339.81 74.52,-340.11 82.99,-346.48 85.11,-339.81"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M129.72,-373.67C119.77,-373.67 109.31,-373.67 99.33,-373.67"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="99.14,-370.17 89.14,-373.67 99.14,-377.17 99.14,-370.17"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge21" class="edge">
+<title>module~dtfft_pencil&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M447,-622.67C376.25,-643.49 373.1,-694.02 299.5,-698.67"/>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M297.5,-698.67C205.9,-704.47 110.82,-636.93 69.41,-603.19"/>
+<polygon fill="#003fff" stroke="#003fff" points="71.56,-600.43 61.63,-596.73 67.09,-605.81 71.56,-600.43"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M627,-584.67C558.91,-628.35 526.6,-599.84 449,-622.67"/>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M447,-622.67C382.06,-641.78 366.45,-670.7 299.5,-660.67"/>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M297.5,-660.67C271.56,-656.79 243.45,-648.13 221.45,-640.28"/>
+<polygon fill="#003fff" stroke="#003fff" points="222.4,-636.9 211.8,-636.74 219.99,-643.47 222.4,-636.9"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge25" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M757.58,-366.68C748.81,-406.63 714.58,-535.3 629,-584.67"/>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M627,-584.67C563.54,-621.29 369.11,-569.53 299.5,-546.67"/>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M297.5,-546.67C234.63,-517.91 201.2,-435.41 188.34,-395.64"/>
+<polygon fill="#003fff" stroke="#003fff" points="191.61,-394.37 185.31,-385.85 184.92,-396.44 191.61,-394.37"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M733.08,-342.6C707.07,-331.87 666.23,-317.46 629,-314.67"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge27" class="edge">
+<title>module~dtfft_pencil&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M740.04,-342.42C734.7,-338.49 729.24,-333.81 725,-328.67 701.47,-300.15 713.04,-281.77 689,-253.67 646.21,-203.65 616.65,-212.91 567,-169.67 508.4,-118.65 524.38,-59.52 449,-40.67"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_pencil&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M297.5,-546.67C250.82,-525.32 229.01,-567.3 182,-546.67"/>
+</g>
+<!-- module~dtfft_config -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node12" class="node">
+<title>module~dtfft_config</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node12"><a xlink:href="../module/dtfft_config.html" xlink:title="dtfft_config">
+<polygon fill="#337ab7" stroke="#337ab7" points="664.5,-442.67 591.5,-442.67 591.5,-418.67 664.5,-418.67 664.5,-442.67"/>
+<text text-anchor="middle" x="628" y="-428.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_config -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M744.81,-366.75C730.83,-377.53 709.25,-393.32 689,-404.67 682.88,-408.11 676.22,-411.4 669.63,-414.42"/>
+<polygon fill="#003fff" stroke="#003fff" points="667.84,-411.38 660.11,-418.63 670.67,-417.78 667.84,-411.38"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node13" class="node">
+<title>module~dtfft_interface_cuda_runtime</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node13"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
+<polygon fill="#337ab7" stroke="#337ab7" points="531,-442.67 365,-442.67 365,-418.67 531,-418.67 531,-442.67"/>
+<text text-anchor="middle" x="448" y="-428.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M724.93,-363.24C672.3,-376.1 572.26,-400.55 508.2,-416.21"/>
+<polygon fill="#003fff" stroke="#003fff" points="507.12,-412.87 498.23,-418.64 508.78,-419.67 507.12,-412.87"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M284.44,-366.72C243.69,-404.28 118.68,-519.52 68.83,-565.47"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="66.21,-563.12 61.23,-572.47 70.96,-568.27 66.21,-563.12"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge30" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M295.58,-366.74C288.39,-410.67 261.94,-561.4 232,-598.67 229.49,-601.8 226.5,-604.6 223.24,-607.08"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="221.2,-604.24 214.75,-612.64 225.03,-610.09 221.2,-604.24"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge31" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M267.76,-359.57C259.89,-360.86 251.11,-362.31 242.25,-363.76"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="241.55,-360.33 232.25,-365.41 242.69,-367.24 241.55,-360.33"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge32" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M267.85,-346.55C244.68,-340.87 211.55,-334.21 182,-333.67"/>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-333.67C147.88,-333.1 111.35,-332.55 84.88,-332.18"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="84.6,-328.67 74.55,-332.03 84.5,-335.67 84.6,-328.67"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge28" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-333.67C162.26,-333.35 120.84,-346.81 89.09,-358.19"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="87.79,-354.94 79.58,-361.64 90.18,-361.52 87.79,-354.94"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge34" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M760,-660.67C710.77,-706.57 695.66,-727.34 629,-736.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M627,-736.67C511.2,-752.89 480.6,-730.26 365,-712.67 335.57,-708.2 329.22,-700.39 299.5,-698.67"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge37" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M897.64,-346.9C891.66,-394.78 863.27,-571.31 762,-660.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M760,-660.67C759.18,-661.39 450.09,-698.75 449,-698.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M447,-698.67C379.6,-692.32 366.45,-670.7 299.5,-660.67"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge40" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M627,-155.67C592.25,-141.09 550.21,-140.63 515.71,-144.14"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="515.27,-140.67 505.73,-145.29 516.07,-147.63 515.27,-140.67"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge41" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M760,-314.67C729.86,-311.49 658.4,-345.3 629,-352.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M627,-352.67C484.66,-388.39 443.13,-424.77 299.5,-394.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M297.5,-394.67C279.67,-390.14 260.05,-386.2 242.12,-382.98"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="242.52,-379.5 232.07,-381.23 241.32,-386.4 242.52,-379.5"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_pencil -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge42" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_pencil</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M832.91,-344.32C824.25,-345.59 815.54,-346.86 807.33,-348.06"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="806.63,-344.62 797.24,-349.53 807.64,-351.55 806.63,-344.62"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge43" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M760,-314.67C702.1,-308.56 687.06,-319.02 629,-314.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M627,-314.67C548.11,-308.78 525.13,-293.15 449,-314.67"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge44" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M890.99,-322.6C854.89,-268.74 705.69,-52.63 629,-41.67"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge33" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M832.94,-323.95C810.47,-320.59 785.19,-317.12 762,-314.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M760,-314.67C688.64,-307.14 745.14,-214.37 689,-169.67 667.58,-152.62 654.25,-166.27 629,-155.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M627,-155.67C519.32,-110.48 480.38,-117.63 365,-135.67 334.8,-140.4 328.71,-147.66 299.5,-156.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M297.5,-156.67C242.07,-172.48 230.94,-185.22 182,-215.67"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M180,-215.67C118.96,-253.66 148.08,-305.31 94,-352.67 92.68,-353.83 91.29,-354.93 89.85,-355.98"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="87.74,-353.17 81.11,-361.44 91.45,-359.11 87.74,-353.17"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_config -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge36" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M760,-314.67C742.4,-312.81 739.15,-323.05 725,-333.67 708.5,-346.06 670.02,-386.48 647.1,-411.07"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="644.5,-408.73 640.26,-418.44 649.63,-413.49 644.5,-408.73"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge38" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M627,-352.67C600.12,-359.42 592.77,-359.48 567,-369.67 535.57,-382.1 501.46,-400.29 478.03,-413.57"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="476.23,-410.57 469.3,-418.58 479.72,-416.64 476.23,-410.57"/>
+</g>
+<!-- module~dtfft_abstract_kernel -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node14" class="node">
+<title>module~dtfft_abstract_kernel</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node14"><a xlink:href="../module/dtfft_abstract_kernel.html" xlink:title="dtfft_abstract_kernel">
+<polygon fill="#337ab7" stroke="#337ab7" points="689,-286.67 567,-286.67 567,-262.67 689,-262.67 689,-286.67"/>
+<text text-anchor="middle" x="628" y="-272.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_kernel</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_abstract_kernel -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge35" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_abstract_kernel</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M760,-314.67C727.6,-311.25 692.36,-300.04 666.6,-290.35"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="667.81,-287.06 657.22,-286.73 665.29,-293.6 667.81,-287.06"/>
+</g>
+<!-- module~dtfft_interface_nccl -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_node15" class="node">
+<title>module~dtfft_interface_nccl</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsesGraph_node15"><a xlink:href="../module/dtfft_interface_nccl.html" xlink:title="dtfft_interface_nccl">
+<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-248.67 390.5,-248.67 390.5,-224.67 505.5,-224.67 505.5,-248.67"/>
+<text text-anchor="middle" x="448" y="-234.27" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nccl</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nccl -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge39" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nccl</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M627,-155.67C581.66,-136.64 573.94,-186.71 531,-210.67 523.86,-214.66 516.03,-218.13 508.12,-221.12"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="506.74,-217.9 498.48,-224.53 509.07,-224.49 506.74,-217.9"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge46" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M616.89,-442.84C600.5,-461.93 566.39,-499.19 531,-522.67 484.31,-553.66 355.47,-619.96 299.5,-622.67"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-622.67C243.8,-628.71 235.38,-576.26 182,-584.67"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge47" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-622.67C274.17,-623.81 248.17,-624.32 226.75,-624.55"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="226.61,-621.05 216.64,-624.64 226.67,-628.05 226.61,-621.05"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge49" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M610.86,-442.93C580.8,-464.52 513.43,-507.24 449,-508.67"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M447,-508.67C402.63,-509.66 400.01,-478.95 365,-451.67 334.56,-427.96 337.27,-402.59 299.5,-394.67"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge50" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M591.33,-422.4C529.64,-408.08 403.48,-378.8 339.14,-363.87"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="339.9,-360.46 329.37,-361.61 338.32,-367.28 339.9,-360.46"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge51" class="edge">
+<title>module~dtfft_config&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M611.84,-418.58C598.07,-406.79 578.26,-387.6 567,-366.67 534.31,-305.92 579.94,-264.3 531,-215.67 504.46,-189.31 480.43,-216.96 449,-196.67"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge45" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M447,-508.67C366.75,-510.47 347.4,-520.89 268,-532.67 229.69,-538.36 218.02,-560.88 182,-546.67"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M180,-546.67C113.63,-517.55 72.6,-434.92 56.21,-395.33"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="59.37,-393.8 52.4,-385.82 52.87,-396.4 59.37,-393.8"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge48" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M591.41,-430.67C576.9,-430.67 559.4,-430.67 541.7,-430.67"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="541.28,-427.17 531.28,-430.67 541.28,-434.17 541.28,-427.17"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge53" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M401,-418.62C372,-411.23 333.68,-401.84 299.5,-394.67"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge54" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M399.48,-418.66C387.88,-414.91 375.73,-410.26 365,-404.67 348.91,-396.31 332.7,-383.97 320.43,-373.64"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="322.47,-370.78 312.61,-366.89 317.89,-376.08 322.47,-370.78"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge52" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M364.77,-424.46C300.51,-418.86 209.12,-409.23 130,-394.67 119.92,-392.82 109.24,-390.42 99.05,-387.9"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="99.6,-384.43 89.05,-385.37 97.88,-391.22 99.6,-384.43"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge55" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M612.45,-286.73C598.93,-298.65 579.1,-318.05 567,-338.67 540.32,-384.13 569.28,-415.44 531,-451.67 475.65,-504.06 437.5,-471.18 365,-494.67 320.95,-508.95 308.25,-509.78 268,-532.67 250.38,-542.7 249.23,-550.01 232,-560.67 211.04,-573.65 206.35,-580.83 182,-584.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-584.67C155.19,-586.15 127.71,-586.37 104.28,-586.14"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="104.21,-582.64 94.16,-586.01 104.12,-589.64 104.21,-582.64"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge56" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M593.01,-262.57C583.86,-258.22 574.44,-252.62 567,-245.67 543.42,-223.67 556.09,-202.94 531,-182.67 526.12,-178.73 520.63,-175.39 514.87,-172.54"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="516.2,-169.3 505.64,-168.48 513.38,-175.71 516.2,-169.3"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge57" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M566.82,-276.73C513.32,-279.49 433.24,-285.89 365,-300.67 320.5,-310.32 310.26,-316.71 268,-333.67 250.41,-340.73 231.25,-349.53 215.49,-357.08"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="213.64,-354.08 206.16,-361.59 216.69,-360.39 213.64,-354.08"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge58" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M566.85,-286.48C532.16,-293.72 487.86,-303.68 449,-314.67"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge59" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M598.45,-262.62C588.23,-257.85 576.82,-252 567,-245.67 549.49,-234.39 549.65,-224.94 531,-215.67 497.5,-199.03 479.93,-217.72 449,-196.67"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-196.67C416.07,-175.63 397.84,-195.59 365,-177.67 345.41,-166.99 348.93,-152.71 329,-142.67 269.88,-112.9 234.1,-77.83 182,-118.67"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge61" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-215.67C273.47,-221.2 279.4,-240.8 268,-262.67 249.03,-299.05 259.84,-317.54 232,-347.67 229.09,-350.83 225.7,-353.66 222.1,-356.2"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="220.06,-353.34 213.39,-361.57 223.74,-359.3 220.06,-353.34"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge62" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M431.18,-248.82C414.6,-261.6 387.82,-282.37 365,-300.67 350.48,-312.32 334.34,-325.63 321.71,-336.11"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="319.42,-333.46 313.98,-342.55 323.9,-338.84 319.42,-333.46"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsesGraph_edge60" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M412.42,-224.64C382.34,-215.85 337.69,-206.89 299.5,-215.67"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-215.67C247.47,-227.19 225.58,-188.55 182,-215.67"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_reshape_handle_datatypeUsesGraph = svgPanZoom('#moduledtfft_reshape_handle_datatypeUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+          <div class="card">
+      <h3 class="card-header card-title bg-light">Used by</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_reshape_handle_datatype~~UsedByGraph Pages: 1 -->
+<svg id="moduledtfft_reshape_handle_datatypeUsedByGraph" width="641pt" height="67pt"
+ viewBox="0.00 0.00 641.00 66.71" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph" class="graph" transform="scale(0.9 0.9) rotate(0) translate(4 70)">
+<title>module~~dtfft_reshape_handle_datatype~~UsedByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-70 707,-70 707,4 -4,4"/>
+<!-- module~dtfft_reshape_handle_datatype -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_node1" class="node">
+<title>module~dtfft_reshape_handle_datatype</title>
+<polygon fill="none" stroke="black" points="177,-45 0,-45 0,-21 177,-21 177,-45"/>
+<text text-anchor="middle" x="88.5" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_reshape_handle_datatype</text>
+</g>
+<!-- module~dtfft_reshape_plan -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_node2" class="node">
+<title>module~dtfft_reshape_plan</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsedByGraph_node2"><a xlink:href="../module/dtfft_reshape_plan.html" xlink:title="dtfft_reshape_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="507,-66 396,-66 396,-42 507,-42 507,-66"/>
+<text text-anchor="middle" x="451.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_reshape_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_plan&#45;&gt;module~dtfft_reshape_handle_datatype -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge1" class="edge">
+<title>module~dtfft_reshape_plan&#45;&gt;module~dtfft_reshape_handle_datatype</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M395.68,-56.61C347.47,-58.28 275.45,-59.27 213,-54 195.16,-52.49 176.01,-49.78 158.26,-46.8"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="158.43,-43.28 147.98,-45.02 157.23,-50.18 158.43,-43.28"/>
+</g>
+<!-- module~dtfft_reshape_plan_base -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_node3" class="node">
+<title>module~dtfft_reshape_plan_base</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsedByGraph_node3"><a xlink:href="../module/dtfft_reshape_plan_base.html" xlink:title="dtfft_reshape_plan_base">
+<polygon fill="#337ab7" stroke="#337ab7" points="355,-45 213,-45 213,-21 355,-21 355,-45"/>
+<text text-anchor="middle" x="284" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_reshape_plan_base</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_plan&#45;&gt;module~dtfft_reshape_plan_base -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge5" class="edge">
+<title>module~dtfft_reshape_plan&#45;&gt;module~dtfft_reshape_plan_base</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M395.85,-47.07C386,-45.82 375.56,-44.49 365.16,-43.17"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="365.59,-39.7 355.23,-41.91 364.71,-46.64 365.59,-39.7"/>
+</g>
+<!-- module~dtfft_reshape_plan_base&#45;&gt;module~dtfft_reshape_handle_datatype -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge2" class="edge">
+<title>module~dtfft_reshape_plan_base&#45;&gt;module~dtfft_reshape_handle_datatype</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M212.87,-33C204.55,-33 195.95,-33 187.33,-33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="187.23,-29.5 177.23,-33 187.23,-36.5 187.23,-29.5"/>
+</g>
+<!-- module~dtfft_transpose_plan -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_node4" class="node">
+<title>module~dtfft_transpose_plan</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsedByGraph_node4"><a xlink:href="../module/dtfft_transpose_plan.html" xlink:title="dtfft_transpose_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="512,-24 391,-24 391,0 512,0 512,-24"/>
+<text text-anchor="middle" x="451.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_plan&#45;&gt;module~dtfft_reshape_handle_datatype -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge3" class="edge">
+<title>module~dtfft_transpose_plan&#45;&gt;module~dtfft_reshape_handle_datatype</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M390.84,-9.23C342.74,-7.66 273.4,-6.9 213,-12 195.16,-13.51 176.01,-16.22 158.26,-19.2"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="157.23,-15.82 147.98,-20.98 158.43,-22.72 157.23,-15.82"/>
+</g>
+<!-- module~dtfft_transpose_plan&#45;&gt;module~dtfft_reshape_plan_base -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge6" class="edge">
+<title>module~dtfft_transpose_plan&#45;&gt;module~dtfft_reshape_plan_base</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M390.75,-19.58C382.43,-20.64 373.78,-21.74 365.16,-22.83"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="364.56,-19.38 355.08,-24.11 365.44,-26.32 364.56,-19.38"/>
+</g>
+<!-- module~dtfft_plan -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_node5" class="node">
+<title>module~dtfft_plan</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsedByGraph_node5"><a xlink:href="../module/dtfft_plan.html" xlink:title="dtfft_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="611,-45 548,-45 548,-21 611,-21 611,-45"/>
+<text text-anchor="middle" x="579.5" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_reshape_plan -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge4" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_reshape_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M548,-38.08C538.73,-39.63 528.16,-41.39 517.52,-43.16"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="516.62,-39.77 507.33,-44.86 517.77,-46.67 516.62,-39.77"/>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge7" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M548,-27.92C540.03,-26.59 531.1,-25.1 522,-23.58"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="522.52,-20.12 512.08,-21.93 521.37,-27.03 522.52,-20.12"/>
+</g>
+<!-- module~dtfft -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_node6" class="node">
+<title>module~dtfft</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsedByGraph_node6"><a xlink:href="../module/dtfft.html" xlink:title="dtfft">
+<polygon fill="#337ab7" stroke="#337ab7" points="702,-66 648,-66 648,-42 702,-42 702,-66"/>
+<text text-anchor="middle" x="675" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge8" class="edge">
+<title>module~dtfft&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M647.96,-48.15C639.54,-46.26 630.01,-44.12 620.81,-42.05"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="621.56,-38.64 611.04,-39.86 620.03,-45.47 621.56,-38.64"/>
+</g>
+<!-- module~dtfft_api -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_node7" class="node">
+<title>module~dtfft_api</title>
+<g id="a_module~~dtfft_reshape_handle_datatype~~UsedByGraph_node7"><a xlink:href="../module/dtfft_api.html" xlink:title="dtfft_api">
+<polygon fill="#337ab7" stroke="#337ab7" points="703,-24 647,-24 647,0 703,0 703,-24"/>
+<text text-anchor="middle" x="675" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_api&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_reshape_handle_datatype~~UsedByGraph_edge9" class="edge">
+<title>module~dtfft_api&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M646.96,-18.07C638.81,-19.9 629.68,-21.96 620.86,-23.94"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="620.09,-20.52 611.1,-26.13 621.62,-27.35 620.09,-20.52"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_reshape_handle_datatypeUsedByGraph = svgPanZoom('#moduledtfft_reshape_handle_datatypeUsedByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsedByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsedByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+      <br>
+
+
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lb"></span>
+              integer(kind=MPI_ADDRESS_KIND),
+            </td>
+              <td>private,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>LB</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+                <p>Lower bound for all derived datatypes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_p2p_enabled"></span>
+              logical,
+            </td>
+              <td>private,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>IS_P2P_ENABLED</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                <p>Is point-to-point communication enabled</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
+
+
+
+
+        <section>
+          <h2>Derived Types</h2>
+              <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-reshape_handle_datatype"></span>
+      <h3>
+        type, public, extends(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>)&nbsp;::&nbsp;
+        <a href='../type/reshape_handle_datatype.html'>reshape_handle_datatype</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      <p>Transpose backend that uses MPI_Ialltoall(w) with custom MPI datatypes</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_transpose~2"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_transpose</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Is this a transpose operation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-comm~30"></span>
+              type(MPI_Comm),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>comm</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>1d communicator</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_even~4"></span>
+              logical,
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_even</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>Is decomposition even</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_active"></span>
+              logical,
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_active</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>Is async transposition active</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~6"></span>
+              type(<a href='../type/handle_t.html'>handle_t</a>),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Handle to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~6"></span>
+              type(<a href='../type/handle_t.html'>handle_t</a>),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Handle to recieve data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-requests"></span>
+              type(MPI_Request),
+            </td>
+              <td>private,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>requests</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Requests for communication</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_requests"></span>
+              integer(kind=int32),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_requests</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Actual number of requests, can be less than size(requests)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_request_created"></span>
+              logical,
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_request_created</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>Is request created</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-create~8'>create</a></strong></td>
+                <td>../../<p>Creates reshape handle</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-get_aux_bytes~7'>get_aux_bytes</a></strong></td>
+                <td>../../<p>Returns number of bytes required by aux buffer</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/reshape_handle_datatype.html#boundprocedure-create_private~14'>create_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create~16.html'>create</a></td>
+                <td>../../<p>Initializes class</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/reshape_handle_datatype.html#boundprocedure-execute~7'>execute</a></strong></td>
+                <td>../../<p>Performs MPI_Ialltoall(w)</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/reshape_handle_datatype.html#boundprocedure-execute_end~5'>execute_end</a></strong></td>
+                <td>../../<p>Waits for MPI_Ialltoall(w) to complete</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/reshape_handle_datatype.html#boundprocedure-destroy~14'>destroy</a></strong></td>
+                <td>../../<p>Destroys class</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/reshape_handle_datatype.html#boundprocedure-get_async_active~8'>get_async_active</a></strong></td>
+                <td>../../<p>Returns .true. if async transposition is active</p></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-handle_t"></span>
+      <h3>
+        type, private&nbsp;::&nbsp;
+        <a href='../type/handle_t.html'>handle_t</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      <p>Transposition handle class</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dtypes"></span>
+              type(MPI_Datatype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>dtypes</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Datatypes buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-counts~8"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>counts</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Number of datatypes (always equals 1)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-displs~2"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>displs</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Displacements is bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/handle_t.html#boundprocedure-create~13'>create</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create_handle.html'>create_handle</a></td>
+                <td>../../<p>Creates transposition handle</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/handle_t.html#boundprocedure-destroy~13'>destroy</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/destroy_handle.html'>destroy_handle</a></td>
+                <td>../../<p>Destroys transposition handle</p></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_async_active~4"></span> <h3>private elemental function <a href='../proc/get_async_active~4.html'>get_async_active</a>(self)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Returns if async transpose/reshape is active</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~111"></span>
+              class(<a href='../type/reshape_handle_datatype.html'>reshape_handle_datatype</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Datatype handle</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>logical</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_handle"></span> <h3>private  subroutine <a href='../proc/create_handle.html'>create_handle</a>(self, n)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates reshape handle</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~106"></span>
+              class(<a href='../type/handle_t.html'>handle_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Reshape handle</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n~6"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n</strong></td>
+            <td>
+<p>Number of datatypes to be created</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-destroy_handle"></span> <h3>private  subroutine <a href='../proc/destroy_handle.html'>destroy_handle</a>(self)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Destroys reshape handle</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~107"></span>
+              class(<a href='../type/handle_t.html'>handle_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Reshape handle</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create~16"></span> <h3>private  subroutine <a href='../proc/create~16.html'>create</a>(self, comm, send, recv, kwargs)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates <code>reshape_handle_datatype</code> class</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~108"></span>
+              class(<a href='../type/reshape_handle_datatype.html'>reshape_handle_datatype</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Reshape handle</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-comm~31"></span>
+              type(MPI_Comm),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>comm</strong></td>
+            <td>
+<p>MPI Communicator</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~7"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Send pencil</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~7"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Recv pencil</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kwargs~10"></span>
+              type(<a href='../type/create_args.html'>create_args</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kwargs</strong></td>
+            <td>
+<p>Additional arguments</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-execute~12"></span> <h3>private  subroutine <a href='../proc/execute~12.html'>execute</a>(self, in, out, kwargs, error_code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Executes transposition/reshaping</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~109"></span>
+              class(<a href='../type/reshape_handle_datatype.html'>reshape_handle_datatype</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Datatype handle</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~219"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+<p>Send pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~219"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+<p>Recv pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kwargs~11"></span>
+              type(<a href='../type/execute_args.html'>execute_args</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kwargs</strong></td>
+            <td>
+<p>Additional arguments</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~71"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+<p>Result of execution</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-execute_end~4"></span> <h3>private  subroutine <a href='../proc/execute_end~4.html'>execute_end</a>(self, kwargs, error_code)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Ends execution of transposition/reshaping</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~110"></span>
+              class(<a href='../type/reshape_handle_datatype.html'>reshape_handle_datatype</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Datatype handle</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kwargs~12"></span>
+              type(<a href='../type/execute_args.html'>execute_args</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kwargs</strong></td>
+            <td>
+<p>Additional arguments</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~72"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+<p>Error code</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-destroy~14"></span> <h3>private  subroutine <a href='../proc/destroy~14.html'>destroy</a>(self)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Destroys <code>reshape_handle_datatype</code> class</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~112"></span>
+              class(<a href='../type/reshape_handle_datatype.html'>reshape_handle_datatype</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Datatype handle</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_transpose_2d"></span> <h3>private  subroutine <a href='../proc/create_transpose_2d.html'>create_transpose_2d</a>(send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates two-dimensional transposition datatypes</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~8"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~8"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-datatype_id~4"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>datatype_id</strong></td>
+            <td>
+<p>Id of transpose plan to use</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~3"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~31"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~2"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~2"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_forw_permutation"></span> <h3>private  subroutine <a href='../proc/create_forw_permutation.html'>create_forw_permutation</a>(send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates three-dimensional X &ndash;&gt; Y and Y -&gt; Z transposition datatypes</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~9"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~4"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~9"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~4"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-datatype_id~5"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>datatype_id</strong></td>
+            <td>
+<p>Id of transpose plan to use</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~4"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~32"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype~2"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype~2"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_back_permutation"></span> <h3>private  subroutine <a href='../proc/create_back_permutation.html'>create_back_permutation</a>(send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates three-dimensional Y &ndash;&gt; X and Z &ndash;&gt; Y transposition datatypes</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~10"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~10"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-datatype_id~6"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>datatype_id</strong></td>
+            <td>
+<p>Id of transpose plan to use</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~5"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~33"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype~3"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~4"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype~3"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~4"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_transpose_xz"></span> <h3>private  subroutine <a href='../proc/create_transpose_xz.html'>create_transpose_XZ</a>(send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates three-dimensional X &ndash;&gt; Z transposition datatypes
+Can only be used with 3D slab decomposition when slabs are distributed in Z direction</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~11"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~6"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~11"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~6"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-datatype_id~7"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>datatype_id</strong></td>
+            <td>
+<p>Id of transpose plan to use</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~6"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~34"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype~4"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype~4"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~5"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_transpose_zx"></span> <h3>private  subroutine <a href='../proc/create_transpose_zx.html'>create_transpose_ZX</a>(send, send_counts, recv, recv_counts, datatype_id, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates three-dimensional Z &ndash;&gt; X transposition datatypes
+Can only be used with 3D slab decomposition when slabs are distributed in Z direction</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~12"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~7"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~12"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~7"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-datatype_id~8"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>datatype_id</strong></td>
+            <td>
+<p>Id of transpose plan to use</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~7"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~35"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype~5"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~6"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype~5"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~6"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_reshape_32"></span> <h3>private  subroutine <a href='../proc/create_reshape_32.html'>create_reshape_32</a>(send, send_counts, recv, recv_counts, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates reshape datatypes from 3d bricks to 2d pencils</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~13"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~8"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~13"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~8"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~8"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~36"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype~6"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~7"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype~6"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~7"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_reshape_23"></span> <h3>private  subroutine <a href='../proc/create_reshape_23.html'>create_reshape_23</a>(send, send_counts, recv, recv_counts, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates reshape datatypes from 2d pencils to 3d bricks</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~14"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~9"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~14"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~9"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~9"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~37"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype~7"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~8"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype~7"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~8"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_reshape_21"></span> <h3>private  subroutine <a href='../proc/create_reshape_21.html'>create_reshape_21</a>(send, send_counts, recv, recv_counts, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates reshape datatypes for 2D data: from 2d bricks to 1d slabs</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~15"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~10"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~15"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~10"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~10"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~38"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype~8"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~9"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype~8"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~9"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_reshape_12"></span> <h3>private  subroutine <a href='../proc/create_reshape_12.html'>create_reshape_12</a>(send, send_counts, recv, recv_counts, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates reshape datatypes for 2D data: from 1d slabs to 2d bricks</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send~16"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_counts~11"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_counts</strong>(:)</td>
+            <td>
+<p>Rank i is sending this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv~16"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv</strong></td>
+            <td>
+<p>Information about send buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_counts~11"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_counts</strong>(:)</td>
+            <td>
+<p>Rank i is recieving this counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~11"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>Base MPI_Datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~39"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+            <td>
+<p>Number of bytes needed to store single element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_dtype~9"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_dtype</strong></td>
+            <td>
+<p>Datatype used to send data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-send_displ~10"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>send_displ</strong></td>
+            <td>
+<p>Send displacement in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_dtype~9"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_dtype</strong></td>
+            <td>
+<p>Datatype used to recv data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-recv_displ~10"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>recv_displ</strong></td>
+            <td>
+<p>Recv displacement in bytes</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-free_datatypes"></span> <h3>private  subroutine <a href='../proc/free_datatypes.html'>free_datatypes</a>(t1, t2, t3, t4)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Frees temporary datatypes</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t1"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t1</strong></td>
+            <td>
+<p>Temporary datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t2"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t2</strong></td>
+            <td>
+<p>Temporary datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t3"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t3</strong></td>
+            <td>
+<p>Temporary datatype</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t4"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t4</strong></td>
+            <td>
+<p>Temporary datatype</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

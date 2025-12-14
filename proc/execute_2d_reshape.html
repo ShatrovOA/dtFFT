@@ -1,0 +1,773 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>execute_2d_reshape &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>execute_2d_reshape
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.3% of total for procedures.">49 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_plan.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
+            <li class="breadcrumb-item active" aria-current="page">execute_2d_reshape</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private  subroutine execute_2d_reshape(self, in, out, execute_type, aux, aux2)  
+</h2>
+    
+
+    <p>Executes plan with specified auxiliary buffer</p>
+
+    <h3>Type Bound</h3>
+    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~135"></span>
+              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+                <p>Abstract plan</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~251"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+                <p>Source pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~251"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+                <p>Target pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-execute_type~6"></span>
+              type(<a href='../type/dtfft_execute_t.html'>dtfft_execute_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>execute_type</strong></td>
+            <td>
+                <p>Type of execution.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aux~27"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>aux</strong></td>
+            <td>
+                <p>Auxiliary pointer.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aux2~6"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>aux2</strong></td>
+            <td>
+                <p>Second Auxiliary pointer.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_2d_reshape~~CallsGraph Pages: 1 -->
+<svg id="procexecute_2d_reshapeCallsGraph" width="641pt" height="168pt"
+ viewBox="0.00 0.00 641.00 167.65" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_2d_reshape~~CallsGraph" class="graph" transform="scale(0.62 0.62) rotate(0) translate(4 268)">
+<title>proc~~execute_2d_reshape~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-268 1036,-268 1036,4 -4,4"/>
+<!-- proc~execute_2d_reshape -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node1" class="node">
+<title>proc~execute_2d_reshape</title>
+<polygon fill="none" stroke="black" points="190,-180 0,-180 0,-156 190,-156 190,-180"/>
+<text text-anchor="middle" x="95" y="-165.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_plan_t%execute_2d_reshape</text>
+</g>
+<!-- proc~execute -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node2" class="node">
+<title>proc~execute</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node2"><a xlink:href="../proc/execute.html" xlink:title="reshape_plan_base%execute">
+<polygon fill="#d9534f" stroke="#d9534f" points="392,-180 226,-180 226,-156 392,-156 392,-180"/>
+<text text-anchor="middle" x="309" y="-165.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_plan_base%execute</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_2d_reshape&#45;&gt;proc~execute -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge1" class="edge">
+<title>proc~execute_2d_reshape&#45;&gt;proc~execute</title>
+<path fill="none" stroke="#ff0000" d="M190.22,-168C198.63,-168 207.15,-168 215.54,-168"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="215.71,-171.5 225.71,-168 215.71,-164.5 215.71,-171.5"/>
+</g>
+<!-- execute -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node3" class="node">
+<title>execute</title>
+<polygon fill="#777777" stroke="#777777" points="529.5,-264 474.5,-264 474.5,-240 529.5,-240 529.5,-264"/>
+<text text-anchor="middle" x="502" y="-249.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute</text>
+</g>
+<!-- proc~execute&#45;&gt;execute -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge2" class="edge">
+<title>proc~execute&#45;&gt;execute</title>
+<path fill="none" stroke="#ff0000" d="M329.43,-180.02C352.33,-193.79 391.84,-216.34 428,-231 439.53,-235.68 452.48,-239.76 464.23,-243.05"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="463.62,-246.51 474.19,-245.73 465.45,-239.75 463.62,-246.51"/>
+</g>
+<!-- is_null_ptr -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node4" class="node">
+<title>is_null_ptr</title>
+<polygon fill="#777777" stroke="#777777" points="535,-222 469,-222 469,-198 535,-198 535,-222"/>
+<text text-anchor="middle" x="502" y="-207.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</g>
+<!-- proc~execute&#45;&gt;is_null_ptr -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge3" class="edge">
+<title>proc~execute&#45;&gt;is_null_ptr</title>
+<path fill="none" stroke="#ff0000" d="M364.73,-180.04C394.78,-186.64 431.44,-194.7 459.17,-200.8"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="458.44,-204.22 468.96,-202.95 459.94,-197.39 458.44,-204.22"/>
+</g>
+<!-- proc~is_same_ptr -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node5" class="node">
+<title>proc~is_same_ptr</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node5"><a xlink:href="../proc/is_same_ptr.html" xlink:title="is_same_ptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="540,-180 464,-180 464,-156 540,-156 540,-180"/>
+<text text-anchor="middle" x="502" y="-165.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_same_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~execute&#45;&gt;proc~is_same_ptr -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge4" class="edge">
+<title>proc~execute&#45;&gt;proc~is_same_ptr</title>
+<path fill="none" stroke="#ff0000" d="M392.11,-168C413,-168 434.76,-168 453.29,-168"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="453.51,-171.5 463.51,-168 453.51,-164.5 453.51,-171.5"/>
+</g>
+<!-- proc~pop_nvtx_domain_range -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node6" class="node">
+<title>proc~pop_nvtx_domain_range</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node6"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="573.5,-138 430.5,-138 430.5,-114 573.5,-114 573.5,-138"/>
+<text text-anchor="middle" x="502" y="-123.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~execute&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge5" class="edge">
+<title>proc~execute&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#ff0000" d="M364.73,-155.96C387.11,-151.04 413.16,-145.31 436.46,-140.19"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="437.24,-143.6 446.26,-138.04 435.74,-136.77 437.24,-143.6"/>
+</g>
+<!-- proc~push_nvtx_domain_range -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node7" class="node">
+<title>proc~push_nvtx_domain_range</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node7"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="576,-86 428,-86 428,-62 576,-62 576,-86"/>
+<text text-anchor="middle" x="502" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~execute&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge6" class="edge">
+<title>proc~execute&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#ff0000" d="M331.45,-155.8C354.88,-142.66 393.64,-121.43 428,-105 438.76,-99.86 450.6,-94.64 461.55,-90"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="463.03,-93.17 470.9,-86.08 460.32,-86.72 463.03,-93.17"/>
+</g>
+<!-- interface~nvtxdomainrangepop_c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node8" class="node">
+<title>interface~nvtxdomainrangepop_c</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node8"><a xlink:href="../interface/nvtxdomainrangepop_c.html" xlink:title="nvtxDomainRangePop_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="763,-148 621,-148 621,-124 763,-124 763,-148"/>
+<text text-anchor="middle" x="692" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePop_c</text>
+</a>
+</g>
+</g>
+<!-- proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge7" class="edge">
+<title>proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c</title>
+<path fill="none" stroke="#0066ff" d="M573.54,-129.75C585.59,-130.39 598.18,-131.06 610.47,-131.72"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="610.52,-135.22 620.69,-132.26 610.89,-128.23 610.52,-135.22"/>
+</g>
+<!-- interface~nvtxdomainrangepushex_c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node9" class="node">
+<title>interface~nvtxdomainrangepushex_c</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node9"><a xlink:href="../interface/nvtxdomainrangepushex_c.html" xlink:title="nvtxDomainRangePushEx_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="772,-106 612,-106 612,-82 772,-82 772,-106"/>
+<text text-anchor="middle" x="692" y="-91.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePushEx_c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge8" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c</title>
+<path fill="none" stroke="#cc00ff" d="M576.22,-81.79C584.6,-82.68 593.2,-83.6 601.76,-84.51"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="601.44,-87.99 611.75,-85.57 602.18,-81.03 601.44,-87.99"/>
+</g>
+<!-- proc~astring_f2c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node10" class="node">
+<title>proc~astring_f2c</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node10"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="905.5,-66 834.5,-66 834.5,-42 905.5,-42 905.5,-66"/>
+<text text-anchor="middle" x="870" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge9" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#cc00ff" d="M576.19,-70C650.14,-65.96 762.05,-59.84 823.91,-56.46"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="824.33,-59.95 834.13,-55.91 823.95,-52.96 824.33,-59.95"/>
+</g>
+<!-- proc~create_nvtx_domain -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node11" class="node">
+<title>proc~create_nvtx_domain</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node11"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
+<polygon fill="#d9534f" stroke="#d9534f" points="752,-26 632,-26 632,-2 752,-2 752,-26"/>
+<text text-anchor="middle" x="692" y="-11.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge10" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
+<path fill="none" stroke="#cc00ff" d="M541.04,-61.86C570.7,-52.39 612.04,-39.2 643.81,-29.06"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="644.87,-32.4 653.33,-26.02 642.74,-25.73 644.87,-32.4"/>
+</g>
+<!-- proc~string_f2c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node13" class="node">
+<title>proc~string_f2c</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node13"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="1032,-66 968,-66 968,-42 1032,-42 1032,-66"/>
+<text text-anchor="middle" x="1000" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge11" class="edge">
+<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
+<path fill="none" stroke="#00ffff" d="M905.64,-54C921.7,-54 940.92,-54 957.73,-54"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="957.83,-57.5 967.83,-54 957.83,-50.5 957.83,-57.5"/>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge13" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#7f00ff" d="M745.81,-26C770.88,-31.7 800.52,-38.44 824.44,-43.87"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="823.78,-47.31 834.31,-46.12 825.33,-40.49 823.78,-47.31"/>
+</g>
+<!-- interface~nvtxdomaincreate_c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_node12" class="node">
+<title>interface~nvtxdomaincreate_c</title>
+<g id="a_proc~~execute_2d_reshape~~CallsGraph_node12"><a xlink:href="../interface/nvtxdomaincreate_c.html" xlink:title="nvtxDomainCreate_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="932,-24 808,-24 808,0 932,0 932,-24"/>
+<text text-anchor="middle" x="870" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainCreate_c</text>
+</a>
+</g>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c -->
+<g id="proc~~execute_2d_reshape~~CallsGraph_edge12" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c</title>
+<path fill="none" stroke="#7f00ff" d="M752.1,-13.33C766.7,-13.16 782.5,-12.98 797.62,-12.81"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="798,-16.31 807.96,-12.69 797.92,-9.31 798,-16.31"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute_2d_reshapeCallsGraph = svgPanZoom('#procexecute_2d_reshapeCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_2d_reshape~~CalledByGraph Pages: 1 -->
+<svg id="procexecute_2d_reshapeCalledByGraph" width="641pt" height="64pt"
+ viewBox="0.00 0.00 641.00 64.10" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_2d_reshape~~CalledByGraph" class="graph" transform="scale(0.87 0.87) rotate(0) translate(4 70)">
+<title>proc~~execute_2d_reshape~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-70 736,-70 736,4 -4,4"/>
+<!-- proc~execute_2d_reshape -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_node1" class="node">
+<title>proc~execute_2d_reshape</title>
+<polygon fill="none" stroke="black" points="732,-45 542,-45 542,-21 732,-21 732,-45"/>
+<text text-anchor="middle" x="637" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_plan_t%execute_2d_reshape</text>
+</g>
+<!-- proc~execute_private -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_node2" class="node">
+<title>proc~execute_private</title>
+<g id="a_proc~~execute_2d_reshape~~CalledByGraph_node2"><a xlink:href="../proc/execute_private.html" xlink:title="dtfft_plan_t%execute_private">
+<polygon fill="#d9534f" stroke="#d9534f" points="506,-45 340,-45 340,-21 506,-21 506,-45"/>
+<text text-anchor="middle" x="423" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%execute_private</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_private&#45;&gt;proc~execute_2d_reshape -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_edge1" class="edge">
+<title>proc~execute_private&#45;&gt;proc~execute_2d_reshape</title>
+<path fill="none" stroke="#ff0000" d="M506.27,-33C514.63,-33 523.21,-33 531.77,-33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="531.79,-36.5 541.79,-33 531.79,-29.5 531.79,-36.5"/>
+</g>
+<!-- proc~execute_ptr -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_node3" class="node">
+<title>proc~execute_ptr</title>
+<g id="a_proc~~execute_2d_reshape~~CalledByGraph_node3"><a xlink:href="../proc/execute_ptr.html" xlink:title="dtfft_plan_t%execute_ptr">
+<polygon fill="#d9534f" stroke="#d9534f" points="304,-45 160,-45 160,-21 304,-21 304,-45"/>
+<text text-anchor="middle" x="232" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%execute_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_ptr&#45;&gt;proc~execute_private -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_edge2" class="edge">
+<title>proc~execute_ptr&#45;&gt;proc~execute_private</title>
+<path fill="none" stroke="#ff0000" d="M304.18,-33C312.53,-33 321.14,-33 329.72,-33"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="329.77,-36.5 339.77,-33 329.77,-29.5 329.77,-36.5"/>
+</g>
+<!-- proc~dtfft_execute_c -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_node4" class="node">
+<title>proc~dtfft_execute_c</title>
+<g id="a_proc~~execute_2d_reshape~~CalledByGraph_node4"><a xlink:href="../proc/dtfft_execute_c.html" xlink:title="dtfft_execute_c">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="108.5,-66 15.5,-66 15.5,-42 108.5,-42 108.5,-66"/>
+<text text-anchor="middle" x="62" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_execute_c</text>
+</a>
+</g>
+</g>
+<!-- proc~dtfft_execute_c&#45;&gt;proc~execute_ptr -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_edge3" class="edge">
+<title>proc~dtfft_execute_c&#45;&gt;proc~execute_ptr</title>
+<path fill="none" stroke="#ff0000" d="M108.91,-48.26C121.57,-46.68 135.7,-44.91 149.73,-43.16"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="150.42,-46.6 159.91,-41.89 149.55,-39.65 150.42,-46.6"/>
+</g>
+<!-- proc~execute~13 -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_node5" class="node">
+<title>proc~execute~13</title>
+<g id="a_proc~~execute_2d_reshape~~CalledByGraph_node5"><a xlink:href="../proc/execute~13.html" xlink:title="dtfft_plan_t%execute">
+<polygon fill="#d9534f" stroke="#d9534f" points="124,-24 0,-24 0,0 124,0 124,-24"/>
+<text text-anchor="middle" x="62" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%execute</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~13&#45;&gt;proc~execute_ptr -->
+<g id="proc~~execute_2d_reshape~~CalledByGraph_edge4" class="edge">
+<title>proc~execute~13&#45;&gt;proc~execute_ptr</title>
+<path fill="none" stroke="#ff0000" d="M124.13,-19.64C132.49,-20.69 141.18,-21.77 149.83,-22.85"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="149.58,-26.35 159.94,-24.12 150.45,-19.4 149.58,-26.35"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute_2d_reshapeCalledByGraph = svgPanZoom('#procexecute_2d_reshapeCalledByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
+  </body>
+</html>

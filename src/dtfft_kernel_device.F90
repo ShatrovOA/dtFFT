@@ -42,9 +42,6 @@ implicit none
 private
 public :: kernel_device
 
-  integer(int32),   parameter, public :: DEF_TILE_SIZE = 32
-    !! Default tile size
-
   type, extends(abstract_kernel) :: kernel_device
   !! Device kernel class
   private
@@ -52,7 +49,8 @@ public :: kernel_device
     type(CUfunction)      :: cuda_kernel              !! Pointer to CUDA kernel.
     integer(int32)        :: tile_size                !! Tile size used for this kernel
     integer(int32)        :: block_rows               !! Number of rows in each block processed by each thread
-    integer(int64)        :: copy_bytes               !! Number of bytes to copy for `KERNEL_UNPACK_SIMPLE_COPY` kernel
+    integer(int64)        :: copy_bytes               !! Number of bytes to copy for `KERNEL_COPY` kernel
+    integer(int64)        :: base_storage             !! Number of bytes per element for `KERNEL_COPY_PIPELINED` kernel
   contains
     procedure :: create_private => create   !! Creates kernel
     procedure :: execute_private => execute !! Executes kernel
@@ -72,7 +70,8 @@ contains
 
     call self%destroy()
 
-    if ( self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
+    self%base_storage = base_storage
+    if ( self%kernel_type == KERNEL_COPY .or. self%kernel_type == KERNEL_COPY_PIPELINED) then
       self%is_created = .true.
       self%copy_bytes = base_storage * product(self%dims)
       return
@@ -102,12 +101,26 @@ contains
     real(real32),    target,    intent(inout) :: out(:)         !! Device pointer
     type(dtfft_stream_t),       intent(in)    :: stream         !! Stream to execute on
     integer(int32),   optional, intent(in)    :: neighbor       !! Source rank for pipelined unpacking
-    integer(int32) :: nargs, neighbor_count, n
+    integer(int32) :: nargs, n
     integer(int32) :: args(MAX_KERNEL_ARGS)
     type(dim3) :: blocks, threads
+    type(c_ptr) :: in_ptr, out_ptr
 
-    if ( self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) then
-      CUDA_CALL( cudaMemcpyAsync(c_loc(out), c_loc(in), self%copy_bytes, cudaMemcpyDeviceToDevice, stream) )
+    in_ptr = c_loc(in)
+    out_ptr = c_loc(out)
+
+    if ( self%kernel_type == KERNEL_COPY ) then
+      CUDA_CALL( cudaMemcpyAsync(out_ptr, in_ptr, self%copy_bytes, cudaMemcpyDeviceToDevice, stream) )
+#ifdef DTFFT_DEBUG
+      CUDA_CALL( cudaStreamSynchronize(stream) )
+#endif
+      return
+    endif
+
+    if ( self%kernel_type == KERNEL_COPY_PIPELINED ) then
+      out_ptr = ptr_offset(out_ptr, self%base_storage * self%neighbor_data(5, neighbor))
+      in_ptr = ptr_offset(in_ptr, self%base_storage * self%neighbor_data(4, neighbor))
+      CUDA_CALL( cudaMemcpyAsync(out_ptr, in_ptr, self%base_storage * product(self%neighbor_data(1:3, neighbor)), cudaMemcpyDeviceToDevice, stream) )
 #ifdef DTFFT_DEBUG
       CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
@@ -117,7 +130,7 @@ contains
     if( any(self%kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD, KERNEL_PERMUTE_BACKWARD_START]) ) then
       call get_kernel_launch_params(self%kernel_type, self%dims, self%tile_size, self%block_rows, blocks, threads)
       call get_kernel_args(self%kernel_type, self%dims, nargs, args)
-      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
+      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in_ptr, out_ptr, blocks, threads, stream, nargs, args) )
 #ifdef DTFFT_DEBUG
       CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
@@ -127,18 +140,17 @@ contains
     if ( any(self%kernel_type == [KERNEL_UNPACK_PIPELINED, KERNEL_PERMUTE_BACKWARD_END_PIPELINED]) ) then
       call get_kernel_launch_params(self%kernel_type, self%neighbor_data(1:3, neighbor), self%tile_size, self%block_rows, blocks, threads )
       call get_kernel_args(self%kernel_type, self%dims, nargs, args, self%neighbor_data(:, neighbor))
-      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
+      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in_ptr, out_ptr, blocks, threads, stream, nargs, args) )
 #ifdef DTFFT_DEBUG
       CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
       return
     endif
 
-    neighbor_count = size(self%neighbor_data, dim=2)
-    do n = 1, neighbor_count
+    do n = 1, size(self%neighbor_data, dim=2)
       call get_kernel_launch_params(self%internal_kernel_type, self%neighbor_data(1:3, n), self%tile_size, self%block_rows, blocks, threads )
       call get_kernel_args(self%internal_kernel_type, self%dims, nargs, args, self%neighbor_data(:, n))
-      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, c_loc(in), c_loc(out), blocks, threads, stream, nargs, args) )
+      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in_ptr, out_ptr, blocks, threads, stream, nargs, args) )
 #ifdef DTFFT_DEBUG
       CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
@@ -150,7 +162,7 @@ contains
     class(kernel_device), intent(inout) :: self !! Device kernel class
 
     if ( .not. self%is_created ) return
-    if ( self%is_dummy .or. self%kernel_type == KERNEL_UNPACK_SIMPLE_COPY ) return
+    if ( self%is_dummy .or. self%kernel_type == KERNEL_COPY ) return
   end subroutine destroy
 
   subroutine get_kernel_args(kernel_type, dims, nargs, args, neighbor_data)
@@ -164,13 +176,13 @@ contains
     nargs = 0
     nargs = nargs + 1;  args(nargs) = dims(1)
     nargs = nargs + 1;  args(nargs) = dims(2)
-    if ( kernel_type == KERNEL_UNPACK_PIPELINED ) then
+    if ( kernel_type == KERNEL_UNPACK_PIPELINED .or. kernel_type == KERNEL_PACK ) then
       nargs = nargs + 1;  args(nargs) = neighbor_data(1)
       nargs = nargs + 1;  args(nargs) = neighbor_data(2)
       nargs = nargs + 1;  args(nargs) = neighbor_data(4)
       nargs = nargs + 1;  args(nargs) = neighbor_data(5)
     endif
-    if ( size(dims) == 2 .or. kernel_type == KERNEL_UNPACK_PIPELINED ) return
+    if ( size(dims) == 2 .or. kernel_type == KERNEL_UNPACK_PIPELINED .or. kernel_type == KERNEL_PACK ) return
 
     if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD, KERNEL_PERMUTE_BACKWARD_START]) ) then
       nargs = nargs + 1; args(nargs) = dims(3)
@@ -198,7 +210,7 @@ contains
     threads%y = block_rows
     threads%z = 1
 
-    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED]) ) then
+    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED, KERNEL_PACK]) ) then
       tile_dim = 2
       other_dim = 3
     else
@@ -238,7 +250,6 @@ contains
     integer(int32)                :: other_dim                !! Dimension that is not part of shared memory
     integer(int32)                :: fixed_dims(3)            !! Dimensions fixed to the shared memory
     integer(int32)                :: ndims                    !! Number of dimensions
-    integer(int32)                :: test_size                !! Number of test configurations to run
     integer(int32)                :: test_id                  !! Current test configuration ID
     integer(int32)                :: iter                     !! Loop index
     integer(int32)                :: best_kernel_id           !! Best kernel configuration ID
@@ -261,7 +272,7 @@ contains
     integer(int32)                :: args(MAX_KERNEL_ARGS)    !! Kernel arguments
 
 
-    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED]) ) then
+    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED, KERNEL_PACK]) ) then
       tile_dim = 2
       other_dim = 3
     else
@@ -273,7 +284,7 @@ contains
     ndims = size(dims)
     fixed_dims(:) = 1
     fixed_dims(1:ndims) = dims(1:ndims)
-    if ( is_unpack_kernel(kernel_type) ) fixed_dims(1:ndims) = neighbor_data(1:ndims)
+    if ( is_unpack_kernel(kernel_type) .or. kernel_type == KERNEL_PACK) fixed_dims(1:ndims) = neighbor_data(1:ndims)
 
     call generate_candidates(fixed_dims, tile_dim, other_dim, base_storage, props, candidates, num_candidates)
     allocate(scores(num_candidates), sorted(num_candidates))
@@ -286,8 +297,8 @@ contains
 
     force_effort_ = .false.; if( present(force_effort) ) force_effort_ = force_effort
 
-    if ( (effort == DTFFT_ESTIMATE .and. force_effort_) .or.                                                                                &
-          .not. ( (effort == DTFFT_PATIENT .and. get_conf_kernel_optimization_enabled()) .or. get_conf_forced_kernel_optimization()) ) then
+    if ((effort == DTFFT_ESTIMATE .and. force_effort_) .or. &
+          .not. ( effort == DTFFT_EXHAUSTIVE .or. get_conf_kernel_autotune_enabled()) ) then
       config = candidates(sorted(1))
       tile_size = config%tile_size
       block_rows = config%block_rows
@@ -310,10 +321,8 @@ contains
     n_iters = get_conf_measure_iters()
 
     best_time = MAX_REAL32
-    test_size = get_conf_configs_to_test()
-    if ( test_size > num_candidates ) test_size = num_candidates
 
-    do test_id = 1, test_size
+    do test_id = 1, num_candidates
       config = candidates(sorted(test_id))
       tile_size = config%tile_size
       block_rows = config%block_rows

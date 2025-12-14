@@ -25,11 +25,11 @@ use iso_fortran_env,  only: int8, int32, int64, real32, real64
 #include "_dtfft_private.h"
 implicit none
 private
-public :: dtfft_execute_t, dtfft_transpose_t
-public :: dtfft_executor_t, dtfft_effort_t
+public :: dtfft_execute_t, dtfft_transpose_t, dtfft_reshape_t
+public :: dtfft_executor_t, dtfft_effort_t, dtfft_layout_t
 public :: dtfft_precision_t, dtfft_r2r_kind_t
-public :: is_valid_execute_type, is_valid_transpose_type
-public :: is_valid_executor, is_valid_effort
+public :: is_valid_execute_type, is_valid_transpose_type, is_valid_reshape_type
+public :: is_valid_executor, is_valid_effort, is_valid_layout
 public :: is_valid_precision, is_valid_r2r_kind
 public :: is_valid_dimension, is_valid_comm_type
 public :: dtfft_get_version
@@ -38,6 +38,7 @@ public :: dtfft_backend_t, dtfft_stream_t
 public :: dtfft_get_backend_string
 public :: is_backend_pipelined, is_backend_mpi
 public :: is_valid_backend, is_backend_nccl, is_backend_cufftmp, is_backend_nvshmem
+public :: dtfft_get_backend_pipelined
 #ifdef DTFFT_WITH_CUDA
 public :: is_valid_platform
 public :: is_host_executor, is_cuda_executor
@@ -104,6 +105,50 @@ public :: dtfft_get_cuda_stream
   character(len=*), parameter,  public :: TRANSPOSE_NAMES(-3:3) = ["Z_TO_X", "Z_TO_Y", "Y_TO_X", " NULL ", "X_TO_Y", "Y_TO_Z", "X_TO_Z"]
     !! String representation of `dtfft_transpose_t`
 
+  type, bind(C) :: dtfft_reshape_t
+  !! Type that is used during call to [[dtfft_plan_t(type):reshape]] method
+    integer(c_int32_t) :: val !! Internal value
+  end type dtfft_reshape_t
+
+  type(dtfft_reshape_t), parameter,  public :: DTFFT_RESHAPE_X_BRICKS_TO_PENCILS  = dtfft_reshape_t(CONF_DTFFT_RESHAPE_X_BRICKS_TO_PENCILS)
+    !! Perform reshape to X-aligned pencils (forward) from X-aligned bricks
+  type(dtfft_reshape_t), parameter,  public :: DTFFT_RESHAPE_X_PENCILS_TO_BRICKS = dtfft_reshape_t(CONF_DTFFT_RESHAPE_X_PENCILS_TO_BRICKS)
+    !! Perform reshape to X-aligned bricks (backward) from X-aligned pencils
+  type(dtfft_reshape_t), parameter,  public :: DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS  = dtfft_reshape_t(CONF_DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS)
+    !! Perform reshape to Z-aligned bricks (forward) from Z-aligned pencils
+  type(dtfft_reshape_t), parameter,  public :: DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS = dtfft_reshape_t(CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS)
+    !! Perform reshape to Z-aligned pencils (backward) from Z-aligned bricks
+  type(dtfft_reshape_t), parameter,  public :: DTFFT_RESHAPE_Y_BRICKS_TO_PENCILS = dtfft_reshape_t(CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS)
+    !! Reshape from Y-bricks to Y-pencils
+    !! This is to be used in 2D Plans.
+  type(dtfft_reshape_t), parameter,  public :: DTFFT_RESHAPE_Y_PENCILS_TO_BRICKS = dtfft_reshape_t(CONF_DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS)
+    !! Reshape from Y-pencils to Y-bricks
+    !! This is to be used in 2D Plans.
+  type(dtfft_reshape_t), parameter :: VALID_RESHAPE_TYPES(*) = [DTFFT_RESHAPE_X_BRICKS_TO_PENCILS, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS]
+    !! Types of reshape that are valid to pass to `reshape` method
+  character(len=*), parameter,  public :: RESHAPE_NAMES(CONF_DTFFT_RESHAPE_X_BRICKS_TO_PENCILS:CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS) = ["X_BRICKS_TO_PENCILS", "X_PENCILS_TO_BRICKS", "Z_PENCILS_TO_BRICKS", "Z_BRICKS_TO_PENCILS"]
+    !! String representations of `dtfft_reshape_t`
+
+  type, bind(C) :: dtfft_layout_t
+  !! Type that specifies data layout in distributed array
+    integer(c_int32_t) :: val !! Internal value
+  end type dtfft_layout_t
+
+  type(dtfft_layout_t),  parameter,  public :: DTFFT_LAYOUT_X_BRICKS = dtfft_layout_t(CONF_DTFFT_LAYOUT_X_BRICKS)
+    !! X-brick layout: data is distributed along all dimensions
+  type(dtfft_layout_t),  parameter,  public :: DTFFT_LAYOUT_Z_BRICKS = dtfft_layout_t(CONF_DTFFT_LAYOUT_Z_BRICKS)
+    !! Z-brick layout: data is distributed along all dimensions
+  type(dtfft_layout_t),  parameter,  public :: DTFFT_LAYOUT_X_PENCILS = dtfft_layout_t(CONF_DTFFT_LAYOUT_X_PENCILS)
+    !! X-pencil layout: data is distributed along Y and Z dimensions
+  type(dtfft_layout_t),  parameter,  public :: DTFFT_LAYOUT_X_PENCILS_FOURIER = dtfft_layout_t(CONF_DTFFT_LAYOUT_X_PENCILS_FOURIER)
+    !! X-pencil layout obtained after executing FFT for R2C plan: data is distributed along Y and Z dimensions
+  type(dtfft_layout_t),  parameter,  public :: DTFFT_LAYOUT_Y_PENCILS = dtfft_layout_t(CONF_DTFFT_LAYOUT_Y_PENCILS)
+    !! Y-pencil layout: data is distributed along X and Z dimensions
+  type(dtfft_layout_t),  parameter,  public :: DTFFT_LAYOUT_Z_PENCILS = dtfft_layout_t(CONF_DTFFT_LAYOUT_Z_PENCILS)
+    !! Z-pencil layout: data is distributed along X and Y dimensions
+  type(dtfft_layout_t),  parameter :: VALID_LAYOUTS(*) = [DTFFT_LAYOUT_X_BRICKS, DTFFT_LAYOUT_Z_BRICKS, DTFFT_LAYOUT_X_PENCILS, DTFFT_LAYOUT_X_PENCILS_FOURIER, DTFFT_LAYOUT_Y_PENCILS, DTFFT_LAYOUT_Z_PENCILS]
+    !! Valid layouts
+
 !------------------------------------------------------------------------------------------------
 ! External FFT executor types
 !------------------------------------------------------------------------------------------------
@@ -167,7 +212,9 @@ public :: dtfft_get_cuda_stream
     !! Passing this flag and MPI Communicator with Cartesian topology to `plan%create` makes dtFFT do nothing.
   type(dtfft_effort_t), parameter,  public :: DTFFT_PATIENT  = dtfft_effort_t(CONF_DTFFT_PATIENT)
     !! Patient flag. Same as `DTFFT_MEASURE`, but different MPI datatypes will also be tested
-  type(dtfft_effort_t), parameter :: VALID_EFFORTS(*) = [DTFFT_ESTIMATE, DTFFT_MEASURE, DTFFT_PATIENT]
+  type(dtfft_effort_t), parameter,  public :: DTFFT_EXHAUSTIVE  = dtfft_effort_t(CONF_DTFFT_EXHAUSTIVE)
+    !! Exhaustive flag. Same as `DTFFT_PATIENT`, but all possible backends and reshape backends will be tested to find the best plan.
+  type(dtfft_effort_t), parameter :: VALID_EFFORTS(*) = [DTFFT_ESTIMATE, DTFFT_MEASURE, DTFFT_PATIENT, DTFFT_EXHAUSTIVE]
     !! Valid effort flags
 
 !------------------------------------------------------------------------------------------------
@@ -217,25 +264,29 @@ public :: operator(==)
   interface operator(==)
     module procedure execute_type_eq    !! Check if two `dtfft_execute_t` are equal
     module procedure transpose_type_eq  !! Check if two `dtfft_transpose_t` are equal
+    module procedure reshape_type_eq    !! Check if two `dtfft_reshape_t` are equal
     module procedure executor_eq        !! Check if two `dtfft_executor_t` are equal
     module procedure effort_eq          !! Check if two `dtfft_effort_t` are equal
     module procedure precision_eq       !! Check if two `dtfft_precision_t` are equal
     module procedure r2r_kind_eq        !! Check if two `dtfft_r2r_kind_t` are equal
     module procedure platform_eq        !! Check if two `dtfft_platform_t` are equal
     module procedure exec_eq
-    module procedure backend_eq     !! Check if two `dtfft_backend_t` are equal
+    module procedure backend_eq         !! Check if two `dtfft_backend_t` are equal
+    module procedure layout_eq          !! Check if two `dtfft_layout_t` are equal
   end interface
 
 public :: operator(/=)
   interface operator(/=)
     module procedure execute_type_ne    !! Check if two `dtfft_execute_t` are not equal
     module procedure transpose_type_ne  !! Check if two `dtfft_transpose_t` are not equal
+    module procedure reshape_type_ne    !! Check if two `dtfft_reshape_t` are not equal
     module procedure executor_ne        !! Check if two `dtfft_executor_t` are not equal
     module procedure effort_ne          !! Check if two `dtfft_effort_t` are not equal
     module procedure precision_ne       !! Check if two `dtfft_precision_t` are not equal
     module procedure r2r_kind_ne        !! Check if two `dtfft_r2r_kind_t` are not equal
     module procedure platform_ne        !! Check if two `dtfft_platform_t` are not equal
-    module procedure backend_ne     !! Check if two `dtfft_backend_t` are not equal
+    module procedure backend_ne         !! Check if two `dtfft_backend_t` are not equal
+    module procedure layout_ne          !! Check if two `dtfft_layout_t` are not equal
   end interface
 
 !------------------------------------------------------------------------------------------------
@@ -328,7 +379,7 @@ public :: operator(/=)
     !! Backend is not used
   type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED, DTFFT_BACKEND_CUFFTMP_PIPELINED, DTFFT_BACKEND_MPI_RMA_PIPELINED]
     !! List of pipelined backends
-  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED, DTFFT_BACKEND_MPI_P2P_SCHEDULED]
+  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_DATATYPE, DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED, DTFFT_BACKEND_MPI_P2P_SCHEDULED]
     !! List of MPI backends
   type(dtfft_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_BACKEND_NCCL, DTFFT_BACKEND_NCCL_PIPELINED]
     !! List of NCCL backends
@@ -403,31 +454,40 @@ public :: async_exec_t
   type(async_exec_t), parameter, public :: EXEC_NONBLOCKING = async_exec_t(2)
     !! Non-blocking execution
 
+  integer(int32),     parameter, public :: DEF_TILE_SIZE = 32
+    !! Default tile size for CUDA kernels
+
 contains
 
 MAKE_EQ_FUN(dtfft_execute_t, execute_type_eq)
 MAKE_EQ_FUN(dtfft_transpose_t, transpose_type_eq)
+MAKE_EQ_FUN(dtfft_reshape_t, reshape_type_eq)
 MAKE_EQ_FUN(dtfft_executor_t, executor_eq)
 MAKE_EQ_FUN(dtfft_effort_t, effort_eq)
 MAKE_EQ_FUN(dtfft_precision_t, precision_eq)
 MAKE_EQ_FUN(dtfft_r2r_kind_t, r2r_kind_eq)
 MAKE_EQ_FUN(dtfft_platform_t, platform_eq)
 MAKE_EQ_FUN(async_exec_t, exec_eq)
+MAKE_EQ_FUN(dtfft_layout_t, layout_eq)
 
 MAKE_NE_FUN(dtfft_execute_t, execute_type_ne)
 MAKE_NE_FUN(dtfft_transpose_t, transpose_type_ne)
+MAKE_NE_FUN(dtfft_reshape_t, reshape_type_ne)
 MAKE_NE_FUN(dtfft_executor_t, executor_ne)
 MAKE_NE_FUN(dtfft_effort_t, effort_ne)
 MAKE_NE_FUN(dtfft_precision_t, precision_ne)
 MAKE_NE_FUN(dtfft_r2r_kind_t, r2r_kind_ne)
 MAKE_NE_FUN(dtfft_platform_t, platform_ne)
+MAKE_NE_FUN(dtfft_layout_t, layout_ne)
 
 MAKE_VALID_FUN_DTYPE(dtfft_execute_t, is_valid_execute_type, VALID_EXECUTE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_transpose_t, is_valid_transpose_type, VALID_TRANSPOSE_TYPES)
+MAKE_VALID_FUN_DTYPE(dtfft_reshape_t, is_valid_reshape_type, VALID_RESHAPE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_valid_executor, VALID_EXECUTORS)
 MAKE_VALID_FUN_DTYPE(dtfft_effort_t, is_valid_effort, VALID_EFFORTS)
 MAKE_VALID_FUN_DTYPE(dtfft_precision_t, is_valid_precision, VALID_PRECISIONS)
 MAKE_VALID_FUN_DTYPE(dtfft_r2r_kind_t, is_valid_r2r_kind, VALID_R2R_KINDS)
+MAKE_VALID_FUN_DTYPE(dtfft_layout_t, is_valid_layout, VALID_LAYOUTS)
 
 MAKE_VALID_FUN(integer(int8), is_valid_dimension, VALID_DIMENSIONS)
 MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
@@ -520,6 +580,7 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
   MAKE_EQ_FUN(dtfft_backend_t, backend_eq)
   MAKE_NE_FUN(dtfft_backend_t, backend_ne)
 
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, dtfft_get_backend_pipelined, PIPELINED_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_mpi, MPI_BACKENDS)
 

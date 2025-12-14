@@ -394,6 +394,9 @@ contains
     case ( KERNEL_UNPACK_PIPELINED%val )
       read_stride = neighbor_data(1)
       write_stride = nx
+    case ( KERNEL_PACK%val )
+      read_stride = nx
+      write_stride = neighbor_data(1)
     case default
       INTERNAL_ERROR("estimate_coalescing: unknown kernel_type")
     endselect
@@ -567,8 +570,17 @@ contains
     end if
 
     ! Forming 5 variants of tile sizes around the optimal
-    tile_sizes(1) = max(8, optimal_tile_size / 4)
-    tile_sizes(2) = max(16, optimal_tile_size / 2)
+    if ( mod(optimal_tile_size / 4, WARP_SIZE) == 0) then
+      tile_sizes(1) = max(8, optimal_tile_size / 4)
+    else
+      tile_sizes(1) = 16
+    endif
+    if ( mod(optimal_tile_size / 2, WARP_SIZE) == 0) then
+      tile_sizes(2) = max(16, optimal_tile_size / 2)
+    else
+      tile_sizes(2) = 32
+    endif
+    ! tile_sizes(2) = max(16, optimal_tile_size / 2)
     tile_sizes(3) = optimal_tile_size
     tile_sizes(4) = min(128, optimal_tile_size * 2)
     tile_sizes(5) = min(256, optimal_tile_size * 4)
@@ -643,7 +655,7 @@ contains
 
     base_tile = best_tile
     base_rows = best_rows
-  end subroutine
+  end subroutine find_valid_combination
 
   function evaluate_analytical_performance(dims, tile_dim, other_dim, kernel_type, config, props, base_storage, neighbor_data) result(score)
   !! This function evaluates the performance of a kernel configuration

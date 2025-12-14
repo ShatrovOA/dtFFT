@@ -58,7 +58,7 @@ public :: dtfft_get_error_string
     !! Inplace transpose is not supported
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_AUX = CONF_DTFFT_ERROR_INVALID_AUX
     !! Invalid `aux` buffer provided
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_DIM = CONF_DTFFT_ERROR_INVALID_DIM
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_LAYOUT = CONF_DTFFT_ERROR_INVALID_LAYOUT
     !! Invalid `dim` passed to `plan.get_pencil`
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_USAGE = CONF_DTFFT_ERROR_INVALID_USAGE
     !! Invalid API Usage.
@@ -74,7 +74,7 @@ public :: dtfft_get_error_string
     !! dlopen failed
   integer(int32),  parameter,  public  :: DTFFT_ERROR_DLSYM_FAILED = CONF_DTFFT_ERROR_DLSYM_FAILED
     !! dlsym failed
-  integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_CALLED = CONF_DTFFT_ERROR_R2C_TRANSPOSE_CALLED
+  ! integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_CALLED = CONF_DTFFT_ERROR_R2C_TRANSPOSE_CALLED
     !! Calling to `transpose` method for R2C plan is not allowed
   integer(int32),  parameter,  public  :: DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH = CONF_DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH
     !! Sizes of `starts` and `counts` arrays passed to `dtfft_pencil_t` constructor do not match
@@ -102,6 +102,24 @@ public :: dtfft_get_error_string
     !! Attempting to execute already active transposition
   integer(int32),  parameter,  public  :: DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE = CONF_DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE
     !! Attempting to finalize non-active transposition
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_RESHAPE_TYPE = CONF_DTFFT_ERROR_INVALID_RESHAPE_TYPE
+    !! Invalid `reshape_type` provided
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_RESHAPE_ACTIVE = CONF_DTFFT_ERROR_RESHAPE_ACTIVE
+    !! Attempting to execute already active reshape
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_RESHAPE_NOT_ACTIVE = CONF_DTFFT_ERROR_RESHAPE_NOT_ACTIVE
+    !! Attempting to finalize non-active reshape
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INPLACE_RESHAPE = CONF_DTFFT_ERROR_INPLACE_RESHAPE
+    !! Inplace reshape is not supported
+  ! integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_RESHAPE_CALLED = CONF_DTFFT_ERROR_R2C_RESHAPE_CALLED
+    !! R2C reshape was called
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_EXECUTE_TYPE = CONF_DTFFT_ERROR_INVALID_EXECUTE_TYPE
+    !! Invalid `execute_type` provided
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_RESHAPE_NOT_SUPPORTED = CONF_DTFFT_ERROR_RESHAPE_NOT_SUPPORTED
+    !! Reshape is not supported for this plan
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_EXECUTE_CALLED = CONF_DTFFT_ERROR_R2C_EXECUTE_CALLED
+    !! Execute called for transpose-only R2C Plan
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_CART_COMM = CONF_DTFFT_ERROR_INVALID_CART_COMM
+    !! Invalid cartesian communicator provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
     !! Selected `executor` do not support R2R FFTs
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
@@ -169,8 +187,8 @@ contains
       allocate(error_string, source="Inplace transpose is not supported")
     case ( DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED )
       allocate(error_string, source="Selected `executor` do not support R2R FFTs")
-    case ( DTFFT_ERROR_INVALID_DIM )
-      allocate(error_string, source="Invalid `dim` passed to `dtfft_get_pencil`")
+    case ( DTFFT_ERROR_INVALID_LAYOUT )
+      allocate(error_string, source="Invalid `layout` passed to `dtfft_get_pencil`")
     case ( DTFFT_ERROR_INVALID_USAGE )
       allocate(error_string, source="Invalid API Usage.")
     case ( DTFFT_ERROR_PLAN_IS_CREATED )
@@ -185,8 +203,8 @@ contains
       allocate(error_string, source="Failed to open shared library. Set DTFFT_ENABLE_LOG=1 to see the error")
     case ( DTFFT_ERROR_DLSYM_FAILED )
       allocate(error_string, source="Failed to find symbol in shared library. Set DTFFT_ENABLE_LOG=1 to see the error")
-    case ( DTFFT_ERROR_R2C_TRANSPOSE_CALLED )
-      allocate(error_string, source="Calling to `transpose` method for R2C plan is not allowed")
+    ! case ( DTFFT_ERROR_R2C_TRANSPOSE_CALLED )
+    !   allocate(error_string, source="Calling to `transpose` method for R2C plan is not allowed")
     case ( DTFFT_ERROR_PENCIL_ARRAYS_SIZE_MISMATCH )
       allocate(error_string, source="Sizes of `lbound` and `sizes` arrays passed to `dtfft_pencil_t` constructor do not match")
     case ( DTFFT_ERROR_PENCIL_ARRAYS_INVALID_SIZES )
@@ -213,6 +231,24 @@ contains
       allocate(error_string, source="Attempting to execute already active transposition")
     case ( DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE )
       allocate(error_string, source="Attempting to finalize non-active transposition")
+    case ( DTFFT_ERROR_INVALID_RESHAPE_TYPE )
+      allocate(error_string, source="Invalid `reshape_type` provided")
+    case ( DTFFT_ERROR_RESHAPE_ACTIVE )
+      allocate(error_string, source="Attempting to execute already active reshape")
+    case ( DTFFT_ERROR_RESHAPE_NOT_ACTIVE )
+      allocate(error_string, source="Attempting to finalize non-active reshape")
+    case ( DTFFT_ERROR_INPLACE_RESHAPE )
+      allocate(error_string, source="Inplace reshape is not supported")
+    ! case ( DTFFT_ERROR_R2C_RESHAPE_CALLED )
+    !   allocate(error_string, source="R2C reshape was called")
+    case ( DTFFT_ERROR_INVALID_EXECUTE_TYPE )
+      allocate(error_string, source="Invalid `execute_type` provided")
+    case ( DTFFT_ERROR_RESHAPE_NOT_SUPPORTED )
+      allocate(error_string, source="Reshape is not supported for this plan")
+    case ( DTFFT_ERROR_R2C_EXECUTE_CALLED )
+      allocate(error_string, source="Execute called for transpose-only R2C Plan")
+    case ( DTFFT_ERROR_INVALID_CART_COMM )
+      allocate(error_string, source="Invalid cartesian communicator provided")
     case ( DTFFT_ERROR_GPU_INVALID_STREAM )
       allocate(error_string, source="Invalid stream provided")
     case ( DTFFT_ERROR_INVALID_BACKEND )
