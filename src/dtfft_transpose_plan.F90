@@ -107,6 +107,7 @@ contains
     integer(int8) :: best_forward_ids(3), best_backward_ids(3)
     logical :: invalid_grid_selected
     logical :: z_slab_from_conf, y_slab_from_conf
+    logical :: exec_autotune
 
     error_code = DTFFT_SUCCESS
     CHECK_CALL( self%init(platform, effort), error_code )
@@ -251,7 +252,8 @@ contains
 
     ts = MPI_Wtime()
 
-    if ( effort /= DTFFT_ESTIMATE ) then
+    exec_autotune = (effort%val >= DTFFT_MEASURE%val .and. .not.pencils_created ) .or. (effort%val >= DTFFT_PATIENT%val) .and. comm_size > 1
+    if ( exec_autotune ) then
       PHASE_BEGIN("Autotune transpose plan", COLOR_AUTOTUNE)
       WRITE_INFO("Starting autotune of transpose plans...")
     endif
@@ -278,13 +280,12 @@ contains
         self%stream, best_forward_ids, best_backward_ids, best_decomposition, backend=self%backend)
     endif
 
-    if ( effort /= DTFFT_ESTIMATE ) then
+    if ( exec_autotune ) then
       PHASE_END("Autotune transpose plan")
     endif
     te = MPI_Wtime()
 
     if ( effort%val >= DTFFT_MEASURE%val .and. ndims > 2 .and. comm_size > 1 ) then
-      WRITE_INFO(repeat("*", 50))
       if ( self%is_z_slab ) then
         WRITE_INFO("Skipped search of MPI processor grid due to Z-slab optimization enabled")
       else if ( self%is_y_slab ) then
@@ -309,9 +310,8 @@ contains
         WRITE_INFO("    "//TRANSPOSE_NAMES( d)//": "//to_str( best_forward_ids(d) ))
         WRITE_INFO("    "//TRANSPOSE_NAMES(-d)//": "//to_str( best_backward_ids(d) ))
       enddo
-      WRITE_INFO(repeat("*", 50))
     endif
-    if ( effort%val >= DTFFT_MEASURE%val .and. comm_size > 1 ) then
+    if ( exec_autotune ) then
       WRITE_INFO("Time spent on autotune: "//to_str(te - ts)//" [s]")
     endif
 
@@ -348,7 +348,7 @@ contains
       endif
     endblock
     te = MPI_Wtime()
-    WRITE_INFO("Time spent creating final plans: "//to_str(te - ts)//" [s]")
+    WRITE_INFO("Time spent creating final transpose plans: "//to_str(te - ts)//" [s]")
 
     call get_local_sizes(pencils, alloc_size=self%min_buffer_size)
     self%min_buffer_size = self%min_buffer_size * (base_storage / FLOAT_STORAGE_SIZE)

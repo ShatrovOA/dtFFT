@@ -29,7 +29,6 @@ use dtfft_interface_cuda_runtime
 #include "_dtfft_cuda.h"
 #endif
 implicit none
-#ifndef DTFFT_TRANSPOSE_ONLY
   type(c_ptr) :: check
   real(real64),     pointer :: in(:,:,:)
   complex(real64),  pointer :: out(:)
@@ -177,5 +176,4 @@ implicit none
 
   call plan%destroy()
   call MPI_Finalize(ierr)
-#endif
 end program test_r2c_3d

@@ -50,6 +50,7 @@ public :: abstract_executor
     type(c_ptr)             :: plan_backward                !! Pointer to backward plan
     logical,    private     :: is_created = .false.         !! Is plan created?
     logical                 :: is_inverse_copied = .false.  !! Is inverse plan copied?
+    integer(int8)           :: fft_type
     character(len=:),  allocatable :: profile
   contains
     procedure,  non_overridable,              pass(self), public  :: create               !! Creates FFT plan
@@ -129,12 +130,11 @@ contains
     create = DTFFT_SUCCESS
     if ( self%is_created .and. .not.is_null_ptr(self%plan_forward) .and. .not.is_null_ptr(self%plan_backward) ) return
 
-    
-
     self%plan_forward = c_null_ptr
     self%plan_backward = c_null_ptr
     self%is_created = .false.
     self%is_inverse_copied = .false.
+    self%fft_type = fft_type
 #ifdef DTFFT_DEBUG
     if ( fft_rank /= FFT_1D .and. fft_rank /= FFT_2D ) INTERNAL_ERROR("fft_rank /= FFT_1D .and. fft_rank /= FFT_2D")
     if ( (fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil)) ) INTERNAL_ERROR("(fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil))")
@@ -215,6 +215,9 @@ contains
     type(c_ptr),              intent(in)  :: out    !! Target buffer
     integer(int8),            intent(in)  :: sign   !! Sign of transform
     if ( .not.self%is_created ) return
+#ifdef DTFFT_DEBUG
+    if ( is_same_ptr(in, out) .and. self%fft_type == FFT_R2C ) INTERNAL_ERROR("inplace FFT_R2C")
+#endif
     REGION_BEGIN("dtfft_execute_fft "//self%profile, COLOR_FFT)
     call self%execute_private(in, out, sign)
     REGION_END("dtfft_execute_fft "//self%profile)
