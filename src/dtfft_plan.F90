@@ -915,7 +915,7 @@ contains
           call self% plan%execute(aux, in, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
           call self%rplan%execute(in, out, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
         else
-          call self% plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+          call self% plan%execute(aux, out, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
         endif
       else
         if ( self%is_final_reshape_enabled ) then
@@ -1116,23 +1116,23 @@ contains
       call self%rplan%execute(in, aux, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
       call self%fft(1)%fft%execute(aux, out, FFT_FORWARD)
       call self%plan%execute(out, aux, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
-      call self%fft(self%fft_mapping(2))%fft%execute(aux, in, FFT_FORWARD)
-      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Y_TO_Z%val, EXEC_BLOCKING, aux2)
+      call self%fft(self%fft_mapping(2))%fft%execute(aux, aux, FFT_FORWARD)
+      call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_Z%val, EXEC_BLOCKING, aux2)
       if ( self%is_final_reshape_enabled ) then
-        call self%fft(self%fft_mapping(3))%fft%execute(aux, aux, FFT_FORWARD)
+        call self%fft(self%fft_mapping(3))%fft%execute(out, aux, FFT_FORWARD)
         call self%rplan%execute(aux, out, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
       else
-        call self%fft(self%fft_mapping(3))%fft%execute(aux, out, FFT_FORWARD)
+        call self%fft(self%fft_mapping(3))%fft%execute(out, out, FFT_FORWARD)
       endif
     else
       if ( self%is_final_reshape_enabled ) then
         call self%rplan%execute(in, aux, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS%val, EXEC_BLOCKING, aux2)
-        call self%fft(self%fft_mapping(3))%fft%execute(aux, aux, FFT_BACKWARD)
+        call self%fft(self%fft_mapping(3))%fft%execute(aux, in, FFT_BACKWARD)
       else
-        call self%fft(self%fft_mapping(3))%fft%execute(in, aux, FFT_BACKWARD)
+        call self%fft(self%fft_mapping(3))%fft%execute(in, in, FFT_BACKWARD)
       endif
-      call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Z_TO_Y%val, EXEC_BLOCKING, aux2)
-      call self%fft(self%fft_mapping(2))%fft%execute(in, aux, FFT_BACKWARD)
+      call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_Y%val, EXEC_BLOCKING, aux2)
+      call self%fft(self%fft_mapping(2))%fft%execute(aux, aux, FFT_BACKWARD)
       call self%plan%execute(aux, in, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
       call self%fft(1)%fft%execute(in, aux, FFT_BACKWARD)
       call self%rplan%execute(aux, out, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val, EXEC_BLOCKING, aux2)
@@ -1934,16 +1934,21 @@ contains
           endselect
 
           CHECK_INTERNAL_CALL( self%rplan%create(self%platform, ipencil, self%pencils, comm_, self%comms, base_dtype, base_storage, self%effort, self%plan%get_backend(), base_dtype_init, base_storage_init, self%bricks, self%is_final_reshape_enabled) )
-          ! print*,'brick1 = ',self%bricks(1)%starts,self%bricks(1)%counts
-          ! print*,'pencils1 = ',self%pencils(1)%starts,self%pencils(1)%counts
-          ! print*,'pencils2 = ',self%pencils(2)%starts,self%pencils(2)%counts
-          ! if ( self%ndims == 3 ) print*,'pencils3 = ',self%pencils(3)%starts,self%pencils(3)%counts
-          ! print*,'brick2 = ',self%bricks(2)%starts,self%bricks(2)%counts
 
           select type( self )
           class is ( dtfft_plan_r2c_t )
             self%pencils(1) = temp_pencil
           endselect
+
+          ! print*,'brick1 = ',self%bricks(1)%starts,self%bricks(1)%counts
+          ! select type( self )
+          ! class is ( dtfft_plan_r2c_t )
+          !   print*,'real pencil = ',self%real_pencil%starts,self%real_pencil%counts
+          ! endselect
+          ! print*,'pencils1 = ',self%pencils(1)%starts,self%pencils(1)%counts
+          ! print*,'pencils2 = ',self%pencils(2)%starts,self%pencils(2)%counts
+          ! if ( self%ndims == 3 ) print*,'pencils3 = ',self%pencils(3)%starts,self%pencils(3)%counts
+          ! print*,'brick2 = ',self%bricks(2)%starts,self%bricks(2)%counts
 
           call opencil%destroy()
         else
