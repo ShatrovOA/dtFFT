@@ -79,20 +79,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">37 statements</a>
+                 title=" 0.1% of total for procedures.">21 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_backend.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_backend.f90.html'>dtfft_abstract_backend.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_backend.html'>dtfft_abstract_backend</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute_interface</li>
           </ol>
         </nav>
@@ -140,7 +140,7 @@
     
     <div class="col-md-9" id='text'>
       <h2>interface <br>
-      private  subroutine execute_interface(self, a, b, sign)  
+      private  subroutine execute_interface(self, in, out, stream, aux, error_code)  
 </h2>    
 
     
@@ -158,69 +158,99 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~29"></span>
-              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
+              <span class="anchor" id="variable-self~53"></span>
+              class(<a href='../type/abstract_backend.html'>abstract_backend</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFT Executor</p>
+                <p>Abstract Backend</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-a~2"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-in~199"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+                <p>Send pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~199"></span>
+              real(kind=real32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+                <p>Recv pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~13"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>a</strong></td>
+            <td><strong>stream</strong></td>
             <td>
-                <p>Source pointer</p>
+                <p>Main execution CUDA stream</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-b~2"></span>
-              type(c_ptr),
+              <span class="anchor" id="variable-aux~2"></span>
+              real(kind=real32),
             </td>
-<td>intent(in)</td>
+<td>intent(inout),</td>
               <td></td>            <td>
-              
+              target
             </td>
             <td>::</td>
-            <td><strong>b</strong></td>
+            <td><strong>aux</strong>(:)</td>
             <td>
-                <p>Target pointer</p>
+                <p>Aux pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-sign~4"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-error_code~11"></span>
+              integer(kind=int32),
             </td>
-<td>intent(in)</td>
+<td>intent(out)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>sign</strong></td>
+            <td><strong>error_code</strong></td>
             <td>
-                <p>Sign of transform</p>
+                <p>Error code</p>
             </td>
         </tr>
     </tbody>
   </table>
 
     <h3>Description</h3>
-    <p>Executes plan</p>
+    <p>Executes Backend</p>
     <br>
 
  </div>
