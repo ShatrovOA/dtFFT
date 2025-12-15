@@ -17,6 +17,10 @@ jobs:
       DTFFT_PLATFORM: "host"
       LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/12.8/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/12.8/nvshmem/lib:$LD_LIBRARY_PATH"
     steps:
+      - name: Free space
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
       - name: Get Requirements
         run: |
           echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
@@ -66,6 +70,10 @@ jobs:
       DTFFT_PLATFORM: "host"
       LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/math_libs/12.6/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/comm_libs/12.6/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/comm_libs/12.6/nvshmem/lib:$LD_LIBRARY_PATH"
     steps:
+      - name: Free space
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
       - name: Get Requirements
         run: |
           echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
