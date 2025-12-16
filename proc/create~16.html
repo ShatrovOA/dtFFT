@@ -79,20 +79,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">31 statements</a>
+                 title=" 0.0% of total for procedures.">7 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_kernel.F90"> Source File</a>
+              <a href="../src/dtfft_nvrtc_module_cache.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_kernel.f90.html'>dtfft_abstract_kernel.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_kernel.html'>dtfft_abstract_kernel</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_nvrtc_module_cache.f90.html'>dtfft_nvrtc_module_cache.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_nvrtc_module_cache.html'>dtfft_nvrtc_module_cache</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -138,14 +138,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self, dims, effort, base_storage, kernel_type, neighbor_data, force_effort)  
+    <h2>private  subroutine create(self)  
 </h2>
     
 
-    <p>Creates kernel</p>
+    <p>Creates cache</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/abstract_kernel.html'>abstract_kernel</a></p>
+    <p><a href='../type/nvrtc_module_cache.html'>nvrtc_module_cache</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -160,8 +160,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~197"></span>
-              class(<a href='../type/abstract_kernel.html'>abstract_kernel</a>),
+              <span class="anchor" id="variable-self~203"></span>
+              class(<a href='../type/nvrtc_module_cache.html'>nvrtc_module_cache</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -170,277 +170,13 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Abstract kernel</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-dims~195"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>dims</strong>(:)</td>
-            <td>
-                <p>Local dimensions to process</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-effort~26"></span>
-              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>effort</strong></td>
-            <td>
-                <p>Effort level for generating transpose kernels</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-base_storage~37"></span>
-              integer(kind=int64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>base_storage</strong></td>
-            <td>
-                <p>Number of bytes needed to store single element</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-kernel_type~14"></span>
-              type(<a href='../type/kernel_type_t.html'>kernel_type_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>kernel_type</strong></td>
-            <td>
-                <p>Type of kernel to build</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-neighbor_data~5"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>neighbor_data</strong>(:,:)</td>
-            <td>
-                <p>Optional pointers for unpack kernels</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-force_effort~7"></span>
-              logical,
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>force_effort</strong></td>
-            <td>
-                <p>Should effort be forced or not</p>
+                <p>Cache instance</p>
             </td>
         </tr>
     </tbody>
   </table>
 
     <br>
-    <div class="card">
-      <div class="card-header">
-  <h3 class="card-title">Calls</h3>
-      </div>
-      <div class="card-body">
-  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: proc~~create~16~~CallsGraph Pages: 1 -->
-<svg id="proccreate16CallsGraph" width="457pt" height="158pt"
- viewBox="0.00 0.00 457.00 158.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~create~16~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 154)">
-<title>proc~~create~16~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-154 453,-154 453,4 -4,4"/>
-<!-- proc~create~16 -->
-<g id="proc~~create~16~~CallsGraph_node1" class="node">
-<title>proc~create~16</title>
-<polygon fill="none" stroke="black" points="139,-87 0,-87 0,-63 139,-63 139,-87"/>
-<text text-anchor="middle" x="69.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_kernel%create</text>
-</g>
-<!-- create_private -->
-<g id="proc~~create~16~~CallsGraph_node2" class="node">
-<title>create_private</title>
-<polygon fill="#777777" stroke="#777777" points="291.5,-150 202.5,-150 202.5,-126 291.5,-126 291.5,-150"/>
-<text text-anchor="middle" x="247" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_private</text>
-</g>
-<!-- proc~create~16&#45;&gt;create_private -->
-<g id="proc~~create~16~~CallsGraph_edge1" class="edge">
-<title>proc~create~16&#45;&gt;create_private</title>
-<path fill="none" stroke="#ff0000" d="M98.61,-87.14C119.49,-95.95 148.78,-107.88 175,-117 180.9,-119.05 187.11,-121.08 193.31,-123.02"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="192.4,-126.4 202.99,-125.99 194.46,-119.71 192.4,-126.4"/>
-</g>
-<!-- proc~destroy~15 -->
-<g id="proc~~create~16~~CallsGraph_node3" class="node">
-<title>proc~destroy~15</title>
-<g id="a_proc~~create~16~~CallsGraph_node3"><a xlink:href="../proc/destroy~15.html" xlink:title="abstract_kernel%destroy">
-<polygon fill="#d9534f" stroke="#d9534f" points="319,-108 175,-108 175,-84 319,-84 319,-108"/>
-<text text-anchor="middle" x="247" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_kernel%destroy</text>
-</a>
-</g>
-</g>
-<!-- proc~create~16&#45;&gt;proc~destroy~15 -->
-<g id="proc~~create~16~~CallsGraph_edge2" class="edge">
-<title>proc~create~16&#45;&gt;proc~destroy~15</title>
-<path fill="none" stroke="#ff0000" d="M139.11,-83.21C147.54,-84.22 156.21,-85.26 164.81,-86.28"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="164.49,-89.77 174.84,-87.48 165.32,-82.82 164.49,-89.77"/>
-</g>
-<!-- proc~get_kernel_string -->
-<g id="proc~~create~16~~CallsGraph_node4" class="node">
-<title>proc~get_kernel_string</title>
-<g id="a_proc~~create~16~~CallsGraph_node4"><a xlink:href="../proc/get_kernel_string.html" xlink:title="get_kernel_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="299,-66 195,-66 195,-42 299,-42 299,-66"/>
-<text text-anchor="middle" x="247" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_kernel_string</text>
-</a>
-</g>
-</g>
-<!-- proc~create~16&#45;&gt;proc~get_kernel_string -->
-<g id="proc~~create~16~~CallsGraph_edge3" class="edge">
-<title>proc~create~16&#45;&gt;proc~get_kernel_string</title>
-<path fill="none" stroke="#ff0000" d="M139.11,-66.79C154.18,-64.99 170.05,-63.09 184.81,-61.32"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="185.32,-64.79 194.83,-60.12 184.49,-57.84 185.32,-64.79"/>
-</g>
-<!-- proc~is_unpack_kernel -->
-<g id="proc~~create~16~~CallsGraph_node5" class="node">
-<title>proc~is_unpack_kernel</title>
-<g id="a_proc~~create~16~~CallsGraph_node5"><a xlink:href="../proc/is_unpack_kernel.html" xlink:title="is_unpack_kernel">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="299,-24 195,-24 195,0 299,0 299,-24"/>
-<text text-anchor="middle" x="247" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_unpack_kernel</text>
-</a>
-</g>
-</g>
-<!-- proc~create~16&#45;&gt;proc~is_unpack_kernel -->
-<g id="proc~~create~16~~CallsGraph_edge4" class="edge">
-<title>proc~create~16&#45;&gt;proc~is_unpack_kernel</title>
-<path fill="none" stroke="#ff0000" d="M98.61,-62.86C119.49,-54.05 148.78,-42.12 175,-33 180.9,-30.95 187.11,-28.92 193.31,-26.98"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="194.46,-30.29 202.99,-24.01 192.4,-23.6 194.46,-30.29"/>
-</g>
-<!-- destroy_private -->
-<g id="proc~~create~16~~CallsGraph_node6" class="node">
-<title>destroy_private</title>
-<polygon fill="#777777" stroke="#777777" points="449,-108 355,-108 355,-84 449,-84 449,-108"/>
-<text text-anchor="middle" x="402" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy_private</text>
-</g>
-<!-- proc~destroy~15&#45;&gt;destroy_private -->
-<g id="proc~~create~16~~CallsGraph_edge5" class="edge">
-<title>proc~destroy~15&#45;&gt;destroy_private</title>
-<path fill="none" stroke="#7fff00" d="M319.13,-96C327.78,-96 336.53,-96 344.92,-96"/>
-<polygon fill="#7fff00" stroke="#7fff00" points="344.95,-99.5 354.95,-96 344.95,-92.5 344.95,-99.5"/>
-</g>
-</g>
-</svg>
-</div>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
-          </div>
-          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-lg" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-<p>Nodes of different colours represent the following: </p>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
- "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
- -->
-<!-- Title: Graph Key Pages: 1 -->
-<svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
-<title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
-<!-- Subroutine -->
-<g id="node1" class="node">
-<title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
-</g>
-<!-- Function -->
-<g id="node2" class="node">
-<title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
-</g>
-<!-- Interface -->
-<g id="node3" class="node">
-<title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
-</g>
-<!-- Type Bound Procedure -->
-<g id="node4" class="node">
-<title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
-</g>
-<!-- Unknown Procedure Type -->
-<g id="node5" class="node">
-<title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
-</g>
-<!-- Program -->
-<g id="node6" class="node">
-<title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
-</g>
-<!-- This Page&#39;s Entity -->
-<g id="node7" class="node">
-<title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
-</g>
-</g>
-</svg>
-
-<p>Solid arrows point from a procedure to one which it calls. Dashed 
-arrows point from an interface to procedures which implement that interface.
-This could include the module procedures in a generic interface or the
-implementation in a submodule of an interface in a parent module.
-</p>
- Where possible, edges connecting nodes are
-given different colours to make them easier to distinguish in
-large graphs.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="card">
       <div class="card-header">
   <h3 class="card-title">Called by</h3>
@@ -452,35 +188,84 @@ large graphs.</div>
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: proc~~create~16~~CalledByGraph Pages: 1 -->
-<svg id="proccreate16CalledByGraph" width="370pt" height="32pt"
- viewBox="0.00 0.00 370.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~create~16~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<svg id="proccreate16CalledByGraph" width="641pt" height="26pt"
+ viewBox="0.00 0.00 641.00 25.83" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~create~16~~CalledByGraph" class="graph" transform="scale(0.81 0.81) rotate(0) translate(4 28)">
 <title>proc~~create~16~~CalledByGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 366,-28 366,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 790,-28 790,4 -4,4"/>
 <!-- proc~create~16 -->
 <g id="proc~~create~16~~CalledByGraph_node1" class="node">
 <title>proc~create~16</title>
-<polygon fill="none" stroke="black" points="362,-24 223,-24 223,0 362,0 362,-24"/>
-<text text-anchor="middle" x="292.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_kernel%create</text>
+<polygon fill="none" stroke="black" points="786,-24 620,-24 620,0 786,0 786,-24"/>
+<text text-anchor="middle" x="703" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">nvrtc_module_cache%create</text>
 </g>
-<!-- proc~create~7 -->
+<!-- proc~add -->
 <g id="proc~~create~16~~CalledByGraph_node2" class="node">
-<title>proc~create~7</title>
-<g id="a_proc~~create~16~~CalledByGraph_node2"><a xlink:href="../proc/create~7.html" xlink:title="reshape_handle_generic%create">
-<polygon fill="#d9534f" stroke="#d9534f" points="187,-24 0,-24 0,0 187,0 187,-24"/>
-<text text-anchor="middle" x="93.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_handle_generic%create</text>
+<title>proc~add</title>
+<g id="a_proc~~create~16~~CalledByGraph_node2"><a xlink:href="../proc/add.html" xlink:title="nvrtc_module_cache%add">
+<polygon fill="#d9534f" stroke="#d9534f" points="584,-24 431,-24 431,0 584,0 584,-24"/>
+<text text-anchor="middle" x="507.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvrtc_module_cache%add</text>
 </a>
 </g>
 </g>
-<!-- proc~create~7&#45;&gt;proc~create~16 -->
+<!-- proc~add&#45;&gt;proc~create~16 -->
 <g id="proc~~create~16~~CalledByGraph_edge1" class="edge">
-<title>proc~create~7&#45;&gt;proc~create~16</title>
-<path fill="none" stroke="#ff0000" d="M187.23,-12C195.75,-12 204.32,-12 212.69,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="212.79,-15.5 222.79,-12 212.79,-8.5 212.79,-15.5"/>
+<title>proc~add&#45;&gt;proc~create~16</title>
+<path fill="none" stroke="#ff0000" d="M584.14,-12C592.52,-12 601.13,-12 609.68,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="609.69,-15.5 619.69,-12 609.69,-8.5 609.69,-15.5"/>
+</g>
+<!-- proc~create_nvrtc_module -->
+<g id="proc~~create~16~~CalledByGraph_node3" class="node">
+<title>proc~create_nvrtc_module</title>
+<g id="a_proc~~create~16~~CalledByGraph_node3"><a xlink:href="../proc/create_nvrtc_module.html" xlink:title="create_nvrtc_module">
+<polygon fill="#d9534f" stroke="#d9534f" points="395,-24 271,-24 271,0 395,0 395,-24"/>
+<text text-anchor="middle" x="333" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvrtc_module</text>
+</a>
+</g>
+</g>
+<!-- proc~create_nvrtc_module&#45;&gt;proc~add -->
+<g id="proc~~create~16~~CalledByGraph_edge2" class="edge">
+<title>proc~create_nvrtc_module&#45;&gt;proc~add</title>
+<path fill="none" stroke="#ff0000" d="M395.3,-12C403.59,-12 412.2,-12 420.82,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="420.9,-15.5 430.9,-12 420.9,-8.5 420.9,-15.5"/>
+</g>
+<!-- proc~get_kernel -->
+<g id="proc~~create~16~~CalledByGraph_node4" class="node">
+<title>proc~get_kernel</title>
+<g id="a_proc~~create~16~~CalledByGraph_node4"><a xlink:href="../proc/get_kernel.html" xlink:title="get_kernel">
+<polygon fill="#d9534f" stroke="#d9534f" points="235,-24 166,-24 166,0 235,0 235,-24"/>
+<text text-anchor="middle" x="200.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_kernel</text>
+</a>
+</g>
+</g>
+<!-- proc~get_kernel&#45;&gt;proc~create_nvrtc_module -->
+<g id="proc~~create~16~~CalledByGraph_edge3" class="edge">
+<title>proc~get_kernel&#45;&gt;proc~create_nvrtc_module</title>
+<path fill="none" stroke="#ff0000" d="M235.11,-12C243.06,-12 251.85,-12 260.78,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="260.9,-15.5 270.9,-12 260.9,-8.5 260.9,-15.5"/>
+</g>
+<!-- proc~create~2 -->
+<g id="proc~~create~16~~CalledByGraph_node5" class="node">
+<title>proc~create~2</title>
+<g id="a_proc~~create~16~~CalledByGraph_node5"><a xlink:href="../proc/create~2.html" xlink:title="kernel_device%create">
+<polygon fill="#d9534f" stroke="#d9534f" points="130,-24 0,-24 0,0 130,0 130,-24"/>
+<text text-anchor="middle" x="65" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_device%create</text>
+</a>
+</g>
+</g>
+<!-- proc~create~2&#45;&gt;proc~get_kernel -->
+<g id="proc~~create~16~~CalledByGraph_edge4" class="edge">
+<title>proc~create~2&#45;&gt;proc~get_kernel</title>
+<path fill="none" stroke="#ff0000" d="M130.01,-12C138.76,-12 147.58,-12 155.85,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="156,-15.5 166,-12 156,-8.5 156,-15.5"/>
 </g>
 </g>
 </svg>
-</div>          <div>
+</div>                <script>
+                  var panproccreate16CalledByGraph = svgPanZoom('#proccreate16CalledByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
             <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
           </div>
           <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
