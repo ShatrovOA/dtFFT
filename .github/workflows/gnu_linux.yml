@@ -38,6 +38,8 @@ jobs:
             -DDTFFT_WITH_RMA=on
           cmake --build build
       - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Coverage
         run: cmake --build build --target coverage
       - name: Install
         run: sudo cmake --install build
