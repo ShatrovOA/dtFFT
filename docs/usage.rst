@@ -298,6 +298,13 @@ If neither strategy is feasible, ``dtFFT`` falls back to a 2D redistribution of 
 
   N_x \times (n_y / Q_1) \times (n_z / Q_2).
 
+The figure below illustrates the three reshape strategies for bricks in 3D. The leftmost layout shows the initial brick decomposition with :math:`P_0 = 4` ranks along the :math:`X` dimension. The next three layouts show the resulting pencil decompositions after applying each reshape strategy: splitting along :math:`Z` (strategy 1), splitting along :math:`Y` (strategy 2), and the 2D split with :math:`Q_1 = Q_2 = 2` (strategy 3). Each colored block represents data from one rank, and the figure shows a single slice corresponding to one of the :math:`P_1 \times P_2` positions. The reshape strategy is selected on rank 0 based on divisibility constraints and performance considerations, then broadcasted to all other ranks.
+
+.. image:: images/bricks_reshape.png
+   :width: 1900px
+   :alt: Bricks Reshape strategies
+   :align: center
+
 **2D case.** Assume the global domain is :math:`N_x \times N_y` and ranks are arranged as :math:`P_0 \times P_1`. Let the local block be :math:`(N_x / P_0) \times n_y`, where :math:`n_y = N_y / P_1`. In this case, ``dtFFT`` attempts to redistribute across the :math:`P_0` ranks (keeping :math:`n_y` fixed) as:
 
 - :math:`N_x \times (n_y / P_0)`
