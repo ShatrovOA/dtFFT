@@ -287,7 +287,7 @@ Let the local brick on each rank be
 
   (N_x / P_0) \times n_y \times n_z, \quad n_y = N_y / P_1, \quad n_z = N_z / P_2.
 
-To execute FFTs along the fastest-varying dimension (X), the data must be realigned into X-pencils. This requires gathering data from all :math:`P_0` bricks along the X dimension to reconstruct the full :math:`N_x` extent, while the :math:`P_0` processes are redistributed across the :math:`Y` and/or :math:`Z` dimensions. ``dtFFT`` attempts the following redistribution strategies in order:
+To execute FFTs along the fastest-varying dimension (X), the data must be realigned into X-pencils. This requires gathering data from all :math:`P_0` bricks along the X dimension to reconstruct the full :math:`N_x` extent, while the :math:`P_0` processes are redistributed across the :math:`Y` and/or :math:`Z` dimensions. Inside ``dtFFT``  this operation is called **reshape**. ``dtFFT`` attempts the following reshape strategies in order:
 
 - :math:`N_x \times n_y \times (n_z / P_0)` — gather full X dimension, redistribute :math:`P_0` processes along Z (keeping Y local)
 - :math:`N_x \times (n_y / P_0) \times n_z` — gather full X dimension, redistribute :math:`P_0` processes along Y (keeping Z local)
