@@ -12,10 +12,10 @@ jobs:
       DTFFT_ENABLE_LOG: "1"
       DTFFT_MEASURE_WARMUP_ITERS: "CUDA"
       DTFFT_MEASURE_ITERS: "-1"
-      # DTFFT_ENABLE_FOURIER_RESHAPE: "1"
-      # DTFFT_ENABLE_KERNEL_AUTOTUNE: "1"
-      # DTFFT_ENABLE_MPI: "1"
-      # DTFFT_RESHAPE_BACKEND: "MPI_DT"
+      DTFFT_ENABLE_FOURIER_RESHAPE: "1"
+      DTFFT_ENABLE_KERNEL_AUTOTUNE: "1"
+      DTFFT_ENABLE_MPI: "1"
+      DTFFT_RESHAPE_BACKEND: "MPI_DT"
     steps:
       - name: Get Requirements
         run: |
@@ -34,11 +34,8 @@ jobs:
             -DDTFFT_RUNNING_CICD=on \
             -DDTFFT_WITH_FFTW=on \
             -DDTFFT_MPI_VENDOR=openmpi \
-            -DDTFFT_BUILD_C_CXX_API=on \
-            -DDTFFT_WITH_RMA=on
+            -DDTFFT_BUILD_C_CXX_API=on
           cmake --build build
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
       - name: Coverage
         run: cmake --build build --target coverage
       - name: Install
