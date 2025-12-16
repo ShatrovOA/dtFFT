@@ -287,12 +287,12 @@ Let the local brick on each rank be
 
   (N_x / P_0) \times n_y \times n_z, \quad n_y = N_y / P_1, \quad n_z = N_z / P_2.
 
-To execute FFTs along the fastest-varying dimension, the data must be aligned. To achieve this, ``dtFFT`` attempts to redistribute the local brick across the :math:`P_0` ranks (keeping :math:`n_y` and :math:`n_z` fixed). It tries the following strategies in order:
+To execute FFTs along the fastest-varying dimension (X), the data must be realigned into X-pencils. This requires gathering data from all :math:`P_0` bricks along the X dimension to reconstruct the full :math:`N_x` extent, while the :math:`P_0` processes are redistributed across the :math:`Y` and/or :math:`Z` dimensions. ``dtFFT`` attempts the following redistribution strategies in order:
 
-- :math:`N_x \times n_y \times (n_z / P_0)`
-- :math:`N_x \times (n_y / P_0) \times n_z`
+- :math:`N_x \times n_y \times (n_z / P_0)` — gather full X dimension, redistribute :math:`P_0` processes along Z (keeping Y local)
+- :math:`N_x \times (n_y / P_0) \times n_z` — gather full X dimension, redistribute :math:`P_0` processes along Y (keeping Z local)
 
-If neither strategy is feasible, ``dtFFT`` falls back to a 2D redistribution of the :math:`P_0` ranks by choosing :math:`Q_1 \times Q_2` such that :math:`Q_1 Q_2 = P_0`, and uses:
+If neither strategy is feasible (i.e. :math:`n_y < P_0` or :math:`n_z < P_0`), ``dtFFT`` falls back to a 2D redistribution of the :math:`P_0` ranks by choosing :math:`Q_1 \times Q_2` such that :math:`Q_1 Q_2 = P_0`, and uses:
 
 .. math::
 
