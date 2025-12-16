@@ -16,11 +16,11 @@ Key benefits: Zero-copy transpositions, GPU acceleration, and seamless MPI/CUDA 
 dtFFT aims to optimize following cycles of transformations (forward and backward):
 
 ```math
-\dfrac{X}{P_0} \times \dfrac{Y}{P_1} \xrightarrow[]{reshape} X \times \dfrac{Y}{P_0P_1} \xrightarrow[]{transpose}  Y \times \dfrac{X}{P_0P_1} \xrightarrow[]{reshape} \dfrac{Y}{P_1} \times \dfrac{X}{P_0}
+\dfrac{X}{P_0} \times \dfrac{Y}{P_1} \to X \times \dfrac{Y}{P_0P_1} \to  Y \times \dfrac{X}{P_0P_1} \to \dfrac{Y}{P_1} \times \dfrac{X}{P_0}
 ```
 for 2D case, and
 ```math
-\dfrac{X}{P_0} \times \dfrac{Y}{P_1} \times \dfrac{Z}{P_2} \xrightarrow[]{reshape} X \times \dfrac{Y}{Q_1} \times \dfrac{Z}{Q_2} \xrightarrow[]{transpose} Y \times \dfrac{Z}{Q_2} \times \dfrac{X}{Q_1} \xrightarrow[]{transpose} Z \times \dfrac{X}{Q_1} \times \dfrac{Y}{Q_2} \xrightarrow[]{reshape} \dfrac{Z}{P_2} \times \dfrac{X}{Q_1} \times \dfrac{Y}{Q_2'}
+\dfrac{X}{P_0} \times \dfrac{Y}{P_1} \times \dfrac{Z}{P_2} \to X \times \dfrac{Y}{Q_1} \times \dfrac{Z}{Q_2} \to Y \times \dfrac{Z}{Q_2} \times \dfrac{X}{Q_1} \to Z \times \dfrac{X}{Q_1} \times \dfrac{Y}{Q_2} \to \dfrac{Z}{P_2} \times \dfrac{X}{Q_1} \times \dfrac{Y}{Q_2'}
 ```
 for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being the fastest varying index and $P_0, P_1, P_2, Q_1, Q_2, Q_2'$ are the number of processes in the appropriate direction.
 
