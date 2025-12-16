@@ -34,8 +34,12 @@ use dtfft_abstract_backend,             only: NCCL_REGISTER_PREALLOC_SIZE
 use dtfft_interface_cuda,               only: load_cuda
 use dtfft_interface_cuda_runtime
 use dtfft_interface_nvrtc,              only: load_nvrtc
+# ifdef DTFFT_WITH_NCCL
 use dtfft_interface_nccl
+# endif
+# ifdef DTFFT_WITH_NVSHMEM
 use dtfft_interface_nvshmem
+# endif
 #endif
 use dtfft_reshape_handle_generic,       only: reshape_handle_generic
 use dtfft_reshape_handle_datatype,      only: reshape_handle_datatype
@@ -48,8 +52,6 @@ implicit none
 private
 public :: reshape_plan_base
 public :: allocate_plans, destroy_plans
-! public :: allocate_transposed_dims
-public :: create_pencils_and_comm
 public :: get_aux_bytes_generic
 public :: execute_autotune
 public :: report_timings
@@ -391,43 +393,6 @@ integer(int32) :: i
     enddo
 end subroutine allocate_plans
 
-subroutine get_permutations(ndims, dperm, cperm)
-integer(int8),  intent(in)  :: ndims
-integer(int8), allocatable :: dperm(:,:)
-integer(int8), allocatable :: cperm(:,:)
-
-    allocate(dperm(ndims, ndims), cperm(ndims, ndims))
-    if ( ndims == 2_int8 ) then
-        dperm(1, 1) = 1
-        dperm(2, 1) = 2
-        cperm(:, 1) = dperm(:, 1)
-
-        dperm(1, 2) = 2
-        dperm(2, 2) = 1
-
-        cperm(:, 2) = cperm(:, 1)
-    else
-        dperm(1, 1) = 1
-        dperm(2, 1) = 2
-        dperm(3, 1) = 3
-        cperm(:, 1) = dperm(:, 1)
-
-        dperm(1, 2) = 2
-        dperm(2, 2) = 3
-        dperm(3, 2) = 1
-
-        cperm(1, 2) = 1
-        cperm(2, 2) = 3
-        cperm(3, 2) = 2
-
-        dperm(1, 3) = 3
-        dperm(2, 3) = 1
-        dperm(3, 3) = 2
-
-        cperm(:, 3) = cperm(:, 1)
-    endif
-end subroutine get_permutations
-
 pure integer(int64) function get_aux_bytes_generic(plans)
 !! Returns maximum auxiliary memory size needed by plans
 type(reshape_container),   intent(in)  :: plans(:)       !! Transpose plans
@@ -453,103 +418,6 @@ integer(int32) :: i
         endif
     enddo
 end subroutine destroy_plans
-
-subroutine create_pencils_and_comm(dims, old_comm, comm_dims, comm, local_comms, pencils, ipencil)
-!! Creates cartesian communicator
-integer(int32),       intent(in)            :: dims(:)              !! Global dimensions
-TYPE_MPI_COMM,        intent(in)            :: old_comm             !! Communicator to create cartesian from
-integer(int32),       intent(in)            :: comm_dims(:)         !! Dims in cartesian communicator
-TYPE_MPI_COMM,        intent(out)           :: comm                 !! Cartesian communicator
-TYPE_MPI_COMM,        intent(out)           :: local_comms(:)       !! 1d communicators in cartesian communicator
-type(pencil),         intent(out)           :: pencils(:)           !! Data distributing meta
-type(pencil_init),    intent(in), optional  :: ipencil              !! Pencil passed by user
-integer(int8)         :: ndims              !! Number of dimensions
-integer(int8)         :: d                  !! Counter
-integer(int8) :: i, j
-integer(int8),  allocatable :: dperm(:,:), cperm(:, :)
-integer(int32), allocatable :: transposed_dims(:,:)
-TYPE_MPI_COMM,  allocatable :: transposed_comms(:,:)
-integer(int32), allocatable :: lstarts(:), lcounts(:)
-
-    ndims = size(comm_dims, kind=int8)
-    call create_cart_comm(old_comm, comm_dims, comm, local_comms, ipencil=ipencil)
-    call get_permutations(ndims, dperm, cperm)
-
-    allocate( transposed_dims(ndims, ndims), transposed_comms(ndims, ndims) )
-    do i = 1, ndims
-        do j = 1, ndims
-            transposed_dims(j, i) = dims(dperm(j, i))
-            transposed_comms(j, i) = local_comms(cperm(j, i))
-        enddo
-    enddo
-    deallocate( dperm, cperm )
-
-    if ( present(ipencil) ) then
-        allocate(lstarts, source=ipencil%starts)
-        allocate(lcounts, source=ipencil%counts)
-        do d = 1, ndims
-            call pencils(d)%create(ndims, d, transposed_dims(:, d), transposed_comms(:, d), lstarts=lstarts, lcounts=lcounts)
-            lcounts(:) = pencils(d)%counts(:)
-            lstarts(:) = pencils(d)%starts(:)
-        enddo
-
-        deallocate(lstarts, lcounts)
-    else
-        do d = 1, ndims
-            call pencils(d)%create(ndims, d, transposed_dims(:,d), transposed_comms(:, d))
-        enddo
-    endif
-
-    deallocate(transposed_dims, transposed_comms)
-end subroutine create_pencils_and_comm
-
-subroutine create_cart_comm(old_comm, comm_dims, comm, local_comms, ipencil)
-!! Creates cartesian communicator
-TYPE_MPI_COMM,        intent(in)            :: old_comm             !! Communicator to create cartesian from
-integer(int32),       intent(in)            :: comm_dims(:)         !! Dims in cartesian communicator
-TYPE_MPI_COMM,        intent(out)           :: comm                 !! Cartesian communicator
-TYPE_MPI_COMM,        intent(out)           :: local_comms(:)       !! 1d communicators in cartesian communicator
-type(pencil_init),    intent(in), optional  :: ipencil              !! Pencil passed by user
-logical,              allocatable   :: periods(:)           !! Grid is not periodic
-logical,              allocatable   :: remain_dims(:)       !! Needed by MPI_Cart_sub
-integer(int8)                       :: dim                  !! Counter
-integer(int32)                      :: ierr                 !! Error code
-integer(int8)                       :: ndims
-TYPE_MPI_COMM              :: temp_cart_comm
-TYPE_MPI_COMM, allocatable :: temp_comms(:)
-
-    ndims = size(comm_dims, kind=int8)
-
-    if ( present( ipencil ) ) then
-        call MPI_Comm_dup(old_comm, comm, ierr)
-        do dim = 1, ndims
-            call MPI_Comm_dup(ipencil%comms(dim), local_comms(dim), ierr)
-        enddo
-        return
-    endif
-    allocate(periods(ndims), source = .false.)
-
-    call MPI_Cart_create(old_comm, int(ndims, int32), comm_dims, periods, .true., temp_cart_comm, ierr)
-    call create_subcomm_include_all(temp_cart_comm, comm)
-    if ( GET_MPI_VALUE(comm) == GET_MPI_VALUE(MPI_COMM_NULL) ) INTERNAL_ERROR("comm == MPI_COMM_NULL")
-
-    allocate(temp_comms(ndims))
-
-    allocate( remain_dims(ndims), source = .false. )
-    do dim = 1, ndims
-        remain_dims(dim) = .true.
-        call MPI_Cart_sub(temp_cart_comm, remain_dims, temp_comms(dim), ierr)
-        call create_subcomm_include_all(temp_comms(dim), local_comms(dim))
-        if ( GET_MPI_VALUE(local_comms(dim)) == GET_MPI_VALUE(MPI_COMM_NULL) ) INTERNAL_ERROR("local_comms(dim) == MPI_COMM_NULL: dim = "//to_str(dim))
-        remain_dims(dim) = .false.
-    enddo
-    call MPI_Comm_free(temp_cart_comm, ierr)
-    do dim = 1, ndims
-        call MPI_Comm_free(temp_comms(dim), ierr)
-    enddo
-    deallocate(temp_comms)
-    deallocate(remain_dims, periods)
-end subroutine create_cart_comm
 
 function execute_autotune(plans, comm, backend, platform, helper, stream, buffer_size, report_space_count) result(execution_time)
 !! Destroys array of plans
