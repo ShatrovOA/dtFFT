@@ -79,20 +79,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.5% of total for procedures.">97 statements</a>
+                 title=" 0.4% of total for procedures.">80 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_executor_fftw_m.F90"> Source File</a>
+              <a href="../src/dtfft_pencil.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_fftw_m.f90.html'>dtfft_executor_fftw_m.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_pencil.f90.html'>dtfft_pencil.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_pencil.html'>dtfft_pencil</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -138,14 +138,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)  
+    <h2>private  subroutine create(self, rank, aligned_dim, counts, comms, lstarts, lcounts, is_distributed)  
 </h2>
     
 
-    <p>Creates FFT plan via FFTW3 Interface</p>
+    <p>Creates pencil</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/fftw_executor.html'>fftw_executor</a></p>
+    <p><a href='../type/pencil.html'>pencil</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -160,8 +160,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~128"></span>
-              class(<a href='../type/fftw_executor.html'>fftw_executor</a>),
+              <span class="anchor" id="variable-self~197"></span>
+              class(<a href='../type/pencil.html'>pencil</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -170,12 +170,12 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFTW FFT Executor</p>
+                <p>Pencil</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fft_rank~7"></span>
+              <span class="anchor" id="variable-rank~17"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -183,14 +183,14 @@
               
             </td>
             <td>::</td>
-            <td><strong>fft_rank</strong></td>
+            <td><strong>rank</strong></td>
             <td>
-                <p>Rank of fft: 1 or 2</p>
+                <p>Rank of buffer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fft_type~7"></span>
+              <span class="anchor" id="variable-aligned_dim~2"></span>
               integer(kind=int8),
             </td>
 <td>intent(in)</td>
@@ -198,29 +198,14 @@
               
             </td>
             <td>::</td>
-            <td><strong>fft_type</strong></td>
+            <td><strong>aligned_dim</strong></td>
             <td>
-                <p>Type of fft: r2r, r2c, c2c</p>
+                <p>Position of aligned dimension</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-precision~16"></span>
-              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>precision</strong></td>
-            <td>
-                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-idist~20"></span>
+              <span class="anchor" id="variable-counts~9"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -228,114 +213,69 @@
               
             </td>
             <td>::</td>
-            <td><strong>idist</strong></td>
+            <td><strong>counts</strong>(:)</td>
             <td>
-                <p>Distance between the first element of two consecutive signals in a batch of the input data.</p>
+                <p>Global counts</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-odist~20"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-comms~10"></span>
+              type(MPI_Comm),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>odist</strong></td>
+            <td><strong>comms</strong>(:)</td>
             <td>
-                <p>Distance between the first element of two consecutive signals in a batch of the output data.</p>
+                <p>Grid communicators</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-how_many~8"></span>
+              <span class="anchor" id="variable-lstarts~2"></span>
               integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>how_many</strong></td>
-            <td>
-                <p>Number of transforms to create</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-fft_sizes~7"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>fft_sizes</strong>(:)</td>
-            <td>
-                <p>Dimensions of transform</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-inembed~18"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>inembed</strong>(:)</td>
-            <td>
-                <p>Storage dimensions of the input data in memory.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-onembed~18"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>onembed</strong>(:)</td>
-            <td>
-                <p>Storage dimensions of the output data in memory.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-error_code~77"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>error_code</strong></td>
-            <td>
-                <p>Error code to be returned to user</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-r2r_kinds~6"></span>
-              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>r2r_kinds</strong>(:)</td>
+            <td><strong>lstarts</strong>(:)</td>
             <td>
-                <p>Kinds of r2r transform</p>
+                <p>Local starts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lcounts~2"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lcounts</strong>(:)</td>
+            <td>
+                <p>Local counts</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_distributed~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_distributed</strong></td>
+            <td>
+                <p>Is data distributed</p>
             </td>
         </tr>
     </tbody>
@@ -353,133 +293,121 @@
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: proc~~create~17~~CallsGraph Pages: 1 -->
-<svg id="proccreate17CallsGraph" width="432pt" height="284pt"
- viewBox="0.00 0.00 432.00 284.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~create~17~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 280)">
+<svg id="proccreate17CallsGraph" width="363pt" height="196pt"
+ viewBox="0.00 0.00 363.00 196.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~create~17~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 192)">
 <title>proc~~create~17~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-280 428,-280 428,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-192 359,-192 359,4 -4,4"/>
 <!-- proc~create~17 -->
 <g id="proc~~create~17~~CallsGraph_node1" class="node">
 <title>proc~create~17</title>
-<polygon fill="none" stroke="black" points="127,-150 0,-150 0,-126 127,-126 127,-150"/>
-<text text-anchor="middle" x="63.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50">fftw_executor%create</text>
+<polygon fill="none" stroke="black" points="88,-104 0,-104 0,-80 88,-80 88,-104"/>
+<text text-anchor="middle" x="44" y="-89.6" font-family="Helvetica,sans-Serif" font-size="10.50">pencil%create</text>
 </g>
-<!-- constructor -->
+<!-- mpi_allgather -->
 <g id="proc~~create~17~~CallsGraph_node2" class="node">
-<title>constructor</title>
-<polygon fill="#777777" stroke="#777777" points="275.5,-276 202.5,-276 202.5,-252 275.5,-252 275.5,-276"/>
-<text text-anchor="middle" x="239" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">constructor</text>
+<title>mpi_allgather</title>
+<polygon fill="#777777" stroke="#777777" points="347.5,-146 261.5,-146 261.5,-122 347.5,-122 347.5,-146"/>
+<text text-anchor="middle" x="304.5" y="-131.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_allgather</text>
 </g>
-<!-- proc~create~17&#45;&gt;constructor -->
+<!-- proc~create~17&#45;&gt;mpi_allgather -->
 <g id="proc~~create~17~~CallsGraph_edge1" class="edge">
-<title>proc~create~17&#45;&gt;constructor</title>
-<path fill="none" stroke="#ff0000" d="M72.43,-150.08C87.44,-171.98 122.18,-218.24 163,-243 172.02,-248.47 182.52,-252.56 192.75,-255.6"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="191.85,-258.98 202.41,-258.2 193.67,-252.22 191.85,-258.98"/>
+<title>proc~create~17&#45;&gt;mpi_allgather</title>
+<path fill="none" stroke="#ff0000" d="M55.26,-104.15C69.05,-119.44 95.19,-144.92 124,-155 169.34,-170.87 224.65,-160.24 261.79,-149.14"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="263.26,-152.35 271.76,-146.02 261.17,-145.67 263.26,-152.35"/>
 </g>
-<!-- constructor_inverse -->
+<!-- mpi_comm_size -->
 <g id="proc~~create~17~~CallsGraph_node3" class="node">
-<title>constructor_inverse</title>
-<polygon fill="#777777" stroke="#777777" points="298,-234 180,-234 180,-210 298,-210 298,-234"/>
-<text text-anchor="middle" x="239" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">constructor_inverse</text>
+<title>mpi_comm_size</title>
+<polygon fill="#777777" stroke="#777777" points="353,-104 256,-104 256,-80 353,-80 353,-104"/>
+<text text-anchor="middle" x="304.5" y="-89.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_size</text>
 </g>
-<!-- proc~create~17&#45;&gt;constructor_inverse -->
+<!-- proc~create~17&#45;&gt;mpi_comm_size -->
 <g id="proc~~create~17~~CallsGraph_edge2" class="edge">
-<title>proc~create~17&#45;&gt;constructor_inverse</title>
-<path fill="none" stroke="#ff0000" d="M80.05,-150.03C98.79,-164.01 131.69,-186.98 163,-201 167.59,-203.05 172.42,-204.95 177.34,-206.7"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="176.26,-210.03 186.85,-209.88 178.47,-203.39 176.26,-210.03"/>
+<title>proc~create~17&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#ff0000" d="M82.37,-79.94C95.4,-76.3 110.21,-72.8 124,-71 165.43,-65.59 176.52,-65.98 218,-71 229.5,-72.39 241.69,-74.8 253.14,-77.5"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="252.44,-80.93 262.99,-79.93 254.12,-74.14 252.44,-80.93"/>
 </g>
-<!-- inverse_kinds -->
+<!-- proc~check_if_even -->
 <g id="proc~~create~17~~CallsGraph_node4" class="node">
-<title>inverse_kinds</title>
-<polygon fill="#777777" stroke="#777777" points="281.5,-192 196.5,-192 196.5,-168 281.5,-168 281.5,-192"/>
-<text text-anchor="middle" x="239" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">inverse_kinds</text>
+<title>proc~check_if_even</title>
+<g id="a_proc~~create~17~~CallsGraph_node4"><a xlink:href="../proc/check_if_even.html" xlink:title="check_if_even">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="215,-104 127,-104 127,-80 215,-80 215,-104"/>
+<text text-anchor="middle" x="171" y="-89.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">check_if_even</text>
+</a>
 </g>
-<!-- proc~create~17&#45;&gt;inverse_kinds -->
+</g>
+<!-- proc~create~17&#45;&gt;proc~check_if_even -->
 <g id="proc~~create~17~~CallsGraph_edge3" class="edge">
-<title>proc~create~17&#45;&gt;inverse_kinds</title>
-<path fill="none" stroke="#ff0000" d="M114.22,-150.04C136.9,-155.53 163.73,-162.02 186.61,-167.56"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="185.94,-171 196.48,-169.95 187.58,-164.19 185.94,-171"/>
+<title>proc~create~17&#45;&gt;proc~check_if_even</title>
+<path fill="none" stroke="#ff0000" d="M88.02,-92C97.25,-92 107.11,-92 116.68,-92"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="116.9,-95.5 126.9,-92 116.9,-88.5 116.9,-95.5"/>
 </g>
-<!-- knds -->
+<!-- proc~destroy~15 -->
 <g id="proc~~create~17~~CallsGraph_node5" class="node">
-<title>knds</title>
-<polygon fill="#777777" stroke="#777777" points="266,-150 212,-150 212,-126 266,-126 266,-150"/>
-<text text-anchor="middle" x="239" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">knds</text>
+<title>proc~destroy~15</title>
+<g id="a_proc~~create~17~~CallsGraph_node5"><a xlink:href="../proc/destroy~15.html" xlink:title="pencil%destroy">
+<polygon fill="#d9534f" stroke="#d9534f" points="218,-24 124,-24 124,0 218,0 218,-24"/>
+<text text-anchor="middle" x="171" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pencil%destroy</text>
+</a>
 </g>
-<!-- proc~create~17&#45;&gt;knds -->
+</g>
+<!-- proc~create~17&#45;&gt;proc~destroy~15 -->
 <g id="proc~~create~17~~CallsGraph_edge4" class="edge">
-<title>proc~create~17&#45;&gt;knds</title>
-<path fill="none" stroke="#ff0000" d="M127.14,-138C152.16,-138 180.09,-138 201.66,-138"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="201.7,-141.5 211.7,-138 201.7,-134.5 201.7,-141.5"/>
+<title>proc~create~17&#45;&gt;proc~destroy~15</title>
+<path fill="none" stroke="#ff0000" d="M61.68,-79.99C77.48,-68.76 102,-51.7 124,-38 128.77,-35.03 133.89,-31.99 138.92,-29.09"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="140.82,-32.04 147.78,-24.06 137.36,-25.95 140.82,-32.04"/>
 </g>
-<!-- proc~get_inverse_kind -->
+<!-- proc~get_local_size -->
 <g id="proc~~create~17~~CallsGraph_node6" class="node">
-<title>proc~get_inverse_kind</title>
-<g id="a_proc~~create~17~~CallsGraph_node6"><a xlink:href="../proc/get_inverse_kind.html" xlink:title="get_inverse_kind">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="290,-108 188,-108 188,-84 290,-84 290,-108"/>
-<text text-anchor="middle" x="239" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_inverse_kind</text>
+<title>proc~get_local_size</title>
+<g id="a_proc~~create~17~~CallsGraph_node6"><a xlink:href="../proc/get_local_size.html" xlink:title="get_local_size">
+<polygon fill="#d9534f" stroke="#d9534f" points="214,-146 128,-146 128,-122 214,-122 214,-146"/>
+<text text-anchor="middle" x="171" y="-131.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_local_size</text>
 </a>
 </g>
 </g>
-<!-- proc~create~17&#45;&gt;proc~get_inverse_kind -->
+<!-- proc~create~17&#45;&gt;proc~get_local_size -->
 <g id="proc~~create~17~~CallsGraph_edge5" class="edge">
-<title>proc~create~17&#45;&gt;proc~get_inverse_kind</title>
-<path fill="none" stroke="#ff0000" d="M114.22,-125.96C134.27,-121.11 157.58,-115.47 178.52,-110.4"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="179.38,-113.79 188.27,-108.04 177.73,-106.99 179.38,-113.79"/>
+<title>proc~create~17&#45;&gt;proc~get_local_size</title>
+<path fill="none" stroke="#ff0000" d="M80.82,-104.04C94.42,-108.6 110.09,-113.87 124.47,-118.7"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="123.58,-122.1 134.17,-121.96 125.81,-115.46 123.58,-122.1"/>
 </g>
-<!-- proc~mem_alloc~5 -->
-<g id="proc~~create~17~~CallsGraph_node7" class="node">
-<title>proc~mem_alloc~5</title>
-<g id="a_proc~~create~17~~CallsGraph_node7"><a xlink:href="../proc/mem_alloc~5.html" xlink:title="fftw_executor%mem_alloc">
-<polygon fill="#d9534f" stroke="#d9534f" points="315,-66 163,-66 163,-42 315,-42 315,-66"/>
-<text text-anchor="middle" x="239" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_executor%mem_alloc</text>
-</a>
-</g>
-</g>
-<!-- proc~create~17&#45;&gt;proc~mem_alloc~5 -->
+<!-- proc~check_if_even&#45;&gt;mpi_allgather -->
 <g id="proc~~create~17~~CallsGraph_edge6" class="edge">
-<title>proc~create~17&#45;&gt;proc~mem_alloc~5</title>
-<path fill="none" stroke="#ff0000" d="M80.05,-125.97C98.79,-111.99 131.69,-89.02 163,-75 167.59,-72.95 172.42,-71.05 177.34,-69.3"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="178.47,-72.61 186.85,-66.12 176.26,-65.97 178.47,-72.61"/>
+<title>proc~check_if_even&#45;&gt;mpi_allgather</title>
+<path fill="none" stroke="#00ff66" d="M209.68,-104.04C224.13,-108.65 240.79,-113.97 256.04,-118.84"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="255.22,-122.25 265.81,-121.96 257.35,-115.59 255.22,-122.25"/>
 </g>
-<!-- proc~mem_free~5 -->
-<g id="proc~~create~17~~CallsGraph_node8" class="node">
-<title>proc~mem_free~5</title>
-<g id="a_proc~~create~17~~CallsGraph_node8"><a xlink:href="../proc/mem_free~5.html" xlink:title="fftw_executor%mem_free">
-<polygon fill="#d9534f" stroke="#d9534f" points="313,-24 165,-24 165,0 313,0 313,-24"/>
-<text text-anchor="middle" x="239" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_executor%mem_free</text>
-</a>
-</g>
-</g>
-<!-- proc~create~17&#45;&gt;proc~mem_free~5 -->
+<!-- proc~check_if_even&#45;&gt;mpi_comm_size -->
 <g id="proc~~create~17~~CallsGraph_edge7" class="edge">
-<title>proc~create~17&#45;&gt;proc~mem_free~5</title>
-<path fill="none" stroke="#ff0000" d="M72.43,-125.92C87.44,-104.02 122.18,-57.76 163,-33 165.98,-31.19 169.12,-29.54 172.36,-28.02"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="173.83,-31.2 181.69,-24.1 171.12,-24.74 173.83,-31.2"/>
+<title>proc~check_if_even&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#00ff66" d="M215.06,-92C224.83,-92 235.37,-92 245.65,-92"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="245.8,-95.5 255.8,-92 245.8,-88.5 245.8,-95.5"/>
 </g>
-<!-- fftw_malloc -->
-<g id="proc~~create~17~~CallsGraph_node10" class="node">
-<title>fftw_malloc</title>
-<polygon fill="#777777" stroke="#777777" points="424,-66 351,-66 351,-42 424,-42 424,-66"/>
-<text text-anchor="middle" x="387.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_malloc</text>
-</g>
-<!-- proc~mem_alloc~5&#45;&gt;fftw_malloc -->
+<!-- proc~get_local_size&#45;&gt;mpi_allgather -->
 <g id="proc~~create~17~~CallsGraph_edge8" class="edge">
-<title>proc~mem_alloc~5&#45;&gt;fftw_malloc</title>
-<path fill="none" stroke="#4800ff" d="M315.4,-54C323.98,-54 332.52,-54 340.55,-54"/>
-<polygon fill="#4800ff" stroke="#4800ff" points="340.77,-57.5 350.77,-54 340.77,-50.5 340.77,-57.5"/>
+<title>proc~get_local_size&#45;&gt;mpi_allgather</title>
+<path fill="none" stroke="#cc00ff" d="M214.33,-134C226.06,-134 238.94,-134 251.17,-134"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="251.25,-137.5 261.25,-134 251.25,-130.5 251.25,-137.5"/>
 </g>
-<!-- fftw_free -->
-<g id="proc~~create~17~~CallsGraph_node9" class="node">
-<title>fftw_free</title>
-<polygon fill="#777777" stroke="#777777" points="416.5,-24 358.5,-24 358.5,0 416.5,0 416.5,-24"/>
-<text text-anchor="middle" x="387.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_free</text>
+<!-- proc~get_local_size&#45;&gt;mpi_comm_size -->
+<g id="proc~~create~17~~CallsGraph_edge10" class="edge">
+<title>proc~get_local_size&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#cc00ff" d="M209.68,-121.96C224.13,-117.35 240.79,-112.03 256.04,-107.16"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="257.35,-110.41 265.81,-104.04 255.22,-103.75 257.35,-110.41"/>
 </g>
-<!-- proc~mem_free~5&#45;&gt;fftw_free -->
+<!-- mpi_comm_rank -->
+<g id="proc~~create~17~~CallsGraph_node7" class="node">
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="355,-188 254,-188 254,-164 355,-164 355,-188"/>
+<text text-anchor="middle" x="304.5" y="-173.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
+</g>
+<!-- proc~get_local_size&#45;&gt;mpi_comm_rank -->
 <g id="proc~~create~17~~CallsGraph_edge9" class="edge">
-<title>proc~mem_free~5&#45;&gt;fftw_free</title>
-<path fill="none" stroke="#ff00da" d="M313.25,-12C325.27,-12 337.29,-12 348.01,-12"/>
-<polygon fill="#ff00da" stroke="#ff00da" points="348.25,-15.5 358.25,-12 348.25,-8.5 348.25,-15.5"/>
+<title>proc~get_local_size&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#cc00ff" d="M209.68,-146.04C224.13,-150.65 240.79,-155.97 256.04,-160.84"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="255.22,-164.25 265.81,-163.96 257.35,-157.59 255.22,-164.25"/>
 </g>
 </g>
 </svg>
@@ -487,6 +415,211 @@
             <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
           </div>
           <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~create~17~~CalledByGraph Pages: 1 -->
+<svg id="proccreate17CalledByGraph" width="641pt" height="94pt"
+ viewBox="0.00 0.00 641.00 94.24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~create~17~~CalledByGraph" class="graph" transform="scale(0.81 0.81) rotate(0) translate(4 112)">
+<title>proc~~create~17~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-112 785,-112 785,4 -4,4"/>
+<!-- proc~create~17 -->
+<g id="proc~~create~17~~CalledByGraph_node1" class="node">
+<title>proc~create~17</title>
+<polygon fill="none" stroke="black" points="781,-66 693,-66 693,-42 781,-42 781,-66"/>
+<text text-anchor="middle" x="737" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50">pencil%create</text>
+</g>
+<!-- proc~create_pencils_and_comm -->
+<g id="proc~~create~17~~CalledByGraph_node2" class="node">
+<title>proc~create_pencils_and_comm</title>
+<g id="a_proc~~create~17~~CalledByGraph_node2"><a xlink:href="../proc/create_pencils_and_comm.html" xlink:title="create_pencils_and_comm">
+<polygon fill="#d9534f" stroke="#d9534f" points="657,-108 503,-108 503,-84 657,-84 657,-108"/>
+<text text-anchor="middle" x="580" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_pencils_and_comm</text>
+</a>
+</g>
+</g>
+<!-- proc~create_pencils_and_comm&#45;&gt;proc~create~17 -->
+<g id="proc~~create~17~~CalledByGraph_edge1" class="edge">
+<title>proc~create_pencils_and_comm&#45;&gt;proc~create~17</title>
+<path fill="none" stroke="#ff0000" d="M625.42,-83.96C643.39,-79.09 664.28,-73.43 683.04,-68.35"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="684.18,-71.67 692.91,-65.68 682.35,-64.91 684.18,-71.67"/>
+</g>
+<!-- proc~create~11 -->
+<g id="proc~~create~17~~CalledByGraph_node3" class="node">
+<title>proc~create~11</title>
+<g id="a_proc~~create~17~~CalledByGraph_node3"><a xlink:href="../proc/create~11.html" xlink:title="reshape_plan%create">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="643.5,-66 516.5,-66 516.5,-42 643.5,-42 643.5,-66"/>
+<text text-anchor="middle" x="580" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_plan%create</text>
+</a>
+</g>
+</g>
+<!-- proc~create~11&#45;&gt;proc~create~17 -->
+<g id="proc~~create~17~~CalledByGraph_edge2" class="edge">
+<title>proc~create~11&#45;&gt;proc~create~17</title>
+<path fill="none" stroke="#ff0000" d="M643.6,-54C656.46,-54 669.9,-54 682.41,-54"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="682.67,-57.5 692.67,-54 682.67,-50.5 682.67,-57.5"/>
+</g>
+<!-- proc~from_bricks -->
+<g id="proc~~create~17~~CalledByGraph_node4" class="node">
+<title>proc~from_bricks</title>
+<g id="a_proc~~create~17~~CalledByGraph_node4"><a xlink:href="../proc/from_bricks.html" xlink:title="pencil_init%from_bricks">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="649,-24 511,-24 511,0 649,0 649,-24"/>
+<text text-anchor="middle" x="580" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pencil_init%from_bricks</text>
+</a>
+</g>
+</g>
+<!-- proc~from_bricks&#45;&gt;proc~create~17 -->
+<g id="proc~~create~17~~CalledByGraph_edge3" class="edge">
+<title>proc~from_bricks&#45;&gt;proc~create~17</title>
+<path fill="none" stroke="#ff0000" d="M625.42,-24.04C643.39,-28.91 664.28,-34.57 683.04,-39.65"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="682.35,-43.09 692.91,-42.32 684.18,-36.33 682.35,-43.09"/>
+</g>
+<!-- proc~autotune_grid -->
+<g id="proc~~create~17~~CalledByGraph_node5" class="node">
+<title>proc~autotune_grid</title>
+<g id="a_proc~~create~17~~CalledByGraph_node5"><a xlink:href="../proc/autotune_grid.html" xlink:title="autotune_grid">
+<polygon fill="#d9534f" stroke="#d9534f" points="467,-88 380,-88 380,-64 467,-64 467,-88"/>
+<text text-anchor="middle" x="423.5" y="-73.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid</text>
+</a>
+</g>
+</g>
+<!-- proc~autotune_grid&#45;&gt;proc~create_pencils_and_comm -->
+<g id="proc~~create~17~~CalledByGraph_edge4" class="edge">
+<title>proc~autotune_grid&#45;&gt;proc~create_pencils_and_comm</title>
+<path fill="none" stroke="#ff0000" d="M467.13,-81.52C475.17,-82.56 483.85,-83.68 492.69,-84.83"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="492.35,-88.31 502.72,-86.12 493.25,-81.37 492.35,-88.31"/>
+</g>
+<!-- proc~create -->
+<g id="proc~~create~17~~CalledByGraph_node6" class="node">
+<title>proc~create</title>
+<g id="a_proc~~create~17~~CalledByGraph_node6"><a xlink:href="../proc/create.html" xlink:title="transpose_plan%create">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="137,-108 0,-108 0,-84 137,-84 137,-108"/>
+<text text-anchor="middle" x="68.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan%create</text>
+</a>
+</g>
+</g>
+<!-- proc~create&#45;&gt;proc~create_pencils_and_comm -->
+<g id="proc~~create~17~~CalledByGraph_edge5" class="edge">
+<title>proc~create&#45;&gt;proc~create_pencils_and_comm</title>
+<path fill="none" stroke="#ff0000" d="M137.14,-96.75C149.09,-96.85 161.41,-96.94 173,-97 303.67,-97.63 336.33,-97.58 467,-97 475.32,-96.96 483.98,-96.91 492.64,-96.85"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="492.81,-100.35 502.79,-96.77 492.76,-93.35 492.81,-100.35"/>
+</g>
+<!-- proc~autotune_grid_decomposition -->
+<g id="proc~~create~17~~CalledByGraph_node7" class="node">
+<title>proc~autotune_grid_decomposition</title>
+<g id="a_proc~~create~17~~CalledByGraph_node7"><a xlink:href="../proc/autotune_grid_decomposition.html" xlink:title="autotune_grid_decomposition">
+<polygon fill="#d9534f" stroke="#d9534f" points="344,-88 173,-88 173,-64 344,-64 344,-88"/>
+<text text-anchor="middle" x="258.5" y="-73.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid_decomposition</text>
+</a>
+</g>
+</g>
+<!-- proc~create&#45;&gt;proc~autotune_grid_decomposition -->
+<g id="proc~~create~17~~CalledByGraph_edge7" class="edge">
+<title>proc~create&#45;&gt;proc~autotune_grid_decomposition</title>
+<path fill="none" stroke="#ff0000" d="M137.11,-88.81C145.43,-87.92 154.05,-87.01 162.69,-86.09"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="163.23,-89.55 172.81,-85.01 162.49,-82.59 163.23,-89.55"/>
+</g>
+<!-- proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid -->
+<g id="proc~~create~17~~CalledByGraph_edge6" class="edge">
+<title>proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid</title>
+<path fill="none" stroke="#ff0000" d="M344.34,-76C352.94,-76 361.48,-76 369.59,-76"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="369.61,-79.5 379.61,-76 369.61,-72.5 369.61,-79.5"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panproccreate17CalledByGraph = svgPanZoom('#proccreate17CalledByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
               <div class="modal-content">
                 <div class="modal-header">

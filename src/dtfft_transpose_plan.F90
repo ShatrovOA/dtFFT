@@ -17,34 +17,17 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
-#include "dtfft.f03"
 module dtfft_transpose_plan
 !! This module describes [[transpose_plan]] class
 use iso_fortran_env
 use iso_c_binding
 use dtfft_abstract_backend,               only: backend_helper
-use dtfft_abstract_reshape_handle,        only: abstract_reshape_handle, reshape_container, create_args, execute_args
+use dtfft_abstract_reshape_handle,        only: reshape_container, create_args
 use dtfft_config
 use dtfft_errors
-#ifdef DTFFT_WITH_CUDA
-use dtfft_interface_cuda_runtime
-use dtfft_interface_cuda,                 only: load_cuda
-use dtfft_interface_nvrtc,                only: load_nvrtc
-# ifdef NCCL_HAVE_COMMREGISTER
-use dtfft_abstract_backend,               only: NCCL_REGISTER_PREALLOC_SIZE
-# endif
-# ifdef DTFFT_WITH_NVSHMEM
-use dtfft_interface_nvshmem
-# endif
-# ifdef DTFFT_WITH_NCCL
-use dtfft_interface_nccl
-# endif
-#endif
 use dtfft_parameters
 use dtfft_pencil,                         only: pencil, pencil_init, get_local_sizes
-use dtfft_reshape_plan_base
-use dtfft_reshape_handle_generic,         only: reshape_handle_generic
-use dtfft_reshape_handle_datatype,        only: reshape_handle_datatype
+use dtfft_reshape_plan_base,              only: allocate_plans, reshape_plan_base, execute_autotune, destroy_plans
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_profile.h"
@@ -600,7 +583,6 @@ contains
     type(backend_helper)                      :: helper
     integer(int64) :: min_buffer_size
     type(create_args) :: create_kwargs
-    type(execute_args) :: execute_kwargs
     logical :: pipe_enabled, mpi_enabled, dtype_enabled
 
     if ( present(backend) ) then
@@ -635,9 +617,6 @@ contains
     create_kwargs%helper = helper
     create_kwargs%base_type = base_dtype
     create_kwargs%base_storage = base_storage
-
-    execute_kwargs%exec_type = EXEC_BLOCKING
-    execute_kwargs%stream = stream
 
     pipe_enabled = get_conf_pipelined_enabled()
     dtype_enabled = get_conf_datatype_enabled()
@@ -813,4 +792,138 @@ contains
     REGION_END(phase_name)
     deallocate(phase_name)
   end function get_plan_execution_time
+
+  subroutine get_permutations(ndims, dperm, cperm)
+    integer(int8),  intent(in)  :: ndims
+    integer(int8), allocatable :: dperm(:,:)
+    integer(int8), allocatable :: cperm(:,:)
+
+    allocate(dperm(ndims, ndims), cperm(ndims, ndims))
+    if ( ndims == 2_int8 ) then
+      dperm(1, 1) = 1
+      dperm(2, 1) = 2
+      cperm(:, 1) = dperm(:, 1)
+
+      dperm(1, 2) = 2
+      dperm(2, 2) = 1
+
+      cperm(:, 2) = cperm(:, 1)
+    else
+      dperm(1, 1) = 1
+      dperm(2, 1) = 2
+      dperm(3, 1) = 3
+      cperm(:, 1) = dperm(:, 1)
+
+      dperm(1, 2) = 2
+      dperm(2, 2) = 3
+      dperm(3, 2) = 1
+
+      cperm(1, 2) = 1
+      cperm(2, 2) = 3
+      cperm(3, 2) = 2
+
+      dperm(1, 3) = 3
+      dperm(2, 3) = 1
+      dperm(3, 3) = 2
+
+      cperm(:, 3) = cperm(:, 1)
+    endif
+  end subroutine get_permutations
+
+  subroutine create_pencils_and_comm(dims, old_comm, comm_dims, comm, local_comms, pencils, ipencil)
+  !! Creates cartesian communicator
+    integer(int32),       intent(in)            :: dims(:)              !! Global dimensions
+    TYPE_MPI_COMM,        intent(in)            :: old_comm             !! Communicator to create cartesian from
+    integer(int32),       intent(in)            :: comm_dims(:)         !! Dims in cartesian communicator
+    TYPE_MPI_COMM,        intent(out)           :: comm                 !! Cartesian communicator
+    TYPE_MPI_COMM,        intent(out)           :: local_comms(:)       !! 1d communicators in cartesian communicator
+    type(pencil),         intent(out)           :: pencils(:)           !! Data distributing meta
+    type(pencil_init),    intent(in), optional  :: ipencil              !! Pencil passed by user
+    integer(int8)         :: ndims              !! Number of dimensions
+    integer(int8)         :: d                  !! Counter
+    integer(int8) :: i, j
+    integer(int8),  allocatable :: dperm(:,:), cperm(:, :)
+    integer(int32), allocatable :: transposed_dims(:,:)
+    TYPE_MPI_COMM,  allocatable :: transposed_comms(:,:)
+    integer(int32), allocatable :: lstarts(:), lcounts(:)
+
+    ndims = size(comm_dims, kind=int8)
+    call create_cart_comm(old_comm, comm_dims, comm, local_comms, ipencil=ipencil)
+    call get_permutations(ndims, dperm, cperm)
+
+    allocate( transposed_dims(ndims, ndims), transposed_comms(ndims, ndims) )
+    do i = 1, ndims
+      do j = 1, ndims
+        transposed_dims(j, i) = dims(dperm(j, i))
+        transposed_comms(j, i) = local_comms(cperm(j, i))
+      enddo
+    enddo
+    deallocate( dperm, cperm )
+
+    if ( present(ipencil) ) then
+      allocate(lstarts, source=ipencil%starts)
+      allocate(lcounts, source=ipencil%counts)
+      do d = 1, ndims
+        call pencils(d)%create(ndims, d, transposed_dims(:, d), transposed_comms(:, d), lstarts=lstarts, lcounts=lcounts)
+        lcounts(:) = pencils(d)%counts(:)
+        lstarts(:) = pencils(d)%starts(:)
+      enddo
+
+      deallocate(lstarts, lcounts)
+    else
+      do d = 1, ndims
+        call pencils(d)%create(ndims, d, transposed_dims(:,d), transposed_comms(:, d))
+      enddo
+    endif
+
+    deallocate(transposed_dims, transposed_comms)
+  end subroutine create_pencils_and_comm
+
+  subroutine create_cart_comm(old_comm, comm_dims, comm, local_comms, ipencil)
+  !! Creates cartesian communicator
+    TYPE_MPI_COMM,        intent(in)            :: old_comm             !! Communicator to create cartesian from
+    integer(int32),       intent(in)            :: comm_dims(:)         !! Dims in cartesian communicator
+    TYPE_MPI_COMM,        intent(out)           :: comm                 !! Cartesian communicator
+    TYPE_MPI_COMM,        intent(out)           :: local_comms(:)       !! 1d communicators in cartesian communicator
+    type(pencil_init),    intent(in), optional  :: ipencil              !! Pencil passed by user
+    logical,              allocatable   :: periods(:)           !! Grid is not periodic
+    logical,              allocatable   :: remain_dims(:)       !! Needed by MPI_Cart_sub
+    integer(int8)                       :: dim                  !! Counter
+    integer(int32)                      :: ierr                 !! Error code
+    integer(int8)                       :: ndims
+    TYPE_MPI_COMM              :: temp_cart_comm
+    TYPE_MPI_COMM, allocatable :: temp_comms(:)
+
+    ndims = size(comm_dims, kind=int8)
+
+    if ( present( ipencil ) ) then
+      call MPI_Comm_dup(old_comm, comm, ierr)
+      do dim = 1, ndims
+        call MPI_Comm_dup(ipencil%comms(dim), local_comms(dim), ierr)
+      enddo
+      return
+    endif
+    allocate(periods(ndims), source = .false.)
+
+    call MPI_Cart_create(old_comm, int(ndims, int32), comm_dims, periods, .true., temp_cart_comm, ierr)
+    call create_subcomm_include_all(temp_cart_comm, comm)
+    if ( GET_MPI_VALUE(comm) == GET_MPI_VALUE(MPI_COMM_NULL) ) INTERNAL_ERROR("comm == MPI_COMM_NULL")
+
+    allocate(temp_comms(ndims))
+
+    allocate( remain_dims(ndims), source = .false. )
+    do dim = 1, ndims
+      remain_dims(dim) = .true.
+      call MPI_Cart_sub(temp_cart_comm, remain_dims, temp_comms(dim), ierr)
+      call create_subcomm_include_all(temp_comms(dim), local_comms(dim))
+      if ( GET_MPI_VALUE(local_comms(dim)) == GET_MPI_VALUE(MPI_COMM_NULL) ) INTERNAL_ERROR("local_comms(dim) == MPI_COMM_NULL: dim = "//to_str(dim))
+      remain_dims(dim) = .false.
+    enddo
+    call MPI_Comm_free(temp_cart_comm, ierr)
+    do dim = 1, ndims
+      call MPI_Comm_free(temp_comms(dim), ierr)
+    enddo
+    deallocate(temp_comms)
+    deallocate(remain_dims, periods)
+  end subroutine create_cart_comm
 end module dtfft_transpose_plan

@@ -23,28 +23,12 @@ module dtfft_reshape_plan
 use iso_fortran_env
 use iso_c_binding
 use dtfft_abstract_backend,               only: backend_helper
-use dtfft_abstract_reshape_handle,        only: abstract_reshape_handle, reshape_container, create_args, execute_args
+use dtfft_abstract_reshape_handle,        only: abstract_reshape_handle, reshape_container, create_args
 use dtfft_config
 use dtfft_errors
-#ifdef DTFFT_WITH_CUDA
-use dtfft_interface_cuda_runtime
-! use dtfft_interface_cuda,                 only: load_cuda
-! use dtfft_interface_nvrtc,                only: load_nvrtc
-# ifdef NCCL_HAVE_COMMREGISTER
-use dtfft_abstract_backend,               only: NCCL_REGISTER_PREALLOC_SIZE
-# endif
-# ifdef DTFFT_WITH_NVSHMEM
-use dtfft_interface_nvshmem
-# endif
-# ifdef DTFFT_WITH_NCCL
-use dtfft_interface_nccl
-# endif
-#endif
 use dtfft_parameters
 use dtfft_pencil,                         only: dtfft_pencil_t, pencil, pencil_init, get_local_sizes
 use dtfft_reshape_plan_base,              only: reshape_plan_base, allocate_plans, destroy_plans, execute_autotune
-use dtfft_reshape_handle_generic,         only: reshape_handle_generic
-use dtfft_reshape_handle_datatype,        only: reshape_handle_datatype
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_profile.h"
