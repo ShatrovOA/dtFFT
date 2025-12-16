@@ -17,8 +17,8 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
-module dtfft_abstract_transpose_handle
-!! This module defines `abstract_transpose_handle` type and its type bound procedures.
+module dtfft_abstract_reshape_handle
+!! This module defines `abstract_reshape_handle` type and its type bound procedures.
 !!
 !! This handle is used to perform data transpositions between distributed pencils.
 !! The actual implementation of the handle is deferred to the
@@ -31,7 +31,8 @@ use dtfft_pencil
 #include "_dtfft_private.h"
 implicit none
 private
-public :: abstract_transpose_handle
+public :: abstract_reshape_handle
+public :: reshape_container
 public :: create_args
 public :: execute_args
 
@@ -45,6 +46,7 @@ public :: execute_args
     TYPE_MPI_DATATYPE       :: base_type          !! Base MPI Datatype
     integer(int8)           :: datatype_id        !! Type of datatype to use
     integer(int8)           :: comm_id            !! ID of communicator to use
+    integer(int64)          :: base_storage
   end type create_args
 
   type :: execute_args
@@ -55,35 +57,39 @@ public :: execute_args
     real(real32), pointer   :: p2(:)              !! `out` pointer for [[execute_end]]
   end type execute_args
 
-  type, abstract :: abstract_transpose_handle
-  !! Abstract transpose handle type
+  type, abstract :: abstract_reshape_handle
+  !! Abstract reshape handle type
+    logical                         :: is_transpose !! Is this a transpose operation
   contains
-    procedure, non_overridable, pass(self)            :: create           !! Creates transpose handle
-    procedure,                  pass(self)            :: get_aux_size     !! Returns number of bytes required by aux buffer
-    procedure(create_interface),            deferred  :: create_private   !! Creates transpose handle
-    procedure(execute_interface),           deferred  :: execute          !! Executes transpose handle
-    procedure(execute_end_interface),       deferred  :: execute_end      !! Finishes async transpose
-    procedure(destroy_interface),           deferred  :: destroy          !! Destroys transpose handle
-    procedure(get_async_active_interface),  deferred  :: get_async_active !! Returns if async transpose is active
-  end type abstract_transpose_handle
+    procedure, non_overridable, pass(self)            :: create           !! Creates reshape handle
+    procedure,                  pass(self)            :: get_aux_bytes     !! Returns number of bytes required by aux buffer
+    procedure(create_interface),            deferred  :: create_private   !! Creates reshape handle
+    procedure(execute_interface),           deferred  :: execute          !! Executes reshape handle
+    procedure(execute_end_interface),       deferred  :: execute_end      !! Finishes async reshape
+    procedure(destroy_interface),           deferred  :: destroy          !! Destroys reshape handle
+    procedure(get_async_active_interface),  deferred  :: get_async_active !! Returns if async reshape is active
+  end type abstract_reshape_handle
+
+  type :: reshape_container
+  !! This type is a container for allocatable transpose handles
+    class(abstract_reshape_handle), allocatable :: p  !! Transpose handle
+  end type reshape_container
 
   abstract interface
-    subroutine create_interface(self, comm, send, recv, transpose_type, base_storage, kwargs)
-    !! Creates transpose handle
+    subroutine create_interface(self, comm, send, recv, kwargs)
+    !! Creates reshape handle
     import
-      class(abstract_transpose_handle), intent(inout) :: self           !! Abstract transpose handle
+      class(abstract_reshape_handle),   intent(inout) :: self           !! Abstract reshape handle
       TYPE_MPI_COMM,                    intent(in)    :: comm           !! MPI Communicator
       type(pencil),                     intent(in)    :: send           !! Send pencil
       type(pencil),                     intent(in)    :: recv           !! Recv pencil
-      type(dtfft_transpose_t),          intent(in)    :: transpose_type !! Type of transpose to create
-      integer(int64),                   intent(in)    :: base_storage   !! Base storage
       type(create_args),                intent(in)    :: kwargs         !! Additional arguments
     end subroutine create_interface
 
     subroutine execute_interface(self, in, out, kwargs, error_code)
-    !! Executes transpose handle
+    !! Executes reshape handle
     import
-      class(abstract_transpose_handle), intent(inout) :: self       !! Abstract Transpose Handle
+      class(abstract_reshape_handle),   intent(inout) :: self       !! Abstract reshape Handle
       real(real32),                     intent(inout) :: in(:)      !! Send pointer
       real(real32),                     intent(inout) :: out(:)     !! Recv pointer
       type(execute_args),               intent(inout) :: kwargs     !! Additional arguments
@@ -91,59 +97,75 @@ public :: execute_args
     end subroutine execute_interface
 
     subroutine execute_end_interface(self, kwargs, error_code)
-    !! Finishes async transpose
+    !! Finishes async reshape
     import
-      class(abstract_transpose_handle), intent(inout) :: self       !! Abstract Transpose Handle
+      class(abstract_reshape_handle),   intent(inout) :: self       !! Abstract reshape Handle
       type(execute_args),               intent(inout) :: kwargs     !! Additional arguments
       integer(int32),                   intent(out)   :: error_code !! Error code
     end subroutine execute_end_interface
 
     subroutine destroy_interface(self)
-    !! Destroys transpose handle
+    !! Destroys reshape handle
     import
-      class(abstract_transpose_handle), intent(inout) :: self       !! Abstract Transpose Handle
+      class(abstract_reshape_handle),   intent(inout) :: self       !! Abstract reshape Handle
     end subroutine destroy_interface
 
     elemental logical function get_async_active_interface(self)
-    !! Returns if async transpose is active
+    !! Returns if async reshape is active
     import
-      class(abstract_transpose_handle), intent(in)    :: self       !! Abstract Transpose Handle
+      class(abstract_reshape_handle),   intent(in)    :: self       !! Abstract reshape Handle
     end function get_async_active_interface
   end interface
 
 contains
 
-  subroutine create(self, send, recv, base_storage, kwargs)
-  !! Creates transpose handle
-    class(abstract_transpose_handle), intent(inout) :: self           !! Abstract transpose handle
+  subroutine create(self, send, recv, kwargs)
+  !! Creates reshape handle
+    class(abstract_reshape_handle),   intent(inout) :: self           !! Abstract reshape handle
     type(pencil),                     intent(in)    :: send           !! Send pencil
     type(pencil),                     intent(in)    :: recv           !! Recv pencil
-    integer(int64),                   intent(in)    :: base_storage   !! Base storage size
     type(create_args),                intent(inout) :: kwargs         !! Additional arguments
     type(dtfft_transpose_t)           :: transpose_type
+    type(dtfft_reshape_t)             :: reshape_type
     TYPE_MPI_COMM                     :: comm
     integer(int8)                     :: comm_id
 
     transpose_type = get_transpose_type(send, recv)
-    select case ( abs(transpose_type%val) )
-    case ( DTFFT_TRANSPOSE_X_TO_Y%val )
-      comm_id = 2
-    case ( DTFFT_TRANSPOSE_Y_TO_Z%val )
-      comm_id = 3
-    case ( DTFFT_TRANSPOSE_X_TO_Z%val )
-      comm_id = 1
-    case default
-      INTERNAL_ERROR("unknown `abs(transpose_type)`")
-    endselect
+    reshape_type = dtfft_reshape_t(0)
+    self%is_transpose = is_valid_transpose_type(transpose_type)
+    comm_id = 0
+    if ( self%is_transpose ) then
+      select case ( abs(transpose_type%val) )
+      case ( DTFFT_TRANSPOSE_X_TO_Y%val )
+        comm_id = 2
+      case ( DTFFT_TRANSPOSE_Y_TO_Z%val )
+        comm_id = 3
+      case ( DTFFT_TRANSPOSE_X_TO_Z%val )
+        comm_id = 1
+      endselect
+    else
+      reshape_type = get_reshape_type(send, recv)
+      if ( .not. is_valid_reshape_type(reshape_type) ) then
+        INTERNAL_ERROR("abstract_reshape_handle%create: Unable to determine transpose or reshape type.")
+      end if
+      select case ( reshape_type%val )
+      case ( DTFFT_RESHAPE_X_BRICKS_TO_PENCILS%val, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS%val )
+        comm_id = 2
+      case ( DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val, DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS%val )
+        comm_id = 3
+      end select
+    endif
+
     comm = kwargs%helper%comms(comm_id)
-    kwargs%helper%tranpose_type = transpose_type
+    kwargs%helper%transpose_type = transpose_type
+    kwargs%helper%reshape_type = reshape_type
     kwargs%comm_id = comm_id
-    call self%create_private(comm, send, recv, transpose_type, base_storage, kwargs)
+    call self%create_private(comm, send, recv, kwargs)
   end subroutine create
 
-  pure integer(int64) function get_aux_size(self)
+  pure integer(int64) function get_aux_bytes(self)
   !! Returns number of bytes required by aux buffer
-    class(abstract_transpose_handle),   intent(in)    :: self       !! Abstract Transpose Handle
-    get_aux_size = 0
-  end function get_aux_size
-end module dtfft_abstract_transpose_handle
+    class(abstract_reshape_handle),   intent(in)    :: self       !! Abstract reshape Handle
+    get_aux_bytes = 0
+  end function get_aux_bytes
+end module dtfft_abstract_reshape_handle

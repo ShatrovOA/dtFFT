@@ -39,7 +39,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA)
   integer(int32), parameter :: nx = 513, ny = 711, nz = 33
 #else
-  integer(int32), parameter :: nx = 16, ny = 8, nz = 4
+  integer(int32), parameter :: nx = 57, ny = 8, nz = 4
 #endif
   integer(int32) :: comm_size, comm_rank, ierr
   type(dtfft_executor_t) :: executor
@@ -62,7 +62,7 @@ implicit none
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
-    write(output_unit, '(a)') "|       DTFFT test: r2c_3d_float       |"
+    write(output_unit, '(a)') "|       dtFFT test: r2c_3d_float       |"
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a, i0, a, i0, a, i0)') 'Nx = ',nx, ', Ny = ',ny, ', Nz = ', nz
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size

@@ -41,6 +41,8 @@ public :: complexDoubleH2D,         &
           doubleH2D,                &
           floatH2D
 
+public :: createGridDims
+
   interface report
     module procedure :: reportSingle
     module procedure :: reportDouble
@@ -280,8 +282,8 @@ contains
   function checkFloat(check, buf, buf_size) result(err)
     type(c_ptr)         :: check
     type(c_ptr)         :: buf
-    integer(c_size_t) :: buf_size
-    real(c_float)             :: err
+    integer(c_size_t)   :: buf_size
+    real(c_float)       :: err
     real(real32),  pointer :: check_(:)
     real(real32),  pointer :: buf_(:)
 
@@ -318,6 +320,37 @@ contains
     real(c_double)     :: err
     err = checkDouble(check, buf, 2 * buf_size)
   end function checkComplexDouble
+
+  subroutine createGridDims(ndims, dims, grid, starts, counts) bind(C, name="createGridDims")
+    integer(c_int32_t), intent(in), value :: ndims
+    integer(c_int32_t), intent(in)    :: dims(*)
+    integer(c_int32_t), intent(inout) :: grid(*)
+    integer(c_int32_t), intent(out)   :: starts(*)
+    integer(c_int32_t), intent(out)   :: counts(*)
+    integer(int32) :: comm_size, comm_rank, temp_rank, i, ierr
+    integer(int32) :: coords(ndims)
+
+    call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+    call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
+    call MPI_Dims_create(comm_size, ndims, grid, ierr)
+
+    coords(:) = 0
+    temp_rank = comm_rank
+
+    do i = 1, ndims
+      coords(i) = mod(temp_rank, grid(i))
+      temp_rank = temp_rank / grid(i)
+    end do
+
+    do i = 1, ndims
+      counts(i) = dims(i) / grid(i)
+      starts(i) = coords(i) * counts(i)
+
+      if (coords(i) == grid(i) - 1) then
+        counts(i) = counts(i) + mod(dims(i), grid(i))
+      end if
+    end do
+  end subroutine createGridDims
 
 
 #define FUNC_NAME scaleComplexDouble

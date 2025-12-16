@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
   if(comm_rank == 0) {
     cout << "----------------------------------------"          << endl;
-    cout << "|DTFFT test C++ interface: r2c_3d_float|"          << endl;
+    cout << "|dtFFT test C++ interface: r2c_3d_float|"          << endl;
     cout << "----------------------------------------"          << endl;
     cout << "Nx = " << nx << ", Ny = " << ny << ", Nz = " << nz << endl;
     cout << "Number of processors: " << comm_size               << endl;
@@ -90,55 +90,80 @@ int main(int argc, char *argv[])
 
   Config conf;
   auto backend = Backend::MPI_P2P;
+  auto reshape_backend = Backend::MPI_P2P_PIPELINED;
 #ifdef DTFFT_WITH_CUDA
   if ( running_cuda ) {
 # ifdef DTFFT_WITH_NVSHMEM
     backend = Backend::CUFFTMP_PIPELINED;
+    reshape_backend = Backend::CUFFTMP;
 # elif defined(DTFFT_WITH_NCCL)
     backend = Backend::NCCL_PIPELINED;
+    reshape_backend = Backend::NCCL;
 # endif
   }
 #endif
-  conf.set_backend(backend);
+  conf.set_backend(backend)
+    .set_reshape_backend(reshape_backend)
+    .set_enable_fourier_reshape(true);
 
   DTFFT_CXX_CALL( set_config(conf) )
 
   attach_gpu_to_process();
 
-  // Create plan
-  vector<int32_t> dims = {nz, ny, nx};
-  auto plan = PlanR2C(dims, executor, MPI_COMM_WORLD, Precision::SINGLE, Effort::MEASURE);
+  vector<int32_t> starts(3), counts(3);
+  int32_t grid_dims[3] = {0, 1, 0};
+  int32_t global_dims[3] = {nz, ny, nx};
+  createGridDims(3, global_dims, grid_dims, starts.data(), counts.data());
+
+  auto pencil = Pencil(starts, counts);
+
+  auto plan = PlanR2C(pencil, executor, MPI_COMM_WORLD, Precision::SINGLE, Effort::MEASURE);
   DTFFT_CXX_CALL( plan.report() )
-  vector<int32_t> in_counts(3), out_counts(3);
-  DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_counts.data()) )
+  vector<int32_t> in_counts(3), out_sizes(3);
+  DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_counts.data(), nullptr, out_sizes.data(), nullptr) )
   size_t alloc_size = plan.get_alloc_size();
   size_t element_size = plan.get_element_size();
 
-  Pencil out_pencil = plan.get_pencil(3);
-  size_t out_size = out_pencil.get_size();
-
-  if ( element_size != sizeof(float) ) {
-    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "element_size != sizeof(float)")
+  for ( int i = 0; i < 3; ++i ) {
+    if ( in_counts[i] != counts[i] ) {
+      DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "Local sizes do not match expected values")
+    }
   }
+
+  size_t out_size = static_cast<size_t>(out_sizes[0]) *
+                    static_cast<size_t>(out_sizes[1]) *
+                    static_cast<size_t>(out_sizes[2]);
 
   if ( comm_rank == 0 ) {
     cout << "Using executor: " << get_executor_string(plan.get_executor())
          << ", precision: " << get_precision_string(plan.get_precision()) << endl;
   }
 
-  size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
+  size_t in_size = static_cast<size_t>(in_counts[0]) *
+                   static_cast<size_t>(in_counts[1]) *
+                   static_cast<size_t>(in_counts[2]);
 
   float *check = new float[in_size];
   setTestValuesFloat(check, in_size);
 
   float *buf = nullptr;
+
+  bool is_pipe = get_backend_pipelined(plan.get_backend());
+  if ( grid_dims[0] > 1 ) {
+    is_pipe = is_pipe || get_backend_pipelined(plan.get_reshape_backend());
+  }
+
+  if ( comm_rank == 0 ) printf("Using pipe backend: %s\n", is_pipe ? "true" : "false");
+
   DTFFT_CXX_CALL( plan.mem_alloc(alloc_size * element_size, (void**)&buf) )
-  auto aux = plan.mem_alloc<float>(alloc_size);
+  auto *aux = static_cast<float *>(plan.mem_alloc(plan.get_aux_bytes()));
 
 #if defined(DTFFT_WITH_CUDA)
   auto platform = plan.get_platform();
   auto real_backend = plan.get_backend();
-  if ( (backend != real_backend) && (comm_size > 1) && (platform == Platform::CUDA) ) {
+  char* backend_env = std::getenv("DTFFT_BACKEND");
+
+  if ( (backend != real_backend) && (comm_size > 1) && (platform == Platform::CUDA) && backend_env) {
     DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), 
                           "Backend mismatch: backend set before plan creation: " + get_backend_string(backend) +
                           ", but plan reports: " + get_backend_string(real_backend));
@@ -149,7 +174,7 @@ int main(int argc, char *argv[])
 #endif
 
   double tf = 0.0 - MPI_Wtime();
-  // Performing inplace transform, but treating input and output as different types
+  // Performing inplace execution, but treating input and output as different types
   auto fourier = plan.execute<std::complex<float>>(buf, Execute::FORWARD, aux);
 #if defined(DTFFT_WITH_CUDA)
   if ( platform == Platform::CUDA ) {
@@ -157,6 +182,11 @@ int main(int argc, char *argv[])
   }
 #endif
   tf += MPI_Wtime();
+
+  auto dims = plan.get_dims();
+  if ( dims[0] != nz || dims[1] != ny || dims[2] != nx ) {
+    DTFFT_THROW_EXCEPTION(static_cast<Error>(-1), "dims failed");
+  }
 
 #if defined(DTFFT_WITH_CUDA)
   scaleComplexFloat(static_cast<int32_t>(executor), fourier, out_size, nx * ny * nz, static_cast<int32_t>(platform), NULL);

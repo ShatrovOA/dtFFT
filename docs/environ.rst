@@ -1,3 +1,5 @@
+:tocdepth: 2
+
 .. _environ_link:
 
 #####################
@@ -141,6 +143,37 @@ Accepted Values
    - If an unsupported value is provided, it is silently ignored, and the default backend (``nccl`` or ``mpi_p2p``, depending on build) is used.
    - Availability of some backends (e.g., ``nccl``, ``cufftmp``) depends on additional library
      support (e.g., NCCL, cuFFTMp) during compilation.
+
+DTFFT_RESHAPE_BACKEND
+=====================
+
+Specifies the backend used by ``dtFFT`` specifically for data reshaping operations (converting between pencils and bricks).
+This environment variable allows users to override the reshape backend selected through the ``dtfft_config_t`` structure,
+taking precedence over API configuration.
+
+Purpose
+-------
+
+The ``DTFFT_RESHAPE_BACKEND`` variable enables users to independently control the backend used for reshape operations,
+which may have different performance characteristics than regular FFT transpositions.
+This allows fine-tuning of reshape performance without affecting the main FFT backend.
+
+Accepted Values
+---------------
+
+- **Type**: String
+- **Supported Values**: Same as ``DTFFT_BACKEND`` (see above)
+- **Default**: Same as ``DTFFT_BACKEND``
+
+.. note::
+   - **GPU Compatibility Requirement**: When working on GPU (platform is ``cuda``), the reshape backend must be compatible
+     with the main backend's communication library. Specifically:
+     
+     - If ``DTFFT_BACKEND`` uses NCCL (e.g., ``nccl`` or ``nccl_pipe``), then ``DTFFT_RESHAPE_BACKEND`` must also use NCCL.
+     - If ``DTFFT_BACKEND`` uses cuFFTMp (e.g., ``cufftmp`` or ``cufftmp_pipe``), then ``DTFFT_RESHAPE_BACKEND`` must also use cuFFTMp.
+     - MPI backends can be mixed with each other on GPU, but cannot be mixed with NCCL or cuFFTMp backends.
+   
+   - On CPU (platform is ``host``), any backend combination is allowed.
 
 .. _dtfft_nccl_buffer_register_env:
 
@@ -347,18 +380,21 @@ Accepted Values
 - **Default**: ``1``
 
 
-.. _enable_kernel_optimization:
+.. _enable_kernel_autotune:
 
-DTFFT_ENABLE_KERNEL_OPTIMIZATION
+DTFFT_ENABLE_KERNEL_AUTOTUNE
 ================================
 
-Specifies whether to enable transposition kernels optimizations when ``effort`` is :f:var:`DTFFT_PATIENT`.
-When enabled, optimized CUDA kernels are used for data transposition on GPUs.
+Controls whether to enable kernel optimization when ``effort`` is below :f:var:`DTFFT_EXHAUSTIVE`.
+When enabled, dtFFT tries to optimize kernel launch parameters during plan creation.
 
 Purpose
 -------
 
-Kernel optimizations can significantly improve performance for various data layouts and sizes.
+Kernel optimization is always enabled for :f:var:`DTFFT_EXHAUSTIVE` effort level.
+Setting this to 1 enables kernel optimization for lower effort levels (:f:var:`DTFFT_ESTIMATE`, :f:var:`DTFFT_MEASURE`, :f:var:`DTFFT_PATIENT`).
+This may increase plan creation time but can improve runtime performance.
+Since kernel optimization is performed without data transfers, the time increase is usually minimal.
 
 Accepted Values
 ---------------
@@ -366,69 +402,50 @@ Accepted Values
 - **Type**: Integer
 - **Accepted Values**:
 
-  - ``0``: Disable kernel optimizations.
-  - ``1``: Enable kernel optimizations.
-
-- **Default**: ``1``
-
-
-.. note::
-
-  - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
-    to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-
-
-DTFFT_CONFIGS_TO_TEST
-=====================
-
-Specifies number of kernel configurations to test when effort is :f:var:`DTFFT_PATIENT` and kernel optimizations are enabled.
-This variable allows users to control the extent of autotuning for kernel optimizations.
-
-Purpose
--------
-
-Testing multiple configurations helps identify the best-performing kernel for specific data layouts and sizes.
-
-Accepted Values
----------------
-
-- **Type**: Positive integer
-- **Recommended Range**: 3–10 (higher values increase tuning time but may yield better performance. Theoretical maximum is 25)
-- **Default**: ``5``
-
-.. note::
-
-  - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
-    to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - Setting this variable to zero or one disables kernel optimizations, equivalent to setting
-    :ref:`DTFFT_ENABLE_KERNEL_OPTIMIZATION<enable_kernel_optimization>` to ``0``.
-
-
-DTFFT_FORCE_KERNEL_OPTIMIZATION
-===============================
-
-Forces to run kernel optimizations when effort is NOT :f:var:`DTFFT_PATIENT`.
-
-Purpose
--------
-
-Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
-
-Accepted Values
----------------
-
-- **Type**: Integer
-- **Accepted Values**:
-
-  - ``0``: Do not force kernel optimizations.
-  - ``1``: Force kernel optimizations.
+  - ``0``: Disable kernel optimization for effort levels below :f:var:`DTFFT_EXHAUSTIVE`.
+  - ``1``: Enable kernel optimization for all effort levels.
 
 - **Default**: ``0``
 
+
 .. note::
 
   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
+  - This setting can be overridden by the ``enable_kernel_autotune`` field in :f:type:`dtfft_config_t`.
+
+
+DTFFT_ENABLE_FOURIER_RESHAPE
+============================
+
+Controls whether dtFFT should reshape data from pencils to bricks and vice versa in Fourier space during :f:func:`execute` calls.
+
+Purpose
+-------
+
+By default, dtFFT keeps data in pencil layout throughout the FFT process to minimize data transpositions and maximize performance.
+When this option is enabled, dtFFT performs additional reshaping operations to ensure data is in brick layout in Fourier space.
+This can be useful if you need to perform operations on the data in Fourier space between forward and backward transforms.
+
+However, enabling this feature requires additional data transpositions, which will reduce overall performance.
+Only enable this option if your application specifically requires brick layout in Fourier space.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Keep data in pencil layout in Fourier space (default, better performance).
+  - ``1``: Reshape data to brick layout in Fourier space (reduced performance, but provides brick layout).
+
+- **Default**: ``0``
+
+
+.. note::
+
+  - This setting can be overridden by the ``enable_fourier_reshape`` field in :f:type:`dtfft_config_t`.
+  - The performance impact depends on the problem size and number of MPI processes.
 
 
 .. _datatype_selection:

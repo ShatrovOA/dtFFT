@@ -97,9 +97,9 @@ subroutine create_helper(self, counts, displs, max_requests)
 end subroutine create_helper
 
 subroutine destroy_helper(self, is_request_created)
-  !! Destroys MPI helper
-    class(mpi_backend_helper), intent(inout) :: self !! MPI Helper
-    logical, intent(in) :: is_request_created
+!! Destroys MPI helper
+class(mpi_backend_helper), intent(inout) :: self !! MPI Helper
+logical, intent(in) :: is_request_created
 
     if (allocated(self%counts)) deallocate (self%counts)
     if (allocated(self%displs)) deallocate (self%displs)
@@ -121,11 +121,11 @@ subroutine destroy_helper(self, is_request_created)
 end subroutine destroy_helper
 
 subroutine create_mpi(self, helper, base_storage)
-  !! Creates MPI backend
-    class(backend_mpi), intent(inout) :: self           !! MPI Backend
-    type(backend_helper), intent(in) :: helper         !! Backend helper (unused)
-    integer(int64), intent(in) :: base_storage   !! Number of bytes to store single element (unused)
-    integer(int32) :: mpi_err
+!! Creates MPI backend
+class(backend_mpi),     intent(inout) :: self           !! MPI Backend
+type(backend_helper),   intent(in) :: helper         !! Backend helper (unused)
+integer(int64),         intent(in) :: base_storage   !! Number of bytes to store single element (unused)
+integer(int32) :: mpi_err
 
 #ifdef DTFFT_DEBUG
     if (.not. is_backend_mpi(self%backend)) INTERNAL_ERROR(".not. is_backend_mpi")
@@ -186,18 +186,18 @@ elemental logical function get_async_active(self)
 end function get_async_active
 
 subroutine execute_mpi(self, in, out, stream, aux, error_code)
-  !! Executes MPI backend
-    class(backend_mpi),     intent(inout)   :: self       !! MPI Backend
-    real(real32), target,   intent(inout)   :: in(:)      !! Send pointer
-    real(real32), target,   intent(inout)   :: out(:)     !! Recv pointer
-    type(dtfft_stream_t),   intent(in)      :: stream     !! Main execution CUDA stream
-    real(real32), target,   intent(inout)   :: aux(:)     !! Aux pointer
-    integer(int32),         intent(out)     :: error_code !! Error code
-    integer(int32)              :: mpi_ierr             !! MPI error code
-    integer(int32), allocatable :: indices(:)
-    integer(int32)              :: total_completed, n_completed      !! Request counter
-    integer(int32)              :: need_completed
-    integer(int32)              :: i                    !! Loop index
+!! Executes MPI backend
+class(backend_mpi),     intent(inout)   :: self       !! MPI Backend
+real(real32), target,   intent(inout)   :: in(:)      !! Send pointer
+real(real32), target,   intent(inout)   :: out(:)     !! Recv pointer
+type(dtfft_stream_t),   intent(in)      :: stream     !! Main execution CUDA stream
+real(real32), target,   intent(inout)   :: aux(:)     !! Aux pointer
+integer(int32),         intent(out)     :: error_code !! Error code
+integer(int32)              :: mpi_ierr             !! MPI error code
+integer(int32), allocatable :: indices(:)
+integer(int32)              :: total_completed, n_completed      !! Request counter
+integer(int32)              :: need_completed
+integer(int32)              :: i                    !! Loop index
 
     error_code = DTFFT_SUCCESS
     if (self%is_active) then

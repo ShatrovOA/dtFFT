@@ -121,6 +121,12 @@ extern "C" {
 #define MAKE_VALID_FUN_DTYPE(datatype, name, valid_values)  \
   MAKE_VALID_FUN(type(datatype), name, valid_values)
 
+#ifdef DTFFT_DEBUG
+#define BUFFER_SPEC :
+#else
+#define BUFFER_SPEC *
+#endif
+
 #ifdef __cplusplus
 }
 #endif

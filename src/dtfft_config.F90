@@ -41,15 +41,15 @@ public :: get_conf_log_enabled, get_conf_z_slab_enabled, get_conf_y_slab_enabled
 public :: get_conf_platform
 public :: get_conf_measure_warmup_iters, get_conf_measure_iters
 public :: get_env, get_datatype_from_env
-public :: get_conf_backend, get_conf_datatype_enabled
-public :: get_conf_mpi_enabled, get_conf_pipelined_enabled
+public :: get_conf_backend, get_conf_reshape_backend
+public :: get_conf_datatype_enabled, get_conf_mpi_enabled, get_conf_pipelined_enabled
 #ifdef DTFFT_WITH_CUDA
 public :: destroy_stream
 public :: get_conf_stream
 public :: get_conf_nvshmem_enabled, get_conf_nccl_enabled
 #endif
-public :: get_conf_kernel_optimization_enabled, get_conf_configs_to_test
-public :: get_conf_forced_kernel_optimization
+public :: get_conf_kernel_autotune_enabled
+public :: get_conf_fourier_reshape_enabled
 
   logical,                    save  :: is_init_called = .false.
     !! Has [[init_internal]] already been called or not
@@ -80,18 +80,18 @@ public :: get_conf_forced_kernel_optimization
 
   type(dtfft_backend_t),      save  :: backend_from_env = BACKEND_NOT_SET
     !! Backend obtained from environ
+  type(dtfft_backend_t),      save  :: reshape_backend_from_env = BACKEND_NOT_SET
+    !! Reshape backend obtained from environ
   integer(int32),             save  :: datatype_enabled_from_env = VARIABLE_NOT_SET
     !! Should we use MPI Datatype backend during autotune or not
   integer(int32),             save  :: mpi_enabled_from_env = VARIABLE_NOT_SET
     !! Should we use MPI backends during autotune or not
   integer(int32),             save  :: pipelined_enabled_from_env = VARIABLE_NOT_SET
     !! Should we use pipelined backends during autotune or not
-  integer(int32),             save  :: kernel_optimization_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we enable kernel block optimization during autotune or not
-  integer(int32),             save  :: n_configs_to_test_from_env = VARIABLE_NOT_SET
-    !! Number of blocks to test during nvrtc kernel autotune
-  integer(int32),             save  :: forced_kernel_optimization_from_env = VARIABLE_NOT_SET
-    !! Should we force kernel optimization even when effort is not DTFFT_PATIENT
+  integer(int32),             save  :: kernel_autotune_enabled_from_env = VARIABLE_NOT_SET
+    !! Should we enable kernel autotune or not
+  integer(int32),             save  :: fourier_reshape_enabled_from_env = VARIABLE_NOT_SET
+    !! Should we enable fourier space reshape or not
 #ifdef DTFFT_WITH_CUDA
   integer(int32),             save  :: nccl_enabled_from_env = VARIABLE_NOT_SET
     !! Should we use NCCL backends during autotune or not
@@ -123,14 +123,14 @@ public :: get_conf_forced_kernel_optimization
   logical,                    save  :: is_nvshmem_enabled = .true.
     !! Should we use NCCL backends or not
 #endif
-  logical,                    save  :: is_kernel_optimization_enabled = .true.
-    !! Should we use kernel optimization or not
-  integer(int32),             save  :: n_configs_to_test = CONF_DTFFT_CONFIGS_TO_TEST
-    !! Number of different NVRTC kernel configurations to try during autotune
-  logical,                    save  :: is_forced_kernel_optimization = .false.
-    !! Should we use forced kernel optimization or not
+  logical,                    save  :: is_kernel_autotune_enabled = .false.
+    !! Should we use kernel autotune or not
+  logical,                    save  :: is_fourier_reshape_enabled = .false.
+    !! Should we use reshape in fourier space or not
   type(dtfft_backend_t),      save  :: backend = DEFAULT_BACKEND
     !! Default backend
+  type(dtfft_backend_t),      save  :: reshape_backend = DEFAULT_BACKEND
+    !! Default reshape backend
 
   character(len=26), parameter :: UPPER_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     !! Upper case alphabet.
@@ -160,24 +160,22 @@ public :: get_conf_forced_kernel_optimization
       !! OR when underlying FFT implementation of 2D plan is too slow.
       !! In all other cases it is considered that Y-slab is always faster, since it reduces number of data transpositions.
     integer(c_int32_t)        :: n_measure_warmup_iters
-      !! Number of warmup iterations to execute when effort level is higher or equal to `DTFFT_MEASURE`
+      !! Number of warmup iterations to execute during backend and kernel autotuning when effort level is `DTFFT_MEASURE` or higher.
       !!
       !! Default is 2.
     integer(c_int32_t)        :: n_measure_iters
-      !! Number of iterations to execute when effort level is higher or equal to `DTFFT_MEASURE`
+      !! Number of iterations to execute during backend and kernel autotuning when effort level is `DTFFT_MEASURE` or higher.
       !!
       !! Default is 5.
-      !! When `dtFFT` is built with CUDA support, this value also used to determine number
-      !! of iterations when selecting block of threads for NVRTC transpose kernel
 #ifdef DTFFT_WITH_CUDA
     type(dtfft_platform_t)    :: platform
       !! Selects platform to execute plan.
       !!
-      !! Default is DTFFT_PLATFORM_HOST
+      !! Default is `DTFFT_PLATFORM_HOST`.
       !!
-      !! This option is only defined with device support build.
-      !! Even when dtFFT is build with device support it does not nessasary means that all plans must be related to device.
-      !! This enables single library installation to be compiled with both host, CUDA and HIP plans.
+      !! This option is only available when dtFFT is built with device support.
+      !! Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
+      !! This enables a single library installation to support both host and CUDA plans.
 
     type(dtfft_stream_t)      :: stream
       !! Main CUDA stream that will be used in dtFFT.
@@ -193,17 +191,27 @@ public :: get_conf_forced_kernel_optimization
     type(dtfft_backend_t)     :: backend
       !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
       !!
-      !! Default is `DTFFT_BACKEND_NCCL` if NCCL is enabled, otherwise `DTFFT_BACKEND_MPI_P2P`.
+      !! Default for HOST platform is `DTFFT_BACKEND_MPI_DATATYPE`.
+      !!
+      !! Default for CUDA platform is `DTFFT_BACKEND_NCCL` if NCCL is enabled, otherwise `DTFFT_BACKEND_MPI_P2P`.
+
+    type(dtfft_backend_t)     :: reshape_backend
+      !! Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+      !!
+      !! Default for HOST platform is `DTFFT_BACKEND_MPI_DATATYPE`.
+      !!
+      !! Default for CUDA platform is `DTFFT_BACKEND_NCCL` if NCCL is enabled, otherwise `DTFFT_BACKEND_MPI_P2P`.
 
     logical(c_bool)           :: enable_datatype_backend
-      !! Should `DTFFT_BACKEND_MPI_DATATYPE` be enabled when `effort` is `DTFFT_PATIENT` or not.
+      !! Should `DTFFT_BACKEND_MPI_DATATYPE` be considered for autotuning when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
       !!
       !! Default is true.
       !!
-      !! This option works when `platform` is `DTFFT_PLATFORM_HOST`.
+      !! This option only works when `platform` is `DTFFT_PLATFORM_HOST`.
+      !! When `platform` is `DTFFT_PLATFORM_CUDA`, `DTFFT_BACKEND_MPI_DATATYPE` is always disabled during autotuning.
 
     logical(c_bool)           :: enable_mpi_backends
-      !! Should MPI Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+      !! Should MPI Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
       !!
       !! Default is false.
       !!
@@ -220,52 +228,42 @@ public :: get_conf_forced_kernel_optimization
       !! but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
 
     logical(c_bool)           :: enable_pipelined_backends
-      !! Should pipelined backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+      !! Should pipelined backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
       !!
       !! Default is true.
-      !!
-      !! Pipelined backends require additional buffer that user has no control over.
 #ifdef DTFFT_WITH_CUDA
     logical(c_bool)           :: enable_nccl_backends
-      !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+      !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
       !!
       !! Default is true.
+      !!
+      !! This option is only defined when dtFFT is built with CUDA support.
 
     logical(c_bool)           :: enable_nvshmem_backends
-      !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+      !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
       !!
       !! Default is true.
+      !!
+      !! This option is only defined when dtFFT is built with CUDA support.
 #endif
-    logical(c_bool)           :: enable_kernel_optimization
-      !! Should dtFFT try to optimize NVRTC kernel block size when `effort` is `DTFFT_PATIENT` or not.
-      !!
-      !! Default is true.
-      !!
-      !! This option is only defined when dtFFT is built with CUDA support.
-      !!
-      !! Enabling this option will make autotuning process longer, but may result in better performance for some problem sizes.
-      !! It is recommended to keep this option enabled.
-
-    integer(c_int32_t)        :: n_configs_to_test
-      !! Number of top theoretical best performing blocks of threads to test for transposition kernels
-      !! when `effort` is `DTFFT_PATIENT`  or `force_kernel_optimization` set to `true`.
-      !!
-      !! Default is 5.
-      !!
-      !! This option is only defined when dtFFT is built with CUDA support.
-      !!
-      !! It is recommended to keep this value between 3 and 10.
-      !! Maximum possible value is 25.
-      !! Setting this value to zero or one will disable kernel optimization.
-    logical(c_bool)            :: force_kernel_optimization
-      !! Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
+    logical(c_bool)            :: enable_kernel_autotune
+      !! Should dtFFT try to optimize kernel launch parameters during plan creation when `effort` is below `DTFFT_EXHAUSTIVE`.
       !!
       !! Default is false.
       !!
-      !! This option is only defined when dtFFT is built with CUDA support.
+      !! Kernel optimization is always enabled for `DTFFT_EXHAUSTIVE` effort level.
+      !! Setting this option to true enables kernel optimization for lower effort levels (`DTFFT_ESTIMATE`, `DTFFT_MEASURE`, `DTFFT_PATIENT`).
+      !! This may increase plan creation time but can improve runtime performance.
+      !! Since kernel optimization is performed without data transfers, the time increase is usually minimal.
+
+    logical(c_bool)             :: enable_fourier_reshape
+      !! Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to `execute`.
       !!
-      !! Enabling this option will make plan creation process longer, but may result in better performance for a long run.
-      !! Since kernel optimization is performed without data transfers, the overall autotuning time increase should not be significant.
+      !! Default is false.
+      !!
+      !! When enabled, data will be in brick layout in Fourier space, which may be useful for certain operations
+      !! between forward and backward transforms. However, this requires additional data transpositions
+      !! and will reduce overall FFT performance.
   end type dtfft_config_t
 
   interface dtfft_config_t
@@ -341,9 +339,25 @@ contains
     endblock
 #endif
 
-    block
-      type(string), allocatable :: backends(:)
-      type(string) :: bcknd_env
+    backend_from_env = get_backend_from_env("BACKEND")
+    reshape_backend_from_env = get_backend_from_env("RESHAPE_BACKEND")
+
+    datatype_enabled_from_env = get_env("ENABLE_MPI_DT", VARIABLE_NOT_SET, valid_values=[0, 1])
+    mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
+    pipelined_enabled_from_env = get_env("ENABLE_PIPE", VARIABLE_NOT_SET, valid_values=[0, 1])
+#ifdef DTFFT_WITH_CUDA
+    nccl_enabled_from_env = get_env("ENABLE_NCCL", VARIABLE_NOT_SET, valid_values=[0, 1])
+    nvshmem_enabled_from_env = get_env("ENABLE_NVSHMEM", VARIABLE_NOT_SET, valid_values=[0, 1])
+#endif
+    kernel_autotune_enabled_from_env = get_env("ENABLE_KERNEL_AUTOTUNE", VARIABLE_NOT_SET, valid_values=[0, 1])
+    fourier_reshape_enabled_from_env = get_env("ENABLE_FOURIER_RESHAPE", VARIABLE_NOT_SET, valid_values=[0, 1])
+  end subroutine init_environment
+
+  type(dtfft_backend_t) function get_backend_from_env(name)
+  !! Returns backend or reshape backend obtained from environment variable
+    character(len=*), intent(in) :: name !! Name of the environment variable
+    type(string), allocatable :: backends(:)
+    type(string) :: bcknd_env
 
       allocate( backends(11) )
       backends(1) = string("mpi_dt")
@@ -358,56 +372,44 @@ contains
       backends(10) = string("mpi_rma_pipe")
       backends(11) = string("mpi_p2p_sched")
 
-      bcknd_env = get_env("BACKEND", "undefined", backends)
+      bcknd_env = get_env(name, "undefined", backends)
 
       select case ( bcknd_env%raw )
       case ( "undefined" )
-        backend_from_env = BACKEND_NOT_SET
+        get_backend_from_env = BACKEND_NOT_SET
       case ( "mpi_dt" )
-        backend_from_env = DTFFT_BACKEND_MPI_DATATYPE
+        get_backend_from_env = DTFFT_BACKEND_MPI_DATATYPE
       case ( "mpi_p2p" )
-        backend_from_env = DTFFT_BACKEND_MPI_P2P
+        get_backend_from_env = DTFFT_BACKEND_MPI_P2P
       case ( "mpi_a2a" )
-        backend_from_env = DTFFT_BACKEND_MPI_A2A
+        get_backend_from_env = DTFFT_BACKEND_MPI_A2A
       case ( "mpi_p2p_pipe" )
-        backend_from_env = DTFFT_BACKEND_MPI_P2P_PIPELINED
+        get_backend_from_env = DTFFT_BACKEND_MPI_P2P_PIPELINED
       case ( "nccl" )
-        backend_from_env = DTFFT_BACKEND_NCCL
+        get_backend_from_env = DTFFT_BACKEND_NCCL
       case ( "nccl_pipe" )
-        backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
+        get_backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
       case ( "cufftmp" )
-        backend_from_env = DTFFT_BACKEND_CUFFTMP
+        get_backend_from_env = DTFFT_BACKEND_CUFFTMP
       case ( "cufftmp_pipe")
-        backend_from_env = DTFFT_BACKEND_CUFFTMP_PIPELINED
+        get_backend_from_env = DTFFT_BACKEND_CUFFTMP_PIPELINED
       case ( "mpi_rma" )
-        backend_from_env = DTFFT_BACKEND_MPI_RMA
+        get_backend_from_env = DTFFT_BACKEND_MPI_RMA
       case ( "mpi_rma_pipe" )
-        backend_from_env = DTFFT_BACKEND_MPI_RMA_PIPELINED
+        get_backend_from_env = DTFFT_BACKEND_MPI_RMA_PIPELINED
       case ( "mpi_p2p_sched" )
-        backend_from_env = DTFFT_BACKEND_MPI_P2P_SCHEDULED
+        get_backend_from_env = DTFFT_BACKEND_MPI_P2P_SCHEDULED
       endselect
 
-      if ( backend_from_env /= BACKEND_NOT_SET .and. .not.is_valid_backend(backend_from_env) ) then
+      if ( get_backend_from_env /= BACKEND_NOT_SET .and. .not.is_valid_backend(get_backend_from_env) ) then
         WRITE_ERROR("Backend '"//bcknd_env%raw//"' is not available in this build.")
-        WRITE_ERROR("Environment variable 'DTFFT_BACKEND' has been ignored")
-        backend_from_env = BACKEND_NOT_SET
+        WRITE_ERROR("Environment variable 'DTFFT_'"//name//"' has been ignored")
+        get_backend_from_env = BACKEND_NOT_SET
       endif
 
       call bcknd_env%destroy()
       call destroy_strings(backends)
-    endblock
-
-    datatype_enabled_from_env = get_env("ENABLE_MPI_DT", VARIABLE_NOT_SET, valid_values=[0, 1])
-    mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
-    pipelined_enabled_from_env = get_env("ENABLE_PIPE", VARIABLE_NOT_SET, valid_values=[0, 1])
-#ifdef DTFFT_WITH_CUDA
-    nccl_enabled_from_env = get_env("ENABLE_NCCL", VARIABLE_NOT_SET, valid_values=[0, 1])
-    nvshmem_enabled_from_env = get_env("ENABLE_NVSHMEM", VARIABLE_NOT_SET, valid_values=[0, 1])
-#endif
-    kernel_optimization_enabled_from_env = get_env("ENABLE_KERNEL_OPTIMIZATION", VARIABLE_NOT_SET, valid_values=[0, 1])
-    n_configs_to_test_from_env = get_env("CONFIGS_TO_TEST", VARIABLE_NOT_SET, min_valid_value=0)
-    forced_kernel_optimization_from_env = get_env("FORCE_KERNEL_OPTIMIZATION", VARIABLE_NOT_SET, valid_values=[0, 1])
-  end subroutine init_environment
+  end function get_backend_from_env
 
   pure subroutine dtfft_create_config(config) bind(C, name="dtfft_create_config_c")
   !! Creates a new configuration and sets default values.
@@ -417,27 +419,21 @@ contains
     config = dtfft_config_t()
   end subroutine dtfft_create_config
 
+  pure function config_constructor(                                       &
+    enable_log, enable_z_slab, enable_y_slab,                             &
+    n_measure_warmup_iters, n_measure_iters,                              &
 #ifdef DTFFT_WITH_CUDA
-  pure function config_constructor(                                       &
-    enable_log, enable_z_slab, enable_y_slab,                             &
-    n_measure_warmup_iters, n_measure_iters,                              &
-    platform, stream, backend, enable_datatype_backend,                   &
-    enable_mpi_backends, enable_pipelined_backends,                       &
-    enable_nccl_backends, enable_nvshmem_backends,                        &
-    enable_kernel_optimization, n_configs_to_test,                        &
-    force_kernel_optimization) result(config)
-#else
-  pure function config_constructor(                                       &
-    enable_log, enable_z_slab, enable_y_slab,                             &
-    n_measure_warmup_iters, n_measure_iters,                              &
-    backend, enable_datatype_backend,                                     &
-    enable_mpi_backends, enable_pipelined_backends,                       &
-    enable_kernel_optimization, n_configs_to_test,                        &
-    force_kernel_optimization) result(config)
+    platform, stream,                                                     &
 #endif
+    backend, reshape_backend, enable_datatype_backend,                    &
+    enable_mpi_backends, enable_pipelined_backends,                       &
+#ifdef DTFFT_WITH_CUDA
+    enable_nccl_backends, enable_nvshmem_backends,                        &
+#endif
+    enable_kernel_autotune, enable_fourier_reshape) result(config)
   !! Creates a new configuration
     logical,                optional, intent(in)  :: enable_log
-      !! Should dtFFT use Z-slab optimization or not.
+      !! Should dtFFT print additional information during plan creation or not.
     logical,                optional, intent(in)  :: enable_z_slab
       !! Should dtFFT use Z-slab optimization or not.
     logical,                optional, intent(in)  :: enable_y_slab
@@ -454,6 +450,8 @@ contains
 #endif
     type(dtfft_backend_t),  optional, intent(in)  :: backend
       !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+    type(dtfft_backend_t),  optional, intent(in)  :: reshape_backend
+      !! Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
     logical,                optional, intent(in)  :: enable_datatype_backend
       !! Should `DTFFT_BACKEND_MPI_DATATYPE` be enabled when `effort` is `DTFFT_PATIENT` or not.
     logical,                optional, intent(in)  :: enable_mpi_backends
@@ -466,12 +464,10 @@ contains
     logical,                optional, intent(in)  :: enable_nvshmem_backends
       !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
 #endif
-    logical,                optional, intent(in)  :: enable_kernel_optimization
-      !! Should dtFFT try to optimize NVRTC kernel block size during autotune or not.
-    integer(int32),         optional, intent(in)  :: n_configs_to_test
-      !! Number of top theoretical best performing blocks of threads to test for transposition kernels when `effort` is `DTFFT_PATIENT`.
-    logical,                optional, intent(in)  :: force_kernel_optimization
-      !! Whether to force kernel optimization when `effort` is not `DTFFT_PATIENT`.
+    logical,                optional, intent(in)  :: enable_kernel_autotune
+      !! Should dtFFT try to autotune transpose/packing/unpacking kernels size during autotune process or not.
+    logical,                optional, intent(in)  :: enable_fourier_reshape
+      !! Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to `execute` or not.
 
     type(dtfft_config_t) :: config
       !! Constructed `dtFFT` config ready to be set by call to [[dtfft_set_config]]
@@ -487,6 +483,7 @@ contains
     config%stream = NULL_STREAM;                if ( present(stream) ) config%stream = stream
 #endif
     config%backend = DEFAULT_BACKEND;           if ( present(backend) ) config%backend = backend
+    config%reshape_backend = DEFAULT_BACKEND;   if ( present(reshape_backend) ) config%reshape_backend = reshape_backend
     config%enable_datatype_backend = .true.;    if ( present(enable_datatype_backend) ) config%enable_datatype_backend = enable_datatype_backend
     config%enable_mpi_backends = .false.;       if ( present(enable_mpi_backends) ) config%enable_mpi_backends = enable_mpi_backends
     config%enable_pipelined_backends = .true.;  if ( present(enable_pipelined_backends) ) config%enable_pipelined_backends = enable_pipelined_backends
@@ -494,10 +491,8 @@ contains
     config%enable_nccl_backends = .true.;       if ( present(enable_nccl_backends) ) config%enable_nccl_backends = enable_nccl_backends
     config%enable_nvshmem_backends = .true.;    if ( present(enable_nvshmem_backends) ) config%enable_nvshmem_backends = enable_nvshmem_backends
 #endif
-    config%enable_kernel_optimization = .true.; if ( present(enable_kernel_optimization) ) config%enable_kernel_optimization = enable_kernel_optimization
-    config%n_configs_to_test = CONF_DTFFT_CONFIGS_TO_TEST
-      if ( present(n_configs_to_test) ) config%n_configs_to_test = n_configs_to_test
-    config%force_kernel_optimization = .false.; if ( present(force_kernel_optimization) ) config%force_kernel_optimization = force_kernel_optimization
+    config%enable_kernel_autotune = .false.;    if ( present(enable_kernel_autotune) ) config%enable_kernel_autotune = enable_kernel_autotune
+    config%enable_fourier_reshape = .false.;    if ( present(enable_fourier_reshape) ) config%enable_fourier_reshape = enable_fourier_reshape
   end function config_constructor
 
   subroutine dtfft_set_config(config, error_code)
@@ -555,18 +550,19 @@ contains
     is_nvshmem_enabled = config%enable_nvshmem_backends
 #endif
 
-    is_forced_kernel_optimization = config%force_kernel_optimization
-    is_kernel_optimization_enabled = config%enable_kernel_optimization
-    n_configs_to_test = config%n_configs_to_test
-    if ( n_configs_to_test <= 1 ) then
-      is_kernel_optimization_enabled = .false.
-    endif
+    is_kernel_autotune_enabled = config%enable_kernel_autotune
+    is_fourier_reshape_enabled = config%enable_fourier_reshape
 
     if ( config%backend /= BACKEND_NOT_SET .and. .not.is_valid_backend(config%backend)) then
       if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_BACKEND
       return
     endif
+    if ( config%reshape_backend /= BACKEND_NOT_SET .and. .not.is_valid_backend(config%reshape_backend)) then
+      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_BACKEND
+      return
+    endif
     backend = get_correct_backend(config%backend)
+    reshape_backend = get_correct_backend(config%reshape_backend)
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine dtfft_set_config
 
@@ -673,6 +669,12 @@ contains
     if ( backend_from_env /= BACKEND_NOT_SET) get_conf_backend = backend_from_env
   end function get_conf_backend
 
+  elemental type(dtfft_backend_t) function get_conf_reshape_backend()
+  !! Returns reshape backend set by the user or default one
+    get_conf_reshape_backend = get_correct_backend(reshape_backend)
+    if ( reshape_backend_from_env /= BACKEND_NOT_SET) get_conf_reshape_backend = reshape_backend_from_env
+  end function get_conf_reshape_backend
+
   elemental function get_conf_datatype_enabled() result(bool)
   !! Whether MPI Datatype backend is enabled or not
     logical :: bool   !! Result flag
@@ -722,39 +724,36 @@ contains
   end function get_conf_nvshmem_enabled
 #endif
 
-  elemental function get_conf_kernel_optimization_enabled() result(bool)
+  elemental function get_conf_kernel_autotune_enabled() result(bool)
   !! Whether kernel optimization is enabled or not
     logical :: bool  !! Result flag
-    bool = get_conf_internal(is_kernel_optimization_enabled, kernel_optimization_enabled_from_env)
-  end function get_conf_kernel_optimization_enabled
+    bool = get_conf_internal(is_kernel_autotune_enabled, kernel_autotune_enabled_from_env)
+  end function get_conf_kernel_autotune_enabled
 
-  pure function get_conf_configs_to_test() result(n)
-  !! Returns the number of configurations to test
-    integer(int32) :: n  !! Result
-    n = get_conf_internal(n_configs_to_test, n_configs_to_test_from_env)
-  end function get_conf_configs_to_test
-
-  elemental function get_conf_forced_kernel_optimization() result(bool)
-  !! Whether forced kernel optimization is enabled or not
+  elemental function get_conf_fourier_reshape_enabled() result(bool)
+  !! Whether reshape in Fourier space is enabled or not
     logical :: bool  !! Result flag
-    bool = get_conf_internal(is_forced_kernel_optimization, forced_kernel_optimization_from_env)
-  end function get_conf_forced_kernel_optimization
+    bool = get_conf_internal(is_fourier_reshape_enabled, fourier_reshape_enabled_from_env)
+  end function get_conf_fourier_reshape_enabled
 
   type(string) function get_env_base(name) result(env)
   !! Base function of obtaining dtFFT environment variable
     character(len=*), intent(in)    :: name         !! Name of environment variable without prefix
     type(string)                    :: full_name    !! Prefixed environment variable name
     integer(int32)                  :: env_val_len  !! Length of the environment variable
+    integer(int32) :: ierr
 
     full_name = string("DTFFT_"//name)
 
     call get_environment_variable(full_name%raw, length=env_val_len)
+    call MPI_Bcast(env_val_len, 1, MPI_INTEGER4, 0, MPI_COMM_WORLD, ierr)
     allocate(character(env_val_len) :: env%raw)
     if ( env_val_len == 0 ) then
       call full_name%destroy()
       return
     endif
     call get_environment_variable(full_name%raw, env%raw)
+    call MPI_Bcast(env%raw, env_val_len, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
     call full_name%destroy()
   end function get_env_base
 

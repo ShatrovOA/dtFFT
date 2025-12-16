@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
   const int32_t nx = 256, ny = 512, nz = 1024;
 #else
-  const int32_t nx = 512, ny = 99, nz = 17;
+  const int32_t nx = 333, ny = 99, nz = 17;
 #endif
 
   if(comm_rank == 0) {
     cout << "----------------------------------------"          << endl;
-    cout << "|DTFFT test C++ interface: r2r_3d_float|"          << endl;
+    cout << "|dtFFT test C++ interface: r2r_3d_float|"          << endl;
     cout << "----------------------------------------"          << endl;
     cout << "Nx = " << nx << ", Ny = " << ny << ", Nz = " << nz << endl;
     cout << "Number of processors: " << comm_size               << endl;
@@ -84,8 +84,7 @@ int main(int argc, char *argv[])
     conf.set_stream((dtfft_stream_t)stream)
       .set_enable_mpi_backends(true)
       .set_enable_nvshmem_backends(false)
-      .set_force_kernel_optimization(true)
-      .set_n_configs_to_test(20);
+      .set_enable_kernel_autotune(true);
   }
 #endif
 
@@ -94,7 +93,7 @@ int main(int argc, char *argv[])
   const int8_t ndims = 3;
   const int32_t dims[] = {nz, ny, nx};
   const R2RKind kinds[] = {R2RKind::DCT_2, R2RKind::DCT_3, R2RKind::DCT_2};
-  PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, Precision::SINGLE, Effort::PATIENT, executor);
+  PlanR2R plan(ndims, dims, kinds, MPI_COMM_WORLD, Precision::SINGLE, Effort::EXHAUSTIVE, executor);
 
   int8_t ndims_check;
   DTFFT_CXX_CALL( plan.get_dims(&ndims_check, nullptr) )
@@ -116,10 +115,11 @@ int main(int argc, char *argv[])
 
   auto in_sizes = new int32_t[ndims_check];
   auto out_sizes = new int32_t[ndims_check];
-  size_t alloc_size;
+  size_t alloc_size, aux_size;
 
   DTFFT_CXX_CALL( plan.report() )
   DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_sizes, nullptr, out_sizes, &alloc_size) )
+  DTFFT_CXX_CALL( plan.get_aux_size(&aux_size) )
 
   size_t in_size = std::accumulate(in_sizes, in_sizes + ndims, 1, multiplies<int>());
   size_t out_size = std::accumulate(out_sizes, out_sizes + ndims, 1, multiplies<int>());
@@ -134,7 +134,8 @@ int main(int argc, char *argv[])
   }
 
   auto inout = plan.mem_alloc<float>(alloc_size);
-  auto aux = plan.mem_alloc<float>(alloc_size);
+  auto aux = plan.mem_alloc<float>(aux_size);
+
   float *check = new float[in_size];
   setTestValuesFloat(check, in_size);
 

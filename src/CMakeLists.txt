@@ -1,9 +1,9 @@
 target_sources(dtfft PRIVATE
   dtfft.F90
-  dtfft_abstract_executor.F90
-  dtfft_abstract_transpose_handle.F90
-  dtfft_abstract_kernel.F90
   dtfft_abstract_backend.F90
+  dtfft_abstract_executor.F90
+  dtfft_abstract_kernel.F90
+  dtfft_abstract_reshape_handle.F90
   dtfft_backend_mpi.F90
   dtfft_config.F90
   dtfft_errors.F90
@@ -11,8 +11,10 @@ target_sources(dtfft PRIVATE
   dtfft_pencil.F90
   dtfft_plan.F90
   dtfft_parameters.F90
-  dtfft_transpose_handle_datatype.F90
-  dtfft_transpose_handle_generic.F90
+  dtfft_reshape_handle_datatype.F90
+  dtfft_reshape_handle_generic.F90
+  dtfft_reshape_plan_base.F90
+  dtfft_reshape_plan.F90
   dtfft_transpose_plan.F90
   dtfft_utils.F90
 )

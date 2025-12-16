@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
     if (comm_rank == 0) {
         printf("----------------------------------------\n");
-        printf("| DTFFT test C interface: r2c_3d       |\n");
+        printf("| dtFFT test C interface: r2c_3d       |\n");
         printf("----------------------------------------\n");
         printf("Nx = %d, Ny = %d, Nz = %d\n", nx, ny, nz);
         printf("Number of processors: %d\n", comm_size);
@@ -116,15 +116,16 @@ int main(int argc, char* argv[])
     }
 
     // Get local sizes
-    size_t alloc_size, el_size;
+    size_t alloc_size, aux_size, el_size;
     DTFFT_CALL(dtfft_get_local_sizes(plan, NULL, in_counts, NULL, out_counts, &alloc_size))
+    DTFFT_CALL(dtfft_get_aux_size(plan, &aux_size))
     DTFFT_CALL(dtfft_get_element_size(plan, &el_size))
     size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
     size_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
 
     DTFFT_CALL(dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&in))
     DTFFT_CALL(dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&out))
-    DTFFT_CALL(dtfft_mem_alloc(plan, el_size * alloc_size, (void**)&aux))
+    DTFFT_CALL(dtfft_mem_alloc(plan, el_size * aux_size, (void**)&aux))
 
     // Allocate buffers
     check = (double*)malloc(el_size * in_size);

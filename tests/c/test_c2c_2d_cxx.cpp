@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
     if (comm_rank == 0) {
         cout << "----------------------------------------" << endl;
-        cout << "|   DTFFT test C++ interface: c2c_2d   |" << endl;
+        cout << "|   dtFFT test C++ interface: c2c_2d   |" << endl;
         cout << "----------------------------------------" << endl;
         cout << "Nx = " << nx << ", Ny = " << ny << endl;
         cout << "Number of processors: " << comm_size << endl;
@@ -54,8 +54,9 @@ int main(int argc, char* argv[])
 
     attach_gpu_to_process();
 
-    Config config;
-    config.set_enable_mpi_backends(true);
+    auto config = Config()
+        .set_enable_mpi_backends(true)
+        .set_enable_fourier_reshape(true);
 
 #if defined(DTFFT_WITH_CUDA)
     config.set_platform(Platform::CUDA) // Can be changed at runtime via `DTFFT_PLATFORM` environment variable
@@ -63,9 +64,23 @@ int main(int argc, char* argv[])
 #endif
     DTFFT_CXX_CALL(set_config(config))
 
-    // Create plan
-    const vector<int32_t> dims = { ny, nx };
-    PlanC2C plan(dims, Precision::DOUBLE, Effort::PATIENT);
+    // Create 2D MPI grid decomposition
+    int grid_dims[2] = { 0, 0 };
+    int glob_dims[2] = {ny, nx};
+    vector<int32_t> starts(2), counts(2);
+
+    createGridDims(2, glob_dims, grid_dims, starts.data(), counts.data());
+
+    Pencil pencil(starts, counts);
+
+    if (comm_rank == 0) {
+        cout << "Grid decomposition: " << grid_dims[0] << " x " << grid_dims[1] << endl;
+    }
+
+    bool reshape_required = grid_dims[0] > 1;
+
+    // Create plan using pencil
+    PlanC2C plan(pencil, Precision::DOUBLE, Effort::MEASURE);
 
     DTFFT_CXX_CALL(plan.report())
 
@@ -77,22 +92,32 @@ int main(int argc, char* argv[])
     if (comm_rank == 0)
         std::cout << "Using backend: " << get_backend_string(back) << "\n";
 
+    if ( reshape_required ) {
+        auto reshape_back = plan.get_reshape_backend();
+        if (comm_rank == 0)
+            std::cout << "Using reshape backend: " << get_backend_string(reshape_back) << "\n";
+    }
+
     size_t alloc_size = plan.get_alloc_size();
     size_t alloc_bytes = plan.get_alloc_bytes();
 
     std::vector<dtfft::Pencil> pencils;
 
-    for (int i = 0; i < 2; i++) {
-        dtfft::Pencil pencil = plan.get_pencil(i + 1);
-        pencils.push_back(pencil);
-    }
+    if ( reshape_required )
+        pencils.push_back(plan.get_pencil(Layout::X_BRICKS));
+
+    pencils.push_back(plan.get_pencil(Layout::X_PENCILS));
+    pencils.push_back(plan.get_pencil(Layout::Y_PENCILS));
+    if ( reshape_required )
+        pencils.push_back(plan.get_pencil(Layout::Z_BRICKS));
 
     size_t in_size = pencils[0].get_size();
-    size_t out_size = pencils[1].get_size();
+    size_t out_size = pencils[pencils.size() - 1].get_size();
 
     complex<double>* in;
     DTFFT_CXX_CALL(plan.mem_alloc(alloc_bytes, reinterpret_cast<void**>(&in)))
 
+    auto work = plan.mem_alloc<complex<double>>(plan.get_aux_size());
     auto out = plan.mem_alloc<complex<double>>(alloc_size);
     auto check = new complex<double>[in_size];
 
@@ -108,9 +133,24 @@ int main(int argc, char* argv[])
     double tf = 0.0 - MPI_Wtime();
     dtfft_request_t request = nullptr;
 
-    DTFFT_CXX_CALL(plan.transpose_start(in, out, Transpose::X_TO_Y, &request));
-    cout << "Doing stuff while data is being tranposed on host" << endl;
-    DTFFT_CXX_CALL(plan.transpose_end(request));
+    if ( reshape_required ) {
+        DTFFT_CXX_CALL(plan.reshape_start(in, work, Reshape::X_BRICKS_TO_PENCILS, &request));
+        if (comm_rank == 0)
+            cout << "Doing stuff while data is being reshaped on host" << endl;
+        DTFFT_CXX_CALL(plan.reshape_end(request));
+        DTFFT_CXX_CALL(plan.transpose_start(work, in, Transpose::X_TO_Y, &request));
+        if (comm_rank == 0)
+            cout << "Doing stuff while data is being transposed on host" << endl;
+        DTFFT_CXX_CALL(plan.transpose_end(request));
+        DTFFT_CXX_CALL(plan.reshape(in, out, Reshape::Y_PENCILS_TO_BRICKS));
+        if (comm_rank == 0)
+            cout << "Executed forward using fourier non-blocking reshape" << endl;
+    } else {
+        DTFFT_CXX_CALL(plan.transpose_start(in, out, Transpose::X_TO_Y, &request));
+        if (comm_rank == 0)
+            cout << "Doing stuff while data is being transposed on host" << endl;
+        DTFFT_CXX_CALL(plan.transpose_end(request));
+    }
 #if defined(DTFFT_WITH_CUDA)
     if (platform == Platform::CUDA) {
         CUDA_SAFE_CALL(cudaDeviceSynchronize())
@@ -131,8 +171,9 @@ int main(int argc, char* argv[])
 #endif
 
     double tb = 0.0 - MPI_Wtime();
-    DTFFT_CXX_CALL(plan.transpose(out, in, Transpose::Y_TO_X));
-    cout << "Executed backwards using blocking tranpose" << endl;
+    DTFFT_CXX_CALL(plan.execute(out, in, Execute::BACKWARD, work));
+    if (comm_rank == 0)
+        cout << "Executed backwards using blocking execute" << endl;
 
 #if defined(DTFFT_WITH_CUDA)
     if (platform == Platform::CUDA) {
@@ -149,6 +190,7 @@ int main(int argc, char* argv[])
 
     DTFFT_CXX_CALL(plan.mem_free(in))
     DTFFT_CXX_CALL(plan.mem_free(out))
+    DTFFT_CXX_CALL(plan.mem_free(work))
     delete[] check;
 
     dtfft::Error error_code;

@@ -1,3 +1,5 @@
+:tocdepth: 3
+
 .. _usage_link:
 
 ###########
@@ -19,16 +21,15 @@ Error Handling and Macros
 Almost all ``dtFFT`` functions return error codes to indicate whether execution was successful. These codes help users identify and handle issues during plan creation, memory allocation, execution, and finalization. The error handling mechanism differs slightly across language APIs:
 
 - **Fortran API**: Functions include an optional ``error_code`` parameter (type ``integer(int32)``), always positioned as the last argument.
-  If omitted, errors must be checked through other means, such as program termination or runtime assertions.
+  It is always recommended to check the returned error code after each call.
 - **C API**: Functions return a value of type :cpp:type:`dtfft_error_t`, allowing direct inspection of the result.
-- **C++ API**: Functions return :cpp:type:`dtfft::Error`, typically used with exception handling or explicit checks.
+- **C++ API**: Most functions return :cpp:type:`dtfft::Error`. Some overloads throw :cpp:type:`dtfft::Exception` on error instead.
 
 To simplify error checking, ``dtFFT`` provides predefined macros that wrap function calls and handle error codes automatically:
 
-- **Fortran**: The ``DTFFT_CHECK`` macro, defined in ``dtfft.f03``, checks the ``error_code`` and halts execution with an informative message if an error occurs. Include this header with ``#include "dtfft.f03"`` to use it.
-- **C**: The ``DTFFT_CALL`` macro wraps function calls, checks the returned :c:type:`dtfft_error_t`,
-  and triggers an appropriate response (printing an error message and exiting) if the call fails.
-- **C++**: The ``DTFFT_CXX_CALL`` macro similarly wraps calls, throws C++ exception and displays an error message.
+- **Fortran**: The ``DTFFT_CHECK`` macro, defined in ``dtfft.f03``, checks the ``error_code`` and halts execution with an informative message if an error occurs. Include this header with ``#include "dtfft.f03"`` to use it. Note: using this macro requires preprocessing.
+- **C**: The ``DTFFT_CALL`` macro wraps function calls, checks the returned :c:type:`dtfft_error_t`, and triggers an appropriate response (printing an error message and exiting) if the call fails.
+- **C++**: The ``DTFFT_CXX_CALL`` macro similarly wraps calls, throws a C++ exception, and displays an error message.
 
 Below is an example demonstrating error handling with these macros:
 
@@ -63,9 +64,6 @@ Below is an example demonstrating error handling with these macros:
 
     DTFFT_CXX_CALL( plan.execute(a, b, dtfft::Execute::FORWARD, nullptr) );
 
-
-Error codes are defined in the API sections (e.g., :f:var:`DTFFT_SUCCESS`, :f:var:`DTFFT_ERROR_INVALID_TRANSPOSE_TYPE`). Refer to the Fortran, C, and C++ API documentation for a complete list and detailed descriptions.
-
 Plan Creation
 =============
 
@@ -75,14 +73,10 @@ dtFFT supports three plan categories, each tailored to specific transformation r
 - Complex-to-Complex (C2C)
 - Real-to-Complex (R2C)
 
-.. note:: The Real-to-Complex plan is available only when the library is built with FFT support.
-
 dtFFT provides two complementary workflows for constructing a plan:
 
-1. **Global-dimension workflow** – supply the global lattice extents and allow ``dtFFT`` to derive the process decomposition. 
-   This workflow is detailed in `Global-Dimension Workflow`_.
-2. **Local-decomposition workflow** – supply the portion of the domain owned by each MPI rank via a pencil descriptor. 
-   This workflow is described in `Local-Decomposition Workflow`_.
+1. **Global-dimension workflow** – supply the global lattice extents and allow ``dtFFT`` to derive the process decomposition. This workflow is detailed in `Global-Dimension Workflow`_.
+2. **Local-decomposition workflow** – supply the portion of the domain owned by each MPI rank via a pencil descriptor. This workflow is described in `Local-Decomposition Workflow`_.
 
 Both workflows share the same configuration surface (plan category, precision, executor, and effort level); they differ only in how the data distribution is communicated to the library.
 
@@ -102,7 +96,7 @@ When the communicator passed during plan creation is ``MPI_COMM_WORLD`` with :ma
 - If :math:`P <= N_z` (and :math:`N_z / P >= 32` for the GPU version), split the grid as :math:`N_x \times N_y \times N_z / P`. 
   This distributes the Z-dimension across :math:`P` processes. Division need not be even, and the local size per process may vary.
 - If the Z-split fails (e.g., :math:`P > N_z` or :math:`N_z / P < 32` on GPU), attempt :math:`N_x \times N_y / P \times N_z`. 
-  This distributes the Y-dimension across ``P`` processes, provided :math:`N_x <= P` to remain compatible with future transpositions (e.g., X-to-Y).
+  This distributes the Y-dimension across ``P`` processes, provided :math:`P \le N_x` to remain compatible with future transpositions (e.g., Y-to-X, which results in :math:`N_y \times N_z \times N_x / P`).
 - If both attempts fail, ``dtFFT`` constructs a 3D communicator by fixing the X-dimension split to 1 and using ``MPI_Dims_create(P, 2, dims)`` 
   to balance the remaining :math:`P` processes across :math:`Y` and :math:`Z`, resulting in :math:`N_x \times N_y / P_1 \times N_z / P_2` 
   (where :math:`P_1 \times P_2 = P`).
@@ -113,13 +107,9 @@ When the communicator passed during plan creation is ``MPI_COMM_WORLD`` with :ma
 
 Applications may supply a communicator with an attached Cartesian topology. Grid dimensions must be provided in Fortran order (X, Y, Z).
 
-- **1D Communicator**: A one-dimensional communicator with :math:`P` processes splits the grid as :math:`N_x \times N_y \times N_z / P`, 
-  distributing the Z-dimension across :math:`P` processes.
-- **2D Communicator**: A two-dimensional communicator with topology :math:`P_1 \times P_2` (where :math:`P_1 * P_2 = P`) decomposes the grid 
-  as :math:`N_x \times N_y / P_1 \times N_z / P_2`, splitting :math:`Y` by :math:`P_1` and :math:`Z` by :math:`P_2` while keeping :math:`X` indivisible.
-- **3D Communicator**: A three-dimensional communicator with topology :math:`P_0 \times P_1 \times P_2` (where :math:`P_0 * P_1 * P_2 = P`) 
-  is supported, but :math:`P_0` (the X split) must be 1 to preserve the fastest-varying dimension. 
-  Violating this constraint triggers :f:var:`DTFFT_ERROR_INVALID_COMM_FAST_DIM`.
+- **1D Communicator**: A one-dimensional communicator with :math:`P` processes splits the grid as :math:`N_x \times N_y \times N_z / P`, distributing the Z-dimension across :math:`P` processes.
+- **2D Communicator**: A two-dimensional communicator with topology :math:`P_1 \times P_2` (where :math:`P_1 * P_2 = P`) decomposes the grid as :math:`N_x \times N_y / P_1 \times N_z / P_2`, splitting :math:`Y` by :math:`P_1` and :math:`Z` by :math:`P_2` while keeping :math:`X` indivisible.
+- **3D Communicator**: A three-dimensional communicator with topology :math:`P_0 \times P_1 \times P_2` (where :math:`P_0 * P_1 * P_2 = P`) is supported, but :math:`P_0` (the X split) must be 1 to preserve the fastest-varying dimension.  Violating this constraint triggers :f:var:`DTFFT_ERROR_INVALID_COMM_FAST_DIM`.
 
 The example below illustrates the global-dimension workflow by creating a 3D C2C double-precision ``Transpose-Only`` plan:
 
@@ -186,9 +176,6 @@ The example below illustrates the global-dimension workflow by creating a 3D C2C
       // OR use generic interface
       // dtfft::PlanC2C plan(dims.size(), dims.data(), MPI_COMM_WORLD, precision, effort, executor);
 
-      // OR use Plan pointer
-      // dtfft::Plan *plan = new dtfft::PlanC2C(dims, MPI_COMM_WORLD, precision, effort, executor);
-
       return 0;
     }
 
@@ -204,6 +191,7 @@ Use this approach when you need to:
 - Reuse a decomposition generated by another solver or library.
 - Guarantee specific locality constraints (for example, to co-locate data with accelerators or I/O tasks).
 - Persist a previously tuned decomposition and avoid re-running autotuning logic.
+- Utilize brick data decomposition, where data is distributed across all dimensions (2 dimensions for 2D plans, 3 dimensions for 3D plans), unlike pencil decomposition which distributes across 2 dimensions (keeping one dimension local).
 
 Both constructors and ``create`` methods accept the :f:type:`dtfft_pencil_t` descriptor. The descriptor stores the dimensionality, the local starting indices (0-based), and the counts along each dimension.
 
@@ -286,28 +274,82 @@ The example below decomposes a :math:`64 \times 64 \times 64` grid by splitting 
       return 0;
     }
 
-The pencil API validates that the provided communicator and local shapes collectively form a consistent global domain. Refer to the Fortran, C, and C++ API references for the full descriptor layout and helper constructors.
+Bricks decomposition
+--------------------
+
+For 2D and 3D plans, a common special case of the local-decomposition workflow is a **brick** layout where each MPI rank owns a sub-domain of the global domain.
+
+**3D case.** Assume the global domain is :math:`N_x \times N_y \times N_z` and ranks are arranged as :math:`P_0 \times P_1 \times P_2`.
+
+Let the local brick on each rank be
+
+.. math::
+
+  (N_x / P_0) \times n_y \times n_z, \quad n_y = N_y / P_1, \quad n_z = N_z / P_2.
+
+To execute FFTs along the fastest-varying dimension (X), the data must be realigned into X-pencils. This requires gathering data from all :math:`P_0` bricks along the X dimension to reconstruct the full :math:`N_x` extent, while the :math:`P_0` processes are redistributed across the :math:`Y` and/or :math:`Z` dimensions. Inside ``dtFFT``  this operation is called **reshape**. ``dtFFT`` attempts the following reshape strategies in order:
+
+- :math:`N_x \times n_y \times (n_z / P_0)` — gather full X dimension, redistribute :math:`P_0` processes along Z (keeping Y local)
+- :math:`N_x \times (n_y / P_0) \times n_z` — gather full X dimension, redistribute :math:`P_0` processes along Y (keeping Z local)
+
+If neither strategy is feasible (i.e. :math:`n_y < P_0` or :math:`n_z < P_0`), ``dtFFT`` falls back to a 2D redistribution of the :math:`P_0` ranks by choosing :math:`Q_1 \times Q_2` such that :math:`Q_1 Q_2 = P_0`, and uses:
+
+.. math::
+
+  N_x \times (n_y / Q_1) \times (n_z / Q_2).
+
+The figure below illustrates the three reshape strategies for bricks in 3D. The leftmost layout shows the initial brick decomposition with :math:`P_0 = 4` ranks along the :math:`X` dimension. The next three layouts show the resulting pencil decompositions after applying each reshape strategy: splitting along :math:`Z` (strategy 1), splitting along :math:`Y` (strategy 2), and the 2D split with :math:`Q_1 = Q_2 = 2` (strategy 3). Each colored block represents data from one rank, and the figure shows a single slice corresponding to one of the :math:`P_1 \times P_2` positions. The reshape strategy is selected on rank 0 based on divisibility constraints and performance considerations, then broadcasted to all other ranks.
+
+.. image:: images/bricks_reshape.png
+   :width: 1900px
+   :alt: Bricks Reshape strategies
+   :align: center
+
+**2D case.** Assume the global domain is :math:`N_x \times N_y` and ranks are arranged as :math:`P_0 \times P_1`. Let the local block be :math:`(N_x / P_0) \times n_y`, where :math:`n_y = N_y / P_1`. In this case, ``dtFFT`` attempts to redistribute across the :math:`P_0` ranks (keeping :math:`n_y` fixed) as:
+
+- :math:`N_x \times (n_y / P_0)`
+
+
+.. note:: By default, :f:func:`execute` does not reshape data from pencils to bricks in Fourier space. To enable, set ``enable_fourier_reshape`` field of :f:type:`dtfft_config_t` to ``true``.
+
+
+User-controlled redistribution
+______________________________
+
+As in the global-dimension workflow, users can influence how the redistribution is performed by passing an MPI communicator with an attached Cartesian topology during plan creation.
+
+- **1D communicator**: redistributes the :math:`P_0` processes by splitting the last dimension.
+- **2D communicator**:
+
+  - For **3D data**, redistributes across the :math:`Y` and :math:`Z` directions.
+  - For **2D data**, the split along the first (X) dimension must be 1 (to preserve the fastest-varying dimension).
+
+- **3D communicator**: supported for **3D data** only; the split along the :math:`X` dimension must be 1.
+
+For **3D data**, additional consistency constraints apply. Let the Cartesian communicator have :math:`R_1` and :math:`R_2` processes in the :math:`Y` and :math:`Z` directions. Then:
+
+- :math:`R_1 \ge P_1` and :math:`R_2 \ge P_2`
+- Define :math:`r_1 = R_1 / P_1` and :math:`r_2 = R_2 / P_2` (integers). The redistribution must satisfy :math:`r_1 r_2 = P_0`.
+
 
 Slab Optimizations
 ------------------
 
-dtFFT supports two slab optimizations that can reduce the number of data transpositions during FFT execution by employing two-dimensional FFT algorithms where applicable. These optimizations are controlled via the :f:type:`dtfft_config_t` structure or corresponding environment variables.
+dtFFT supports two slab optimizations that can reduce the number of data transpositions during plan execution by employing two-dimensional FFT algorithms where applicable. These optimizations are controlled via the :f:type:`dtfft_config_t` structure or corresponding environment variables.
 
 Z-Slab Optimization
 ___________________
 
-When the grid is decomposed as :math:`N_x \times N_y \times N_z / P` (e.g., via a 1D communicator or the first default step), the Z-slab optimization becomes available. If enabled (default), it reduces the number of data transpositions by employing a two-dimensional FFT algorithm in X-Y directions during calls to :f:func:`execute`. This also enables ``DTFFT_TRANSPOSE_X_TO_Z`` and ``DTFFT_TRANSPOSE_Z_TO_X`` in :f:func:`transpose`, while other transpose types remain available.
+When the grid is decomposed as :math:`N_x \times N_y \times N_z / P`, the Z-slab optimization becomes available. If enabled (default), it reduces the number of data transpositions by employing a two-dimensional FFT algorithm along the X and Y dimensions during calls to :f:func:`execute`. This also enables ``DTFFT_TRANSPOSE_X_TO_Z`` and ``DTFFT_TRANSPOSE_Z_TO_X`` in :f:func:`transpose`, while other transpose types remain available.
 
 This optimization can be disabled through the ``enable_z_slab`` field in :f:type:`dtfft_config_t` or the :ref:`DTFFT_ENABLE_Z_SLAB<dtfft_enable_z_slab_env>` environment variable. It cannot be forced when the decomposition is incompatible with Z-slab requirements. Consider disabling it to resolve ``DTFFT_ERROR_VKFFT_R2R_2D_PLAN`` errors or when the underlying 2D FFT implementation is too slow. In all other cases, Z-slab is considered faster.
 
 Y-Slab Optimization
 ___________________
 
-When the grid is decomposed as :math:`N_x \times N_y / P \times N_z` (e.g., via a 2D communicator splitting along Y), the Y-slab optimization can be enabled. If set (disabled by default), dtFFT will skip the transpose step between Y and Z aligned layouts during calls to :f:func:`execute`, employing a two-dimensional FFT algorithm instead.
+When the grid is decomposed as :math:`N_x \times N_y / P \times N_z`, the Y-slab optimization can be enabled. If enabled (disabled by default), ``dtFFT`` will skip the transpose step between Y-aligned and Z-aligned layouts during calls to :f:func:`execute`, employing a two-dimensional FFT algorithm along the Y and Z dimensions instead.
 
-This optimization can be enabled through the ``enable_y_slab`` field in :f:type:`dtfft_config_t`. Consider disabling it when the underlying 2D FFT implementation is too slow. In all other cases, Y-slab is considered faster.
-
-.. note:: When Y-slab is enabled,
+This optimization can be enabled through the ``enable_y_slab`` field in :f:type:`dtfft_config_t`. Consider disabling it when the underlying 2D FFT implementation is too slow.
 
 
 Precision and FFT Executor
@@ -331,16 +373,14 @@ Two parameters govern the numerical representation and FFT backend selection:
 Selecting plan effort
 ---------------------
 
-The ``effort`` parameter in ``dtFFT`` determines the level of optimization applied during plan creation, influencing how data transposition is configured. On the host, ``dtFFT`` leverages custom MPI datatypes to perform transpositions, tailored to the grid decomposition and data layout. On the GPU, transposition is handled by nvRTC-compiled kernels, optimized at runtime for specific data sizes and types, with data exchange between GPUs facilitated by various backend options (e.g., NCCL, MPI P2P). The supported effort levels defined by :f:type:`dtfft_effort_t` control the extent of this optimization as follows:
+The ``effort`` parameter in ``dtFFT`` determines the level of optimization applied during plan creation, influencing how data transposition is configured. The choice of ``effort`` impacts both plan creation time and runtime performance. Higher effort levels increase setup time but can enhance transposition efficiency, especially for large datasets or complex grids. The supported effort levels defined by :f:type:`dtfft_effort_t` control the extent of this optimization as follows:
 
 DTFFT_ESTIMATE
 ______________
 
 This minimal-effort option prioritizes fast plan creation.
 
-On the host, ``dtFFT`` selects a default grid decomposition and if selected backend is ``DTFFT_BACKEND_MPI_DATATYPE`` constructs MPI datatypes based on environment variables such as ``DTFFT_DTYPE_X_Y`` and ``DTFFT_DTYPE_Y_Z`` (see :ref:`MPI Datatype Selection variables <datatype_selection>`), which define the default send and receive strategies. In a case of other backends preparations are minimal to none.
-
-On the GPU, it uses a pre-selected backend specified via :f:type:`dtfft_config_t` (see configuration details below), compiling an nvRTC kernel tailored to the chosen backend.
+On the host, ``dtFFT`` selects a default grid decomposition. If the selected backend is ``DTFFT_BACKEND_MPI_DATATYPE``, it constructs MPI datatypes based on environment variables such as ``DTFFT_DTYPE_X_Y`` and ``DTFFT_DTYPE_Y_Z`` (see :ref:`MPI Datatype Selection variables <datatype_selection>`), which define the default send and receive strategies.
 
 DTFFT_MEASURE
 _____________
@@ -352,19 +392,14 @@ If a Cartesian communicator is provided or plan is being created using :f:type:`
 DTFFT_PATIENT
 _____________
 
-This maximum-effort option extends ``DTFFT_MEASURE`` by exhaustively optimizing transposition strategies. On the host, it cycles through various custom MPI datatype combinations, optionally including MPI backends if enabled to minimize network latency and maximize throughput. 
+This effort option extends ``DTFFT_MEASURE`` by selecting the best-performing communication backend for All-to-All communications.
 
-On the GPU, it cycles through available backends (e.g., NCCL, MPI P2P). Additionally, it performs kernel autotuning by launching multiple kernel configurations and measuring their performance to select the best one.
+DTFFT_EXHAUSTIVE
+________________
 
-.. note:: Kernel optimization can be enabled with both ``DTFFT_MEASURE`` and ``DTFFT_PATIENT`` effort levels by setting field 
-  ``force_kernel_optimization`` of :f:type:`dtfft_config_t` to ``true``.
+This maximum-effort option extends ``DTFFT_PATIENT`` by including kernel autotuning (both host and GPU, depending on the execution platform) and selecting the best-performing backend for reshape operations.
 
-
----------
-
-The choice of ``effort`` impacts both plan creation time and runtime performance. Higher effort levels (``DTFFT_MEASURE`` and ``DTFFT_PATIENT``) increase setup time but can enhance transposition efficiency, especially for large datasets or complex grids.
-
-If a user already knows the optimal grid decomposition, MPI datatypes, or backend from a previous computation, these can be pre-specified before plan creation: the grid via a custom ``MPI_Comm`` communicator or ``dtfft_pencil_t`` structure,  MPI datatypes through environment variables (e.g., ``DTFFT_DTYPE_X_Y``), and the backend through :f:type:`dtfft_config_t`.
+.. note:: Kernel autotuning can be enabled with all efforts below ``DTFFT_EXHAUSTIVE`` by setting the ``enable_kernel_autotune`` field of :f:type:`dtfft_config_t` to ``true`` or using the :ref:`DTFFT_ENABLE_KERNEL_AUTOTUNE<enable_kernel_autotune>` environment variable.
 
 .. _config_link:
 
@@ -413,7 +448,7 @@ Configurations must be set prior to creating a plan to take effect. The availabl
      - :f:type:`dtfft_platform_t`
      - ``DTFFT_PLATFORM_HOST``
      - ✓
-     - Execution platform (HOST / CUDA). Available only when built with CUDA. When ``dtFFT`` is built with CUDA support, user
+     - Execution platform (HOST / CUDA). Available only when built with CUDA. When ``dtFFT`` is built with CUDA support, users can create either HOST or CUDA plans.
    * - ``stream``
      - :f:type:`dtfft_stream_t`
      - (internal)
@@ -423,7 +458,12 @@ Configurations must be set prior to creating a plan to take effect. The availabl
      - :f:type:`dtfft_backend_t`
      - differs between HOST / CUDA
      - 
-     - Backend used for ``DTFFT_ESTIMATE`` / ``DTFFT_MEASURE``. Default is ``DTFFT_BACKEND_MPI_DATATYPE`` when executed on host. When executed on GPU default is ``DTFFT_BACKEND_NCCL`` if available, otherwise falls back to ``DTFFT_BACKEND_MPI_P2P``.
+     - Backend used for ``DTFFT_ESTIMATE`` / ``DTFFT_MEASURE``. Default is ``DTFFT_BACKEND_MPI_DATATYPE`` when executed on host. When executed on GPU, the default is ``DTFFT_BACKEND_NCCL`` if available; otherwise it falls back to ``DTFFT_BACKEND_MPI_P2P``.
+   * - ``reshape_backend``
+     - :f:type:`dtfft_backend_t`
+     - differs between HOST / CUDA
+     - 
+     - Backend used for reshape operations when ``effort`` is below ``DTFFT_EXHAUSTIVE``. Default is same as ``backend``.
    * - ``enable_datatype_backend``
      - logical
      - ``.true.``
@@ -433,48 +473,40 @@ Configurations must be set prior to creating a plan to take effect. The availabl
      - logical
      - ``.false.``
      - 
-     - Allow MPI backends (tested in ``DTFFT_PATIENT``). Disabled by default due to OpenMPI leak (see docs)
+     - Allow MPI backends (P2P, A2A, etc.) to be tested during backend autotune.
    * - ``enable_pipelined_backends``
      - logical
      - ``.true.``
      - 
-     - Try pipelined variants (overlap copy/unpack); may need internal aux buffer.
+     - Allow pipelined backends to be tested during backend autotune.
    * - ``enable_nccl_backends``
      - logical
      - ``.true.``
      - ✓
-     - Allow NCCL-based backends during autotuning.
+     - Allow NCCL-based backends to be tested during backend autotune.
    * - ``enable_nvshmem_backends``
      - logical
      - ``.true.``
      - ✓
-     - Include NVSHMEM-enabled backends (if library built with NVSHMEM support).
-   * - ``enable_kernel_optimization``
-     - logical
-     - ``.true.``
-     -
-     - Autotune transpose kernels (only in ``DTFFT_PATIENT`` unless forced).
-   * - ``n_configs_to_test``
-     - integer
-     - ``5``
-     -
-     - Number of kernel configs actually launched after scoring (max 25). ``0`` or ``1`` disables kernel optimization.
-   * - ``force_kernel_optimization``
+     - Allow NVSHMEM-enabled backends to be tested during backend autotune.
+   * - ``enable_kernel_autotune``
      - logical
      - ``.false.``
      -
-     - Force kernel autotuning even for lower effort levels (no extra comm, small overhead).
+     - Enable kernel autotuning for effort levels below ``DTFFT_EXHAUSTIVE``. Always enabled for ``DTFFT_EXHAUSTIVE``.
+   * - ``enable_fourier_reshape``
+     - logical
+     - ``.false.``
+     -
+     - Execute reshapes from pencils to bricks in Fourier space during calls to :f:func:`execute`.
 
 .. note::
    Fields marked “CUDA” are available only if the library was compiled with CUDA (``DTFFT_WITH_CUDA``).
 
-.. note:: Almost all values can be overridden by setting the appropriate environment variable, which takes precedence if set. 
-  Refer to :ref:`Environment Variables<environ_link>` section.
-
-These settings allow fine-tuning of transposition strategies and GPU behavior. For example, disabling ``enable_mpi_backends`` mitigates memory leaks, while setting a custom ``stream`` integrates ``dtFFT`` with existing CUDA workflows. Refer to the Fortran, C and C++ API pages for detailed parameter specifications.
+.. note:: Almost all values can be overridden at runtime by setting the appropriate environment variable, which takes precedence if set. Refer to :ref:`Environment Variables<environ_link>` section.
 
 
-Following example creates config object, disables Z-slab, enables MPI Backends and sets custom stream:
+The following example creates a config object, disables Z-slab, enables MPI backends, and sets a custom stream:
 
 .. tabs::
 
@@ -561,13 +593,13 @@ After a plan is created, users may need to determine the memory required to exec
 
 The plan method :f:func:`get_local_sizes` retrieves the number of elements in "real" and "Fourier" spaces and the minimum number of elements that must be allocated:
 
-- **in_starts**: Start indices of the local data portion in real space (0-based)
-- **in_counts**: Number of elements in the local data portion in real space
-- **out_starts**: Start indices of the local data portion in Fourier space (0-based)
-- **out_counts**: Number of elements in the local data portion in Fourier space
-- **alloc_size**: Minimum number of elements needed for ``in``, ``out``, or ``aux`` buffers
+- **in_starts**: Start indices of the local data portion in real-space (0-based)
+- **in_counts**: Number of elements in the local data portion in real-space
+- **out_starts**: Start indices of the local data portion in Fourier-space (0-based)
+- **out_counts**: Number of elements in the local data portion in Fourier-space
+- **alloc_size**: Minimum number of elements needed for ``in`` and ``out`` buffers
 
-.. note:: If Y-slab optimization is enabled (see :f:func:`get_y_slab_enabled`), the Fourier space layout is Y-aligned instead of Z-aligned, and ``out_*`` values reflect the Y-aligned layout.
+.. note:: If Y-slab optimization is enabled (see :f:func:`get_y_slab_enabled`), the Fourier-space layout is Y-aligned instead of Z-aligned, and ``out_*`` values reflect the Y-aligned layout.
 
 Arrays ``in_starts``, ``in_counts``, ``out_starts``, and ``out_counts`` must have at least as many elements as the plan's dimensions.
 
@@ -625,7 +657,7 @@ The minimum number of bytes required for each buffer is ``alloc_size * element_s
     // OR use convenient wrapper
     auto element_size = plan.get_element_size();
 
-For 3D plans, :f:func:`get_local_sizes` does not detail the intermediate Y-direction layout. This information, useful for transpose-only plans or when using unsupported FFT libraries, can be retrieved via the ``pencil`` interface (see `Pencil Decomposition`_ below). Pencil IDs start from 1 in both C and Fortran.
+Note that :f:func:`get_local_sizes` does not describe intermediate pencil layouts. For both 2D and 3D plans, detailed layout information can be retrieved via the ``pencil`` interface (see `Retrieving memory layouts (Pencils)`_ below).
 
 The ``dtFFT`` library provides functions to allocate and free memory tailored to the plan:
 
@@ -644,7 +676,7 @@ Allocates memory based on the :f:type:`dtfft_executor_t`:
 
 - ``fftw_malloc`` for FFTW3
 - ``mkl_malloc`` for MKL DFT
-- ``aligned_alloc`` (16-byte alignment) from C11 Standard library for transpose-only plans.
+- ``aligned_alloc`` (16-byte alignment) from the C11 standard library for transpose-only plans.
 
 GPU Version
 -----------
@@ -712,487 +744,78 @@ If NCCL is used and supports buffer registration via ``ncclCommRegister``, and t
 
 .. note:: Memory allocated with :f:func:`mem_alloc` must be deallocated with :f:func:`mem_free` **before** the plan is destroyed to avoid memory leaks.
 
-Pencil Decomposition
---------------------
+Retrieving memory layouts (Pencils)
+===================================
 
-For detailed layout information in 3D plans (e.g., intermediate states like Y-direction distribution), use the :f:func:`get_pencil` method. This returns a ``dtfft_pencil_t`` structure containing:
+For detailed layout information in 2D and 3D plans, use the :f:func:`get_pencil` method. The requested layout is selected via :f:type:`dtfft_layout_t` (Fortran/C) or ``dtfft::Layout`` (C++).
+
+Supported layouts are:
+
+- ``DTFFT_LAYOUT_X_BRICKS``: X-brick layout (available only for plans that support reshape, i.e., bricks-decomposition plans).
+- ``DTFFT_LAYOUT_Z_BRICKS``: Z-brick layout (available only for plans that support reshape, i.e., bricks-decomposition plans).
+- ``DTFFT_LAYOUT_X_PENCILS``: X-pencil layout in **real-space**.
+- ``DTFFT_LAYOUT_X_PENCILS_FOURIER``: X-pencil layout in **Fourier-space** for **R2C** plans.
+- ``DTFFT_LAYOUT_Y_PENCILS``: Y-pencil layout.
+- ``DTFFT_LAYOUT_Z_PENCILS``: Z-pencil layout (3D plans only).
+
+``DTFFT_LAYOUT_X_PENCILS_FOURIER`` is meaningful only for R2C plans: it describes the distribution and local extents of the Fourier-space X-pencil representation (which differs from real-space X-pencils due to reduced extent along the transformed dimension). For non-R2C plans, requesting this layout returns :f:var:`DTFFT_ERROR_INVALID_LAYOUT`.
+
+This call returns a ``dtfft_pencil_t`` structure containing:
 
 - **dim**: Aligned dimension ID (1 for X, 2 for Y, 3 for Z).
 - **ndims**: Number of dimensions in the pencil (2 or 3)
-- **starts**: Local start indices in natural Fortran order. (Allocatable array of size ``ndims``)
-- **counts**: Local element counts in natural Fortran order (Allocatable array of size ``ndims``)
+- **starts**: Local start indices (0-based) in natural Fortran order. In C/C++, the array ``starts[3]`` always has size 3, but only the first ``ndims`` elements contain valid data.
+- **counts**: Local element counts (in elements) in natural Fortran order. In C/C++, the array ``counts[3]`` always has size 3, but only the first ``ndims`` elements contain valid data.
 - **size**: Total number of elements in a pencil
 
 .. tabs::
 
   .. code-tab:: fortran
 
-    integer(int8) :: i
-    type(dtfft_pencil_t) :: pencils(3)
+    type(dtfft_pencil_t) :: x_pencil, y_pencil, z_pencil
 
-    do i = 1, 3
-      ! Get pencil for dimension i
-      pencils(i) = plan%get_pencil(i, error_code)
-      DTFFT_CHECK(error_code)
-      ! Access pencil properties, e.g., pencils(i)%dim, pencils(i)%starts
-    end do
+    x_pencil = plan%get_pencil(DTFFT_LAYOUT_X_PENCILS, error_code); DTFFT_CHECK(error_code)
+    y_pencil = plan%get_pencil(DTFFT_LAYOUT_Y_PENCILS, error_code); DTFFT_CHECK(error_code)
+    z_pencil = plan%get_pencil(DTFFT_LAYOUT_Z_PENCILS, error_code); DTFFT_CHECK(error_code)
+
+    ! Access pencil properties, e.g., x_pencil%dim, x_pencil%starts
 
   .. code-tab:: c
 
-    dtfft_pencil_t pencils[3];
+    dtfft_pencil_t x_pencil, y_pencil, z_pencil;
 
-    for (int8_t i = 0; i < 3; i++) {
-      DTFFT_CALL( dtfft_get_pencil(plan, i + 1, &pencils[i]) );
-      // Access pencil properties, e.g., pencils[i].dim, pencils[i].starts
-    }
+    DTFFT_CALL( dtfft_get_pencil(plan, DTFFT_LAYOUT_X_PENCILS, &x_pencil) );
+    DTFFT_CALL( dtfft_get_pencil(plan, DTFFT_LAYOUT_Y_PENCILS, &y_pencil) );
+    DTFFT_CALL( dtfft_get_pencil(plan, DTFFT_LAYOUT_Z_PENCILS, &z_pencil) );
+
+    // Access pencil properties, e.g., x_pencil.dim, x_pencil.starts
 
   .. code-tab:: c++
 
-    std::vector<dtfft::Pencil> pencils;
+    auto x_pencil = plan.get_pencil(dtfft::Layout::X_PENCILS); // throws dtfft::Exception on error
+    auto y_pencil = plan.get_pencil(dtfft::Layout::Y_PENCILS);
+    auto z_pencil = plan.get_pencil(dtfft::Layout::Z_PENCILS);
 
-    for (int8_t i = 0; i < 3; i++) {
-      dtfft::Pencil pencil = plan.get_pencil(i + 1); // This call will throw an exception if an error occurs
-      pencils.push_back(pencil);
-      // Access pencil properties, e.g., pencils[i].get_dim(), pencils[i].get_starts()
-    }
-
-In C++, the ``dtfft::Pencil`` class provides properties via getter methods:
-
-- ``get_ndims()``: Returns the number of dimensions
-- ``get_dim()``: Returns the aligned dimension ID
-- ``get_starts()``: Returns the start indices as a ``std::vector<int32_t>``
-- ``get_counts()``: Returns the element counts as a ``std::vector<int32_t>``
-- ``get_size()``: Returns the total number of elements.
-- ``c_struct()``: Returns the underlying C structure (``dtfft_pencil_t``)
-
-Plan properties
-=====================================
-
-After creating a plan, several methods are available to inspect its runtime configuration and behavior. These methods, defined in :f:type:`dtfft_plan_t`, provide valuable insights into the plan's setup and are particularly useful for debugging or integrating with custom workflows. The following methods are supported:
-
-- :f:func:`get_z_slab_enabled`: Returns a logical value indicating whether Z-slab optimization is active in the plan, as configured via :f:type:`dtfft_config_t` (see `Setting Additional Configurations`_). This helps users confirm if the optimization is applied, especially when troubleshooting performance or compatibility issues.
-
-- :f:func:`get_y_slab_enabled`: Returns a logical value indicating whether Y-slab optimization is active in the plan, as configured via :f:type:`dtfft_config_t` (see `Setting Additional Configurations`_). This allows users to verify the optimization status, which can impact performance and data layout during execution.
-
-- :f:func:`get_backend`: Retrieves the backend (e.g., NCCL, MPI P2P) selected during plan creation or autotuning with ``DTFFT_PATIENT`` effort (see `Selecting plan effort`_).
-
-- :f:func:`get_stream`: Returns the CUDA stream associated with the plan, either the default stream managed by ``dtFFT`` or a custom one set via :f:type:`dtfft_config_t` (see `Setting Additional Configurations`_).
-
-  Available only in CUDA-enabled builds, it enables integration with existing CUDA workflows by exposing the stream used for GPU operations.
-
-- :f:func:`report`: Prints detailed plan information to stdout, including grid decomposition, backend selection, and optimization settings. This diagnostic tool aids in understanding the plan's configuration and troubleshooting unexpected behavior.
-
-- :f:func:`get_executor`: Returns the executor type (e.g., NONE, VKFFT, CUFFT) used for FFT computations within the plan.
-
-- :f:func:`get_precision`: Returns the numerical precision (:f:var:`DTFFT_SINGLE` or :f:var:`DTFFT_DOUBLE`) of the plan.
-
-- :f:func:`get_dims`: Returns global dimensions of the plan. This can be useful for validating the plan's setup against expected sizes.
-
-- :f:func:`get_grid_dims`: Returns the grid decomposition dimensions used in the plan, reflecting how the global domain is partitioned across MPI ranks.
-
-- :f:func:`get_platform`: Returns the execution platform (:f:var:`DTFFT_PLATFORM_HOST` or :f:var:`DTFFT_PLATFORM_CUDA`) of the plan.
-
-  Available only in CUDA-enabled builds
-
-These methods provide a window into the plan's internal state, allowing users to validate settings or gather diagnostics post-creation. They remain accessible until the plan is destroyed with :f:func:`destroy`.
+    // Access pencil properties, e.g., x_pencil.get_dim(), x_pencil.get_starts()
 
 Plan Execution
 ==============
 
-There are two primary methods to execute a plan in ``dtFFT``: ``transpose`` and ``execute``. Below, we detail each method, including their behavior for host and GPU versions of the API.
-
-Transpose
----------
-
-The first method is to call the :f:func:`transpose` method of the plan. There are two ways to invoke it: asynchronously by executing :f:func:`transpose_start` followed by :f:func:`transpose_end`, or synchronously by calling :f:func:`transpose` directly.
-
-Asynchronous transpose is only useful for host plans when backend is set to one of the :f:var:`DTFFT_BACKEND_MPI_DATATYPE`, :f:var:`DTFFT_BACKEND_MPI_P2P` or :f:var:`DTFFT_BACKEND_MPI_A2A` options, allowing overlap of communication with computation. All CUDA backends are executed asynchronously by default.
-
-Signature
-_________
-
-The signature is as follows:
-
-.. tabs::
-
-  .. code-tab:: fortran
-
-    subroutine dtfft_plan_t%transpose(in, out, transpose_type, error_code)
-      type(*)                     intent(inout) :: in(..)
-      type(*)                     intent(inout) :: out(..)
-      type(dtfft_transpose_t),    intent(in)    :: transpose_type
-      integer(int32),   optional, intent(out)   :: error_code
-    end subroutine
-
-    subroutine dtfft_plan_t%transpose_ptr(in, out, transpose_type, error_code)
-      type(c_ptr)                 intent(in)    :: in
-      type(c_ptr)                 intent(in)    :: out
-      type(dtfft_transpose_t),    intent(in)    :: transpose_type
-      integer(int32),   optional, intent(out)   :: error_code
-    end subroutine
-
-    type(dtfft_request_t) function dtfft_plan_t%transpose_start(in, out, transpose_type, error_code)
-      type(*)                     intent(inout) :: in(..)
-      type(*)                     intent(inout) :: out(..)
-      type(dtfft_transpose_t),    intent(in)    :: transpose_type
-      integer(int32),   optional, intent(out)   :: error_code
-    end function
-
-    type(dtfft_request_t) function dtfft_plan_t%transpose_start_ptr(in, out, transpose_type, error_code)
-      type(c_ptr)                 intent(in)    :: in
-      type(c_ptr)                 intent(in)    :: out
-      type(dtfft_transpose_t),    intent(in)    :: transpose_type
-      integer(int32),   optional, intent(out)   :: error_code
-    end function
-
-    subroutine dtfft_plan_t%transpose_end(request, error_code)
-      type(dtfft_request_t),      intent(inout) :: request
-      integer(int32),   optional, intent(out)   :: error_code
-    end subroutine
-
-  .. code-tab:: c
-
-      dtfft_error_t
-      dtfft_transpose(
-        dtfft_plan_t plan,
-        void *in,
-        void *out,
-        const dtfft_transpose_t transpose_type);
-
-      dtfft_error_t
-      dtfft_transpose_start(
-        dtfft_plan_t plan,
-        void *in,
-        void *out,
-        const dtfft_transpose_t transpose_type,
-        dtfft_request_t *request);
-
-      dtfft_error_t
-      dtfft_transpose_end(
-        dtfft_plan_t plan,
-        dtfft_request_t request);
-
-  .. code-tab:: c++
-
-      dtfft::Error
-      dtfft::Plan::transpose(
-          void *in,
-          void *out,
-          const dtfft::Transpose transpose_type);
-
-      dtfft::Error
-      dtfft::Plan::transpose_start(
-          void *in,
-          void *out,
-          const dtfft::Transpose transpose_type,
-          dtfft_request_t* request);
-
-      dtfft::Error
-      dtfft::Plan::transpose_end(
-          dtfft_request_t request);
-
-Description
-___________
-
-This method transposes data according to the specified ``transpose_type``. Supported options include:
-
-- ``DTFFT_TRANSPOSE_X_TO_Y``: Transpose from X to Y
-- ``DTFFT_TRANSPOSE_Y_TO_X``: Transpose from Y to X
-- ``DTFFT_TRANSPOSE_Y_TO_Z``: Transpose from Y to Z (valid only for 3D plans)
-- ``DTFFT_TRANSPOSE_Z_TO_Y``: Transpose from Z to Y (valid only for 3D plans)
-- ``DTFFT_TRANSPOSE_X_TO_Z``: Transpose from X to Z (valid only for 3D plans using Z-slab)
-- ``DTFFT_TRANSPOSE_Z_TO_X``: Transpose from Z to X (valid only for 3D plans using Z-slab)
-
-.. note::
-   Passing the same pointer to both ``in`` and ``out`` is not permitted; doing so triggers the error :f:var:`DTFFT_ERROR_INPLACE_TRANSPOSE`.
+There are three primary methods to execute a plan in ``dtFFT``: ``execute``, ``transpose``, and ``reshape``. The first performs the full workflow, while the others are useful for custom workflows that require only data transposition or reshaping (for example, when using an external FFT library).
 
 .. note::
 
-  Calling :f:func:`transpose` for R2C plan is not allowed.
-
-**Datatype Backend Version**: When the backend is ``DTFFT_BACKEND_MPI_DATATYPE``, calling :f:func:`transpose` executes a single ``MPI_Ialltoall(w)`` call followed by ``MPI_Wait`` to complete the operation. In contrast :f:func:`transpose_start` initiates an asynchronous ``MPI_Ialltoall(w)`` call, creating the corresponding MPI request and returning a ``dtfft_request_t`` object containing information about the started transposition. In both cases, non-contiguous MPI Datatypes are used, and the ``out`` buffer contains the transposed data once the operation completes, leaving the ``in`` buffer unchanged.
-
-**Generic Version**: Performs a three-step transposition:
-
-- Executes transposition kernel to transpose data locally. On a single process, this completes the task, and control returns to the user.
-- Performs data redistribution using the selected backend (e.g., MPI, NCCL). Differences between backends begin at this step (see below for specifics).
-- Final step executes data unpacking kernel to rearrange received data into the ``out`` buffer.
-
-In the Generic version, the ``in`` buffer may serve as intermediate storage, potentially modifying its contents, except when operating on a single process, where it remains unchanged.
-
-GPU Backend-Specific Behavior
-_____________________________
-
-- **MPI-Based Backends** (:f:var:`DTFFT_BACKEND_MPI_P2P`, :f:var:`DTFFT_BACKEND_MPI_A2A` and :f:var:`DTFFT_BACKEND_MPI_P2P_SCHEDULED`):
-
-  After local transposition, redistributes data using CUDA-aware MPI. Data destined for the same GPU ("self" data) is copied via ``cudaMemcpyAsync``.
-
-  For **MPI Peer-to-Peer** (``MPI_P2P``), it issues non-blocking ``MPI_Irecv`` and ``MPI_Isend`` calls (or ``MPI_Recv_init`` and ``MPI_Send_init`` with ``MPI_Startall`` if built with ``DTFFT_ENABLE_PERSISTENT_COMM``) for point-to-point exchanges between GPUs, completing with ``MPI_Waitall``; an nvRTC kernel then unpacks all data at once.
-
-  For **MPI All-to-All** (``MPI_A2A``), it performs a single ``MPI_Ialltoall(v)`` call (or ``MPI_Alltoall(v)_init`` with ``MPI_Start`` if built with ``DTFFT_ENABLE_PERSISTENT_COMM`` and supported by MPI), completing with ``MPI_Wait``; an nvRTC kernel then unpacks the data.
-
-  For **MPI Peer-to-Peer with explicit scheduling** (``MPI_P2P_SCHEDULED``), it uses a precomputed round-robin schedule to issue blocking MPI_Sendrecv call sequence.
-
-- **Pipelined MPI Peer-to-Peer** (:f:var:`DTFFT_BACKEND_MPI_P2P_PIPELINED`):
-
-  After local transposition, redistributes data similarly to ``MPI_P2P`` using CUDA-aware MPI with non-blocking ``MPI_Irecv`` and ``MPI_Isend`` calls (or ``MPI_Recv_init`` and ``MPI_Send_init`` with ``MPI_Startall`` if built with ``DTFFT_ENABLE_PERSISTENT_COMM``).
-
-  Data destined for the same GPU ("self" data) is copied via ``cudaMemcpyAsync``. Unlike ``MPI_P2P``, as soon as data arrives from a process *i*, it is immediately unpacked by launching an nvRTC kernel specific to that process's data.
-
-  This results in *N* nvRTC kernels (one per process) instead of a single kernel unpacking all data, enabling pipelining of communication and computation to reduce latency.
-
-- **NCCL-Based Backends** (:f:var:`DTFFT_BACKEND_NCCL` and :f:var:`DTFFT_BACKEND_NCCL_PIPELINED`):
-
-  After local transposition, redistributes data using the NCCL library for GPU-to-GPU communication.
-
-  For **NCCL** (``DTFFT_BACKEND_NCCL``), it executes a cycle of ``ncclSend`` and ``ncclRecv`` calls within ``ncclGroupStart`` and ``ncclGroupEnd`` to perform point-to-point exchanges between all processes, including "self" data. Once communication completes, an nvRTC kernel unpacks all data at once, similar to ``MPI_P2P``.
-
-  For **Pipelined NCCL** (:f:var:`DTFFT_BACKEND_NCCL_PIPELINED`), it copies "self" data using ``cudaMemcpyAsync`` and immediately unpacks it with an nvRTC kernel in a parallel stream created by ``dtFFT``. Concurrently, in main stream, it runs the same ``ncclSend`` / ``ncclRecv`` cycle (within ``ncclGroupStart`` and ``ncclGroupEnd``) for data exchange with other processes, excluding "self" data. After communication completes, an nvRTC kernel unpacks the data received from all other processes.
-
-- **cuFFTMp** (:f:var:`DTFFT_BACKEND_CUFFTMP`):
-
-  After local transposition from the ``in`` buffer to the ``out`` buffer using an nvRTC kernel, redistributes data using the cuFFTMp library by calling ``cufftMpExecReshapeAsync``. This function performs an asynchronous all-to-all exchange across multiple GPUs, reshaping the data from the ``out`` buffer back into the ``in`` buffer. Since the final transposed data is required in the ``out`` buffer, it is then copied from ``in`` to ``out`` using ``cudaMemcpyAsync``.
-
-- **Pipelined cuFFTMp** (:f:var:`DTFFT_BACKEND_CUFFTMP_PIPELINED`):
-
-  This backend optimizes the standard ``cuFFTMp`` approach by eliminating the final ``cudaMemcpyAsync`` step. It begins with a local transposition from the ``in`` buffer to an auxiliary (``aux``) buffer using an nvRTC kernel. Then, it calls ``cufftMpExecReshapeAsync`` to perform the all-to-all exchange, reshaping the data directly from the ``aux`` buffer into the final ``out`` buffer. This approach avoids the extra copy required by the standard ``cuFFTMp`` backend, potentially reducing latency, but requires an additional ``aux`` buffer for its operation.
-
-
-.. note::
-
-  Performance and behavior may vary based on GPU interconnects (e.g., NVLink), MPI implementation, and system configuration. To automatically select the fastest GPU backend for a given system, use the ``DTFFT_PATIENT`` effort level when creating plan, which tests each backend and chooses the most efficient one.
-
-.. note::
-
-  Pipelined backends (:f:var:`DTFFT_BACKEND_MPI_P2P_PIPELINED` and :f:var:`DTFFT_BACKEND_NCCL_PIPELINED`) require an additional ``aux`` buffer, which is managed internally by ``dtFFT`` and inaccessible to the user. Similarly, :f:var:`DTFFT_BACKEND_CUFFTMP` may require an ``aux`` buffer if ``cufftMpGetReshapeSize`` returns a value greater than 0, such as when the environment variable ``CUFFT_RESHAPE_USE_PACKING=1`` is set.
-
-  In all other cases, transposition requires only the ``in`` and ``out`` buffers.
-
-.. note::
-
-  Host version of MPI-based backends does practically the same as GPU version, but uses host memory buffers and performs transpositions and data unpacking using precompiled host kernels.
-
-Example
-_______
-
-Below is an example of transposing data from X to Y and back:
-
-.. tabs::
-
-  .. code-tab:: fortran
-
-    ! Assuming plan is created and buffers `a` and `b` are allocated.
-    call plan%transpose(a, b, DTFFT_TRANSPOSE_X_TO_Y, error_code)
-    DTFFT_CHECK(error_code)  ! Checks for errors
-
-    ! Process Y-aligned data in buffer `b`
-    ! ... (e.g., apply scaling or analysis)
-
-    ! Reverse transposition
-    call plan%transpose(b, a, DTFFT_TRANSPOSE_Y_TO_X, error_code)
-    DTFFT_CHECK(error_code)
-
-    ! Alternatively, using pointers of type c_ptr
-    call plan%transpose_ptr(a_ptr, b_ptr, DTFFT_TRANSPOSE_X_TO_Y, error_code)
-    DTFFT_CHECK(error_code)
-
-    ! ...
-
-    call plan%transpose_ptr(b_ptr, a_ptr, DTFFT_TRANSPOSE_Y_TO_X, error_code)
-    DTFFT_CHECK(error_code)
-
-  .. code-tab:: c
-
-    // Assuming plan is created and buffers `a` and `b` are allocated.
-    DTFFT_CALL( dtfft_transpose(plan, a, b, DTFFT_TRANSPOSE_X_TO_Y) )
-
-    // Process Y-aligned data in buffer `b`
-    // ... (e.g., apply scaling or analysis)
-
-    // Reverse transposition
-    DTFFT_CALL( dtfft_transpose(plan, b, a, DTFFT_TRANSPOSE_Y_TO_X) )
-
-  .. code-tab:: c++
-
-    // Assuming plan is created and buffers `a` and `b` are allocated.
-    DTFFT_CXX_CALL( plan.transpose(a, b, dtfft::Transpose::X_TO_Y) )
-
-    // Process Y-aligned data in buffer `b`
-    // ... (e.g., apply scaling or analysis)
-
-    // Reverse transposition
-    DTFFT_CXX_CALL( plan.transpose(b, a, dtfft::Transpose::Y_TO_X) )
+  On a CUDA platform, all plan execution functions operate asynchronously. When a function returns, work is queued in a CUDA stream but may not be complete. Full synchronization with the host requires calling ``cudaDeviceSynchronize``, ``cudaStreamSynchronize``, or ``!$acc wait`` (for OpenACC). During execution, ``dtFFT`` may use multiple CUDA streams, but the final stage always occurs in the stream returned by :f:func:`get_stream`. Thus, synchronization may be unnecessary if users submit additional kernels to that stream.
 
 Execute
 -------
 
-The second method is to call the :f:func:`execute` method of the plan.
+This method executes a plan by optionally reshaping data from bricks to pencils (and vice versa), transposing data between pencils, and optionally performing FFTs based on the specified ``execute_type``. It supports in-place execution; the same pointer can be safely passed to both ``in`` and ``out``. To optimize memory usage, ``dtFFT`` uses the ``in`` buffer as intermediate storage, overwriting its contents. Users needing to preserve original data should copy it elsewhere.
 
-Signature
-_________
+Supported ``execute_type`` values are:
 
-The signature is as follows:
-
-.. tabs::
-
-  .. code-tab:: fortran
-
-    subroutine dtfft_plan_t%execute(in, out, execute_type, aux, error_code)
-      type(*)                     intent(inout) :: in(..)
-      type(*)                     intent(inout) :: out(..)
-      type(dtfft_execute_t),      intent(in)    :: execute_type
-      type(*),          optional, intent(inout) :: aux(..)
-      integer(int32),   optional, intent(out)   :: error_code
-    end subroutine
-
-    subroutine dtfft_plan_t%execute_ptr(in, out, execute_type, aux, error_code)
-      type(c_ptr)                 intent(in)    :: in
-      type(c_ptr)                 intent(in)    :: out
-      type(dtfft_execute_t),      intent(in)    :: execute_type
-      type(c_ptr)                 intent(in)    :: aux
-      integer(int32),   optional, intent(out)   :: error_code
-    end subroutine
-
-  .. code-tab:: c
-
-      dtfft_error_t
-      dtfft_execute(
-        dtfft_plan_t plan,
-        void *in,
-        void *out,
-        const dtfft_execute_t execute_type,
-        void *aux);
-
-  .. code-tab:: c++
-
-      dtfft::Error
-      dtfft::Plan::execute(
-          void *in,
-          void *out,
-          const dtfft::Execute execute_type,
-          void *aux=nullptr);
-
-      template<typename Tr>
-      Tr *
-      dtfft::Plan::execute(
-          void *inout, 
-          const Execute execute_type, 
-          void *aux=nullptr);
-
-      template<typename T, typename Tr = T>
-      Tr *
-      dtfft::Plan::execute(
-          T *inout, 
-          const dtfft::Execute execute_type, 
-          void *aux=nullptr);
-
-      dtfft::Error
-      dtfft::Plan::forward(
-          void *in, 
-          void *out, 
-          void *aux);
-
-      template<typename Tr>
-      Tr *
-      dtfft::Plan::forward(
-          void *inout, 
-          void *aux=nullptr);
-
-      template<typename T, typename Tr = T>
-      Tr *
-      dtfft::Plan::forward(
-          T *inout, 
-          void *aux=nullptr);
-
-      dtfft::Error
-      dtfft::Plan::backward(
-          void *in, 
-          void *out, 
-          void *aux);
-
-      template<typename Tr>
-      Tr *
-      dtfft::Plan::backward(
-          void *inout, 
-          void *aux=nullptr);
-
-      template<typename T, typename Tr = T>
-      Tr *
-      dtfft::Plan::backward(
-          T *inout, 
-          void *aux=nullptr);
-
-Description
-___________
-
-This method executes a plan, performing transpositions and optionally FFTs based on the specified ``execute_type``. It supports in-place execution; the same pointer can be safely passed to both ``in`` and ``out``. To optimize memory usage, ``dtFFT`` uses the ``in`` buffer as intermediate storage, overwriting its contents. Users needing to preserve original data should copy it elsewhere.
-
-The key parameter is ``execute_type``, with two options:
-
-- ``DTFFT_EXECUTE_FORWARD``: Forward execution
-- ``DTFFT_EXECUTE_BACKWARD``: Backward execution
-
-For 3D plans, the method operates as follows:
-
-**Forward Execution** (``DTFFT_EXECUTE_FORWARD``):
-
-- If ``Transpose-Only``:
-
-  - Transpose from X to Y
-  - Transpose from Y to Z
-- If ``Transpose-Only`` with Z-slab and distinct ``in`` and ``out``:
-
-  - Transpose from X to Z
-- If ``Transpose-Only`` with Y-slab and distinct ``in`` and ``out``:
-
-  - Transpose from X to Y
-- If using FFT:
-
-  - Forward FFT in X direction
-  - Transpose from X to Y
-  - Forward FFT in Y direction
-  - Transpose from Y to Z
-  - Forward FFT in Z direction
-- If using FFT with Z-slab:
-
-  - Forward 2D FFT in X-Y directions
-  - Transpose from X to Z
-  - Forward FFT in Z direction
-- If using FFT with Y-slab:
-
-  - Forward FFT in X direction
-  - Transpose from X to Y
-  - Forward 2D FFT in Y-Z directions
-
-**Backward Execution** (``DTFFT_EXECUTE_BACKWARD``):
-
-- If ``Transpose-Only``:
-
-  - Transpose from Z to Y
-  - Transpose from Y to X
-- If ``Transpose-Only`` with Z-slab and distinct ``in`` and ``out``:
-
-  - Transpose from Z to X
-- If ``Transpose-Only`` with Y-slab and distinct ``in`` and ``out``:
-
-  - Transpose from Y to X
-- If using FFT:
-
-  - Backward FFT in Z direction
-  - Transpose from Z to Y
-  - Backward FFT in Y direction
-  - Transpose from Y to X
-  - Backward FFT in X direction
-- If using FFT with Z-slab:
-
-  - Backward FFT in Z direction
-  - Transpose from Z to X
-  - Backward 2D FFT in X-Y directions
-- If using FFT with Y-slab:
-
-  - Backward 2D FFT in Y-Z directions
-  - Transpose from Y to X
-  - Backward FFT in X direction
+- ``DTFFT_EXECUTE_FORWARD``: Forward execution, transforming data from real-space to Fourier-space.
+- ``DTFFT_EXECUTE_BACKWARD``: Backward execution, transforming data from Fourier-space to real-space.
 
 .. note::
 
@@ -1201,13 +824,15 @@ For 3D plans, the method operates as follows:
 
 .. note::
 
-  There are two cases when in-place execution is not allowed:
+  These are the only cases when in-place execution is not allowed:
 
     - 2D ``Transpose-Only`` plan
     - 3D ``Transpose-Only`` with Y-slab optimization enabled.
+    - ``Transpose-Only`` plan with **bricks** decomposition and ``enable_fourier_reshape`` attribute in :f:type:`dtfft_config_t` set to ``false``.
 
-An optional auxiliary buffer ``aux`` may be provided. If omitted on the first call to :f:func:`execute`,
-it is allocated internally and freed when the plan is destroyed. C users can pass ``NULL`` to opt out.
+.. note::
+
+  Calling :f:func:`execute` on a ``Transpose-Only`` R2C plan is not allowed.
 
 Example
 _______
@@ -1260,12 +885,256 @@ Below is an example of executing a plan forward and backward:
     // Backward execution
     DTFFT_CXX_CALL( plan.execute(b, a, dtfft::Execute::BACKWARD, aux) )
 
-GPU Notes
+
+Transpose
 ---------
 
-Both ``transpose`` and ``execute`` in the GPU version operate asynchronously. When either function returns, computations are queued in a CUDA stream but may not be complete. Full synchronization with the host requires calling ``cudaDeviceSynchronize``, ``cudaStreamSynchronize``, or ``!$acc wait`` (for OpenACC).
+This method executes a single data transposition between different pencil layouts (e.g., X-aligned to Y-aligned), writing the result into the ``out`` buffer.
+There are two ways to invoke it: synchronously by calling :f:func:`transpose` directly, or as a split-phase operation by calling :f:func:`transpose_start` followed by :f:func:`transpose_end` (managed via a ``dtfft_request_t`` handle).
 
-During execution, ``dtFFT`` may use multiple CUDA streams, but the final computation stage always occurs in the stream returned by :f:func:`get_stream`. Thus, synchronization may be unnecessary if users submit additional kernels to that stream.
+The split-phase API is primarily useful for **host** plans with the following backends:
+
+- :f:var:`DTFFT_BACKEND_MPI_DATATYPE`
+- :f:var:`DTFFT_BACKEND_MPI_P2P`
+- :f:var:`DTFFT_BACKEND_MPI_A2A`
+- :f:var:`DTFFT_BACKEND_MPI_RMA`
+
+Regardless of platform, after :f:func:`transpose_start` returns, both ``in`` and ``out`` buffers must remain valid and unmodified until :f:func:`transpose_end` completes.
+
+This method transposes data according to the specified ``transpose_type`` parameter. Supported options include:
+
+- ``DTFFT_TRANSPOSE_X_TO_Y``: Transpose from X to Y
+- ``DTFFT_TRANSPOSE_Y_TO_X``: Transpose from Y to X
+- ``DTFFT_TRANSPOSE_Y_TO_Z``: Transpose from Y to Z (valid only for 3D plans)
+- ``DTFFT_TRANSPOSE_Z_TO_Y``: Transpose from Z to Y (valid only for 3D plans)
+- ``DTFFT_TRANSPOSE_X_TO_Z``: Transpose from X to Z (valid only for 3D plans using Z-slab)
+- ``DTFFT_TRANSPOSE_Z_TO_X``: Transpose from Z to X (valid only for 3D plans using Z-slab)
+
+.. note::
+   Passing the same pointer to both ``in`` and ``out`` is not permitted; doing so triggers the error :f:var:`DTFFT_ERROR_INPLACE_TRANSPOSE`.
+
+**Datatype Backend Version**: When the backend is ``DTFFT_BACKEND_MPI_DATATYPE``, calling :f:func:`transpose` executes a single ``MPI_Ialltoall(w)`` call followed by ``MPI_Wait`` to complete the operation. In contrast, :f:func:`transpose_start` initiates the ``MPI_Ialltoall(w)`` call and returns a ``dtfft_request_t`` handle that must later be finalized with :f:func:`transpose_end`. In both cases, non-contiguous MPI datatypes are used; once the operation completes, the ``out`` buffer contains the transposed data and the ``in`` buffer remains unchanged.
+
+**Generic Version**: Performs a three-step transposition:
+
+- Executes a local transposition kernel. On a single process, this completes the task and control returns to the user.
+- Performs data redistribution using the selected backend.
+- The final step runs data-unpacking kernel(s) to rearrange received data into the ``out`` buffer.
+
+In the Generic version, the ``in`` buffer may serve as intermediate storage and its contents may be modified. If you need to preserve ``in``, copy it beforehand.
+
+Example
+_______
+
+Below is an example of transposing data from X to Y and back:
+
+.. tabs::
+
+  .. code-tab:: fortran
+
+    ! Assuming plan is created and buffers `a` and `b` are allocated.
+    call plan%transpose(a, b, DTFFT_TRANSPOSE_X_TO_Y, error_code)
+    DTFFT_CHECK(error_code)  ! Checks for errors
+
+    ! Process Y-aligned data in buffer `b`
+    ! ... (e.g., apply scaling or analysis)
+
+    ! Reverse transposition
+    call plan%transpose(b, a, DTFFT_TRANSPOSE_Y_TO_X, error_code)
+    DTFFT_CHECK(error_code)
+
+    ! Alternatively, using pointers of type c_ptr
+    call plan%transpose_ptr(a_ptr, b_ptr, DTFFT_TRANSPOSE_X_TO_Y, error_code)
+    DTFFT_CHECK(error_code)
+
+    ! ...
+
+    call plan%transpose_ptr(b_ptr, a_ptr, DTFFT_TRANSPOSE_Y_TO_X, error_code)
+    DTFFT_CHECK(error_code)
+
+  .. code-tab:: c
+
+    // Assuming plan is created and buffers `a` and `b` are allocated.
+    DTFFT_CALL( dtfft_transpose(plan, a, b, DTFFT_TRANSPOSE_X_TO_Y, NULL) )
+
+    // Process Y-aligned data in buffer `b`
+    // ... (e.g., apply scaling or analysis)
+
+    // Reverse transposition
+    DTFFT_CALL( dtfft_transpose(plan, b, a, DTFFT_TRANSPOSE_Y_TO_X, NULL) )
+
+  .. code-tab:: c++
+
+    // Assuming plan is created and buffers `a` and `b` are allocated.
+    DTFFT_CXX_CALL( plan.transpose(a, b, dtfft::Transpose::X_TO_Y, nullptr) )
+
+    // Process Y-aligned data in buffer `b`
+    // ... (e.g., apply scaling or analysis)
+
+    // Reverse transposition
+    DTFFT_CXX_CALL( plan.transpose(b, a, dtfft::Transpose::Y_TO_X, nullptr) )
+
+Reshape
+-------
+
+This method redistributes data between **brick** and **pencil** decompositions, writing the result into the ``out`` buffer. It can be invoked either synchronously via :f:func:`reshape` or as a split-phase operation via :f:func:`reshape_start` followed by :f:func:`reshape_end` (managed via a ``dtfft_request_t`` handle).
+
+.. note::
+
+  Reshape operations are available only for plans created with **bricks decomposition**. Calling :f:func:`reshape` on a plan without reshape support returns :f:var:`DTFFT_ERROR_RESHAPE_NOT_SUPPORTED`.
+
+Reshape operations may use a **separate backend** that is independent of the main transpose backend. The backend type is the same (i.e., :f:type:`dtfft_backend_t`), and the set of supported backend values is the same as for transpose. The reshape backend can be configured via ``reshape_backend`` in :f:type:`dtfft_config_t` or via the environment variable ``DTFFT_RESHAPE_BACKEND`` (see :doc:`environ`). To inspect the selected backends at runtime, use :f:func:`get_backend` (transpose) and :f:func:`get_reshape_backend` (reshape).
+
+The split-phase API is primarily useful for **host** plans to overlap communication with computation. After :f:func:`reshape_start` returns, both ``in`` and ``out`` buffers must remain valid and must not be modified until :f:func:`reshape_end` completes.
+
+This method reshapes data according to the specified ``reshape_type`` parameter. Supported options include:
+
+- ``DTFFT_RESHAPE_X_BRICKS_TO_PENCILS``: Reshape from X-bricks to X-pencils
+- ``DTFFT_RESHAPE_X_PENCILS_TO_BRICKS``: Reshape from X-pencils to X-bricks
+- ``DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS``: Reshape from Z-bricks to Z-pencils
+- ``DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS``: Reshape from Z-pencils to Z-bricks
+
+Inverse pairs are:
+
+- ``DTFFT_RESHAPE_X_BRICKS_TO_PENCILS`` <-> ``DTFFT_RESHAPE_X_PENCILS_TO_BRICKS``
+- ``DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS`` <-> ``DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS``
+
+For 2D plans, the same idea applies to Y layouts (``DTFFT_RESHAPE_Y_BRICKS_TO_PENCILS`` <-> ``DTFFT_RESHAPE_Y_PENCILS_TO_BRICKS``).
+
+.. note::
+   Passing the same pointer to both ``in`` and ``out`` is not permitted; doing so triggers the error :f:var:`DTFFT_ERROR_INPLACE_RESHAPE`.
+
+.. note::
+  As with :f:func:`transpose` (Generic version), ``reshape`` may use the ``in`` buffer as temporary storage and its contents may be modified. If you need to preserve ``in``, copy it beforehand.
+
+Example
+_______
+
+Below is an example of a full custom 3D FFT workflow using :f:func:`reshape` and :f:func:`transpose` together with an external (1D) FFT implementation. The FFT calls shown are placeholders: use FFTW/MKL/cuFFT/VkFFT (or another library) to execute 1D transforms along the currently aligned dimension.
+
+.. tabs::
+
+  .. code-tab:: fortran
+
+    ! Assuming a bricks-decomposition plan is created and buffers `a`, `b` are allocated.
+    ! 1) Bricks -> X-pencils
+    call plan%reshape(a, b, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS, error_code)
+    DTFFT_CHECK(error_code)
+
+    ! 2) 1D FFTs along X on X-pencil layout (external FFT)
+    ! call fft_x_inplace(b)
+
+    ! 3) X-pencils -> Y-pencils
+    call plan%transpose(b, a, DTFFT_TRANSPOSE_X_TO_Y, error_code)
+    DTFFT_CHECK(error_code)
+
+    ! 4) 1D FFTs along Y on Y-pencil layout (external FFT)
+    ! call fft_y_inplace(a)
+
+    ! 5) Y-pencils -> Z-pencils
+    call plan%transpose(a, b, DTFFT_TRANSPOSE_Y_TO_Z, error_code)
+    DTFFT_CHECK(error_code)
+
+    ! 6) 1D FFTs along Z on Z-pencil layout (external FFT)
+    ! call fft_z_inplace(b)
+
+    ! 7) Z-pencils -> bricks (e.g., to continue in brick layout)
+    call plan%reshape(b, a, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS, error_code)
+    DTFFT_CHECK(error_code)
+
+  .. code-tab:: c
+
+    // Assuming a bricks-decomposition plan is created and buffers `a`, `b` are allocated.
+    // 1) Bricks -> X-pencils
+    DTFFT_CALL( dtfft_reshape(plan, a, b, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS, NULL) )
+
+    // 2) 1D FFTs along X on X-pencil layout (external FFT)
+    // fft_x_inplace(b);
+
+    // 3) X-pencils -> Y-pencils
+    DTFFT_CALL( dtfft_transpose(plan, b, a, DTFFT_TRANSPOSE_X_TO_Y, NULL) )
+
+    // 4) 1D FFTs along Y on Y-pencil layout (external FFT)
+    // fft_y_inplace(a);
+
+    // 5) Y-pencils -> Z-pencils
+    DTFFT_CALL( dtfft_transpose(plan, a, b, DTFFT_TRANSPOSE_Y_TO_Z, NULL) )
+
+    // 6) 1D FFTs along Z on Z-pencil layout (external FFT)
+    // fft_z_inplace(b);
+
+    // 7) Z-pencils -> bricks
+    DTFFT_CALL( dtfft_reshape(plan, b, a, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS, NULL) )
+
+  .. code-tab:: c++
+
+    // Assuming a bricks-decomposition plan is created and buffers `a`, `b` are allocated.
+    // 1) Bricks -> X-pencils
+    DTFFT_CXX_CALL( plan.reshape(a, b, dtfft::Reshape::X_BRICKS_TO_PENCILS, nullptr) )
+
+    // 2) 1D FFTs along X on X-pencil layout (external FFT)
+    // fft_x_inplace(b);
+
+    // 3) X-pencils -> Y-pencils
+    DTFFT_CXX_CALL( plan.transpose(b, a, dtfft::Transpose::X_TO_Y, nullptr) )
+
+    // 4) 1D FFTs along Y on Y-pencil layout (external FFT)
+    // fft_y_inplace(a);
+
+    // 5) Y-pencils -> Z-pencils
+    DTFFT_CXX_CALL( plan.transpose(a, b, dtfft::Transpose::Y_TO_Z, nullptr) )
+
+    // 6) 1D FFTs along Z on Z-pencil layout (external FFT)
+    // fft_z_inplace(b);
+
+    // 7) Z-pencils -> bricks
+    DTFFT_CXX_CALL( plan.reshape(b, a, dtfft::Reshape::Z_PENCILS_TO_BRICKS, nullptr) )
+
+
+Auxiliary Buffer Size
+---------------------
+
+The auxiliary buffer ``aux`` is optional for all plan execution functions. If ``aux`` is not provided (``NULL`` / not present), ``dtFFT`` allocates internal scratch space whenever the selected operation/backend requires it; otherwise, ``aux`` is ignored.
+
+If you choose to provide ``aux`` yourself, the minimum size depends on the operation:
+
+- For :f:func:`execute`: Use :f:func:`get_aux_size` (or :f:func:`get_aux_bytes` for byte size).
+- For :f:func:`transpose` and :f:func:`reshape`: If the underlying backend is pipelined, allocate at least ``alloc_size`` elements from :f:func:`get_local_sizes` (or use :f:func:`get_alloc_bytes` for byte size). For non-pipelined backends, ``aux`` is not used for transpose/reshape. To check pipelining, call :f:func:`dtfft_get_backend_pipelined` and pass backends obtained from :f:func:`get_backend` and :f:func:`get_reshape_backend`.
+
+
+Plan properties
+===============
+
+After creating a plan, several methods are available to inspect its runtime configuration and behavior. These methods, defined in :f:type:`dtfft_plan_t`, provide valuable insights into the plan's setup and are particularly useful for debugging or integrating with custom workflows. The following methods are supported:
+
+- :f:func:`get_z_slab_enabled`: Returns a logical value indicating whether Z-slab optimization is active in the plan.
+
+- :f:func:`get_y_slab_enabled`: Returns a logical value indicating whether Y-slab optimization is active in the plan.
+
+- :f:func:`get_backend`: Retrieves the backend selected during plan creation.
+
+- :f:func:`get_reshape_backend`: Retrieves the backend used for reshape operations.
+
+- :f:func:`get_stream`: Returns the CUDA stream associated with the plan. The stream is either internally created and managed by ``dtFFT``, or a custom one provided by the user via :f:type:`dtfft_config_t` (see `Setting Additional Configurations`_).
+
+  Available only in CUDA-enabled builds, it enables integration with existing CUDA workflows by exposing the stream used for GPU operations.
+
+- :f:func:`report`: Prints detailed plan information to stdout, including grid decomposition and backend selection. This diagnostic tool aids in understanding the plan's configuration and troubleshooting unexpected behavior.
+
+- :f:func:`get_executor`: Returns the executor type used for FFT computations within the plan.
+
+- :f:func:`get_precision`: Returns the numerical precision (:f:var:`DTFFT_SINGLE` or :f:var:`DTFFT_DOUBLE`) of the plan.
+
+- :f:func:`get_dims`: Returns global dimensions of the plan. This can be useful for validating the plan's setup against expected sizes.
+
+- :f:func:`get_grid_dims`: Returns the grid decomposition dimensions used in the plan, reflecting how the global domain is partitioned across MPI ranks.
+
+- :f:func:`get_platform`: Returns the execution platform (:f:var:`DTFFT_PLATFORM_HOST` or :f:var:`DTFFT_PLATFORM_CUDA`) of the plan.
+
+  Available only in CUDA-enabled builds
+
+These methods provide a window into the plan's internal state, allowing users to validate settings or gather diagnostics post-creation. They remain accessible until the plan is destroyed with :f:func:`destroy`. For detailed usage, refer to the Fortran, C, and C++ API documentation.
+
 
 Plan Finalization
 =================
@@ -1273,7 +1142,7 @@ Plan Finalization
 To fully release all memory resources allocated by ``dtFFT`` for a plan, the plan must be explicitly destroyed. This ensures that all internal buffers and resources associated with the plan are freed.
 
 .. note::
-   If buffers were allocated using :f:func:`mem_alloc`, they must be deallocated with :f:func:`mem_free` *before* calling the destroy method. Failing to do so may result in memory leaks or undefined behavior.
+  If buffers were allocated using :f:func:`mem_alloc`, they must be deallocated with :f:func:`mem_free` **before** destroying the plan. Failing to do so may result in memory leaks or undefined behavior.
 
 Example
 -------
@@ -1335,7 +1204,7 @@ creating a plan, allocating memory, executing forward and backward transformatio
       type(dtfft_config_t) :: config
       integer(int32) :: dims(3) = [64, 64, 64]  ! Example dimensions
       integer(int32) :: error_code
-      integer(int64) :: alloc_size, element_size, alloc_bytes
+      integer(int64) :: alloc_size, element_size, alloc_bytes, aux_size
       complex(real64), pointer :: a(:), b(:), aux(:)
 
       call MPI_Init(error_code)
@@ -1356,11 +1225,12 @@ creating a plan, allocating memory, executing forward and backward transformatio
 
       ! Obtain allocation sizes
       alloc_size = plan%get_alloc_size(error_code); DTFFT_CHECK(error_code)
+      aux_size = plan%get_aux_size(error_code);     DTFFT_CHECK(error_code)
 
       ! Allocate memory
       call plan%mem_alloc(alloc_size, a, error_code); DTFFT_CHECK(error_code)
       call plan%mem_alloc(alloc_size, b, error_code); DTFFT_CHECK(error_code)
-      call plan%mem_alloc(alloc_size, aux, error_code); DTFFT_CHECK(error_code)
+      call plan%mem_alloc(aux_size, aux, error_code); DTFFT_CHECK(error_code)
 
       ! Forward execution
       call plan%execute(a, b, DTFFT_EXECUTE_FORWARD, aux, error_code)
@@ -1395,7 +1265,7 @@ creating a plan, allocating memory, executing forward and backward transformatio
       dtfft_plan_t plan;
       dtfft_complex *a, *b, *aux;  // Use dtfft_complex from dtfft.h
       int32_t dims[3] = {64, 64, 64};  // Example dimensions
-      size_t alloc_size;
+      size_t alloc_size, aux_size;
 
       MPI_Init(&argc, &argv);
 
@@ -1413,11 +1283,12 @@ creating a plan, allocating memory, executing forward and backward transformatio
 
       // Obtain allocation size
       DTFFT_CALL( dtfft_get_alloc_size(plan, &alloc_size) );
+      DTFFT_CALL( dtfft_get_aux_size(plan, &aux_size) );
 
       // Allocate memory
       DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&a) );
       DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&b) );
-      DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * alloc_size, (void**)&aux) );
+      DTFFT_CALL( dtfft_mem_alloc(plan, sizeof(dtfft_complex) * aux_size, (void**)&aux) );
 
       // Forward execution
       DTFFT_CALL( dtfft_execute(plan, a, b, DTFFT_EXECUTE_FORWARD, aux) );
@@ -1468,6 +1339,7 @@ creating a plan, allocating memory, executing forward and backward transformatio
       size_t alloc_size, element_size;
       DTFFT_CXX_CALL( plan.get_alloc_size(&alloc_size) );
       DTFFT_CXX_CALL( plan.get_element_size(&element_size) );
+      size_t aux_size = plan.get_aux_size();
 
       size_t alloc_bytes = alloc_size * element_size;
       std::complex<double> *a, *b, *aux;
@@ -1475,7 +1347,7 @@ creating a plan, allocating memory, executing forward and backward transformatio
       // Allocate memory
       DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&a) );
       DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&b) );
-      DTFFT_CXX_CALL( plan.mem_alloc(alloc_bytes, (void**)&aux) );
+      DTFFT_CXX_CALL( plan.mem_alloc(aux_size * element_size, (void**)&aux) );
 
       // Forward execution
       DTFFT_CXX_CALL( plan.execute(a, b, Execute::FORWARD, aux) );

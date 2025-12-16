@@ -63,13 +63,15 @@ implicit none
 
   call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
   if ( ierr /= DTFFT_ERROR_PENCIL_NOT_INITIALIZED ) then
-    error stop "ierr /= DTFFT_ERROR_PENCIL_NOT_INITIALIZED"
+    print*,"ierr /= DTFFT_ERROR_PENCIL_NOT_INITIALIZED"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
   endif
 
   pencil = dtfft_pencil_t(lbounds, sizes)
   call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
   if ( ierr /= DTFFT_ERROR_PENCIL_INVALID_STARTS ) then
-    error stop "ierr /= DTFFT_ERROR_PENCIL_INVALID_STARTS"
+    print*,"ierr /= DTFFT_ERROR_PENCIL_INVALID_STARTS"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
   endif
 
   if ( comm_rank == 0 ) then
@@ -78,7 +80,8 @@ implicit none
   pencil = dtfft_pencil_t(lbounds, sizes)
   call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
   if ( ierr /= DTFFT_ERROR_PENCIL_OVERLAP ) then
-    error stop "ierr /= DTFFT_ERROR_PENCIL_OVERLAP"
+    print*,"ierr /= DTFFT_ERROR_PENCIL_OVERLAP"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
   endif
 
   if ( comm_rank == 0 ) then
@@ -97,7 +100,8 @@ implicit none
   pencil = dtfft_pencil_t(lbounds, sizes)
   call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
   if ( ierr /= DTFFT_ERROR_PENCIL_OVERLAP ) then
-    error stop "ierr /= DTFFT_ERROR_PENCIL_OVERLAP"
+    print*,"ierr /= DTFFT_ERROR_PENCIL_OVERLAP"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
   endif
 
   if ( comm_rank == 0 ) then
@@ -116,7 +120,8 @@ implicit none
   pencil = dtfft_pencil_t(lbounds, sizes)
   call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
   if ( ierr /= DTFFT_ERROR_PENCIL_SHAPE_MISMATCH ) then
-    error stop "ierr /= DTFFT_ERROR_PENCIL_SHAPE_MISMATCH"
+    print*,"ierr /= DTFFT_ERROR_PENCIL_SHAPE_MISMATCH"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
   endif
 
   if ( comm_rank == 0 ) then
@@ -135,27 +140,30 @@ implicit none
   pencil = dtfft_pencil_t(lbounds, sizes)
   call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
   if ( ierr /= DTFFT_ERROR_PENCIL_NOT_CONTINUOUS ) then
-    error stop "ierr /= DTFFT_ERROR_PENCIL_NOT_CONTINUOUS"
+    print*,"ierr /= DTFFT_ERROR_PENCIL_NOT_CONTINUOUS"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
   endif
 
-  if ( comm_rank == 0 ) then
-    lbounds = [0, 0, 0]
-    sizes = [4, 8, 12]
-  elseif ( comm_rank == 1 ) then
-    lbounds = [4, 0, 0]
-    sizes = [4, 8, 12]
-  else if ( comm_rank == 2 ) then
-    lbounds = [8, 0, 0]
-    sizes = [4, 8, 12]
-  else
-    lbounds = [12, 0, 0]
-    sizes = [4, 8, 12]
-  endif
-  pencil = dtfft_pencil_t(lbounds, sizes)
-  call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
-  if ( ierr /= DTFFT_ERROR_INVALID_COMM_FAST_DIM ) then
-    error stop "ierr /= DTFFT_ERROR_INVALID_COMM_FAST_DIM"
-  endif
+  ! Allowed since 3.0.0
+  !
+  ! if ( comm_rank == 0 ) then
+  !   lbounds = [0, 0, 0]
+  !   sizes = [4, 8, 12]
+  ! elseif ( comm_rank == 1 ) then
+  !   lbounds = [4, 0, 0]
+  !   sizes = [4, 8, 12]
+  ! else if ( comm_rank == 2 ) then
+  !   lbounds = [8, 0, 0]
+  !   sizes = [4, 8, 12]
+  ! else
+  !   lbounds = [12, 0, 0]
+  !   sizes = [4, 8, 12]
+  ! endif
+  ! pencil = dtfft_pencil_t(lbounds, sizes)
+  ! call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
+  ! if ( ierr /= DTFFT_ERROR_INVALID_COMM_FAST_DIM ) then
+  !   print*,"ierr /= DTFFT_ERROR_INVALID_COMM_FAST_DIM"
+  ! endif
 
   if ( comm_rank == 0 ) then
     lbounds = [0, 0, 0]
@@ -173,24 +181,46 @@ implicit none
   pencil = dtfft_pencil_t(lbounds, sizes)
   call plan%create(pencil, effort=DTFFT_PATIENT, error_code=ierr)
   if ( ierr /= DTFFT_SUCCESS ) then
-    error stop "ierr /= DTFFT_SUCCESS"
+    print*,"ierr /= DTFFT_SUCCESS"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
   endif
 
-  test = plan%get_pencil(1, error_code=ierr); DTFFT_CHECK(ierr)
-  if ( any( lbounds /= test%starts ) ) error stop "any( lbounds /= test%starts )"
-  if ( any( sizes /= test%counts ) ) error stop " any( sizes /= test%counts )"
+  test = plan%get_pencil(DTFFT_LAYOUT_X_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
+  if ( any( lbounds /= test%starts ) ) then
+    print*,"any( lbounds /= test%starts )"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+  endif
+  if ( any( sizes /= test%counts ) ) then
+    print*," any( sizes /= test%counts )"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+  endif
 
-  test = plan%get_pencil(2, error_code=ierr); DTFFT_CHECK(ierr)
-  if ( test%starts(2) /= lbounds(3) ) error stop "test%starts(2) /= lbounds(3)"
-  if ( test%counts(2) /= sizes(3) ) error stop "test%counts(2) /= sizes(3)"
+  test = plan%get_pencil(DTFFT_LAYOUT_Y_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
+  if ( test%starts(2) /= lbounds(3) ) then
+    print*,"test%starts(2) /= lbounds(3)"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+  endif
+  if ( test%counts(2) /= sizes(3) ) then
+    print*,"test%counts(2) /= sizes(3)"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+  endif
 
-  test2 = plan%get_pencil(3, error_code=ierr); DTFFT_CHECK(ierr)
-  if ( test2%starts(2) /= test%starts(3) ) error stop "test2%starts(2) /= test%starts(2)"
-  if ( test2%counts(2) /= test%counts(3) ) error stop "test2%counts(2) /= test%counts(2)"
+  test2 = plan%get_pencil(DTFFT_LAYOUT_Z_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
+  if ( test2%starts(2) /= test%starts(3) ) then
+    print*,"test2%starts(2) /= test%starts(2)"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+  endif
+  if ( test2%counts(2) /= test%counts(3) ) then
+    print*,"test2%counts(2) /= test%counts(2)"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+  endif
 
 
   call plan%get_dims(dims, error_code=ierr); DTFFT_CHECK(ierr)
-  if ( any( dims /= [4, 16, 24] ) ) error stop "any( dims /= [4, 16, 24] )"
+  if ( any( dims /= [4, 16, 24] ) ) then
+    print*,"any( dims /= [4, 16, 24] )"
+    call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+  endif
 
   call plan%destroy()
   call MPI_Finalize(ierr)

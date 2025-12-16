@@ -36,6 +36,7 @@ use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
 #include "_dtfft_private.h"
+#include "_dtfft_profile.h"
 implicit none
 private
 public :: abstract_backend, backend_helper
@@ -58,7 +59,8 @@ type :: backend_helper
 #endif
     TYPE_MPI_COMM,  allocatable :: comms(:)                    !! MPI communicators
     integer(int32), allocatable :: comm_mappings(:, :)         !! Mapping of 1d comm ranks to global comm
-    type(dtfft_transpose_t)     :: tranpose_type               !! Type of transpose to create
+    type(dtfft_transpose_t)     :: transpose_type              !! Type of transpose to create
+    type(dtfft_reshape_t)       :: reshape_type                !! Type of reshape to create
     type(pencil),   pointer     :: pencils(:)                  !! Pencils
 contains
     procedure, pass(self) :: create => create_helper           !! Creates helper
@@ -72,8 +74,7 @@ type, abstract :: abstract_backend
     logical                         :: is_selfcopy              !! If backend is self-copying
     logical                         :: is_pipelined             !! If backend is pipelined
     logical                         :: is_even                  !! If all processes send/recv same amount of memory
-    integer(int64)                  :: aux_size                 !! Number of bytes required by aux buffer
-    integer(int64)                  :: send_recv_buffer_size    !! Number of float elements used in ``c_f_pointer``
+    integer(int64)                  :: aux_bytes                !! Number of bytes required by aux buffer
     TYPE_MPI_COMM                   :: comm                     !! MPI Communicator
     integer(int32),     allocatable :: comm_mapping(:)          !! Mapping of 1d comm ranks to global comm
     integer(int32)                  :: comm_size                !! Size of MPI Comm
@@ -96,7 +97,7 @@ contains
     procedure,  non_overridable,                pass(self) :: create           !! Creates Abstract Backend
     procedure,  non_overridable,                pass(self) :: execute          !! Executes Backend
     procedure,  non_overridable,                pass(self) :: destroy          !! Destroys Abstract Backend
-    procedure,  non_overridable,                pass(self) :: get_aux_size     !! Returns number of bytes required by aux buffer
+    procedure,  non_overridable,                pass(self) :: get_aux_bytes     !! Returns number of bytes required by aux buffer
     procedure,  non_overridable,                pass(self) :: set_unpack_kernel!! Sets unpack kernel for pipelined backend
     procedure,                                  pass(self) :: execute_end      !! Ends execution of Backend
     procedure,                                  pass(self) :: execute_self_copy
@@ -155,9 +156,6 @@ integer(int64) :: scaler         !! Scaling data amount to float size
     scaler = base_storage / FLOAT_STORAGE_SIZE
 
     self%platform = platform
-    send_size = sum(send_counts) * scaler
-    recv_size = sum(recv_counts) * scaler
-    self%send_recv_buffer_size = max(send_size, recv_size)
 
     self%comm = helper%comms(comm_id)
 
@@ -188,9 +186,11 @@ integer(int64) :: scaler         !! Scaling data amount to float size
         self%is_selfcopy = .false.
     endif
 
-    self%aux_size = 0_int64
+    self%aux_bytes = 0_int64
     if (self%is_pipelined) then
-        self%aux_size = self%send_recv_buffer_size * FLOAT_STORAGE_SIZE
+        send_size = sum(send_counts) * scaler
+        recv_size = sum(recv_counts) * scaler
+        self%aux_bytes = max(send_size, recv_size) * FLOAT_STORAGE_SIZE
     end if
 
     self%self_copy_bytes = 0_int64
@@ -223,6 +223,7 @@ type(async_exec_t),         intent(in)      :: exec_type  !! Type of async execu
 integer(int32),             intent(out)     :: error_code !! Error code
 integer(int32) :: dummy
 
+    REGION_BEGIN("dtfft_backend_execute", COLOR_EXECUTE)
     if (.not. self%is_selfcopy) then
         call self%execute_private(in, out, stream, aux, error_code)
         if ( error_code /= DTFFT_SUCCESS ) return
@@ -235,9 +236,11 @@ integer(int32) :: dummy
             CUDA_CALL( cudaStreamSynchronize(stream) )
         end if
 #endif
+        REGION_END("dtfft_backend_execute")
         return
     end if
 
+#ifdef DTFFT_WITH_CUDA
     if ( self%self_copy_bytes > 0 .and. self%platform == DTFFT_PLATFORM_CUDA ) then
         if ( self%is_pipelined ) then
             call self%execute_self_copy(in, aux, stream)
@@ -246,6 +249,7 @@ integer(int32) :: dummy
             call self%execute_self_copy(in, out, stream)
         endif
     endif
+#endif
 
     call self%execute_private(in, out, stream, aux, error_code)
     if ( error_code /= DTFFT_SUCCESS ) return
@@ -266,6 +270,7 @@ integer(int32) :: dummy
         CUDA_CALL( cudaStreamSynchronize(stream) )
     end if
 #endif
+    REGION_END("dtfft_backend_execute")
 end subroutine execute
 
 subroutine execute_end(self, error_code)
@@ -328,11 +333,11 @@ class(abstract_backend),    intent(inout)   :: self       !! Abstract backend
     call self%destroy_private()
 end subroutine destroy
 
-pure integer(int64) function get_aux_size(self)
+pure integer(int64) function get_aux_bytes(self)
 !! Returns number of bytes required by aux buffer
 class(abstract_backend),    intent(in)      :: self     !! Abstract backend
-    get_aux_size = self%aux_size
-end function get_aux_size
+    get_aux_bytes = self%aux_bytes
+end function get_aux_bytes
 
 subroutine set_unpack_kernel(self, unpack_kernel)
 !! Sets unpack kernel for pipelined backend

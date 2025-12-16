@@ -109,8 +109,8 @@ abstract interface
     !! Executes the given kernel on host
         import
         class(kernel_host),         intent(in)      :: self     !! Host kernel class
-        real(real32),     target,   intent(in)    :: in(:)      !! Source host-allocated buffer
-        real(real32),     target,   intent(inout) :: out(:)     !! Target host-allocated buffer
+        real(real32),     target,   intent(in)      :: in(:)    !! Source host-allocated buffer
+        real(real32),     target,   intent(inout)   :: out(:)   !! Target host-allocated buffer
         integer(int32), optional,   intent(in)      :: neighbor !! Source rank for pipelined unpacking
     end subroutine execute_host_interface
 end interface
@@ -129,7 +129,6 @@ subroutine create_host(self, effort, base_storage, force_effort)
     real(real32)                    :: best_time        !! Best execution time
     real(real64)                    :: execution_time   !! Execution time
     integer(int8)                   :: test_id          !! Current test configuration id
-    integer(int8)                   :: max_tests        !! Maximum number of tests to perform
     type(host_kernel_t)             :: current_kernel   !! Current test configuration
     type(host_kernel_t)             :: best_kernel      !! Best kernel type
     character(len=:),   allocatable :: global_phase     !! Global phase name for profiling
@@ -143,8 +142,9 @@ subroutine create_host(self, effort, base_storage, force_effort)
     self%access_mode = DEFAULT_ACCESS_MODE
 
     force_effort_ = .false.; if (present(force_effort)) force_effort_ = force_effort
-    if ((effort == DTFFT_ESTIMATE .and. force_effort_) .or. &
-          .not. ( (effort == DTFFT_PATIENT .and. get_conf_kernel_optimization_enabled()) .or. get_conf_forced_kernel_optimization()) ) then
+    if ((effort == DTFFT_ESTIMATE .and. force_effort_) &
+        .or. .not. ( effort == DTFFT_EXHAUSTIVE .or. get_conf_kernel_autotune_enabled()) &
+        .or. any(self%kernel_type == [KERNEL_COPY, KERNEL_COPY_PIPELINED]) ) then
         self%execute_impl => select_kernel(HOST_KERNEL_BASE, base_storage)
         return
     end if
@@ -172,14 +172,12 @@ subroutine create_host(self, effort, base_storage, force_effort)
     PHASE_BEGIN(global_phase, COLOR_AUTOTUNE)
     WRITE_INFO(global_phase)
 
-    max_tests = int(get_conf_configs_to_test(), int8)
-
-    do test_id = 1_int8, min(max_tests, 4_int8)
+    do test_id = 1_int8, 4_int8
         current_kernel = host_kernel_t(test_id)
 
         self%execute_impl => select_kernel(current_kernel, base_storage)
 
-        if (current_kernel == HOST_KERNEL_BASE .and. .not. (any(self%kernel_type == [KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED]))) then
+        if (current_kernel == HOST_KERNEL_BASE .and. .not. (any(self%kernel_type == [KERNEL_PACK, KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED]))) then
             local_phase = "Selecting access mode"
             REGION_BEGIN(local_phase, COLOR_AUTOTUNE2)
             WRITE_INFO("    "//local_phase)
@@ -287,6 +285,7 @@ function select_kernel(kernel, base_storage) result(fun)
     integer(int64),      intent(in) :: base_storage     !! Size of single element in bytes
     procedure(execute_host_interface), pointer :: fun   !! Selected kernel implementation
 
+    fun => null()
     select case (kernel%val)
     case (HOST_KERNEL_BASE%val)
         select case (base_storage)
@@ -324,6 +323,8 @@ function select_kernel(kernel, base_storage) result(fun)
         case (DOUBLE_COMPLEX_STORAGE_SIZE)
             fun => execute_f128_block_64
         end select
+    case default
+        INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
     end select
 end function select_kernel
 

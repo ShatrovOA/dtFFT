@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 
   if(comm_rank == 0) {
     printf("----------------------------------------\n");
-    printf("| DTFFT test C interface: r2r_2d_float |\n");
+    printf("| dtFFT test C interface: r2r_2d_float |\n");
     printf("----------------------------------------\n");
     printf("Nx = %d, Ny = %d\n", nx, ny);
     printf("Number of processors: %d\n", comm_size);

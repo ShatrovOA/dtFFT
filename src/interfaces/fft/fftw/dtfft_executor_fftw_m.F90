@@ -137,6 +137,7 @@ contains
     case (FFT_R2C)
       block
         procedure(create_r2c_plan), pointer  :: constructor, constructor_inverse
+        type(c_ptr) :: r_ptr
 
         if ( precision == DTFFT_SINGLE ) then
           constructor => fftwf_plan_many_dft_r2c
@@ -149,8 +150,11 @@ contains
           constructor_inverse => fftw_plan_many_dft_c2r
           self%apply_inverse => fftw_execute_dft_c2r
         endif
-        self%plan_forward = constructor(int(fft_rank, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, FFTW3_FLAGS)
-        self%plan_backward = constructor_inverse(int(fft_rank, int32), fft_sizes, how_many, ptr, onembed, 1, odist, ptr, inembed, 1, idist, FFTW3_FLAGS)
+        call self%mem_alloc(FLOAT_STORAGE_SIZE * n_elements / 2, r_ptr)
+        self%plan_forward = constructor(int(fft_rank, int32), fft_sizes, how_many, r_ptr, inembed, 1, idist, ptr, onembed, 1, odist, FFTW3_FLAGS)
+        self%plan_backward = constructor_inverse(int(fft_rank, int32), fft_sizes, how_many, ptr, onembed, 1, odist, r_ptr, inembed, 1, idist, FFTW3_FLAGS)
+
+        call self%mem_free(r_ptr)
 
         nullify( constructor, constructor_inverse )
       endblock

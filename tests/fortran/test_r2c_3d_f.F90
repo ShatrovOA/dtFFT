@@ -29,18 +29,17 @@ use dtfft_interface_cuda_runtime
 #include "_dtfft_cuda.h"
 #endif
 implicit none
-#ifndef DTFFT_TRANSPOSE_ONLY
   type(c_ptr) :: check
   real(real64),     pointer :: in(:,:,:)
   complex(real64),  pointer :: out(:)
   integer(int32), parameter :: nx = 256, ny = 256, nz = 4
-  integer(int32) :: comm_size, comm_rank, ierr
+  integer(int32) :: comm_size, comm_rank, ierr, dims(3), sizes(3), starts(3)
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
   integer(int32) :: in_counts(3), out_counts(3)
   integer(int64) :: alloc_size, element_size, in_size
   real(real64) :: tf, tb
-  type(dtfft_pencil_t) :: real_pencil, cmplx_pencil
+  type(dtfft_pencil_t) :: real_bricks, real_pencil, cmplx_pencil, start_pencil
 #if defined(DTFFT_WITH_CUDA)
   type(dtfft_platform_t) :: platform
 #endif
@@ -51,7 +50,7 @@ implicit none
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
-    write(output_unit, '(a)') "|       DTFFT test: r2c_3d             |"
+    write(output_unit, '(a)') "|       dtFFT test: r2c_3d             |"
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a, i0, a, i0, a, i0)') 'Nx = ',nx, ', Ny = ',ny, ', Nz = ', nz
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
@@ -99,7 +98,12 @@ implicit none
 
   call attach_gpu_to_process()
 
-  call plan%create([nx, ny, nz], executor=executor, effort=DTFFT_MEASURE, error_code=ierr); DTFFT_CHECK(ierr)
+  dims(:) = 0
+  call createGridDims(3, [nx, ny, nz], dims, starts, sizes)
+
+  start_pencil = dtfft_pencil_t(starts, sizes)
+
+  call plan%create(start_pencil, executor=executor, effort=DTFFT_MEASURE, error_code=ierr); DTFFT_CHECK(ierr)
 
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report()
@@ -107,10 +111,16 @@ implicit none
   element_size = plan%get_element_size()
 
   if ( element_size /= real64 ) error stop "element_size /= real64"
+  if ( dims(1) > 1 ) then
+    real_bricks = plan%get_pencil(DTFFT_LAYOUT_X_BRICKS, error_code=ierr); DTFFT_CHECK(ierr)
+    if ( any(in_counts /= real_bricks%counts) ) error stop "in_counts /= real_bricks%counts"
+  endif
+  real_pencil = plan%get_pencil(DTFFT_LAYOUT_X_PENCILS, error_code=ierr); DTFFT_CHECK(ierr)
+  cmplx_pencil = plan%get_pencil(DTFFT_LAYOUT_X_PENCILS_FOURIER, error_code=ierr); DTFFT_CHECK(ierr)
 
-  real_pencil = plan%get_pencil(0)
-  cmplx_pencil = plan%get_pencil(1)
-  if ( any(in_counts /= real_pencil%counts) ) error stop "in_counts /= real_pencil%counts"
+  if ( dims(1) == 1 ) then
+    if ( any(in_counts /= real_pencil%counts) ) error stop "in_counts /= real_pencil%counts"
+  endif
   if ( cmplx_pencil%counts(1) /= (nx / 2) + 1 ) error stop "cmplx_pencil%counts(1) /= (nx / 2) + 1"
   if ( any(real_pencil%counts(2:) /= cmplx_pencil%counts(2:)) ) error stop "cmplx_pencil%counts(1) /= (nx / 2) + 1"
   if ( comm_size == 1 ) then
@@ -166,5 +176,4 @@ implicit none
 
   call plan%destroy()
   call MPI_Finalize(ierr)
-#endif
 end program test_r2c_3d

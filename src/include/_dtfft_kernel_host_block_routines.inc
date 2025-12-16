@@ -18,12 +18,14 @@ subroutine GET_BLOCK_KERNEL_NAME(execute)(self, in, out, neighbor)
     CONVERT_POINTER(in, inbuf)
     CONVERT_POINTER(out, outbuf)
 
-    if ( self%kernel_type == KERNEL_UNPACK .or. self%kernel_type == KERNEL_UNPACK_PIPELINED ) then
+    if (  any(self%kernel_type == [KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED, KERNEL_PACK]) ) then
         select case( self%kernel_type%val )
         case( KERNEL_UNPACK%val )
             call GET_BLOCK_KERNEL_NAME(unpack)(inbuf, outbuf, self%dims, self%neighbor_data)
         case( KERNEL_UNPACK_PIPELINED%val )
             call GET_BLOCK_KERNEL_NAME(unpack_pipelined)(inbuf, outbuf, self%dims, self%neighbor_data(:, neighbor))
+        case ( KERNEL_PACK%val )
+            call GET_BLOCK_KERNEL_NAME(pack)(inbuf, outbuf, self%dims, self%neighbor_data)
         endselect
         return
     endif
@@ -444,6 +446,65 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack)(in, out, dims, locals)
         call GET_BLOCK_KERNEL_NAME(unpack_pipelined)(in, out, dims, locals(:, neighbor))
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(unpack)
+
+pure subroutine GET_BLOCK_KERNEL_NAME(pack_pipelined)(in, out, dims, locals)
+!! Pack part `in` buffer into contiguous buffer in order to send to a single rank, BUFFER_TYPE version.
+!!
+!! For 3D arrays:
+!!
+!!  out(out_displacement + z * nxx * nyy + y * nxx + x) = in(x + in_displacement, y, z)
+!!
+!! where `in` buffer x,y,z are full slab indices, while `out` buffer x,y,z are indices that are to be send to neighbor rank.
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(:)            !! Dimensions of the array
+    integer(int32), intent(in)    :: locals(BUFFER_SPEC)          !! Neighbor data
+    integer(int32) :: yb,zb,y,z,nx,ny, nxx,nyy,nzz,iidx,oidx,din,dout
+    integer(int32) :: nx_ny, nxx_nyy
+
+    nx = dims(1); ny = dims(2)
+    nxx = locals(1); nyy = locals(2)
+    din = locals(4); dout = locals(5)
+
+    if ( size(dims) == 2 ) then
+        do yb = 0, nyy - 1, BLOCK_SIZE
+            do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
+                iidx = din + y * nx + 1
+                oidx = dout + y * nxx + 1
+                out(oidx:oidx + nxx - 1) = in(iidx:iidx + nxx - 1)
+            enddo
+        enddo
+        return
+    endif
+
+    nzz = locals(3)
+    nx_ny = nx * ny
+    nxx_nyy = nxx * nyy
+    do zb = 0, nzz - 1, BLOCK_SIZE
+        do yb = 0, nyy - 1, BLOCK_SIZE
+            do z = zb, min(zb + BLOCK_SIZE - 1, nzz - 1)
+                do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
+                    iidx = din + z * nx_ny + y * nx + 1
+                    oidx = dout + z * nxx_nyy + y * nxx + 1
+                    out(oidx:oidx + nxx - 1) = in(iidx:iidx + nxx - 1)
+                enddo
+            enddo
+        enddo
+    enddo
+end subroutine GET_BLOCK_KERNEL_NAME(pack_pipelined)
+
+pure subroutine GET_BLOCK_KERNEL_NAME(pack)(in, out, dims, locals)
+!! Unpacks pack of contiguous buffer recieved from all ranks, BUFFER_TYPE version.
+    BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)              !! Source host-allocated buffer
+    BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)             !! Target host-allocated buffer
+    integer(int32), intent(in)    :: dims(:)            !! Dimensions of the array
+    integer(int32), intent(in)    :: locals(:,:) !! Neighbor data
+    integer(int32)  :: neighbor !! Neighbor index
+
+    do neighbor = 1, size(locals, dim=2)
+        call GET_BLOCK_KERNEL_NAME(pack_pipelined)(in, out, dims, locals(:, neighbor))
+    enddo
+end subroutine GET_BLOCK_KERNEL_NAME(pack)
 
 #undef GET_BLOCK_SUB_NAME
 #undef GET_BLOCK_SUB_NAME_EXPANDED

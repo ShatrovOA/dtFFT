@@ -16,6 +16,7 @@ void setTestValuesComplexDouble(void *, size_t);
 void setTestValuesComplexFloat(void *, size_t);
 void setTestValuesDouble(void *, size_t);
 void setTestValuesFloat(void *, size_t);
+void createGridDims(int32_t, int32_t*, int32_t*, int32_t*, int32_t*);
 
 void attach_gpu_to_process();
 

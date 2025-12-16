@@ -1,3 +1,5 @@
+:tocdepth: 3
+
 .. _c_link:
 
 ###############
@@ -9,7 +11,7 @@ In order to use them user have to ``#include <dtfft.h>``.
 
 .. note::
   Not all of the API listed below can be accessible in runtime.
-  For example :cpp:func:`dtfft_create_plan_r2c` can only be used if ``dtFFT`` compiled with any FFT
+  For example :cpp:enum:`dtfft_platform_t` can only be used if ``dtFFT`` compiled with CUDA support.
 
 Predefined Macros
 =================
@@ -58,6 +60,14 @@ Enumerators
 ---------
 
 .. doxygenenum:: dtfft_platform_t
+
+---------
+
+.. doxygenenum:: dtfft_reshape_t
+
+---------
+
+.. doxygenenum:: dtfft_layout_t
 
 
 Types
@@ -112,6 +122,9 @@ Functions
 
 .. doxygenfunction:: dtfft_set_config
 
+---------
+
+.. doxygenfunction:: dtfft_get_backend_pipelined
 
 Plan constructors
 ======================
@@ -169,7 +182,19 @@ Plan execution
 
 ---------
 
-.. doxygenfunction:: dtfft_transpose_end 
+.. doxygenfunction:: dtfft_transpose_end
+
+---------
+
+.. doxygenfunction:: dtfft_reshape
+
+---------
+
+.. doxygenfunction:: dtfft_reshape_start
+
+---------
+
+.. doxygenfunction:: dtfft_reshape_end
 
 Plan information
 ======================
@@ -186,11 +211,19 @@ Plan information
 
 ---------
 
-.. doxygenfunction:: dtfft_get_element_size
+.. doxygenfunction:: dtfft_get_alloc_bytes
 
 ---------
 
-.. doxygenfunction:: dtfft_get_alloc_bytes
+.. doxygenfunction:: dtfft_get_aux_size
+
+---------
+
+.. doxygenfunction:: dtfft_get_aux_bytes
+
+---------
+
+.. doxygenfunction:: dtfft_get_element_size
 
 ---------
 
@@ -211,6 +244,10 @@ Plan information
 ---------
 
 .. doxygenfunction:: dtfft_get_backend
+
+---------
+
+.. doxygenfunction:: dtfft_get_reshape_backend
 
 ---------
 

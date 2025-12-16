@@ -17,15 +17,15 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
-module dtfft_transpose_handle_generic
-!! This module describes [[transpose_handle_generic]] class
+module dtfft_reshape_handle_generic
+!! This module describes [[reshape_handle_generic]] class
 !! It is responsible for managing both Host and CUDA-based transposition operations
 !! It executes transpose kernels, memory transfers between GPUs/Hosts, and data unpacking if required
 use iso_c_binding,                        only: c_ptr, c_f_pointer
 use iso_fortran_env,                      only: int8, int32, int64, real32
 use dtfft_abstract_backend,               only: abstract_backend, backend_helper
 use dtfft_abstract_kernel
-use dtfft_abstract_transpose_handle,      only: abstract_transpose_handle, create_args, execute_args
+use dtfft_abstract_reshape_handle,        only: abstract_reshape_handle, create_args, execute_args
 #ifdef DTFFT_WITH_NVSHMEM
 use dtfft_backend_cufftmp_m,              only: backend_cufftmp
 #endif
@@ -38,14 +38,14 @@ use dtfft_errors
 use dtfft_kernel_device,                  only: kernel_device
 #endif
 use dtfft_kernel_host,                    only: kernel_host
-use dtfft_pencil,                         only: pencil, get_transpose_type
+use dtfft_pencil,                         only: pencil
 use dtfft_parameters
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
 implicit none
 private
-public :: transpose_handle_generic
+public :: reshape_handle_generic
 
   type :: data_handle
   !! Helper class used to obtain displacements and
@@ -63,7 +63,7 @@ public :: transpose_handle_generic
     procedure,  pass(self)  :: destroy => destroy_data_handle       !! Destroys handle
   end type data_handle
 
-  type, extends(abstract_transpose_handle) :: transpose_handle_generic
+  type, extends(abstract_reshape_handle) :: reshape_handle_generic
   !! Generic Transpose Handle
   !! Executes transposition in 3 steps:
   !!
@@ -74,7 +74,9 @@ public :: transpose_handle_generic
     logical                                   :: has_exchange = .false.   !! If current handle has exchanges between GPUs
     logical                                   :: is_pipelined = .false.   !! If underlying exchanges are pipelined
     logical                                   :: is_async_supported = .false. !! If underlying backend support async execution(execute/execute_end)
-    class(abstract_kernel),   allocatable     :: transpose_kernel         !! Kernel for data transposition
+    logical                                   :: is_pack_free = .false.
+    logical                                   :: is_reshape_only = .false.
+    class(abstract_kernel),   allocatable     :: pack_kernel              !! Kernel for data transposition
     class(abstract_kernel),   allocatable     :: unpack_kernel            !! Kernel for unpacking data
     class(abstract_backend),  allocatable     :: comm_handle              !! Communication handle
   contains
@@ -83,8 +85,8 @@ public :: transpose_handle_generic
     procedure, pass(self) :: execute_end      !! Finalizes async transpose
     procedure, pass(self) :: get_async_active !! Returns if async transpose is active
     procedure, pass(self) :: destroy          !! Destroys Generic Transpose Handle
-    procedure, pass(self) :: get_aux_size     !! Returns number of bytes required by aux buffer
-  end type transpose_handle_generic
+    procedure, pass(self) :: get_aux_bytes     !! Returns number of bytes required by aux buffer
+  end type reshape_handle_generic
 
 contains
 
@@ -134,14 +136,12 @@ contains
     endif
   end subroutine check_if_overflow
 
-  subroutine create(self, comm, send, recv, transpose_type, base_storage, kwargs)
+  subroutine create(self, comm, send, recv, kwargs)
   !! Creates Generic Transpose Handle
-    class(transpose_handle_generic),  intent(inout) :: self           !! Generic Transpose Handle
+    class(reshape_handle_generic),  intent(inout) :: self           !! Generic Transpose Handle
     TYPE_MPI_COMM,                    intent(in)    :: comm           !! MPI Communicator
     type(pencil),                     intent(in)    :: send           !! Send pencil
     type(pencil),                     intent(in)    :: recv           !! Recv pencil
-    type(dtfft_transpose_t),          intent(in)    :: transpose_type !! Type of transpose to create
-    integer(int64),                   intent(in)    :: base_storage   !! Base storage
     type(create_args),                intent(in)    :: kwargs         !! Additional arguments
     integer(int8)                     :: ndims              !! Number of dimensions
     integer(int32)                    :: comm_size          !! Size of ``comm``
@@ -159,17 +159,25 @@ contains
     type(data_handle)                 :: in                 !! Send helper
     type(data_handle)                 :: out                !! Recv helper
     logical                           :: is_two_step_permute!! If transpose is two-step permute
+    type(dtfft_transpose_t) :: transpose_type
+    type(dtfft_reshape_t)   :: reshape_type
+    logical :: is_unpack_copy
+    integer(int32) :: ssdispl, rrdispl
+
+    transpose_type = kwargs%helper%transpose_type
+    reshape_type   = kwargs%helper%reshape_type
+
 
     call self%destroy()
     call check_if_overflow(send%counts)
     call check_if_overflow(recv%counts)
 
     if ( kwargs%platform == DTFFT_PLATFORM_HOST ) then
-      allocate( kernel_host :: self%transpose_kernel )
+      allocate( kernel_host :: self%pack_kernel )
       allocate( kernel_host :: self%unpack_kernel )
 #ifdef DTFFT_WITH_CUDA
     else
-      allocate( kernel_device :: self%transpose_kernel )
+      allocate( kernel_device :: self%pack_kernel )
       allocate( kernel_device :: self%unpack_kernel )
 #endif
     endif
@@ -177,17 +185,22 @@ contains
     call MPI_Comm_size(comm, comm_size, ierr)
     call MPI_Comm_rank(comm, comm_rank, ierr)
     self%has_exchange = comm_size > 1
+    self%is_reshape_only = .false.
 
-    if( any( transpose_type == [DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_Z, DTFFT_TRANSPOSE_Z_TO_X] ) ) then
-      kernel_type = KERNEL_PERMUTE_FORWARD
+    if ( self%is_transpose ) then
+      if( any( transpose_type == [DTFFT_TRANSPOSE_X_TO_Y, DTFFT_TRANSPOSE_Y_TO_Z, DTFFT_TRANSPOSE_Z_TO_X] ) ) then
+        kernel_type = KERNEL_PERMUTE_FORWARD
+      else
+        kernel_type = KERNEL_PERMUTE_BACKWARD
+      endif
     else
-      kernel_type = KERNEL_PERMUTE_BACKWARD
+      kernel_type = KERNEL_COPY
     endif
 
     if ( .not. self%has_exchange ) then
       self%is_pipelined = .false.
       self%is_async_supported = .false.
-      call self%transpose_kernel%create(send%counts, kwargs%effort, base_storage, kernel_type, force_effort=kwargs%force_effort)
+      call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, force_effort=kwargs%force_effort)
       return
     endif
 
@@ -197,108 +210,231 @@ contains
     call out%create(recv, comm, comm_size)
 
     ndims = send%rank
-    sdispl = 0
+    self%is_pack_free = .false.
+    sdispl = 0; ssdispl = 0
     do i = 0, comm_size - 1
       ! Finding amount of data to send to rank i
-      if ( ndims == 2 ) then
-        in%ln(1, i) = out%sizes(2, i)
-        in%ln(2, i) = in%sizes(2, comm_rank)
 
-        in%ls(1, i) = out%starts(2, i)
-        in%ls(2, i) = in%starts(2, comm_rank)
-      else
-        if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z ) then
-          in%ln(1, i) = in%sizes(1, comm_rank)
-          in%ln(2, i) = out%sizes(3, i)
-          in%ln(3, i) = in%sizes(3, comm_rank)
-
-          in%ls(1, i) = in%starts(1, comm_rank)
-          in%ls(2, i) = out%starts(3, i)
-          in%ls(3, i) = in%starts(3, comm_rank)
-        else if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
-          in%ln(1, i) = out%sizes(3, i)
-          in%ln(2, i) = in%sizes(2, comm_rank)
-          in%ln(3, i) = in%sizes(3, comm_rank)
-
-          in%ls(1, i) = out%starts(3, i)
-          in%ls(2, i) = in%starts(2, comm_rank)
-          in%ls(3, i) = in%starts(3, comm_rank)
-        else if( kernel_type == KERNEL_PERMUTE_FORWARD ) then
-          in%ln(1, i) = out%sizes(3, i)
-          in%ln(2, i) = in%sizes(2, comm_rank)
-          in%ln(3, i) = in%sizes(3, comm_rank)
-
-          in%ls(1, i) = out%starts(3, i)
-          in%ls(2, i) = in%starts(2, comm_rank)
-          in%ls(3, i) = in%starts(3, comm_rank)
-        else
+      if ( self%is_transpose ) then
+        if ( ndims == 2 ) then
           in%ln(1, i) = out%sizes(2, i)
           in%ln(2, i) = in%sizes(2, comm_rank)
-          in%ln(3, i) = in%sizes(3, comm_rank)
 
           in%ls(1, i) = out%starts(2, i)
           in%ls(2, i) = in%starts(2, comm_rank)
-          in%ls(3, i) = in%starts(3, comm_rank)
+        else
+          if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z ) then
+            in%ln(1, i) = in%sizes(1, comm_rank)
+            in%ln(2, i) = out%sizes(3, i)
+            in%ln(3, i) = in%sizes(3, comm_rank)
+
+            in%ls(1, i) = in%starts(1, comm_rank)
+            in%ls(2, i) = out%starts(3, i)
+            in%ls(3, i) = in%starts(3, comm_rank)
+          else if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
+            in%ln(1, i) = out%sizes(3, i)
+            in%ln(2, i) = in%sizes(2, comm_rank)
+            in%ln(3, i) = in%sizes(3, comm_rank)
+
+            in%ls(1, i) = out%starts(3, i)
+            in%ls(2, i) = in%starts(2, comm_rank)
+            in%ls(3, i) = in%starts(3, comm_rank)
+          else if( kernel_type == KERNEL_PERMUTE_FORWARD ) then
+            in%ln(1, i) = out%sizes(3, i)
+            in%ln(2, i) = in%sizes(2, comm_rank)
+            in%ln(3, i) = in%sizes(3, comm_rank)
+
+            in%ls(1, i) = out%starts(3, i)
+            in%ls(2, i) = in%starts(2, comm_rank)
+            in%ls(3, i) = in%starts(3, comm_rank)
+          else
+            in%ln(1, i) = out%sizes(2, i)
+            in%ln(2, i) = in%sizes(2, comm_rank)
+            in%ln(3, i) = in%sizes(3, comm_rank)
+
+            in%ls(1, i) = out%starts(2, i)
+            in%ls(2, i) = in%starts(2, comm_rank)
+            in%ls(3, i) = in%starts(3, comm_rank)
+          endif
+        endif
+      else
+        if ( ndims == 2 ) then
+          if ( reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS ) then
+            in%ln(1, i) = in%sizes(1, comm_rank)
+            in%ln(2, i) = out%sizes(2, i)
+
+            in%ls(1, i) = in%starts(1, comm_rank)
+            in%ls(2, i) = out%starts(2, i)
+            self%is_pack_free = .true.
+          else
+            in%ln(1, i) = out%sizes(1, i)
+            in%ln(2, i) = in%sizes(2, comm_rank)
+
+            in%ls(1, i) = out%starts(1, i)
+            in%ls(2, i) = in%starts(2, comm_rank)
+          endif
+        else
+          if ( reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS ) then
+            in%ln(1, i) = in%sizes(1, comm_rank)
+            in%ln(2, i) = out%sizes(2, i)
+            in%ln(3, i) = out%sizes(3, i)
+
+            in%ls(1, i) = in%starts(1, comm_rank)
+            in%ls(2, i) = out%starts(2, i)
+            in%ls(3, i) = out%starts(3, i)
+
+            if ( send%counts(2) == out%sizes(2, i) ) self%is_pack_free = .true.
+          else
+            in%ln(1, i) = out%sizes(1, i)
+            in%ln(2, i) = in%sizes(2, comm_rank)
+            in%ln(3, i) = in%sizes(3, comm_rank)
+
+            in%ls(1, i) = out%starts(1, i)
+            in%ls(2, i) = in%starts(2, comm_rank)
+            in%ls(3, i) = in%starts(3, comm_rank)
+          endif
+        endif
+
+        neighbor_data(1, i + 1) = in%ln(1, i)
+        neighbor_data(2, i + 1) = in%ln(2, i)
+        if ( ndims == 3 ) then
+          neighbor_data(3, i + 1) = in%ln(3, i)
+        else
+          neighbor_data(3, i + 1) = 1
         endif
       endif
 
       sendsize = product( in%ln(:, i) )
 
+      neighbor_data(5, i + 1) = sdispl
+      if ( reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS ) then
+        neighbor_data(4, i + 1) = ssdispl
+        if ( self%is_pack_free ) then
+          ssdispl = ssdispl + product(in%ln(: ,i))
+        else
+          ssdispl = ssdispl + in%ln(1, i) * in%ln(2, i)
+        endif
+      else
+        neighbor_data(4, i + 1) = in%ls(1, i)
+      endif
+
       in%counts(i) = sendsize
       in%displs(i) = sdispl
       sdispl = sdispl + sendsize
+
       ! Sending with tag = me to rank i
       call MPI_Isend(sendsize, 1, MPI_INTEGER4, i, comm_rank, comm, sr, ierr)
       call MPI_Wait(sr, MPI_STATUS_IGNORE, ierr)
     enddo
 
-    rdispl = 0
+    is_two_step_permute = .false.
+    if ( self%is_transpose ) then
+      is_two_step_permute = any(transpose_type == [DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y])           &
+                    .and. ndims == 3                                                                          &
+                    .and. (.not. is_backend_cufftmp(kwargs%backend))
+
+      if ( is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_START
+
+      call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, force_effort=kwargs%force_effort)
+    else
+      kernel_type = KERNEL_PACK
+      if ( self%is_pack_free ) kernel_type = KERNEL_COPY
+      if ( is_backend_cufftmp(kwargs%backend) ) then
+        kernel_type = KERNEL_DUMMY
+        self%is_reshape_only = .true.
+      endif
+      call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort)
+    endif
+
+
+    is_unpack_copy = .false.
+    rdispl = 0; rrdispl = 0
     do i = 0, comm_size - 1
       ! Recieving from i with tag i
       call MPI_Irecv(recvsize, 1, MPI_INTEGER4, i, i, comm, rr, ierr)
       call MPI_Wait(rr, MPI_STATUS_IGNORE, ierr)
       if ( recvsize > 0 ) then
-        if ( ndims == 2 ) then
-          out%ln(1, i) = in%sizes(2, i)
-          out%ln(2, i) = out%sizes(2, comm_rank)
-
-          out%ls(1, i) = in%starts(2, i)
-          out%ls(2, i) = out%starts(2, comm_rank)
-        else
-          if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z ) then
-            out%ln(1, i) = in%sizes(3, i)
-            out%ln(2, i) = out%sizes(2, comm_rank)
-            out%ln(3, i) = out%sizes(3, comm_rank)
-
-            out%ls(1, i) = in%starts(3, i)
-            out%ls(2, i) = out%starts(2, comm_rank)
-            out%ls(3, i) = out%starts(3, comm_rank)
-          else if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
-            out%ln(1, i) = out%sizes(1, comm_rank)
-            out%ln(2, i) = in%sizes(3, i)
-            out%ln(3, i) = out%sizes(3, comm_rank)
-
-            out%ls(1, i) = out%starts(1, comm_rank)
-            out%ls(2, i) = in%starts(3, i)
-            out%ls(3, i) = out%starts(3, comm_rank)
-          else if ( kernel_type == KERNEL_PERMUTE_FORWARD ) then
+        if ( self%is_transpose ) then
+          if ( ndims == 2 ) then
             out%ln(1, i) = in%sizes(2, i)
             out%ln(2, i) = out%sizes(2, comm_rank)
-            out%ln(3, i) = out%sizes(3, comm_rank)
 
             out%ls(1, i) = in%starts(2, i)
-            out%ls(2, i) = in%starts(2, comm_rank)
-            out%ls(3, i) = out%starts(3, comm_rank)
+            out%ls(2, i) = out%starts(2, comm_rank)
           else
-            ! ZXY -> YZX
-            ! YZX -> XYZ
-            out%ln(1, i) = in%sizes(3, i)
-            out%ln(2, i) = out%sizes(2, comm_rank)
-            out%ln(3, i) = out%sizes(3, comm_rank)
+            if ( transpose_type == DTFFT_TRANSPOSE_X_TO_Z ) then
+              out%ln(1, i) = in%sizes(3, i)
+              out%ln(2, i) = out%sizes(2, comm_rank)
+              out%ln(3, i) = out%sizes(3, comm_rank)
 
-            out%ls(1, i) = in%starts(3, i)
-            out%ls(2, i) = in%starts(2, comm_rank)
-            out%ls(3, i) = out%starts(3, comm_rank)
+              out%ls(1, i) = in%starts(3, i)
+              out%ls(2, i) = out%starts(2, comm_rank)
+              out%ls(3, i) = out%starts(3, comm_rank)
+            else if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
+              out%ln(1, i) = out%sizes(1, comm_rank)
+              out%ln(2, i) = in%sizes(3, i)
+              out%ln(3, i) = out%sizes(3, comm_rank)
+
+              out%ls(1, i) = out%starts(1, comm_rank)
+              out%ls(2, i) = in%starts(3, i)
+              out%ls(3, i) = out%starts(3, comm_rank)
+            else if ( kernel_type == KERNEL_PERMUTE_FORWARD ) then
+              out%ln(1, i) = in%sizes(2, i)
+              out%ln(2, i) = out%sizes(2, comm_rank)
+              out%ln(3, i) = out%sizes(3, comm_rank)
+
+              out%ls(1, i) = in%starts(2, i)
+              out%ls(2, i) = in%starts(2, comm_rank)
+              out%ls(3, i) = out%starts(3, comm_rank)
+            else
+              ! ZXY -> YZX
+              ! YZX -> XYZ
+              out%ln(1, i) = in%sizes(3, i)
+              out%ln(2, i) = out%sizes(2, comm_rank)
+              out%ln(3, i) = out%sizes(3, comm_rank)
+
+              out%ls(1, i) = in%starts(3, i)
+              out%ls(2, i) = in%starts(2, comm_rank)
+              out%ls(3, i) = out%starts(3, comm_rank)
+            endif
+          endif
+        else ! is_transpose
+          if ( ndims == 2 ) then
+            if ( reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS ) then
+              out%ln(1, i) = in%sizes(1, i)
+              out%ln(2, i) = out%sizes(2, comm_rank)
+
+              out%ls(1, i) = in%starts(1, i)
+              out%ls(2, i) = out%starts(2, comm_rank)
+            else
+              out%ln(1, i) = out%sizes(1, comm_rank)
+              out%ln(2, i) = in%sizes(2, i)
+
+              out%ls(1, i) = out%starts(1, comm_rank)
+              out%ls(2, i) = in%starts(2, i)
+              is_unpack_copy = .true.
+            endif
+          else
+            if ( reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS ) then
+              out%ln(1, i) = in%sizes(1, i)
+              out%ln(2, i) = out%sizes(2, comm_rank)
+              out%ln(3, i) = out%sizes(3, comm_rank)
+
+              out%ls(1, i) = in%starts(1, i)
+              out%ls(2, i) = out%starts(2, comm_rank)
+              out%ls(3, i) = out%starts(3, comm_rank)
+            else
+              out%ln(1, i) = out%sizes(1, comm_rank)
+              out%ln(2, i) = in%sizes(2, i)
+              out%ln(3, i) = in%sizes(3, i)
+
+              out%ls(1, i) = out%starts(1, comm_rank)
+              out%ls(2, i) = in%starts(2, i)
+              out%ls(3, i) = in%starts(3, i)
+
+              if ( send%counts(2) == out%sizes(2, i) ) is_unpack_copy = .true.
+            endif
+
           endif
         endif
       endif
@@ -311,10 +447,24 @@ contains
         neighbor_data(3, i + 1) = 1
       endif
       neighbor_data(4, i + 1) = rdispl
-      if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
-        neighbor_data(5, i + 1) = out%ln(1, i) * out%ls(2, i)! out%sizes(1, comm_rank) * out%sizes(2, comm_rank)
+      if ( self%is_transpose ) then
+        if ( transpose_type == DTFFT_TRANSPOSE_Z_TO_X ) then
+          neighbor_data(5, i + 1) = out%ln(1, i) * out%ls(2, i)! out%sizes(1, comm_rank) * out%sizes(2, comm_rank)
+        else
+          neighbor_data(5, i + 1) = out%ls(1, i)
+        endif
       else
-        neighbor_data(5, i + 1) = out%ls(1, i)
+        if ( reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS ) then
+          neighbor_data(5, i + 1) = out%ls(1, i)
+
+        else
+          neighbor_data(5, i + 1) = rrdispl
+          if ( is_unpack_copy ) then
+            rrdispl = rrdispl + product(out%ln(:, i))
+          else
+            rrdispl = rrdispl + out%ln(1, i) * out%ln(2, i)
+          endif
+        endif
       endif
 
       out%counts(i) = recvsize
@@ -322,24 +472,20 @@ contains
       rdispl = rdispl + recvsize
     enddo
 
-    is_two_step_permute = any(transpose_type == [DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y])           &
-                      .and. ndims == 3                                                                      &
-                      .and. (.not. any(kwargs%backend == [DTFFT_BACKEND_CUFFTMP, DTFFT_BACKEND_CUFFTMP_PIPELINED]))
 
-
-    if ( is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_START
-
-    call self%transpose_kernel%create(send%counts, kwargs%effort, base_storage, kernel_type, force_effort=kwargs%force_effort)
 
     self%is_pipelined = is_backend_pipelined(kwargs%backend)
     kernel_type = KERNEL_UNPACK
     if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
     if ( is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_END
     if ( self%is_pipelined .and. is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_END_PIPELINED
-    if ( kwargs%backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_UNPACK_SIMPLE_COPY
+    if ( kwargs%backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_COPY
     if ( kwargs%backend == DTFFT_BACKEND_CUFFTMP_PIPELINED ) kernel_type = KERNEL_DUMMY
 
-    call self%unpack_kernel%create(recv%counts, kwargs%effort, base_storage, kernel_type, neighbor_data, kwargs%force_effort)
+    if ( is_unpack_copy ) kernel_type = KERNEL_COPY
+    if ( is_unpack_copy .and. self%is_pipelined ) kernel_type = KERNEL_COPY_PIPELINED
+    if ( self%is_reshape_only ) kernel_type = KERNEL_DUMMY
+    call self%unpack_kernel%create(recv%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort)
 
     if ( is_backend_mpi(kwargs%backend) ) then
       allocate( backend_mpi :: self%comm_handle )
@@ -365,7 +511,14 @@ contains
                               .and. .not. self%is_pipelined                                                 &
                               .and. kwargs%platform == DTFFT_PLATFORM_HOST                                  &
                               .and. .not.(kwargs%backend == DTFFT_BACKEND_MPI_P2P_SCHEDULED)
-    call self%comm_handle%create(kwargs%backend, kwargs%helper, kwargs%platform, kwargs%comm_id, in%displs, in%counts, out%displs, out%counts, base_storage)
+
+    if ( self%is_reshape_only ) then
+      self%is_pipelined = .false.
+      call self%comm_handle%create(DTFFT_BACKEND_CUFFTMP, kwargs%helper, kwargs%platform, kwargs%comm_id, in%displs, in%counts, out%displs, out%counts, kwargs%base_storage)
+    else
+      call self%comm_handle%create(kwargs%backend, kwargs%helper, kwargs%platform, kwargs%comm_id, in%displs, in%counts, out%displs, out%counts, kwargs%base_storage)
+    endif
+
     if ( self%is_pipelined ) then
       call self%comm_handle%set_unpack_kernel(self%unpack_kernel)
     endif
@@ -377,7 +530,7 @@ contains
 
   subroutine execute(self, in, out, kwargs, error_code)
   !! Executes transpose - exchange - unpack
-    class(transpose_handle_generic),  intent(inout) :: self       !! Generic Transpose Handle
+    class(reshape_handle_generic),  intent(inout) :: self       !! Generic Transpose Handle
     real(real32),                     intent(inout) :: in(:)      !! Send pointer
     real(real32),                     intent(inout) :: out(:)     !! Recv pointer
     type(execute_args),               intent(inout) :: kwargs     !! Additional arguments
@@ -385,12 +538,41 @@ contains
 
     error_code = DTFFT_SUCCESS
     if ( self%is_pipelined ) then
-      call self%transpose_kernel%execute(in, kwargs%p1, kwargs%stream)
-      call self%comm_handle%execute(kwargs%p1, out, kwargs%stream, in, kwargs%exec_type, error_code)
+      if ( self%is_pack_free ) then
+        ! Reshape pack-free
+        ! packing is skipped, since it is already packed in a case of Z-slab reshaping
+        ! in -> aux     exchange
+        ! aux -> out    unpack
+        call self%comm_handle%execute(in, out, kwargs%stream, kwargs%p1, kwargs%exec_type, error_code)
+      else
+        ! Transpose and reshape with packing
+        ! in -> aux     pack
+        ! aux -> in     exchange
+        ! in -> out     unpack
+        call self%pack_kernel%execute(in, kwargs%p1, kwargs%stream)
+        call self%comm_handle%execute(kwargs%p1, out, kwargs%stream, in, kwargs%exec_type, error_code)
+      endif
+
       return
     endif
 
-    call self%transpose_kernel%execute(in, out, kwargs%stream)
+
+    if ( self%is_reshape_only ) then
+      ! This should only be CUFFTMP
+      call self%comm_handle%execute(in, out, kwargs%stream, kwargs%p1, kwargs%exec_type, error_code)
+      return
+    endif
+
+    ! Transpose and reshape with packing
+    ! in -> out       pack
+    ! out -> in       exchange
+    ! in -> out       unpack
+
+    ! Reshape with simple copy
+    ! in -> out       full buffer copy
+    ! out -> in       exchange
+    ! in -> out       unpack
+    call self%pack_kernel%execute(in, out, kwargs%stream)
     if ( .not. self%has_exchange ) return
     call self%comm_handle%execute(out, in, kwargs%stream, kwargs%p1, kwargs%exec_type, error_code)
     if ( error_code /= DTFFT_SUCCESS ) return
@@ -400,7 +582,7 @@ contains
 
   subroutine execute_end(self, kwargs, error_code)
   !! Ends execution of transposition
-    class(transpose_handle_generic),  intent(inout) :: self       !! Generic Transpose Handle
+    class(reshape_handle_generic),  intent(inout) :: self       !! Generic Transpose Handle
     type(execute_args),               intent(inout) :: kwargs     !! Additional arguments
     integer(int32),                   intent(out)   :: error_code !! Error code
 
@@ -413,7 +595,7 @@ contains
   end subroutine execute_end
 
   elemental logical function get_async_active(self)
-    class(transpose_handle_generic),  intent(in)    :: self       !! Generic Transpose Handle
+    class(reshape_handle_generic),  intent(in)    :: self       !! Generic Transpose Handle
 
     get_async_active = .false.
     if( .not. self%is_async_supported ) return
@@ -422,11 +604,11 @@ contains
 
   subroutine destroy(self)
   !! Destroys Generic Transpose Handle
-    class(transpose_handle_generic),   intent(inout) :: self      !! Generic Transpose Handle
+    class(reshape_handle_generic),   intent(inout) :: self      !! Generic Transpose Handle
 
-    if ( allocated( self%transpose_kernel ) ) then
-      call self%transpose_kernel%destroy()
-      deallocate( self%transpose_kernel )
+    if ( allocated( self%pack_kernel ) ) then
+      call self%pack_kernel%destroy()
+      deallocate( self%pack_kernel )
     endif
     if ( allocated( self%comm_handle ) ) then
       call self%comm_handle%destroy()
@@ -436,16 +618,16 @@ contains
       call self%unpack_kernel%destroy()
       deallocate( self%unpack_kernel )
     endif
+    self%is_reshape_only = .false.
+    self%is_pack_free = .false.
   end subroutine destroy
 
-  pure integer(int64) function get_aux_size(self)
+  pure integer(int64) function get_aux_bytes(self)
   !! Returns number of bytes required by aux buffer
-    class(transpose_handle_generic),   intent(in)    :: self      !! Generic Transpose Handle
+    class(reshape_handle_generic),   intent(in)    :: self      !! Generic Transpose Handle
 
-    if ( .not. self%has_exchange ) then
-      get_aux_size = 0
-      return
-    endif
-    get_aux_size = self%comm_handle%get_aux_size()
-  end function get_aux_size
-end module dtfft_transpose_handle_generic
+    get_aux_bytes = 0_int64
+    if ( .not. self%has_exchange ) return
+    get_aux_bytes = self%comm_handle%get_aux_bytes()
+  end function get_aux_bytes
+end module dtfft_reshape_handle_generic

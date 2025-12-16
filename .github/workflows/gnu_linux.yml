@@ -12,6 +12,10 @@ jobs:
       DTFFT_ENABLE_LOG: "1"
       DTFFT_MEASURE_WARMUP_ITERS: "CUDA"
       DTFFT_MEASURE_ITERS: "-1"
+      DTFFT_ENABLE_FOURIER_RESHAPE: "1"
+      DTFFT_ENABLE_KERNEL_AUTOTUNE: "1"
+      DTFFT_ENABLE_MPI: "1"
+      DTFFT_RESHAPE_BACKEND: "MPI_DT"
     steps:
       - name: Get Requirements
         run: |
@@ -32,7 +36,7 @@ jobs:
             -DDTFFT_MPI_VENDOR=openmpi \
             -DDTFFT_BUILD_C_CXX_API=on
           cmake --build build
-      - name: Test
+      - name: Coverage
         run: cmake --build build --target coverage
       - name: Install
         run: sudo cmake --install build
@@ -136,6 +140,10 @@ jobs:
       DTFFT_ENABLE_LOG: "1"
       DTFFT_PLATFORM: "host"
     steps:
+      - name: Free space
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
       - name: Get Requirements
         run: |
           wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-ubuntu2404.pin

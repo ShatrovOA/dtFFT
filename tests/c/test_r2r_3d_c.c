@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
   if(comm_rank == 0) {
     printf("----------------------------------------\n");
-    printf("| DTFFT test C interface: r2r_3d       |\n");
+    printf("| dtFFT test C interface: r2r_3d       |\n");
     printf("----------------------------------------\n");
     printf("Nx = %d, Ny = %d, Nz = %d\n", nx, ny, nz);
     printf("Number of processors: %d\n", comm_size);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   dtfft_plan_t plan;
 
   DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, &plan) )
-  DTFFT_CALL( dtfft_get_pencil(plan, 1, &pencils[0]) )
+  DTFFT_CALL( dtfft_get_pencil(plan, DTFFT_LAYOUT_X_PENCILS, &pencils[0]) )
   DTFFT_CALL( dtfft_destroy(&plan) )
 
   // Recreate plan with pencils
@@ -74,9 +74,9 @@ int main(int argc, char *argv[])
   // Obtain pencil information (optional)
   int8_t ndims;
   DTFFT_CALL( dtfft_get_dims(plan, &ndims, NULL) )
-  for ( int i = 0; i < ndims; i++ ) {
-    dtfft_get_pencil(plan, i + 1, &pencils[i]);
-  }
+  dtfft_get_pencil(plan, DTFFT_LAYOUT_X_PENCILS, &pencils[0]);
+  dtfft_get_pencil(plan, DTFFT_LAYOUT_Y_PENCILS, &pencils[1]);
+  dtfft_get_pencil(plan, DTFFT_LAYOUT_Z_PENCILS, &pencils[2]);
 
   size_t in_size = pencils[0].size;
 
@@ -98,12 +98,12 @@ int main(int argc, char *argv[])
   /*
     Run custom Forward FFT X direction using pencils[0] information
   */
-  DTFFT_CALL( dtfft_transpose_start(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y, &request) )
+  DTFFT_CALL( dtfft_transpose_start(plan, in, out, DTFFT_TRANSPOSE_X_TO_Y, NULL, &request) )
   DTFFT_CALL( dtfft_transpose_end(plan, request) )
   /*
     Run custom Forward FFT Y direction using pencils[1] information
   */
-  DTFFT_CALL( dtfft_transpose_start(plan, out, in, DTFFT_TRANSPOSE_Y_TO_Z, &request) )
+  DTFFT_CALL( dtfft_transpose_start(plan, out, in, DTFFT_TRANSPOSE_Y_TO_Z, NULL, &request) )
   DTFFT_CALL( dtfft_transpose_end(plan, request) )
   /*
     Run custom Forward FFT Z direction using pencils[2] information
@@ -120,12 +120,12 @@ int main(int argc, char *argv[])
   /*
     Run custom Backward FFT Z direction using pencils[2] information
   */
-  DTFFT_CALL( dtfft_transpose_start(plan, in, out, DTFFT_TRANSPOSE_Z_TO_Y, &request) )
+  DTFFT_CALL( dtfft_transpose_start(plan, in, out, DTFFT_TRANSPOSE_Z_TO_Y, NULL, &request) )
   DTFFT_CALL( dtfft_transpose_end(plan, request) )
   /*
     Run custom Backward FFT Y direction using pencils[1] information
   */
-  DTFFT_CALL( dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_X) )
+  DTFFT_CALL( dtfft_transpose(plan, out, in, DTFFT_TRANSPOSE_Y_TO_X, NULL) )
   /*
     Run custom Backward FFT X direction using pencils[0] information
   */

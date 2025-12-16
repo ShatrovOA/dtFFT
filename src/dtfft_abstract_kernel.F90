@@ -20,7 +20,7 @@
 module dtfft_abstract_kernel
 !! This module defines `abstract_kernel` type and its type bound procedures.
 !!
-!! The abstract kernel is used in `transpose_handle_generic` type and
+!! The abstract kernel is used in `reshape_handle_generic` type and
 !! is resposible for packing/unpacking/permute operations.
 !! The actual implementation of the kernel is deferred to the
 !! `create_private`, `execute_private` and `destroy_private` procedures.
@@ -54,14 +54,13 @@ public :: operator(/=)
 
   type(kernel_type_t), parameter, public  :: KERNEL_DUMMY               = kernel_type_t(-1)
     !! Dummy kernel, does nothing
-  ! type(kernel_type_t), parameter, public  :: KERNEL_TRANSPOSE           = kernel_type_t(1)
-  !   !! Basic transpose kernel type.
-  ! type(kernel_type_t), parameter, public  :: KERNEL_TRANSPOSE_PACKED    = kernel_type_t(2)
-  !   !! Transposes data and packs it into contiguous buffer.
-  !   !! Should be used only in X-Y 3D plans.
+  type(kernel_type_t), parameter, public  :: KERNEL_PACK                = kernel_type_t(1)
+    !! Packs bricks data that will be reshaped into pencils
+  type(kernel_type_t), parameter, public  :: KERNEL_COPY_PIPELINED      = kernel_type_t(2)
+    !! Packs pencil data that will be reshaped into bricks
   type(kernel_type_t), parameter, public  :: KERNEL_UNPACK              = kernel_type_t(3)
     !! Unpacks contiguous buffer.
-  type(kernel_type_t), parameter, public  :: KERNEL_UNPACK_SIMPLE_COPY  = kernel_type_t(4)
+  type(kernel_type_t), parameter, public  :: KERNEL_COPY                = kernel_type_t(4)
     !! Doesn't actually unpacks anything. Performs ``cudaMemcpyAsync`` call.
     !! Should be used only when backend is ``DTFFT_BACKEND_CUFFTMP``.
   type(kernel_type_t), parameter, public  :: KERNEL_UNPACK_PIPELINED    = kernel_type_t(5)
@@ -91,7 +90,7 @@ public :: operator(/=)
   type, abstract :: abstract_kernel
   !! Abstract kernel type
   !!
-  !! This kernel type is used in `transpose_handle_generic` type and
+  !! This kernel type is used in `reshape_handle_generic` type and
   !! is resposible for packing/unpacking/permute operations.
     logical                       :: is_created = .false.     !! Kernel is created flag.
     logical                       :: is_dummy = .false.       !! If kernel should do anything or not.
@@ -143,6 +142,10 @@ contains
     character(len=:), allocatable   :: string !! kernel string
 
     select case ( kernel%val )
+    case ( KERNEL_PACK%val )
+      allocate(string, source="dtfft_kernel_pack" )
+    case ( KERNEL_COPY%val, KERNEL_COPY_PIPELINED%val )
+      allocate(string, source="dtfft_kernel_copy" )
     case ( KERNEL_UNPACK%val )
       allocate(string, source="dtfft_kernel_unpack")
     case ( KERNEL_UNPACK_PIPELINED%val )
@@ -192,7 +195,7 @@ contains
       if ( size(dims) /= 3 ) INTERNAL_ERROR("2-step permutation is only valid for 3d grid")
     endif
 #endif
-    if ( is_unpack_kernel(kernel_type) ) then
+    if ( is_unpack_kernel(kernel_type) .or. kernel_type == KERNEL_PACK .or. kernel_type == KERNEL_COPY_PIPELINED ) then
 #ifdef DTFFT_DEBUG
       if ( .not. present(neighbor_data) ) INTERNAL_ERROR("Neighbor data required")
 #endif
@@ -220,13 +223,12 @@ contains
     REGION_BEGIN(self%kernel_string, COLOR_EXECUTE)
 #ifdef DTFFT_DEBUG
     if ( .not. self%is_created ) INTERNAL_ERROR("`execute` called while plan not created")
-    if ( any(self%kernel_type == [KERNEL_UNPACK_PIPELINED, KERNEL_PERMUTE_BACKWARD_END_PIPELINED]) ) then
+    if ( any(self%kernel_type == [KERNEL_UNPACK_PIPELINED, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_COPY_PIPELINED]) ) then
       if ( .not.present(neighbor) ) INTERNAL_ERROR("Neighbor is not passed")
       if ( neighbor < 1 .or. neighbor > size(self%neighbor_data, dim=2) ) INTERNAL_ERROR("Neighbor index out of bounds")
     endif
 #endif
     call self%execute_private(in, out, stream, neighbor)
-
     REGION_END(self%kernel_string)
   end subroutine execute
 

@@ -38,7 +38,8 @@ implicit none
   integer(int32) :: comm_size, comm_rank, ierr
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2c_t) :: plan
-  integer(int32) :: in_counts(2), out_counts(2)
+  type(dtfft_pencil_t) :: pencil
+  integer(int32) :: grid(2), is_starts(2), in_counts(2), out_counts(2)
   real(real64) :: tf, tb
   integer(int64) :: alloc_size, upper_bound, cmplx_upper_bound
   type(dtfft_config_t) :: conf
@@ -52,7 +53,7 @@ implicit none
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
-    write(output_unit, '(a)') "|       DTFFT test: r2c_2d             |"
+    write(output_unit, '(a)') "|       dtFFT test: r2c_2d             |"
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a, i0, a, i0)') 'Nx = ',nx, ', Ny = ',ny
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
@@ -101,6 +102,9 @@ implicit none
   call attach_gpu_to_process()
 
   conf = dtfft_config_t()
+  conf%enable_datatype_backend = .false.
+  conf%enable_fourier_reshape = .true.
+  conf%enable_mpi_backends = .true.
 #if defined(DTFFT_WITH_CUDA)
   !! Using openacc, disable nvshmem
   conf%enable_nvshmem_backends = .false.
@@ -108,9 +112,14 @@ implicit none
 #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
-  call plan%create([nx, ny], effort=DTFFT_PATIENT, executor=executor, error_code=ierr)
+  grid(:) = 0
+  call createGridDims(2, [nx, ny], grid, is_starts, in_counts)
+  pencil = dtfft_pencil_t(is_starts, in_counts)
+
+  call plan%create(pencil, effort=DTFFT_EXHAUSTIVE, executor=executor, error_code=ierr)
   DTFFT_CHECK(ierr)
-  call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr)
+  call plan%report()
+  call plan%get_local_sizes(out_counts=out_counts, alloc_size=alloc_size, error_code=ierr)
   DTFFT_CHECK(ierr)
 
 #if defined(DTFFT_WITH_CUDA)

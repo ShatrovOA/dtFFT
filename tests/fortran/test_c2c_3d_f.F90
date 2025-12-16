@@ -41,7 +41,7 @@ implicit none
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_c2c_t) :: plan
   integer(int32) :: in_counts(3), out_counts(3), iter
-  integer(int64)  :: alloc_size, element_size, in_size, out_size
+  integer(int64)  :: alloc_size, aux_size, element_size, in_size, out_size
   real(real64) :: ts, tf, tb
 #if defined(DTFFT_WITH_CUDA)
   type(dtfft_stream_t)  :: stream
@@ -56,7 +56,7 @@ implicit none
 
   if(comm_rank == 0) then
     write(output_unit, '(a)') "----------------------------------------"
-    write(output_unit, '(a)') "|       DTFFT test: c2c_3d             |"
+    write(output_unit, '(a)') "|       dtFFT test: c2c_3d             |"
     write(output_unit, '(a)') "----------------------------------------"
     write(output_unit, '(a, i0, a, i0, a, i0)') 'Nx = ',nx, ', Ny = ',ny, ', Nz = ',nz
     write(output_unit, '(a, i0)') 'Number of processors: ', comm_size
@@ -98,14 +98,16 @@ implicit none
   conf%platform = DTFFT_PLATFORM_CUDA
 #endif
 
+  conf%enable_datatype_backend = .false.
   conf%enable_mpi_backends = .true.
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
   ! Setting effort=DTFFT_PATIENT will ignore value of `conf%backend` and will run autotune to find best backend
   ! Fastest backend will be selected
-  call plan%create([nx, ny, nz], executor=executor, effort=DTFFT_PATIENT, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%create([nx, ny, nz], executor=executor, effort=DTFFT_EXHAUSTIVE, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, error_code=ierr); DTFFT_CHECK(ierr)
   alloc_size = plan%get_alloc_size(ierr); DTFFT_CHECK(ierr)
+  aux_size = plan%get_aux_size(ierr); DTFFT_CHECK(ierr)
   element_size = plan%get_element_size(ierr); DTFFT_CHECK(ierr)
   in_size = product(in_counts)
   out_size = product(out_counts)
@@ -128,7 +130,7 @@ implicit none
   endif
 
   call plan%mem_alloc(alloc_size, inout, in_counts, error_code=ierr); DTFFT_CHECK(ierr)
-  call plan%mem_alloc(alloc_size, aux, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%mem_alloc(aux_size, aux, error_code=ierr); DTFFT_CHECK(ierr)
 
   check = mem_alloc_host(in_size * element_size)
   call setTestValuesComplexDouble(check, in_size)

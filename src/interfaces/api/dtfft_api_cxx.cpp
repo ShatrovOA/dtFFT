@@ -135,6 +135,13 @@ std::string get_backend_string(const Backend backend)
     return { backend_str };
 }
 
+bool get_backend_pipelined(const Backend backend)
+{
+    bool flag;
+    dtfft_get_backend_pipelined(static_cast<dtfft_backend_t>(backend), &flag);
+    return flag;
+}
+
 Error Plan::get_z_slab_enabled(bool* is_z_slab_enabled) const noexcept
 {
     return static_cast<Error>(dtfft_get_z_slab_enabled(_plan, is_z_slab_enabled));
@@ -164,21 +171,21 @@ Error Plan::report() const noexcept
     return static_cast<Error>(dtfft_report(_plan));
 }
 
-Error Plan::get_pencil(const int32_t dim, Pencil& pencil) const noexcept
+Error Plan::get_pencil(const Layout layout, Pencil& pencil) const noexcept
 {
     dtfft_pencil_t c_pencil;
-    const auto error_code = static_cast<Error>(dtfft_get_pencil(_plan, dim, &c_pencil));
-    if (error_code == Error::SUCCESS) {
+    dtfft_error_t error_code = dtfft_get_pencil(_plan, static_cast<dtfft_layout_t>(layout), &c_pencil);
+    if (error_code == DTFFT_SUCCESS) {
         pencil = Pencil(c_pencil);
     }
-    return error_code;
+    return static_cast<Error>(error_code);
 }
 
 Pencil
-Plan::get_pencil(const int32_t dim) const
+Plan::get_pencil(const Layout layout) const
 {
     Pencil pencil;
-    DTFFT_CXX_CALL(get_pencil(dim, pencil))
+    DTFFT_CXX_CALL(get_pencil(layout, pencil))
     return pencil;
 }
 
@@ -198,21 +205,49 @@ Error Plan::backward(void* in, void* out, void* aux) const noexcept
     return execute(in, out, Execute::BACKWARD, aux);
 }
 
-Error Plan::transpose(void* in, void* out, const Transpose transpose_type) const noexcept
+Error Plan::transpose(void* in, void* out, const Transpose transpose_type, void* aux) const noexcept
 {
-    dtfft_error_t error_code = dtfft_transpose(_plan, in, out, static_cast<dtfft_transpose_t>(transpose_type));
+    dtfft_error_t error_code = dtfft_transpose(_plan, in, out, static_cast<dtfft_transpose_t>(transpose_type), aux);
     return static_cast<Error>(error_code);
 }
 
 Error Plan::transpose_start(void* in, void* out, const Transpose transpose_type, dtfft_request_t* request) const noexcept
 {
-    dtfft_error_t error_code = dtfft_transpose_start(_plan, in, out, static_cast<dtfft_transpose_t>(transpose_type), request);
+    return transpose_start(in, out, transpose_type, nullptr, request);
+}
+
+Error Plan::transpose_start(void* in, void* out, const Transpose transpose_type, void* aux, dtfft_request_t* request) const noexcept
+{
+    dtfft_error_t error_code = dtfft_transpose_start(_plan, in, out, static_cast<dtfft_transpose_t>(transpose_type), aux, request);
     return static_cast<Error>(error_code);
 }
 
 Error Plan::transpose_end(dtfft_request_t request) const noexcept
 {
     dtfft_error_t error_code = dtfft_transpose_end(_plan, request);
+    return static_cast<Error>(error_code);
+}
+
+Error Plan::reshape(void* in, void* out, Reshape reshape_type, void* aux) const noexcept
+{
+    dtfft_error_t error_code = dtfft_reshape(_plan, in, out, static_cast<dtfft_reshape_t>(reshape_type), aux);
+    return static_cast<Error>(error_code);
+}
+
+Error Plan::reshape_start(void* in, void* out, Reshape reshape_type, void* aux, dtfft_request_t* request) const noexcept
+{
+    dtfft_error_t error_code = dtfft_reshape_start(_plan, in, out, static_cast<dtfft_reshape_t>(reshape_type), aux, request);
+    return static_cast<Error>(error_code);
+}
+
+Error Plan::reshape_start(void* in, void* out, Reshape reshape_type, dtfft_request_t* request) const noexcept
+{
+    return reshape_start(in, out, reshape_type, nullptr, request);
+}
+
+Error Plan::reshape_end(dtfft_request_t request) const noexcept
+{
+    dtfft_error_t error_code = dtfft_reshape_end(_plan, request);
     return static_cast<Error>(error_code);
 }
 
@@ -227,6 +262,32 @@ Plan::get_alloc_size() const
     size_t alloc_size;
     DTFFT_CXX_CALL(get_alloc_size(&alloc_size))
     return alloc_size;
+}
+
+Error Plan::get_aux_size(size_t* aux_size) const noexcept
+{
+    return static_cast<Error>(dtfft_get_aux_size(_plan, aux_size));
+}
+
+size_t
+Plan::get_aux_size() const
+{
+    size_t aux_size;
+    DTFFT_CXX_CALL(get_aux_size(&aux_size))
+    return aux_size;
+}
+
+Error Plan::get_aux_bytes(size_t* aux_bytes) const noexcept
+{
+    return static_cast<Error>(dtfft_get_aux_bytes(_plan, aux_bytes));
+}
+
+size_t
+Plan::get_aux_bytes() const
+{
+    size_t aux_bytes;
+    DTFFT_CXX_CALL(get_aux_bytes(&aux_bytes))
+    return aux_bytes;
 }
 
 Error Plan::get_local_sizes(
@@ -374,6 +435,22 @@ Plan::get_backend() const
 {
     Backend backend;
     DTFFT_CXX_CALL(get_backend(backend))
+    return backend;
+}
+
+Error Plan::get_reshape_backend(Backend& backend) const noexcept
+{
+    dtfft_backend_t backend_;
+    dtfft_error_t error_code = dtfft_get_reshape_backend(_plan, &backend_);
+    backend = static_cast<Backend>(backend_);
+    return static_cast<Error>(error_code);
+}
+
+Backend
+Plan::get_reshape_backend() const
+{
+    Backend backend;
+    DTFFT_CXX_CALL(get_reshape_backend(backend))
     return backend;
 }
 
