@@ -93,6 +93,12 @@ extern int32_t
 dtfft_get_aux_bytes_c(const void*, size_t*);
 
 extern int32_t
+dtfft_get_aux_size_reshape_c(const void*, size_t*);
+
+extern int32_t
+dtfft_get_aux_bytes_reshape_c(const void*, size_t*);
+
+extern int32_t
 dtfft_mem_alloc_c(const void*, size_t, void**);
 
 extern int32_t

@@ -223,6 +223,14 @@ Plan information
 
 ---------
 
+.. doxygenfunction:: dtfft_get_aux_size_reshape
+
+---------
+
+.. doxygenfunction:: dtfft_get_aux_bytes_reshape
+
+---------
+
 .. doxygenfunction:: dtfft_get_element_size
 
 ---------

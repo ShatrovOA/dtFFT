@@ -1310,6 +1310,35 @@ public:
      */
     std::size_t get_aux_bytes() const;
 
+    /** @brief Get number of elements required by Plan.reshape
+     * 
+     * @param[out]  aux_size    Number of elements required for auxiliary buffer during reshape operation. 
+     *                          Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_aux_size_reshape(std::size_t* aux_size) const noexcept;
+
+    /** @brief Get number of elements required by Plan.reshape
+     * 
+     * @return Number of elements required for auxiliary buffer during reshape operation.
+     * @throws Exception if underlying call fails
+     */
+    std::size_t get_aux_size_reshape() const;
+
+    /** @brief Get number of bytes required by Plan.reshape
+     * 
+     * @param[out]  aux_bytes   Number of bytes required for auxiliary buffer during reshape operation.
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_aux_bytes_reshape(std::size_t* aux_bytes) const noexcept;
+
+    /** @brief Get number of bytes required by Plan.reshape
+     * 
+     * @return Number of bytes required for auxiliary buffer during reshape operation.
+     * @throws Exception if underlying call fails
+     */
+    std::size_t get_aux_bytes_reshape() const;
+
     /** @brief Get grid decomposition information. Results may differ on different
      * MPI processes
      *

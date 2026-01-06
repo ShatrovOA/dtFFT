@@ -65,6 +65,7 @@ public :: dtfft_plan_r2r_t
     logical                 :: is_started = .false. !! Flag that indicates if transpose was started
     type(c_ptr)             :: in                   !! Input pointer
     type(c_ptr)             :: out                  !! Output pointer
+    type(c_ptr)             :: aux                  !! Aux pointer
   end type async_request
 
 #ifdef ENABLE_INPUT_CHECK
@@ -190,8 +191,10 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: get_pencil         !! Returns pencil decomposition
     procedure,  pass(self), non_overridable, public :: get_element_size   !! Returns number of bytes required to store single element.
     procedure,  pass(self), non_overridable, public :: get_alloc_bytes    !! Returns minimum number of bytes required to execute plan
-    procedure,  pass(self), non_overridable, public :: get_aux_size       !! Returns size of auxiliary buffer in bytes
+    procedure,  pass(self), non_overridable, public :: get_aux_size       !! Returns size of auxiliary buffer in elements
     procedure,  pass(self), non_overridable, public :: get_aux_bytes      !! Returns minimum number of bytes required for auxiliary buffer
+    procedure,  pass(self), non_overridable, public :: get_aux_size_reshape !! Returns size of auxiliary buffer for reshape in elements
+    procedure,  pass(self), non_overridable, public :: get_aux_bytes_reshape !! Returns minimum number of bytes required for auxiliary buffer for reshape
     procedure,  pass(self), non_overridable, public :: get_executor       !! Returns FFT Executor associated with plan
     procedure,  pass(self), non_overridable, public :: get_dims           !! Returns global dimensions
     procedure,  pass(self), non_overridable, public :: get_grid_dims      !! Returns grid decomposition dimensions
@@ -434,16 +437,18 @@ contains
     integer(int32)  :: ierr     !! Error code
     type(async_request),     pointer          :: internal_handle
       !! Handle to internal reshape structure
+    type(c_ptr) :: true_aux
 
     PHASE_BEGIN("dtfft_reshape_start", COLOR_TRANSPOSE)
     request = dtfft_request_t(c_null_ptr)
-    call self%reshape_private(in, out, reshape_type, aux, EXEC_NONBLOCKING, ierr)
+    call self%reshape_private(in, out, reshape_type, aux, EXEC_NONBLOCKING, ierr, true_aux)
     if( ierr == DTFFT_SUCCESS ) then
       allocate(internal_handle)
       internal_handle%request_type = reshape_type%val
       internal_handle%is_started = .true.
       internal_handle%in = in
       internal_handle%out = out
+      internal_handle%aux = true_aux
       request%val = c_loc(internal_handle)
     endif
     if ( present( error_code ) ) error_code = ierr
@@ -465,7 +470,7 @@ contains
     ierr = DTFFT_SUCCESS
     CHECK_REQUEST(request, internal_handle, dtfft_reshape_t, is_valid_reshape_type)
     PHASE_BEGIN("dtfft_reshape_end", COLOR_TRANSPOSE)
-    call self%rplan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, ierr)
+    call self%rplan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, internal_handle%aux, ierr)
     PHASE_END("dtfft_reshape_end")
     CHECK_ERROR_AND_RETURN
     deallocate(internal_handle)
@@ -473,7 +478,7 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine reshape_end
 
-  subroutine reshape_private(self, in, out, reshape_type, aux, exec_type, error_code)
+  subroutine reshape_private(self, in, out, reshape_type, aux, exec_type, error_code, true_aux)
   !! Performs reshape from `bricks` to `pencils` layout or vice versa using type(c_ptr) pointers instead of buffers
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
@@ -492,6 +497,7 @@ contains
       !! Type of asynchronous execution.
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
+    type(c_ptr),      optional, intent(out)   :: true_aux
     integer(int32)  :: ierr    !! Error code
     type(c_ptr)   :: aux1, aux2
 
@@ -526,6 +532,7 @@ contains
     CHECK_ERROR_AND_RETURN
 #endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+    if ( present( true_aux ) ) true_aux = aux1
   end subroutine reshape_private
 
   subroutine transpose(self, in, out, transpose_type, aux, error_code)
@@ -646,6 +653,7 @@ contains
       internal_handle%is_started = .true.
       internal_handle%in = in
       internal_handle%out = out
+      internal_handle%aux = c_null_ptr
       request%val = c_loc(internal_handle)
     endif
     if ( present( error_code ) ) error_code = ierr
@@ -668,7 +676,7 @@ contains
     CHECK_REQUEST(request, internal_handle, dtfft_transpose_t, is_valid_transpose_type)
 
     PHASE_BEGIN("dtfft_transpose_end", COLOR_TRANSPOSE)
-    call self%plan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, ierr)
+    call self%plan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, internal_handle%aux, ierr)
     PHASE_END("dtfft_transpose_end")
     CHECK_ERROR_AND_RETURN
     deallocate(internal_handle)
@@ -1367,7 +1375,7 @@ contains
     get_aux_size = self%rplan%get_aux_bytes() / self%storage_size
     get_aux_size = max(get_aux_size, self%plan%get_aux_bytes() / self%storage_size)
     get_aux_size = max(get_aux_size, self%get_alloc_size())
-    if ( is_backend_pipelined(self%plan%get_backend()) .or. is_backend_pipelined(self%rplan%get_backend()) ) then
+    if ( self%plan%is_aux_needed() .or. self%rplan%is_aux_needed() ) then
       get_aux_size = get_aux_size * 2_int64
     endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
@@ -1384,16 +1392,52 @@ contains
     integer(int64)  :: aux_size     !! Number of elements required
     integer(int64)  :: element_size !! Size of each element
 
-    ierr = DTFFT_SUCCESS
     get_aux_bytes = 0
-    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    aux_size = self%get_aux_size(ierr)
     CHECK_ERROR_AND_RETURN
-
-    aux_size = self%get_aux_size()
     element_size = self%get_element_size()
     get_aux_bytes = aux_size * element_size
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_aux_bytes
+
+  integer(int64) function get_aux_size_reshape(self, error_code)
+  !! Returns minimum number of elements required for `reshape` auxiliary buffer
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr         !! Error code
+    integer(int64)  :: esize        !! Size of element in bytes
+
+    get_aux_size_reshape = self%get_aux_bytes_reshape(ierr)
+    CHECK_ERROR_AND_RETURN
+    esize = self%get_element_size()
+    ! Usually this is other way around. We first get elements and multiply by storage size.
+    ! Here we must take into account that r2c plan has two reshapes with different element sizes.
+    ! Just like everywhere else we report number of elements for such plan in `real` elements, not `complex`.
+    get_aux_size_reshape = get_aux_size_reshape / esize
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_aux_size_reshape
+
+  integer(int64) function get_aux_bytes_reshape(self, error_code)
+  !! Returns minimum number of bytes required for `reshape` auxiliary buffer
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr         !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_aux_bytes_reshape = 0
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    if ( .not. self%is_reshape_enabled )                                                        &
+      ierr = DTFFT_ERROR_RESHAPE_NOT_SUPPORTED
+    CHECK_ERROR_AND_RETURN
+
+    get_aux_bytes_reshape = self%rplan%get_aux_bytes()
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_aux_bytes_reshape
 
   type(dtfft_executor_t) function get_executor(self, error_code)
   !! Returns FFT Executor associated with plan
@@ -2173,10 +2217,10 @@ contains
     integer(int64)                                :: alloc_size, shift_size
       !! Number of elements to be allocated
     integer(int32) :: ierr
-    logical :: is_pipe
+    logical :: is_reshape_aux_required
 
     shift_size = self%get_alloc_bytes()
-    is_pipe = is_backend_pipelined(self%plan%get_backend()) .or. is_backend_pipelined(self%rplan%get_backend())
+    is_reshape_aux_required = self%plan%is_aux_needed() .or. self%rplan%is_aux_needed()
 
     aux2_ptr = c_null_ptr
     if ( self%is_aux_alloc .or. .not.is_null_ptr(aux) ) then
@@ -2185,13 +2229,13 @@ contains
       else
         aux_ptr = aux
       endif
-      if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_pipe) then
+      if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_reshape_aux_required) then
         aux2_ptr = ptr_offset(aux_ptr, shift_size)
       endif
       return
     endif
 
-    if ( called_by == CHECK_AUX_CALLED_BY_RESHAPE .and. .not. is_pipe) then
+    if ( called_by == CHECK_AUX_CALLED_BY_RESHAPE .and. .not. is_reshape_aux_required) then
       aux_ptr = c_null_ptr
       return
     endif
@@ -2200,7 +2244,7 @@ contains
     WRITE_DEBUG("Allocating auxiliary buffer of "//to_str(alloc_size)//" bytes")
     self%aux_ptr = self%mem_alloc_ptr(alloc_size, ierr);  DTFFT_CHECK(ierr)
     aux_ptr = self%aux_ptr
-    if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_pipe) then
+    if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_reshape_aux_required) then
       aux2_ptr = ptr_offset(self%aux_ptr, shift_size)
     endif
     self%is_aux_alloc = .true.

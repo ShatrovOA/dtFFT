@@ -55,6 +55,7 @@ public :: execute_args
     type(async_exec_t)      :: exec_type          !! Async execution type
     real(real32), pointer   :: p1(:)              !! `aux` pointer for pipelined operations, `in` pointer for [[execute_end]]
     real(real32), pointer   :: p2(:)              !! `out` pointer for [[execute_end]]
+    real(real32), pointer   :: p3(:)              !! `in` pointer for unpack-free generic reshape
   end type execute_args
 
   type, abstract :: abstract_reshape_handle

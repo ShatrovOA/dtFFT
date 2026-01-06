@@ -290,6 +290,33 @@ Plan::get_aux_bytes() const
     return aux_bytes;
 }
 
+Error Plan::get_aux_size_reshape(size_t* aux_size) const noexcept
+{
+    return static_cast<Error>(dtfft_get_aux_size_reshape(_plan, aux_size));
+}
+
+size_t
+Plan::get_aux_size_reshape() const
+{
+    size_t aux_size;
+    DTFFT_CXX_CALL(get_aux_size_reshape(&aux_size))
+    return aux_size;
+}
+
+Error Plan::get_aux_bytes_reshape(size_t* aux_bytes) const noexcept
+{
+    return static_cast<Error>(dtfft_get_aux_bytes_reshape(_plan, aux_bytes));
+}
+
+size_t
+Plan::get_aux_bytes_reshape() const
+{
+    size_t aux_bytes;
+    DTFFT_CXX_CALL(get_aux_bytes_reshape(&aux_bytes))
+    return aux_bytes;
+}
+
+
 Error Plan::get_local_sizes(
     std::vector<int32_t>& in_starts,
     std::vector<int32_t>& in_counts,

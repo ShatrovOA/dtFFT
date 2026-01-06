@@ -75,6 +75,7 @@ contains
 procedure,  pass(self), non_overridable :: init
 procedure,  pass(self), non_overridable :: get_async_active
 procedure,  pass(self), non_overridable :: get_aux_bytes      !! Returns auxiliary buffer size
+procedure,  pass(self), non_overridable :: is_aux_needed
 procedure,  pass(self), non_overridable :: get_backend       !! Returns backend id
 procedure,  pass(self)                  :: destroy
 procedure,  pass(self), non_overridable :: execute
@@ -151,15 +152,17 @@ integer(int32)        :: ierr     !! Error code
     REGION_END('Reshape '//self%names(reshape_type)%raw)
 end subroutine execute
 
-subroutine execute_end(self, in, out, reshape_type, error_code)
+subroutine execute_end(self, in, out, reshape_type, aux, error_code)
 !! Finishes asynchronous reshape
-class(reshape_plan_base),     intent(inout) :: self           !! Reshape class
-type(c_ptr),                  intent(in)    :: in             !! Incoming buffer
-type(c_ptr),                  intent(in)    :: out            !! Resulting buffer
-integer(int32),               intent(in)    :: reshape_type   !! Type of reshape to execute
-integer(int32),               intent(out)   :: error_code     !! Error code
+class(reshape_plan_base),   intent(inout) :: self           !! Reshape class
+type(c_ptr),                intent(in)    :: in             !! Incoming buffer
+type(c_ptr),                intent(in)    :: out            !! Resulting buffer
+integer(int32),             intent(in)    :: reshape_type   !! Type of reshape to execute
+type(c_ptr),                intent(in)    :: aux
+integer(int32),             intent(out)   :: error_code     !! Error code
 real(real32),   pointer :: pin(:)   !! Source buffer
 real(real32),   pointer :: pout(:)  !! Destination buffer
+real(real32),   pointer :: paux(:)  !! Aux buffer
 type(execute_args)      :: kwargs   !! Additional arguments for execution
 
     REGION_BEGIN('Reshape '//self%names(reshape_type)%raw//' end', COLOR_AUTOTUNE2)
@@ -168,6 +171,12 @@ type(execute_args)      :: kwargs   !! Additional arguments for execution
 
     kwargs%p1 => pin
     kwargs%p2 => pout
+    if ( .not. is_null_ptr(aux) ) then
+        call c_f_pointer(aux, paux, [self%min_buffer_size])
+        kwargs%p3 => paux
+    else
+        kwargs%p3 => pin
+    endif
     kwargs%stream = self%stream
     call self%plans(reshape_type)%p%execute_end(kwargs, error_code)
     REGION_END('Reshape '//self%names(reshape_type)%raw//' end')
@@ -193,6 +202,12 @@ class(reshape_plan_base), intent(in)    :: self  !! Transposition class
     if ( .not. allocated( self%plans ) ) return
     get_aux_bytes = get_aux_bytes_generic(self%plans)
 end function get_aux_bytes
+
+pure logical function is_aux_needed(self)
+!! Returns true if aux is needed. false otherwise
+class(reshape_plan_base), intent(in)    :: self  !! Transposition class
+    is_aux_needed = self%get_aux_bytes() > 0
+end function is_aux_needed
 
 type(dtfft_backend_t) function get_backend(self)
 !! Returns plan backend
@@ -530,6 +545,10 @@ real(real64) :: ts, te
     if ( is_aux_alloc ) then
         call free_mem(platform, helper, backend, aux, ierr)
     endif
+
+    ! if ( platform == DTFFT_PLATFORM_CUDA .and. is_backend_mpi(backend)) then
+    !     call try_free_mpi_handles(comm, platform, helper)
+    ! endif
 end function execute_autotune
 
 function report_timings(comm, elapsed_time, n_iters, space_count) result(max_time)
@@ -582,4 +601,46 @@ integer(int32) :: alloc_ierr
         is_aux_alloc = .true.
     endif
 end subroutine alloc_and_set_aux
+
+! subroutine try_free_mpi_handles(comm, platform, helper)
+! TYPE_MPI_COMM,          intent(in)      :: comm
+! type(dtfft_platform_t), intent(in)      :: platform
+! type(backend_helper),   intent(inout)   :: helper
+! #ifdef DTFFT_WITH_CUDA
+! integer(int64) :: alloc_size
+! integer(int32) :: base_size, comm_size, ierr
+! type(c_ptr) :: ptr1, ptr2, ptr3
+! integer(int64)  :: free_mem_before, free_mem_after, total_mem_avail
+! real(real32), pointer, contiguous :: rptr1(:), rptr2(:), rptr3(:)
+! #endif
+
+!     if ( platform == DTFFT_PLATFORM_HOST ) return
+! #ifdef DTFFT_WITH_CUDA
+
+!     call MPI_Comm_size(comm, comm_size, ierr)
+
+!     base_size = 1024 * 1024 * 30    ! 10Mb per process
+!     alloc_size = int(base_size, int64) * comm_size
+
+!     CUDA_CALL( cudaMemGetInfo(free_mem_before, total_mem_avail) )
+
+!     call alloc_mem(platform, helper, DTFFT_BACKEND_MPI_P2P, comm, alloc_size, ptr1, ierr);  call c_f_pointer(ptr1, rptr1, [1])
+!     call alloc_mem(platform, helper, DTFFT_BACKEND_MPI_P2P, comm, alloc_size, ptr2, ierr);  call c_f_pointer(ptr2, rptr2, [1])
+!     call alloc_mem(platform, helper, DTFFT_BACKEND_MPI_P2P, comm, alloc_size, ptr3, ierr);  call c_f_pointer(ptr3, rptr3, [1])
+
+!     call MPI_Alltoall(rptr1, base_size, MPI_BYTE, rptr2, base_size, MPI_BYTE, comm, ierr)
+!     call MPI_Alltoall(rptr1, base_size, MPI_BYTE, rptr3, base_size, MPI_BYTE, comm, ierr)
+!     call MPI_Alltoall(rptr2, base_size, MPI_BYTE, rptr3, base_size, MPI_BYTE, comm, ierr)
+
+!     call free_mem(platform, helper, DTFFT_BACKEND_MPI_P2P, ptr1, ierr)
+!     call free_mem(platform, helper, DTFFT_BACKEND_MPI_P2P, ptr2, ierr)
+!     call free_mem(platform, helper, DTFFT_BACKEND_MPI_P2P, ptr3, ierr)
+
+!     CUDA_CALL( cudaMemGetInfo(free_mem_after, total_mem_avail) )
+
+!     WRITE_INFO("Tried to release internal MPI handles. Free mem before: "//to_str(free_mem_before)//", after = "//to_str(free_mem_after))
+
+! #endif
+! end subroutine try_free_mpi_handles
+
 end module dtfft_reshape_plan_base

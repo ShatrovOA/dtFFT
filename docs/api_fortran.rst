@@ -1288,6 +1288,34 @@ _____________
 
 ------
 
+get_aux_size_reshape
+____________________
+
+.. f:function:: get_aux_size_reshape([error_code])
+
+  Returns minimum number of elements required for :f:func:`reshape` auxiliary buffer
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r integer(int64):
+    Minimum number of elements required for auxiliary buffer.
+
+------
+
+get_aux_bytes_reshape
+_____________________
+
+.. f:function:: get_aux_bytes_reshape([error_code])
+
+  Returns minimum number of bytes required for :f:func:`reshape` auxiliary buffer
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r integer(int64):
+    Minimum number of bytes required for auxiliary buffer.
+
+------
+
 mem_alloc
 _________
 

@@ -120,6 +120,13 @@ int main(int argc, char* argv[])
     auto work = plan.mem_alloc<complex<double>>(plan.get_aux_size());
     auto out = plan.mem_alloc<complex<double>>(alloc_size);
     auto check = new complex<double>[in_size];
+    complex<double> *work_reshape = nullptr;
+    size_t reshape_work_size;
+    auto ierr = plan.get_aux_size_reshape(&reshape_work_size);
+    if ( ierr == dtfft::Error::SUCCESS && reshape_work_size > 0 ) {
+        if ( comm_rank == 0 ) cout << "reshape_work_size = " << reshape_work_size << "\n";
+        work_reshape = plan.mem_alloc<complex<double>>(reshape_work_size);
+    }
 
     setTestValuesComplexDouble(check, in_size);
 
@@ -134,7 +141,7 @@ int main(int argc, char* argv[])
     dtfft_request_t request = nullptr;
 
     if ( reshape_required ) {
-        DTFFT_CXX_CALL(plan.reshape_start(in, work, Reshape::X_BRICKS_TO_PENCILS, &request));
+        DTFFT_CXX_CALL(plan.reshape_start(in, work, Reshape::X_BRICKS_TO_PENCILS, work_reshape, &request));
         if (comm_rank == 0)
             cout << "Doing stuff while data is being reshaped on host" << endl;
         DTFFT_CXX_CALL(plan.reshape_end(request));
@@ -142,7 +149,7 @@ int main(int argc, char* argv[])
         if (comm_rank == 0)
             cout << "Doing stuff while data is being transposed on host" << endl;
         DTFFT_CXX_CALL(plan.transpose_end(request));
-        DTFFT_CXX_CALL(plan.reshape(in, out, Reshape::Y_PENCILS_TO_BRICKS));
+        DTFFT_CXX_CALL(plan.reshape(in, out, Reshape::Y_PENCILS_TO_BRICKS, work_reshape));
         if (comm_rank == 0)
             cout << "Executed forward using fourier non-blocking reshape" << endl;
     } else {

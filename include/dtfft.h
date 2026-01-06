@@ -683,6 +683,26 @@ dtfft_get_aux_size(dtfft_plan_t plan, size_t* aux_size);
 dtfft_error_t
 dtfft_get_aux_bytes(dtfft_plan_t plan, size_t* aux_bytes);
 
+/** @brief Gets the number of elements required for auxiliary buffer by `::dtfft_reshape`.
+ *
+ * @param[in]      plan            Plan handle
+ * @param[out]     aux_size        Size of auxiliary buffer in elements.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_aux_size_reshape(dtfft_plan_t plan, size_t* aux_size);
+
+/** @brief Gets the number of bytes required for auxiliary buffer by `::dtfft_reshape`.
+ *
+ * @param[in]      plan            Plan handle
+ * @param[out]     aux_bytes       Number of bytes required for auxiliary buffer.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_aux_bytes_reshape(dtfft_plan_t plan, size_t* aux_bytes);
+
 /**
  * @brief Gets the string description of an error code
  *

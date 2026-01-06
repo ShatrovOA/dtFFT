@@ -571,13 +571,14 @@ contains
     type(dtfft_backend_t) :: current_backend_id, best_backend_
     logical :: is_udb !! Used defined backend
     real(real32) :: execution_time, best_time_
-    integer(int32) :: comm_size, mpi_ierr, b
+    integer(int32) :: b
     type(reshape_container), allocatable :: plans(:)
     integer(int8) :: i, n_transpose_plans
     logical :: is_aux_alloc
     integer(int64)         :: alloc_size
+    logical :: nccl_enabled
 #ifdef DTFFT_WITH_CUDA
-    logical :: nccl_enabled, nvshmem_enabled
+    logical :: nvshmem_enabled
 #endif
     character(len=:), allocatable :: testing_phase
     type(backend_helper)                      :: helper
@@ -603,13 +604,20 @@ contains
 
     allocate( plans(2 * n_transpose_plans) )
 
-    call MPI_Comm_size(cart_comm, comm_size, mpi_ierr)
-
-    call helper%create(platform, cart_comm, comms, any(is_backend_nccl(backends_to_run)), pencils)
-
     call get_local_sizes(pencils, alloc_size=alloc_size)
     alloc_size = alloc_size * base_storage
     min_buffer_size = alloc_size / FLOAT_STORAGE_SIZE
+
+    pipe_enabled = get_conf_pipelined_enabled()
+    dtype_enabled = get_conf_datatype_enabled()
+    mpi_enabled = get_conf_mpi_enabled()
+    nccl_enabled = .false.
+#ifdef DTFFT_WITH_CUDA
+    nccl_enabled = ( platform == DTFFT_PLATFORM_CUDA .and. get_conf_nccl_enabled() ) .or. ( is_udb .and. is_backend_nccl( backends_to_run(1) ) )
+    nvshmem_enabled = get_conf_nvshmem_enabled()
+#endif
+
+    call helper%create(platform, cart_comm, comms, nccl_enabled, pencils)
 
     create_kwargs%effort = DTFFT_ESTIMATE
     create_kwargs%force_effort = .true.
@@ -617,14 +625,6 @@ contains
     create_kwargs%helper = helper
     create_kwargs%base_type = base_dtype
     create_kwargs%base_storage = base_storage
-
-    pipe_enabled = get_conf_pipelined_enabled()
-    dtype_enabled = get_conf_datatype_enabled()
-    mpi_enabled = get_conf_mpi_enabled()
-#ifdef DTFFT_WITH_CUDA
-    nccl_enabled = get_conf_nccl_enabled()
-    nvshmem_enabled = get_conf_nvshmem_enabled()
-#endif
 
     best_time_ = MAX_REAL32
 
