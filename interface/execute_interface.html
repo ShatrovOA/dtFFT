@@ -79,20 +79,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">32 statements</a>
+                 title=" 0.2% of total for procedures.">37 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_reshape_handle.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_executor.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_reshape_handle.f90.html'>dtfft_abstract_reshape_handle.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_reshape_handle.html'>dtfft_abstract_reshape_handle</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_executor.f90.html'>dtfft_abstract_executor.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_executor.html'>dtfft_abstract_executor</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute_interface</li>
           </ol>
         </nav>
@@ -140,7 +140,7 @@
     
     <div class="col-md-9" id='text'>
       <h2>interface <br>
-      private  subroutine execute_interface(self, in, out, kwargs, error_code)  
+      private  subroutine execute_interface(self, a, b, sign)  
 </h2>    
 
     
@@ -158,84 +158,69 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~130"></span>
-              class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
+              <span class="anchor" id="variable-self~10"></span>
+              class(<a href='../type/abstract_executor.html'>abstract_executor</a>),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Abstract reshape Handle</p>
+                <p>FFT Executor</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~221"></span>
-              real(kind=real32),
+              <span class="anchor" id="variable-a~2"></span>
+              type(c_ptr),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>in</strong>(:)</td>
+            <td><strong>a</strong></td>
             <td>
-                <p>Send pointer</p>
+                <p>Source pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~221"></span>
-              real(kind=real32),
+              <span class="anchor" id="variable-b~2"></span>
+              type(c_ptr),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>out</strong>(:)</td>
+            <td><strong>b</strong></td>
             <td>
-                <p>Recv pointer</p>
+                <p>Target pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kwargs~7"></span>
-              type(<a href='../type/execute_args.html'>execute_args</a>),
+              <span class="anchor" id="variable-sign~4"></span>
+              integer(kind=int8),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>kwargs</strong></td>
+            <td><strong>sign</strong></td>
             <td>
-                <p>Additional arguments</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-error_code~84"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>error_code</strong></td>
-            <td>
-                <p>Error code</p>
+                <p>Sign of transform</p>
             </td>
         </tr>
     </tbody>
   </table>
 
     <h3>Description</h3>
-    <p>Executes reshape handle</p>
+    <p>Executes plan</p>
     <br>
 
  </div>
@@ -249,7 +234,7 @@
           <div class="col">
             <p>
               dtFFT
- was developed by Oleg Shatrov<br>              &copy; 2025 
+ was developed by Oleg Shatrov<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

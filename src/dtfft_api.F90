@@ -431,9 +431,9 @@ contains
   function dtfft_get_aux_size_c(plan_ptr, aux_size)                                                                 &
     result(error_code)                                                                                              &
     bind(C)
-  !! Returns size of auxiliary buffer in bytes, C interface
+  !! Returns size of auxiliary buffer in elements, C interface
     type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
-    integer(c_size_t),    intent(out)             :: aux_size             !! Size of auxiliary buffer in bytes
+    integer(c_size_t),    intent(out)             :: aux_size             !! Size of auxiliary buffer in elements
     integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
                                                                           !! defines API call result codes.
     type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
@@ -455,6 +455,34 @@ contains
     CHECK_PLAN_CREATED(plan_ptr, plan)
     aux_bytes = plan%p%get_aux_bytes(error_code)
   end function dtfft_get_aux_bytes_c
+
+  function dtfft_get_aux_size_reshape_c(plan_ptr, aux_size)                                                         &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Returns size of auxiliary buffer for reshape in elements, C interface
+    type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
+    integer(c_size_t),    intent(out)             :: aux_size             !! Size of auxiliary buffer for reshape in elements
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    aux_size = plan%p%get_aux_size_reshape(error_code)
+  end function dtfft_get_aux_size_reshape_c
+
+  function dtfft_get_aux_bytes_reshape_c(plan_ptr, aux_bytes)                                                         &
+    result(error_code)                                                                                              &
+    bind(C)
+  !! Returns minimum number of bytes required for auxiliary buffer for reshape, C interface
+    type(c_ptr),                         value    :: plan_ptr             !! C pointer to Fortran plan
+    integer(c_size_t),    intent(out)             :: aux_bytes            !! Number of bytes required for auxiliary buffer for reshape
+    integer(c_int32_t)                            :: error_code           !! The enumerated type dtfft_error_t
+                                                                          !! defines API call result codes.
+    type(plan_c),                 pointer         :: plan                 !! Pointer to Fortran object
+
+    CHECK_PLAN_CREATED(plan_ptr, plan)
+    aux_bytes = plan%p%get_aux_bytes_reshape(error_code)
+  end function dtfft_get_aux_bytes_reshape_c
 
   function dtfft_get_pencil_c(plan_ptr, layout, pencil)                                                             &
     result(error_code)                                                                                              &

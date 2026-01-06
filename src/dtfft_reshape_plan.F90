@@ -207,6 +207,13 @@ contains
       self%backend = get_compatible(backend, platform)
     endif
 
+    if ( effort%val < DTFFT_EXHAUSTIVE%val .and. platform == DTFFT_PLATFORM_HOST ) then
+      if ( is_backend_nccl(self%backend) .or. is_backend_nvshmem(self%backend) ) then
+        error_code = DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+        return
+      endif
+    endif
+
     call get_local_sizes([bricks(1), pencils(1)], alloc_size=min_buffer_size_real)
     call get_local_sizes([bricks(2), pencils(ndims)], alloc_size=min_buffer_size_complex)
 
@@ -406,23 +413,27 @@ contains
     real(real32) :: execution_time, best_time_
     integer(int32) :: b
     type(reshape_container), allocatable :: plans(:)
+    logical :: nccl_enabled
 #ifdef DTFFT_WITH_CUDA
-    logical :: nccl_enabled, nvshmem_enabled
+    logical :: nvshmem_enabled
 #endif
     character(len=:), allocatable :: testing_phase
     type(backend_helper)                      :: helper
     logical :: pipe_enabled, mpi_enabled, dtype_enabled
 
     allocate( backends_to_run, source=VALID_BACKENDS )
-    call helper%create(platform, base_comm, comms, any(is_backend_nccl(backends_to_run)), [bricks(1), bricks(2), pencils(1), pencils(size(pencils))])
+
+    nccl_enabled = .false.
+#ifdef DTFFT_WITH_CUDA
+    nccl_enabled = platform == DTFFT_PLATFORM_CUDA .and. get_conf_nccl_enabled()
+    nvshmem_enabled = get_conf_nvshmem_enabled()
+#endif
+
+    call helper%create(platform, base_comm, comms, nccl_enabled, [bricks(1), bricks(2), pencils(1), pencils(size(pencils))])
 
     pipe_enabled = get_conf_pipelined_enabled()
     dtype_enabled = get_conf_datatype_enabled()
     mpi_enabled = get_conf_mpi_enabled()
-#ifdef DTFFT_WITH_CUDA
-    nccl_enabled = get_conf_nccl_enabled()
-    nvshmem_enabled = get_conf_nvshmem_enabled()
-#endif
 
     best_time_ = MAX_REAL32
 

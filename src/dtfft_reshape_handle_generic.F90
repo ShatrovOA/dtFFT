@@ -75,7 +75,9 @@ public :: reshape_handle_generic
     logical                                   :: is_pipelined = .false.   !! If underlying exchanges are pipelined
     logical                                   :: is_async_supported = .false. !! If underlying backend support async execution(execute/execute_end)
     logical                                   :: is_pack_free = .false.
+    logical                                   :: is_unpack_free = .false.
     logical                                   :: is_reshape_only = .false.
+    integer(int64)                            :: aux_bytes
     class(abstract_kernel),   allocatable     :: pack_kernel              !! Kernel for data transposition
     class(abstract_kernel),   allocatable     :: unpack_kernel            !! Kernel for unpacking data
     class(abstract_backend),  allocatable     :: comm_handle              !! Communication handle
@@ -161,7 +163,6 @@ contains
     logical                           :: is_two_step_permute!! If transpose is two-step permute
     type(dtfft_transpose_t) :: transpose_type
     type(dtfft_reshape_t)   :: reshape_type
-    logical :: is_unpack_copy
     integer(int32) :: ssdispl, rrdispl
 
     transpose_type = kwargs%helper%transpose_type
@@ -328,26 +329,29 @@ contains
     enddo
 
     is_two_step_permute = .false.
+    self%is_pipelined = is_backend_pipelined(kwargs%backend)
     if ( self%is_transpose ) then
       is_two_step_permute = any(transpose_type == [DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y])           &
                     .and. ndims == 3                                                                          &
                     .and. (.not. is_backend_cufftmp(kwargs%backend))
 
       if ( is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_START
+      ! if ( self%is_pipelined .and. kwargs%platform == DTFFT_PLATFORM_HOST ) kernel_type = get_pipelined(kernel_type)
 
       call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, force_effort=kwargs%force_effort)
     else
       kernel_type = KERNEL_PACK
-      if ( self%is_pack_free ) kernel_type = KERNEL_COPY
+      if ( self%is_pack_free ) kernel_type = KERNEL_DUMMY
       if ( is_backend_cufftmp(kwargs%backend) ) then
         kernel_type = KERNEL_DUMMY
         self%is_reshape_only = .true.
       endif
+      ! if ( self%is_pipelined .and. kwargs%platform == DTFFT_PLATFORM_HOST .and. kernel_type == KERNEL_PACK) kernel_type = KERNEL_PACK_PIPELINED
       call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort)
     endif
 
 
-    is_unpack_copy = .false.
+    self%is_unpack_free = .false.
     rdispl = 0; rrdispl = 0
     do i = 0, comm_size - 1
       ! Recieving from i with tag i
@@ -412,7 +416,7 @@ contains
 
               out%ls(1, i) = out%starts(1, comm_rank)
               out%ls(2, i) = in%starts(2, i)
-              is_unpack_copy = .true.
+              self%is_unpack_free = .true.
             endif
           else
             if ( reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS ) then
@@ -432,7 +436,7 @@ contains
               out%ls(2, i) = in%starts(2, i)
               out%ls(3, i) = in%starts(3, i)
 
-              if ( send%counts(2) == out%sizes(2, i) ) is_unpack_copy = .true.
+              if ( send%counts(2) == out%sizes(2, i) ) self%is_unpack_free = .true.
             endif
 
           endif
@@ -459,11 +463,11 @@ contains
 
         else
           neighbor_data(5, i + 1) = rrdispl
-          if ( is_unpack_copy ) then
-            rrdispl = rrdispl + product(out%ln(:, i))
-          else
+          ! if ( is_unpack_copy ) then
+          !   rrdispl = rrdispl + product(out%ln(:, i))
+          ! else
             rrdispl = rrdispl + out%ln(1, i) * out%ln(2, i)
-          endif
+          ! endif
         endif
       endif
 
@@ -472,9 +476,6 @@ contains
       rdispl = rdispl + recvsize
     enddo
 
-
-
-    self%is_pipelined = is_backend_pipelined(kwargs%backend)
     kernel_type = KERNEL_UNPACK
     if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
     if ( is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_END
@@ -482,8 +483,8 @@ contains
     if ( kwargs%backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_COPY
     if ( kwargs%backend == DTFFT_BACKEND_CUFFTMP_PIPELINED ) kernel_type = KERNEL_DUMMY
 
-    if ( is_unpack_copy ) kernel_type = KERNEL_COPY
-    if ( is_unpack_copy .and. self%is_pipelined ) kernel_type = KERNEL_COPY_PIPELINED
+    if ( self%is_unpack_free ) kernel_type = KERNEL_DUMMY
+    ! if ( is_unpack_copy .and. self%is_pipelined ) kernel_type = KERNEL_COPY_PIPELINED
     if ( self%is_reshape_only ) kernel_type = KERNEL_DUMMY
     call self%unpack_kernel%create(recv%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort)
 
@@ -522,6 +523,13 @@ contains
     if ( self%is_pipelined ) then
       call self%comm_handle%set_unpack_kernel(self%unpack_kernel)
     endif
+    ! if ( self%is_pipelined .and. kwargs%platform == DTFFT_PLATFORM_HOST ) then
+    !   call self%comm_handle%set_pack_kernel(self%pack_kernel)
+    ! endif
+
+    if ( self%is_pack_free .or. self%is_unpack_free ) then
+      self%aux_bytes = kwargs%base_storage * max( product(send%counts), product(recv%counts) )
+    endif
 
     call in%destroy()
     call out%destroy()
@@ -544,6 +552,12 @@ contains
         ! in -> aux     exchange
         ! aux -> out    unpack
         call self%comm_handle%execute(in, out, kwargs%stream, kwargs%p1, kwargs%exec_type, error_code)
+      else if ( self%is_unpack_free ) then
+        ! Reshape unpack-free
+        ! in -> aux     pack
+        ! aux -> out    exchange
+        call self%pack_kernel%execute(in, kwargs%p1, kwargs%stream)
+        call self%comm_handle%execute(kwargs%p1, in, kwargs%stream, out, kwargs%exec_type, error_code)
       else
         ! Transpose and reshape with packing
         ! in -> aux     pack
@@ -556,10 +570,23 @@ contains
       return
     endif
 
-
     if ( self%is_reshape_only ) then
       ! This should only be CUFFTMP
       call self%comm_handle%execute(in, out, kwargs%stream, kwargs%p1, kwargs%exec_type, error_code)
+      return
+    endif
+
+    if ( self%is_pack_free ) then
+      call self%comm_handle%execute(in, kwargs%p1, kwargs%stream, kwargs%p1, kwargs%exec_type, error_code)
+      if ( error_code /= DTFFT_SUCCESS ) return
+      if ( self%is_async_supported .and. kwargs%exec_type == EXEC_NONBLOCKING ) return
+      call self%unpack_kernel%execute(kwargs%p1, out, kwargs%stream)
+      return
+    endif
+
+    if ( self%is_unpack_free ) then
+      call self%pack_kernel%execute(in, kwargs%p1, kwargs%stream)
+      call self%comm_handle%execute(kwargs%p1, out, kwargs%stream, kwargs%p1, kwargs%exec_type, error_code)
       return
     endif
 
@@ -568,10 +595,6 @@ contains
     ! out -> in       exchange
     ! in -> out       unpack
 
-    ! Reshape with simple copy
-    ! in -> out       full buffer copy
-    ! out -> in       exchange
-    ! in -> out       unpack
     call self%pack_kernel%execute(in, out, kwargs%stream)
     if ( .not. self%has_exchange ) return
     call self%comm_handle%execute(out, in, kwargs%stream, kwargs%p1, kwargs%exec_type, error_code)
@@ -591,7 +614,11 @@ contains
 
     call self%comm_handle%execute_end(error_code)
     if( error_code /= DTFFT_SUCCESS ) return
-    call self%unpack_kernel%execute(kwargs%p1, kwargs%p2, kwargs%stream)
+    if ( self%is_pack_free ) then
+      call self%unpack_kernel%execute(kwargs%p3, kwargs%p2, kwargs%stream)
+    else
+      call self%unpack_kernel%execute(kwargs%p1, kwargs%p2, kwargs%stream)
+    endif
   end subroutine execute_end
 
   elemental logical function get_async_active(self)
@@ -618,16 +645,18 @@ contains
       call self%unpack_kernel%destroy()
       deallocate( self%unpack_kernel )
     endif
+    self%aux_bytes = 0
     self%is_reshape_only = .false.
     self%is_pack_free = .false.
+    self%is_unpack_free = .false.
   end subroutine destroy
 
   pure integer(int64) function get_aux_bytes(self)
   !! Returns number of bytes required by aux buffer
     class(reshape_handle_generic),   intent(in)    :: self      !! Generic Transpose Handle
 
-    get_aux_bytes = 0_int64
+    get_aux_bytes = self%aux_bytes
     if ( .not. self%has_exchange ) return
-    get_aux_bytes = self%comm_handle%get_aux_bytes()
+    get_aux_bytes = max( get_aux_bytes, self%comm_handle%get_aux_bytes() )
   end function get_aux_bytes
 end module dtfft_reshape_handle_generic
