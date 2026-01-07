@@ -398,8 +398,8 @@ integer(int32) :: i, n_comms
 
 # ifdef NCCL_HAVE_COMMREGISTER
     self%should_register = get_env("NCCL_BUFFER_REGISTER", .true.)
+    self%nccl_register_size = 0
     if (self%should_register) then
-        self%nccl_register_size = 0
         allocate (self%nccl_register(2, NCCL_REGISTER_PREALLOC_SIZE))
         do i = 1, NCCL_REGISTER_PREALLOC_SIZE
             self%nccl_register(1, i) = c_null_ptr
