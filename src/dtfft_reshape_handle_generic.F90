@@ -74,10 +74,10 @@ public :: reshape_handle_generic
     logical                                   :: has_exchange = .false.   !! If current handle has exchanges between GPUs
     logical                                   :: is_pipelined = .false.   !! If underlying exchanges are pipelined
     logical                                   :: is_async_supported = .false. !! If underlying backend support async execution(execute/execute_end)
-    logical                                   :: is_pack_free = .false.
-    logical                                   :: is_unpack_free = .false.
-    logical                                   :: is_reshape_only = .false.
-    integer(int64)                            :: aux_bytes
+    logical                                   :: is_pack_free = .false.   !! Are we using pack free reshape or not
+    logical                                   :: is_unpack_free = .false. !! Are we using unpack free reshape or not
+    logical                                   :: is_reshape_only = .false.!! Are we using pack+unpack free reshape or not
+    integer(int64)                            :: aux_bytes = 0            !! Number of workspace bytes required
     class(abstract_kernel),   allocatable     :: pack_kernel              !! Kernel for data transposition
     class(abstract_kernel),   allocatable     :: unpack_kernel            !! Kernel for unpacking data
     class(abstract_backend),  allocatable     :: comm_handle              !! Communication handle
@@ -87,7 +87,7 @@ public :: reshape_handle_generic
     procedure, pass(self) :: execute_end      !! Finalizes async transpose
     procedure, pass(self) :: get_async_active !! Returns if async transpose is active
     procedure, pass(self) :: destroy          !! Destroys Generic Transpose Handle
-    procedure, pass(self) :: get_aux_bytes     !! Returns number of bytes required by aux buffer
+    procedure, pass(self) :: get_aux_bytes    !! Returns number of bytes required by aux buffer
   end type reshape_handle_generic
 
 contains

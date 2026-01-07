@@ -1371,8 +1371,9 @@ contains
     get_aux_size = 0
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
-
-    get_aux_size = self%rplan%get_aux_bytes() / self%storage_size
+    if ( self%is_reshape_enabled ) then
+      get_aux_size = self%get_aux_size_reshape()
+    endif
     get_aux_size = max(get_aux_size, self%plan%get_aux_bytes() / self%storage_size)
     get_aux_size = max(get_aux_size, self%get_alloc_size())
     if ( self%plan%is_aux_needed() .or. self%rplan%is_aux_needed() ) then
