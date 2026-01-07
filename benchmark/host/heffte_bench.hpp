@@ -7,7 +7,7 @@
 // There are multiple ways to select the GPU tag
 
 // 1. Using the default_backend trait with the tag::gpu for the location
-using backend_tag = heffte::backend::cufft;
+using backend_tag = heffte::backend::fftw;
 
 template <typename T>
 // double run_heffte_private(heffte::box3d<> &boxin, heffte::box3d<> &boxout)
@@ -33,63 +33,49 @@ double run_heffte_private(const std::vector<int> &dims, const std::vector<int> &
     heffte::box3d<> boxin = inboxes[comm_rank];
     heffte::box3d<> boxout = outboxes[comm_rank];
 
-    auto options = heffte::default_options<backend_tag>();
-    // options.algorithm = heffte::reshape_algorithm::alltoallv;
-    options.use_reorder = true;
-    options.use_pencils = true;
-    options.algorithm = heffte::reshape_algorithm::p2p_plined;
-
     // define the heffte class and the input and output geometry
     // heffte::plan_options can be specified just as in the backend::fftw
-    heffte::fft3d<backend_tag> fft(boxin, boxout, comm, options);
+    heffte::fft3d<backend_tag> fft(boxin, boxout, comm);
 
     size_t alloc_size = std::max(fft.size_inbox(), fft.size_outbox());
 
-    heffte::gpu::vector<std::complex<T>> gpu_input(alloc_size);
-    CUDA_CALL( cudaMemset(gpu_input.data(), 0, alloc_size * sizeof(std::complex<T>)) );
+    std::vector<std::complex<T>> input(alloc_size);
+
     // allocate memory on the device for the output
-    heffte::gpu::vector<std::complex<T>> gpu_output(alloc_size);
+    std::vector<std::complex<T>> output(alloc_size);
+
+    std::fill(input.begin(), input.end(), std::complex<T>(0.0, 0.0));
 
     // allocate scratch space, this is using the public type alias buffer_container
     // and for the cufft backend this is heffte::gpu::vector
     // for the CPU backends (fftw and mkl) the buffer_container is std::vector
     heffte::fft3d<backend_tag>::buffer_container<std::complex<T>> workspace(fft.size_workspace());
 
-    // Timing
-    cudaEvent_t startEvent, stopEvent;
-    CUDA_CALL(cudaEventCreate(&startEvent));
-    CUDA_CALL(cudaEventCreate(&stopEvent));
-    float ms;
 
-    for (int iter = 0; iter < WARMUP_ITERATIONS; iter++)
-    {
-        // perform forward fft using arrays and the user-created workspace
-        fft.forward(gpu_input.data(), gpu_output.data(), workspace.data(), heffte::scale::none);
-        fft.backward(gpu_output.data(), gpu_input.data(), workspace.data(), heffte::scale::none);
-    }
+    // for (int iter = 0; iter < WARMUP_ITERATIONS; iter++)
+    // {
+    //     // perform forward fft using arrays and the user-created workspace
+    //     fft.forward(input.data(), output.data(), workspace.data(), heffte::scale::none);
+    //     fft.backward(output.data(), input.data(), workspace.data(), heffte::scale::none);
+    // }
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    CUDA_CALL(cudaEventRecord(startEvent, fft.stream()));
-
-    for (int iter = 0; iter < TEST_ITERATIONS; iter++) {
+    double start_time = MPI_Wtime();
+    for (int iter = 0; iter < 1; iter++)
+    {
         // perform forward fft using arrays and the user-created workspace
-        fft.forward(gpu_input.data(), gpu_output.data(), workspace.data(), heffte::scale::none);
-        fft.backward(gpu_output.data(), gpu_input.data(), workspace.data(), heffte::scale::none);
+        // fft.forward(input.data(), output.data(), workspace.data(), heffte::scale::none);
+        fft.backward(output.data(), input.data(), workspace.data(), heffte::scale::none);
     }
+    double end_time = MPI_Wtime();
+    double elapsed_time = (end_time - start_time);
 
-    CUDA_CALL(cudaEventRecord(stopEvent, fft.stream()));
-    CUDA_CALL(cudaEventSynchronize(stopEvent));
-    CUDA_CALL(cudaEventElapsedTime(&ms, startEvent, stopEvent));
-
-    float min_ms, max_ms, avg_ms;
-    MPI_Allreduce(&ms, &min_ms, 1, MPI_FLOAT, MPI_MIN, MPI_COMM_WORLD);
-    MPI_Allreduce(&ms, &max_ms, 1, MPI_FLOAT, MPI_MAX, MPI_COMM_WORLD);
-    MPI_Allreduce(&ms, &avg_ms, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-    avg_ms /= (float)comm_size;
-
-    CUDA_CALL(cudaEventDestroy(startEvent));
-    CUDA_CALL(cudaEventDestroy(stopEvent));
+    double min_s, max_s, avg_s;
+    MPI_Allreduce(&elapsed_time, &min_s, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&elapsed_time, &max_s, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&elapsed_time, &avg_s, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    avg_s /= (double)comm_size;
 
     // if (comm_rank == 0)
     // {
@@ -100,7 +86,7 @@ double run_heffte_private(const std::vector<int> &dims, const std::vector<int> &
     //     printf("----------------------------------------\n");
     // }
 
-    return (double)max_ms;
+    return max_s;
 }
 
 template <typename T>
@@ -116,6 +102,9 @@ double run_heffte(const std::vector<int> &dims, const std::vector<int> &grid = s
         printf("HeFFTe benchmark\n");
         printf("#####################################\n");
     }
+
+        std::string root_filename = "_tracing_file";
+    heffte::init_tracing(root_filename);
 
     double best_time = INFINITY;
     int best_grid[3];
@@ -139,6 +128,34 @@ double run_heffte(const std::vector<int> &dims, const std::vector<int> &grid = s
 
             test_time = run_heffte_private<T>(dims, {1, p, q});
 
+            // if (comm_rank == 0)
+            // {
+            //     printf("Testing grid: %dx%d\n", p, q);
+            // }
+
+        // Using input configuration with pencil data format in X direction
+        // and output configuration with pencil data in the Z direction.
+        // This format uses only two internal reshape operation.
+            // std::array<int, 3> input_grid = {1, p, q};
+            // std::array<int, 3> output_grid = {p, q, 1};
+
+
+            // std::array<int, 3> lower = {0, 0, 0};
+            // std::array<int, 3> upper = {dims[0] - 1, dims[1] - 1, dims[2] - 1};
+            // auto world = heffte::box3d<>(lower, upper);
+
+            // std::vector<heffte::box3d<>> inboxes  = heffte::split_world(world, input_grid);
+            // std::vector<heffte::box3d<>> outboxes = heffte::split_world(world, output_grid);
+
+            // heffte::box3d<> boxin = inboxes[comm_rank];
+            // heffte::box3d<> boxout = outboxes[comm_rank];
+
+            // if (comm_rank == 0)
+            // {
+            //     printf("Testing grid: %dx%d\n", p, q);
+            // }
+
+            // double test_time = run_heffte_private(boxin, boxout);
             if ( test_time < best_time )
             {
                 best_time = test_time;
@@ -149,6 +166,8 @@ double run_heffte(const std::vector<int> &dims, const std::vector<int> &grid = s
 
         }
     }
+
+    heffte::finalize_tracing();
 
     if (comm_rank == 0)
     {

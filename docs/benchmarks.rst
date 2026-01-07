@@ -1,113 +1,136 @@
 Benchmark Overview
 ==================
 
-This section presents a performance analysis of the dtFFT library against several alternatives, based on benchmarks conducted on a GPU cluster.
-
-Test Environment
-----------------
+CUDA Benchmarks
+---------------
 
 - **Hardware:** 10 nodes, each with 4x NVIDIA Volta V100 GPUs (32 GB HBM2), connected via 56G InfiniBand.
 - **Software:** NVHPC 24.7, CUDA 11.8.
-- **Libraries:** ``dtFFT`` v2.2.0, ``cuDECOMP`` v0.5.1, ``HeFFTe`` v2.4.1, and ``AccFFT`` (latest from repository).
-- **Problem Size:** A 3D grid of :math:`1024 \times 1024 \times 512` was used for all tests.
-- **Methodology:** Each benchmark was run for 50 iterations. The reported time is the **average wall-clock time per iteration** (total time / 50), 
-  in milliseconds.
-- **Precision:** To ensure a fair comparison with an 8-byte element size, ``dtFFT`` and ``cuDECOMP`` were benchmarked using double-precision, 
-  while ``HeFFTe`` and ``AccFFT`` used single-precision complex-to-complex transforms.
-- **Communication Backend:** For ``dtFFT`` and ``cuDECOMP``, the ``NCCL`` backend was manually selected for inter-GPU communication, 
-  as it is known to be the most performant on this hardware. The backend auto-tuning feature was therefore not utilized. 
-  In contrast, ``HeFFTe`` and ``AccFFT`` rely on a CUDA-aware MPI implementation with UCX for data transfers.
+- **Libraries:** ``dtFFT`` v3.0.0, ``cuDECOMP`` v0.6.0, ``HeFFTe`` v2.4.1, and ``2DECOMP&FFT`` latest from GitHub.
+- **Problem Size:** A 3D grid of :math:`1024 \times 1024 \times 1024` was used for all tests.
+- **Methodology:** Each benchmark was run for 50 iterations performing both forward and backward transforms. The reported time is the maximum time taken by any GPU over all iterations.
+- **Precision:** Double precision complex-to-complex (C2C) transforms were performed.
+- **Communication Backend:** Only MPI-based communication was evaluated for multi-GPU tests.
+- **FFT Libraries:** All libraries utilized NVIDIA's cuFFT for local FFT computations.
+- **Additional information:** UCX and CUDA IPC are disabled.
 
-Strong Scaling Analysis
------------------------
 
-Strong scaling evaluates performance by keeping the total problem size constant while increasing the number of GPUs. The results clearly demonstrate the impact of the underlying hardware communication topology.
+Strong Scaling
+______________
 
-- **1 GPU (Baseline):** With no inter-GPU communication, ``dtFFT`` with Z-slab optimization delivers the fastest performance (**1233 ms**), 
-  establishing a strong baseline.
-- **2 GPUs (Intra-Socket, PCI-e v3):** At two GPUs, communication occurs over the PCI-e v3 bus. 
-  The high cost of this communication channel outweighs the benefits of parallelization, leading to a 
-  significant **increase in runtime** across all libraries. This is an expected bottleneck for this hardware configuration.
-- **4 GPUs (Inter-Socket):** With four GPUs, communication extends across two CPU sockets. While performance 
-  improves relative to the 2-GPU case for some libraries, the overhead remains substantial.
-- **8+ GPUs (Network, InfiniBand):** When scaling to 8 or more GPUs, communication shifts to the 56G InfiniBand network. 
-  The benchmark shows that ``dtFFT`` and ``cuDECOMP`` scale effectively in this regime, indicating that the network 
-  interconnect is well-suited for this workload.
-
-Weak Scaling Analysis
----------------------
-
-Weak scaling assesses performance by increasing both the problem size and the number of GPUs, keeping the workload per GPU constant. 
-``HeFFTe`` and ``AccFFT`` were excluded from these tests due to their lower relative performance and because their MPI-based data management led to GPU memory exhaustion as the problem size increased.
-
-- **Performance Trend:** As expected, runtimes gradually increase with the number of GPUs. 
-  This reflects the inherent cost of synchronizing a larger number of distributed processes over the network.
-- **Comparative Performance:** ``dtFFT`` (both variants) and ``cuDECOMP`` exhibit very similar scaling behavior, 
-  confirming that ``dtFFT`` is highly efficient for large, distributed problems.
-
-Detailed Performance Data
--------------------------
-
-The following tables present the complete timing data from our benchmark runs, serving as the foundation for the analysis above. 
-All times are reported in milliseconds.
-
-The **Strong Scaling** table illustrates the time-to-solution for a fixed problem size as more GPUs are added. 
-This measures how well the libraries handle parallelization.
-
-.. csv-table:: Strong scaling results
-	:header: "Number of GPUs", "dtFFT with Z-slab enabled", "dtFFT", "cuDECOMP", "HeFFTe with CUFFT", "AccFFT"
-	:widths: 10, 15, 10, 12, 15, 10
-
-	1, 1233, 2406, 5089, 5194, -
-	2, 10341, 10963, 11818, 22308, -
-	4, 11157, 11433, 11667, 33943, 136429
-	8, 13152, 13327, 13423, 62498, 81778
-	12, 10988, 11087, 11221, 56414, 66110
-	16, 9043, 9130, 9182, 47118, 46586
-	20, -, 7776, 8204, 39805, 37936
-	24, -, 6793, 7067, 34249, 32609
-	28, -, 6034, 6253, 30260, 28131
-	32, -, 5336, 5533, 26578, 24664
-	36, -, 4990, 5025, 24519, 24251
-	40, -, 4515, 4599, 21898, 21506
-
-.. image:: images/strong_scaling_performance.png
+.. image:: images/gpu_competitors_performance.png
 	:alt: Strong scaling performance
 	:align: center
 	:width: 700px
 
-The **Weak Scaling** table shows the time-to-solution as the problem size grows proportionally with the number of GPUs, 
-keeping the workload per GPU constant. This measures scalability for larger problems.
+.. csv-table:: Strong scaling results
+  :header: "Number of GPUs", "dtFFT", "cuDECOMP", "HeFFTe", "2DECOMP&FFT"
+  :widths: 10, 15, 15, 15, 15
+  :align: right
+
+  4,  119626.641, 121721.242, 121098.586, 120167.854
+  8,  204371.359, 204187.656, 203894.516, 204669.592
+  12, 167539.578, 168842.437, 168267.093, 167885.206
+  16, 137827.844, 138721.703, 138234.469, 138201.588
+  20, 117795.039, 119350.664, 118823.680, 117924.865
+  24, 101455.992, 103170.719, 102516.188, 101612.259
+  28,  89294.328,  91382.023,  90897.547,  89335.099
+  32,  79008.461,  81047.414,  80815.453,  79230.639
+  36,  72392.461,  73923.062,  73583.375,  72661.824
 
 
-.. csv-table:: Weak scaling results
-	:header: "Number of GPUs", "dtFFT with Z-slab enabled", "dtFFT", "cuDECOMP"
-	:widths: 10, 15, 12, 12
+Bricks Strong Scaling
+_____________________
 
-	1, 1233, 2406, 5089
-	2, 20833, 22035, 23930
-	4, 44643, 45920, 47634
-	8, 104696, 105888, 107538
-	12, 131328, 132175, 135118
-	16, 143514, 144869, 146405
-	20, 153856, 154343, 163137
-	24, 159255, 160935, 167862
-	28, 165720, 166899, 173269
-	32, 167104, 168581, 175875
-	36, -, 173065, 179312
-	40, 173651, 175504, 182334
+Grid decomposition created via ``MPI_Dims_create``.
 
-.. image:: images/weak_scaling_performance.png
-	:alt: Weak scaling performance
+
+.. image:: images/gpu_bricks_performance.png
+	:alt: Bricks Strong Scaling
 	:align: center
 	:width: 700px
 
-Conclusions
------------
+.. .. csv-table:: Bricks Strong scaling results
+..   :header: "Number of GPUs", "dtFFT", "HeFFTe"
+..   :widths: 10, 15, 15
 
-1. **Z-Slab is Key for Single-GPU:** The Z-slab optimization provides a critical performance advantage when communication is not a factor.
-2. **Hardware Topology is Dominant:** The performance curve is dictated by the communication hierarchy: 
-   intra-GPU is fastest, followed by network (InfiniBand), with PCI-e and inter-socket communication proving to be significant bottlenecks 
-   for this problem size.
-3. **Excellent Multi-Node Scalability:** ``dtFFT`` demonstrates strong scalability and is highly competitive with ``cuDECOMP`` 
-   in multi-node environments (8+ GPUs).
+..     4, 239393.781, 260304.312
+..     8, 593468.312, 541668.375
+..     12, 460852.781, 592682.000
+..     16, 364630.188, 381815.281
+..     20, 309458.875, 421467.810
+..     24, 301119.656, 269521.781
+..     28, 230388.875, 320762.406
+..     32, 215990.906, 219637.906
+..     36, 223956.547, 198191.578
+
+
+Host Benchmarks
+---------------
+
+Weak Scaling
+____________
+
+C2C Double Precision; initial grid is :math:`128 \times 128 \times 128`; no FFT is executed
+
+
+.. image:: images/dtfft_weak_scaling_performance.png
+	:alt: Bricks Strong Scaling
+	:align: center
+	:width: 700px
+
+.. .. csv-table:: Weak scaling results of dtFFT (C2C Double Precision: 128x128x128); no FFT is executed
+..   :header: "Number of Cores", "Datatype backend: Z-slab enabled", "Datatype backend", "Basic backend: Z-slab enabled", "Basic backend"
+..   :widths: 10, 20, 20, 20, 20
+
+..   1,     0.773,  1.557,  0.749,  1.567
+..   2,     2.391,  3.725,  1.673,  3.034
+..   4,     3.290,  5.133,  1.811,  2.916
+..   8,     3.756,  6.884,  2.591,  4.082
+..   16,    3.800,  6.364,  4.445,  7.006
+..   32,    3.716,  6.788,  4.642,  6.888
+..   64,    4.933,  8.125,  5.942,  8.637
+..   128,   5.057,  9.155,  7.470, 11.173
+..   256,   7.816, 11.373, 10.680, 13.391
+..   512,   8.661, 13.690, 11.923, 15.903
+..   1024, 12.656, 15.142, 14.341, 19.169
+..   2048, 13.625, 16.919, 14.995, 20.376
+
+
+Strong Scaling
+______________
+
+C2C Double Precision; :math:`64 \times 2048 \times 2048`; FFTW3 executor
+
+.. image:: images/dtfft_strong_scaling_performance.png
+	:alt: dtFFT Strong Scaling
+	:align: center
+	:width: 700px
+
+.. image:: images/competitors_performance.png
+	:alt: Competitors Strong Scaling
+	:align: center
+	:width: 700px
+
+C2C Double Precision; :math:`2048 \times 2048 \times 64`; FFTW3 executor
+
+.. image:: images/dtfft_strong_scaling_narrow_z_dim_performance.png
+	:alt: dtFFT Strong Scaling narrow
+	:align: center
+	:width: 700px
+
+.. image:: images/competitors_narrow_z_dim_performance.png
+	:alt: Competitors Strong Scaling narrow
+	:align: center
+	:width: 700px
+
+Bricks Strong Scaling
+_____________________
+
+C2C Double Precision; :math:`1024 \times 1024 \times 1024`; FFTW3 executor.
+Grid created via ``MPI_Dims_create``.
+
+.. image:: images/bricks_performance.png
+	:alt: Competitors Strong Scaling narrow
+	:align: center
+	:width: 700px

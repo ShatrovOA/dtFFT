@@ -1099,7 +1099,8 @@ The auxiliary buffer ``aux`` is optional for all plan execution functions. If ``
 If you choose to provide ``aux`` yourself, the minimum size depends on the operation:
 
 - For :f:func:`execute`: Use :f:func:`get_aux_size` (or :f:func:`get_aux_bytes` for byte size).
-- For :f:func:`transpose` and :f:func:`reshape`: If the underlying backend is pipelined, allocate at least ``alloc_size`` elements from :f:func:`get_local_sizes` (or use :f:func:`get_alloc_bytes` for byte size). For non-pipelined backends, ``aux`` is not used for transpose/reshape. To check pipelining, call :f:func:`dtfft_get_backend_pipelined` and pass backends obtained from :f:func:`get_backend` and :f:func:`get_reshape_backend`.
+- For :f:func:`transpose`: If the underlying backend is pipelined, allocate at least ``alloc_size`` elements from :f:func:`get_local_sizes` (or use :f:func:`get_alloc_bytes` for byte size). For non-pipelined backends, ``aux`` is not used for transpose. To check pipelining, call :f:func:`dtfft_get_backend_pipelined` and pass backends obtained from :f:func:`get_backend`.
+- For :f:func:`reshape`: auxiliary buffer may be required for certain cases; to check if needed call :f:func:`get_aux_size_reshape` (or :f:func:`get_aux_bytes_reshape` for byte size). If the returned size is zero, ``aux`` is not needed.
 
 
 Plan properties

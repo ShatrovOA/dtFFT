@@ -10,24 +10,28 @@
 
 #include <dtfft.hpp>
 
-void setup_dtfft_config(bool enable_z_slab) {
+void setup_dtfft_config(bool enable_z_slab, dtfft::Backend backend = dtfft::Backend::MPI_P2P) {
   dtfft::Config conf;
-  conf.set_enable_z_slab(enable_z_slab);
-#ifdef DTFFT_WITH_CUDA
-  conf.set_backend(dtfft::Backend::NCCL)
+  conf.set_enable_z_slab(enable_z_slab)
+    .set_backend(backend)
+    .set_reshape_backend(backend)
     .set_enable_log(false)
-    .set_measure_iters(15)
+    .set_measure_iters(10)
     .set_measure_warmup_iters(3)
-    .set_force_kernel_optimization(true)
-    .set_n_configs_to_test(20)
+    .set_enable_kernel_autotune(true)
+    .set_enable_fourier_reshape(true)
+    .set_enable_pipelined_backends(true)
+    .set_enable_mpi_backends(true)
+    .set_enable_nccl_backends(false)
+    .set_enable_nvshmem_backends(false)
     .set_platform(dtfft::Platform::CUDA);
-#endif
+
   DTFFT_CXX_CALL( dtfft::set_config(conf) );
 }
 
 
-void run_dtfft_internal(dtfft::Plan& plan, const std::string& plan_name, 
-  double create_time, dtfft::Precision precision, dtfft::Executor executor, 
+double run_dtfft_internal(dtfft::Plan& plan, const std::string& plan_name, 
+  dtfft::Precision precision, dtfft::Executor executor, 
   int64_t scaler, bool enable_z_slab) 
 {
   int comm_rank, comm_size;
@@ -40,12 +44,12 @@ void run_dtfft_internal(dtfft::Plan& plan, const std::string& plan_name,
       if(comm_rank == 0) {
         printf("Plan is not using Z slab, skipping benchmark\n");
       }
-      return;
+      return -1.0;
     }
   }
 
   if(comm_rank == 0) {
-    printf("Plan created successfully, time spent: %f\n", create_time);
+    printf("Plan created successfully\n");
   }
   plan.report();
 
@@ -57,10 +61,11 @@ void run_dtfft_internal(dtfft::Plan& plan, const std::string& plan_name,
 
   size_t alloc_size = plan.get_alloc_size();
   size_t alloc_bytes = alloc_size * (scaler * sizeof(float));
+  size_t aux_bytes = plan.get_aux_bytes();
 
   auto in = static_cast<float*>(plan.mem_alloc(alloc_bytes));
   auto out = static_cast<float*>(plan.mem_alloc(alloc_bytes));
-  auto aux = static_cast<float*>(plan.mem_alloc(alloc_bytes));
+  auto aux = static_cast<float*>(plan.mem_alloc(aux_bytes));
 
 #ifdef DTFFT_WITH_CUDA
   CUDA_CALL( cudaMemset(in, 0, alloc_bytes));
@@ -136,22 +141,52 @@ void run_dtfft_internal(dtfft::Plan& plan, const std::string& plan_name,
   CUDA_CALL( cudaEventDestroy(startEvent) );
   CUDA_CALL( cudaEventDestroy(stopEvent) );
 #endif
+
+  return (double)max_ms;
 }
 
-void run_dtfft_c2c(const std::vector<int>& dims, dtfft::Precision precision, dtfft::Executor executor, bool enable_z_slab) {
-  double create_time = -MPI_Wtime();
-  dtfft::PlanC2C plan(dims, MPI_COMM_WORLD, precision, dtfft::Effort::MEASURE, executor);
-  create_time += MPI_Wtime();
-
+double run_dtfft_c2c(const std::vector<int>& dims, dtfft::Precision precision, dtfft::Executor executor, bool enable_z_slab, 
+  const dtfft::Effort effort = dtfft::Effort::EXHAUSTIVE,
+  const std::vector<int> &grid=std::vector<int>()) {
   int64_t scaler = (precision == dtfft::Precision::DOUBLE) ? 4 : 2;
-  run_dtfft_internal(plan, "C2C", create_time, precision, executor, scaler, enable_z_slab);
+  int comm_size, comm_rank;
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+
+  if ( grid.size() > 0 ) {
+      // Create Cartesian communicator to get coordinates
+      MPI_Comm cart_comm;
+      std::vector<int> periods(grid.size(), 0); // non-periodic
+      MPI_Cart_create(MPI_COMM_WORLD, grid.size(), const_cast<int*>(grid.data()), periods.data(), 0, &cart_comm);
+      
+      std::vector<int> coords(grid.size());
+      MPI_Cart_coords(cart_comm, comm_rank, grid.size(), coords.data());
+      
+      // Compute starts and counts
+      std::vector<int32_t> starts(dims.size()), counts(dims.size());
+      for (size_t i = 0; i < dims.size(); ++i) {
+          int total = dims[i];
+          int nprocs = grid[i];
+          int base_count = total / nprocs;
+          int remainder = total % nprocs;
+          int my_count = base_count + (coords[i] < remainder ? 1 : 0);
+          int my_start = coords[i] * base_count + std::min(coords[i], remainder);
+          starts[i] = my_start;
+          counts[i] = my_count;
+      }
+      auto pencil = dtfft::Pencil(starts, counts);
+      dtfft::PlanC2C plan(pencil, MPI_COMM_WORLD, precision, effort, executor);
+      MPI_Comm_free(&cart_comm);
+      return run_dtfft_internal(plan, "C2C", precision, executor, scaler, enable_z_slab);
+    } else {
+      dtfft::PlanC2C plan(dims, MPI_COMM_WORLD, precision, effort, executor);
+      return run_dtfft_internal(plan, "C2C", precision, executor, scaler, enable_z_slab);
+    }
 }
 
-void run_dtfft_r2r(const std::vector<int>& dims, dtfft::Precision precision, bool enable_z_slab) {
-  double create_time = -MPI_Wtime();
-  dtfft::PlanR2R plan(dims, precision, dtfft::Effort::MEASURE);
-  create_time += MPI_Wtime();
+double run_dtfft_r2r(const std::vector<int>& dims, dtfft::Precision precision, bool enable_z_slab) {
+  dtfft::PlanR2R plan(dims, precision, dtfft::Effort::EXHAUSTIVE);
 
   int64_t scaler = (precision == dtfft::Precision::DOUBLE) ? 2 : 1;
-  run_dtfft_internal(plan, "R2R", create_time, precision, dtfft::Executor::NONE, scaler, enable_z_slab);
+  return run_dtfft_internal(plan, "R2R", precision, dtfft::Executor::NONE, scaler, enable_z_slab);
 }
