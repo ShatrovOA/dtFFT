@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(dtfft VERSION 3.0.0
+project(dtfft VERSION 3.1.0
               DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
@@ -35,7 +35,7 @@ option(DTFFT_ENABLE_INPUT_CHECK "Enable checks for user input for all dtFFT func
 
 # Device libraries
 option(DTFFT_WITH_CUDA "Build dtFFT with CUDA support" OFF)
-
+option(DTFFT_WITH_MOCK_ENABLED "Mock GPU libraries calls with CPU implementations for testing and debugging without GPU hardware" OFF)
 option(DTFFT_WITH_NCCL "Build dtFFT with NCCL support.
                         Enabling this option when DTFFT_WITH_HPC_SDK=ON and DTFFT_WITH_CUDA=ON
                         requires to set NCCL_ROOT enviroment variable to find custom installation of NCCL" OFF)
@@ -46,6 +46,8 @@ option(DTFFT_WITHOUT_NVSHMEM "Build dtFFT without NVSHMEM-enabled backends.
                               Disables automatic NVSHMEM usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
 
 option(DTFFT_ENABLE_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
+
+option(DTFFT_WITH_ZFP "Enable ZFP support for data compression" OFF)
 
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
@@ -158,8 +160,12 @@ if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
   set( DTFFT_WITH_CUDA ON )
 endif()
 
+if (DTFFT_WITH_MOCK_ENABLED)
+  set(NCCL_FOUND TRUE)
+  set(USE_NCCL ON)
+endif()
 
-if(DTFFT_WITH_CUDA)
+if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
   find_package(CUDAToolkit 11.0 REQUIRED)
   # Not linking CUDA::nvrtc due to implicit link of cuda_driver by cmake
   # target_link_libraries(dtfft PRIVATE CUDA::nvrtc)
@@ -286,12 +292,24 @@ target_link_libraries(dtfft PUBLIC MPI::MPI_Fortran)
 
 if ( DTFFT_WITH_PROFILER )
   target_compile_definitions(dtfft PRIVATE DTFFT_WITH_PROFILER)
-  if ( DTFFT_WITH_CUDA )
+  if ( DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED )
     target_link_libraries(dtfft PRIVATE CUDA::nvtx3)
   else()
     find_package( caliper REQUIRED )
     message(STATUS "Found caliper: ${caliper_DIR}")
-    target_link_libraries(dtfft PRIVATE caliper)
+    target_link_libraries(dtfft PUBLIC caliper)
+  endif()
+endif()
+
+set(DTFFT_WITH_COMPRESSION OFF)
+if ( DTFFT_WITH_ZFP )
+  target_compile_definitions(dtfft PRIVATE DTFFT_WITH_ZFP)
+  find_package( zfp REQUIRED )
+  message(STATUS "Found zfp: ${zfp_DIR}")
+  target_link_libraries(dtfft PRIVATE zfp::zfp)
+  set(DTFFT_WITH_COMPRESSION ON)
+  if ( ZFP_WITH_CUDA )
+    target_compile_definitions(dtfft PRIVATE ZFP_WITH_CUDA)
   endif()
 endif()
 
@@ -308,6 +326,9 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
     set(DTFFT_ENABLE_COVERAGE ON)
   endif()
   if(DTFFT_ENABLE_COVERAGE)
+    if ( CMAKE_BUILD_TYPE MATCHES "Release" )
+      message(FATAL_ERROR "Coverage can only be performed with debug build")
+    endif()
     set(DTFFT_BUILD_TESTS ON)
 
     find_program(LCOV_PATH lcov)
@@ -332,13 +353,24 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
       endif()
     endif()
 
-    add_custom_target(coverage
-      COMMAND ${CMAKE_MAKE_PROGRAM} test
-      COMMAND ${LCOV_PATH} --capture --directory "CMakeFiles" --output-file coverage.info --gcov-tool ${GCOV_PATH}
-      COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '/opt/*'  --output-file coverage.info
-      COMMAND ${GENHTML_COMMAND}
-      # '${PROJECT_SOURCE_DIR}/include/*'
-    )
+    if ( DTFFT_WITH_CUDA )
+      add_custom_target(coverage
+        COMMAND DTFFT_PLATFORM=cuda ${CMAKE_MAKE_PROGRAM} test
+        COMMAND DTFFT_PLATFORM=host ${CMAKE_MAKE_PROGRAM} test
+        COMMAND ${LCOV_PATH} --capture --directory "CMakeFiles" --output-file coverage.info --gcov-tool ${GCOV_PATH}
+        COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '/opt/*'  --output-file coverage.info
+        COMMAND ${GENHTML_COMMAND}
+        # '${PROJECT_SOURCE_DIR}/include/*'
+      )
+    else()
+      add_custom_target(coverage
+        COMMAND ${CMAKE_MAKE_PROGRAM} test
+        COMMAND ${LCOV_PATH} --capture --directory "CMakeFiles" --output-file coverage.info --gcov-tool ${GCOV_PATH}
+        COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '/opt/*'  --output-file coverage.info
+        COMMAND ${GENHTML_COMMAND}
+        # '${PROJECT_SOURCE_DIR}/include/*'
+      )
+    endif()
 
     target_link_libraries(dtfft PRIVATE gcov)
     set_target_properties(dtfft
@@ -353,7 +385,7 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES Intel OR CMAKE_Fortran_COMPILER_ID MATC
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast")
 elseif(CMAKE_Fortran_COMPILER_ID MATCHES NVHPC)
   set(CMAKE_Fortran_FLAGS         "${CMAKE_Fortran_FLAGS} -Mbackslash -traceback -Mcontiguous -Mnodepchk")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "${CMAKE_Fortran_FLAGS_DEBUG} -C -Mchkstk")
   set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -Ofast -Mnobounds")
 endif()
 
@@ -481,6 +513,9 @@ message(STATUS "Coverage                   : ${DTFFT_ENABLE_COVERAGE}")
 message(STATUS "Profiler                   : ${DTFFT_WITH_PROFILER}")
 message(STATUS "CUDA enabled               : ${DTFFT_WITH_CUDA}")
 if ( DTFFT_WITH_CUDA )
+  if ( DTFFT_WITH_MOCK_ENABLED )
+    message(STATUS "    Building mock version of CUDA support")
+  endif()
   message(STATUS "NCCL enabled               : ${DTFFT_WITH_NCCL}")
   if ( WITH_HPC_SDK )
     message(STATUS "NVSHMEM enabled            : ${DTFFT_WITH_NVSHMEM}")
@@ -497,3 +532,4 @@ else()
     message(STATUS "VkFFT enabled              : ${DTFFT_WITH_VKFFT}")
   endif()
 endif()
+message(STATUS "Compression enabled        : ${DTFFT_WITH_COMPRESSION}")

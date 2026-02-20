@@ -91,7 +91,7 @@ implicit none
 
   call dtfft_create_config(conf)
 
-  backend_to_use = DTFFT_BACKEND_MPI_RMA_FUSED
+  backend_to_use = DTFFT_BACKEND_MPI_P2P_FUSED
   reshape_backend_to_use = DTFFT_BACKEND_MPI_P2P_FUSED
 
 #if defined(DTFFT_WITH_CUDA)
