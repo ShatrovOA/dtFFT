@@ -16,14 +16,24 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 module dtfft_interface_nccl
 !! NCCL Interfaces
 use iso_c_binding
+use iso_fortran_env
 use dtfft_parameters, only: dtfft_stream_t
-use dtfft_utils,      only: string_c2f
+use dtfft_utils
+#ifdef DTFFT_WITH_MOCK_ENABLED
+#include "_dtfft_mpi.h"
+#include "_dtfft_private.h"
+#endif
 implicit none
 private
 public :: ncclGetErrorString
+public :: ncclGetUniqueId, ncclMemAlloc, ncclMemFree
+public :: ncclCommInitRank, ncclSend, ncclRecv
+public :: ncclGroupStart, ncclGroupEnd
+public :: ncclCommDestroy, ncclCommRegister, ncclCommDeregister
 
 public :: ncclUniqueId
   type, bind(c) :: ncclUniqueId
@@ -42,6 +52,8 @@ public :: ncclDataType
 
   type(ncclDataType), parameter, public :: ncclFloat = ncclDataType(7)
 
+#ifndef DTFFT_WITH_MOCK_ENABLED
+! Real NCCL interfaces
 
   interface
   !! Returns a human-readable string corresponding to the passed error code.
@@ -54,11 +66,10 @@ public :: ncclDataType
     end function ncclGetErrorString_c
   endinterface
 
-public :: ncclGetUniqueId
   interface
-  !! Generates an Id to be used in ncclCommInitRank. 
-  !! ncclGetUniqueId should be called once when creating a communicator and the Id should be 
-  !! distributed to all ranks in the communicator before calling ncclCommInitRank. 
+  !! Generates an Id to be used in ncclCommInitRank.
+  !! ncclGetUniqueId should be called once when creating a communicator and the Id should be
+  !! distributed to all ranks in the communicator before calling ncclCommInitRank.
   !! uniqueId should point to a ncclUniqueId object allocated by the user.
     function ncclGetUniqueId(uniqueId)                                              &
       result(ncclResult_t)                                                          &
@@ -68,11 +79,10 @@ public :: ncclGetUniqueId
       integer(c_int32_t)                    :: ncclResult_t   !! Completion status
     end function ncclGetUniqueId
   end interface
-  
-public :: ncclMemAlloc
+
   interface
   !! Allocate a GPU buffer with size.
-  !! Allocated buffer head address will be returned by ptr, and the actual allocated size can be larger 
+  !! Allocated buffer head address will be returned by ptr, and the actual allocated size can be larger
   !! than requested because of the buffer granularity requirements from all types of NCCL optimizations.
     function ncclMemAlloc(ptr, alloc_bytes)                                         &
       result(ncclResult_t)                                                          &
@@ -84,7 +94,6 @@ public :: ncclMemAlloc
     end function ncclMemAlloc
   end interface
 
-public :: ncclMemFree
   interface
   !! Free memory allocated by ncclMemAlloc().
     function ncclMemFree(ptr)                                                       &
@@ -96,7 +105,6 @@ public :: ncclMemFree
     end function ncclMemFree
   end interface
 
-public :: ncclCommInitRank
   interface
   !! Creates a new communicator (multi thread/process version).
   !!
@@ -117,14 +125,13 @@ public :: ncclCommInitRank
     end function ncclCommInitRank
   end interface
 
-public :: ncclSend
   interface
   !! Send data from sendbuff to rank peer.
   !!
   !! Rank peer needs to call ncclRecv with the same datatype and the same count as this rank.
   !!
   !! This operation is blocking for the GPU.
-  !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
+  !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete,
   !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
     function ncclSend(sendbuff, count, datatype, peer, comm, stream)                &
       result(ncclResult_t)                                                          &
@@ -140,14 +147,13 @@ public :: ncclSend
     end function ncclSend
   end interface
 
-public :: ncclRecv
   interface
   !! Receive data from rank peer into recvbuff.
   !!
   !! Rank peer needs to call ncclSend with the same datatype and the same count as this rank.
 
   !! This operation is blocking for the GPU.
-  !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete, 
+  !! If multiple ncclSend() and ncclRecv() operations need to progress concurrently to complete,
   !! they must be fused within a ncclGroupStart()/ ncclGroupEnd() section.
     function ncclRecv(recvbuff, count, datatype, peer, comm, stream)                &
       result(ncclResult_t)                                                          &
@@ -163,7 +169,6 @@ public :: ncclRecv
     end function ncclRecv
   end interface
 
-public :: ncclGroupStart
   interface
   !! Start a group call.
   !!
@@ -176,12 +181,11 @@ public :: ncclGroupStart
     end function ncclGroupStart
   end interface
 
-public :: ncclGroupEnd
   interface
   !! End a group call.
   !!
   !! Returns when all operations since ncclGroupStart have been processed.
-  !! This means the communication primitives have been enqueued to the provided streams, 
+  !! This means the communication primitives have been enqueued to the provided streams,
   !! but are not necessarily complete.
     function ncclGroupEnd()                                                         &
       result(ncclResult_t)                                                          &
@@ -191,7 +195,6 @@ public :: ncclGroupEnd
     end function ncclGroupEnd
   end interface
 
-public :: ncclCommDestroy
   interface
   !! Destroy a communicator object comm.
     function ncclCommDestroy(comm)                                                  &
@@ -203,7 +206,6 @@ public :: ncclCommDestroy
     end function ncclCommDestroy
   end interface
 
-public :: ncclCommRegister
   interface
   !! Register a buffer for collective communication.
     function ncclCommRegister(comm, buff, size, handle)                             &
@@ -218,7 +220,6 @@ public :: ncclCommRegister
     end function ncclCommRegister
   end interface
 
-public :: ncclCommDeregister
   interface
   !! Deregister a buffer for collective communication.
     function ncclCommDeregister(comm, handle)                                       &
@@ -231,13 +232,193 @@ public :: ncclCommDeregister
     end function ncclCommDeregister
   end interface
 
+#else
+  ! Storage for MPI requests in mock mode
+
+  TYPE_MPI_REQUEST, save, allocatable :: mpi_requests(:)
+  integer(int32), save :: num_requests = 0
+#endif
+
 contains
+
+#ifdef DTFFT_WITH_MOCK_ENABLED
+  ! Mock implementations for CPU testing
+
+  function ncclGetUniqueId(uniqueId) result(ncclResult_t)
+  !! Mock: Generates dummy unique ID
+    type(ncclUniqueId), intent(out)       :: uniqueId
+    integer(c_int32_t)                    :: ncclResult_t
+    uniqueId%internal = achar(0)
+    ncclResult_t = 0  ! ncclSuccess
+  end function ncclGetUniqueId
+
+  function ncclMemAlloc(ptr, alloc_bytes) result(ncclResult_t)
+  !! Mock: Allocates memory on CPU
+    type(c_ptr),        intent(out)       :: ptr
+    integer(c_size_t),  intent(in), value :: alloc_bytes
+    integer(c_int32_t)                    :: ncclResult_t
+
+    ptr = mem_alloc_host(alloc_bytes)
+    if( is_null_ptr(ptr) ) then
+      ncclResult_t = 1  ! ncclUnhandledCudaError
+    else
+      ncclResult_t = 0  ! ncclSuccess
+    end if
+  end function ncclMemAlloc
+
+  function ncclMemFree(ptr) result(ncclResult_t)
+  !! Mock: Frees memory allocated on CPU
+    type(c_ptr),        intent(in)   :: ptr
+    integer(c_int32_t)                  :: ncclResult_t
+
+    if ( is_null_ptr(ptr) ) then
+      ncclResult_t = 1  ! ncclUnhandledCudaError
+      return
+    end if
+    call mem_free_host(ptr)
+    ncclResult_t = 0  ! ncclSuccess
+  end function ncclMemFree
+
+  function ncclCommInitRank(comm, nranks, uniqueId, rank) result(ncclResult_t)
+  !! Mock: Creates dummy communicator
+    type(ncclComm)                   :: comm
+    integer(c_int),       intent(in) :: nranks
+    type(ncclUniqueId),   intent(in) :: uniqueId
+    integer(c_int),       intent(in) :: rank
+    integer(c_int32_t)               :: ncclResult_t
+    comm%member = c_null_ptr
+    ncclResult_t = 0  ! ncclSuccess
+  end function ncclCommInitRank
+
+  function ncclSend(sendbuff, count, datatype, peer, comm, stream) result(ncclResult_t)
+  !! Mock: Uses MPI_Isend for CPU communication
+    real(c_float),                intent(in) :: sendbuff
+    integer(c_size_t),            intent(in) :: count
+    type(ncclDataType),           intent(in) :: datatype
+    integer(c_int),               intent(in) :: peer
+    type(ncclComm),               intent(in) :: comm
+    type(dtfft_stream_t),         intent(in) :: stream
+    integer(c_int32_t)                       :: ncclResult_t
+    TYPE_MPI_REQUEST                      :: mpi_request
+    integer                               :: mpi_ierr
+    integer                               :: mpi_count
+
+    mpi_count = int(count, kind=int32)
+    call MPI_Isend(sendbuff, mpi_count, MPI_REAL, peer, 0, MPI_COMM_WORLD, mpi_request, mpi_ierr)
+
+    if (mpi_ierr == MPI_SUCCESS) then
+      ! Store request for later completion
+      num_requests = num_requests + 1
+      mpi_requests(num_requests) = mpi_request
+      ncclResult_t = 0  ! ncclSuccess
+    else
+      ncclResult_t = 1  ! ncclError
+    end if
+  end function ncclSend
+
+  function ncclRecv(recvbuff, count, datatype, peer, comm, stream) result(ncclResult_t)
+  !! Mock: Uses MPI_Irecv for CPU communication
+    real(c_float),                intent(out) :: recvbuff
+    integer(c_size_t),            intent(in)  :: count
+    type(ncclDataType),           intent(in)  :: datatype
+    integer(c_int),               intent(in)  :: peer
+    type(ncclComm),               intent(in)  :: comm
+    type(dtfft_stream_t),         intent(in)  :: stream
+    integer(c_int32_t)                        :: ncclResult_t
+    TYPE_MPI_REQUEST  :: mpi_request
+    integer(int32)    :: mpi_ierr
+    integer(int32)    :: mpi_count
+
+    mpi_count = int(count, kind=4)
+    call MPI_Irecv(recvbuff, mpi_count, MPI_REAL, peer, 0, MPI_COMM_WORLD, mpi_request, mpi_ierr)
+
+    if (mpi_ierr == MPI_SUCCESS) then
+      ! Store request for later completion
+      num_requests = num_requests + 1
+      mpi_requests(num_requests) = mpi_request
+      ncclResult_t = 0  ! ncclSuccess
+    else
+      ncclResult_t = 1  ! ncclError
+    end if
+  end function ncclRecv
+
+  function ncclGroupStart() result(ncclResult_t)
+  !! Mock: Resets request counter
+    integer(c_int32_t)                    :: ncclResult_t
+    integer(int32) :: comm_size, mpi_ierr
+
+    if ( allocated(mpi_requests) ) then
+      INTERNAL_ERROR("ncclGroupStart: mpi_requests should not be allocated at this point")
+    end if
+    call MPI_Comm_size(MPI_COMM_WORLD, comm_size, mpi_ierr)
+    allocate(mpi_requests(comm_size * 2))  ! Allocate enough space for all sends and receives
+    num_requests = 0
+    ncclResult_t = 0  ! ncclSuccess
+  end function ncclGroupStart
+
+  function ncclGroupEnd() result(ncclResult_t)
+  !! Mock: Completes all pending MPI requests
+    integer(c_int32_t)                    :: ncclResult_t
+    integer                               :: mpi_ierr
+
+    if ( .not. allocated(mpi_requests) ) then
+      INTERNAL_ERROR("ncclGroupEnd: mpi_requests should be allocated at this point")
+    end if
+    if ( num_requests == 0 ) then
+      INTERNAL_ERROR("ncclGroupEnd: num_requests should be greater than 0 at this point")
+    end if
+
+    call MPI_Waitall(num_requests, mpi_requests, MPI_STATUSES_IGNORE, mpi_ierr)
+    if (mpi_ierr == MPI_SUCCESS) then
+      ncclResult_t = 0  ! ncclSuccess
+    else
+      ncclResult_t = 1  ! ncclError
+    end if
+    deallocate(mpi_requests)
+    num_requests = 0
+  end function ncclGroupEnd
+
+  function ncclCommDestroy(comm) result(ncclResult_t)
+  !! Mock: Does nothing
+    type(ncclComm),           intent(in) :: comm
+    integer(c_int32_t)                   :: ncclResult_t
+    ncclResult_t = 0  ! ncclSuccess
+  end function ncclCommDestroy
+
+  function ncclCommRegister(comm, buff, size, handle) result(ncclResult_t)
+  !! Mock: Returns dummy handle
+    type(ncclComm),           intent(in)  :: comm
+    type(c_ptr),              intent(in)  :: buff
+    integer(c_size_t),        intent(in)  :: size
+    type(c_ptr),              intent(out) :: handle
+    integer(c_int32_t)                    :: ncclResult_t
+    handle = buff  ! Just return the same pointer
+    ncclResult_t = 0  ! ncclSuccess
+  end function ncclCommRegister
+
+  function ncclCommDeregister(comm, handle) result(ncclResult_t)
+  !! Mock: Does nothing
+    type(ncclComm),        intent(in) :: comm
+    type(c_ptr),           intent(in) :: handle
+    integer(c_int32_t)                :: ncclResult_t
+    ncclResult_t = 0  ! ncclSuccess
+  end function ncclCommDeregister
+
+#endif
 
   function ncclGetErrorString(ncclResult_t) result(string)
   !! Generates an error message.
     integer(c_int32_t), intent(in)    :: ncclResult_t       !! Completion status of a function.
     character(len=:),   allocatable   :: string             !! Error message
 
+#ifndef DTFFT_WITH_MOCK_ENABLED
     call string_c2f(ncclGetErrorString_c(ncclResult_t), string)
+#else
+    if (ncclResult_t == 0) then
+      allocate(string, source="ncclSuccess (mock)")
+    else
+      allocate(string, source="ncclError (mock)")
+    end if
+#endif
   end function ncclGetErrorString
 end module dtfft_interface_nccl

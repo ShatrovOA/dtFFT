@@ -1,0 +1,2892 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>test_device_kernels &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>test_device_kernels      <small>Program</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title="40.9% of total for programs.">224 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/test_device_kernels.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/test_device_kernels.f90.html'>test_device_kernels.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">test_device_kernels</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_device_kernels.html#variable-ierror~2">ierror</a>
+            <a class="list-group-item" href="../program/test_device_kernels.html#variable-stream~60">stream</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_device_kernels.html#proc-execute_test">execute_test</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_config.html'>dtfft_config</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_interface_cuda.html'>dtfft_interface_cuda</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_kernel_device.html'>dtfft_kernel_device</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_interface_cuda_runtime.html'>dtfft_interface_cuda_runtime</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_kernel_host.html'>dtfft_kernel_host</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_abstract_kernel.html'>dtfft_abstract_kernel</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_interface_nvrtc.html'>dtfft_interface_nvrtc</a></li>
+                  <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: program~~test_device_kernels~~UsesGraph Pages: 1 -->
+<svg id="programtest_device_kernelsUsesGraph" width="641pt" height="579pt"
+ viewBox="0.00 0.00 641.00 578.52" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="program~~test_device_kernels~~UsesGraph" class="graph" transform="scale(0.36 0.36) rotate(0) translate(4 1612.41)">
+<title>program~~test_device_kernels~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1612.41 1787,-1612.41 1787,4 -4,4"/>
+<!-- program~test_device_kernels -->
+<g id="program~~test_device_kernels~~UsesGraph_node1" class="node">
+<title>program~test_device_kernels</title>
+<polygon fill="none" stroke="black" points="1783,-717.06 1666,-717.06 1666,-693.06 1783,-693.06 1783,-717.06"/>
+<text text-anchor="middle" x="1724.5" y="-702.66" font-family="Helvetica,sans-Serif" font-size="10.50">test_device_kernels</text>
+</g>
+<!-- iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-702.06 5,-702.06 5,-678.06 89,-678.06 89,-702.06"/>
+<text text-anchor="middle" x="47" y="-687.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge1" class="edge">
+<title>program~test_device_kernels&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-2.06C1012.24,5.54 1007.17,-38.93 954,-54.06 870.65,-77.79 847.16,-78.06 760.5,-78.06 760.5,-78.06 760.5,-78.06 603,-78.06 488.7,-78.06 199.03,-188.97 130,-280.06 92.64,-329.36 108.11,-495.84 94,-556.06 84.49,-596.66 67.41,-642.24 56.95,-668.41"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="53.68,-667.17 53.17,-677.75 60.16,-669.79 53.68,-667.17"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-1372.06 0,-1372.06 0,-1348.06 94,-1348.06 94,-1372.06"/>
+<text text-anchor="middle" x="47" y="-1357.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge2" class="edge">
+<title>program~test_device_kernels&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M892,-1606.06C833.59,-1603.99 818.67,-1611.69 760.5,-1606.06"/>
+</g>
+<!-- module~dtfft_abstract_kernel -->
+<g id="program~~test_device_kernels~~UsesGraph_node4" class="node">
+<title>module~dtfft_abstract_kernel</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node4"><a xlink:href="../module/dtfft_abstract_kernel.html" xlink:title="dtfft_abstract_kernel">
+<polygon fill="#337ab7" stroke="#337ab7" points="954,-544.06 832,-544.06 832,-520.06 954,-520.06 954,-544.06"/>
+<text text-anchor="middle" x="893" y="-529.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_kernel</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_abstract_kernel -->
+<g id="program~~test_device_kernels~~UsesGraph_edge3" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_abstract_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1572,-323.06C1483.63,-260.84 1430.38,-306.98 1330,-347.06 1311.18,-354.58 1310.28,-362.99 1294,-375.06 1269.41,-393.3 1099.61,-533.61 1069,-534.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-534.06C1033.27,-533.94 995.84,-533.54 964.45,-533.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="964.09,-529.62 954.05,-532.99 964,-536.62 964.09,-529.62"/>
+</g>
+<!-- module~dtfft_config -->
+<g id="program~~test_device_kernels~~UsesGraph_node5" class="node">
+<title>module~dtfft_config</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node5"><a xlink:href="../module/dtfft_config.html" xlink:title="dtfft_config">
+<polygon fill="#337ab7" stroke="#337ab7" points="796,-798.06 723,-798.06 723,-774.06 796,-774.06 796,-798.06"/>
+<text text-anchor="middle" x="759.5" y="-783.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_config -->
+<g id="program~~test_device_kernels~~UsesGraph_edge4" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1572,-323.06C1533.68,-295.91 1521.3,-352.7 1480,-375.06 1332.98,-454.65 1306.36,-500.83 1146,-548.06 1119.02,-556.01 913.24,-551.55 894,-572.06"/>
+</g>
+<!-- module~dtfft_interface_cuda -->
+<g id="program~~test_device_kernels~~UsesGraph_node6" class="node">
+<title>module~dtfft_interface_cuda</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node6"><a xlink:href="../module/dtfft_interface_cuda.html" xlink:title="dtfft_interface_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="484.5,-1295.06 365.5,-1295.06 365.5,-1271.06 484.5,-1271.06 484.5,-1295.06"/>
+<text text-anchor="middle" x="425" y="-1280.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_interface_cuda -->
+<g id="program~~test_device_kernels~~UsesGraph_edge5" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1572,-1454.06C1533.29,-1496.18 1531.83,-1519.86 1480,-1544.06 1382.47,-1589.6 1344.93,-1587.16 1239,-1568.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1237,-1568.06C1004.7,-1530.49 942.7,-1525.35 723,-1441.06 667.49,-1419.77 657.59,-1405.8 605,-1378.06"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_device_kernels~~UsesGraph_node7" class="node">
+<title>module~dtfft_interface_cuda_runtime</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node7"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
+<polygon fill="#337ab7" stroke="#337ab7" points="687,-1122.06 521,-1122.06 521,-1098.06 687,-1098.06 687,-1122.06"/>
+<text text-anchor="middle" x="604" y="-1107.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_device_kernels~~UsesGraph_edge6" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1722.85,-717.11C1717.85,-804.63 1682.9,-1342.64 1574,-1454.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1572,-1454.06C1501.78,-1525.91 804.91,-1204.25 639.9,-1126.6"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="641.22,-1123.35 630.68,-1122.26 638.24,-1129.69 641.22,-1123.35"/>
+</g>
+<!-- module~dtfft_interface_nvrtc -->
+<g id="program~~test_device_kernels~~UsesGraph_node8" class="node">
+<title>module~dtfft_interface_nvrtc</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node8"><a xlink:href="../module/dtfft_interface_nvrtc.html" xlink:title="dtfft_interface_nvrtc">
+<polygon fill="#337ab7" stroke="#337ab7" points="485,-1418.06 365,-1418.06 365,-1394.06 485,-1394.06 485,-1418.06"/>
+<text text-anchor="middle" x="425" y="-1403.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvrtc</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_interface_nvrtc -->
+<g id="program~~test_device_kernels~~UsesGraph_edge7" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_interface_nvrtc</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1237,-1568.06C1196.56,-1561.85 1186.61,-1577.01 1146,-1582.06 1034.35,-1595.96 1006.23,-1614.01 894,-1606.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M892,-1606.06C799.78,-1602.96 546.16,-1470.86 457.27,-1423.08"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="458.69,-1419.87 448.23,-1418.2 455.37,-1426.03 458.69,-1419.87"/>
+</g>
+<!-- module~dtfft_kernel_device -->
+<g id="program~~test_device_kernels~~UsesGraph_node9" class="node">
+<title>module~dtfft_kernel_device</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node9"><a xlink:href="../module/dtfft_kernel_device.html" xlink:title="dtfft_kernel_device">
+<polygon fill="#337ab7" stroke="#337ab7" points="1630,-717.06 1516,-717.06 1516,-693.06 1630,-693.06 1630,-717.06"/>
+<text text-anchor="middle" x="1573" y="-702.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_kernel_device</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_kernel_device -->
+<g id="program~~test_device_kernels~~UsesGraph_edge8" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_kernel_device</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1665.7,-705.06C1657.4,-705.06 1648.82,-705.06 1640.37,-705.06"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1640.17,-701.57 1630.17,-705.06 1640.17,-708.57 1640.17,-701.57"/>
+</g>
+<!-- module~dtfft_kernel_host -->
+<g id="program~~test_device_kernels~~UsesGraph_node10" class="node">
+<title>module~dtfft_kernel_host</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node10"><a xlink:href="../module/dtfft_kernel_host.html" xlink:title="dtfft_kernel_host">
+<polygon fill="#337ab7" stroke="#337ab7" points="1118.5,-333.06 1017.5,-333.06 1017.5,-309.06 1118.5,-309.06 1118.5,-333.06"/>
+<text text-anchor="middle" x="1068" y="-318.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_kernel_host</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_kernel_host -->
+<g id="program~~test_device_kernels~~UsesGraph_edge9" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_kernel_host</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1404,-230.06C1293.65,-181.15 1150.92,-264.47 1094.02,-303.06"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1091.88,-300.28 1085.64,-308.84 1095.86,-306.04 1091.88,-300.28"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_node11" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node11"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-702.06 130,-702.06 130,-678.06 232,-678.06 232,-702.06"/>
+<text text-anchor="middle" x="181" y="-687.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge10" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1237,-116.06C1164.65,-80.11 598.84,-221.41 521,-243.06 401.47,-276.32 342.47,-261.83 268,-361.06 249.08,-386.28 201.87,-598.41 186.74,-668.03"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="183.3,-667.41 184.6,-677.93 190.14,-668.9 183.3,-667.41"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_node12" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node12"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-932.06 268,-932.06 268,-908.06 329,-908.06 329,-932.06"/>
+<text text-anchor="middle" x="298.5" y="-917.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge11" class="edge">
+<title>program~test_device_kernels&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1237,-1568.06C1225.85,-1566.22 530.78,-1186.74 521,-1181.06 450.39,-1140.08 417.42,-1146.65 365,-1084.06 346.16,-1061.57 318.86,-981 306.3,-941.8"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="309.59,-940.61 303.23,-932.14 302.92,-942.73 309.59,-940.61"/>
+</g>
+<!-- mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_node13" class="node">
+<title>mpi_f08</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node13"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-547.06 19.5,-547.06 19.5,-523.06 74.5,-523.06 74.5,-547.06"/>
+<text text-anchor="middle" x="47" y="-532.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge12" class="edge">
+<title>program~test_device_kernels&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1723.27,-692.85C1721.48,-637.91 1706.06,-412.56 1574,-323.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1572,-323.06C1527.39,-292.83 1528.57,-267.42 1480,-244.06 1449.83,-229.56 1436.71,-243.38 1406,-230.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1404,-230.06C1343.38,-203.78 1352.19,-161.37 1294,-130.06 1271.79,-118.12 1261.72,-127.02 1239,-116.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1237,-116.06C1187.96,-92.42 1192.02,-63.15 1146,-34.06 1114.67,-14.26 1105.62,-7.73 1069,-2.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-2.06C989.2,9.98 972.71,-38.49 894,-40.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M892,-40.06C764.47,-42.61 731.64,-55.31 605,-40.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M603,-40.06C495.24,-26.1 469.91,-67.74 365,-96.06 335.61,-104 329.76,-112.76 299.5,-116.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-116.06C214.49,-119.5 181.92,-134.2 130,-199.06 52.78,-295.53 46.72,-454.02 47.31,-512.48"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="43.82,-512.86 47.5,-522.8 50.82,-512.73 43.82,-512.86"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M758.5,-401.06C647.83,-335.96 280.4,-357.57 182,-440.06"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M850.77,-544.22C843.79,-547.77 837.14,-552.31 832,-558.06 795.48,-598.96 821.88,-627.73 796,-676.06 771.85,-721.17 754.38,-724.66 723,-765.06 706.43,-786.41 707.37,-796.31 687,-814.06 623.74,-869.21 580.42,-844.8 521,-904.06 497.34,-927.66 511.53,-949.76 485,-970.06 406.25,-1030.35 359.75,-984.4 268,-1022.06 226.68,-1039.03 209.37,-1038.76 182,-1074.06"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_config -->
+<g id="program~~test_device_kernels~~UsesGraph_edge16" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M849.28,-544.22C842.7,-547.75 836.58,-552.28 832,-558.06 775.43,-629.59 844.25,-682.68 796,-760.06 794.41,-762.62 792.47,-765 790.32,-767.2"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="787.73,-764.82 782.44,-774 792.3,-770.12 787.73,-764.82"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M853.81,-519.98C827.75,-512.14 792.33,-502.27 760.5,-496.06"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M758.5,-496.06C585.05,-462.26 503.69,-329.55 365,-439.06 310.85,-481.82 365.7,-531.65 329,-590.06 320.01,-604.38 313.82,-605.09 299.5,-614.06"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M297.5,-614.06C266.53,-633.59 231.47,-656.82 208.18,-672.42"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="206.22,-669.52 199.86,-678 210.12,-675.33 206.22,-669.52"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M853.86,-544.07C846.04,-547.71 838.29,-552.32 832,-558.06 807.33,-580.6 816.86,-597.96 796,-624.06 694.36,-751.25 641.23,-756.28 521,-866.06 478.05,-905.28 483.03,-944.65 426,-956.06"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M882.82,-519.8C863.11,-494.27 814.16,-434.98 760.5,-401.06"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M758.5,-401.06C572.3,-283.38 481.48,-275.8 268,-330.06 200.35,-347.26 180.94,-357.33 130,-405.06 96.01,-436.92 70.25,-485.78 57.3,-513.64"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="54.05,-512.33 53.11,-522.88 60.42,-515.21 54.05,-512.33"/>
+</g>
+<!-- module~dtfft_abstract_compressor -->
+<g id="program~~test_device_kernels~~UsesGraph_node14" class="node">
+<title>module~dtfft_abstract_compressor</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node14"><a xlink:href="../module/dtfft_abstract_compressor.html" xlink:title="dtfft_abstract_compressor">
+<polygon fill="#337ab7" stroke="#337ab7" points="679.5,-624.06 528.5,-624.06 528.5,-600.06 679.5,-600.06 679.5,-624.06"/>
+<text text-anchor="middle" x="604" y="-609.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="program~~test_device_kernels~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M848.72,-544.13C797.72,-558.35 712.97,-581.97 658.05,-597.28"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="656.85,-593.98 648.16,-600.03 658.73,-600.72 656.85,-593.98"/>
+</g>
+<!-- module~dtfft_interface_nvtx -->
+<g id="program~~test_device_kernels~~UsesGraph_node16" class="node">
+<title>module~dtfft_interface_nvtx</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node16"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
+<polygon fill="#337ab7" stroke="#337ab7" points="482.5,-472.06 367.5,-472.06 367.5,-448.06 482.5,-448.06 482.5,-472.06"/>
+<text text-anchor="middle" x="425" y="-457.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="program~~test_device_kernels~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M758.5,-496.06C691.54,-483.01 672.89,-502.82 605,-496.06"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge21" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M722.72,-784.49C641.62,-781.31 437.71,-775.65 268,-790.06 229.41,-793.34 216.02,-822.57 182,-804.06"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M180,-804.06C137.69,-773.99 92.85,-733.07 67.84,-709.32"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="70.09,-706.63 60.45,-702.24 65.25,-711.68 70.09,-706.63"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M603,-918.06C571.53,-937.47 550.46,-909.73 521,-932.06 491.22,-954.65 513.69,-984.11 485,-1008.06 429.88,-1054.09 399.19,-1034.93 329,-1050.06 264.29,-1064.02 223.6,-1022.57 182,-1074.06"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_device_kernels~~UsesGraph_edge25" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M757.83,-798.31C755.14,-837.62 742.46,-962.91 687,-1046.06 674.12,-1065.38 653.49,-1081.44 636.14,-1092.64"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="634.08,-1089.8 627.43,-1098.05 637.77,-1095.75 634.08,-1089.8"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M741.6,-773.99C700.16,-745.07 589.29,-671.74 485,-638.06 405.89,-612.52 369.87,-569.81 299.5,-614.06"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge27" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M753.84,-798.14C744.59,-820.5 721.75,-868.44 687,-894.06 656.44,-916.6 637.32,-898.13 605,-918.06"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M603,-918.06C568.76,-939.18 465.45,-948.17 426,-956.06"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge28" class="edge">
+<title>module~dtfft_config&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M753.16,-773.93C745.96,-757.37 732.89,-726.72 723,-700.06 705.26,-652.23 726.11,-623.82 687,-591.06 620.37,-535.26 375.62,-580.01 299.5,-538.06"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M297.5,-538.06C248.04,-508.42 282.02,-454.76 232,-426.06 192.68,-403.51 170.56,-405.82 130,-426.06 93.52,-444.27 69.03,-487.28 56.89,-513.5"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="53.55,-512.4 52.71,-522.96 59.95,-515.23 53.55,-512.4"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="program~~test_device_kernels~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M752.35,-773.92C741.2,-752.63 716.1,-707.79 687,-676.06 670.78,-658.39 649.32,-641.82 632.42,-629.97"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="634.27,-627 624.04,-624.23 630.31,-632.77 634.27,-627"/>
+</g>
+<!-- module~dtfft_errors -->
+<g id="program~~test_device_kernels~~UsesGraph_node15" class="node">
+<title>module~dtfft_errors</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node15"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
+<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-1294.06 145.5,-1294.06 145.5,-1270.06 216.5,-1270.06 216.5,-1294.06"/>
+<text text-anchor="middle" x="181" y="-1279.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_device_kernels~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M755.4,-798.17C747.9,-825.29 726.46,-891.7 687,-932.06 628.91,-991.48 580.38,-959.94 521,-1018.06 497.12,-1041.44 507.67,-1059.52 485,-1084.06 405.07,-1170.61 279.72,-1236.58 218.33,-1265.7"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="216.61,-1262.64 209.04,-1270.06 219.58,-1268.98 216.61,-1262.64"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M399.21,-1270.98C341.93,-1241.69 199.96,-1161.09 130,-1050.06 59.37,-937.98 49.34,-772.23 48.09,-712.52"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="51.59,-712.29 47.95,-702.34 44.59,-712.39 51.59,-712.29"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge30" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M365.25,-1295.1C293.89,-1309.71 174.37,-1334.19 104.18,-1348.56"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="103.29,-1345.17 94.2,-1350.6 104.7,-1352.03 103.29,-1345.17"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge32" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M410.14,-1270.85C396.97,-1258.63 377.41,-1238.7 365,-1218.06 320.71,-1144.39 343.33,-1110.02 299.5,-1036.06"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-1036.06C239.82,-938.73 270.67,-896.39 232,-790.06 221.68,-761.69 205.44,-730.88 194.29,-711.07"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="197.27,-709.23 189.27,-702.28 191.19,-712.7 197.27,-709.23"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge33" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M409.11,-1271.04C395.4,-1259.1 375.61,-1239.51 365,-1218.06 325.73,-1138.68 349.33,-1108.27 329,-1022.06 322.41,-994.11 312.91,-962.39 306.49,-941.85"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="309.79,-940.69 303.44,-932.21 303.11,-942.8 309.79,-940.69"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge34" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-1036.06C225.12,-913.93 191.49,-892.03 130,-764.06 120.66,-744.62 73.97,-610.27 55.52,-556.87"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="58.8,-555.64 52.23,-547.33 52.18,-557.93 58.8,-555.64"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_device_kernels~~UsesGraph_edge31" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M365.21,-1286.91C344.37,-1287.39 320.82,-1286.9 299.5,-1284.06"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-1284.06C274.27,-1280.97 248.17,-1280.29 226.67,-1280.45"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="226.47,-1276.96 216.52,-1280.6 226.57,-1283.96 226.47,-1276.96"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge35" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff7f" stroke-dasharray="5,2" d="M520.83,-1118.76C471.89,-1119.87 410.64,-1113.76 365,-1084.06 338.29,-1066.69 346.62,-1048.62 329,-1022.06 304.09,-984.51 288.21,-981.34 268,-941.06 242.45,-890.16 272.51,-858.11 232,-818.06 215.59,-801.84 202.09,-815.42 182,-804.06"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge36" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff7f" stroke-dasharray="5,2" d="M557.01,-1122.15C545.03,-1125.97 532.31,-1130.64 521,-1136.06 503.66,-1144.39 502.46,-1152 485,-1160.06 336.07,-1228.83 267.38,-1171.43 130,-1261.06 99.09,-1281.23 73.9,-1316.66 59.93,-1339.21"/>
+<polygon fill="#00ff7f" stroke="#00ff7f" points="56.8,-1337.63 54.65,-1348.01 62.8,-1341.24 56.8,-1337.63"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge37" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff7f" stroke-dasharray="5,2" d="M581.3,-1098.02C562.88,-1086.77 536.96,-1068.4 521,-1046.06 492.55,-1006.27 513.87,-981.55 485,-942.06 413.96,-844.91 344.97,-872.59 268,-780.06 246.76,-754.53 257.09,-734.47 232.69,-709.11"/>
+<polygon fill="#00ff7f" stroke="#00ff7f" points="234.96,-706.45 225.27,-702.18 230.19,-711.56 234.96,-706.45"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge38" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff7f" stroke-dasharray="5,2" d="M520.9,-1102.67C489.5,-1097.07 454.44,-1087.26 426,-1070.06"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge39" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-1360.06C249.01,-1343.21 224.51,-1388.84 182,-1360.06"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M180,-1360.06C152.1,-1341.17 143.94,-1333.74 130,-1303.06 80.43,-1193.99 54.97,-809.25 49.25,-712.35"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="52.74,-712.01 48.67,-702.23 45.75,-712.41 52.74,-712.01"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge40" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M180,-1360.06C158.15,-1345.27 129.25,-1343.79 104.07,-1346.63"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="103.33,-1343.2 93.9,-1348.03 104.28,-1350.13 103.33,-1343.2"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge42" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M414.83,-1393.96C401.44,-1375.61 376.85,-1339.15 365,-1304.06 324.57,-1184.36 354.63,-1145.79 329,-1022.06 323.17,-993.94 313.51,-962.26 306.84,-941.77"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="310.12,-940.55 303.66,-932.16 303.48,-942.75 310.12,-940.55"/>
+</g>
+<!-- module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_device_kernels~~UsesGraph_edge41" class="edge">
+<title>module~dtfft_interface_nvrtc&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M392.4,-1394C367.3,-1384.52 331.28,-1371.11 299.5,-1360.06"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-1360.06C260.62,-1347.24 224.34,-1319.59 202.56,-1300.9"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="204.77,-1298.19 194.95,-1294.22 200.16,-1303.45 204.77,-1298.19"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge43" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1569.23,-693.06C1557.62,-645.15 1508.66,-465.18 1406,-361.06"/>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1404,-361.06C1226.05,-180.58 480.59,-121.05 268,-259.06 187.24,-311.5 174.49,-340.68 130,-426.06 102.3,-479.23 111.74,-498.8 94,-556.06 81.65,-595.92 65.47,-641.79 55.96,-668.21"/>
+<polygon fill="#007fff" stroke="#007fff" points="52.54,-667.36 52.43,-677.95 59.13,-669.74 52.54,-667.36"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge44" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1571.57,-717.45C1568.68,-794.96 1549.96,-1213.15 1480,-1316.06 1320.62,-1550.53 1169.37,-1500.65 894,-1568.06"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_abstract_kernel -->
+<g id="program~~test_device_kernels~~UsesGraph_edge45" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_abstract_kernel</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1545.69,-692.94C1513.54,-678.87 1457.11,-656.5 1406,-648.06"/>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1404,-648.06C1350.65,-639.26 1344.7,-614.87 1294,-596.06 1196.75,-559.99 1172.59,-528.69 1069,-534.06"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_config -->
+<g id="program~~test_device_kernels~~UsesGraph_edge46" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1404,-648.06C1176.64,-619.33 1114.89,-663.03 894,-724.06"/>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M892,-724.06C854.49,-733.44 814.78,-753.8 788.94,-768.63"/>
+<polygon fill="#007fff" stroke="#007fff" points="786.94,-765.75 780.08,-773.82 790.48,-771.79 786.94,-765.75"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_interface_cuda -->
+<g id="program~~test_device_kernels~~UsesGraph_edge47" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1404,-1302.06C1340.57,-1356.13 1134.29,-1579.59 605,-1378.06"/>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M603,-1378.06C551.75,-1351.03 492.46,-1319.07 457.16,-1299.97"/>
+<polygon fill="#007fff" stroke="#007fff" points="458.76,-1296.85 448.3,-1295.17 455.42,-1303.01 458.76,-1296.85"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_device_kernels~~UsesGraph_edge48" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1570.61,-717.07C1561.34,-794.85 1505.8,-1226.47 1406,-1302.06"/>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1404,-1302.06C1357.62,-1337.2 1346.09,-1256.99 1294,-1231.06 1265.75,-1217 790.92,-1027.67 760.5,-1036.06"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge52" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1404,-361.06C1352.51,-308.85 1312.07,-367.25 1239,-361.06"/>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1237,-361.06C1188.48,-356.96 1192.28,-315.2 1146,-300.06 815.38,-191.94 689.06,-224.63 365,-351.06 315.71,-370.29 299.19,-377.33 268,-420.06 210.29,-499.14 190.33,-618.43 184.31,-667.63"/>
+<polygon fill="#007fff" stroke="#007fff" points="180.8,-667.47 183.14,-677.8 187.76,-668.26 180.8,-667.47"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge53" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1404,-1302.06C1246.5,-1425.11 698.73,-1222.49 521,-1131.06 476.38,-1108.11 469.06,-1095.82 426,-1070.06"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge54" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1571.86,-693.01C1570.75,-644.82 1561.1,-463.02 1480,-347.06 1433.65,-280.79 1395.39,-291.65 1330,-244.06 1262.86,-195.21 1242.56,-186.86 1182,-130.06 1164.31,-113.48 1167.03,-101.14 1146,-89.06 1047.05,-32.26 1007.93,-33.9 894,-40.06"/>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="program~~test_device_kernels~~UsesGraph_edge49" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1237,-361.06C1165.77,-352 676.33,-504.33 605,-496.06"/>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M603,-496.06C563.36,-491.04 519.33,-482.1 485.1,-474.39"/>
+<polygon fill="#007fff" stroke="#007fff" points="485.79,-470.95 475.26,-472.14 484.23,-477.78 485.79,-470.95"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer -->
+<g id="program~~test_device_kernels~~UsesGraph_node17" class="node">
+<title>module~dtfft_nvrtc_block_optimizer</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node17"><a xlink:href="../module/dtfft_nvrtc_block_optimizer.html" xlink:title="dtfft_nvrtc_block_optimizer">
+<polygon fill="#337ab7" stroke="#337ab7" points="1146,-814.06 990,-814.06 990,-790.06 1146,-790.06 1146,-814.06"/>
+<text text-anchor="middle" x="1068" y="-799.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_nvrtc_block_optimizer</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_nvrtc_block_optimizer -->
+<g id="program~~test_device_kernels~~UsesGraph_edge50" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_nvrtc_block_optimizer</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1404,-648.06C1316.06,-633.55 1324.66,-737.43 1239,-762.06"/>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1237,-762.06C1203.72,-771.64 1166.27,-780.71 1135.19,-787.79"/>
+<polygon fill="#007fff" stroke="#007fff" points="1134.32,-784.4 1125.34,-790.02 1135.86,-791.23 1134.32,-784.4"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache -->
+<g id="program~~test_device_kernels~~UsesGraph_node18" class="node">
+<title>module~dtfft_nvrtc_module_cache</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node18"><a xlink:href="../module/dtfft_nvrtc_module_cache.html" xlink:title="dtfft_nvrtc_module_cache">
+<polygon fill="#337ab7" stroke="#337ab7" points="1480,-774.06 1330,-774.06 1330,-750.06 1480,-750.06 1480,-774.06"/>
+<text text-anchor="middle" x="1405" y="-759.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_nvrtc_module_cache</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_kernel_device&#45;&gt;module~dtfft_nvrtc_module_cache -->
+<g id="program~~test_device_kernels~~UsesGraph_edge51" class="edge">
+<title>module~dtfft_kernel_device&#45;&gt;module~dtfft_nvrtc_module_cache</title>
+<path fill="none" stroke="#007fff" stroke-dasharray="5,2" d="M1536.8,-717.15C1511.71,-725.77 1477.78,-737.42 1450.76,-746.69"/>
+<polygon fill="#007fff" stroke="#007fff" points="1449.47,-743.44 1441.15,-749.99 1451.75,-750.06 1449.47,-743.44"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge55" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1017.5,-313.75C982.95,-309.38 935.74,-304.9 894,-306.06"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M892,-306.06C614.71,-313.81 508.43,-153.7 268,-292.06 202.06,-330.01 242.5,-393.95 182,-440.06"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M180,-440.06C139.57,-470.3 78.87,-613.41 56.59,-668.44"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="53.26,-667.34 52.78,-677.92 59.75,-669.95 53.26,-667.34"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge56" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1061.84,-333.32C1031,-406.57 871.23,-787.5 832,-908.06 811.86,-969.98 825.43,-991.99 796,-1050.06 685.94,-1267.25 667.17,-1420.59 426,-1454.06"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M424,-1454.06C297.03,-1452.29 152.93,-1402.05 85.95,-1375.76"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="87.23,-1372.5 76.64,-1372.07 84.64,-1379.01 87.23,-1372.5"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_abstract_kernel -->
+<g id="program~~test_device_kernels~~UsesGraph_edge57" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_abstract_kernel</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1056.95,-333.32C1028.22,-368.37 945.52,-469.22 910.25,-512.24"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="907.49,-510.09 903.86,-520.04 912.91,-514.52 907.49,-510.09"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_config -->
+<g id="program~~test_device_kernels~~UsesGraph_edge58" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1064.62,-333.22C1056.49,-371.51 1026.24,-490.71 954,-553.06 932.83,-571.34 913.13,-551.66 894,-572.06"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M892,-572.06C872.36,-593.02 850.57,-574.16 832,-596.06 783.74,-652.99 836.73,-697.54 796,-760.06 794.36,-762.59 792.38,-764.95 790.21,-767.14"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="787.62,-764.75 782.3,-773.91 792.17,-770.06 787.62,-764.75"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge60" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M892,-306.06C828.33,-307.84 822.34,-347.81 760.5,-363.06"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M758.5,-363.06C588.11,-405.1 513.58,-302.65 365,-396.06 260.28,-461.91 205.68,-611.81 188.28,-668.13"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="184.9,-667.22 185.38,-677.81 191.61,-669.24 184.9,-667.22"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge61" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1051.8,-333.19C1014.28,-363.14 914.36,-443.13 832,-511.06 767.03,-564.65 755.72,-584.38 687,-633.06 617.09,-682.59 572.42,-662.54 521,-731.06 455.85,-817.89 532.95,-937.51 426,-956.06"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M424,-956.06C391.24,-961.27 354.92,-948.54 330.01,-936.81"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="331.24,-933.51 320.72,-932.23 328.15,-939.79 331.24,-933.51"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge62" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1052.71,-309C1010.68,-274.11 882.75,-171.99 760.5,-116.06"/>
+</g>
+<!-- module~dtfft_kernel_host&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="program~~test_device_kernels~~UsesGraph_edge59" class="edge">
+<title>module~dtfft_kernel_host&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M758.5,-363.06C657.35,-390.25 539.92,-425.35 475.18,-445"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="473.81,-441.76 465.26,-448.02 475.84,-448.46 473.81,-441.76"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge63" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M129.72,-690.06C119.77,-690.06 109.31,-690.06 99.33,-690.06"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="99.14,-686.57 89.14,-690.06 99.14,-693.57 99.14,-686.57"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge64" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M174.62,-702.37C164.41,-726.18 142.18,-780.42 130,-828.06 80.46,-1021.87 56.44,-1263.51 49.89,-1337.5"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="46.37,-1337.64 48.99,-1347.9 53.34,-1338.24 46.37,-1337.64"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge65" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M169.64,-677.9C146.99,-651.3 92.86,-587.74 65.08,-555.13"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="67.46,-552.52 58.31,-547.17 62.13,-557.05 67.46,-552.52"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge66" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M288.9,-907.72C271.58,-883.83 229.99,-831.2 182,-804.06"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge67" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M282.09,-932.33C277.33,-936.45 272.23,-941.24 268,-946.06 222.81,-997.59 225.07,-1020.75 182,-1074.06"/>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M180,-1074.06C110.85,-1159.67 68.85,-1287.41 54.04,-1338.15"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="50.6,-1337.45 51.22,-1348.03 57.34,-1339.37 50.6,-1337.45"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge69" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M291.31,-908.02C284.93,-895.32 274.97,-874.62 268,-856.06 248.12,-803.14 262.41,-781.72 232,-734.06 225.87,-724.46 217.06,-715.73 208.53,-708.63"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="210.56,-705.78 200.54,-702.34 206.23,-711.28 210.56,-705.78"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge70" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M291.72,-907.83C277.28,-877.41 240.24,-800.06 232,-790.06 195.53,-745.81 165.78,-755.87 130,-711.06 91.11,-662.37 65.63,-592.22 54.47,-557"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="57.75,-555.78 51.46,-547.25 51.06,-557.84 57.75,-555.78"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_device_kernels~~UsesGraph_edge68" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M293.66,-932.11C276.97,-984.4 210.7,-1192.13 188.95,-1260.28"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="185.56,-1259.38 185.86,-1269.98 192.23,-1261.51 185.56,-1259.38"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge71" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M424,-576.06C368.94,-570.58 352.63,-591.53 299.5,-576.06"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge72" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M557.01,-624.15C545.03,-627.97 532.31,-632.64 521,-638.06 392.03,-699.97 357.4,-725.38 268,-837.06 195.17,-928.06 176.51,-953.19 130,-1060.06 86.74,-1159.46 60.9,-1287.47 51.76,-1338.08"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="48.32,-1337.47 50.02,-1347.93 55.21,-1338.69 48.32,-1337.47"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge75" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M424,-576.06C366.43,-570.33 348.47,-583.26 299.5,-614.06"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge76" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M539.65,-624.26C532.64,-627.77 526.18,-632.28 521,-638.06 466.56,-698.83 533.24,-752.27 485,-818.06 448.98,-867.18 381.87,-895.45 339,-909.28"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="337.7,-906.02 329.19,-912.33 339.78,-912.7 337.7,-906.02"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge77" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M556.81,-599.99C521.32,-591.37 470.93,-580.54 426,-576.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M424,-576.06C366.43,-570.33 350.17,-565.99 299.5,-538.06"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_device_kernels~~UsesGraph_edge73" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M542.02,-624.19C534.28,-627.7 526.99,-632.23 521,-638.06 485.96,-672.2 515.36,-703.72 485,-742.06 445.81,-791.56 416,-780.86 365,-818.06 319.62,-851.16 296.47,-850.65 268,-899.06 224.65,-972.77 250.68,-1004.62 232,-1088.06 217.95,-1150.81 198.12,-1224.11 188.18,-1259.99"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="184.74,-1259.3 185.43,-1269.87 191.48,-1261.18 184.74,-1259.3"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="program~~test_device_kernels~~UsesGraph_edge74" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M588.81,-599.88C558,-573.42 484.78,-510.54 447.95,-478.92"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="450.12,-476.16 440.25,-472.3 445.56,-481.48 450.12,-476.16"/>
+</g>
+<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge78" class="edge">
+<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M155.87,-1294.09C147.58,-1298.35 138.31,-1303.28 130,-1308.06 111.19,-1318.89 90.56,-1331.98 74.7,-1342.32"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="72.41,-1339.64 65.96,-1348.05 76.25,-1345.49 72.41,-1339.64"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge79" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M399.15,-447.94C351.32,-426.56 245.62,-389.01 182,-440.06"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge80" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M415.07,-472.25C401.99,-490.72 377.79,-527.32 365,-562.06 320.19,-683.81 305.13,-840.54 300.92,-897.84"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="297.42,-897.71 300.21,-907.93 304.4,-898.2 297.42,-897.71"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge81" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M1061.03,-814.25C1047.86,-841.26 1015.45,-908.22 990,-965.06 876.96,-1217.52 879.63,-1421 605,-1454.06"/>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M603,-1454.06C524.63,-1460.94 503.92,-1443.25 426,-1454.06"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_abstract_kernel -->
+<g id="program~~test_device_kernels~~UsesGraph_edge82" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_abstract_kernel</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M1008.05,-789.89C1001.21,-786.38 994.93,-781.87 990,-776.06 926.41,-701.24 1014.42,-635.48 954,-558.06 951.52,-554.88 948.57,-552.08 945.33,-549.62"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="947.09,-546.6 936.78,-544.17 943.33,-552.5 947.09,-546.6"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_config -->
+<g id="program~~test_device_kernels~~UsesGraph_edge83" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M1056.43,-814.18C1031.53,-841.51 965.86,-906.76 894,-922.06"/>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M892,-922.06C876.4,-925.39 808.72,-845.32 777.01,-806.53"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="779.5,-804.04 770.47,-798.5 774.07,-808.46 779.5,-804.04"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_device_kernels~~UsesGraph_edge84" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M892,-922.06C863.91,-928.05 855.04,-928.91 832,-946.06 791.02,-976.57 809.74,-1022.47 760.5,-1036.06"/>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M758.5,-1036.06C721.61,-1046.25 721.48,-1067.45 687,-1084.06 678.7,-1088.07 669.64,-1091.65 660.67,-1094.78"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="659.38,-1091.52 651,-1098 661.6,-1098.16 659.38,-1091.52"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge85" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M892,-922.06C844.71,-932.95 840.06,-890.39 796,-870.06 748.86,-848.32 736.65,-843.23 687,-828.06 614.61,-805.96 586.73,-827.59 521,-790.06 500.8,-778.53 505.34,-763.36 485,-752.06 408.42,-709.52 306.37,-696.02 242.42,-691.83"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="242.3,-688.31 232.11,-691.21 241.88,-695.3 242.3,-688.31"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge86" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M892,-922.06C688.89,-965.31 630.83,-921.91 426,-956.06"/>
+</g>
+<!-- module~dtfft_nvrtc_block_optimizer&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge87" class="edge">
+<title>module~dtfft_nvrtc_block_optimizer&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M1007.89,-790.02C1001.08,-786.49 994.85,-781.94 990,-776.06 914.33,-684.4 1006.12,-617.89 954,-511.06 879.5,-358.39 467.57,-91.37 299.5,-116.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge88" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1237,-610.06C1088.41,-532.86 652.37,-567.4 485,-562.06 431.69,-560.37 418.04,-556.46 365,-562.06 335.4,-565.19 328.08,-584.38 299.5,-576.06"/>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M297.5,-576.06C224.38,-545.36 245.5,-392.57 182,-440.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge89" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1403.21,-774.12C1399.15,-829.76 1377.54,-1066.38 1294,-1237.06 1192.56,-1444.33 1117.83,-1511.97 894,-1568.06"/>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M892,-1568.06C832.91,-1582.53 821.26,-1609.05 760.5,-1606.06"/>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M758.5,-1606.06C644.78,-1600.47 623.1,-1560.45 521,-1510.06 477.05,-1488.38 474.88,-1457.64 426,-1454.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_abstract_kernel -->
+<g id="program~~test_device_kernels~~UsesGraph_edge90" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_abstract_kernel</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1394.73,-749.9C1371.8,-720.74 1309.16,-646.52 1239,-610.06"/>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1237,-610.06C1164.28,-572.28 1150.84,-529.82 1069,-534.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_config -->
+<g id="program~~test_device_kernels~~UsesGraph_edge91" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1362.53,-750.04C1274.59,-726.46 1063.53,-680.14 894,-724.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_interface_cuda -->
+<g id="program~~test_device_kernels~~UsesGraph_edge93" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1403.01,-774.21C1398.79,-818.06 1378.4,-969.88 1294,-1050.06 1065.43,-1267.22 656.91,-1286.73 494.92,-1285.31"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="494.65,-1281.81 484.61,-1285.19 494.57,-1288.81 494.65,-1281.81"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_device_kernels~~UsesGraph_edge94" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1067,-1036.06C990.22,-1031.91 970.64,-1029.87 894,-1036.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge97" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1397.48,-774.26C1367.5,-828.56 1237.06,-1045.16 1069,-1036.06"/>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1067,-1036.06C1016.97,-1043.69 1004.51,-1025.18 954,-1022.06 851.53,-1015.74 821.26,-992.31 723,-1022.06 704.6,-1027.64 705.13,-1039.65 687,-1046.06 632.09,-1065.48 475.85,-1100.19 426,-1070.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge98" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1393.98,-749.89C1379.09,-731.5 1350.65,-695.26 1330,-662.06 1320.52,-646.83 1187.47,-392.15 1182,-375.06 1165,-322.03 1187.31,-164.41 1146,-127.06 1062.85,-51.88 1005.68,-125.88 894,-116.06"/>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M892,-116.06C834.06,-108.42 815.11,-136.88 760.5,-116.06"/>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M758.5,-116.06C687.37,-88.95 680.58,-49.17 605,-40.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_device_kernels~~UsesGraph_edge92" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1402.06,-774.37C1390.75,-842.07 1327.59,-1172.56 1146,-1354.06 1075.81,-1424.22 1049.7,-1441.79 954,-1468.06 722.03,-1531.74 646.59,-1445.01 426,-1349.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_nvrtc_block_optimizer -->
+<g id="program~~test_device_kernels~~UsesGraph_edge95" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_nvrtc_block_optimizer</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1329.67,-753.39C1300.86,-752.26 1267.91,-753.75 1239,-762.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module -->
+<g id="program~~test_device_kernels~~UsesGraph_node19" class="node">
+<title>module~dtfft_nvrtc_module</title>
+<g id="a_program~~test_device_kernels~~UsesGraph_node19"><a xlink:href="../module/dtfft_nvrtc_module.html" xlink:title="dtfft_nvrtc_module">
+<polygon fill="#337ab7" stroke="#337ab7" points="1294,-814.06 1182,-814.06 1182,-790.06 1294,-790.06 1294,-814.06"/>
+<text text-anchor="middle" x="1238" y="-799.66" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_nvrtc_module</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_nvrtc_module -->
+<g id="program~~test_device_kernels~~UsesGraph_edge96" class="edge">
+<title>module~dtfft_nvrtc_module_cache&#45;&gt;module~dtfft_nvrtc_module</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M1354.49,-774.07C1336.87,-778.34 1316.85,-783.19 1298.48,-787.65"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1297.65,-784.25 1288.76,-790 1299.3,-791.05 1297.65,-784.25"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;iso_c_binding -->
+<g id="program~~test_device_kernels~~UsesGraph_edge99" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M892,-960.06C761.54,-943.46 736.49,-1029.95 605,-1032.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M603,-1032.06C537.14,-1028.51 541.1,-976.75 485,-942.06 378.48,-876.22 349,-862.69 232,-818.06 210.44,-809.84 200.81,-817.43 182,-804.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;iso_fortran_env -->
+<g id="program~~test_device_kernels~~UsesGraph_edge100" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1237.19,-814.21C1237.43,-865.35 1232.58,-1066.48 1146,-1196.06 1072.01,-1306.81 737.68,-1442.42 605,-1454.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_abstract_kernel -->
+<g id="program~~test_device_kernels~~UsesGraph_edge101" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_abstract_kernel</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1225.64,-789.94C1189.24,-751.65 1071.06,-631.49 954,-558.06 948.31,-554.5 942.05,-551.19 935.79,-548.22"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="937.22,-545.03 926.67,-544.1 934.35,-551.41 937.22,-545.03"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_config -->
+<g id="program~~test_device_kernels~~UsesGraph_edge102" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-762.06C1048.32,-755.87 913.05,-719.13 894,-724.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_interface_cuda -->
+<g id="program~~test_device_kernels~~UsesGraph_edge104" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1235.88,-814.12C1231.62,-853.27 1213.14,-978.48 1146,-1050.06 1120.41,-1077.35 1097.75,-1060.12 1069,-1084.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-1084.06C945.57,-1185.2 873.8,-1126.79 723,-1174.06 629.56,-1203.36 522.21,-1244.72 465.65,-1267.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="464.03,-1264.01 456.03,-1270.96 466.61,-1270.52 464.03,-1264.01"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_device_kernels~~UsesGraph_edge105" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-979.06C994.35,-1014.78 974.69,-1029.54 894,-1036.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M892,-1036.06C833.75,-1040.78 816.84,-1020.51 760.5,-1036.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_interface_nvrtc -->
+<g id="program~~test_device_kernels~~UsesGraph_edge106" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_interface_nvrtc</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1235.97,-814.25C1231.84,-857.05 1213.26,-1003.07 1146,-1098.06 1006,-1295.78 919.45,-1323.82 687,-1392.06 623.91,-1410.59 548.61,-1412.63 495.15,-1410.91"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="495.21,-1407.41 485.09,-1410.53 494.95,-1414.4 495.21,-1407.41"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_device_kernels~~UsesGraph_edge109" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1229.84,-814.3C1209.56,-847.64 1148.09,-940.19 1069,-979.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-979.06C997.58,-1013.19 969.92,-974.88 894,-960.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M892,-960.06C737.83,-929.98 379.29,-761.62 232,-707.06 230.6,-706.55 229.18,-706.03 227.74,-705.51"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="228.73,-702.14 218.13,-702.09 226.38,-708.74 228.73,-702.14"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_device_kernels~~UsesGraph_edge110" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M603,-1032.06C582.89,-1032.39 443.21,-1080.47 426,-1070.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M424,-1070.06C364.5,-1034.1 381.16,-989.86 330.03,-939.02"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="332.4,-936.45 322.72,-932.14 327.6,-941.54 332.4,-936.45"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;mpi_f08 -->
+<g id="program~~test_device_kernels~~UsesGraph_edge111" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1232.31,-789.76C1221.6,-761.15 1195.25,-687.71 1182,-624.06 1152.48,-482.22 1216.62,-426.58 1146,-300.06 1078.41,-178.98 1032.68,-116.06 894,-116.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_device_kernels~~UsesGraph_edge103" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-1084.06C957.32,-1192.36 566.97,-1411.41 426,-1349.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M424,-1349.06C366.76,-1324.17 361.37,-1292.3 299.5,-1284.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="program~~test_device_kernels~~UsesGraph_edge107" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1185.35,-790C1138.09,-778.92 1074.66,-763.94 1069,-762.06"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067,-762.06C842.12,-687.44 840.77,-519.54 605,-496.06"/>
+</g>
+<!-- module~dtfft_nvrtc_module&#45;&gt;module~dtfft_nvrtc_block_optimizer -->
+<g id="program~~test_device_kernels~~UsesGraph_edge108" class="edge">
+<title>module~dtfft_nvrtc_module&#45;&gt;module~dtfft_nvrtc_block_optimizer</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1181.99,-802.06C1173.74,-802.06 1165.06,-802.06 1156.33,-802.06"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1156.09,-798.57 1146.09,-802.06 1156.09,-805.57 1156.09,-798.57"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprogramtest_device_kernelsUsesGraph = svgPanZoom('#programtest_device_kernelsUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+    
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: program~~test_device_kernels~~CallsGraph Pages: 1 -->
+<svg id="programtest_device_kernelsCallsGraph" width="641pt" height="694pt"
+ viewBox="0.00 0.00 641.00 693.56" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="program~~test_device_kernels~~CallsGraph" class="graph" transform="scale(0.39 0.39) rotate(0) translate(4 1776.97)">
+<title>program~~test_device_kernels~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1776.97 1642,-1776.97 1642,4 -4,4"/>
+<!-- program~test_device_kernels -->
+<g id="program~~test_device_kernels~~CallsGraph_node1" class="node">
+<title>program~test_device_kernels</title>
+<polygon fill="none" stroke="black" points="117,-627 0,-627 0,-603 117,-603 117,-627"/>
+<text text-anchor="middle" x="58.5" y="-612.6" font-family="Helvetica,sans-Serif" font-size="10.50">test_device_kernels</text>
+</g>
+<!-- fname -->
+<g id="program~~test_device_kernels~~CallsGraph_node2" class="node">
+<title>fname</title>
+<polygon fill="#777777" stroke="#777777" points="717.5,-1324 663.5,-1324 663.5,-1300 717.5,-1300 717.5,-1324"/>
+<text text-anchor="middle" x="690.5" y="-1309.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fname</text>
+</g>
+<!-- program~test_device_kernels&#45;&gt;fname -->
+<g id="program~~test_device_kernels~~CallsGraph_edge1" class="edge">
+<title>program~test_device_kernels&#45;&gt;fname</title>
+<path fill="none" stroke="#ff0000" d="M63.95,-627.36C75.64,-658.89 109.33,-744.18 153,-806 323.09,-1046.79 374.67,-1112.12 617,-1280 628.24,-1287.79 641.69,-1294.36 653.93,-1299.47"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="652.84,-1302.81 663.42,-1303.26 655.43,-1296.3 652.84,-1302.81"/>
+</g>
+<!-- interface~cudastreamcreate -->
+<g id="program~~test_device_kernels~~CallsGraph_node3" class="node">
+<title>interface~cudastreamcreate</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node3"><a xlink:href="../interface/cudastreamcreate.html" xlink:title="cudaStreamCreate">
+<polygon fill="#a7506f" stroke="#a7506f" points="268,-545 156,-545 156,-521 268,-521 268,-545"/>
+<text text-anchor="middle" x="212" y="-530.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamCreate</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;interface~cudastreamcreate -->
+<g id="program~~test_device_kernels~~CallsGraph_edge2" class="edge">
+<title>program~test_device_kernels&#45;&gt;interface~cudastreamcreate</title>
+<path fill="none" stroke="#ff0000" d="M75.7,-602.77C93.81,-589.49 124.38,-568.28 153,-554 156.56,-552.22 160.32,-550.52 164.13,-548.9"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="165.67,-552.06 173.65,-545.08 163.06,-545.56 165.67,-552.06"/>
+</g>
+<!-- interface~cudastreamdestroy -->
+<g id="program~~test_device_kernels~~CallsGraph_node4" class="node">
+<title>interface~cudastreamdestroy</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node4"><a xlink:href="../interface/cudastreamdestroy.html" xlink:title="cudaStreamDestroy">
+<polygon fill="#a7506f" stroke="#a7506f" points="271,-503 153,-503 153,-479 271,-479 271,-503"/>
+<text text-anchor="middle" x="212" y="-488.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamDestroy</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;interface~cudastreamdestroy -->
+<g id="program~~test_device_kernels~~CallsGraph_edge3" class="edge">
+<title>program~test_device_kernels&#45;&gt;interface~cudastreamdestroy</title>
+<path fill="none" stroke="#ff0000" d="M67.57,-602.75C82.19,-581.44 115.09,-537.42 153,-512 155.42,-510.38 157.98,-508.87 160.62,-507.45"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="162.33,-510.52 169.84,-503.05 159.31,-504.2 162.33,-510.52"/>
+</g>
+<!-- mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_node5" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="1141.5,-1315 1074.5,-1315 1074.5,-1291 1141.5,-1291 1141.5,-1315"/>
+<text text-anchor="middle" x="1108" y="-1300.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- program~test_device_kernels&#45;&gt;mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_edge4" class="edge">
+<title>program~test_device_kernels&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ff0000" d="M61.58,-627.18C78.24,-723 193.84,-1352 357,-1352 357,-1352 357,-1352 691.5,-1352 828.51,-1352 989.2,-1325.4 1064.28,-1311.39"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1065.12,-1314.8 1074.3,-1309.51 1063.82,-1307.92 1065.12,-1314.8"/>
+</g>
+<!-- mpi_finalize -->
+<g id="program~~test_device_kernels~~CallsGraph_node6" class="node">
+<title>mpi_finalize</title>
+<polygon fill="#777777" stroke="#777777" points="250,-461 174,-461 174,-437 250,-437 250,-461"/>
+<text text-anchor="middle" x="212" y="-446.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalize</text>
+</g>
+<!-- program~test_device_kernels&#45;&gt;mpi_finalize -->
+<g id="program~~test_device_kernels~~CallsGraph_edge5" class="edge">
+<title>program~test_device_kernels&#45;&gt;mpi_finalize</title>
+<path fill="none" stroke="#ff0000" d="M64.07,-602.99C75.13,-575.51 105.91,-507.52 153,-470 156.53,-467.18 160.48,-464.73 164.61,-462.58"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="166.18,-465.71 173.83,-458.38 163.28,-459.34 166.18,-465.71"/>
+</g>
+<!-- mpi_init -->
+<g id="program~~test_device_kernels~~CallsGraph_node7" class="node">
+<title>mpi_init</title>
+<polygon fill="#777777" stroke="#777777" points="239.5,-419 184.5,-419 184.5,-395 239.5,-395 239.5,-419"/>
+<text text-anchor="middle" x="212" y="-404.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_init</text>
+</g>
+<!-- program~test_device_kernels&#45;&gt;mpi_init -->
+<g id="program~~test_device_kernels~~CallsGraph_edge6" class="edge">
+<title>program~test_device_kernels&#45;&gt;mpi_init</title>
+<path fill="none" stroke="#ff0000" d="M62.3,-602.56C70.38,-569.39 96.87,-477.95 153,-428 159.13,-422.54 166.79,-418.47 174.51,-415.44"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="175.88,-418.68 184.22,-412.14 173.62,-412.05 175.88,-418.68"/>
+</g>
+<!-- proc~cudageterrorstring -->
+<g id="program~~test_device_kernels~~CallsGraph_node8" class="node">
+<title>proc~cudageterrorstring</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node8"><a xlink:href="../proc/cudageterrorstring.html" xlink:title="cudaGetErrorString">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="748,-798 633,-798 633,-774 748,-774 748,-798"/>
+<text text-anchor="middle" x="690.5" y="-783.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;proc~cudageterrorstring -->
+<g id="program~~test_device_kernels~~CallsGraph_edge7" class="edge">
+<title>program~test_device_kernels&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#ff0000" d="M95.77,-627.14C113.04,-632.79 134.02,-639.46 153,-645 325.29,-695.24 531.03,-747.05 630.23,-771.52"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="629.52,-774.95 640.07,-773.95 631.2,-768.16 629.52,-774.95"/>
+</g>
+<!-- proc~execute_test -->
+<g id="program~~test_device_kernels~~CallsGraph_node9" class="node">
+<title>proc~execute_test</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node9"><a xlink:href="../proc/execute_test.html" xlink:title="execute_test">
+<polygon fill="#d9534f" stroke="#d9534f" points="552.5,-1063 473.5,-1063 473.5,-1039 552.5,-1039 552.5,-1063"/>
+<text text-anchor="middle" x="513" y="-1048.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_test</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;proc~execute_test -->
+<g id="program~~test_device_kernels~~CallsGraph_edge8" class="edge">
+<title>program~test_device_kernels&#45;&gt;proc~execute_test</title>
+<path fill="none" stroke="#ff0000" d="M67.54,-627.05C82.89,-649.68 117.96,-699.62 153,-737 268.5,-860.23 427.85,-986.42 487.85,-1032.63"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="485.9,-1035.55 495.97,-1038.86 490.16,-1029.99 485.9,-1035.55"/>
+</g>
+<!-- proc~init_internal -->
+<g id="program~~test_device_kernels~~CallsGraph_node10" class="node">
+<title>proc~init_internal</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node10"><a xlink:href="../proc/init_internal.html" xlink:title="init_internal">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="250,-587 174,-587 174,-563 250,-563 250,-587"/>
+<text text-anchor="middle" x="212" y="-572.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">init_internal</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;proc~init_internal -->
+<g id="program~~test_device_kernels~~CallsGraph_edge9" class="edge">
+<title>program~test_device_kernels&#45;&gt;proc~init_internal</title>
+<path fill="none" stroke="#ff0000" d="M104.95,-603C123.57,-598.08 145.11,-592.4 163.9,-587.44"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="164.95,-590.78 173.73,-584.84 163.16,-584.01 164.95,-590.78"/>
+</g>
+<!-- proc~load_cuda -->
+<g id="program~~test_device_kernels~~CallsGraph_node11" class="node">
+<title>proc~load_cuda</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node11"><a xlink:href="../proc/load_cuda.html" xlink:title="load_cuda">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="391.5,-590 324.5,-590 324.5,-566 391.5,-566 391.5,-590"/>
+<text text-anchor="middle" x="358" y="-575.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">load_cuda</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;proc~load_cuda -->
+<g id="program~~test_device_kernels~~CallsGraph_edge10" class="edge">
+<title>program~test_device_kernels&#45;&gt;proc~load_cuda</title>
+<path fill="none" stroke="#ff0000" d="M117.17,-611.64C159.81,-608.72 219.22,-603.72 271,-596 285.19,-593.89 300.55,-590.9 314.32,-587.96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="315.47,-591.29 324.49,-585.74 313.97,-584.45 315.47,-591.29"/>
+</g>
+<!-- proc~load_nvrtc -->
+<g id="program~~test_device_kernels~~CallsGraph_node12" class="node">
+<title>proc~load_nvrtc</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node12"><a xlink:href="../proc/load_nvrtc.html" xlink:title="load_nvrtc">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="392,-632 324,-632 324,-608 392,-608 392,-632"/>
+<text text-anchor="middle" x="358" y="-617.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">load_nvrtc</text>
+</a>
+</g>
+</g>
+<!-- program~test_device_kernels&#45;&gt;proc~load_nvrtc -->
+<g id="program~~test_device_kernels~~CallsGraph_edge11" class="edge">
+<title>program~test_device_kernels&#45;&gt;proc~load_nvrtc</title>
+<path fill="none" stroke="#ff0000" d="M117.21,-625.01C129.01,-626.67 141.38,-628.13 153,-629 205.3,-632.89 218.63,-631.73 271,-629 284.98,-628.27 300.18,-626.88 313.86,-625.4"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="314.44,-628.86 323.98,-624.27 313.66,-621.91 314.44,-628.86"/>
+</g>
+<!-- interface~cudageterrorstring_c -->
+<g id="program~~test_device_kernels~~CallsGraph_node15" class="node">
+<title>interface~cudageterrorstring_c</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node15"><a xlink:href="../interface/cudageterrorstring_c.html" xlink:title="cudaGetErrorString_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="962.5,-844 835.5,-844 835.5,-820 962.5,-820 962.5,-844"/>
+<text text-anchor="middle" x="899" y="-829.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString_c</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge12" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c</title>
+<path fill="none" stroke="#00b9ff" d="M745.49,-798.03C772.64,-804.07 805.73,-811.45 834.14,-817.77"/>
+<polygon fill="#00b9ff" stroke="#00b9ff" points="833.45,-821.21 843.97,-819.96 834.97,-814.37 833.45,-821.21"/>
+</g>
+<!-- proc~string_c2f -->
+<g id="program~~test_device_kernels~~CallsGraph_node29" class="node">
+<title>proc~string_c2f</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node29"><a xlink:href="../proc/string_c2f.html" xlink:title="string_c2f">
+<polygon fill="#d9534f" stroke="#d9534f" points="1140,-549 1076,-549 1076,-525 1140,-525 1140,-549"/>
+<text text-anchor="middle" x="1108" y="-534.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_c2f</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;proc~string_c2f -->
+<g id="program~~test_device_kernels~~CallsGraph_edge13" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#00b9ff" d="M738.67,-798.04C803.14,-811.6 919.68,-825.47 998,-773 1072.79,-722.9 1097.21,-607.6 1104.34,-559.12"/>
+<polygon fill="#00b9ff" stroke="#00b9ff" points="1107.83,-559.45 1105.71,-549.07 1100.89,-558.5 1107.83,-559.45"/>
+</g>
+<!-- proc~execute_test&#45;&gt;fname -->
+<g id="program~~test_device_kernels~~CallsGraph_edge14" class="edge">
+<title>proc~execute_test&#45;&gt;fname</title>
+<path fill="none" stroke="#002eff" d="M520.53,-1063.27C533.04,-1087 560.94,-1141 581,-1188 599.22,-1230.68 584.06,-1253.32 617,-1286 626.81,-1295.74 640.52,-1301.85 653.38,-1305.68"/>
+<polygon fill="#002eff" stroke="#002eff" points="652.86,-1309.16 663.42,-1308.28 654.62,-1302.38 652.86,-1309.16"/>
+</g>
+<!-- proc~execute_test&#45;&gt;mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_edge21" class="edge">
+<title>proc~execute_test&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#002eff" d="M519.84,-1063.2C540.35,-1105.95 608.34,-1246.75 617,-1253 652.88,-1278.92 951.31,-1295.62 1064.07,-1301.06"/>
+<polygon fill="#002eff" stroke="#002eff" points="1064.24,-1304.57 1074.39,-1301.55 1064.57,-1297.58 1064.24,-1304.57"/>
+</g>
+<!-- proc~execute_test&#45;&gt;proc~cudageterrorstring -->
+<g id="program~~test_device_kernels~~CallsGraph_edge23" class="edge">
+<title>proc~execute_test&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#002eff" d="M515.76,-1038.89C522.02,-1000.16 546.69,-878.04 617,-812 620.8,-808.43 625.13,-805.34 629.73,-802.68"/>
+<polygon fill="#002eff" stroke="#002eff" points="631.52,-805.69 638.85,-798.05 628.35,-799.45 631.52,-805.69"/>
+</g>
+<!-- interface~cudadevicesynchronize -->
+<g id="program~~test_device_kernels~~CallsGraph_node13" class="node">
+<title>interface~cudadevicesynchronize</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node13"><a xlink:href="../interface/cudadevicesynchronize.html" xlink:title="cudaDeviceSynchronize">
+<polygon fill="#a7506f" stroke="#a7506f" points="760.5,-1126 620.5,-1126 620.5,-1102 760.5,-1102 760.5,-1126"/>
+<text text-anchor="middle" x="690.5" y="-1111.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaDeviceSynchronize</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;interface~cudadevicesynchronize -->
+<g id="program~~test_device_kernels~~CallsGraph_edge15" class="edge">
+<title>proc~execute_test&#45;&gt;interface~cudadevicesynchronize</title>
+<path fill="none" stroke="#002eff" d="M541.24,-1063.03C561.83,-1071.89 590.92,-1083.93 617,-1093 622.93,-1095.06 629.18,-1097.09 635.42,-1099.02"/>
+<polygon fill="#002eff" stroke="#002eff" points="634.59,-1102.42 645.18,-1101.96 636.61,-1095.72 634.59,-1102.42"/>
+</g>
+<!-- interface~cudafree -->
+<g id="program~~test_device_kernels~~CallsGraph_node14" class="node">
+<title>interface~cudafree</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node14"><a xlink:href="../interface/cudafree.html" xlink:title="cudaFree">
+<polygon fill="#a7506f" stroke="#a7506f" points="721,-1084 660,-1084 660,-1060 721,-1060 721,-1084"/>
+<text text-anchor="middle" x="690.5" y="-1069.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaFree</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;interface~cudafree -->
+<g id="program~~test_device_kernels~~CallsGraph_edge16" class="edge">
+<title>proc~execute_test&#45;&gt;interface~cudafree</title>
+<path fill="none" stroke="#002eff" d="M552.51,-1055.61C581.27,-1059.05 620.46,-1063.74 649.55,-1067.22"/>
+<polygon fill="#002eff" stroke="#002eff" points="649.43,-1070.73 659.78,-1068.44 650.27,-1063.78 649.43,-1070.73"/>
+</g>
+<!-- interface~cudamalloc -->
+<g id="program~~test_device_kernels~~CallsGraph_node16" class="node">
+<title>interface~cudamalloc</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node16"><a xlink:href="../interface/cudamalloc.html" xlink:title="cudaMalloc">
+<polygon fill="#a7506f" stroke="#a7506f" points="727,-1042 654,-1042 654,-1018 727,-1018 727,-1042"/>
+<text text-anchor="middle" x="690.5" y="-1027.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMalloc</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;interface~cudamalloc -->
+<g id="program~~test_device_kernels~~CallsGraph_edge17" class="edge">
+<title>proc~execute_test&#45;&gt;interface~cudamalloc</title>
+<path fill="none" stroke="#002eff" d="M552.51,-1046.39C579.38,-1043.18 615.36,-1038.87 643.7,-1035.48"/>
+<polygon fill="#002eff" stroke="#002eff" points="644.25,-1038.94 653.77,-1034.28 643.42,-1031.99 644.25,-1038.94"/>
+</g>
+<!-- interface~cudamemcpy -->
+<g id="program~~test_device_kernels~~CallsGraph_node17" class="node">
+<title>interface~cudamemcpy</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node17"><a xlink:href="../interface/cudamemcpy.html" xlink:title="cudaMemcpy">
+<polygon fill="#a7506f" stroke="#a7506f" points="732.5,-1000 648.5,-1000 648.5,-976 732.5,-976 732.5,-1000"/>
+<text text-anchor="middle" x="690.5" y="-985.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMemcpy</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;interface~cudamemcpy -->
+<g id="program~~test_device_kernels~~CallsGraph_edge18" class="edge">
+<title>proc~execute_test&#45;&gt;interface~cudamemcpy</title>
+<path fill="none" stroke="#002eff" d="M541.24,-1038.97C561.83,-1030.11 590.92,-1018.07 617,-1009 623.89,-1006.6 631.22,-1004.26 638.46,-1002.05"/>
+<polygon fill="#002eff" stroke="#002eff" points="639.65,-1005.35 648.24,-999.14 637.65,-998.64 639.65,-1005.35"/>
+</g>
+<!-- interface~mem_free_host -->
+<g id="program~~test_device_kernels~~CallsGraph_node18" class="node">
+<title>interface~mem_free_host</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node18"><a xlink:href="../interface/mem_free_host.html" xlink:title="mem_free_host">
+<polygon fill="#a7506f" stroke="#a7506f" points="737.5,-958 643.5,-958 643.5,-934 737.5,-934 737.5,-958"/>
+<text text-anchor="middle" x="690.5" y="-943.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mem_free_host</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;interface~mem_free_host -->
+<g id="program~~test_device_kernels~~CallsGraph_edge19" class="edge">
+<title>proc~execute_test&#45;&gt;interface~mem_free_host</title>
+<path fill="none" stroke="#002eff" d="M525.52,-1038.89C543.44,-1020.73 579.81,-986.51 617,-967 622.2,-964.27 627.81,-961.85 633.52,-959.72"/>
+<polygon fill="#002eff" stroke="#002eff" points="634.85,-962.97 643.16,-956.4 632.57,-956.35 634.85,-962.97"/>
+</g>
+<!-- interface~to_str -->
+<g id="program~~test_device_kernels~~CallsGraph_node19" class="node">
+<title>interface~to_str</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node19"><a xlink:href="../interface/to_str.html" xlink:title="to_str">
+<polygon fill="#a7506f" stroke="#a7506f" points="1135,-1357 1081,-1357 1081,-1333 1135,-1333 1135,-1357"/>
+<text text-anchor="middle" x="1108" y="-1342.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">to_str</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;interface~to_str -->
+<g id="program~~test_device_kernels~~CallsGraph_edge20" class="edge">
+<title>proc~execute_test&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#002eff" d="M523.82,-1063.18C540.52,-1082.78 576.57,-1120.6 617,-1135 678.55,-1156.92 711.67,-1174.12 764,-1135 809.28,-1101.15 754.72,-1046.85 800,-1013 835.24,-986.66 965.15,-983.73 998,-1013 1049.95,-1059.28 989.02,-1270.92 1034,-1324 1043.1,-1334.74 1057.31,-1340.18 1070.79,-1342.86"/>
+<polygon fill="#002eff" stroke="#002eff" points="1070.43,-1346.35 1080.85,-1344.42 1071.5,-1339.43 1070.43,-1346.35"/>
+</g>
+<!-- proc~create~8 -->
+<g id="program~~test_device_kernels~~CallsGraph_node21" class="node">
+<title>proc~create~8</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node21"><a xlink:href="../proc/create~8.html" xlink:title="abstract_kernel%create">
+<polygon fill="#d9534f" stroke="#d9534f" points="760,-1244 621,-1244 621,-1220 760,-1220 760,-1244"/>
+<text text-anchor="middle" x="690.5" y="-1229.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_kernel%create</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;proc~create~8 -->
+<g id="program~~test_device_kernels~~CallsGraph_edge22" class="edge">
+<title>proc~execute_test&#45;&gt;proc~create~8</title>
+<path fill="none" stroke="#002eff" d="M518.96,-1063.41C531.19,-1092.52 565.61,-1165.76 617,-1206 621.72,-1209.7 627.01,-1212.9 632.53,-1215.66"/>
+<polygon fill="#002eff" stroke="#002eff" points="631.41,-1218.99 641.97,-1219.91 634.29,-1212.61 631.41,-1218.99"/>
+</g>
+<!-- proc~destroy~7 -->
+<g id="program~~test_device_kernels~~CallsGraph_node23" class="node">
+<title>proc~destroy~7</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node23"><a xlink:href="../proc/destroy~7.html" xlink:title="abstract_kernel%destroy">
+<polygon fill="#d9534f" stroke="#d9534f" points="971,-966 827,-966 827,-942 971,-942 971,-966"/>
+<text text-anchor="middle" x="899" y="-951.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_kernel%destroy</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;proc~destroy~7 -->
+<g id="program~~test_device_kernels~~CallsGraph_edge24" class="edge">
+<title>proc~execute_test&#45;&gt;proc~destroy~7</title>
+<path fill="none" stroke="#002eff" d="M519.49,-1038.62C532.14,-1011.86 566.2,-949.09 617,-925 690.56,-890.12 720.46,-915.64 800,-933 810.18,-935.22 820.95,-937.55 831.49,-939.82"/>
+<polygon fill="#002eff" stroke="#002eff" points="830.99,-943.29 841.5,-941.97 832.46,-936.45 830.99,-943.29"/>
+</g>
+<!-- proc~execute~6 -->
+<g id="program~~test_device_kernels~~CallsGraph_node25" class="node">
+<title>proc~execute~6</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node25"><a xlink:href="../proc/execute~6.html" xlink:title="abstract_kernel%execute">
+<polygon fill="#d9534f" stroke="#d9534f" points="764,-1546 617,-1546 617,-1522 764,-1522 764,-1546"/>
+<text text-anchor="middle" x="690.5" y="-1531.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_kernel%execute</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;proc~execute~6 -->
+<g id="program~~test_device_kernels~~CallsGraph_edge25" class="edge">
+<title>proc~execute_test&#45;&gt;proc~execute~6</title>
+<path fill="none" stroke="#002eff" d="M518.51,-1063.42C542.08,-1128.28 651.04,-1428.16 681.54,-1512.11"/>
+<polygon fill="#002eff" stroke="#002eff" points="678.31,-1513.45 685.02,-1521.66 684.89,-1511.06 678.31,-1513.45"/>
+</g>
+<!-- proc~get_kernel_string -->
+<g id="program~~test_device_kernels~~CallsGraph_node26" class="node">
+<title>proc~get_kernel_string</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node26"><a xlink:href="../proc/get_kernel_string.html" xlink:title="get_kernel_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="951,-1046 847,-1046 847,-1022 951,-1022 951,-1046"/>
+<text text-anchor="middle" x="899" y="-1031.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_kernel_string</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;proc~get_kernel_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge26" class="edge">
+<title>proc~execute_test&#45;&gt;proc~get_kernel_string</title>
+<path fill="none" stroke="#002eff" d="M520.15,-1063.28C533.61,-1088.59 568.42,-1146.04 617,-1168 676.54,-1194.91 711,-1206.2 764,-1168 805.05,-1138.42 763.12,-1094.64 800,-1060 810.22,-1050.4 823.57,-1044.26 837.11,-1040.35"/>
+<polygon fill="#002eff" stroke="#002eff" points="838.11,-1043.7 846.96,-1037.88 836.41,-1036.91 838.11,-1043.7"/>
+</g>
+<!-- proc~mem_alloc_host -->
+<g id="program~~test_device_kernels~~CallsGraph_node28" class="node">
+<title>proc~mem_alloc_host</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node28"><a xlink:href="../proc/mem_alloc_host.html" xlink:title="mem_alloc_host">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="740,-878 641,-878 641,-854 740,-854 740,-878"/>
+<text text-anchor="middle" x="690.5" y="-863.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mem_alloc_host</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;proc~mem_alloc_host -->
+<g id="program~~test_device_kernels~~CallsGraph_edge27" class="edge">
+<title>proc~execute_test&#45;&gt;proc~mem_alloc_host</title>
+<path fill="none" stroke="#002eff" d="M518.69,-1038.71C530.57,-1009.15 564.67,-933.47 617,-892 621.7,-888.28 626.98,-885.06 632.49,-882.28"/>
+<polygon fill="#002eff" stroke="#002eff" points="634.24,-885.33 641.92,-878.02 631.36,-878.95 634.24,-885.33"/>
+</g>
+<!-- proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_node30" class="node">
+<title>proc~write_message</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node30"><a xlink:href="../proc/write_message.html" xlink:title="write_message">
+<polygon fill="#d9534f" stroke="#d9534f" points="1154,-804 1062,-804 1062,-780 1154,-780 1154,-804"/>
+<text text-anchor="middle" x="1108" y="-789.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">write_message</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_test&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge28" class="edge">
+<title>proc~execute_test&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#002eff" d="M515.69,-1038.79C521.58,-1001.59 544.89,-889.57 617,-845 672.58,-810.65 699.06,-837.87 764,-845 780.29,-846.79 783.71,-851.21 800,-853 887.47,-862.6 912.85,-875.21 998,-853 1029.76,-844.72 1062.07,-824.9 1083.18,-810.09"/>
+<polygon fill="#002eff" stroke="#002eff" points="1085.43,-812.78 1091.5,-804.09 1081.34,-807.1 1085.43,-812.78"/>
+</g>
+<!-- mpi_initialized -->
+<g id="program~~test_device_kernels~~CallsGraph_node20" class="node">
+<title>mpi_initialized</title>
+<polygon fill="#777777" stroke="#777777" points="402.5,-548 313.5,-548 313.5,-524 402.5,-524 402.5,-548"/>
+<text text-anchor="middle" x="358" y="-533.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_initialized</text>
+</g>
+<!-- proc~init_internal&#45;&gt;mpi_initialized -->
+<g id="program~~test_device_kernels~~CallsGraph_edge29" class="edge">
+<title>proc~init_internal&#45;&gt;mpi_initialized</title>
+<path fill="none" stroke="#5c00ff" d="M250.08,-564.96C266.4,-560.54 285.86,-555.27 303.69,-550.44"/>
+<polygon fill="#5c00ff" stroke="#5c00ff" points="304.65,-553.8 313.39,-547.81 302.82,-547.05 304.65,-553.8"/>
+</g>
+<!-- proc~init_environment -->
+<g id="program~~test_device_kernels~~CallsGraph_node27" class="node">
+<title>proc~init_environment</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node27"><a xlink:href="../proc/init_environment.html" xlink:title="init_environment">
+<polygon fill="#d9534f" stroke="#d9534f" points="409,-167 307,-167 307,-143 409,-143 409,-167"/>
+<text text-anchor="middle" x="358" y="-152.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">init_environment</text>
+</a>
+</g>
+</g>
+<!-- proc~init_internal&#45;&gt;proc~init_environment -->
+<g id="program~~test_device_kernels~~CallsGraph_edge30" class="edge">
+<title>proc~init_internal&#45;&gt;proc~init_environment</title>
+<path fill="none" stroke="#5c00ff" d="M250.16,-567.79C257.97,-564.7 265.51,-560.29 271,-554 321.21,-496.5 347.82,-253.2 354.99,-177.54"/>
+<polygon fill="#5c00ff" stroke="#5c00ff" points="358.5,-177.55 355.94,-167.27 351.53,-176.9 358.5,-177.55"/>
+</g>
+<!-- proc~destroy_strings -->
+<g id="program~~test_device_kernels~~CallsGraph_node22" class="node">
+<title>proc~destroy_strings</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node22"><a xlink:href="../proc/destroy_strings.html" xlink:title="destroy_strings">
+<polygon fill="#d9534f" stroke="#d9534f" points="736.5,-208 644.5,-208 644.5,-184 736.5,-184 736.5,-208"/>
+<text text-anchor="middle" x="690.5" y="-193.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy_strings</text>
+</a>
+</g>
+</g>
+<!-- proc~load_cuda&#45;&gt;proc~destroy_strings -->
+<g id="program~~test_device_kernels~~CallsGraph_edge31" class="edge">
+<title>proc~load_cuda&#45;&gt;proc~destroy_strings</title>
+<path fill="none" stroke="#e700ff" d="M391.64,-568.57C397.96,-565.63 404.12,-561.84 409,-557 437.83,-528.38 425.59,-508.68 445,-473 510.51,-352.59 506.29,-297.82 617,-217 622.4,-213.05 628.54,-209.85 634.89,-207.24"/>
+<polygon fill="#e700ff" stroke="#e700ff" points="636.09,-210.53 644.31,-203.84 633.71,-203.95 636.09,-210.53"/>
+</g>
+<!-- proc~dynamic_load -->
+<g id="program~~test_device_kernels~~CallsGraph_node24" class="node">
+<title>proc~dynamic_load</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node24"><a xlink:href="../proc/dynamic_load.html" xlink:title="dynamic_load">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="556.5,-590 469.5,-590 469.5,-566 556.5,-566 556.5,-590"/>
+<text text-anchor="middle" x="513" y="-575.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dynamic_load</text>
+</a>
+</g>
+</g>
+<!-- proc~load_cuda&#45;&gt;proc~dynamic_load -->
+<g id="program~~test_device_kernels~~CallsGraph_edge32" class="edge">
+<title>proc~load_cuda&#45;&gt;proc~dynamic_load</title>
+<path fill="none" stroke="#e700ff" d="M391.82,-578C411.47,-578 436.89,-578 459.29,-578"/>
+<polygon fill="#e700ff" stroke="#e700ff" points="459.34,-581.5 469.34,-578 459.34,-574.5 459.34,-581.5"/>
+</g>
+<!-- proc~load_nvrtc&#45;&gt;proc~destroy_strings -->
+<g id="program~~test_device_kernels~~CallsGraph_edge33" class="edge">
+<title>proc~load_nvrtc&#45;&gt;proc~destroy_strings</title>
+<path fill="none" stroke="#ff008b" d="M392.08,-608.97C398.02,-606.22 403.93,-602.9 409,-599 421.4,-589.46 574.34,-390.16 581,-376 611.85,-310.44 567.31,-269.73 617,-217 622,-211.69 628.26,-207.7 634.99,-204.7"/>
+<polygon fill="#ff008b" stroke="#ff008b" points="636.24,-207.97 644.39,-201.19 633.79,-201.41 636.24,-207.97"/>
+</g>
+<!-- proc~load_nvrtc&#45;&gt;proc~dynamic_load -->
+<g id="program~~test_device_kernels~~CallsGraph_edge34" class="edge">
+<title>proc~load_nvrtc&#45;&gt;proc~dynamic_load</title>
+<path fill="none" stroke="#ff008b" d="M392.2,-610.89C411.87,-605.49 437.25,-598.52 459.58,-592.39"/>
+<polygon fill="#ff008b" stroke="#ff008b" points="460.54,-595.76 469.26,-589.73 458.69,-589.01 460.54,-595.76"/>
+</g>
+<!-- proc~double_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_node48" class="node">
+<title>proc~double_to_string</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node48"><a xlink:href="../proc/double_to_string.html" xlink:title="double_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1348,-1441 1248,-1441 1248,-1417 1348,-1417 1348,-1441"/>
+<text text-anchor="middle" x="1298" y="-1426.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">double_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~double_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge35" class="edge">
+<title>interface~to_str&#45;&gt;proc~double_to_string</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1135.19,-1348.73C1149.83,-1351.71 1167.91,-1356.95 1182,-1366 1202.68,-1379.29 1197.18,-1394.92 1218,-1408 1224.2,-1411.89 1231.1,-1415.07 1238.18,-1417.66"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1237.29,-1421.05 1247.88,-1420.84 1239.47,-1414.4 1237.29,-1421.05"/>
+</g>
+<!-- proc~float_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_node49" class="node">
+<title>proc~float_to_string</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node49"><a xlink:href="../proc/float_to_string.html" xlink:title="float_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1342,-1399 1254,-1399 1254,-1375 1342,-1375 1342,-1399"/>
+<text text-anchor="middle" x="1298" y="-1384.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">float_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~float_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge36" class="edge">
+<title>interface~to_str&#45;&gt;proc~float_to_string</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1135.14,-1350.84C1163.06,-1357.08 1208.07,-1367.13 1243.55,-1375.06"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1243.23,-1378.57 1253.75,-1377.34 1244.75,-1371.74 1243.23,-1378.57"/>
+</g>
+<!-- proc~int32_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_node51" class="node">
+<title>proc~int32_to_string</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node51"><a xlink:href="../proc/int32_to_string.html" xlink:title="int32_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1343.5,-1357 1252.5,-1357 1252.5,-1333 1343.5,-1333 1343.5,-1357"/>
+<text text-anchor="middle" x="1298" y="-1342.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int32_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int32_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge37" class="edge">
+<title>interface~to_str&#45;&gt;proc~int32_to_string</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1135.14,-1345C1162.69,-1345 1206.89,-1345 1242.14,-1345"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1242.3,-1348.5 1252.3,-1345 1242.3,-1341.5 1242.3,-1348.5"/>
+</g>
+<!-- proc~int64_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_node52" class="node">
+<title>proc~int64_to_string</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node52"><a xlink:href="../proc/int64_to_string.html" xlink:title="int64_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1343.5,-1315 1252.5,-1315 1252.5,-1291 1343.5,-1291 1343.5,-1315"/>
+<text text-anchor="middle" x="1298" y="-1300.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int64_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int64_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge38" class="edge">
+<title>interface~to_str&#45;&gt;proc~int64_to_string</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1135.14,-1339.16C1162.69,-1333.01 1206.89,-1323.13 1242.14,-1315.26"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1243.3,-1318.58 1252.3,-1312.99 1241.78,-1311.75 1243.3,-1318.58"/>
+</g>
+<!-- proc~int8_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_node53" class="node">
+<title>proc~int8_to_string</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node53"><a xlink:href="../proc/int8_to_string.html" xlink:title="int8_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1340,-1273 1256,-1273 1256,-1249 1340,-1249 1340,-1273"/>
+<text text-anchor="middle" x="1298" y="-1258.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int8_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int8_to_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge39" class="edge">
+<title>interface~to_str&#45;&gt;proc~int8_to_string</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1135.19,-1341.27C1149.83,-1338.29 1167.91,-1333.05 1182,-1324 1202.68,-1310.71 1197.18,-1295.08 1218,-1282 1226.47,-1276.68 1236.27,-1272.69 1246.02,-1269.71"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1246.98,-1273.08 1255.7,-1267.06 1245.13,-1266.33 1246.98,-1273.08"/>
+</g>
+<!-- proc~create~8&#45;&gt;mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_edge41" class="edge">
+<title>proc~create~8&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#00ffa9" d="M760.11,-1243.72C846.56,-1258.5 992.5,-1283.43 1064.38,-1295.72"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="1063.98,-1299.2 1074.43,-1297.43 1065.16,-1292.3 1063.98,-1299.2"/>
+</g>
+<!-- proc~create~8&#45;&gt;proc~destroy~7 -->
+<g id="program~~test_device_kernels~~CallsGraph_edge42" class="edge">
+<title>proc~create~8&#45;&gt;proc~destroy~7</title>
+<path fill="none" stroke="#00ffa9" d="M702.92,-1219.79C718.74,-1202.29 747.24,-1168.46 764,-1135 789.32,-1084.45 765.43,-1057.73 800,-1013 814.57,-994.14 837.01,-980 856.75,-970.3"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="858.31,-973.43 865.88,-966.02 855.34,-967.09 858.31,-973.43"/>
+</g>
+<!-- proc~create~8&#45;&gt;proc~get_kernel_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge43" class="edge">
+<title>proc~create~8&#45;&gt;proc~get_kernel_string</title>
+<path fill="none" stroke="#00ffa9" d="M744.83,-1219.91C752.01,-1216.4 758.71,-1211.86 764,-1206 808.77,-1156.38 753.16,-1107.67 800,-1060 809.93,-1049.9 823.3,-1043.58 836.96,-1039.66"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="838.05,-1043 846.92,-1037.21 836.38,-1036.2 838.05,-1043"/>
+</g>
+<!-- proc~create~8&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge46" class="edge">
+<title>proc~create~8&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00ffa9" d="M726.83,-1219.86C739.99,-1213.84 754.12,-1205.37 764,-1194 795.25,-1158.02 763.83,-1124.03 800,-1093 868.01,-1034.66 931.63,-1115.2 998,-1055 1039.87,-1017.02 1012.91,-985.45 1034,-933 1051.77,-888.81 1078.81,-840.04 1094.51,-813"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="1097.7,-814.47 1099.74,-804.07 1091.66,-810.93 1097.7,-814.47"/>
+</g>
+<!-- create_private -->
+<g id="program~~test_device_kernels~~CallsGraph_node32" class="node">
+<title>create_private</title>
+<polygon fill="#777777" stroke="#777777" points="943.5,-1210 854.5,-1210 854.5,-1186 943.5,-1186 943.5,-1210"/>
+<text text-anchor="middle" x="899" y="-1195.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_private</text>
+</g>
+<!-- proc~create~8&#45;&gt;create_private -->
+<g id="program~~test_device_kernels~~CallsGraph_edge40" class="edge">
+<title>proc~create~8&#45;&gt;create_private</title>
+<path fill="none" stroke="#00ffa9" d="M760.26,-1220.68C787.71,-1216.16 818.83,-1211.04 844.54,-1206.8"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="845.17,-1210.25 854.47,-1205.17 844.03,-1203.34 845.17,-1210.25"/>
+</g>
+<!-- proc~is_pack_kernel -->
+<g id="program~~test_device_kernels~~CallsGraph_node54" class="node">
+<title>proc~is_pack_kernel</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node54"><a xlink:href="../proc/is_pack_kernel.html" xlink:title="is_pack_kernel">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="944.5,-1126 853.5,-1126 853.5,-1102 944.5,-1102 944.5,-1126"/>
+<text text-anchor="middle" x="899" y="-1111.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_pack_kernel</text>
+</a>
+</g>
+</g>
+<!-- proc~create~8&#45;&gt;proc~is_pack_kernel -->
+<g id="program~~test_device_kernels~~CallsGraph_edge44" class="edge">
+<title>proc~create~8&#45;&gt;proc~is_pack_kernel</title>
+<path fill="none" stroke="#00ffa9" d="M741.09,-1219.94C749.36,-1216.4 757.38,-1211.84 764,-1206 790.53,-1182.59 771.97,-1156.59 800,-1135 812.33,-1125.51 828,-1120.08 843.17,-1117.04"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="843.76,-1120.49 853.03,-1115.37 842.59,-1113.59 843.76,-1120.49"/>
+</g>
+<!-- proc~is_unpack_kernel -->
+<g id="program~~test_device_kernels~~CallsGraph_node55" class="node">
+<title>proc~is_unpack_kernel</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node55"><a xlink:href="../proc/is_unpack_kernel.html" xlink:title="is_unpack_kernel">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="951,-1168 847,-1168 847,-1144 951,-1144 951,-1168"/>
+<text text-anchor="middle" x="899" y="-1153.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_unpack_kernel</text>
+</a>
+</g>
+</g>
+<!-- proc~create~8&#45;&gt;proc~is_unpack_kernel -->
+<g id="program~~test_device_kernels~~CallsGraph_edge45" class="edge">
+<title>proc~create~8&#45;&gt;proc~is_unpack_kernel</title>
+<path fill="none" stroke="#00ffa9" d="M732.82,-1219.87C743.3,-1216.07 754.32,-1211.43 764,-1206 781.92,-1195.95 781.45,-1185.84 800,-1177 811.47,-1171.54 824.36,-1167.48 836.93,-1164.48"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="837.9,-1167.85 846.92,-1162.29 836.4,-1161.01 837.9,-1167.85"/>
+</g>
+<!-- proc~destroy_string -->
+<g id="program~~test_device_kernels~~CallsGraph_node47" class="node">
+<title>proc~destroy_string</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node47"><a xlink:href="../proc/destroy_string.html" xlink:title="string%destroy_string">
+<polygon fill="#d9534f" stroke="#d9534f" points="1171.5,-127 1044.5,-127 1044.5,-103 1171.5,-103 1171.5,-127"/>
+<text text-anchor="middle" x="1108" y="-112.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string%destroy_string</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy_strings&#45;&gt;proc~destroy_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge47" class="edge">
+<title>proc~destroy_strings&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#00ffff" d="M736.59,-187.33C746.09,-184.33 755.74,-180.32 764,-175 784.67,-161.69 777.97,-143.92 800,-133 873.44,-96.58 969.22,-97.37 1034.12,-103.84"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1033.95,-107.34 1044.26,-104.92 1034.69,-100.38 1033.95,-107.34"/>
+</g>
+<!-- destroy_private -->
+<g id="program~~test_device_kernels~~CallsGraph_node34" class="node">
+<title>destroy_private</title>
+<polygon fill="#777777" stroke="#777777" points="1155,-966 1061,-966 1061,-942 1155,-942 1155,-966"/>
+<text text-anchor="middle" x="1108" y="-951.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy_private</text>
+</g>
+<!-- proc~destroy~7&#45;&gt;destroy_private -->
+<g id="program~~test_device_kernels~~CallsGraph_edge48" class="edge">
+<title>proc~destroy~7&#45;&gt;destroy_private</title>
+<path fill="none" stroke="#00a9ff" d="M971.24,-954C997.23,-954 1026.24,-954 1050.75,-954"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="1050.95,-957.5 1060.95,-954 1050.95,-950.5 1050.95,-957.5"/>
+</g>
+<!-- proc~destroy~7&#45;&gt;proc~destroy_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge49" class="edge">
+<title>proc~destroy~7&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#00a9ff" d="M971.3,-950.08C981.48,-946.54 990.89,-941.12 998,-933 1031.69,-894.51 1026.89,-524.66 1034,-474 1052.07,-345.28 1087.81,-193.28 1101.5,-137.21"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="1104.94,-137.85 1103.93,-127.31 1098.14,-136.18 1104.94,-137.85"/>
+</g>
+<!-- interface~is_null_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_node38" class="node">
+<title>interface~is_null_ptr</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node38"><a xlink:href="../interface/is_null_ptr.html" xlink:title="is_null_ptr">
+<polygon fill="#a7506f" stroke="#a7506f" points="1331,-358 1265,-358 1265,-334 1331,-334 1331,-358"/>
+<text text-anchor="middle" x="1298" y="-343.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~dynamic_load&#45;&gt;interface~is_null_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_edge50" class="edge">
+<title>proc~dynamic_load&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#0054ff" d="M523.81,-565.98C538,-548.14 564.36,-513.16 581,-480 603.12,-435.9 582.39,-410.16 617,-375 677.65,-313.38 714.83,-323.89 800,-309 967.24,-279.76 1014.24,-283.89 1182,-310 1207.63,-313.99 1235.42,-322.56 1257.25,-330.34"/>
+<polygon fill="#0054ff" stroke="#0054ff" points="1256.25,-333.7 1266.84,-333.84 1258.65,-327.12 1256.25,-333.7"/>
+</g>
+<!-- proc~load_library -->
+<g id="program~~test_device_kernels~~CallsGraph_node56" class="node">
+<title>proc~load_library</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node56"><a xlink:href="../proc/load_library.html" xlink:title="load_library">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="728.5,-408 652.5,-408 652.5,-384 728.5,-384 728.5,-408"/>
+<text text-anchor="middle" x="690.5" y="-393.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">load_library</text>
+</a>
+</g>
+</g>
+<!-- proc~dynamic_load&#45;&gt;proc~load_library -->
+<g id="program~~test_device_kernels~~CallsGraph_edge51" class="edge">
+<title>proc~dynamic_load&#45;&gt;proc~load_library</title>
+<path fill="none" stroke="#0054ff" d="M525.79,-565.78C555.64,-534.82 634.4,-453.14 670.7,-415.5"/>
+<polygon fill="#0054ff" stroke="#0054ff" points="673.34,-417.8 677.76,-408.17 668.3,-412.94 673.34,-417.8"/>
+</g>
+<!-- proc~load_symbol -->
+<g id="program~~test_device_kernels~~CallsGraph_node57" class="node">
+<title>proc~load_symbol</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node57"><a xlink:href="../proc/load_symbol.html" xlink:title="load_symbol">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="730,-590 651,-590 651,-566 730,-566 730,-590"/>
+<text text-anchor="middle" x="690.5" y="-575.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">load_symbol</text>
+</a>
+</g>
+</g>
+<!-- proc~dynamic_load&#45;&gt;proc~load_symbol -->
+<g id="program~~test_device_kernels~~CallsGraph_edge52" class="edge">
+<title>proc~dynamic_load&#45;&gt;proc~load_symbol</title>
+<path fill="none" stroke="#0054ff" d="M556.93,-578C582.28,-578 614.46,-578 640.76,-578"/>
+<polygon fill="#0054ff" stroke="#0054ff" points="640.9,-581.5 650.9,-578 640.9,-574.5 640.9,-581.5"/>
+</g>
+<!-- proc~unload_library -->
+<g id="program~~test_device_kernels~~CallsGraph_node60" class="node">
+<title>proc~unload_library</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node60"><a xlink:href="../proc/unload_library.html" xlink:title="unload_library">
+<polygon fill="#d9534f" stroke="#d9534f" points="735,-756 646,-756 646,-732 735,-732 735,-756"/>
+<text text-anchor="middle" x="690.5" y="-741.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unload_library</text>
+</a>
+</g>
+</g>
+<!-- proc~dynamic_load&#45;&gt;proc~unload_library -->
+<g id="program~~test_device_kernels~~CallsGraph_edge53" class="edge">
+<title>proc~dynamic_load&#45;&gt;proc~unload_library</title>
+<path fill="none" stroke="#0054ff" d="M519.88,-590.39C533.32,-617.43 568.85,-682.12 617,-718 622.9,-722.39 629.61,-726.1 636.51,-729.21"/>
+<polygon fill="#0054ff" stroke="#0054ff" points="635.4,-732.54 645.98,-733.09 638.05,-726.06 635.4,-732.54"/>
+</g>
+<!-- proc~execute~6&#45;&gt;mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_edge55" class="edge">
+<title>proc~execute~6&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#0000ff" d="M698.37,-1521.74C713.3,-1496.32 751.3,-1437.86 800,-1409 877.47,-1363.1 920.67,-1412.14 998,-1366 1019.11,-1353.4 1013.32,-1337.29 1034,-1324 1043.16,-1318.11 1054.01,-1313.84 1064.51,-1310.75"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="1065.62,-1314.07 1074.39,-1308.13 1063.83,-1307.31 1065.62,-1314.07"/>
+</g>
+<!-- proc~execute~6&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge63" class="edge">
+<title>proc~execute~6&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#0000ff" d="M697.22,-1521.65C711.46,-1491.79 750.93,-1414.24 800,-1362 874.31,-1282.87 942.63,-1312.37 998,-1219 1063.35,-1108.8 995.96,-1055.34 1034,-933 1048.13,-887.56 1076.4,-839.28 1093.32,-812.66"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="1096.3,-814.49 1098.78,-804.18 1090.42,-810.69 1096.3,-814.49"/>
+</g>
+<!-- execute_private -->
+<g id="program~~test_device_kernels~~CallsGraph_node35" class="node">
+<title>execute_private</title>
+<polygon fill="#777777" stroke="#777777" points="947.5,-1732 850.5,-1732 850.5,-1708 947.5,-1708 947.5,-1732"/>
+<text text-anchor="middle" x="899" y="-1717.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_private</text>
+</g>
+<!-- proc~execute~6&#45;&gt;execute_private -->
+<g id="program~~test_device_kernels~~CallsGraph_edge54" class="edge">
+<title>proc~execute~6&#45;&gt;execute_private</title>
+<path fill="none" stroke="#0000ff" d="M695.8,-1546.31C707.31,-1577.38 742,-1659.31 800,-1699 811.79,-1707.07 826.09,-1712.12 840.08,-1715.26"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="839.69,-1718.75 850.18,-1717.23 841.03,-1711.88 839.69,-1718.75"/>
+</g>
+<!-- post_sync -->
+<g id="program~~test_device_kernels~~CallsGraph_node42" class="node">
+<title>post_sync</title>
+<polygon fill="#777777" stroke="#777777" points="931,-1690 867,-1690 867,-1666 931,-1666 931,-1690"/>
+<text text-anchor="middle" x="899" y="-1675.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">post_sync</text>
+</g>
+<!-- proc~execute~6&#45;&gt;post_sync -->
+<g id="program~~test_device_kernels~~CallsGraph_edge56" class="edge">
+<title>proc~execute~6&#45;&gt;post_sync</title>
+<path fill="none" stroke="#0000ff" d="M698.42,-1546.07C713.43,-1571.1 751.59,-1628.66 800,-1657 817.03,-1666.97 838.19,-1672.22 856.49,-1674.99"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="856.23,-1678.48 866.6,-1676.31 857.14,-1671.54 856.23,-1678.48"/>
+</g>
+<!-- pre_sync -->
+<g id="program~~test_device_kernels~~CallsGraph_node43" class="node">
+<title>pre_sync</title>
+<polygon fill="#777777" stroke="#777777" points="928.5,-1648 869.5,-1648 869.5,-1624 928.5,-1624 928.5,-1648"/>
+<text text-anchor="middle" x="899" y="-1633.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pre_sync</text>
+</g>
+<!-- proc~execute~6&#45;&gt;pre_sync -->
+<g id="program~~test_device_kernels~~CallsGraph_edge57" class="edge">
+<title>proc~execute~6&#45;&gt;pre_sync</title>
+<path fill="none" stroke="#0000ff" d="M704.01,-1546.25C723.06,-1564.2 761.26,-1597.41 800,-1615 818.5,-1623.4 840.5,-1628.5 858.97,-1631.57"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="858.69,-1635.07 869.1,-1633.12 859.74,-1628.15 858.69,-1635.07"/>
+</g>
+<!-- proc~bytes_to_floats -->
+<g id="program~~test_device_kernels~~CallsGraph_node44" class="node">
+<title>proc~bytes_to_floats</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node44"><a xlink:href="../proc/bytes_to_floats.html" xlink:title="bytes_to_floats">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="944.5,-1606 853.5,-1606 853.5,-1582 944.5,-1582 944.5,-1606"/>
+<text text-anchor="middle" x="899" y="-1591.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">bytes_to_floats</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~6&#45;&gt;proc~bytes_to_floats -->
+<g id="program~~test_device_kernels~~CallsGraph_edge58" class="edge">
+<title>proc~execute~6&#45;&gt;proc~bytes_to_floats</title>
+<path fill="none" stroke="#0000ff" d="M728.54,-1546.05C749.45,-1552.75 776.11,-1561.09 800,-1568 814.15,-1572.09 829.52,-1576.29 843.81,-1580.08"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="842.93,-1583.47 853.49,-1582.64 844.71,-1576.7 842.93,-1583.47"/>
+</g>
+<!-- proc~compress -->
+<g id="program~~test_device_kernels~~CallsGraph_node45" class="node">
+<title>proc~compress</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node45"><a xlink:href="../proc/compress.html" xlink:title="abstract_compressor%compress">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="991,-1442 807,-1442 807,-1418 991,-1418 991,-1442"/>
+<text text-anchor="middle" x="899" y="-1427.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor%compress</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~6&#45;&gt;proc~compress -->
+<g id="program~~test_device_kernels~~CallsGraph_edge59" class="edge">
+<title>proc~execute~6&#45;&gt;proc~compress</title>
+<path fill="none" stroke="#0000ff" d="M703.63,-1521.73C722.5,-1503.4 760.8,-1469.07 800,-1451 804.67,-1448.85 809.57,-1446.91 814.58,-1445.17"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="815.86,-1448.43 824.32,-1442.06 813.73,-1441.77 815.86,-1448.43"/>
+</g>
+<!-- proc~decompress -->
+<g id="program~~test_device_kernels~~CallsGraph_node46" class="node">
+<title>proc~decompress</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node46"><a xlink:href="../proc/decompress.html" xlink:title="abstract_compressor%decompress">
+<polygon fill="#d9534f" stroke="#d9534f" points="998,-1526 800,-1526 800,-1502 998,-1502 998,-1526"/>
+<text text-anchor="middle" x="899" y="-1511.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor%decompress</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~6&#45;&gt;proc~decompress -->
+<g id="program~~test_device_kernels~~CallsGraph_edge60" class="edge">
+<title>proc~execute~6&#45;&gt;proc~decompress</title>
+<path fill="none" stroke="#0000ff" d="M764.01,-1526.98C772.37,-1526.17 781.01,-1525.33 789.71,-1524.49"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="790.31,-1527.95 799.93,-1523.5 789.63,-1520.98 790.31,-1527.95"/>
+</g>
+<!-- proc~pop_nvtx_domain_range -->
+<g id="program~~test_device_kernels~~CallsGraph_node58" class="node">
+<title>proc~pop_nvtx_domain_range</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node58"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="1179.5,-1567 1036.5,-1567 1036.5,-1543 1179.5,-1543 1179.5,-1567"/>
+<text text-anchor="middle" x="1108" y="-1552.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~6&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="program~~test_device_kernels~~CallsGraph_edge61" class="edge">
+<title>proc~execute~6&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#0000ff" d="M764.35,-1537.68C837.63,-1541.39 950.37,-1547.08 1026.32,-1550.92"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="1026.15,-1554.42 1036.32,-1551.43 1026.51,-1547.43 1026.15,-1554.42"/>
+</g>
+<!-- proc~push_nvtx_domain_range -->
+<g id="program~~test_device_kernels~~CallsGraph_node59" class="node">
+<title>proc~push_nvtx_domain_range</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node59"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="1182,-1609 1034,-1609 1034,-1585 1182,-1585 1182,-1609"/>
+<text text-anchor="middle" x="1108" y="-1594.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~6&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="program~~test_device_kernels~~CallsGraph_edge62" class="edge">
+<title>proc~execute~6&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#0000ff" d="M693.44,-1546.03C700.17,-1583.21 726.22,-1696.37 800,-1741 875.3,-1786.55 919.2,-1780.18 998,-1741 1049.65,-1715.32 1083.36,-1652.18 1098.23,-1618.69"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="1101.53,-1619.89 1102.25,-1609.32 1095.09,-1617.13 1101.53,-1619.89"/>
+</g>
+<!-- sync -->
+<g id="program~~test_device_kernels~~CallsGraph_node61" class="node">
+<title>sync</title>
+<polygon fill="#777777" stroke="#777777" points="926,-1484 872,-1484 872,-1460 926,-1460 926,-1484"/>
+<text text-anchor="middle" x="899" y="-1469.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">sync</text>
+</g>
+<!-- proc~execute~6&#45;&gt;sync -->
+<g id="program~~test_device_kernels~~CallsGraph_edge64" class="edge">
+<title>proc~execute~6&#45;&gt;sync</title>
+<path fill="none" stroke="#0000ff" d="M720.11,-1521.84C741.76,-1512.97 772.38,-1501.13 800,-1493 820.28,-1487.03 843.39,-1482 862.07,-1478.36"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="862.77,-1481.79 871.94,-1476.48 861.46,-1474.91 862.77,-1481.79"/>
+</g>
+<!-- proc~init_environment&#45;&gt;proc~destroy_strings -->
+<g id="program~~test_device_kernels~~CallsGraph_edge69" class="edge">
+<title>proc~init_environment&#45;&gt;proc~destroy_strings</title>
+<path fill="none" stroke="#aa00ff" d="M378.89,-142.84C419.64,-119.64 514.37,-74.64 581,-113 608.61,-128.9 591.89,-155.38 617,-175 622.34,-179.17 628.49,-182.52 634.89,-185.2"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="633.8,-188.53 644.39,-188.67 636.2,-181.95 633.8,-188.53"/>
+</g>
+<!-- access_modes -->
+<g id="program~~test_device_kernels~~CallsGraph_node31" class="node">
+<title>access_modes</title>
+<polygon fill="#777777" stroke="#777777" points="558,-146 468,-146 468,-122 558,-122 558,-146"/>
+<text text-anchor="middle" x="513" y="-131.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">access_modes</text>
+</g>
+<!-- proc~init_environment&#45;&gt;access_modes -->
+<g id="program~~test_device_kernels~~CallsGraph_edge65" class="edge">
+<title>proc~init_environment&#45;&gt;access_modes</title>
+<path fill="none" stroke="#aa00ff" d="M409.1,-148.12C424.68,-145.98 441.93,-143.62 457.79,-141.44"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="458.54,-144.87 467.97,-140.04 457.59,-137.94 458.54,-144.87"/>
+</g>
+<!-- destroy -->
+<g id="program~~test_device_kernels~~CallsGraph_node33" class="node">
+<title>destroy</title>
+<polygon fill="#777777" stroke="#777777" points="540,-66 486,-66 486,-42 540,-42 540,-66"/>
+<text text-anchor="middle" x="513" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy</text>
+</g>
+<!-- proc~init_environment&#45;&gt;destroy -->
+<g id="program~~test_device_kernels~~CallsGraph_edge66" class="edge">
+<title>proc~init_environment&#45;&gt;destroy</title>
+<path fill="none" stroke="#aa00ff" d="M370.2,-142.89C385.7,-126.72 415.16,-98.04 445,-80 454.63,-74.18 465.79,-69.23 476.21,-65.27"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="477.67,-68.46 485.89,-61.77 475.3,-61.88 477.67,-68.46"/>
+</g>
+<!-- interface~get_env -->
+<g id="program~~test_device_kernels~~CallsGraph_node37" class="node">
+<title>interface~get_env</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node37"><a xlink:href="../interface/get_env.html" xlink:title="get_env">
+<polygon fill="#a7506f" stroke="#a7506f" points="718,-250 663,-250 663,-226 718,-226 718,-250"/>
+<text text-anchor="middle" x="690.5" y="-235.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env</text>
+</a>
+</g>
+</g>
+<!-- proc~init_environment&#45;&gt;interface~get_env -->
+<g id="program~~test_device_kernels~~CallsGraph_edge67" class="edge">
+<title>proc~init_environment&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#aa00ff" d="M366.71,-167.12C379.94,-186.65 409.05,-224.36 445,-239 514.18,-267.18 603.79,-256.14 653.05,-246.49"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="653.83,-249.9 662.92,-244.47 652.43,-243.05 653.83,-249.9"/>
+</g>
+<!-- platforms -->
+<g id="program~~test_device_kernels~~CallsGraph_node41" class="node">
+<title>platforms</title>
+<polygon fill="#777777" stroke="#777777" points="545,-24 481,-24 481,0 545,0 545,-24"/>
+<text text-anchor="middle" x="513" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">platforms</text>
+</g>
+<!-- proc~init_environment&#45;&gt;platforms -->
+<g id="program~~test_device_kernels~~CallsGraph_edge68" class="edge">
+<title>proc~init_environment&#45;&gt;platforms</title>
+<path fill="none" stroke="#aa00ff" d="M364.2,-142.97C375.35,-118.55 403.97,-62.93 445,-33 452.67,-27.41 461.86,-23.27 470.96,-20.23"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="472.11,-23.54 480.7,-17.34 470.12,-16.83 472.11,-23.54"/>
+</g>
+<!-- proc~get_backend_from_env -->
+<g id="program~~test_device_kernels~~CallsGraph_node50" class="node">
+<title>proc~get_backend_from_env</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node50"><a xlink:href="../proc/get_backend_from_env.html" xlink:title="get_backend_from_env">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="581,-230 445,-230 445,-206 581,-206 581,-230"/>
+<text text-anchor="middle" x="513" y="-215.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_backend_from_env</text>
+</a>
+</g>
+</g>
+<!-- proc~init_environment&#45;&gt;proc~get_backend_from_env -->
+<g id="program~~test_device_kernels~~CallsGraph_edge70" class="edge">
+<title>proc~init_environment&#45;&gt;proc~get_backend_from_env</title>
+<path fill="none" stroke="#aa00ff" d="M381.57,-167.19C398.68,-176.13 422.93,-188.21 445,-197 450.03,-199 455.32,-200.94 460.64,-202.78"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="459.61,-206.12 470.2,-205.97 461.82,-199.48 459.61,-206.12"/>
+</g>
+<!-- transpose_modes -->
+<g id="program~~test_device_kernels~~CallsGraph_node62" class="node">
+<title>transpose_modes</title>
+<polygon fill="#777777" stroke="#777777" points="566,-188 460,-188 460,-164 566,-164 566,-188"/>
+<text text-anchor="middle" x="513" y="-173.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_modes</text>
+</g>
+<!-- proc~init_environment&#45;&gt;transpose_modes -->
+<g id="program~~test_device_kernels~~CallsGraph_edge71" class="edge">
+<title>proc~init_environment&#45;&gt;transpose_modes</title>
+<path fill="none" stroke="#aa00ff" d="M409.1,-161.88C422.08,-163.66 436.23,-165.6 449.76,-167.46"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="449.57,-170.96 459.95,-168.86 450.52,-164.03 449.57,-170.96"/>
+</g>
+<!-- interface~aligned_alloc -->
+<g id="program~~test_device_kernels~~CallsGraph_node36" class="node">
+<title>interface~aligned_alloc</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node36"><a xlink:href="../interface/aligned_alloc.html" xlink:title="aligned_alloc">
+<polygon fill="#a7506f" stroke="#a7506f" points="940.5,-924 857.5,-924 857.5,-900 940.5,-900 940.5,-924"/>
+<text text-anchor="middle" x="899" y="-909.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">aligned_alloc</text>
+</a>
+</g>
+</g>
+<!-- proc~mem_alloc_host&#45;&gt;interface~aligned_alloc -->
+<g id="program~~test_device_kernels~~CallsGraph_edge72" class="edge">
+<title>proc~mem_alloc_host&#45;&gt;interface~aligned_alloc</title>
+<path fill="none" stroke="#ff00ff" d="M740.18,-876.84C772.49,-884.04 814.8,-893.47 847.48,-900.75"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="846.77,-904.17 857.29,-902.93 848.29,-897.34 846.77,-904.17"/>
+</g>
+<!-- proc~string_c2f&#45;&gt;interface~is_null_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_edge73" class="edge">
+<title>proc~string_c2f&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#ff00aa" d="M1140.24,-532.94C1154.03,-529.96 1169.84,-524.83 1182,-516 1235.8,-476.93 1272.26,-404.51 1288.08,-368.1"/>
+<polygon fill="#ff00aa" stroke="#ff00aa" points="1291.5,-369.02 1292.16,-358.44 1285.05,-366.29 1291.5,-369.02"/>
+</g>
+<!-- mpi_comm_rank -->
+<g id="program~~test_device_kernels~~CallsGraph_node39" class="node">
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="1348.5,-783 1247.5,-783 1247.5,-759 1348.5,-759 1348.5,-783"/>
+<text text-anchor="middle" x="1298" y="-768.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_comm_rank -->
+<g id="program~~test_device_kernels~~CallsGraph_edge74" class="edge">
+<title>proc~write_message&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#ff0055" d="M1154.03,-786.97C1178.98,-784.18 1210.31,-780.68 1237.28,-777.67"/>
+<polygon fill="#ff0055" stroke="#ff0055" points="1237.83,-781.13 1247.38,-776.54 1237.05,-774.17 1237.83,-781.13"/>
+</g>
+<!-- mpi_finalized -->
+<g id="program~~test_device_kernels~~CallsGraph_node40" class="node">
+<title>mpi_finalized</title>
+<polygon fill="#777777" stroke="#777777" points="1339.5,-825 1256.5,-825 1256.5,-801 1339.5,-801 1339.5,-825"/>
+<text text-anchor="middle" x="1298" y="-810.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalized</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_finalized -->
+<g id="program~~test_device_kernels~~CallsGraph_edge75" class="edge">
+<title>proc~write_message&#45;&gt;mpi_finalized</title>
+<path fill="none" stroke="#ff0055" d="M1154.03,-797.03C1181.8,-800.13 1217.47,-804.12 1246.24,-807.33"/>
+<polygon fill="#ff0055" stroke="#ff0055" points="1246.17,-810.84 1256.5,-808.48 1246.95,-803.89 1246.17,-810.84"/>
+</g>
+<!-- proc~get_env_base -->
+<g id="program~~test_device_kernels~~CallsGraph_node73" class="node">
+<title>proc~get_env_base</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node73"><a xlink:href="../proc/get_env_base.html" xlink:title="get_env_base">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="941.5,-86 856.5,-86 856.5,-62 941.5,-62 941.5,-86"/>
+<text text-anchor="middle" x="899" y="-71.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_base</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_base -->
+<g id="program~~test_device_kernels~~CallsGraph_edge76" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_base</title>
+<path fill="none" stroke="#dfff00" stroke-dasharray="5,2" d="M718.32,-235.83C733.31,-233.36 751.43,-228.11 764,-217 794.43,-190.1 773.31,-163.62 800,-133 816,-114.65 839.14,-100.34 858.93,-90.42"/>
+<polygon fill="#dfff00" stroke="#dfff00" points="860.54,-93.53 868.03,-86.03 857.5,-87.22 860.54,-93.53"/>
+</g>
+<!-- proc~get_env_int32 -->
+<g id="program~~test_device_kernels~~CallsGraph_node74" class="node">
+<title>proc~get_env_int32</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node74"><a xlink:href="../proc/get_env_int32.html" xlink:title="get_env_int32">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="942.5,-486 855.5,-486 855.5,-462 942.5,-462 942.5,-486"/>
+<text text-anchor="middle" x="899" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_int32</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_int32 -->
+<g id="program~~test_device_kernels~~CallsGraph_edge77" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_int32</title>
+<path fill="none" stroke="#dfff00" stroke-dasharray="5,2" d="M704.5,-250.32C724.19,-274.25 763.19,-326.59 800,-368 827.92,-399.41 863.64,-433.36 883.33,-454.5"/>
+<polygon fill="#dfff00" stroke="#dfff00" points="880.74,-456.86 890.04,-461.94 885.94,-452.17 880.74,-456.86"/>
+</g>
+<!-- proc~get_env_int8 -->
+<g id="program~~test_device_kernels~~CallsGraph_node75" class="node">
+<title>proc~get_env_int8</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node75"><a xlink:href="../proc/get_env_int8.html" xlink:title="get_env_int8">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="939,-166 859,-166 859,-142 939,-142 939,-166"/>
+<text text-anchor="middle" x="899" y="-151.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_int8</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_int8 -->
+<g id="program~~test_device_kernels~~CallsGraph_edge78" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_int8</title>
+<path fill="none" stroke="#dfff00" stroke-dasharray="5,2" d="M718.21,-226.14C732.62,-222.08 750.23,-216.87 764,-208 784.67,-194.69 778.87,-178.57 800,-166 814.61,-157.31 832.35,-152.19 848.7,-149.69"/>
+<polygon fill="#dfff00" stroke="#dfff00" points="849.16,-153.16 858.65,-148.46 848.3,-146.21 849.16,-153.16"/>
+</g>
+<!-- proc~get_env_logical -->
+<g id="program~~test_device_kernels~~CallsGraph_node76" class="node">
+<title>proc~get_env_logical</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node76"><a xlink:href="../proc/get_env_logical.html" xlink:title="get_env_logical">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="946.5,-208 851.5,-208 851.5,-184 946.5,-184 946.5,-208"/>
+<text text-anchor="middle" x="899" y="-193.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_logical</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_logical -->
+<g id="program~~test_device_kernels~~CallsGraph_edge79" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_logical</title>
+<path fill="none" stroke="#dfff00" stroke-dasharray="5,2" d="M718.07,-227.89C749.1,-219.44 801.3,-208.36 841.51,-201.4"/>
+<polygon fill="#dfff00" stroke="#dfff00" points="842.17,-204.83 851.45,-199.72 841.01,-197.93 842.17,-204.83"/>
+</g>
+<!-- proc~get_env_string -->
+<g id="program~~test_device_kernels~~CallsGraph_node77" class="node">
+<title>proc~get_env_string</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node77"><a xlink:href="../proc/get_env_string.html" xlink:title="get_env_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="944,-250 854,-250 854,-226 944,-226 944,-250"/>
+<text text-anchor="middle" x="899" y="-235.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_string</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge80" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_string</title>
+<path fill="none" stroke="#dfff00" stroke-dasharray="5,2" d="M718.07,-233.3C749.64,-231.12 803.11,-230.68 843.58,-231.97"/>
+<polygon fill="#dfff00" stroke="#dfff00" points="843.7,-235.48 853.83,-232.35 843.96,-228.48 843.7,-235.48"/>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;interface~is_null_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_edge81" class="edge">
+<title>interface~is_null_ptr&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#afff00" stroke-dasharray="5,2" d="M1268.57,-358.01C1258.29,-366.97 1268.1,-376 1298,-376 1316.69,-376 1327.53,-372.47 1330.52,-367.64"/>
+<polygon fill="#afff00" stroke="#afff00" points="1333.82,-366.47 1327.43,-358.01 1327.15,-368.61 1333.82,-366.47"/>
+</g>
+<!-- proc~is_null_funptr -->
+<g id="program~~test_device_kernels~~CallsGraph_node78" class="node">
+<title>proc~is_null_funptr</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node78"><a xlink:href="../proc/is_null_funptr.html" xlink:title="is_null_funptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1517.5,-358 1434.5,-358 1434.5,-334 1517.5,-334 1517.5,-358"/>
+<text text-anchor="middle" x="1476" y="-343.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_funptr</text>
+</a>
+</g>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;proc~is_null_funptr -->
+<g id="program~~test_device_kernels~~CallsGraph_edge82" class="edge">
+<title>interface~is_null_ptr&#45;&gt;proc~is_null_funptr</title>
+<path fill="none" stroke="#afff00" stroke-dasharray="5,2" d="M1331.28,-346C1357.2,-346 1394.08,-346 1423.99,-346"/>
+<polygon fill="#afff00" stroke="#afff00" points="1424.25,-349.5 1434.25,-346 1424.25,-342.5 1424.25,-349.5"/>
+</g>
+<!-- proc~compress&#45;&gt;mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_edge85" class="edge">
+<title>proc~compress&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#00ff9f" d="M974.71,-1417.86C983.15,-1414.33 991.15,-1409.81 998,-1404 1027.73,-1378.77 1004.53,-1349.53 1034,-1324 1042.55,-1316.59 1053.56,-1311.79 1064.42,-1308.68"/>
+<polygon fill="#00ff9f" stroke="#00ff9f" points="1065.4,-1312.05 1074.29,-1306.28 1063.74,-1305.25 1065.4,-1312.05"/>
+</g>
+<!-- proc~compress&#45;&gt;interface~to_str -->
+<g id="program~~test_device_kernels~~CallsGraph_edge84" class="edge">
+<title>proc~compress&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#00ff9f" d="M965.83,-1417.93C977,-1414.39 988.16,-1409.84 998,-1404 1018,-1392.12 1014.12,-1378.09 1034,-1366 1045.18,-1359.2 1058.66,-1354.52 1070.98,-1351.33"/>
+<polygon fill="#00ff9f" stroke="#00ff9f" points="1072.03,-1354.68 1080.97,-1349 1070.44,-1347.86 1072.03,-1354.68"/>
+</g>
+<!-- proc~compress&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge90" class="edge">
+<title>proc~compress&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00ff9f" d="M908.95,-1417.83C928.83,-1390.06 976.62,-1319.24 998,-1252 1041.23,-1116.03 992.51,-1069.51 1034,-933 1047.84,-887.47 1076.21,-839.22 1093.22,-812.63"/>
+<polygon fill="#00ff9f" stroke="#00ff9f" points="1096.21,-814.46 1098.72,-804.17 1090.34,-810.64 1096.21,-814.46"/>
+</g>
+<!-- proc~compress&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="program~~test_device_kernels~~CallsGraph_edge87" class="edge">
+<title>proc~compress&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#00ff9f" d="M984.37,-1442.23C989.23,-1444.68 993.83,-1447.58 998,-1451 1029.11,-1476.48 1003.79,-1507.46 1034,-1534 1035.52,-1535.34 1037.13,-1536.59 1038.8,-1537.77"/>
+<polygon fill="#00ff9f" stroke="#00ff9f" points="1037.23,-1540.9 1047.61,-1542.99 1040.8,-1534.88 1037.23,-1540.9"/>
+</g>
+<!-- proc~compress&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="program~~test_device_kernels~~CallsGraph_edge89" class="edge">
+<title>proc~compress&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#00ff9f" d="M985.81,-1442.13C990.2,-1444.63 994.31,-1447.56 998,-1451 1040.27,-1490.44 993.11,-1535.13 1034,-1576 1035.11,-1577.11 1036.27,-1578.16 1037.48,-1579.15"/>
+<polygon fill="#00ff9f" stroke="#00ff9f" points="1035.81,-1582.25 1046.06,-1584.96 1039.74,-1576.45 1035.81,-1582.25"/>
+</g>
+<!-- compress_private -->
+<g id="program~~test_device_kernels~~CallsGraph_node63" class="node">
+<title>compress_private</title>
+<polygon fill="#777777" stroke="#777777" points="1161,-1399 1055,-1399 1055,-1375 1161,-1375 1161,-1399"/>
+<text text-anchor="middle" x="1108" y="-1384.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compress_private</text>
+</g>
+<!-- proc~compress&#45;&gt;compress_private -->
+<g id="program~~test_device_kernels~~CallsGraph_edge83" class="edge">
+<title>proc~compress&#45;&gt;compress_private</title>
+<path fill="none" stroke="#00ff9f" d="M957.94,-1417.96C984.99,-1412.34 1017.24,-1405.65 1044.81,-1399.92"/>
+<polygon fill="#00ff9f" stroke="#00ff9f" points="1045.66,-1403.32 1054.74,-1397.86 1044.23,-1396.46 1045.66,-1403.32"/>
+</g>
+<!-- proc~is_same_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_node79" class="node">
+<title>proc~is_same_ptr</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node79"><a xlink:href="../proc/is_same_ptr.html" xlink:title="is_same_ptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1146,-1441 1070,-1441 1070,-1417 1146,-1417 1146,-1441"/>
+<text text-anchor="middle" x="1108" y="-1426.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_same_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~compress&#45;&gt;proc~is_same_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_edge86" class="edge">
+<title>proc~compress&#45;&gt;proc~is_same_ptr</title>
+<path fill="none" stroke="#00ff9f" d="M991.09,-1429.56C1014.74,-1429.45 1039.26,-1429.33 1059.63,-1429.23"/>
+<polygon fill="#00ff9f" stroke="#00ff9f" points="1059.89,-1432.73 1069.87,-1429.18 1059.86,-1425.73 1059.89,-1432.73"/>
+</g>
+<!-- proc~ptr_offset -->
+<g id="program~~test_device_kernels~~CallsGraph_node81" class="node">
+<title>proc~ptr_offset</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node81"><a xlink:href="../proc/ptr_offset.html" xlink:title="ptr_offset">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1139.5,-1483 1076.5,-1483 1076.5,-1459 1139.5,-1459 1139.5,-1483"/>
+<text text-anchor="middle" x="1108" y="-1468.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ptr_offset</text>
+</a>
+</g>
+</g>
+<!-- proc~compress&#45;&gt;proc~ptr_offset -->
+<g id="program~~test_device_kernels~~CallsGraph_edge88" class="edge">
+<title>proc~compress&#45;&gt;proc~ptr_offset</title>
+<path fill="none" stroke="#00ff9f" d="M960.71,-1442.02C994.64,-1448.75 1036.03,-1456.94 1066.11,-1462.9"/>
+<polygon fill="#00ff9f" stroke="#00ff9f" points="1065.76,-1466.4 1076.25,-1464.91 1067.12,-1459.53 1065.76,-1466.4"/>
+</g>
+<!-- proc~decompress&#45;&gt;mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_edge92" class="edge">
+<title>proc~decompress&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#00ffcf" d="M986.55,-1501.9C990.69,-1499.39 994.56,-1496.45 998,-1493 1052.27,-1438.66 981.64,-1380.18 1034,-1324 1042,-1315.42 1053.25,-1310.27 1064.53,-1307.2"/>
+<polygon fill="#00ffcf" stroke="#00ffcf" points="1065.37,-1310.59 1074.37,-1305 1063.85,-1303.76 1065.37,-1310.59"/>
+</g>
+<!-- proc~decompress&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge97" class="edge">
+<title>proc~decompress&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00ffcf" d="M988.02,-1501.9C991.68,-1499.37 995.04,-1496.43 998,-1493 1038.73,-1445.79 1017.31,-993.08 1034,-933 1046.74,-887.15 1075.5,-839.01 1092.87,-812.53"/>
+<polygon fill="#00ffcf" stroke="#00ffcf" points="1095.86,-814.36 1098.5,-804.1 1090.04,-810.47 1095.86,-814.36"/>
+</g>
+<!-- proc~decompress&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="program~~test_device_kernels~~CallsGraph_edge94" class="edge">
+<title>proc~decompress&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#00ffcf" d="M960.71,-1526.02C984.4,-1530.72 1011.73,-1536.13 1036.31,-1541"/>
+<polygon fill="#00ffcf" stroke="#00ffcf" points="1035.8,-1544.47 1046.29,-1542.98 1037.16,-1537.6 1035.8,-1544.47"/>
+</g>
+<!-- proc~decompress&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="program~~test_device_kernels~~CallsGraph_edge96" class="edge">
+<title>proc~decompress&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#00ffcf" d="M923.26,-1526.09C949.62,-1539.48 994.13,-1561.14 1034,-1576 1039.54,-1578.07 1045.38,-1580.05 1051.25,-1581.92"/>
+<polygon fill="#00ffcf" stroke="#00ffcf" points="1050.5,-1585.36 1061.09,-1584.96 1052.56,-1578.67 1050.5,-1585.36"/>
+</g>
+<!-- decompress_private -->
+<g id="program~~test_device_kernels~~CallsGraph_node64" class="node">
+<title>decompress_private</title>
+<polygon fill="#777777" stroke="#777777" points="1168,-1525 1048,-1525 1048,-1501 1168,-1501 1168,-1525"/>
+<text text-anchor="middle" x="1108" y="-1510.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">decompress_private</text>
+</g>
+<!-- proc~decompress&#45;&gt;decompress_private -->
+<g id="program~~test_device_kernels~~CallsGraph_edge91" class="edge">
+<title>proc~decompress&#45;&gt;decompress_private</title>
+<path fill="none" stroke="#00ffcf" d="M998.04,-1513.53C1011.48,-1513.46 1025.05,-1513.4 1037.82,-1513.33"/>
+<polygon fill="#00ffcf" stroke="#00ffcf" points="1037.9,-1516.83 1047.88,-1513.29 1037.87,-1509.83 1037.9,-1516.83"/>
+</g>
+<!-- proc~decompress&#45;&gt;proc~is_same_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_edge93" class="edge">
+<title>proc~decompress&#45;&gt;proc~is_same_ptr</title>
+<path fill="none" stroke="#00ffcf" d="M979.09,-1501.96C985.71,-1499.5 992.11,-1496.55 998,-1493 1019.35,-1480.13 1013.11,-1463.6 1034,-1450 1041.87,-1444.88 1051.02,-1440.98 1060.12,-1438.02"/>
+<polygon fill="#00ffcf" stroke="#00ffcf" points="1061.29,-1441.32 1069.91,-1435.16 1059.33,-1434.6 1061.29,-1441.32"/>
+</g>
+<!-- proc~decompress&#45;&gt;proc~ptr_offset -->
+<g id="program~~test_device_kernels~~CallsGraph_edge95" class="edge">
+<title>proc~decompress&#45;&gt;proc~ptr_offset</title>
+<path fill="none" stroke="#00ffcf" d="M957.94,-1501.96C992.43,-1494.8 1035.36,-1485.88 1066.28,-1479.46"/>
+<polygon fill="#00ffcf" stroke="#00ffcf" points="1067.19,-1482.84 1076.27,-1477.38 1065.77,-1475.99 1067.19,-1482.84"/>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;proc~destroy_strings -->
+<g id="program~~test_device_kernels~~CallsGraph_edge100" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;proc~destroy_strings</title>
+<path fill="none" stroke="#006fff" d="M581.1,-209.59C598.65,-207.39 617.37,-205.04 634.22,-202.93"/>
+<polygon fill="#006fff" stroke="#006fff" points="634.96,-206.36 644.45,-201.65 634.09,-199.42 634.96,-206.36"/>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge102" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#006fff" d="M513.49,-230.14C511.98,-282.01 513.01,-487.52 617,-599 739.24,-730.04 834.5,-657.62 998,-731 1026.56,-743.82 1057.58,-761.58 1079.19,-774.63"/>
+<polygon fill="#006fff" stroke="#006fff" points="1077.49,-777.69 1087.85,-779.91 1081.13,-771.72 1077.49,-777.69"/>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;interface~get_env -->
+<g id="program~~test_device_kernels~~CallsGraph_edge98" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#006fff" d="M581.1,-225.65C605.44,-228.42 632.02,-231.45 652.77,-233.81"/>
+<polygon fill="#006fff" stroke="#006fff" points="652.42,-237.3 662.75,-234.95 653.21,-230.34 652.42,-237.3"/>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;proc~destroy_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge99" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#006fff" d="M566.49,-205.92C571.69,-203.47 576.64,-200.53 581,-197 606.35,-176.45 592.8,-154.89 617,-133 682.83,-73.46 713.11,-71.16 800,-53 886.14,-34.99 917.83,-16.71 998,-53 1020.09,-63 1013.52,-81.01 1034,-94 1036.78,-95.77 1039.72,-97.39 1042.75,-98.87"/>
+<polygon fill="#006fff" stroke="#006fff" points="1041.52,-102.15 1052.08,-102.95 1044.32,-95.74 1041.52,-102.15"/>
+</g>
+<!-- proc~is_valid_backend -->
+<g id="program~~test_device_kernels~~CallsGraph_node80" class="node">
+<title>proc~is_valid_backend</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node80"><a xlink:href="../proc/is_valid_backend.html" xlink:title="is_valid_backend">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="742,-166 639,-166 639,-142 742,-142 742,-166"/>
+<text text-anchor="middle" x="690.5" y="-151.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;proc~is_valid_backend -->
+<g id="program~~test_device_kernels~~CallsGraph_edge101" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;proc~is_valid_backend</title>
+<path fill="none" stroke="#006fff" d="M557.83,-205.96C565.67,-203.33 573.67,-200.33 581,-197 598.07,-189.25 599.84,-182.56 617,-175 621.68,-172.94 626.61,-171.02 631.62,-169.24"/>
+<polygon fill="#006fff" stroke="#006fff" points="632.91,-172.5 641.28,-166.01 630.68,-165.86 632.91,-172.5"/>
+</g>
+<!-- proc~load_library&#45;&gt;interface~is_null_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_edge104" class="edge">
+<title>proc~load_library&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#af00ff" d="M706.92,-383.91C727,-369 763.83,-344.47 800,-335 963.67,-292.15 1168.11,-321.37 1254.9,-337.42"/>
+<polygon fill="#af00ff" stroke="#af00ff" points="1254.42,-340.89 1264.89,-339.3 1255.72,-334.01 1254.42,-340.89"/>
+</g>
+<!-- interface~dlopen -->
+<g id="program~~test_device_kernels~~CallsGraph_node66" class="node">
+<title>interface~dlopen</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node66"><a xlink:href="../interface/dlopen.html" xlink:title="dlopen">
+<polygon fill="#a7506f" stroke="#a7506f" points="926,-368 872,-368 872,-344 926,-344 926,-368"/>
+<text text-anchor="middle" x="899" y="-353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dlopen</text>
+</a>
+</g>
+</g>
+<!-- proc~load_library&#45;&gt;interface~dlopen -->
+<g id="program~~test_device_kernels~~CallsGraph_edge103" class="edge">
+<title>proc~load_library&#45;&gt;interface~dlopen</title>
+<path fill="none" stroke="#af00ff" d="M728.9,-388.76C766.72,-381.43 824.77,-370.19 862.06,-362.96"/>
+<polygon fill="#af00ff" stroke="#af00ff" points="862.84,-366.38 871.99,-361.04 861.51,-359.5 862.84,-366.38"/>
+</g>
+<!-- proc~astring_f2c -->
+<g id="program~~test_device_kernels~~CallsGraph_node70" class="node">
+<title>proc~astring_f2c</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node70"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="1511.5,-1079 1440.5,-1079 1440.5,-1055 1511.5,-1055 1511.5,-1079"/>
+<text text-anchor="middle" x="1476" y="-1064.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~load_library&#45;&gt;proc~astring_f2c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge105" class="edge">
+<title>proc~load_library&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#af00ff" d="M728.61,-395.02C813.32,-394.2 1025.61,-400.3 1182,-474 1287.1,-523.53 1318.53,-547.18 1378,-647 1458.56,-782.22 1472.22,-978.76 1474.53,-1044.58"/>
+<polygon fill="#af00ff" stroke="#af00ff" points="1471.04,-1044.76 1474.83,-1054.65 1478.03,-1044.56 1471.04,-1044.76"/>
+</g>
+<!-- proc~dl_error -->
+<g id="program~~test_device_kernels~~CallsGraph_node72" class="node">
+<title>proc~dl_error</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node72"><a xlink:href="../proc/dl_error.html" xlink:title="dl_error">
+<polygon fill="#d9534f" stroke="#d9534f" points="926,-528 872,-528 872,-504 926,-504 926,-528"/>
+<text text-anchor="middle" x="899" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dl_error</text>
+</a>
+</g>
+</g>
+<!-- proc~load_library&#45;&gt;proc~dl_error -->
+<g id="program~~test_device_kernels~~CallsGraph_edge106" class="edge">
+<title>proc~load_library&#45;&gt;proc~dl_error</title>
+<path fill="none" stroke="#af00ff" d="M701.1,-408.26C718.43,-429.49 757.15,-472.94 800,-495 819.06,-504.81 842.47,-510.04 861.63,-512.83"/>
+<polygon fill="#af00ff" stroke="#af00ff" points="861.41,-516.33 871.78,-514.14 862.31,-509.39 861.41,-516.33"/>
+</g>
+<!-- proc~load_symbol&#45;&gt;mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_edge109" class="edge">
+<title>proc~load_symbol&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#df00ff" d="M707.42,-590.02C728.04,-605.25 765.44,-631.69 800,-650 884.02,-694.5 939.37,-656.15 998,-731 1031.8,-774.15 1024.04,-921.1 1034,-975 1055.43,-1090.95 1088.53,-1228.27 1101.51,-1280.94"/>
+<polygon fill="#df00ff" stroke="#df00ff" points="1098.16,-1281.99 1103.96,-1290.85 1104.96,-1280.31 1098.16,-1281.99"/>
+</g>
+<!-- proc~load_symbol&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge112" class="edge">
+<title>proc~load_symbol&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#df00ff" d="M727.98,-590.09C748.95,-596.87 775.84,-605.29 800,-612 887.25,-636.22 921.24,-611.96 998,-660 1043.04,-688.19 1078.34,-741.39 1095.53,-770.91"/>
+<polygon fill="#df00ff" stroke="#df00ff" points="1092.67,-772.98 1100.65,-779.95 1098.76,-769.52 1092.67,-772.98"/>
+</g>
+<!-- proc~load_symbol&#45;&gt;interface~is_null_ptr -->
+<g id="program~~test_device_kernels~~CallsGraph_edge108" class="edge">
+<title>proc~load_symbol&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#df00ff" d="M698.37,-565.73C713.29,-540.3 751.27,-481.81 800,-453 950.18,-364.2 1164.76,-348.74 1254.75,-346.3"/>
+<polygon fill="#df00ff" stroke="#df00ff" points="1254.92,-349.8 1264.84,-346.07 1254.76,-342.8 1254.92,-349.8"/>
+</g>
+<!-- interface~dlsym -->
+<g id="program~~test_device_kernels~~CallsGraph_node67" class="node">
+<title>interface~dlsym</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node67"><a xlink:href="../interface/dlsym.html" xlink:title="dlsym">
+<polygon fill="#a7506f" stroke="#a7506f" points="926,-570 872,-570 872,-546 926,-546 926,-570"/>
+<text text-anchor="middle" x="899" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dlsym</text>
+</a>
+</g>
+</g>
+<!-- proc~load_symbol&#45;&gt;interface~dlsym -->
+<g id="program~~test_device_kernels~~CallsGraph_edge107" class="edge">
+<title>proc~load_symbol&#45;&gt;interface~dlsym</title>
+<path fill="none" stroke="#df00ff" d="M730.34,-574.24C767.98,-570.59 824.64,-565.1 861.48,-561.54"/>
+<polygon fill="#df00ff" stroke="#df00ff" points="862.16,-564.99 871.77,-560.54 861.48,-558.02 862.16,-564.99"/>
+</g>
+<!-- proc~load_symbol&#45;&gt;proc~astring_f2c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge110" class="edge">
+<title>proc~load_symbol&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#df00ff" d="M730.22,-579.35C788.86,-582.05 903.37,-589.9 998,-612 1172.97,-652.86 1254.25,-619.72 1378,-750 1459.38,-835.67 1472.62,-987.82 1474.67,-1044.72"/>
+<polygon fill="#df00ff" stroke="#df00ff" points="1471.17,-1044.88 1474.95,-1054.78 1478.17,-1044.68 1471.17,-1044.88"/>
+</g>
+<!-- proc~load_symbol&#45;&gt;proc~dl_error -->
+<g id="program~~test_device_kernels~~CallsGraph_edge111" class="edge">
+<title>proc~load_symbol&#45;&gt;proc~dl_error</title>
+<path fill="none" stroke="#df00ff" d="M720.11,-565.84C741.76,-556.97 772.38,-545.13 800,-537 820.28,-531.03 843.39,-526 862.07,-522.36"/>
+<polygon fill="#df00ff" stroke="#df00ff" points="862.77,-525.79 871.94,-520.48 861.46,-518.91 862.77,-525.79"/>
+</g>
+<!-- interface~nvtxdomainrangepop_c -->
+<g id="program~~test_device_kernels~~CallsGraph_node68" class="node">
+<title>interface~nvtxdomainrangepop_c</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node68"><a xlink:href="../interface/nvtxdomainrangepop_c.html" xlink:title="nvtxDomainRangePop_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1369,-1508 1227,-1508 1227,-1484 1369,-1484 1369,-1508"/>
+<text text-anchor="middle" x="1298" y="-1493.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePop_c</text>
+</a>
+</g>
+</g>
+<!-- proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge113" class="edge">
+<title>proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c</title>
+<path fill="none" stroke="#ff00ef" d="M1151.94,-1542.97C1161.83,-1540.11 1172.3,-1537.01 1182,-1534 1198.11,-1529 1201.99,-1527.3 1218,-1522 1228.6,-1518.49 1240,-1514.73 1250.76,-1511.19"/>
+<polygon fill="#ff00ef" stroke="#ff00ef" points="1252.01,-1514.46 1260.41,-1508.01 1249.82,-1507.81 1252.01,-1514.46"/>
+</g>
+<!-- interface~nvtxdomainrangepushex_c -->
+<g id="program~~test_device_kernels~~CallsGraph_node69" class="node">
+<title>interface~nvtxdomainrangepushex_c</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node69"><a xlink:href="../interface/nvtxdomainrangepushex_c.html" xlink:title="nvtxDomainRangePushEx_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1378,-1588 1218,-1588 1218,-1564 1378,-1564 1378,-1588"/>
+<text text-anchor="middle" x="1298" y="-1573.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePushEx_c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge114" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c</title>
+<path fill="none" stroke="#ff00bf" d="M1182.22,-1588.82C1190.6,-1587.89 1199.2,-1586.92 1207.76,-1585.97"/>
+<polygon fill="#ff00bf" stroke="#ff00bf" points="1208.2,-1589.44 1217.75,-1584.85 1207.43,-1582.48 1208.2,-1589.44"/>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge115" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#ff00bf" d="M1157.5,-1584.88C1165.8,-1582.29 1174.24,-1579.32 1182,-1576 1199.03,-1568.72 1200.8,-1561.88 1218,-1555 1285.86,-1527.85 1326.86,-1569.22 1378,-1517 1439.02,-1454.7 1466.49,-1171.59 1473.27,-1089.42"/>
+<polygon fill="#ff00bf" stroke="#ff00bf" points="1476.78,-1089.45 1474.09,-1079.2 1469.8,-1088.89 1476.78,-1089.45"/>
+</g>
+<!-- proc~create_nvtx_domain -->
+<g id="program~~test_device_kernels~~CallsGraph_node71" class="node">
+<title>proc~create_nvtx_domain</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node71"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
+<polygon fill="#d9534f" stroke="#d9534f" points="1358,-1630 1238,-1630 1238,-1606 1358,-1606 1358,-1630"/>
+<text text-anchor="middle" x="1298" y="-1615.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
+<g id="program~~test_device_kernels~~CallsGraph_edge116" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
+<path fill="none" stroke="#ff00bf" d="M1182.22,-1605.18C1197.22,-1606.85 1212.96,-1608.61 1227.8,-1610.27"/>
+<polygon fill="#ff00bf" stroke="#ff00bf" points="1227.59,-1613.77 1237.92,-1611.4 1228.37,-1606.81 1227.59,-1613.77"/>
+</g>
+<!-- interface~dlclose -->
+<g id="program~~test_device_kernels~~CallsGraph_node65" class="node">
+<title>interface~dlclose</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node65"><a xlink:href="../interface/dlclose.html" xlink:title="dlclose">
+<polygon fill="#a7506f" stroke="#a7506f" points="926,-764 872,-764 872,-740 926,-740 926,-764"/>
+<text text-anchor="middle" x="899" y="-749.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dlclose</text>
+</a>
+</g>
+</g>
+<!-- proc~unload_library&#45;&gt;interface~dlclose -->
+<g id="program~~test_device_kernels~~CallsGraph_edge117" class="edge">
+<title>proc~unload_library&#45;&gt;interface~dlclose</title>
+<path fill="none" stroke="#ff008f" d="M735.04,-745.69C772.57,-747.14 826.14,-749.22 861.48,-750.59"/>
+<polygon fill="#ff008f" stroke="#ff008f" points="861.69,-754.1 871.82,-750.99 861.96,-747.1 861.69,-754.1"/>
+</g>
+<!-- proc~unload_library&#45;&gt;proc~dl_error -->
+<g id="program~~test_device_kernels~~CallsGraph_edge118" class="edge">
+<title>proc~unload_library&#45;&gt;proc~dl_error</title>
+<path fill="none" stroke="#ff008f" d="M697.53,-731.82C719.04,-688.43 791.22,-543.67 800,-537 817.58,-523.65 841.81,-518.37 861.78,-516.45"/>
+<polygon fill="#ff008f" stroke="#ff008f" points="862.05,-519.94 871.77,-515.72 861.54,-512.95 862.05,-519.94"/>
+</g>
+<!-- proc~string_f2c -->
+<g id="program~~test_device_kernels~~CallsGraph_node85" class="node">
+<title>proc~string_f2c</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node85"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="1638,-1079 1574,-1079 1574,-1055 1638,-1055 1638,-1079"/>
+<text text-anchor="middle" x="1606" y="-1064.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge119" class="edge">
+<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
+<path fill="none" stroke="#00ff35" d="M1511.64,-1067C1527.7,-1067 1546.92,-1067 1563.73,-1067"/>
+<polygon fill="#00ff35" stroke="#00ff35" points="1563.83,-1070.5 1573.83,-1067 1563.83,-1063.5 1563.83,-1070.5"/>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge121" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#00ff86" d="M1358.04,-1610.43C1365.55,-1607.28 1372.51,-1602.94 1378,-1597 1448.24,-1521 1469.52,-1180.42 1474.01,-1089.42"/>
+<polygon fill="#00ff86" stroke="#00ff86" points="1477.51,-1089.53 1474.48,-1079.37 1470.51,-1089.2 1477.51,-1089.53"/>
+</g>
+<!-- interface~nvtxdomaincreate_c -->
+<g id="program~~test_device_kernels~~CallsGraph_node83" class="node">
+<title>interface~nvtxdomaincreate_c</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node83"><a xlink:href="../interface/nvtxdomaincreate_c.html" xlink:title="nvtxDomainCreate_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1538,-1630 1414,-1630 1414,-1606 1538,-1606 1538,-1630"/>
+<text text-anchor="middle" x="1476" y="-1615.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainCreate_c</text>
+</a>
+</g>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c -->
+<g id="program~~test_device_kernels~~CallsGraph_edge120" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c</title>
+<path fill="none" stroke="#00ff86" d="M1358.1,-1618C1372.7,-1618 1388.5,-1618 1403.62,-1618"/>
+<polygon fill="#00ff86" stroke="#00ff86" points="1403.96,-1621.5 1413.96,-1618 1403.96,-1614.5 1403.96,-1621.5"/>
+</g>
+<!-- proc~dl_error&#45;&gt;proc~string_c2f -->
+<g id="program~~test_device_kernels~~CallsGraph_edge123" class="edge">
+<title>proc~dl_error&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#00ffd6" d="M926.22,-518.66C961.42,-522.23 1024.33,-528.61 1065.87,-532.83"/>
+<polygon fill="#00ffd6" stroke="#00ffd6" points="1065.64,-536.32 1075.94,-533.85 1066.35,-529.36 1065.64,-536.32"/>
+</g>
+<!-- proc~dl_error&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge124" class="edge">
+<title>proc~dl_error&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00ffd6" d="M926.13,-515.29C947.67,-516.05 977.85,-520.41 998,-537 1072.46,-598.32 1097.13,-719.84 1104.34,-769.78"/>
+<polygon fill="#00ffd6" stroke="#00ffd6" points="1100.89,-770.38 1105.69,-779.83 1107.83,-769.45 1100.89,-770.38"/>
+</g>
+<!-- interface~dlerror -->
+<g id="program~~test_device_kernels~~CallsGraph_node82" class="node">
+<title>interface~dlerror</title>
+<g id="a_program~~test_device_kernels~~CallsGraph_node82"><a xlink:href="../interface/dlerror.html" xlink:title="dlerror">
+<polygon fill="#a7506f" stroke="#a7506f" points="1135,-507 1081,-507 1081,-483 1135,-483 1135,-507"/>
+<text text-anchor="middle" x="1108" y="-492.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dlerror</text>
+</a>
+</g>
+</g>
+<!-- proc~dl_error&#45;&gt;interface~dlerror -->
+<g id="program~~test_device_kernels~~CallsGraph_edge122" class="edge">
+<title>proc~dl_error&#45;&gt;interface~dlerror</title>
+<path fill="none" stroke="#00ffd6" d="M926.22,-513.34C962.85,-509.62 1029.48,-502.86 1070.81,-498.67"/>
+<polygon fill="#00ffd6" stroke="#00ffd6" points="1071.4,-502.13 1081,-497.64 1070.69,-495.17 1071.4,-502.13"/>
+</g>
+<!-- proc~get_env_base&#45;&gt;proc~destroy_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge126" class="edge">
+<title>proc~get_env_base&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#00d6ff" d="M941.89,-82.3C968.97,-87.66 1004.89,-94.77 1036.31,-101"/>
+<polygon fill="#00d6ff" stroke="#00d6ff" points="1035.85,-104.47 1046.34,-102.98 1037.21,-97.61 1035.85,-104.47"/>
+</g>
+<!-- mpi_bcast -->
+<g id="program~~test_device_kernels~~CallsGraph_node84" class="node">
+<title>mpi_bcast</title>
+<polygon fill="#777777" stroke="#777777" points="1141.5,-85 1074.5,-85 1074.5,-61 1141.5,-61 1141.5,-85"/>
+<text text-anchor="middle" x="1108" y="-70.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_bcast</text>
+</g>
+<!-- proc~get_env_base&#45;&gt;mpi_bcast -->
+<g id="program~~test_device_kernels~~CallsGraph_edge125" class="edge">
+<title>proc~get_env_base&#45;&gt;mpi_bcast</title>
+<path fill="none" stroke="#00d6ff" d="M941.89,-73.8C977.48,-73.63 1028.35,-73.38 1064.2,-73.21"/>
+<polygon fill="#00d6ff" stroke="#00d6ff" points="1064.36,-76.71 1074.35,-73.16 1064.33,-69.71 1064.36,-76.71"/>
+</g>
+<!-- proc~get_env_int32&#45;&gt;mpi_abort -->
+<g id="program~~test_device_kernels~~CallsGraph_edge128" class="edge">
+<title>proc~get_env_int32&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#0086ff" d="M942.96,-472.24C962.63,-473.86 984.5,-479.53 998,-495 1033.16,-535.3 1026.17,-922.09 1034,-975 1051.26,-1091.64 1086.77,-1228.56 1100.95,-1281.03"/>
+<polygon fill="#0086ff" stroke="#0086ff" points="1097.64,-1282.18 1103.64,-1290.91 1104.39,-1280.34 1097.64,-1282.18"/>
+</g>
+<!-- proc~get_env_int32&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge129" class="edge">
+<title>proc~get_env_int32&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#0086ff" d="M942.69,-474.15C961.58,-476.31 982.89,-481.88 998,-495 1019.95,-514.06 1080.14,-704.73 1100.31,-770.12"/>
+<polygon fill="#0086ff" stroke="#0086ff" points="1097.01,-771.3 1103.3,-779.83 1103.7,-769.24 1097.01,-771.3"/>
+</g>
+<!-- proc~get_env_int32&#45;&gt;interface~get_env -->
+<g id="program~~test_device_kernels~~CallsGraph_edge127" class="edge">
+<title>proc~get_env_int32&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#0086ff" d="M877.34,-461.87C856.97,-444.98 825.29,-414.45 800,-386 762.01,-343.26 721.7,-288.89 702.67,-259.12"/>
+<polygon fill="#0086ff" stroke="#0086ff" points="705.5,-257.04 697.28,-250.36 699.54,-260.71 705.5,-257.04"/>
+</g>
+<!-- proc~get_env_int8&#45;&gt;interface~get_env -->
+<g id="program~~test_device_kernels~~CallsGraph_edge130" class="edge">
+<title>proc~get_env_int8&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#0035ff" d="M858.65,-164.7C839.85,-168.22 817.65,-173.5 800,-184 778.87,-196.57 784.67,-212.69 764,-226 753.24,-232.93 740.14,-237.63 728.05,-240.29"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="727.43,-236.84 718.21,-242.05 728.67,-243.73 727.43,-236.84"/>
+</g>
+<!-- proc~get_env_logical&#45;&gt;interface~get_env -->
+<g id="program~~test_device_kernels~~CallsGraph_edge131" class="edge">
+<title>proc~get_env_logical&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#1a00ff" d="M863.99,-208.08C826.61,-217.75 766.78,-229.97 728.32,-235.82"/>
+<polygon fill="#1a00ff" stroke="#1a00ff" points="727.47,-232.41 718.07,-237.3 728.47,-239.34 727.47,-232.41"/>
+</g>
+<!-- proc~get_env_string&#45;&gt;proc~write_message -->
+<g id="program~~test_device_kernels~~CallsGraph_edge134" class="edge">
+<title>proc~get_env_string&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#6b00ff" d="M917.86,-250.08C940.52,-266.46 978.94,-297.96 998,-335 1043.94,-424.27 1010.99,-460.28 1034,-558 1052.75,-637.64 1084.51,-729.64 1099.17,-770.52"/>
+<polygon fill="#6b00ff" stroke="#6b00ff" points="1095.9,-771.77 1102.58,-779.99 1102.48,-769.39 1095.9,-771.77"/>
+</g>
+<!-- proc~get_env_string&#45;&gt;interface~get_env -->
+<g id="program~~test_device_kernels~~CallsGraph_edge132" class="edge">
+<title>proc~get_env_string&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#6b00ff" d="M853.83,-243.65C816.45,-245.22 763.51,-245.11 728.37,-243.31"/>
+<polygon fill="#6b00ff" stroke="#6b00ff" points="728.26,-239.8 718.07,-242.7 727.85,-246.79 728.26,-239.8"/>
+</g>
+<!-- proc~get_env_string&#45;&gt;proc~destroy_string -->
+<g id="program~~test_device_kernels~~CallsGraph_edge133" class="edge">
+<title>proc~get_env_string&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#6b00ff" d="M944.18,-233.7C961.67,-230.71 981.5,-225.62 998,-217 1036.87,-196.68 1071.98,-158.66 1091.31,-135.21"/>
+<polygon fill="#6b00ff" stroke="#6b00ff" points="1094.15,-137.28 1097.7,-127.29 1088.7,-132.88 1094.15,-137.28"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprogramtest_device_kernelsCallsGraph = svgPanZoom('#programtest_device_kernelsCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<br>
+
+    <section>
+    <h2>Variables</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ierror~2"></span>
+              integer(kind=int32)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ierror</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~60"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </section>
+    <br>
+    
+    
+    
+
+    
+
+
+    <section>
+    <h2>Subroutines</h2>
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-execute_test"></span> <h3> subroutine <a href='../proc/execute_test.html'>execute_test</a>(dims, kernel_type)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~516"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kernel_type~17"></span>
+              type(<a href='../type/kernel_type_t.html'>kernel_type_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kernel_type</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+    </section>    
+    
+
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

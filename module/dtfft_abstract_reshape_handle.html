@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,14 +52,9 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -79,7 +73,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.6% of total for modules and submodules.">122 statements</a>
+                 title=" 0.5% of total for modules and submodules.">156 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -127,10 +121,11 @@
       <div id="absints-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-get_async_active_interface">get_async_active_interface</a>
-            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-create_interface">create_interface</a>
-            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-execute_interface">execute_interface</a>
+            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-get_backend_interface">get_backend_interface</a>
+            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-create_interface~2">create_interface</a>
+            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-execute_interface~2">execute_interface</a>
             <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-execute_end_interface">execute_end_interface</a>
-            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-destroy_interface">destroy_interface</a>
+            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#interface-destroy_interface~2">destroy_interface</a>
         </div>
       </div>
     </div>
@@ -157,7 +152,7 @@
       </a>
       <div id="funcs-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#proc-get_aux_bytes">get_aux_bytes</a>
+            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#proc-get_aux_bytes~2">get_aux_bytes</a>
         </div>
       </div>
     </div>
@@ -169,7 +164,8 @@
       </a>
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#proc-create">create</a>
+            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#proc-create~4">create</a>
+            <a class="list-group-item" href="../module/dtfft_abstract_reshape_handle.html#proc-report_compression">report_compression</a>
         </div>
       </div>
     </div>
@@ -198,10 +194,14 @@ The actual implementation of the handle is deferred to the
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='dtfft_pencil.html'>dtfft_pencil</a></li>
-                  <li class="list-inline-item"><a href='dtfft_abstract_backend.html'>dtfft_abstract_backend</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='dtfft_config.html'>dtfft_config</a></li>
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='dtfft_abstract_backend.html'>dtfft_abstract_backend</a></li>
                   <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='dtfft_pencil.html'>dtfft_pencil</a></li>
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='dtfft_abstract_compressor.html'>dtfft_abstract_compressor</a></li>
                   <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
               </ul>
             </li>
@@ -212,462 +212,576 @@ The actual implementation of the handle is deferred to the
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: module~~dtfft_abstract_reshape_handle~~UsesGraph Pages: 1 -->
-<svg id="moduledtfft_abstract_reshape_handleUsesGraph" width="641pt" height="411pt"
- viewBox="0.00 0.00 641.00 410.55" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph" class="graph" transform="scale(0.54 0.54) rotate(0) translate(4 754.33)">
+<svg id="moduledtfft_abstract_reshape_handleUsesGraph" width="641pt" height="493pt"
+ viewBox="0.00 0.00 641.00 493.04" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph" class="graph" transform="scale(0.47 0.47) rotate(0) translate(4 1051.31)">
 <title>module~~dtfft_abstract_reshape_handle~~UsesGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-754.33 1180,-754.33 1180,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1051.31 1368,-1051.31 1368,4 -4,4"/>
 <!-- module~dtfft_abstract_reshape_handle -->
 <g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node1" class="node">
 <title>module~dtfft_abstract_reshape_handle</title>
-<polygon fill="none" stroke="black" points="1176,-89.64 1003,-89.64 1003,-65.64 1176,-65.64 1176,-89.64"/>
-<text text-anchor="middle" x="1089.5" y="-75.24" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_abstract_reshape_handle</text>
+<polygon fill="none" stroke="black" points="1364,-704.43 1191,-704.43 1191,-680.43 1364,-680.43 1364,-704.43"/>
+<text text-anchor="middle" x="1277.5" y="-690.03" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_abstract_reshape_handle</text>
+</g>
+<!-- iso_c_binding -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-784.43 5,-784.43 5,-760.43 89,-760.43 89,-784.43"/>
+<text text-anchor="middle" x="47" y="-770.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge1" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1087,-1015.43C1023.1,-1048.62 988.33,-981.18 925,-1015.43"/>
 </g>
 <!-- iso_fortran_env -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node2" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node3" class="node">
 <title>iso_fortran_env</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
-<polygon fill="#337ab7" stroke="#337ab7" points="94,-633.64 0,-633.64 0,-609.64 94,-609.64 94,-633.64"/>
-<text text-anchor="middle" x="47" y="-619.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-381.43 0,-381.43 0,-357.43 94,-357.43 94,-381.43"/>
+<text text-anchor="middle" x="47" y="-367.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_reshape_handle&#45;&gt;iso_fortran_env -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge1" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge2" class="edge">
 <title>module~dtfft_abstract_reshape_handle&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-735.64C756.09,-773.91 714.27,-725.69 567,-711.64 514.43,-706.62 501.79,-696.05 449,-697.64"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1262.12,-680.26C1230.99,-654.01 1154.82,-590.31 1089,-539.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1087,-539.43C961.51,-442.42 1097.07,-309.68 985,-197.43 965.33,-177.73 949.47,-192.71 925,-179.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M923,-179.43C868.85,-150.04 878.17,-113.74 827,-79.43 812.91,-69.98 806.15,-73.98 791.5,-65.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M789.5,-65.43C753.42,-44.37 757.19,-18.88 718,-4.43 682.79,8.55 371.41,-11.04 365,-13.43 330.18,-26.45 336.63,-63.79 299.5,-65.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-65.43C208.47,-67.96 187.02,-107.02 130,-175.43 85.89,-228.35 62.29,-308.45 52.91,-347.06"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="49.4,-346.69 50.54,-357.22 56.22,-348.28 49.4,-346.69"/>
 </g>
 <!-- module~dtfft_abstract_backend -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node3" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node4" class="node">
 <title>module~dtfft_abstract_backend</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node3"><a xlink:href="../module/dtfft_abstract_backend.html" xlink:title="dtfft_abstract_backend">
-<polygon fill="#337ab7" stroke="#337ab7" points="967,-89.64 833,-89.64 833,-65.64 967,-65.64 967,-89.64"/>
-<text text-anchor="middle" x="900" y="-75.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_backend</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node4"><a xlink:href="../module/dtfft_abstract_backend.html" xlink:title="dtfft_abstract_backend">
+<polygon fill="#337ab7" stroke="#337ab7" points="1155,-704.43 1021,-704.43 1021,-680.43 1155,-680.43 1155,-704.43"/>
+<text text-anchor="middle" x="1088" y="-690.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_backend</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_abstract_backend -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge2" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge3" class="edge">
 <title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_abstract_backend</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1002.98,-77.64C994.4,-77.64 985.72,-77.64 977.24,-77.64"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="977.02,-74.14 967.02,-77.64 977.02,-81.14 977.02,-74.14"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1190.98,-692.43C1182.4,-692.43 1173.72,-692.43 1165.24,-692.43"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1165.02,-688.93 1155.02,-692.43 1165.02,-695.93 1165.02,-688.93"/>
+</g>
+<!-- module~dtfft_abstract_compressor -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node5" class="node">
+<title>module~dtfft_abstract_compressor</title>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node5"><a xlink:href="../module/dtfft_abstract_compressor.html" xlink:title="dtfft_abstract_compressor">
+<polygon fill="#337ab7" stroke="#337ab7" points="718,-417.43 567,-417.43 567,-393.43 718,-393.43 718,-417.43"/>
+<text text-anchor="middle" x="642.5" y="-403.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M923,-179.43C850.42,-132.99 820.39,-219.51 754,-274.43 713.63,-307.83 676.51,-357.26 657.28,-384.87"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="654.23,-383.12 651.46,-393.34 660.01,-387.08 654.23,-383.12"/>
+</g>
+<!-- module~dtfft_config -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node6" class="node">
+<title>module~dtfft_config</title>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node6"><a xlink:href="../module/dtfft_config.html" xlink:title="dtfft_config">
+<polygon fill="#337ab7" stroke="#337ab7" points="827,-307.43 754,-307.43 754,-283.43 827,-283.43 827,-307.43"/>
+<text text-anchor="middle" x="790.5" y="-293.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_config -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M923,-179.43C872.67,-147.23 822.22,-232.59 801.42,-274.17"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="798.23,-272.72 797,-283.25 804.52,-275.79 798.23,-272.72"/>
 </g>
 <!-- module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node4" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node7" class="node">
 <title>module~dtfft_parameters</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node4"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
-<polygon fill="#337ab7" stroke="#337ab7" points="232,-363.64 130,-363.64 130,-339.64 232,-339.64 232,-363.64"/>
-<text text-anchor="middle" x="181" y="-349.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node7"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-535.43 130,-535.43 130,-511.43 232,-511.43 232,-535.43"/>
+<text text-anchor="middle" x="181" y="-521.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge3" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge6" class="edge">
 <title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_parameters</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-37.64C868.62,-40.58 859.4,-41.32 833,-56.64 813.7,-67.84 816.15,-80.17 797,-91.64 585.34,-218.34 458.33,-102.71 268,-259.64 242.22,-280.89 255.86,-302.25 232,-325.64 228.73,-328.84 224.98,-331.75 221.04,-334.35"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="219.04,-331.47 212.22,-339.58 222.61,-337.49 219.04,-331.47"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1274.27,-704.61C1264.22,-755.47 1217.83,-951.21 1089,-1015.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1087,-1015.43C1081.41,-1018.22 649.45,-941.33 643.5,-939.43"/>
 </g>
 <!-- module~dtfft_pencil -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node5" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node8" class="node">
 <title>module~dtfft_pencil</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node5"><a xlink:href="../module/dtfft_pencil.html" xlink:title="dtfft_pencil">
-<polygon fill="#337ab7" stroke="#337ab7" points="797,-479.64 725,-479.64 725,-455.64 797,-455.64 797,-479.64"/>
-<text text-anchor="middle" x="761" y="-465.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_pencil</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node8"><a xlink:href="../module/dtfft_pencil.html" xlink:title="dtfft_pencil">
+<polygon fill="#337ab7" stroke="#337ab7" points="960,-531.43 888,-531.43 888,-507.43 960,-507.43 960,-531.43"/>
+<text text-anchor="middle" x="924" y="-517.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_pencil</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_pencil -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge4" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge7" class="edge">
 <title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_pencil</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1087.62,-89.74C1081.02,-176.35 1035.68,-699.57 901,-735.64"/>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-735.64C791.42,-764.45 768.01,-559.52 763.19,-490.09"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="766.66,-489.57 762.54,-479.81 759.68,-490.01 766.66,-489.57"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1087,-539.43C1053.98,-514.04 1005.47,-511.21 970.14,-513.41"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="969.79,-509.93 960.1,-514.19 970.34,-516.91 969.79,-509.93"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node9" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node9"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-573.43 268,-573.43 268,-549.43 329,-549.43 329,-573.43"/>
+<text text-anchor="middle" x="298.5" y="-559.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_abstract_reshape_handle&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1087,-539.43C1058.56,-517.56 484.43,-645.08 449,-639.43"/>
 </g>
 <!-- mpi_f08 -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node6" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node10" class="node">
 <title>mpi_f08</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node6"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
-<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-241.64 19.5,-241.64 19.5,-217.64 74.5,-217.64 74.5,-241.64"/>
-<text text-anchor="middle" x="47" y="-227.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node10"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-515.43 19.5,-515.43 19.5,-491.43 74.5,-491.43 74.5,-515.43"/>
+<text text-anchor="middle" x="47" y="-501.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_reshape_handle&#45;&gt;mpi_f08 -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge5" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge9" class="edge">
 <title>module~dtfft_abstract_reshape_handle&#45;&gt;mpi_f08</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1058.65,-65.6C1021.94,-52.13 957.54,-32.77 901,-37.64"/>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M899,-37.64C868.59,-40.26 862.3,-48.09 833,-56.64 801.41,-65.85 794.83,-79.86 762,-77.64"/>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M760,-77.64C503.15,-60.22 419.52,59.68 182,-39.64"/>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-39.64C110.19,-74.71 70.26,-166.18 55.1,-208.09"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="51.77,-207.02 51.78,-217.61 58.38,-209.32 51.77,-207.02"/>
-</g>
-<!-- module~dtfft_abstract_backend&#45;&gt;iso_fortran_env -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge7" class="edge">
-<title>module~dtfft_abstract_backend&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M627,-697.64C548.74,-709.2 528.08,-695.26 449,-697.64"/>
-</g>
-<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge14" class="edge">
-<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_parameters</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M627,-409.64C517.32,-452.07 479.26,-418.8 365,-446.64 335.02,-453.94 326.45,-484.66 299.5,-469.64"/>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M297.5,-469.64C274.61,-456.61 225.09,-401.5 198.95,-371.43"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="201.42,-368.94 192.24,-363.66 196.13,-373.52 201.42,-368.94"/>
-</g>
-<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_pencil -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge15" class="edge">
-<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_pencil</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M894.75,-89.74C875.34,-145 794.95,-373.84 769.65,-445.85"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="766.35,-444.7 766.34,-455.29 772.95,-447.02 766.35,-444.7"/>
-</g>
-<!-- module~dtfft_abstract_backend&#45;&gt;mpi_f08 -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge17" class="edge">
-<title>module~dtfft_abstract_backend&#45;&gt;mpi_f08</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M832.74,-79.44C810.26,-79.58 785.02,-79.2 762,-77.64"/>
-</g>
-<!-- iso_c_binding -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node7" class="node">
-<title>iso_c_binding</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node7"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
-<polygon fill="#337ab7" stroke="#337ab7" points="89,-363.64 5,-363.64 5,-339.64 89,-339.64 89,-363.64"/>
-<text text-anchor="middle" x="47" y="-349.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
-</a>
-</g>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M789.5,-65.43C571.6,31.15 476.66,-75.23 268,-190.43 244.61,-203.34 199.6,-254.33 182,-274.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-274.43C119.98,-340.75 74.83,-438.85 56.7,-481.87"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="53.37,-480.77 52.78,-491.35 59.84,-483.45 53.37,-480.77"/>
 </g>
 <!-- module~dtfft_abstract_backend&#45;&gt;iso_c_binding -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge6" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge10" class="edge">
 <title>module~dtfft_abstract_backend&#45;&gt;iso_c_binding</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M896.04,-89.75C885.62,-129.49 846.61,-256.53 762,-311.64"/>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M760,-311.64C712.18,-342.78 731.31,-242.94 689,-204.64 599.54,-123.64 569.68,-77.64 449,-77.64 449,-77.64 449,-77.64 297.5,-77.64 228.97,-77.64 101.73,-267.36 60.94,-331.06"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="57.98,-329.19 55.57,-339.51 63.89,-332.95 57.98,-329.19"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M1086.07,-704.5C1081.3,-756.66 1054.45,-962.39 925,-1015.43"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M923,-1015.43C728.06,-1095.3 658.66,-994.88 449,-1015.43"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M447,-27.43C410.67,-34.31 400.73,-31.92 365,-41.43 335.04,-49.41 330.47,-64.06 299.5,-65.43"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M789.5,-939.43C725.26,-948.56 705.07,-959.92 643.5,-939.43"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M641.5,-939.43C603.9,-926.92 597.55,-915.67 567,-890.43 549.31,-875.82 550.84,-864.96 531,-853.43 424.66,-791.66 351.48,-857.73 268,-767.43 236.91,-733.8 200.77,-598.89 187.36,-545.42"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="190.73,-544.45 184.93,-535.59 183.94,-546.14 190.73,-544.45"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_pencil -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_pencil</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M1075.61,-680.27C1048.02,-650.81 977.42,-575.41 943.6,-539.3"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="945.99,-536.72 936.6,-531.81 940.88,-541.51 945.99,-536.72"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M923,-672.43C847.9,-671.38 829,-676.48 754,-672.43 617.85,-665.09 582.69,-666.21 449,-639.43"/>
+</g>
+<!-- module~dtfft_abstract_backend&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_abstract_backend&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M789.5,-939.43C757.44,-943.99 750.06,-948.87 718,-953.43 599.16,-970.32 569.03,-977.43 449,-977.43 449,-977.43 449,-977.43 297.5,-977.43 193.96,-977.43 81.77,-618.78 54.32,-525.43"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="57.62,-524.25 51.46,-515.62 50.9,-526.2 57.62,-524.25"/>
 </g>
 <!-- module~dtfft_abstract_kernel -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node8" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node11" class="node">
 <title>module~dtfft_abstract_kernel</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node8"><a xlink:href="../module/dtfft_abstract_kernel.html" xlink:title="dtfft_abstract_kernel">
-<polygon fill="#337ab7" stroke="#337ab7" points="689,-363.64 567,-363.64 567,-339.64 689,-339.64 689,-363.64"/>
-<text text-anchor="middle" x="628" y="-349.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_kernel</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node11"><a xlink:href="../module/dtfft_abstract_kernel.html" xlink:title="dtfft_abstract_kernel">
+<polygon fill="#337ab7" stroke="#337ab7" points="985,-724.43 863,-724.43 863,-700.43 985,-700.43 985,-724.43"/>
+<text text-anchor="middle" x="924" y="-710.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_kernel</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_abstract_kernel -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge8" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge12" class="edge">
 <title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_abstract_kernel</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M760,-311.64C741.68,-323.57 719.62,-332.09 698.87,-338.11"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="697.85,-334.76 689.14,-340.78 699.71,-341.51 697.85,-334.76"/>
-</g>
-<!-- module~dtfft_config -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node9" class="node">
-<title>module~dtfft_config</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node9"><a xlink:href="../module/dtfft_config.html" xlink:title="dtfft_config">
-<polygon fill="#337ab7" stroke="#337ab7" points="664.5,-499.64 591.5,-499.64 591.5,-475.64 664.5,-475.64 664.5,-499.64"/>
-<text text-anchor="middle" x="628" y="-485.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config</text>
-</a>
-</g>
-</g>
-<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_config -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge9" class="edge">
-<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_config</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M760,-311.64C698.19,-351.89 742.01,-410.35 689,-461.64 684.61,-465.88 679.41,-469.49 673.94,-472.55"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="671.99,-469.61 664.58,-477.18 675.09,-475.88 671.99,-469.61"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M1020.64,-700.62C1012.25,-701.66 1003.65,-702.72 995.21,-703.76"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="994.51,-700.32 985.01,-705.02 995.37,-707.27 994.51,-700.32"/>
 </g>
 <!-- module~dtfft_errors -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node10" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node12" class="node">
 <title>module~dtfft_errors</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node10"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
-<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-673.64 145.5,-673.64 145.5,-649.64 216.5,-649.64 216.5,-673.64"/>
-<text text-anchor="middle" x="181" y="-659.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node12"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
+<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-208.43 145.5,-208.43 145.5,-184.43 216.5,-184.43 216.5,-208.43"/>
+<text text-anchor="middle" x="181" y="-194.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_errors -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge10" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge13" class="edge">
 <title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_errors</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M899.41,-89.76C901.72,-177.56 904.52,-712.14 629,-697.64"/>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M627,-697.64C546.97,-709.46 529.08,-648.21 449,-659.64"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M1081.11,-680.19C1069.49,-656.02 1042.85,-600.42 1021,-553.43 1010.03,-529.85 843.92,-147.18 827,-127.43 801.74,-97.94 783.77,-104.36 754,-79.43 736.16,-64.5 739.13,-51.18 718,-41.43 609.29,8.72 566.74,-5.75 449,-27.43"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M447,-27.43C374.54,-41.16 370.21,-82.48 299.5,-103.43"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M297.5,-103.43C255.51,-115.87 218.33,-152.84 198.1,-176.25"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="195.19,-174.28 191.44,-184.19 200.55,-178.78 195.19,-174.28"/>
 </g>
 <!-- module~dtfft_interface_cuda_runtime -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node11" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node13" class="node">
 <title>module~dtfft_interface_cuda_runtime</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node11"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
-<polygon fill="#337ab7" stroke="#337ab7" points="531,-479.64 365,-479.64 365,-455.64 531,-455.64 531,-479.64"/>
-<text text-anchor="middle" x="448" y="-465.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node13"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
+<polygon fill="#337ab7" stroke="#337ab7" points="531,-611.43 365,-611.43 365,-587.43 531,-587.43 531,-611.43"/>
+<text text-anchor="middle" x="448" y="-597.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_cuda_runtime -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge11" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge14" class="edge">
 <title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_cuda_runtime</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M627,-409.64C584.75,-425.99 535.73,-441.73 499.85,-452.67"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="498.65,-449.38 490.09,-455.63 500.68,-456.08 498.65,-449.38"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M1020.97,-682.28C991.66,-678.29 956.69,-674.24 925,-672.43"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M923,-672.43C775.57,-664.03 604.92,-632.23 513.98,-613.49"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="514.6,-610.04 504.1,-611.44 513.18,-616.9 514.6,-610.04"/>
 </g>
 <!-- module~dtfft_interface_nccl -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node12" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node14" class="node">
 <title>module~dtfft_interface_nccl</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node12"><a xlink:href="../module/dtfft_interface_nccl.html" xlink:title="dtfft_interface_nccl">
-<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-281.64 390.5,-281.64 390.5,-257.64 505.5,-257.64 505.5,-281.64"/>
-<text text-anchor="middle" x="448" y="-267.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nccl</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node14"><a xlink:href="../module/dtfft_interface_nccl.html" xlink:title="dtfft_interface_nccl">
+<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-801.43 390.5,-801.43 390.5,-777.43 505.5,-777.43 505.5,-801.43"/>
+<text text-anchor="middle" x="448" y="-787.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nccl</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nccl -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge12" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge15" class="edge">
 <title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nccl</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M760,-311.64C711.21,-343.41 687.12,-315.02 629,-311.64"/>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M627,-311.64C614.87,-310.93 553.58,-296.05 506.27,-284.19"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="506.96,-280.76 496.41,-281.72 505.25,-287.55 506.96,-280.76"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M923,-892.43C867.3,-919.82 853.34,-934.19 791.5,-939.43"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M789.5,-939.43C726.02,-944.81 590.23,-838.89 531,-815.43 521.32,-811.6 510.83,-807.92 500.69,-804.6"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="501.7,-801.25 491.11,-801.54 499.57,-807.92 501.7,-801.25"/>
 </g>
 <!-- module~dtfft_interface_nvtx -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node13" class="node">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node15" class="node">
 <title>module~dtfft_interface_nvtx</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node13"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
-<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-323.64 390.5,-323.64 390.5,-299.64 505.5,-299.64 505.5,-323.64"/>
-<text text-anchor="middle" x="448" y="-309.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
+<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node15"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
+<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-759.43 390.5,-759.43 390.5,-735.43 505.5,-735.43 505.5,-759.43"/>
+<text text-anchor="middle" x="448" y="-745.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
 </a>
 </g>
 </g>
 <!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nvtx -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge13" class="edge">
-<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nvtx</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M627,-311.64C590.23,-309.5 549.13,-309.35 515.68,-309.8"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="515.51,-306.31 505.57,-309.96 515.62,-313.31 515.51,-306.31"/>
-</g>
-<!-- module~dtfft_utils -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_node14" class="node">
-<title>module~dtfft_utils</title>
-<g id="a_module~~dtfft_abstract_reshape_handle~~UsesGraph_node14"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
-<polygon fill="#337ab7" stroke="#337ab7" points="329,-401.64 268,-401.64 268,-377.64 329,-377.64 329,-401.64"/>
-<text text-anchor="middle" x="298.5" y="-387.24" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
-</a>
-</g>
-</g>
-<!-- module~dtfft_abstract_backend&#45;&gt;module~dtfft_utils -->
 <g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge16" class="edge">
-<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_utils</title>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M760,-311.64C699.07,-351.32 696.81,-383.4 629,-409.64"/>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M627,-409.64C552.75,-438.36 527.62,-402.13 449,-389.64"/>
-<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M447,-389.64C410.8,-383.89 368.98,-384.57 339.13,-386.28"/>
-<polygon fill="#cbff00" stroke="#cbff00" points="338.85,-382.79 329.1,-386.92 339.3,-389.78 338.85,-382.79"/>
+<title>module~dtfft_abstract_backend&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M1081.88,-704.55C1065.56,-741.4 1010.7,-852.07 925,-892.43"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M923,-892.43C834.37,-934.17 811.45,-840.84 718,-811.43 650,-790.03 570.37,-771.92 515.49,-760.49"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="516.04,-757.03 505.53,-758.43 514.62,-763.88 516.04,-757.03"/>
 </g>
-<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge19" class="edge">
-<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M173.99,-363.94C153.28,-406.29 84.78,-546.41 58.44,-600.28"/>
-<polygon fill="#00ff66" stroke="#00ff66" points="55.15,-599.05 53.9,-609.57 61.44,-602.12 55.15,-599.05"/>
-</g>
-<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge20" class="edge">
-<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
-<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M166.86,-339.49C143.83,-318.21 96.03,-274.02 68.58,-248.65"/>
-<polygon fill="#00ff66" stroke="#00ff66" points="70.81,-245.95 61.09,-241.73 66.05,-251.09 70.81,-245.95"/>
-</g>
-<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge18" class="edge">
-<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
-<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M129.72,-351.64C119.77,-351.64 109.31,-351.64 99.33,-351.64"/>
-<polygon fill="#00ff66" stroke="#00ff66" points="99.14,-348.14 89.14,-351.64 99.14,-355.14 99.14,-348.14"/>
-</g>
-<!-- module~dtfft_pencil&#45;&gt;iso_fortran_env -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge22" class="edge">
-<title>module~dtfft_pencil&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M627,-659.64C591.17,-678.4 489.45,-697.37 449,-697.64"/>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M447,-697.64C305.96,-698.58 262.81,-730.13 130,-682.64 105.53,-673.89 82.22,-655.18 66.75,-640.78"/>
-<polygon fill="#0066ff" stroke="#0066ff" points="69.04,-638.12 59.41,-633.71 64.19,-643.17 69.04,-638.12"/>
-</g>
-<!-- module~dtfft_pencil&#45;&gt;module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge26" class="edge">
-<title>module~dtfft_pencil&#45;&gt;module~dtfft_parameters</title>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M756.27,-479.69C744.51,-515.32 704.42,-620.13 629,-659.64"/>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M627,-659.64C609.09,-669.02 467.73,-629.27 449,-621.64"/>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M447,-621.64C411.84,-607.3 394.26,-621.85 365,-597.64 315.77,-556.9 355.31,-500.76 299.5,-469.64"/>
-</g>
-<!-- module~dtfft_pencil&#45;&gt;mpi_f08 -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge28" class="edge">
-<title>module~dtfft_pencil&#45;&gt;mpi_f08</title>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M757.61,-455.62C751.18,-425.84 731.09,-347.5 689,-297.64 635.39,-234.13 610.82,-220.77 531,-197.64 418.57,-165.05 383.27,-191.28 268,-211.64 229.54,-218.43 220.83,-233.77 182,-229.64"/>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M180,-229.64C148.11,-224.07 111.23,-224.64 84.57,-226.28"/>
-<polygon fill="#0066ff" stroke="#0066ff" points="84.26,-222.79 74.53,-226.98 84.75,-229.78 84.26,-222.79"/>
-</g>
-<!-- module~dtfft_pencil&#45;&gt;iso_c_binding -->
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_c_binding -->
 <g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge21" class="edge">
-<title>module~dtfft_pencil&#45;&gt;iso_c_binding</title>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M447,-621.64C384.31,-596.08 364.19,-603.59 299.5,-583.64"/>
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M629.23,-417.65C612.06,-435.59 581.36,-470.9 567,-507.43 517.39,-633.64 600.82,-694.17 531,-810.43 508.15,-848.48 476.31,-832.45 449,-867.43"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M447,-867.43C389.85,-940.63 389.93,-994.28 299.5,-1015.43"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-1015.43C247.52,-1027.12 229.69,-1034.42 182,-1015.43"/>
 </g>
-<!-- module~dtfft_pencil&#45;&gt;module~dtfft_config -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge23" class="edge">
-<title>module~dtfft_pencil&#45;&gt;module~dtfft_config</title>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M724.89,-473C709.45,-475.35 691.12,-478.15 674.64,-480.67"/>
-<polygon fill="#0066ff" stroke="#0066ff" points="674.02,-477.22 664.66,-482.19 675.07,-484.14 674.02,-477.22"/>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M567,-406.39C531.3,-406.8 487.94,-407.23 449,-407.43"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M447,-407.43C328.02,-408.04 298.01,-395.87 182,-369.43"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M180,-369.43C155.74,-362.79 128.02,-361.85 104.26,-362.93"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="103.78,-359.45 94,-363.54 104.19,-366.44 103.78,-359.45"/>
 </g>
-<!-- module~dtfft_pencil&#45;&gt;module~dtfft_errors -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge24" class="edge">
-<title>module~dtfft_pencil&#45;&gt;module~dtfft_errors</title>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M627,-659.64C556.92,-696.34 527.32,-648.47 449,-659.64"/>
-</g>
-<!-- module~dtfft_pencil&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters -->
 <g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge25" class="edge">
-<title>module~dtfft_pencil&#45;&gt;module~dtfft_interface_cuda_runtime</title>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M627,-447.64C587.7,-442.61 543.42,-447.54 508.86,-453.76"/>
-<polygon fill="#0066ff" stroke="#0066ff" points="508.1,-450.35 498.92,-455.64 509.4,-457.22 508.1,-450.35"/>
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-445.43C262.63,-458.31 263.19,-477.21 232,-497.43 227.06,-500.64 221.67,-503.77 216.33,-506.69"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="214.66,-503.62 207.46,-511.38 217.93,-509.8 214.66,-503.62"/>
 </g>
-<!-- module~dtfft_pencil&#45;&gt;module~dtfft_utils -->
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M614.95,-417.54C554.09,-445.3 404.48,-513.54 335.46,-545.03"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="333.92,-541.89 326.27,-549.22 336.82,-548.25 333.92,-541.89"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;mpi_f08 -->
 <g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge27" class="edge">
-<title>module~dtfft_pencil&#45;&gt;module~dtfft_utils</title>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M724.76,-461.78C698.43,-457.52 661.52,-451.8 629,-447.64"/>
-<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M627,-447.64C544.47,-437.08 531.17,-402.69 449,-389.64"/>
+<title>module~dtfft_abstract_compressor&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M447,-407.43C379.38,-410.71 363.01,-421.98 299.5,-445.43"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-445.43C246.81,-464.15 236.04,-483.98 182,-483.43"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M180,-483.43C147.47,-483.1 110.93,-489.14 84.55,-494.67"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="83.65,-491.29 74.62,-496.83 85.14,-498.13 83.65,-491.29"/>
 </g>
-<!-- module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge29" class="edge">
-<title>module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M604.54,-363.79C592.05,-371.51 577.05,-382.51 567,-395.64 540.05,-430.82 565.42,-460.71 531,-488.64 408.96,-587.67 315.91,-463.36 182,-545.64"/>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M599.21,-393.4C544.03,-377.04 445.07,-345.41 365,-307.43 306.44,-279.65 242.73,-238.2 208.07,-214.6"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="209.73,-211.49 199.5,-208.73 205.77,-217.27 209.73,-211.49"/>
 </g>
-<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge31" class="edge">
-<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters</title>
-<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M566.8,-349.85C532.29,-349.27 488.18,-349.29 449,-351.64"/>
-<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M447,-351.64C376.89,-355.84 296.16,-355.03 242.41,-353.69"/>
-<polygon fill="#ffbf00" stroke="#ffbf00" points="242.45,-350.19 232.36,-353.43 242.27,-357.19 242.45,-350.19"/>
-</g>
-<!-- module~dtfft_abstract_kernel&#45;&gt;mpi_f08 -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge33" class="edge">
-<title>module~dtfft_abstract_kernel&#45;&gt;mpi_f08</title>
-<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M586.17,-339.55C579.07,-335.98 572.28,-331.43 567,-325.64 532.35,-287.62 564.53,-254.65 531,-215.64 502.69,-182.7 223.2,-25.9 182,-39.64"/>
-</g>
-<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge30" class="edge">
-<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx</title>
-<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M573.59,-339.64C554.41,-335.32 532.58,-330.42 512.61,-325.93"/>
-<polygon fill="#ffbf00" stroke="#ffbf00" points="513.2,-322.48 502.68,-323.7 511.66,-329.31 513.2,-322.48"/>
-</g>
-<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge32" class="edge">
-<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils</title>
-<path fill="none" stroke="#ffbf00" stroke-dasharray="5,2" d="M447,-351.64C409.41,-353.89 368,-365.4 338.65,-375.16"/>
-<polygon fill="#ffbf00" stroke="#ffbf00" points="337.52,-371.85 329.18,-378.39 339.78,-378.48 337.52,-371.85"/>
-</g>
-<!-- module~dtfft_config&#45;&gt;iso_fortran_env -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge35" class="edge">
-<title>module~dtfft_config&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M447,-583.64C329.29,-621.11 182.95,-624.88 104.3,-623.68"/>
-<polygon fill="#7fff00" stroke="#7fff00" points="104.19,-620.17 94.13,-623.49 104.06,-627.17 104.19,-620.17"/>
-</g>
-<!-- module~dtfft_config&#45;&gt;module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge38" class="edge">
-<title>module~dtfft_config&#45;&gt;module~dtfft_parameters</title>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M591.46,-495.31C528.14,-507 393.62,-522.71 299.5,-469.64"/>
-</g>
-<!-- module~dtfft_config&#45;&gt;mpi_f08 -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge40" class="edge">
-<title>module~dtfft_config&#45;&gt;mpi_f08</title>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M591.36,-478.9C582.18,-475.03 573.16,-469.5 567,-461.64 507.78,-386.07 602.62,-312.58 531,-248.64 415.13,-145.17 336.28,-247.76 182,-229.64"/>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M629.88,-417.5C613.22,-435.53 582.81,-471.26 567,-507.43 533.63,-583.79 576.83,-621.84 531,-691.43 519.96,-708.19 502,-721.29 485.7,-730.59"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="484,-727.53 476.86,-735.37 487.33,-733.69 484,-727.53"/>
 </g>
 <!-- module~dtfft_config&#45;&gt;iso_c_binding -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge34" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge28" class="edge">
 <title>module~dtfft_config&#45;&gt;iso_c_binding</title>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M614.04,-499.8C596.49,-515.66 563.6,-543.32 531,-559.64 497.04,-576.63 485.33,-572.6 449,-583.64"/>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M447,-583.64C384.28,-602.69 364.92,-587.78 299.5,-583.64"/>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M297.5,-583.64C175.27,-575.9 87.54,-428.89 58.46,-372.98"/>
-<polygon fill="#7fff00" stroke="#7fff00" points="61.52,-371.27 53.87,-363.94 55.28,-374.44 61.52,-371.27"/>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M788.07,-307.65C783.06,-347.6 764,-477.22 718,-573.43 694.09,-623.43 680.27,-631.97 643.5,-673.43"/>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M641.5,-673.43C612.92,-705.66 593.48,-701.46 567,-735.43 544.27,-764.59 554.97,-782.28 531,-810.43 502.22,-844.22 476.31,-832.45 449,-867.43"/>
 </g>
-<!-- module~dtfft_config&#45;&gt;module~dtfft_errors -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge36" class="edge">
-<title>module~dtfft_config&#45;&gt;module~dtfft_errors</title>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M622.61,-499.68C611.71,-527.9 580.62,-598.69 531,-635.64 500.54,-658.32 486.69,-655.03 449,-659.64"/>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M447,-659.64C370.15,-669.03 279.83,-666.94 226.95,-664.4"/>
-<polygon fill="#7fff00" stroke="#7fff00" points="227.05,-660.9 216.89,-663.89 226.7,-667.89 227.05,-660.9"/>
+<!-- module~dtfft_config&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_config&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M753.72,-296.41C724.12,-296.87 681,-296.72 643.5,-293.43"/>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M641.5,-293.43C575.52,-287.65 584.9,-231.93 531,-193.43 483.17,-159.26 358.28,-65.43 299.5,-65.43"/>
 </g>
-<!-- module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge37" class="edge">
-<title>module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime</title>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M591.41,-483.64C576.9,-482.01 559.4,-480.04 541.7,-478.05"/>
-<polygon fill="#7fff00" stroke="#7fff00" points="541.6,-474.52 531.28,-476.88 540.82,-481.48 541.6,-474.52"/>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge30" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M773.32,-307.62C747.77,-326.87 697.94,-364.41 668,-386.97"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="665.64,-384.37 659.75,-393.18 669.85,-389.96 665.64,-384.37"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge33" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M786.46,-307.79C779.32,-334.05 758.93,-395.5 718,-426.43 715.62,-428.23 302.48,-521.41 299.5,-521.43"/>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M297.5,-521.43C279.58,-520.71 260.08,-520.73 242.29,-521.07"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="241.96,-517.58 232.04,-521.31 242.12,-524.58 241.96,-517.58"/>
 </g>
 <!-- module~dtfft_config&#45;&gt;module~dtfft_utils -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge39" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge34" class="edge">
 <title>module~dtfft_config&#45;&gt;module~dtfft_utils</title>
-<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M597.02,-475.61C587.31,-471.46 576.57,-466.6 567,-461.64 512.46,-433.35 509.68,-399.27 449,-389.64"/>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M786.33,-307.55C778.41,-336.15 755.67,-409.25 718,-459.43 692.14,-493.88 678.04,-495.69 643.5,-521.43"/>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M641.5,-521.43C617.66,-539.2 424.32,-553.51 339.33,-559"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="339.04,-555.52 329.28,-559.65 339.48,-562.5 339.04,-555.52"/>
 </g>
-<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<!-- module~dtfft_config&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge35" class="edge">
+<title>module~dtfft_config&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M641.5,-293.43C410.6,-265.49 153.48,-429.1 73.27,-485.12"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="70.95,-482.47 64.8,-491.1 74.99,-488.19 70.95,-482.47"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge31" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M641.5,-293.43C510.92,-288.3 469.48,-271.93 365,-193.43 325.45,-163.71 348.25,-94.99 299.5,-103.43"/>
+</g>
+<!-- module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge32" class="edge">
+<title>module~dtfft_config&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M641.5,-521.43C613.61,-542.22 597.75,-529.17 567,-545.43 549.08,-554.9 548.94,-564 531,-573.43 523.32,-577.47 514.89,-581.02 506.47,-584.08"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="505.3,-580.78 496.99,-587.34 507.58,-587.4 505.3,-580.78"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge36" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M173.63,-535.44C152.73,-574.88 86,-700.75 59.25,-751.21"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="56.05,-749.78 54.46,-760.25 62.23,-753.05 56.05,-749.78"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge37" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M169.64,-511.35C146.99,-484.92 92.86,-421.77 65.08,-389.36"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="67.48,-386.77 58.31,-381.46 62.16,-391.33 67.48,-386.77"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge38" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M129.72,-515.81C114.74,-513.54 98.61,-511.1 84.68,-508.99"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="84.91,-505.48 74.5,-507.45 83.87,-512.4 84.91,-505.48"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge39" class="edge">
+<title>module~dtfft_pencil&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M887.54,-530.23C829.07,-549.72 712.06,-596.13 643.5,-673.43"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge40" class="edge">
+<title>module~dtfft_pencil&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M922.29,-507.11C918.65,-455.36 897.89,-253.12 791.5,-141.43"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M789.5,-141.43C776.36,-127.64 768.69,-129.55 754,-117.43 736.55,-103.03 738.74,-90.49 718,-81.43 547.43,-6.93 485.53,-59.22 299.5,-65.43"/>
+</g>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_config -->
 <g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge41" class="edge">
-<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M145.32,-651.13C130.77,-646.72 113.58,-641.51 97.72,-636.7"/>
-<polygon fill="#00ff3f" stroke="#00ff3f" points="98.64,-633.33 88.06,-633.78 96.61,-640.02 98.64,-633.33"/>
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M915.93,-507.39C894.61,-471.08 830.78,-362.35 803.78,-316.35"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="806.69,-314.39 798.6,-307.53 800.65,-317.93 806.69,-314.39"/>
 </g>
-<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge43" class="edge">
-<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
-<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M401.16,-479.64C370.45,-485.07 330.17,-486.93 299.5,-469.64"/>
-</g>
-<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge42" class="edge">
-<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
-<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M405.01,-479.68C368.24,-488.28 313.7,-496.3 268,-483.64 187.79,-461.42 107.45,-401.3 69.92,-370.46"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="72.08,-367.7 62.15,-363.99 67.6,-373.08 72.08,-367.7"/>
-</g>
-<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_parameters -->
 <g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge44" class="edge">
-<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
-<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M424.28,-455.62C399.45,-442.49 359.48,-421.35 331.49,-406.55"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="332.97,-403.38 322.49,-401.8 329.7,-409.56 332.97,-403.38"/>
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M887.84,-519.71C861.35,-519.91 824.15,-520.2 791.5,-520.43"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M789.5,-520.43C757.2,-520.66 750.17,-510.33 718,-507.43 532.65,-490.72 485.45,-528.94 299.5,-521.43"/>
 </g>
-<!-- module~dtfft_interface_nccl&#45;&gt;module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge46" class="edge">
-<title>module~dtfft_interface_nccl&#45;&gt;module~dtfft_parameters</title>
-<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M297.5,-273.64C261.42,-282.57 263.19,-305.41 232,-325.64 227.06,-328.84 221.67,-331.98 216.33,-334.9"/>
-<polygon fill="#003fff" stroke="#003fff" points="214.66,-331.82 207.46,-339.59 217.93,-338.01 214.66,-331.82"/>
-</g>
-<!-- module~dtfft_interface_nccl&#45;&gt;iso_c_binding -->
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_utils -->
 <g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge45" class="edge">
-<title>module~dtfft_interface_nccl&#45;&gt;iso_c_binding</title>
-<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M390.2,-265.54C362.47,-264.96 328.84,-266.37 299.5,-273.64"/>
-<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M297.5,-273.64C245.04,-286.62 235.79,-306.48 182,-311.64"/>
-<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M180,-311.64C147.13,-314.79 111.38,-326.15 85.38,-335.96"/>
-<polygon fill="#003fff" stroke="#003fff" points="83.98,-332.75 75.92,-339.63 86.51,-339.28 83.98,-332.75"/>
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M641.5,-559.43C608.05,-568.99 596.56,-565.09 567,-583.43 547.5,-595.53 550.99,-609.16 531,-620.43 498.41,-638.8 485.68,-646.78 449,-639.43"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M447,-639.43C410.32,-632.08 398.17,-637.72 365,-620.43 346.34,-610.71 328.84,-594.41 316.62,-581.41"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="319.05,-578.88 309.74,-573.83 313.87,-583.58 319.05,-578.88"/>
 </g>
-<!-- module~dtfft_interface_nccl&#45;&gt;module~dtfft_utils -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge47" class="edge">
-<title>module~dtfft_interface_nccl&#45;&gt;module~dtfft_utils</title>
-<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M390.32,-278.29C381.34,-281.27 372.54,-285.27 365,-290.64 337.48,-310.22 318.35,-345.31 308.15,-368.02"/>
-<polygon fill="#003fff" stroke="#003fff" points="304.81,-366.91 304.09,-377.48 311.25,-369.67 304.81,-366.91"/>
+<!-- module~dtfft_pencil&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge46" class="edge">
+<title>module~dtfft_pencil&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M923.27,-507.14C923.53,-462.2 917.65,-306.03 827,-241.43 790.71,-215.57 389.03,-82.91 182,-274.43"/>
 </g>
-<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge48" class="edge">
-<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
-<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M390.27,-308.74C336.52,-306.68 253.6,-305.28 182,-311.64"/>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge42" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M789.5,-141.43C708.94,-67.68 405.83,-78.49 299.5,-103.43"/>
 </g>
-<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge49" class="edge">
-<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
-<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M398.97,-323.65C387.51,-327.38 375.55,-332.02 365,-337.64 348.39,-346.48 331.81,-359.69 319.48,-370.59"/>
-<polygon fill="#7f00ff" stroke="#7f00ff" points="317.09,-368.03 312.04,-377.35 321.8,-373.22 317.09,-368.03"/>
-</g>
-<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge51" class="edge">
-<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
-<path fill="none" stroke="#ff00bf" stroke-dasharray="5,2" d="M292.39,-401.88C279.14,-431.95 240.57,-509.65 182,-545.64"/>
-<path fill="none" stroke="#ff00bf" stroke-dasharray="5,2" d="M180,-545.64C145.74,-566.69 105.6,-589.55 78.66,-604.64"/>
-<polygon fill="#ff00bf" stroke="#ff00bf" points="76.74,-601.7 69.71,-609.64 80.15,-607.82 76.74,-601.7"/>
-</g>
-<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge53" class="edge">
-<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
-<path fill="none" stroke="#ff00bf" stroke-dasharray="5,2" d="M267.76,-379.85C255.71,-375.89 241.51,-371.22 228.18,-366.83"/>
-<polygon fill="#ff00bf" stroke="#ff00bf" points="229.26,-363.5 218.66,-363.7 227.07,-370.15 229.26,-363.5"/>
-</g>
-<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge54" class="edge">
-<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
-<path fill="none" stroke="#ff00bf" stroke-dasharray="5,2" d="M294.77,-377.58C285.85,-341.79 253.96,-238.09 182,-229.64"/>
+<!-- module~dtfft_pencil&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge43" class="edge">
+<title>module~dtfft_pencil&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M789.5,-520.43C755.92,-520.67 675.79,-550.2 643.5,-559.43"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M641.5,-559.43C605.21,-569.81 564.35,-578.68 529.64,-585.42"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="528.72,-582.03 519.55,-587.35 530.03,-588.91 528.72,-582.03"/>
 </g>
 <!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge50" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge47" class="edge">
 <title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
-<path fill="none" stroke="#ff00bf" stroke-dasharray="5,2" d="M288.69,-377.4C270.98,-354.42 228.76,-307.49 182,-311.64"/>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M292.77,-573.48C280.14,-603.8 242.41,-683.12 182,-715.43"/>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M180,-715.43C150.5,-731.21 115.7,-746.09 89.24,-756.69"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="87.9,-753.46 79.9,-760.4 90.48,-759.96 87.9,-753.46"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge48" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M291.28,-549.37C281.03,-530.41 259,-493.35 232,-469.43 189.01,-431.35 129.01,-402.18 89.36,-385.44"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="90.57,-382.15 79.99,-381.55 87.89,-388.61 90.57,-382.15"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge50" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M267.76,-551.64C255.71,-547.68 241.51,-543.01 228.18,-538.62"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="229.26,-535.29 218.66,-535.49 227.07,-541.94 229.26,-535.29"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge51" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M288.16,-549.33C270.2,-527.54 228.45,-483.91 182,-483.43"/>
 </g>
 <!-- module~dtfft_utils&#45;&gt;module~dtfft_errors -->
-<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge52" class="edge">
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge49" class="edge">
 <title>module~dtfft_utils&#45;&gt;module~dtfft_errors</title>
-<path fill="none" stroke="#ff00bf" stroke-dasharray="5,2" d="M293.25,-401.74C283.31,-429.8 257.44,-501.38 232,-559.64 219.59,-588.06 203.56,-620.05 193.04,-640.51"/>
-<polygon fill="#ff00bf" stroke="#ff00bf" points="189.84,-639.06 188.35,-649.55 196.06,-642.28 189.84,-639.06"/>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M293.55,-549.29C287.47,-530.28 275.7,-492.27 268,-459.43 247.49,-371.92 268.74,-342.46 232,-260.43 224.6,-243.91 212.05,-227.87 201.37,-215.97"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="203.74,-213.38 194.37,-208.45 198.62,-218.15 203.74,-213.38"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge52" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M912.15,-724.7C864.26,-777.54 664.59,-984.49 449,-1015.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-1015.43C381.76,-1021.83 363.33,-1000.5 299.5,-1015.43"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge53" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M879.24,-700.27C872.94,-696.75 867.18,-692.23 863,-686.43 809.26,-611.87 894.02,-337.32 827,-274.43 770.51,-221.43 199.31,-225.84 130,-260.43 93.52,-278.64 69.03,-321.65 56.89,-347.87"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="53.55,-346.76 52.71,-357.33 59.95,-349.59 53.55,-346.76"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge54" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M887.1,-700.34C878.74,-696.61 870.18,-691.99 863,-686.43 837.04,-666.35 703.46,-486.7 658.38,-425.64"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="661.15,-423.5 652.39,-417.52 655.51,-427.65 661.15,-423.5"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_config -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge55" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_config</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M880.61,-700.42C873.91,-696.87 867.66,-692.3 863,-686.43 857.14,-679.05 809.21,-399.54 795.28,-317.71"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="798.71,-317 793.59,-307.73 791.81,-318.18 798.71,-317"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge57" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-677.43C411.49,-663.97 399.17,-669.99 365,-653.43 301.31,-622.57 235.89,-570.07 203.24,-542.17"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="205.53,-539.51 195.67,-535.63 200.95,-544.81 205.53,-539.51"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge58" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M906.59,-724.69C882.66,-741.87 836.16,-772.64 791.5,-787.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M789.5,-787.43C758.18,-797.8 749.93,-775.75 718,-767.43 685.04,-758.84 676.75,-756.85 643.5,-749.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M641.5,-749.43C552.35,-729.53 534.41,-709.81 449,-677.43"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-677.43C411.49,-663.97 395.94,-675.45 365,-653.43 339.35,-635.18 320.11,-603.63 309.33,-582.64"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="312.41,-580.98 304.85,-573.56 306.13,-584.08 312.41,-580.98"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge59" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M789.5,-787.43C569.31,-860.34 461.44,-895.41 268,-767.43 197.98,-721.11 182.95,-703.58 130,-638.43 99.96,-601.47 72.94,-552.53 58.67,-524.87"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="61.66,-523.03 54,-515.7 55.42,-526.2 61.66,-523.03"/>
+</g>
+<!-- module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge56" class="edge">
+<title>module~dtfft_abstract_kernel&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M641.5,-749.43C600.5,-740.28 553.36,-739.63 515.99,-741.34"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="515.53,-737.86 505.72,-741.88 515.89,-744.85 515.53,-737.86"/>
+</g>
+<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge60" class="edge">
+<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M149.82,-208.53C142.78,-212.28 135.69,-216.91 130,-222.43 92.33,-259.01 67.14,-316.66 55.47,-347.78"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="52.16,-346.66 52.04,-357.25 58.74,-349.05 52.16,-346.66"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge61" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M415.24,-611.45C364.73,-630.99 263.48,-671.85 182,-715.43"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge62" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M431.29,-587.2C387.94,-553.45 269.71,-461.36 268,-459.43 247.57,-436.49 253.64,-422.23 232,-400.43 213.58,-381.88 207.48,-375.29 182,-369.43"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge63" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M434.38,-587.18C410.28,-565.13 355.12,-521.08 299.5,-521.43"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge64" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M400.33,-587.41C380.58,-582.32 357.83,-576.46 338.94,-571.59"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="339.73,-568.18 329.17,-569.07 337.98,-574.96 339.73,-568.18"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge65" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M430.74,-801.65C414.03,-814.32 387.36,-834.84 365,-853.43 281.48,-922.88 287.18,-1042.56 182,-1015.43"/>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M180,-1015.43C157.1,-1006.31 146.64,-1009.62 130,-991.43 76.82,-933.28 57.14,-837.41 50.74,-794.45"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="54.2,-793.92 49.35,-784.49 47.26,-794.88 54.2,-793.92"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge66" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M297.5,-753.43C193.35,-695.79 192.92,-645.48 130,-544.43 97.54,-492.29 69.57,-425.23 56.27,-391.26"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="59.5,-389.89 52.62,-381.83 52.97,-392.42 59.5,-389.89"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge67" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M390.49,-782.84C361.88,-777.76 327.41,-768.87 299.5,-753.43"/>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M297.5,-753.43C219.52,-710.27 192.94,-594.74 185,-545.82"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="188.42,-545.03 183.47,-535.66 181.5,-546.07 188.42,-545.03"/>
+</g>
+<!-- module~dtfft_interface_nccl&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge68" class="edge">
+<title>module~dtfft_interface_nccl&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M390.19,-782.91C380.91,-779.72 372.05,-775.1 365,-768.43 312.08,-718.38 301.73,-625.95 299.84,-583.63"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="303.33,-583.44 299.51,-573.56 296.34,-583.67 303.33,-583.44"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge69" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M390.21,-758.83C370.87,-762.24 349.07,-765.56 329,-767.43 248.96,-774.88 155.57,-774.81 99.15,-773.82"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="99.12,-770.32 89.06,-773.62 98.99,-777.32 99.12,-770.32"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_abstract_reshape_handle~~UsesGraph_edge70" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#cc00ff" stroke-dasharray="5,2" d="M423.04,-735.38C405.25,-725.49 381.35,-710.11 365,-691.43 336.21,-658.55 316.43,-610.78 306.62,-583.24"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="309.92,-582.06 303.35,-573.74 303.3,-584.34 309.92,-582.06"/>
 </g>
 </g>
 </svg>
@@ -1040,7 +1154,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~5"></span>
+              <span class="anchor" id="variable-self~25"></span>
               class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
             </td>
 <td>intent(in)</td>
@@ -1067,7 +1181,58 @@ large graphs.</div>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="interface-create_interface"></span><h3>abstract interface
+    <div class="card-header codesum"><span class="anchor" id="interface-get_backend_interface"></span><h3>abstract interface
+        
+    </h3></div>
+    <ul class="list-group">
+      <li class="list-group-item">
+            <h3>
+    private elemental function get_backend_interface(self)  
+
+    </h3>
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~26"></span>
+              class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+                <p>Abstract reshape Handle</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>)</small>
+    </h4>
+    
+
+      </li>
+    </ul>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="interface-create_interface~2"></span><h3>abstract interface
         
     </h3></div>
     <ul class="list-group">
@@ -1091,7 +1256,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self"></span>
+              <span class="anchor" id="variable-self~21"></span>
               class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
             </td>
 <td>intent(inout)</td>
@@ -1106,7 +1271,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-comm"></span>
+              <span class="anchor" id="variable-comm~3"></span>
               type(MPI_Comm),
             </td>
 <td>intent(in)</td>
@@ -1173,7 +1338,7 @@ large graphs.</div>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="interface-execute_interface"></span><h3>abstract interface
+    <div class="card-header codesum"><span class="anchor" id="interface-execute_interface~2"></span><h3>abstract interface
         
     </h3></div>
     <ul class="list-group">
@@ -1197,7 +1362,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~2"></span>
+              <span class="anchor" id="variable-self~22"></span>
               class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
             </td>
 <td>intent(inout)</td>
@@ -1212,30 +1377,30 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in"></span>
-              real(kind=real32),
+              <span class="anchor" id="variable-in~4"></span>
+              type(c_ptr),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>in</strong>(:)</td>
+            <td><strong>in</strong></td>
             <td>
                 <p>Send pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out"></span>
-              real(kind=real32),
+              <span class="anchor" id="variable-out~4"></span>
+              type(c_ptr),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>out</strong>(:)</td>
+            <td><strong>out</strong></td>
             <td>
                 <p>Recv pointer</p>
             </td>
@@ -1257,7 +1422,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~2"></span>
+              <span class="anchor" id="variable-error_code~5"></span>
               integer(kind=int32),
             </td>
 <td>intent(out)</td>
@@ -1303,7 +1468,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~3"></span>
+              <span class="anchor" id="variable-self~23"></span>
               class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
             </td>
 <td>intent(inout)</td>
@@ -1333,7 +1498,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-error_code~3"></span>
+              <span class="anchor" id="variable-error_code~6"></span>
               integer(kind=int32),
             </td>
 <td>intent(out)</td>
@@ -1355,7 +1520,7 @@ large graphs.</div>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="interface-destroy_interface"></span><h3>abstract interface
+    <div class="card-header codesum"><span class="anchor" id="interface-destroy_interface~2"></span><h3>abstract interface
         
     </h3></div>
     <ul class="list-group">
@@ -1379,7 +1544,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~4"></span>
+              <span class="anchor" id="variable-self~24"></span>
               class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
             </td>
 <td>intent(inout)</td>
@@ -1430,7 +1595,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~4"></span>
+              <span class="anchor" id="variable-platform~9"></span>
               type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
               <td>public</td>
@@ -1447,7 +1612,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-helper"></span>
+              <span class="anchor" id="variable-helper~6"></span>
               type(<a href='../type/backend_helper.html'>backend_helper</a>),
             </td>
               <td>public</td>
@@ -1464,7 +1629,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-effort"></span>
+              <span class="anchor" id="variable-effort~3"></span>
               type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
             </td>
               <td>public</td>
@@ -1481,7 +1646,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-backend~4"></span>
+              <span class="anchor" id="variable-backend~7"></span>
               type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
             </td>
               <td>public</td>
@@ -1498,7 +1663,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-force_effort"></span>
+              <span class="anchor" id="variable-force_effort~2"></span>
               logical,
             </td>
               <td>public</td>
@@ -1532,24 +1697,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-datatype_id"></span>
-              integer(kind=int8),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>datatype_id</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-<p>Type of datatype to use</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-comm_id"></span>
+              <span class="anchor" id="variable-comm_id~2"></span>
               integer(kind=int8),
             </td>
               <td>public</td>
@@ -1566,7 +1714,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-base_storage"></span>
+              <span class="anchor" id="variable-base_storage~9"></span>
               integer(kind=int64),
             </td>
               <td>public</td>
@@ -1578,7 +1726,41 @@ large graphs.</div>
                 <td></td>
                 <td></td>
             <td>
-
+<p>Base storage size in bytes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transpose_mode"></span>
+              type(<a href='../type/dtfft_transpose_mode_t.html'>dtfft_transpose_mode_t</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transpose_mode</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Transpose mode to use</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compression_config"></span>
+              type(<a href='../type/dtfft_compression_config_t.html'>dtfft_compression_config_t</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>compression_config</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Compression options</p>
             </td>
         </tr>
     </tbody>
@@ -1615,7 +1797,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~4"></span>
+              <span class="anchor" id="variable-stream~7"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
               <td>public</td>
@@ -1632,7 +1814,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-exec_type"></span>
+              <span class="anchor" id="variable-exec_type~2"></span>
               type(<a href='../type/async_exec_t.html'>async_exec_t</a>),
             </td>
               <td>public</td>
@@ -1649,15 +1831,15 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-p1"></span>
-              real(kind=real32),
+              <span class="anchor" id="variable-p1~2"></span>
+              type(c_ptr),
             </td>
-              <td>public,</td>
+              <td>public</td>
             <td>
-              pointer
+              
             </td>
             <td>::</td>
-            <td><strong>p1</strong>(:)</td>
+            <td><strong>p1</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -1666,15 +1848,15 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-p2"></span>
-              real(kind=real32),
+              <span class="anchor" id="variable-p2~2"></span>
+              type(c_ptr),
             </td>
-              <td>public,</td>
+              <td>public</td>
             <td>
-              pointer
+              
             </td>
             <td>::</td>
-            <td><strong>p2</strong>(:)</td>
+            <td><strong>p2</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -1684,14 +1866,14 @@ large graphs.</div>
         <tr>
             <td>
               <span class="anchor" id="variable-p3"></span>
-              real(kind=real32),
+              type(c_ptr),
             </td>
-              <td>public,</td>
+              <td>public</td>
             <td>
-              pointer
+              
             </td>
             <td>::</td>
-            <td><strong>p3</strong>(:)</td>
+            <td><strong>p3</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -1758,38 +1940,48 @@ large graphs.</div>
           <tbody>
               <tr>
                 <td>  procedure, public, non_overridable, pass(self) ::
-  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-create'>create</a></strong></td>
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-create~5'>create</a></strong></td>
                 <td>../../<p>Creates reshape handle</p></td>
               </tr>
               <tr>
                 <td>  procedure, public, pass(self) ::
-  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-get_aux_bytes'>get_aux_bytes</a></strong></td>
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-get_aux_bytes~3'>get_aux_bytes</a></strong></td>
                 <td>../../<p>Returns number of bytes required by aux buffer</p></td>
               </tr>
               <tr>
-                <td>  procedure(<a href='../interface/create_interface.html'>create_interface</a>), public, deferred ::
-  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-create_private'>create_private</a></strong></td>
+                <td>  procedure, public, pass(self) ::
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-report_compression'>report_compression</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure(<a href='../interface/create_interface~2.html'>create_interface</a>), public, deferred ::
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-create_private~2'>create_private</a></strong></td>
                 <td>../../<p>Creates reshape handle</p></td>
               </tr>
               <tr>
-                <td>  procedure(<a href='../interface/execute_interface.html'>execute_interface</a>), public, deferred ::
-  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-execute'>execute</a></strong></td>
+                <td>  procedure(<a href='../interface/execute_interface~2.html'>execute_interface</a>), public, deferred ::
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-execute~2'>execute</a></strong></td>
                 <td>../../<p>Executes reshape handle</p></td>
               </tr>
               <tr>
                 <td>  procedure(<a href='../interface/execute_end_interface.html'>execute_end_interface</a>), public, deferred ::
-  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-execute_end'>execute_end</a></strong></td>
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-execute_end~2'>execute_end</a></strong></td>
                 <td>../../<p>Finishes async reshape</p></td>
               </tr>
               <tr>
-                <td>  procedure(<a href='../interface/destroy_interface.html'>destroy_interface</a>), public, deferred ::
-  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-destroy'>destroy</a></strong></td>
+                <td>  procedure(<a href='../interface/destroy_interface~2.html'>destroy_interface</a>), public, deferred ::
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-destroy~4'>destroy</a></strong></td>
                 <td>../../<p>Destroys reshape handle</p></td>
               </tr>
               <tr>
                 <td>  procedure(<a href='../interface/get_async_active_interface.html'>get_async_active_interface</a>), public, deferred ::
-  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-get_async_active'>get_async_active</a></strong></td>
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-get_async_active~3'>get_async_active</a></strong></td>
                 <td>../../<p>Returns if async reshape is active</p></td>
+              </tr>
+              <tr>
+                <td>  procedure(<a href='../interface/get_backend_interface.html'>get_backend_interface</a>), public, deferred ::
+  <strong><a href='../type/abstract_reshape_handle.html#boundprocedure-get_backend'>get_backend</a></strong></td>
+                <td></td>
               </tr>
           </tbody>
         </table>
@@ -1851,7 +2043,7 @@ large graphs.</div>
         <section>
           <h2>Functions</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_aux_bytes"></span> <h3>private pure function <a href='../proc/get_aux_bytes.html'>get_aux_bytes</a>(self)  
+    <div class="card-header codesum"><span class="anchor" id="proc-get_aux_bytes~2"></span> <h3>private pure function <a href='../proc/get_aux_bytes~2.html'>get_aux_bytes</a>(self)  
 </h3></div>
     <div class="card-body">
           
@@ -1870,7 +2062,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~7"></span>
+              <span class="anchor" id="variable-self~28"></span>
               class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
             </td>
 <td>intent(in)</td>
@@ -1901,7 +2093,7 @@ large graphs.</div>
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-create"></span> <h3>private  subroutine <a href='../proc/create.html'>create</a>(self, send, recv, kwargs)  
+    <div class="card-header codesum"><span class="anchor" id="proc-create~4"></span> <h3>private  subroutine <a href='../proc/create~4.html'>create</a>(self, send, recv, kwargs)  
 </h3></div>
     <div class="card-body">
           
@@ -1920,7 +2112,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~6"></span>
+              <span class="anchor" id="variable-self~27"></span>
               class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
             </td>
 <td>intent(inout)</td>
@@ -1985,6 +2177,61 @@ large graphs.</div>
     </div>
   </div>
 
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-report_compression"></span> <h3>private  subroutine <a href='../proc/report_compression.html'>report_compression</a>(self, name)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Reports compression average compression ratio by this reshape handle</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~29"></span>
+              class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Abstract reshape Handle</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-name"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>name</strong></td>
+            <td>
+<p>Name of the reshape handle</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
         </section>
         <br>
 
@@ -2032,9 +2279,6 @@ large graphs.</div>
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

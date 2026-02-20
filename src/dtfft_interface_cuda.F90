@@ -16,15 +16,17 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 module dtfft_interface_cuda
 !! CUDA Driver Interfaces
 !!
 !! CUDA Driver is loaded at runtime via dynamic loading.
 use iso_c_binding
-use iso_fortran_env,              only: int32
+use iso_fortran_env
 use dtfft_errors,                 only: DTFFT_SUCCESS
 use dtfft_parameters,             only: dtfft_stream_t
-use dtfft_utils,                  only: string, dynamic_load, destroy_strings
+use dtfft_utils
+#include "_dtfft_mpi.h"
 implicit none
 private
 #include "_dtfft_private.h"
@@ -46,17 +48,86 @@ public :: CUmodule
   end type CUmodule
 
 public :: CUfunction
+#ifdef DTFFT_WITH_MOCK_ENABLED
+  abstract interface
+    pure subroutine simple_interface_r32(in, out, dims)
+    import
+      real(real32),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
+      real(real32),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
+      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
+    end subroutine simple_interface_r32
+
+    pure subroutine simple_interface_r64(in, out, dims)
+    import
+      real(real64),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
+      real(real64),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
+      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
+    end subroutine simple_interface_r64
+
+    pure subroutine simple_interface_r128(in, out, dims)
+    import
+      complex(real64),  intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
+      complex(real64),  intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
+      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
+    end subroutine simple_interface_r128
+
+    pure subroutine pipe_interface_r32(in, out, dims, locals)
+    import
+      real(real32),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
+      real(real32),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
+      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
+      integer(int32),   intent(in)    :: locals(:)                  !! Local memory size specification
+    end subroutine pipe_interface_r32
+
+    pure subroutine pipe_interface_r64(in, out, dims, locals)
+    import
+      real(real64),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
+      real(real64),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
+      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
+      integer(int32),   intent(in)    :: locals(:)                  !! Local memory size specification
+    end subroutine pipe_interface_r64
+
+    pure subroutine pipe_interface_r128(in, out, dims, locals)
+    import
+      complex(real64),  intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
+      complex(real64),  intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
+      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
+      integer(int32),   intent(in)    :: locals(:)                  !! Local memory size specification
+    end subroutine pipe_interface_r128
+  end interface
+
+  type :: CUfunction
+  !! CUDA function (mock)
+    procedure(simple_interface_r32), pointer,  nopass :: sfun_r32 => null()  !! Pointer to the Fortran subroutine implementing the kernel
+    procedure(simple_interface_r64), pointer,  nopass :: sfun_r64 => null()  !! Pointer to the Fortran subroutine implementing the kernel
+    procedure(simple_interface_r128), pointer, nopass :: sfun_r128 => null()  !! Pointer to the Fortran subroutine implementing the kernel
+    procedure(pipe_interface_r32), pointer,  nopass :: pfun_r32 => null()  !! Pointer to the Fortran subroutine implementing the pipelined kernel
+    procedure(pipe_interface_r64), pointer,  nopass :: pfun_r64 => null()  !! Pointer to the Fortran subroutine implementing the pipelined kernel
+    procedure(pipe_interface_r128), pointer, nopass :: pfun_r128 => null()  !! Pointer to the Fortran subroutine implementing the pipelined kernel
+  end type CUfunction
+#else
   type, bind(C) :: CUfunction
   !! CUDA function
     type(c_ptr) :: ptr  !! Actual pointer
   end type CUfunction
+#endif
+
+  logical,        save :: is_loaded = .false.
+    !! Flag indicating whether the library is loaded
+  type(c_ptr),    save :: libcuda
+    !! Handle to the loaded library
+  type(c_funptr), save :: cuFunctions(4)
+    !! Array of pointers to the CUDA functions
+
+#ifndef DTFFT_WITH_MOCK_ENABLED
+! Real CUDA Driver interfaces with dynamic loading
 
   abstract interface
     function cuModuleLoadData_interface(mod, image)                                                   &
       result(cuResult)
     !! Load a module's data with options.
     !!
-    !! Takes a pointer image and loads the corresponding module module into the current context. 
+    !! Takes a pointer image and loads the corresponding module module into the current context.
     !! The image may be a cubin or fatbin as output by nvcc, or a NULL-terminated PTX, either as output by nvcc or hand-written.
     import
       type(CUmodule)        :: mod          !! Returned module
@@ -68,8 +139,8 @@ public :: CUfunction
       result(cuResult)
     !! Unloads a module.
     !!
-    !! Unloads a module ``hmod`` from the current context. 
-    !! Attempting to unload a module which was obtained from the Library Management API 
+    !! Unloads a module ``hmod`` from the current context.
+    !! Attempting to unload a module which was obtained from the Library Management API
     !! such as ``cuLibraryGetModule`` will return ``CUDA_ERROR_NOT_PERMITTED``.
     import
       type(CUmodule), value :: hmod         !! Module to unload
@@ -108,13 +179,6 @@ public :: CUfunction
     end function cuLaunchKernel_interface
   end interface
 
-  logical,        save :: is_loaded = .false.
-    !! Flag indicating whether the library is loaded
-  type(c_ptr),    save :: libcuda
-    !! Handle to the loaded library
-  type(c_funptr), save :: cuFunctions(4)
-    !! Array of pointers to the CUDA functions
-
   procedure(cuModuleLoadData_interface),     pointer, public  :: cuModuleLoadData
     !! Fortran pointer to the cuModuleLoadData function
   procedure(cuModuleUnload_interface),       pointer, public  :: cuModuleUnload
@@ -123,7 +187,68 @@ public :: CUfunction
     !! Fortran pointer to the cuModuleGetFunction function
   procedure(cuLaunchKernel_interface),       pointer          :: cuLaunchKernel_
     !! Fortran pointer to the cuLaunchKernel function
+
+#else
+! Mock CUDA Driver interfaces for CPU testing
+public :: cuModuleLoadData, cuModuleUnload, cuModuleGetFunction
+#endif
+
 contains
+
+#ifdef DTFFT_WITH_MOCK_ENABLED
+  ! Mock implementations for CPU testing
+
+  function cuModuleLoadData(mod, image) result(cuResult)
+  !! Mock: Creates dummy module
+    type(CUmodule)         :: mod
+    type(c_ptr), intent(in) :: image
+    integer(c_int)         :: cuResult
+    mod%ptr = image
+    cuResult = 0  ! CUDA_SUCCESS
+  end function cuModuleLoadData
+
+  function cuModuleUnload(hmod) result(cuResult)
+  !! Mock: Does nothing
+    type(CUmodule), intent(in) :: hmod
+    integer(c_int)             :: cuResult
+    cuResult = 0  ! CUDA_SUCCESS
+  end function cuModuleUnload
+
+  function cuModuleGetFunction(hfunc, hmod, name) result(cuResult)
+  !! Mock: Returns dummy function handle
+    type(CUfunction)           :: hfunc
+    type(CUmodule),  intent(in) :: hmod
+    type(c_ptr),     intent(in) :: name
+    integer(c_int)             :: cuResult
+    ! hfunc%ptr = name
+    cuResult = 0  ! CUDA_SUCCESS
+  end function cuModuleGetFunction
+
+  function load_cuda() result(error_code)
+  !! Mock: Does nothing, always returns success
+    integer(int32)  :: error_code
+    type(string), allocatable :: func_names(:)
+
+    error_code = DTFFT_SUCCESS
+    if ( is_loaded ) return
+    allocate(func_names(1))
+    func_names(1) = string("dtfft_execute")
+
+#ifdef __linux__
+    error_code = dynamic_load("libdtfft.so", func_names, libcuda, cuFunctions)
+#else
+    error_code = dynamic_load("libdtfft.dylib", func_names, libcuda, cuFunctions)
+#endif
+    call destroy_strings(func_names)
+    if ( error_code /= DTFFT_SUCCESS ) return
+    is_loaded = .true.
+
+    call unload_library(libcuda)
+    is_loaded = .false.
+  end function load_cuda
+
+#else
+  ! Real CUDA Driver implementation with dynamic loading
 
   function load_cuda() result(error_code)
   !! Loads the CUDA Driver library and needed symbols
@@ -151,6 +276,8 @@ contains
     is_loaded = .true.
   end function load_cuda
 
+#endif
+
   function cuLaunchKernel(func, in, out, blocks, threads, stream, nargs, args) result(cuResult)
   !! Launches a CUDA kernel
     type(CUfunction),         intent(in)  :: func             !! Function CUfunction or Kernel CUkernel to launch
@@ -164,7 +291,9 @@ contains
     integer(c_int)                        :: cuResult         !! Driver result code
     type(c_ptr)                           :: params(15)
     integer(int32) :: i, temp
+    integer(int32) :: dims(3), locals(5)
 
+#ifndef DTFFT_WITH_MOCK_ENABLED
     params(:) = c_null_ptr
     ! Addresses of pointers are required, not the pointers themselves
     params(1) = c_loc(out)
@@ -175,5 +304,79 @@ contains
       params(temp + i) = c_loc(args(i))
     enddo
     cuResult = cuLaunchKernel_(func, blocks%x, blocks%y, blocks%z, threads%x, threads%y, threads%z, 0, stream, params, c_null_ptr)
+#else
+    dims(:) = 1
+    locals(:) = 0
+
+    if ( associated(func%sfun_r32) .or. associated(func%sfun_r64) .or. associated(func%sfun_r128)) then
+      do i = 1, nargs
+        dims(i) = args(i)
+      enddo
+
+      if ( associated(func%sfun_r32) ) then
+        block
+          real(real32), pointer, contiguous :: in_ptr(:), out_ptr(:)
+
+          call c_f_pointer(in, in_ptr, [product(dims)])
+          call c_f_pointer(out, out_ptr, [product(dims)])
+          call func%sfun_r32(in_ptr, out_ptr, dims)
+        endblock
+      else if ( associated(func%sfun_r64) ) then
+        block
+          real(real64), pointer, contiguous :: in_ptr(:), out_ptr(:)
+
+          call c_f_pointer(in, in_ptr, [product(dims)])
+          call c_f_pointer(out, out_ptr, [product(dims)])
+          call func%sfun_r64(in_ptr, out_ptr, dims)
+        endblock
+      else if ( associated(func%sfun_r128) ) then
+        block
+          complex(real64), pointer, contiguous :: in_ptr(:), out_ptr(:)
+
+          call c_f_pointer(in, in_ptr, [product(dims)])
+          call c_f_pointer(out, out_ptr, [product(dims)])
+          call func%sfun_r128(in_ptr, out_ptr, dims)
+        endblock
+      endif
+    else if ( associated(func%pfun_r32) .or. associated(func%pfun_r64) .or. associated(func%pfun_r128)) then
+      if ( args(3) == -1 )then
+        dims(1:2) = args(1:2)
+        locals(1:5) = args(3:7)
+      else
+        dims(1:3) = args(1:3)
+        locals(1:5) = args(4:8)
+      endif
+      if ( associated(func%pfun_r32) ) then
+        block
+          real(real32), pointer, contiguous :: in_ptr(:), out_ptr(:)
+
+          call c_f_pointer(in, in_ptr, [product(dims)])
+          call c_f_pointer(out, out_ptr, [product(dims)])
+          
+          call func%pfun_r32(in_ptr, out_ptr, dims, locals)
+        endblock
+      else if ( associated(func%pfun_r64) ) then
+        block
+          real(real64), pointer, contiguous :: in_ptr(:), out_ptr(:)
+
+          call c_f_pointer(in, in_ptr, [product(dims)])
+          call c_f_pointer(out, out_ptr, [product(dims)])
+          call func%pfun_r64(in_ptr, out_ptr, dims, locals)
+        endblock
+      else if ( associated(func%pfun_r128) ) then
+        block
+          complex(real64), pointer, contiguous :: in_ptr(:), out_ptr(:)
+
+          call c_f_pointer(in, in_ptr, [product(dims)])
+          call c_f_pointer(out, out_ptr, [product(dims)])
+          call func%pfun_r128(in_ptr, out_ptr, dims, locals)
+        endblock
+      endif
+    else
+      INTERNAL_ERROR("cuLaunchKernel: invalid function handle")
+    endif
+
+    cuResult = DTFFT_SUCCESS
+#endif
   end function cuLaunchKernel
 end module dtfft_interface_cuda

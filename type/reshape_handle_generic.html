@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,14 +52,9 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -79,7 +73,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 2.9% of total for derived types.</p>Including implementation: 460 statements,  3.9% of total for derived types.">20 statements</a>
+                 title="<p> 3.0% of total for derived types.</p>Including implementation: 607 statements,  4.3% of total for derived types.">24 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,16 +114,18 @@
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-is_transpose">is_transpose</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-is_created~6">is_created</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-has_exchange">has_exchange</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-is_pipelined~2">is_pipelined</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-is_fused~3">is_fused</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-is_async_supported">is_async_supported</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-is_pack_free">is_pack_free</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-is_unpack_free">is_unpack_free</a>
-            <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-is_reshape_only">is_reshape_only</a>
-            <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-aux_bytes~4">aux_bytes</a>
-            <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-pack_kernel">pack_kernel</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-aux_bytes~6">aux_bytes</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-pack_kernel~3">pack_kernel</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-unpack_kernel~3">unpack_kernel</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-comm_handle">comm_handle</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#variable-compressor~3">compressor</a>
         </div>
       </div>
     </div>
@@ -156,13 +152,15 @@
       </a>
       <div id="boundprocs-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-create">create</a>
-            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-create_private~16">create_private</a>
-            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-execute~7">execute</a>
-            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-execute_end~6">execute_end</a>
-            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-get_async_active~10">get_async_active</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-create~5">create</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-create_private~17">create_private</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-execute~9">execute</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-execute_end~5">execute_end</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-get_async_active~8">get_async_active</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-destroy~17">destroy</a>
             <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-get_aux_bytes~9">get_aux_bytes</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-get_backend~8">get_backend</a>
+            <a class="list-group-item" href="../type/reshape_handle_generic.html#boundprocedure-report_compression~4">report_compression</a>
         </div>
       </div>
     </div>
@@ -180,10 +178,25 @@
         type, public, extends(<a href='abstract_reshape_handle.html'>abstract_reshape_handle</a>) :: reshape_handle_generic</h2>
     <p>Generic Transpose Handle
 Executes transposition in 3 steps:</p>
+<p>For <code>DTFFT_TRANSPOSE_MODE_PACK</code>:
+- Single transpose kernel execution
+- Data exchange between processes
+- <code>P</code> unpack kernels execution</p>
+<p>For <code>DTFFT_TRANSPOSE_MODE_UNPACK</code>
+- <code>P</code> pack kernels execution
+- Data exchange between processes
+- <code>P</code> transpose-unpack kernels execution</p>
+<p>For fused backends:
+-  For <code>i</code> in <code>P</code>:
+   * find process according to schedule = <code>k</code>
+   * pack with optional transpose to rank <code>k</code>. Compress data (optional)
+   * send to rank <code>k</code></p>
 <ul>
-<li>Transpose kernel execution</li>
-<li>Data exchange between processes</li>
-<li>Unpacking kernel execution</li>
+<li>Do while true:</li>
+<li>Check if data arrived from anybody</li>
+<li>For i in <code>P_1</code>:
+       Decompress data (optional), then unpack with optional transpose</li>
+<li>If done for <code>P</code> ranks exit</li>
 </ul>
 <br>      <div class="card">
         <div class="card-header">
@@ -196,183 +209,223 @@ Executes transposition in 3 steps:</p>
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: type~~reshape_handle_generic~~InheritsGraph Pages: 1 -->
-<svg id="typereshape_handle_genericInheritsGraph" width="641pt" height="183pt"
- viewBox="0.00 0.00 641.00 183.36" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="type~~reshape_handle_generic~~InheritsGraph" class="graph" transform="scale(0.76 0.76) rotate(0) translate(4 238)">
+<svg id="typereshape_handle_genericInheritsGraph" width="641pt" height="228pt"
+ viewBox="0.00 0.00 641.00 228.26" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="type~~reshape_handle_generic~~InheritsGraph" class="graph" transform="scale(0.72 0.72) rotate(0) translate(4 314)">
 <title>type~~reshape_handle_generic~~InheritsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-238 842,-238 842,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-314 889,-314 889,4 -4,4"/>
 <!-- type~reshape_handle_generic -->
 <g id="type~~reshape_handle_generic~~InheritsGraph_node1" class="node">
 <title>type~reshape_handle_generic</title>
-<polygon fill="none" stroke="black" points="838,-146 695,-146 695,-122 838,-122 838,-146"/>
-<text text-anchor="middle" x="766.5" y="-131.6" font-family="Helvetica,sans-Serif" font-size="10.50">reshape_handle_generic</text>
+<polygon fill="none" stroke="black" points="885,-150 742,-150 742,-126 885,-126 885,-150"/>
+<text text-anchor="middle" x="813.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50">reshape_handle_generic</text>
 </g>
 <!-- type~abstract_backend -->
 <g id="type~~reshape_handle_generic~~InheritsGraph_node2" class="node">
 <title>type~abstract_backend</title>
 <g id="a_type~~reshape_handle_generic~~InheritsGraph_node2"><a xlink:href="../type/abstract_backend.html" xlink:title="abstract_backend">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="572.5,-146 465.5,-146 465.5,-122 572.5,-122 572.5,-146"/>
-<text text-anchor="middle" x="519" y="-131.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="619.5,-150 512.5,-150 512.5,-126 619.5,-126 619.5,-150"/>
+<text text-anchor="middle" x="566" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend</text>
 </a>
 </g>
 </g>
 <!-- type~reshape_handle_generic&#45;&gt;type~abstract_backend -->
 <g id="type~~reshape_handle_generic~~InheritsGraph_edge2" class="edge">
 <title>type~reshape_handle_generic&#45;&gt;type~abstract_backend</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M694.82,-134C659.52,-134 617.16,-134 582.98,-134"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="582.66,-130.5 572.66,-134 582.66,-137.5 582.66,-130.5"/>
-<text text-anchor="middle" x="643.5" y="-136.4" font-family="Helvetica,sans-Serif" font-size="9.50">comm_handle</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M741.82,-138C706.52,-138 664.16,-138 629.98,-138"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="629.66,-134.5 619.66,-138 629.66,-141.5 629.66,-134.5"/>
+<text text-anchor="middle" x="690.5" y="-140.4" font-family="Helvetica,sans-Serif" font-size="9.50">comm_handle</text>
+</g>
+<!-- type~abstract_compressor -->
+<g id="type~~reshape_handle_generic~~InheritsGraph_node3" class="node">
+<title>type~abstract_compressor</title>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node3"><a xlink:href="../type/abstract_compressor.html" xlink:title="abstract_compressor">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="124,-273 0,-273 0,-249 124,-249 124,-273"/>
+<text text-anchor="middle" x="62" y="-258.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor</text>
+</a>
+</g>
+</g>
+<!-- type~reshape_handle_generic&#45;&gt;type~abstract_compressor -->
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge3" class="edge">
+<title>type~reshape_handle_generic&#45;&gt;type~abstract_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M689.5,-250C498.47,-330.18 244.93,-297.15 127.62,-274.98"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="128.19,-271.52 117.71,-273.07 126.87,-278.4 128.19,-271.52"/>
+<text text-anchor="middle" x="405.5" y="-302.4" font-family="Helvetica,sans-Serif" font-size="9.50">compressor</text>
 </g>
 <!-- type~abstract_kernel -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node3" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node4" class="node">
 <title>type~abstract_kernel</title>
-<g id="a_type~~reshape_handle_generic~~InheritsGraph_node3"><a xlink:href="../type/abstract_kernel.html" xlink:title="abstract_kernel">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="271,-234 176,-234 176,-210 271,-210 271,-234"/>
-<text text-anchor="middle" x="223.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_kernel</text>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node4"><a xlink:href="../type/abstract_kernel.html" xlink:title="abstract_kernel">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="318,-234 223,-234 223,-210 318,-210 318,-234"/>
+<text text-anchor="middle" x="270.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_kernel</text>
 </a>
 </g>
 </g>
 <!-- type~reshape_handle_generic&#45;&gt;type~abstract_kernel -->
 <g id="type~~reshape_handle_generic~~InheritsGraph_edge1" class="edge">
 <title>type~reshape_handle_generic&#45;&gt;type~abstract_kernel</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M723.31,-146.07C659.84,-163.67 535.73,-195.91 428,-211 378.74,-217.9 322.21,-220.54 281.25,-221.52"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="281.11,-218.02 271.19,-221.73 281.26,-225.02 281.11,-218.02"/>
-<text text-anchor="middle" x="519" y="-209.4" font-family="Helvetica,sans-Serif" font-size="9.50">pack_kernel, unpack_kernel</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M804.3,-150.24C786.95,-174.85 743.82,-229.75 691.5,-250"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M689.5,-250C668.47,-258.14 661.48,-246.82 639,-245 529.23,-236.13 400.77,-228.78 328.49,-224.93"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="328.41,-221.42 318.24,-224.38 328.04,-228.41 328.41,-221.42"/>
+<text text-anchor="middle" x="566" y="-247.4" font-family="Helvetica,sans-Serif" font-size="9.50">pack_kernel, unpack_kernel</text>
 </g>
 <!-- type~abstract_reshape_handle -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node4" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node5" class="node">
 <title>type~abstract_reshape_handle</title>
-<g id="a_type~~reshape_handle_generic~~InheritsGraph_node4"><a xlink:href="../type/abstract_reshape_handle.html" xlink:title="abstract_reshape_handle">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="592,-104 446,-104 446,-80 592,-80 592,-104"/>
-<text text-anchor="middle" x="519" y="-89.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_handle</text>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node5"><a xlink:href="../type/abstract_reshape_handle.html" xlink:title="abstract_reshape_handle">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="639,-108 493,-108 493,-84 639,-84 639,-108"/>
+<text text-anchor="middle" x="566" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_handle</text>
 </a>
 </g>
 </g>
 <!-- type~reshape_handle_generic&#45;&gt;type~abstract_reshape_handle -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge3" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge4" class="edge">
 <title>type~reshape_handle_generic&#45;&gt;type~abstract_reshape_handle</title>
-<path fill="none" stroke="#ff0000" d="M695.15,-121.96C665.62,-116.91 631.1,-111.01 600.55,-105.78"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="600.81,-102.27 590.36,-104.04 599.63,-109.17 600.81,-102.27"/>
+<path fill="none" stroke="#ff0000" d="M742.15,-125.96C712.62,-120.91 678.1,-115.01 647.55,-109.78"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="647.81,-106.27 637.36,-108.04 646.63,-113.17 647.81,-106.27"/>
 </g>
 <!-- type~abstract_backend&#45;&gt;type~abstract_kernel -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge9" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge10" class="edge">
 <title>type~abstract_backend&#45;&gt;type~abstract_kernel</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M497.62,-146.1C479.83,-156.13 453.02,-170 428,-178 368.35,-197.06 349.83,-186.15 289,-201 282.24,-202.65 275.16,-204.66 268.27,-206.77"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="266.84,-203.55 258.37,-209.91 268.96,-210.22 266.84,-203.55"/>
-<text text-anchor="middle" x="358.5" y="-203.4" font-family="Helvetica,sans-Serif" font-size="9.50">unpack_kernel</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M545.75,-150.06C528.02,-160.62 500.67,-175.54 475,-184 415.53,-203.59 397.42,-194.79 336,-207 333.48,-207.5 330.92,-208.03 328.33,-208.57"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="327.31,-205.21 318.28,-210.75 328.79,-212.05 327.31,-205.21"/>
+<text text-anchor="middle" x="405.5" y="-209.4" font-family="Helvetica,sans-Serif" font-size="9.50">pack_kernel, unpack_kernel</text>
 </g>
 <!-- MPI_Comm -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node5" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node6" class="node">
 <title>MPI_Comm</title>
-<polygon fill="#5cb85c" stroke="#5cb85c" points="259,-150 188,-150 188,-126 259,-126 259,-150"/>
-<text text-anchor="middle" x="223.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">MPI_Comm</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="306,-192 235,-192 235,-168 306,-168 306,-192"/>
+<text text-anchor="middle" x="270.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">MPI_Comm</text>
 </g>
 <!-- type~abstract_backend&#45;&gt;MPI_Comm -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge6" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge7" class="edge">
 <title>type~abstract_backend&#45;&gt;MPI_Comm</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M465.24,-133.6C418.82,-133.4 349.41,-133.46 289,-135 282.68,-135.16 276,-135.4 269.45,-135.67"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="269.14,-132.18 259.3,-136.11 269.45,-139.17 269.14,-132.18"/>
-<text text-anchor="middle" x="358.5" y="-137.4" font-family="Helvetica,sans-Serif" font-size="9.50">comm</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M512.18,-145.65C499.97,-147.41 487.03,-149.27 475,-151 420.29,-158.85 357.3,-167.82 316.06,-173.67"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="315.48,-170.22 306.07,-175.09 316.46,-177.15 315.48,-170.22"/>
+<text text-anchor="middle" x="405.5" y="-172.4" font-family="Helvetica,sans-Serif" font-size="9.50">comm</text>
 </g>
 <!-- type~cudaevent -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node6" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node7" class="node">
 <title>type~cudaevent</title>
-<g id="a_type~~reshape_handle_generic~~InheritsGraph_node6"><a xlink:href="../type/cudaevent.html" xlink:title="cudaEvent">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="258,-192 189,-192 189,-168 258,-168 258,-192"/>
-<text text-anchor="middle" x="223.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEvent</text>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node7"><a xlink:href="../type/cudaevent.html" xlink:title="cudaEvent">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="305,-150 236,-150 236,-126 305,-126 305,-150"/>
+<text text-anchor="middle" x="270.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEvent</text>
 </a>
 </g>
 </g>
 <!-- type~abstract_backend&#45;&gt;type~cudaevent -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge7" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge8" class="edge">
 <title>type~abstract_backend&#45;&gt;type~cudaevent</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M465.16,-141.29C418.69,-147.83 349.26,-157.93 289,-168 282.28,-169.12 275.18,-170.38 268.25,-171.64"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="267.47,-168.22 258.27,-173.48 268.74,-175.11 267.47,-168.22"/>
-<text text-anchor="middle" x="358.5" y="-170.4" font-family="Helvetica,sans-Serif" font-size="9.50">execution_event, copy_event</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M512.19,-138C455.87,-138 367.7,-138 315.16,-138"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="315.15,-134.5 305.15,-138 315.15,-141.5 315.15,-134.5"/>
+<text text-anchor="middle" x="405.5" y="-140.4" font-family="Helvetica,sans-Serif" font-size="9.50">execution_event, copy_event</text>
 </g>
 <!-- type~dtfft_backend_t -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node7" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node8" class="node">
 <title>type~dtfft_backend_t</title>
-<g id="a_type~~reshape_handle_generic~~InheritsGraph_node7"><a xlink:href="../type/dtfft_backend_t.html" xlink:title="dtfft_backend_t">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="270.5,-66 176.5,-66 176.5,-42 270.5,-42 270.5,-66"/>
-<text text-anchor="middle" x="223.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_t</text>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node8"><a xlink:href="../type/dtfft_backend_t.html" xlink:title="dtfft_backend_t">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="317.5,-66 223.5,-66 223.5,-42 317.5,-42 317.5,-66"/>
+<text text-anchor="middle" x="270.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_backend_t</text>
 </a>
 </g>
 </g>
 <!-- type~abstract_backend&#45;&gt;type~dtfft_backend_t -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge4" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge5" class="edge">
 <title>type~abstract_backend&#45;&gt;type~dtfft_backend_t</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M465.36,-123.14C458.51,-120.46 451.85,-117.13 446,-113 434.82,-105.1 439.63,-95.23 428,-88 383.78,-60.51 324.18,-53.28 280.91,-52.16"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="280.89,-48.66 270.83,-52 280.78,-55.66 280.89,-48.66"/>
-<text text-anchor="middle" x="358.5" y="-90.4" font-family="Helvetica,sans-Serif" font-size="9.50">backend</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M512.29,-127.24C505.45,-124.54 498.81,-121.19 493,-117 481.6,-108.78 486.81,-98.61 475,-91 430.99,-62.63 371.1,-54.58 327.69,-52.9"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="327.68,-49.4 317.58,-52.61 327.48,-56.39 327.68,-49.4"/>
+<text text-anchor="middle" x="405.5" y="-93.4" font-family="Helvetica,sans-Serif" font-size="9.50">backend</text>
 </g>
 <!-- type~dtfft_platform_t -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node8" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node9" class="node">
 <title>type~dtfft_platform_t</title>
-<g id="a_type~~reshape_handle_generic~~InheritsGraph_node8"><a xlink:href="../type/dtfft_platform_t.html" xlink:title="dtfft_platform_t">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="270.5,-24 176.5,-24 176.5,0 270.5,0 270.5,-24"/>
-<text text-anchor="middle" x="223.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_platform_t</text>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node9"><a xlink:href="../type/dtfft_platform_t.html" xlink:title="dtfft_platform_t">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="317.5,-24 223.5,-24 223.5,0 317.5,0 317.5,-24"/>
+<text text-anchor="middle" x="270.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_platform_t</text>
 </a>
 </g>
 </g>
 <!-- type~abstract_backend&#45;&gt;type~dtfft_platform_t -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge5" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge6" class="edge">
 <title>type~abstract_backend&#45;&gt;type~dtfft_platform_t</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M465.14,-125.7C457.99,-122.66 451.31,-118.55 446,-113 422.61,-88.53 453.18,-61.62 428,-39 388.44,-3.46 325.86,-0.17 280.54,-3.62"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="280.22,-0.13 270.57,-4.51 280.84,-7.11 280.22,-0.13"/>
-<text text-anchor="middle" x="358.5" y="-41.4" font-family="Helvetica,sans-Serif" font-size="9.50">platform</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M512.46,-129.89C505.18,-126.84 498.37,-122.67 493,-117 468.83,-91.49 500.98,-63.67 475,-40 435.67,-4.16 373.05,-0.59 327.65,-3.84"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="327.34,-0.36 317.67,-4.69 327.93,-7.33 327.34,-0.36"/>
+<text text-anchor="middle" x="405.5" y="-42.4" font-family="Helvetica,sans-Serif" font-size="9.50">platform</text>
 </g>
 <!-- type~dtfft_stream_t -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node9" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node10" class="node">
 <title>type~dtfft_stream_t</title>
-<g id="a_type~~reshape_handle_generic~~InheritsGraph_node9"><a xlink:href="../type/dtfft_stream_t.html" xlink:title="dtfft_stream_t">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="266,-108 181,-108 181,-84 266,-84 266,-108"/>
-<text text-anchor="middle" x="223.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_stream_t</text>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node10"><a xlink:href="../type/dtfft_stream_t.html" xlink:title="dtfft_stream_t">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="313,-108 228,-108 228,-84 313,-84 313,-108"/>
+<text text-anchor="middle" x="270.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_stream_t</text>
 </a>
 </g>
 </g>
 <!-- type~abstract_backend&#45;&gt;type~dtfft_stream_t -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge8" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge9" class="edge">
 <title>type~abstract_backend&#45;&gt;type~dtfft_stream_t</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M465.25,-124.73C453.04,-122.72 440.08,-120.69 428,-119 376.55,-111.81 317.53,-105.33 276.35,-101.1"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="276.59,-97.61 266.28,-100.07 275.88,-104.57 276.59,-97.61"/>
-<text text-anchor="middle" x="358.5" y="-121.4" font-family="Helvetica,sans-Serif" font-size="9.50">copy_stream</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M512.2,-129.63C499.99,-127.74 487.05,-125.77 475,-124 423.44,-116.44 364.44,-108.39 323.29,-102.87"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="323.61,-99.38 313.23,-101.52 322.68,-106.32 323.61,-99.38"/>
+<text text-anchor="middle" x="405.5" y="-126.4" font-family="Helvetica,sans-Serif" font-size="9.50">copy_stream</text>
+</g>
+<!-- type~abstract_kernel&#45;&gt;type~abstract_compressor -->
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge13" class="edge">
+<title>type~abstract_kernel&#45;&gt;type~abstract_compressor</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M222.83,-230.17C198.68,-234.46 168.73,-239.88 142,-245 138.6,-245.65 135.12,-246.33 131.6,-247.01"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="130.78,-243.61 121.64,-248.98 132.13,-250.48 130.78,-243.61"/>
+<text text-anchor="middle" x="173.5" y="-247.4" font-family="Helvetica,sans-Serif" font-size="9.50">compressor</text>
 </g>
 <!-- type~kernel_type_t -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node10" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node11" class="node">
 <title>type~kernel_type_t</title>
-<g id="a_type~~reshape_handle_generic~~InheritsGraph_node10"><a xlink:href="../type/kernel_type_t.html" xlink:title="kernel_type_t">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="84,-234 0,-234 0,-210 84,-210 84,-234"/>
-<text text-anchor="middle" x="42" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_type_t</text>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node11"><a xlink:href="../type/kernel_type_t.html" xlink:title="kernel_type_t">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="104,-223 20,-223 20,-199 104,-199 104,-223"/>
+<text text-anchor="middle" x="62" y="-208.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_type_t</text>
 </a>
 </g>
 </g>
 <!-- type~abstract_kernel&#45;&gt;type~kernel_type_t -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge10" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge11" class="edge">
 <title>type~abstract_kernel&#45;&gt;type~kernel_type_t</title>
-<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M175.81,-222C150.88,-222 120.15,-222 94.53,-222"/>
-<polygon fill="#00ff00" stroke="#00ff00" points="94.26,-218.5 84.26,-222 94.26,-225.5 94.26,-218.5"/>
-<text text-anchor="middle" x="130" y="-224.4" font-family="Helvetica,sans-Serif" font-size="9.50">kernel_type</text>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M222.74,-213.93C216.79,-213.14 210.76,-212.46 205,-212 174.93,-209.58 141.16,-209.24 114.1,-209.55"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="114.03,-206.05 104.08,-209.7 114.13,-213.05 114.03,-206.05"/>
+<text text-anchor="middle" x="173.5" y="-214.4" font-family="Helvetica,sans-Serif" font-size="9.50">kernel_type</text>
+</g>
+<!-- type~string -->
+<g id="type~~reshape_handle_generic~~InheritsGraph_node12" class="node">
+<title>type~string</title>
+<g id="a_type~~reshape_handle_generic~~InheritsGraph_node12"><a xlink:href="../type/string.html" xlink:title="string">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="89,-181 35,-181 35,-157 89,-157 89,-181"/>
+<text text-anchor="middle" x="62" y="-166.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string</text>
+</a>
+</g>
+</g>
+<!-- type~abstract_kernel&#45;&gt;type~string -->
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge12" class="edge">
+<title>type~abstract_kernel&#45;&gt;type~string</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M244.23,-209.93C232.51,-204.73 218.27,-198.94 205,-195 169.69,-184.51 128.13,-177.5 99.13,-173.42"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="99.43,-169.93 89.05,-172.06 98.48,-176.87 99.43,-169.93"/>
+<text text-anchor="middle" x="173.5" y="-197.4" font-family="Helvetica,sans-Serif" font-size="9.50">kernel_string</text>
 </g>
 <!-- c_ptr -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_node11" class="node">
+<g id="type~~reshape_handle_generic~~InheritsGraph_node13" class="node">
 <title>c_ptr</title>
-<polygon fill="#5cb85c" stroke="#5cb85c" points="69,-176 15,-176 15,-152 69,-152 69,-176"/>
-<text text-anchor="middle" x="42" y="-161.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">c_ptr</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="89,-127 35,-127 35,-103 89,-103 89,-127"/>
+<text text-anchor="middle" x="62" y="-112.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">c_ptr</text>
 </g>
 <!-- type~cudaevent&#45;&gt;c_ptr -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge11" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge14" class="edge">
 <title>type~cudaevent&#45;&gt;c_ptr</title>
-<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M188.74,-176.99C157.53,-174.21 111.29,-170.09 79.3,-167.24"/>
-<polygon fill="#ffff00" stroke="#ffff00" points="79.32,-163.72 69.04,-166.32 78.69,-170.7 79.32,-163.72"/>
-<text text-anchor="middle" x="130" y="-175.4" font-family="Helvetica,sans-Serif" font-size="9.50">event</text>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M235.86,-134.25C198.36,-130.08 137.92,-123.34 99.35,-119.05"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="99.42,-115.53 89.09,-117.91 98.64,-122.49 99.42,-115.53"/>
+<text text-anchor="middle" x="173.5" y="-132.4" font-family="Helvetica,sans-Serif" font-size="9.50">event</text>
 </g>
 <!-- type~dtfft_stream_t&#45;&gt;c_ptr -->
-<g id="type~~reshape_handle_generic~~InheritsGraph_edge12" class="edge">
+<g id="type~~reshape_handle_generic~~InheritsGraph_edge15" class="edge">
 <title>type~dtfft_stream_t&#45;&gt;c_ptr</title>
-<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M190.82,-108C159.45,-119.89 111.47,-138.06 78.75,-150.46"/>
-<polygon fill="#0000ff" stroke="#0000ff" points="77.23,-147.29 69.12,-154.11 79.71,-153.84 77.23,-147.29"/>
-<text text-anchor="middle" x="130" y="-142.4" font-family="Helvetica,sans-Serif" font-size="9.50">stream</text>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M227.78,-96.74C202.83,-97.49 170.54,-98.99 142,-102 128.04,-103.47 112.8,-105.81 99.46,-108.09"/>
+<polygon fill="#0091ff" stroke="#0091ff" points="98.47,-104.71 89.23,-109.9 99.69,-111.61 98.47,-104.71"/>
+<text text-anchor="middle" x="173.5" y="-104.4" font-family="Helvetica,sans-Serif" font-size="9.50">stream</text>
 </g>
 </g>
 </svg>
@@ -464,6 +517,23 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-is_created~6"></span>
+              logical,
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_created</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-has_exchange"></span>
               logical,
             </td>
@@ -476,7 +546,7 @@ large graphs.</div>
 <td> =</td>
                 <td>.false.</td>
             <td>
-                <p>If current handle has exchanges between GPUs</p>
+                <p>If current handle has exchanges</p>
             </td>
         </tr>
         <tr>
@@ -494,6 +564,23 @@ large graphs.</div>
                 <td>.false.</td>
             <td>
                 <p>If underlying exchanges are pipelined</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_fused~3"></span>
+              logical,
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_fused</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                <p>If underlying exchanges are fused</p>
             </td>
         </tr>
         <tr>
@@ -549,24 +636,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_reshape_only"></span>
-              logical,
-            </td>
-              <td>private</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>is_reshape_only</strong></td>
-<td> =</td>
-                <td>.false.</td>
-            <td>
-                <p>Are we using pack+unpack free reshape or not</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-aux_bytes~4"></span>
+              <span class="anchor" id="variable-aux_bytes~6"></span>
               integer(kind=int64),
             </td>
               <td>private</td>
@@ -583,7 +653,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-pack_kernel"></span>
+              <span class="anchor" id="variable-pack_kernel~3"></span>
               class(<a href='abstract_kernel.html'>abstract_kernel</a>),
             </td>
               <td>private,</td>
@@ -632,6 +702,23 @@ large graphs.</div>
                 <p>Communication handle</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compressor~3"></span>
+              class(<a href='abstract_compressor.html'>abstract_compressor</a>),
+            </td>
+              <td>private,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>compressor</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Compressor</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -645,7 +732,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-create"></span>
+      <span class="anchor" id="boundprocedure-create~5"></span>
       <h3>
           procedure, public, non_overridable, pass(self) ::
   <strong>create</strong>
@@ -659,7 +746,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/create.html'>create</a>(self, send, recv, kwargs)  
+    private  subroutine <a href='../proc/create~4.html'>create</a>(self, send, recv, kwargs)  
 </h3>
     
 
@@ -748,10 +835,10 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-create_private~16"></span>
+      <span class="anchor" id="boundprocedure-create_private~17"></span>
       <h3>
           procedure, public, pass(self) ::
-  <strong>create_private</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create~15.html'>create</a>
+  <strong>create_private</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create~18.html'>create</a>
         
       </h3>
     </div>
@@ -762,7 +849,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/create~15.html'>create</a>(self, comm, send, recv, kwargs)  
+    private  subroutine <a href='../proc/create~18.html'>create</a>(self, comm, send, recv, kwargs)  
 </h3>
     
 
@@ -866,7 +953,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-execute~7"></span>
+      <span class="anchor" id="boundprocedure-execute~9"></span>
       <h3>
           procedure, public, pass(self) ::
   <strong>execute</strong>
@@ -880,7 +967,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/execute~12.html'>execute</a>(self, in, out, kwargs, error_code)  
+    private  subroutine <a href='../proc/execute~13.html'>execute</a>(self, in, out, kwargs, error_code)  
 </h3>
     
 
@@ -915,14 +1002,14 @@ large graphs.</div>
         <tr>
             <td>
               <span class="anchor" ></span>
-              real(kind=real32),
+              type(c_ptr),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>in</strong>(:)</td>
+            <td><strong>in</strong></td>
             <td>
 <p>Send pointer</p>
             </td>
@@ -930,14 +1017,14 @@ large graphs.</div>
         <tr>
             <td>
               <span class="anchor" ></span>
-              real(kind=real32),
+              type(c_ptr),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>out</strong>(:)</td>
+            <td><strong>out</strong></td>
             <td>
 <p>Recv pointer</p>
             </td>
@@ -984,7 +1071,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-execute_end~6"></span>
+      <span class="anchor" id="boundprocedure-execute_end~5"></span>
       <h3>
           procedure, public, pass(self) ::
   <strong>execute_end</strong>
@@ -1072,7 +1159,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-get_async_active~10"></span>
+      <span class="anchor" id="boundprocedure-get_async_active~8"></span>
       <h3>
           procedure, public, pass(self) ::
   <strong>get_async_active</strong>
@@ -1086,7 +1173,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private elemental function <a href='../proc/get_async_active~5.html'>get_async_active</a>(self)  
+    private elemental function <a href='../proc/get_async_active~4.html'>get_async_active</a>(self)  
 </h3>
     
 
@@ -1149,7 +1236,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/destroy~15.html'>destroy</a>(self)  
+    private  subroutine <a href='../proc/destroy~16.html'>destroy</a>(self)  
 </h3>
     
 
@@ -1253,6 +1340,134 @@ large graphs.</div>
   </div>
 
           </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-get_backend~8"></span>
+      <h3>
+          procedure, public, pass(self) ::
+  <strong>get_backend</strong>
+        
+      </h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private elemental function <a href='../proc/get_backend~4.html'>get_backend</a>(self)  
+</h3>
+    
+
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='reshape_handle_generic.html'>reshape_handle_generic</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Abstract reshape Handle</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='dtfft_backend_t.html'>dtfft_backend_t</a>)</small>
+    </h4>
+    
+
+        </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-report_compression~4"></span>
+      <h3>
+          procedure, public, pass(self) ::
+  <strong>report_compression</strong>
+        
+      </h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/report_compression~4.html'>report_compression</a>(self, name)  
+</h3>
+    
+
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='reshape_handle_generic.html'>reshape_handle_generic</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Abstract reshape Handle</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>name</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+    </ul>
+  </div>
+
+          </div>
       </section>
 
     
@@ -1298,9 +1513,6 @@ large graphs.</div>
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

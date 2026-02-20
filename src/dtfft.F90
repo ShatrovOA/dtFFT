@@ -19,6 +19,9 @@
 #include "dtfft_config.h"
 module dtfft
 !! Main ``dtFFT`` module. Should be used in a Fortran program.
+#ifdef DTFFT_WITH_COMPRESSION
+use dtfft_abstract_compressor
+#endif
 use dtfft_config
 use dtfft_errors
 use dtfft_parameters
@@ -36,17 +39,18 @@ public :: dtfft_plan_t
 public :: dtfft_plan_c2c_t
 public :: dtfft_plan_r2c_t
 public :: dtfft_plan_r2r_t
-
+! Helper types
 public :: dtfft_request_t
 public :: dtfft_pencil_t
-
+! String getters
 public :: dtfft_get_error_string
 public :: dtfft_get_precision_string
 public :: dtfft_get_executor_string
-
+! Enums
 public :: dtfft_execute_t, dtfft_transpose_t, dtfft_reshape_t, dtfft_layout_t
 public :: dtfft_executor_t, dtfft_effort_t
 public :: dtfft_precision_t, dtfft_r2r_kind_t
+public :: dtfft_transpose_mode_t, dtfft_access_mode_t
 
 public :: operator(==)
 public :: operator(/=)
@@ -105,6 +109,11 @@ public :: DTFFT_DCT_1,                                              &
           DTFFT_DST_3,                                              &
           DTFFT_DST_4
 
+! Transpose and access modes
+public :: DTFFT_TRANSPOSE_MODE_PACK, DTFFT_TRANSPOSE_MODE_UNPACK
+public :: DTFFT_ACCESS_MODE_WRITE, DTFFT_ACCESS_MODE_READ
+
+! Error codes
 public :: DTFFT_SUCCESS
 public :: DTFFT_ERROR_MPI_FINALIZED
 public :: DTFFT_ERROR_PLAN_NOT_CREATED
@@ -144,6 +153,16 @@ public :: DTFFT_ERROR_INVALID_MEASURE_ITERS
 public :: DTFFT_ERROR_INVALID_REQUEST
 public :: DTFFT_ERROR_TRANSPOSE_ACTIVE
 public :: DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE
+public :: DTFFT_ERROR_INVALID_RESHAPE_TYPE
+public :: DTFFT_ERROR_RESHAPE_ACTIVE
+public :: DTFFT_ERROR_RESHAPE_NOT_ACTIVE
+public :: DTFFT_ERROR_INPLACE_RESHAPE
+public :: DTFFT_ERROR_INVALID_EXECUTE_TYPE
+public :: DTFFT_ERROR_RESHAPE_NOT_SUPPORTED
+public :: DTFFT_ERROR_R2C_EXECUTE_CALLED
+public :: DTFFT_ERROR_INVALID_CART_COMM
+public :: DTFFT_ERROR_INVALID_TRANSPOSE_MODE
+public :: DTFFT_ERROR_INVALID_ACCESS_MODE
 public :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
 public :: DTFFT_ERROR_GPU_INVALID_STREAM
 public :: DTFFT_ERROR_INVALID_BACKEND
@@ -156,10 +175,10 @@ public :: DTFFT_ERROR_INVALID_PLATFORM
 public :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR
 public :: DTFFT_ERROR_INVALID_PLATFORM_BACKEND
 
-
+! Configuration
 public :: dtfft_config_t
 public :: dtfft_create_config, dtfft_set_config
-
+! Backends
 public :: DTFFT_BACKEND_MPI_DATATYPE
 public :: DTFFT_BACKEND_MPI_P2P
 public :: DTFFT_BACKEND_MPI_P2P_PIPELINED
@@ -167,6 +186,9 @@ public :: DTFFT_BACKEND_MPI_A2A
 public :: DTFFT_BACKEND_MPI_RMA
 public :: DTFFT_BACKEND_MPI_RMA_PIPELINED
 public :: DTFFT_BACKEND_MPI_P2P_SCHEDULED
+public :: DTFFT_BACKEND_MPI_P2P_FUSED
+public :: DTFFT_BACKEND_MPI_RMA_FUSED
+public :: DTFFT_BACKEND_ADAPTIVE
 
 public :: dtfft_backend_t
 public :: dtfft_get_backend_string
@@ -176,12 +198,29 @@ public :: dtfft_get_backend_pipelined
 
 public :: dtfft_stream_t, dtfft_get_cuda_stream
 public :: dtfft_platform_t
-
+! Platforms
 public :: DTFFT_PLATFORM_HOST, DTFFT_PLATFORM_CUDA
-
+! GPU backends
 public :: DTFFT_BACKEND_NCCL
 public :: DTFFT_BACKEND_NCCL_PIPELINED
 public :: DTFFT_BACKEND_CUFFTMP
 public :: DTFFT_BACKEND_CUFFTMP_PIPELINED
+#endif
+
+#ifdef DTFFT_WITH_COMPRESSION
+public :: dtfft_compression_lib_t
+public :: dtfft_compression_mode_t
+public :: dtfft_compression_config_t
+public :: DTFFT_COMPRESSION_LIB_ZFP
+public :: DTFFT_COMPRESSION_MODE_LOSSLESS
+public :: DTFFT_COMPRESSION_MODE_FIXED_RATE
+public :: DTFFT_COMPRESSION_MODE_FIXED_PRECISION
+public :: DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
+
+public :: DTFFT_BACKEND_MPI_P2P_COMPRESSED
+public :: DTFFT_BACKEND_MPI_RMA_COMPRESSED
+# ifdef DTFFT_WITH_CUDA
+public :: DTFFT_BACKEND_NCCL_COMPRESSED
+# endif
 #endif
 end module dtfft

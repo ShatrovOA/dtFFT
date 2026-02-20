@@ -1,0 +1,2057 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>execute_single_transpose_modes &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>execute_single_transpose_modes
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for procedures.">39 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_transpose_plan.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_transpose_plan.f90.html'>dtfft_transpose_plan.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_transpose_plan.html'>dtfft_transpose_plan</a></li>
+            <li class="breadcrumb-item active" aria-current="page">execute_single_transpose_modes</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private  subroutine execute_single_transpose_modes(base_backend, effort, create_kwargs, helper, from, to, transpose_name_id, fmode, bmode, forward_time, backward_time)  
+</h2>
+    
+
+    <p>Creates forward and backward transpose plans for backend, specified by <code>create_kwargs</code>, based on source and target data distributions and,
+executes them <code>DTFFT_MEASURE_ITERS</code> times ( 4 * <code>DTFFT_MEASURE_ITERS</code> iterations total ) + 4 * <code>DTFFT_MEASURE_WARMUP_ITERS</code> warmup iterations</p>
+<p>Returns elapsed time for best plans selected</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_backend~2"></span>
+              type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_backend</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-effort~13"></span>
+              type(<a href='../type/dtfft_effort_t.html'>dtfft_effort_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>effort</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-create_kwargs~4"></span>
+              type(<a href='../type/create_args.html'>create_args</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>create_kwargs</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-helper~16"></span>
+              type(<a href='../type/backend_helper.html'>backend_helper</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>helper</strong></td>
+            <td>
+                <p>Backend helper</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-from"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>from</strong></td>
+            <td>
+                <p>Source meta</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-to"></span>
+              type(<a href='../type/pencil.html'>pencil</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>to</strong></td>
+            <td>
+                <p>Target meta</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transpose_name_id"></span>
+              integer(kind=int8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transpose_name_id</strong></td>
+            <td>
+                <p>ID of transpose name (from -3 to 3, except 0)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fmode"></span>
+              type(<a href='../type/dtfft_transpose_mode_t.html'>dtfft_transpose_mode_t</a>),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fmode</strong></td>
+            <td>
+                <p>Best forward plan ID</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bmode"></span>
+              type(<a href='../type/dtfft_transpose_mode_t.html'>dtfft_transpose_mode_t</a>),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>bmode</strong></td>
+            <td>
+                <p>Best backward plan ID</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-forward_time"></span>
+              real(kind=real32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>forward_time</strong></td>
+            <td>
+                <p>Forward plan execution time</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-backward_time"></span>
+              real(kind=real32),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>backward_time</strong></td>
+            <td>
+                <p>Backward plan execution time</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_single_transpose_modes~~CallsGraph Pages: 1 -->
+<svg id="procexecute_single_transpose_modesCallsGraph" width="641pt" height="568pt"
+ viewBox="0.00 0.00 641.00 568.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_single_transpose_modes~~CallsGraph" class="graph" transform="scale(0.38 0.38) rotate(0) translate(4 1490)">
+<title>proc~~execute_single_transpose_modes~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1490 1682,-1490 1682,4 -4,4"/>
+<!-- proc~execute_single_transpose_modes -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node1" class="node">
+<title>proc~execute_single_transpose_modes</title>
+<polygon fill="none" stroke="black" points="190,-1002 0,-1002 0,-978 190,-978 190,-1002"/>
+<text text-anchor="middle" x="95" y="-987.6" font-family="Helvetica,sans-Serif" font-size="10.50">execute_single_transpose_modes</text>
+</g>
+<!-- proc~run_execute_single -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node2" class="node">
+<title>proc~run_execute_single</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node2"><a xlink:href="../proc/run_execute_single.html" xlink:title="run_execute_single">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="341,-1002 226,-1002 226,-978 341,-978 341,-1002"/>
+<text text-anchor="middle" x="283.5" y="-987.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_execute_single</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_single_transpose_modes&#45;&gt;proc~run_execute_single -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge1" class="edge">
+<title>proc~execute_single_transpose_modes&#45;&gt;proc~run_execute_single</title>
+<path fill="none" stroke="#ff0000" d="M190.07,-990C198.76,-990 207.44,-990 215.8,-990"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="215.84,-993.5 225.84,-990 215.84,-986.5 215.84,-993.5"/>
+</g>
+<!-- proc~allocate_plans -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node3" class="node">
+<title>proc~allocate_plans</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node3"><a xlink:href="../proc/allocate_plans.html" xlink:title="allocate_plans">
+<polygon fill="#d9534f" stroke="#d9534f" points="896.5,-1160 807.5,-1160 807.5,-1136 896.5,-1136 896.5,-1160"/>
+<text text-anchor="middle" x="852" y="-1145.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">allocate_plans</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~allocate_plans -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge2" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~allocate_plans</title>
+<path fill="none" stroke="#ff0000" d="M301.88,-1002.16C343.98,-1030.83 455.69,-1102.41 561,-1131 641.12,-1152.75 738.11,-1153.56 797.15,-1151.36"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="797.52,-1154.85 807.36,-1150.94 797.23,-1147.86 797.52,-1154.85"/>
+</g>
+<!-- proc~create~4 -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node4" class="node">
+<title>proc~create~4</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node4"><a xlink:href="../proc/create~4.html" xlink:title="abstract_reshape_handle%create">
+<polygon fill="#d9534f" stroke="#d9534f" points="947,-1342 757,-1342 757,-1318 947,-1318 947,-1342"/>
+<text text-anchor="middle" x="852" y="-1327.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_handle%create</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~create~4 -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge3" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~create~4</title>
+<path fill="none" stroke="#ff0000" d="M284.36,-1002.19C284.56,-1046.15 291.66,-1197.59 377,-1268 488.36,-1359.88 667.25,-1355.52 770.47,-1343.29"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="771.03,-1346.75 780.52,-1342.04 770.17,-1339.8 771.03,-1346.75"/>
+</g>
+<!-- proc~destroy_plans -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node5" class="node">
+<title>proc~destroy_plans</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node5"><a xlink:href="../proc/destroy_plans.html" xlink:title="destroy_plans">
+<polygon fill="#d9534f" stroke="#d9534f" points="493.5,-1259 408.5,-1259 408.5,-1235 493.5,-1235 493.5,-1259"/>
+<text text-anchor="middle" x="451" y="-1244.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy_plans</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~destroy_plans -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge4" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~destroy_plans</title>
+<path fill="none" stroke="#ff0000" d="M287.15,-1002.4C295.15,-1037.43 321.98,-1138.62 377,-1202 386.9,-1213.4 400.4,-1222.83 413.11,-1230.06"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="411.69,-1233.27 422.16,-1234.93 415.01,-1227.11 411.69,-1233.27"/>
+</g>
+<!-- proc~execute_autotune -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node6" class="node">
+<title>proc~execute_autotune</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node6"><a xlink:href="../proc/execute_autotune.html" xlink:title="execute_autotune">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="505,-823 397,-823 397,-799 505,-799 505,-823"/>
+<text text-anchor="middle" x="451" y="-808.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_autotune</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~execute_autotune -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge5" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~execute_autotune</title>
+<path fill="none" stroke="#ff0000" d="M295.62,-977.98C323.51,-947.81 396.71,-868.64 431.34,-831.19"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="434.28,-833.16 438.49,-823.44 429.14,-828.41 434.28,-833.16"/>
+</g>
+<!-- proc~get_conf_log_enabled -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node7" class="node">
+<title>proc~get_conf_log_enabled</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node7"><a xlink:href="../proc/get_conf_log_enabled.html" xlink:title="get_conf_log_enabled">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1163.5,-654 1034.5,-654 1034.5,-630 1163.5,-630 1163.5,-654"/>
+<text text-anchor="middle" x="1099" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_log_enabled</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~get_conf_log_enabled -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge6" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~get_conf_log_enabled</title>
+<path fill="none" stroke="#ff0000" d="M286.95,-977.59C300.29,-913.73 370.81,-621.33 561,-521 731.48,-431.06 797.37,-569.1 983,-621 996.21,-624.69 1010.46,-627.9 1024.29,-630.62"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1023.78,-634.09 1034.25,-632.52 1025.08,-627.21 1023.78,-634.09"/>
+</g>
+<!-- proc~pop_nvtx_domain_range -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node8" class="node">
+<title>proc~pop_nvtx_domain_range</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node8"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="522.5,-360 379.5,-360 379.5,-336 522.5,-336 522.5,-360"/>
+<text text-anchor="middle" x="451" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge7" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#ff0000" d="M284.68,-977.83C286.03,-899.92 297.09,-471.05 377,-374 379.62,-370.82 382.66,-368.03 385.97,-365.58"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="388.06,-368.4 394.72,-360.16 384.38,-362.45 388.06,-368.4"/>
+</g>
+<!-- proc~push_nvtx_domain_range -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node9" class="node">
+<title>proc~push_nvtx_domain_range</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node9"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="525,-172 377,-172 377,-148 525,-148 525,-172"/>
+<text text-anchor="middle" x="451" y="-157.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge8" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#ff0000" d="M284.95,-977.98C287.72,-911.55 304.64,-583.12 377,-327 392.45,-272.32 422.14,-212.18 438.49,-181.15"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="441.68,-182.61 443.3,-172.14 435.51,-179.31 441.68,-182.61"/>
+</g>
+<!-- proc~write_message -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node10" class="node">
+<title>proc~write_message</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node10"><a xlink:href="../proc/write_message.html" xlink:title="write_message">
+<polygon fill="#d9534f" stroke="#d9534f" points="1145,-1200 1053,-1200 1053,-1176 1145,-1176 1145,-1200"/>
+<text text-anchor="middle" x="1099" y="-1185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">write_message</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~write_message -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge9" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#ff0000" d="M291.78,-1002.21C305.61,-1024.35 337.81,-1071.23 377,-1097 448.64,-1144.11 476.77,-1138.95 561,-1155 734.51,-1188.07 944.71,-1190.29 1042.71,-1189.19"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1043.01,-1192.69 1052.97,-1189.06 1042.92,-1185.69 1043.01,-1192.69"/>
+</g>
+<!-- proc~allocate_plans&#45;&gt;proc~write_message -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge11" class="edge">
+<title>proc~allocate_plans&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#ff0000" d="M896.52,-1155.11C937.34,-1161.77 998.56,-1171.77 1042.8,-1178.99"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1042.38,-1182.47 1052.81,-1180.62 1043.51,-1175.56 1042.38,-1182.47"/>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node24" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="1132.5,-1158 1065.5,-1158 1065.5,-1134 1132.5,-1134 1132.5,-1158"/>
+<text text-anchor="middle" x="1099" y="-1143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~allocate_plans&#45;&gt;mpi_abort -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge10" class="edge">
+<title>proc~allocate_plans&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ff0000" d="M896.52,-1147.64C941.33,-1147.28 1010.72,-1146.71 1055.25,-1146.35"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1055.48,-1149.85 1065.45,-1146.27 1055.42,-1142.85 1055.48,-1149.85"/>
+</g>
+<!-- proc~create~4&#45;&gt;proc~write_message -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge18" class="edge">
+<title>proc~create~4&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#ffbf00" d="M886.83,-1317.9C905.07,-1310.9 927.73,-1301.43 947,-1291 994.3,-1265.41 1045.15,-1228.56 1074.12,-1206.58"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="1076.56,-1209.11 1082.38,-1200.26 1072.31,-1203.55 1076.56,-1209.11"/>
+</g>
+<!-- create_private -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node11" class="node">
+<title>create_private</title>
+<polygon fill="#777777" stroke="#777777" points="1143.5,-1360 1054.5,-1360 1054.5,-1336 1143.5,-1336 1143.5,-1360"/>
+<text text-anchor="middle" x="1099" y="-1345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_private</text>
+</g>
+<!-- proc~create~4&#45;&gt;create_private -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge12" class="edge">
+<title>proc~create~4&#45;&gt;create_private</title>
+<path fill="none" stroke="#ffbf00" d="M947.02,-1336.91C979.95,-1339.33 1015.79,-1341.96 1044.28,-1344.05"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="1044.2,-1347.56 1054.43,-1344.8 1044.71,-1340.58 1044.2,-1347.56"/>
+</g>
+<!-- proc~create~4&#45;&gt;mpi_abort -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge13" class="edge">
+<title>proc~create~4&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ffbf00" d="M904.49,-1317.97C919.98,-1312.1 935.81,-1303.51 947,-1291 985.27,-1248.24 940.41,-1205.46 983,-1167 1002.29,-1149.58 1031.05,-1144.34 1054.99,-1143.44"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="1055.3,-1146.94 1065.25,-1143.31 1055.21,-1139.94 1055.3,-1146.94"/>
+</g>
+<!-- proc~get_reshape_type -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node38" class="node">
+<title>proc~get_reshape_type</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node38"><a xlink:href="../proc/get_reshape_type.html" xlink:title="get_reshape_type">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1152,-1318 1046,-1318 1046,-1294 1152,-1294 1152,-1318"/>
+<text text-anchor="middle" x="1099" y="-1303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_reshape_type</text>
+</a>
+</g>
+</g>
+<!-- proc~create~4&#45;&gt;proc~get_reshape_type -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge14" class="edge">
+<title>proc~create~4&#45;&gt;proc~get_reshape_type</title>
+<path fill="none" stroke="#ffbf00" d="M947.02,-1320.79C976.7,-1317.88 1008.73,-1314.74 1035.63,-1312.11"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="1036.06,-1315.58 1045.67,-1311.13 1035.37,-1308.62 1036.06,-1315.58"/>
+</g>
+<!-- proc~get_transpose_type -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node39" class="node">
+<title>proc~get_transpose_type</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node39"><a xlink:href="../proc/get_transpose_type.html" xlink:title="get_transpose_type">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1157,-1486 1041,-1486 1041,-1462 1157,-1462 1157,-1486"/>
+<text text-anchor="middle" x="1099" y="-1471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_transpose_type</text>
+</a>
+</g>
+</g>
+<!-- proc~create~4&#45;&gt;proc~get_transpose_type -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge15" class="edge">
+<title>proc~create~4&#45;&gt;proc~get_transpose_type</title>
+<path fill="none" stroke="#ffbf00" d="M861.83,-1342.18C880.85,-1367.41 928.41,-1425.32 983,-1453 997.69,-1460.45 1014.63,-1465.28 1030.9,-1468.42"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="1030.48,-1471.89 1040.93,-1470.15 1031.67,-1465 1030.48,-1471.89"/>
+</g>
+<!-- proc~is_valid_reshape_type -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node40" class="node">
+<title>proc~is_valid_reshape_type</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node40"><a xlink:href="../proc/is_valid_reshape_type.html" xlink:title="is_valid_reshape_type">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1163,-1444 1035,-1444 1035,-1420 1163,-1420 1163,-1444"/>
+<text text-anchor="middle" x="1099" y="-1429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_reshape_type</text>
+</a>
+</g>
+</g>
+<!-- proc~create~4&#45;&gt;proc~is_valid_reshape_type -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge16" class="edge">
+<title>proc~create~4&#45;&gt;proc~is_valid_reshape_type</title>
+<path fill="none" stroke="#ffbf00" d="M867.99,-1342.02C891.2,-1359.97 937.86,-1393.55 983,-1411 996.1,-1416.06 1010.52,-1419.93 1024.59,-1422.86"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="1024.27,-1426.37 1034.75,-1424.84 1025.61,-1419.5 1024.27,-1426.37"/>
+</g>
+<!-- proc~is_valid_transpose_type -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node41" class="node">
+<title>proc~is_valid_transpose_type</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node41"><a xlink:href="../proc/is_valid_transpose_type.html" xlink:title="is_valid_transpose_type">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1168,-1402 1030,-1402 1030,-1378 1168,-1378 1168,-1402"/>
+<text text-anchor="middle" x="1099" y="-1387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_transpose_type</text>
+</a>
+</g>
+</g>
+<!-- proc~create~4&#45;&gt;proc~is_valid_transpose_type -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge17" class="edge">
+<title>proc~create~4&#45;&gt;proc~is_valid_transpose_type</title>
+<path fill="none" stroke="#ffbf00" d="M889.13,-1342.01C915.05,-1350.34 950.93,-1361.29 983,-1369 994.91,-1371.86 1007.6,-1374.55 1020.04,-1376.97"/>
+<polygon fill="#ffbf00" stroke="#ffbf00" points="1019.46,-1380.42 1029.94,-1378.86 1020.77,-1373.55 1019.46,-1380.42"/>
+</g>
+<!-- destroy -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node12" class="node">
+<title>destroy</title>
+<polygon fill="#777777" stroke="#777777" points="668,-1278 614,-1278 614,-1254 668,-1254 668,-1278"/>
+<text text-anchor="middle" x="641" y="-1263.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy</text>
+</g>
+<!-- proc~destroy_plans&#45;&gt;destroy -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge19" class="edge">
+<title>proc~destroy_plans&#45;&gt;destroy</title>
+<path fill="none" stroke="#7fff00" d="M493.72,-1251.22C526.67,-1254.55 572.18,-1259.15 603.65,-1262.33"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="603.44,-1265.82 613.75,-1263.35 604.15,-1258.86 603.44,-1265.82"/>
+</g>
+<!-- execute -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node13" class="node">
+<title>execute</title>
+<polygon fill="#777777" stroke="#777777" points="668.5,-924 613.5,-924 613.5,-900 668.5,-900 668.5,-924"/>
+<text text-anchor="middle" x="641" y="-909.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute</text>
+</g>
+<!-- proc~execute_autotune&#45;&gt;execute -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge20" class="edge">
+<title>proc~execute_autotune&#45;&gt;execute</title>
+<path fill="none" stroke="#00ff3f" d="M465.04,-823.14C484.48,-840.62 522.89,-872.76 561,-891 574.16,-897.3 589.49,-901.93 603.12,-905.21"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="602.63,-908.68 613.15,-907.46 604.16,-901.85 602.63,-908.68"/>
+</g>
+<!-- fname -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node14" class="node">
+<title>fname</title>
+<polygon fill="#777777" stroke="#777777" points="1126,-486 1072,-486 1072,-462 1126,-462 1126,-486"/>
+<text text-anchor="middle" x="1099" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fname</text>
+</g>
+<!-- proc~execute_autotune&#45;&gt;fname -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge21" class="edge">
+<title>proc~execute_autotune&#45;&gt;fname</title>
+<path fill="none" stroke="#00ff3f" d="M452.31,-798.73C454.17,-753.08 467.39,-592.06 561,-521 580.97,-505.84 943.84,-483.12 1061.5,-476.13"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1062.01,-479.6 1071.79,-475.52 1061.6,-472.62 1062.01,-479.6"/>
+</g>
+<!-- interface~cudaeventcreate -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node15" class="node">
+<title>interface~cudaeventcreate</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node15"><a xlink:href="../interface/cudaeventcreate.html" xlink:title="cudaEventCreate">
+<polygon fill="#a7506f" stroke="#a7506f" points="693,-882 589,-882 589,-858 693,-858 693,-882"/>
+<text text-anchor="middle" x="641" y="-867.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEventCreate</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;interface~cudaeventcreate -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge22" class="edge">
+<title>proc~execute_autotune&#45;&gt;interface~cudaeventcreate</title>
+<path fill="none" stroke="#00ff3f" d="M490.5,-823.08C519.77,-832.27 560.24,-844.97 591.68,-854.84"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="590.96,-858.28 601.55,-857.93 593.06,-851.6 590.96,-858.28"/>
+</g>
+<!-- interface~cudaeventdestroy -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node16" class="node">
+<title>interface~cudaeventdestroy</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node16"><a xlink:href="../interface/cudaeventdestroy.html" xlink:title="cudaEventDestroy">
+<polygon fill="#a7506f" stroke="#a7506f" points="695.5,-764 586.5,-764 586.5,-740 695.5,-740 695.5,-764"/>
+<text text-anchor="middle" x="641" y="-749.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEventDestroy</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;interface~cudaeventdestroy -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge23" class="edge">
+<title>proc~execute_autotune&#45;&gt;interface~cudaeventdestroy</title>
+<path fill="none" stroke="#00ff3f" d="M490.5,-798.92C519.77,-789.73 560.24,-777.03 591.68,-767.16"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="593.06,-770.4 601.55,-764.07 590.96,-763.72 593.06,-770.4"/>
+</g>
+<!-- interface~cudaeventelapsedtime -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node17" class="node">
+<title>interface~cudaeventelapsedtime</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node17"><a xlink:href="../interface/cudaeventelapsedtime.html" xlink:title="cudaEventElapsedTime">
+<polygon fill="#a7506f" stroke="#a7506f" points="709.5,-722 572.5,-722 572.5,-698 709.5,-698 709.5,-722"/>
+<text text-anchor="middle" x="641" y="-707.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEventElapsedTime</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;interface~cudaeventelapsedtime -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge24" class="edge">
+<title>proc~execute_autotune&#45;&gt;interface~cudaeventelapsedtime</title>
+<path fill="none" stroke="#00ff3f" d="M465.04,-798.86C484.48,-781.38 522.89,-749.24 561,-731 565.33,-728.93 569.9,-727.03 574.56,-725.31"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="575.9,-728.55 584.23,-722.01 573.64,-721.93 575.9,-728.55"/>
+</g>
+<!-- interface~cudaeventrecord -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node18" class="node">
+<title>interface~cudaeventrecord</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node18"><a xlink:href="../interface/cudaeventrecord.html" xlink:title="cudaEventRecord">
+<polygon fill="#a7506f" stroke="#a7506f" points="694,-680 588,-680 588,-656 694,-656 694,-680"/>
+<text text-anchor="middle" x="641" y="-665.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEventRecord</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;interface~cudaeventrecord -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge25" class="edge">
+<title>proc~execute_autotune&#45;&gt;interface~cudaeventrecord</title>
+<path fill="none" stroke="#00ff3f" d="M459.34,-798.84C474.87,-774.17 513.56,-718.13 561,-689 566.32,-685.73 572.14,-682.97 578.13,-680.63"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="579.37,-683.91 587.65,-677.3 577.06,-677.3 579.37,-683.91"/>
+</g>
+<!-- interface~cudaeventsynchronize -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node19" class="node">
+<title>interface~cudaeventsynchronize</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node19"><a xlink:href="../interface/cudaeventsynchronize.html" xlink:title="cudaEventSynchronize">
+<polygon fill="#a7506f" stroke="#a7506f" points="707.5,-638 574.5,-638 574.5,-614 707.5,-614 707.5,-638"/>
+<text text-anchor="middle" x="641" y="-623.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaEventSynchronize</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;interface~cudaeventsynchronize -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge26" class="edge">
+<title>proc~execute_autotune&#45;&gt;interface~cudaeventsynchronize</title>
+<path fill="none" stroke="#00ff3f" d="M456.47,-798.93C468.41,-768.44 504.04,-687.84 561,-647 563.25,-645.39 565.61,-643.9 568.06,-642.53"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="569.79,-645.58 577.24,-638.04 566.72,-639.29 569.79,-645.58"/>
+</g>
+<!-- interface~cudastreamsynchronize -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node20" class="node">
+<title>interface~cudastreamsynchronize</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node20"><a xlink:href="../interface/cudastreamsynchronize.html" xlink:title="cudaStreamSynchronize">
+<polygon fill="#a7506f" stroke="#a7506f" points="712,-596 570,-596 570,-572 712,-572 712,-596"/>
+<text text-anchor="middle" x="641" y="-581.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamSynchronize</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;interface~cudastreamsynchronize -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge27" class="edge">
+<title>proc~execute_autotune&#45;&gt;interface~cudastreamsynchronize</title>
+<path fill="none" stroke="#00ff3f" d="M454.79,-798.82C463.61,-763.13 494.34,-658.02 561,-605 562.8,-603.56 564.7,-602.23 566.66,-600.98"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="568.56,-603.93 575.67,-596.07 565.22,-597.78 568.56,-603.93"/>
+</g>
+<!-- proc~execute_autotune&#45;&gt;mpi_abort -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge28" class="edge">
+<title>proc~execute_autotune&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#00ff3f" d="M454.93,-823.07C464.03,-857.9 495.27,-959.3 561,-1009 619.22,-1053.02 650.47,-1027.23 721,-1046 838.53,-1077.27 864.77,-1096.48 983,-1125 1006.76,-1130.73 1033.61,-1135.72 1055.39,-1139.39"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1054.89,-1142.86 1065.33,-1141.04 1056.03,-1135.95 1054.89,-1142.86"/>
+</g>
+<!-- mpi_barrier -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node25" class="node">
+<title>mpi_barrier</title>
+<polygon fill="#777777" stroke="#777777" points="678.5,-554 603.5,-554 603.5,-530 678.5,-530 678.5,-554"/>
+<text text-anchor="middle" x="641" y="-539.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_barrier</text>
+</g>
+<!-- proc~execute_autotune&#45;&gt;mpi_barrier -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge29" class="edge">
+<title>proc~execute_autotune&#45;&gt;mpi_barrier</title>
+<path fill="none" stroke="#00ff3f" d="M453.62,-798.73C459.63,-758.39 484.38,-628.62 561,-563 570.09,-555.22 581.76,-550.28 593.32,-547.17"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="594.42,-550.5 603.39,-544.87 592.86,-543.68 594.42,-550.5"/>
+</g>
+<!-- mpi_wtime -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node28" class="node">
+<title>mpi_wtime</title>
+<polygon fill="#777777" stroke="#777777" points="676,-1122 606,-1122 606,-1098 676,-1098 676,-1122"/>
+<text text-anchor="middle" x="641" y="-1107.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_wtime</text>
+</g>
+<!-- proc~execute_autotune&#45;&gt;mpi_wtime -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge30" class="edge">
+<title>proc~execute_autotune&#45;&gt;mpi_wtime</title>
+<path fill="none" stroke="#00ff3f" d="M453.23,-823.09C458.2,-865.4 480.49,-1008.33 561,-1084 570.63,-1093.05 583.47,-1098.95 596,-1102.8"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="595.35,-1106.25 605.91,-1105.47 597.16,-1099.49 595.35,-1106.25"/>
+</g>
+<!-- proc~alloc_and_set_aux -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node29" class="node">
+<title>proc~alloc_and_set_aux</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node29"><a xlink:href="../proc/alloc_and_set_aux.html" xlink:title="alloc_and_set_aux">
+<polygon fill="#d9534f" stroke="#d9534f" points="695.5,-966 586.5,-966 586.5,-942 695.5,-942 695.5,-966"/>
+<text text-anchor="middle" x="641" y="-951.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">alloc_and_set_aux</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~alloc_and_set_aux -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge31" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~alloc_and_set_aux</title>
+<path fill="none" stroke="#00ff3f" d="M459.34,-823.16C474.87,-847.83 513.56,-903.87 561,-933 565.96,-936.04 571.35,-938.65 576.92,-940.89"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="575.81,-944.21 586.4,-944.3 578.18,-937.62 575.81,-944.21"/>
+</g>
+<!-- proc~alloc_mem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node30" class="node">
+<title>proc~alloc_mem</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node30"><a xlink:href="../proc/alloc_mem.html" xlink:title="alloc_mem">
+<polygon fill="#d9534f" stroke="#d9534f" points="887.5,-474 816.5,-474 816.5,-450 887.5,-450 887.5,-474"/>
+<text text-anchor="middle" x="852" y="-459.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">alloc_mem</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~alloc_mem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge32" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~alloc_mem</title>
+<path fill="none" stroke="#00ff3f" d="M451.79,-798.75C451.71,-750.03 458.5,-568.77 561,-488 631.71,-432.28 744.38,-441.5 806.41,-452.28"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="805.82,-455.73 816.29,-454.08 807.08,-448.84 805.82,-455.73"/>
+</g>
+<!-- proc~cudageterrorstring -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node33" class="node">
+<title>proc~cudageterrorstring</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node33"><a xlink:href="../proc/cudageterrorstring.html" xlink:title="cudaGetErrorString">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1156.5,-66 1041.5,-66 1041.5,-42 1156.5,-42 1156.5,-66"/>
+<text text-anchor="middle" x="1099" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~cudageterrorstring -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge33" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#00ff3f" d="M452.07,-798.7C452.99,-747.89 463.01,-551.85 561,-440 612.27,-381.48 653.76,-408.13 721,-369 828.95,-306.18 875.93,-304.7 947,-202 980.38,-153.76 939.58,-114.46 983,-75 996.12,-63.08 1013.68,-56.85 1031.12,-53.81"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1031.92,-57.23 1041.33,-52.37 1030.94,-50.3 1031.92,-57.23"/>
+</g>
+<!-- proc~dtfft_get_error_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node34" class="node">
+<title>proc~dtfft_get_error_string</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node34"><a xlink:href="../proc/dtfft_get_error_string.html" xlink:title="dtfft_get_error_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="914,-1045 790,-1045 790,-1021 914,-1021 914,-1045"/>
+<text text-anchor="middle" x="852" y="-1030.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_error_string</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge34" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#00ff3f" d="M456.32,-823.29C467.91,-854.28 502.8,-935.96 561,-975 596.08,-998.53 705.83,-1015.77 779.8,-1025.09"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="779.63,-1028.59 789.99,-1026.35 780.49,-1021.64 779.63,-1028.59"/>
+</g>
+<!-- proc~free_mem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node35" class="node">
+<title>proc~free_mem</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node35"><a xlink:href="../proc/free_mem.html" xlink:title="free_mem">
+<polygon fill="#d9534f" stroke="#d9534f" points="885.5,-780 818.5,-780 818.5,-756 885.5,-756 885.5,-780"/>
+<text text-anchor="middle" x="852" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">free_mem</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~free_mem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge35" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~free_mem</title>
+<path fill="none" stroke="#00ff3f" d="M505.4,-805.25C585.34,-796.63 734.58,-780.55 807.98,-772.64"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="808.68,-776.08 818.25,-771.53 807.93,-769.12 808.68,-776.08"/>
+</g>
+<!-- proc~get_conf_measure_iters -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node36" class="node">
+<title>proc~get_conf_measure_iters</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node36"><a xlink:href="../proc/get_conf_measure_iters.html" xlink:title="get_conf_measure_iters">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="921.5,-1282 782.5,-1282 782.5,-1258 921.5,-1258 921.5,-1282"/>
+<text text-anchor="middle" x="852" y="-1267.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_measure_iters</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~get_conf_measure_iters -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge36" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~get_conf_measure_iters</title>
+<path fill="none" stroke="#00ff3f" d="M453.15,-823.16C458.01,-868.64 480.51,-1031.17 561,-1131 624.82,-1210.15 662.61,-1211.2 757,-1249 762.7,-1251.28 768.71,-1253.35 774.81,-1255.2"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="773.87,-1258.57 784.44,-1257.95 775.79,-1251.84 773.87,-1258.57"/>
+</g>
+<!-- proc~get_conf_measure_warmup_iters -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node37" class="node">
+<title>proc~get_conf_measure_warmup_iters</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node37"><a xlink:href="../proc/get_conf_measure_warmup_iters.html" xlink:title="get_conf_measure_warmup_iters">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="945.5,-1240 758.5,-1240 758.5,-1216 945.5,-1216 945.5,-1240"/>
+<text text-anchor="middle" x="852" y="-1225.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_measure_warmup_iters</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~get_conf_measure_warmup_iters -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge37" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~get_conf_measure_warmup_iters</title>
+<path fill="none" stroke="#00ff3f" d="M453.94,-823.17C460.79,-862.02 487.53,-984.18 561,-1046 617.34,-1093.41 664.93,-1041.27 721,-1089 750.69,-1114.27 731.39,-1139.6 757,-1169 772.55,-1186.85 794.83,-1201.16 813.8,-1211.22"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="812.3,-1214.38 822.8,-1215.81 815.48,-1208.15 812.3,-1214.38"/>
+</g>
+<!-- proc~report_timings -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node42" class="node">
+<title>proc~report_timings</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node42"><a xlink:href="../proc/report_timings.html" xlink:title="report_timings">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="896.5,-843 807.5,-843 807.5,-819 896.5,-819 896.5,-843"/>
+<text text-anchor="middle" x="852" y="-828.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">report_timings</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~report_timings -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge38" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~report_timings</title>
+<path fill="none" stroke="#00ff3f" d="M505.4,-813.68C581.55,-817.49 720.59,-824.46 797.05,-828.3"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="797.24,-831.81 807.41,-828.81 797.6,-824.82 797.24,-831.81"/>
+</g>
+<!-- interface~get_conf_internal -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node21" class="node">
+<title>interface~get_conf_internal</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node21"><a xlink:href="../interface/get_conf_internal.html" xlink:title="get_conf_internal">
+<polygon fill="#a7506f" stroke="#a7506f" points="1367,-1242 1262,-1242 1262,-1218 1367,-1218 1367,-1242"/>
+<text text-anchor="middle" x="1314.5" y="-1227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_internal</text>
+</a>
+</g>
+</g>
+<!-- proc~get_conf_log_enabled&#45;&gt;interface~get_conf_internal -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge39" class="edge">
+<title>proc~get_conf_log_enabled&#45;&gt;interface~get_conf_internal</title>
+<path fill="none" stroke="#00ffff" d="M1163.72,-639.35C1182.83,-641.94 1202.1,-648.53 1215,-663 1295.91,-753.77 1176.81,-1112.66 1251,-1209 1251.94,-1210.22 1252.95,-1211.37 1254.03,-1212.45"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1251.91,-1215.24 1261.93,-1218.68 1256.24,-1209.74 1251.91,-1215.24"/>
+</g>
+<!-- interface~nvtxdomainrangepop_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node22" class="node">
+<title>interface~nvtxdomainrangepop_c</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node22"><a xlink:href="../interface/nvtxdomainrangepop_c.html" xlink:title="nvtxDomainRangePop_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="712,-360 570,-360 570,-336 712,-336 712,-360"/>
+<text text-anchor="middle" x="641" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePop_c</text>
+</a>
+</g>
+</g>
+<!-- proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge40" class="edge">
+<title>proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c</title>
+<path fill="none" stroke="#003fff" d="M522.54,-348C534.59,-348 547.18,-348 559.47,-348"/>
+<polygon fill="#003fff" stroke="#003fff" points="559.69,-351.5 569.69,-348 559.69,-344.5 559.69,-351.5"/>
+</g>
+<!-- interface~nvtxdomainrangepushex_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node23" class="node">
+<title>interface~nvtxdomainrangepushex_c</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node23"><a xlink:href="../interface/nvtxdomainrangepushex_c.html" xlink:title="nvtxDomainRangePushEx_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="721,-112 561,-112 561,-88 721,-88 721,-112"/>
+<text text-anchor="middle" x="641" y="-97.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePushEx_c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge41" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c</title>
+<path fill="none" stroke="#7f00ff" d="M490.04,-147.86C519.7,-138.39 561.04,-125.2 592.81,-115.06"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="593.87,-118.4 602.33,-112.02 591.74,-111.73 593.87,-118.4"/>
+</g>
+<!-- proc~astring_f2c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node31" class="node">
+<title>proc~astring_f2c</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node31"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="887.5,-151 816.5,-151 816.5,-127 887.5,-127 887.5,-151"/>
+<text text-anchor="middle" x="852" y="-136.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge42" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#7f00ff" d="M525.18,-156.15C607.36,-151.82 738.1,-144.94 806.3,-141.35"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="806.49,-144.85 816.29,-140.83 806.12,-137.86 806.49,-144.85"/>
+</g>
+<!-- proc~create_nvtx_domain -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node32" class="node">
+<title>proc~create_nvtx_domain</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node32"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
+<polygon fill="#d9534f" stroke="#d9534f" points="701,-192 581,-192 581,-168 701,-168 701,-192"/>
+<text text-anchor="middle" x="641" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge43" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
+<path fill="none" stroke="#7f00ff" d="M525.22,-167.79C540.22,-169.38 555.96,-171.06 570.8,-172.64"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="570.61,-176.14 580.92,-173.71 571.35,-169.18 570.61,-176.14"/>
+</g>
+<!-- mpi_comm_rank -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node26" class="node">
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="1365,-1158 1264,-1158 1264,-1134 1365,-1134 1365,-1158"/>
+<text text-anchor="middle" x="1314.5" y="-1143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_comm_rank -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge44" class="edge">
+<title>proc~write_message&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#ff00bf" d="M1145.12,-1180.08C1166.35,-1176.27 1192,-1171.55 1215,-1167 1227.59,-1164.51 1241.05,-1161.72 1253.86,-1159.01"/>
+<polygon fill="#ff00bf" stroke="#ff00bf" points="1254.9,-1162.37 1263.95,-1156.86 1253.44,-1155.52 1254.9,-1162.37"/>
+</g>
+<!-- mpi_finalized -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node27" class="node">
+<title>mpi_finalized</title>
+<polygon fill="#777777" stroke="#777777" points="1356,-1200 1273,-1200 1273,-1176 1356,-1176 1356,-1200"/>
+<text text-anchor="middle" x="1314.5" y="-1185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalized</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_finalized -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge45" class="edge">
+<title>proc~write_message&#45;&gt;mpi_finalized</title>
+<path fill="none" stroke="#ff00bf" d="M1145.02,-1188C1179.42,-1188 1226.87,-1188 1262.64,-1188"/>
+<polygon fill="#ff00bf" stroke="#ff00bf" points="1262.87,-1191.5 1272.87,-1188 1262.87,-1184.5 1262.87,-1191.5"/>
+</g>
+<!-- proc~get_conf_internal_int32 -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node61" class="node">
+<title>proc~get_conf_internal_int32</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node61"><a xlink:href="../proc/get_conf_internal_int32.html" xlink:title="get_conf_internal_int32">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1555,-1221 1418,-1221 1418,-1197 1555,-1197 1555,-1221"/>
+<text text-anchor="middle" x="1486.5" y="-1206.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_internal_int32</text>
+</a>
+</g>
+</g>
+<!-- interface~get_conf_internal&#45;&gt;proc~get_conf_internal_int32 -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge46" class="edge">
+<title>interface~get_conf_internal&#45;&gt;proc~get_conf_internal_int32</title>
+<path fill="none" stroke="#1fff00" stroke-dasharray="5,2" d="M1367.43,-1223.59C1380.24,-1222 1394.23,-1220.27 1407.96,-1218.58"/>
+<polygon fill="#1fff00" stroke="#1fff00" points="1408.4,-1222.05 1417.9,-1217.35 1407.54,-1215.1 1408.4,-1222.05"/>
+</g>
+<!-- proc~get_conf_internal_logical -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node62" class="node">
+<title>proc~get_conf_internal_logical</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node62"><a xlink:href="../proc/get_conf_internal_logical.html" xlink:title="get_conf_internal_logical">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1559,-1263 1414,-1263 1414,-1239 1559,-1239 1559,-1263"/>
+<text text-anchor="middle" x="1486.5" y="-1248.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_internal_logical</text>
+</a>
+</g>
+</g>
+<!-- interface~get_conf_internal&#45;&gt;proc~get_conf_internal_logical -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge47" class="edge">
+<title>interface~get_conf_internal&#45;&gt;proc~get_conf_internal_logical</title>
+<path fill="none" stroke="#1fff00" stroke-dasharray="5,2" d="M1367.43,-1236.41C1378.87,-1237.83 1391.26,-1239.36 1403.57,-1240.88"/>
+<polygon fill="#1fff00" stroke="#1fff00" points="1403.51,-1244.4 1413.86,-1242.15 1404.36,-1237.45 1403.51,-1244.4"/>
+</g>
+<!-- proc~alloc_and_set_aux&#45;&gt;mpi_abort -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge48" class="edge">
+<title>proc~alloc_and_set_aux&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#009fff" d="M695.5,-963.46C781.72,-978.8 942.29,-1007.82 947,-1012 986.45,-1046.96 943.42,-1090.18 983,-1125 1002.51,-1142.17 1031.28,-1147.41 1055.16,-1148.37"/>
+<polygon fill="#009fff" stroke="#009fff" points="1055.34,-1151.87 1065.39,-1148.54 1055.45,-1144.87 1055.34,-1151.87"/>
+</g>
+<!-- proc~alloc_and_set_aux&#45;&gt;proc~alloc_mem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge50" class="edge">
+<title>proc~alloc_and_set_aux&#45;&gt;proc~alloc_mem</title>
+<path fill="none" stroke="#009fff" d="M695.77,-948.35C705.24,-945.12 714.22,-940.26 721,-933 778.46,-871.45 735.77,-828.48 757,-747 783.07,-646.93 825.22,-530.71 842.85,-483.54"/>
+<polygon fill="#009fff" stroke="#009fff" points="846.17,-484.65 846.41,-474.06 839.61,-482.19 846.17,-484.65"/>
+</g>
+<!-- proc~alloc_and_set_aux&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge51" class="edge">
+<title>proc~alloc_and_set_aux&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#009fff" d="M687.33,-966.12C698.62,-969.89 710.5,-974.52 721,-980 738.73,-989.25 739.05,-998.18 757,-1007 765.57,-1011.21 774.93,-1014.83 784.31,-1017.91"/>
+<polygon fill="#009fff" stroke="#009fff" points="783.48,-1021.32 794.07,-1020.93 785.55,-1014.63 783.48,-1021.32"/>
+</g>
+<!-- mpi_allreduce -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node56" class="node">
+<title>mpi_allreduce</title>
+<polygon fill="#777777" stroke="#777777" points="1143,-990 1055,-990 1055,-966 1143,-966 1143,-990"/>
+<text text-anchor="middle" x="1099" y="-975.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_allreduce</text>
+</g>
+<!-- proc~alloc_and_set_aux&#45;&gt;mpi_allreduce -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge49" class="edge">
+<title>proc~alloc_and_set_aux&#45;&gt;mpi_allreduce</title>
+<path fill="none" stroke="#009fff" d="M695.73,-944.51C704.57,-941.63 713.34,-937.88 721,-933 742.03,-919.62 734.42,-900.55 757,-890 833.51,-854.27 874.52,-846.67 947,-890 976.01,-907.35 955.67,-937.11 983,-957 1000.7,-969.88 1023.89,-975.64 1044.82,-977.98"/>
+<polygon fill="#009fff" stroke="#009fff" points="1044.6,-981.48 1054.87,-978.88 1045.22,-974.51 1044.6,-981.48"/>
+</g>
+<!-- proc~get_aux_bytes_generic -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node60" class="node">
+<title>proc~get_aux_bytes_generic</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node60"><a xlink:href="../proc/get_aux_bytes_generic.html" xlink:title="get_aux_bytes_generic">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="919,-965 785,-965 785,-941 919,-941 919,-965"/>
+<text text-anchor="middle" x="852" y="-950.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_aux_bytes_generic</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_and_set_aux&#45;&gt;proc~get_aux_bytes_generic -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge52" class="edge">
+<title>proc~alloc_and_set_aux&#45;&gt;proc~get_aux_bytes_generic</title>
+<path fill="none" stroke="#009fff" d="M695.55,-953.74C719.57,-953.63 748.35,-953.49 774.58,-953.37"/>
+<polygon fill="#009fff" stroke="#009fff" points="774.9,-956.86 784.88,-953.32 774.86,-949.86 774.9,-956.86"/>
+</g>
+<!-- proc~is_nvshmem_generic -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node65" class="node">
+<title>proc~is_nvshmem_generic</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node65"><a xlink:href="../proc/is_nvshmem_generic.html" xlink:title="is_nvshmem_generic">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="914,-923 790,-923 790,-899 914,-899 914,-923"/>
+<text text-anchor="middle" x="852" y="-908.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_nvshmem_generic</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_and_set_aux&#45;&gt;proc~is_nvshmem_generic -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge53" class="edge">
+<title>proc~alloc_and_set_aux&#45;&gt;proc~is_nvshmem_generic</title>
+<path fill="none" stroke="#009fff" d="M695.55,-942.98C722.06,-937.53 754.35,-930.88 782.63,-925.07"/>
+<polygon fill="#009fff" stroke="#009fff" points="783.35,-928.49 792.44,-923.05 781.94,-921.63 783.35,-928.49"/>
+</g>
+<!-- proc~alloc_mem&#45;&gt;proc~get_conf_log_enabled -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge66" class="edge">
+<title>proc~alloc_mem&#45;&gt;proc~get_conf_log_enabled</title>
+<path fill="none" stroke="#006fff" d="M878.99,-474.09C899.93,-485.01 928.79,-502.9 947,-526 974.95,-561.46 948.31,-592.1 983,-621 994.7,-630.75 1009.43,-636.59 1024.4,-639.97"/>
+<polygon fill="#006fff" stroke="#006fff" points="1023.77,-643.41 1034.25,-641.85 1025.08,-636.54 1023.77,-643.41"/>
+</g>
+<!-- proc~alloc_mem&#45;&gt;proc~write_message -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge71" class="edge">
+<title>proc~alloc_mem&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#006fff" d="M858.18,-474.22C874.44,-513.18 924.73,-638.28 947,-747 965.8,-838.77 919.99,-1097.69 983,-1167 997.91,-1183.4 1021.03,-1189.63 1042.63,-1191.38"/>
+<polygon fill="#006fff" stroke="#006fff" points="1042.58,-1194.88 1052.75,-1191.9 1042.94,-1187.89 1042.58,-1194.88"/>
+</g>
+<!-- proc~alloc_mem&#45;&gt;fname -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge54" class="edge">
+<title>proc~alloc_mem&#45;&gt;fname</title>
+<path fill="none" stroke="#006fff" d="M887.58,-463.69C933.69,-465.95 1014.92,-469.93 1061.82,-472.23"/>
+<polygon fill="#006fff" stroke="#006fff" points="1061.69,-475.73 1071.85,-472.72 1062.03,-468.73 1061.69,-475.73"/>
+</g>
+<!-- proc~alloc_mem&#45;&gt;mpi_abort -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge62" class="edge">
+<title>proc~alloc_mem&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#006fff" d="M858.14,-474.23C874.27,-513.21 924.22,-638.39 947,-747 964.32,-829.58 925.94,-1062.83 983,-1125 1000.89,-1144.49 1030.39,-1149.58 1055.03,-1149.88"/>
+<polygon fill="#006fff" stroke="#006fff" points="1055.29,-1153.37 1065.24,-1149.74 1055.19,-1146.37 1055.29,-1153.37"/>
+</g>
+<!-- proc~alloc_mem&#45;&gt;proc~cudageterrorstring -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge64" class="edge">
+<title>proc~alloc_mem&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#006fff" d="M887.66,-461.64C908.06,-459.47 932.6,-453.09 947,-436 998.95,-374.35 928.35,-134.27 983,-75 995.42,-61.53 1013.38,-54.95 1031.43,-52.07"/>
+<polygon fill="#006fff" stroke="#006fff" points="1031.94,-55.54 1041.44,-50.83 1031.08,-48.59 1031.94,-55.54"/>
+</g>
+<!-- interface~cudamalloc -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node45" class="node">
+<title>interface~cudamalloc</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node45"><a xlink:href="../interface/cudamalloc.html" xlink:title="cudaMalloc">
+<polygon fill="#a7506f" stroke="#a7506f" points="1135.5,-318 1062.5,-318 1062.5,-294 1135.5,-294 1135.5,-318"/>
+<text text-anchor="middle" x="1099" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMalloc</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;interface~cudamalloc -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge55" class="edge">
+<title>proc~alloc_mem&#45;&gt;interface~cudamalloc</title>
+<path fill="none" stroke="#006fff" d="M887.77,-460.27C907.44,-457.55 931.18,-451.06 947,-436 983.95,-400.82 944.52,-360.5 983,-327 1001.8,-310.63 1029.04,-305.14 1052.28,-303.85"/>
+<polygon fill="#006fff" stroke="#006fff" points="1052.41,-307.35 1062.3,-303.53 1052.19,-300.35 1052.41,-307.35"/>
+</g>
+<!-- interface~cudamemgetinfo -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node46" class="node">
+<title>interface~cudamemgetinfo</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node46"><a xlink:href="../interface/cudamemgetinfo.html" xlink:title="cudaMemGetInfo">
+<polygon fill="#a7506f" stroke="#a7506f" points="1151,-276 1047,-276 1047,-252 1151,-252 1151,-276"/>
+<text text-anchor="middle" x="1099" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMemGetInfo</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;interface~cudamemgetinfo -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge56" class="edge">
+<title>proc~alloc_mem&#45;&gt;interface~cudamemgetinfo</title>
+<path fill="none" stroke="#006fff" d="M887.79,-460.82C907.72,-458.3 931.72,-451.84 947,-436 994.9,-386.35 932.93,-332.46 983,-285 997.36,-271.39 1017.47,-265.1 1036.85,-262.53"/>
+<polygon fill="#006fff" stroke="#006fff" points="1037.3,-266 1046.89,-261.5 1036.59,-259.03 1037.3,-266"/>
+</g>
+<!-- interface~ncclcommregister -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node49" class="node">
+<title>interface~ncclcommregister</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node49"><a xlink:href="../interface/ncclcommregister.html" xlink:title="ncclCommRegister">
+<polygon fill="#a7506f" stroke="#a7506f" points="1155.5,-234 1042.5,-234 1042.5,-210 1155.5,-210 1155.5,-234"/>
+<text text-anchor="middle" x="1099" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclCommRegister</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;interface~ncclcommregister -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge57" class="edge">
+<title>proc~alloc_mem&#45;&gt;interface~ncclcommregister</title>
+<path fill="none" stroke="#006fff" d="M887.62,-461.14C907.74,-458.77 932,-452.34 947,-436 1006.01,-371.72 921.18,-304.58 983,-243 996.04,-230.01 1014.28,-223.59 1032.39,-220.71"/>
+<polygon fill="#006fff" stroke="#006fff" points="1032.92,-224.17 1042.41,-219.46 1032.05,-217.22 1032.92,-224.17"/>
+</g>
+<!-- interface~ncclmemalloc -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node50" class="node">
+<title>interface~ncclmemalloc</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node50"><a xlink:href="../interface/ncclmemalloc.html" xlink:title="ncclMemAlloc">
+<polygon fill="#a7506f" stroke="#a7506f" points="1142.5,-192 1055.5,-192 1055.5,-168 1142.5,-168 1142.5,-192"/>
+<text text-anchor="middle" x="1099" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclMemAlloc</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;interface~ncclmemalloc -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge58" class="edge">
+<title>proc~alloc_mem&#45;&gt;interface~ncclmemalloc</title>
+<path fill="none" stroke="#006fff" d="M887.81,-461.32C908,-459 932.27,-452.58 947,-436 1017.19,-357.02 909.36,-276.78 983,-201 999.01,-184.53 1023.33,-178.52 1045.5,-176.93"/>
+<polygon fill="#006fff" stroke="#006fff" points="1045.65,-180.43 1055.49,-176.5 1045.35,-173.44 1045.65,-180.43"/>
+</g>
+<!-- interface~nvshmem_malloc -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node52" class="node">
+<title>interface~nvshmem_malloc</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node52"><a xlink:href="../interface/nvshmem_malloc.html" xlink:title="nvshmem_malloc">
+<polygon fill="#a7506f" stroke="#a7506f" points="1152,-150 1046,-150 1046,-126 1152,-126 1152,-150"/>
+<text text-anchor="middle" x="1099" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvshmem_malloc</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;interface~nvshmem_malloc -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge59" class="edge">
+<title>proc~alloc_mem&#45;&gt;interface~nvshmem_malloc</title>
+<path fill="none" stroke="#006fff" d="M887.95,-461.44C908.18,-459.16 932.46,-452.75 947,-436 1028.4,-342.27 897.5,-249.01 983,-159 996.57,-144.72 1016.38,-138.24 1035.76,-135.72"/>
+<polygon fill="#006fff" stroke="#006fff" points="1036.2,-139.19 1045.81,-134.73 1035.52,-132.22 1036.2,-139.19"/>
+</g>
+<!-- interface~to_str -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node54" class="node">
+<title>interface~to_str</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node54"><a xlink:href="../interface/to_str.html" xlink:title="to_str">
+<polygon fill="#a7506f" stroke="#a7506f" points="1126,-612 1072,-612 1072,-588 1126,-588 1126,-612"/>
+<text text-anchor="middle" x="1099" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">to_str</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;interface~to_str -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge60" class="edge">
+<title>proc~alloc_mem&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#006fff" d="M875.64,-474.14C895.86,-485.7 925.51,-504.49 947,-526 967.12,-546.15 959.14,-563.46 983,-579 1006.26,-594.15 1037.49,-599.11 1061.53,-600.44"/>
+<polygon fill="#006fff" stroke="#006fff" points="1061.56,-603.94 1071.69,-600.81 1061.82,-596.94 1061.56,-603.94"/>
+</g>
+<!-- is_null_ptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node55" class="node">
+<title>is_null_ptr</title>
+<polygon fill="#777777" stroke="#777777" points="1132,-444 1066,-444 1066,-420 1132,-420 1132,-444"/>
+<text text-anchor="middle" x="1099" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</g>
+<!-- proc~alloc_mem&#45;&gt;is_null_ptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge61" class="edge">
+<title>proc~alloc_mem&#45;&gt;is_null_ptr</title>
+<path fill="none" stroke="#006fff" d="M887.58,-457.77C931.82,-452.35 1008.39,-442.97 1055.95,-437.15"/>
+<polygon fill="#006fff" stroke="#006fff" points="1056.43,-440.62 1065.93,-435.93 1055.58,-433.67 1056.43,-440.62"/>
+</g>
+<!-- proc~alloc_mem&#45;&gt;mpi_allreduce -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge63" class="edge">
+<title>proc~alloc_mem&#45;&gt;mpi_allreduce</title>
+<path fill="none" stroke="#006fff" d="M857.69,-474.03C872.69,-512.94 920.11,-639.06 947,-747 969.89,-838.89 916.4,-889.68 983,-957 998.89,-973.07 1022.72,-979.13 1044.57,-980.85"/>
+<polygon fill="#006fff" stroke="#006fff" points="1044.6,-984.36 1054.77,-981.37 1044.96,-977.37 1044.6,-984.36"/>
+</g>
+<!-- proc~dtfft_get_backend_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node59" class="node">
+<title>proc~dtfft_get_backend_string</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node59"><a xlink:href="../proc/dtfft_get_backend_string.html" xlink:title="dtfft_get_backend_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1170.5,-402 1027.5,-402 1027.5,-378 1170.5,-378 1170.5,-402"/>
+<text text-anchor="middle" x="1099" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_backend_string</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;proc~dtfft_get_backend_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge65" class="edge">
+<title>proc~alloc_mem&#45;&gt;proc~dtfft_get_backend_string</title>
+<path fill="none" stroke="#006fff" d="M887.93,-455.29C906.07,-451.09 928.3,-444.77 947,-436 964.64,-427.73 965.01,-418.47 983,-411 993.84,-406.5 1005.64,-402.96 1017.43,-400.18"/>
+<polygon fill="#006fff" stroke="#006fff" points="1018.28,-403.57 1027.3,-398.01 1016.78,-396.73 1018.28,-403.57"/>
+</g>
+<!-- proc~is_backend_nccl -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node63" class="node">
+<title>proc~is_backend_nccl</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node63"><a xlink:href="../proc/is_backend_nccl.html" xlink:title="is_backend_nccl">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1148.5,-570 1049.5,-570 1049.5,-546 1148.5,-546 1148.5,-570"/>
+<text text-anchor="middle" x="1099" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nccl</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;proc~is_backend_nccl -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge67" class="edge">
+<title>proc~alloc_mem&#45;&gt;proc~is_backend_nccl</title>
+<path fill="none" stroke="#006fff" d="M869.73,-474.19C893.62,-491 939.46,-521.01 983,-537 1000.84,-543.55 1021.02,-548.12 1039.44,-551.28"/>
+<polygon fill="#006fff" stroke="#006fff" points="1039.04,-554.76 1049.47,-552.89 1040.15,-547.85 1039.04,-554.76"/>
+</g>
+<!-- proc~is_backend_nvshmem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node64" class="node">
+<title>proc~is_backend_nvshmem</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node64"><a xlink:href="../proc/is_backend_nvshmem.html" xlink:title="is_backend_nvshmem">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1164,-738 1034,-738 1034,-714 1164,-714 1164,-738"/>
+<text text-anchor="middle" x="1099" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nvshmem</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;proc~is_backend_nvshmem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge68" class="edge">
+<title>proc~alloc_mem&#45;&gt;proc~is_backend_nvshmem</title>
+<path fill="none" stroke="#006fff" d="M855.54,-474.04C864.68,-514.19 899.89,-644.39 983,-705 994.92,-713.7 1009.35,-719.15 1023.9,-722.49"/>
+<polygon fill="#006fff" stroke="#006fff" points="1023.47,-725.98 1033.96,-724.49 1024.84,-719.11 1023.47,-725.98"/>
+</g>
+<!-- proc~mem_alloc_host -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node67" class="node">
+<title>proc~mem_alloc_host</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node67"><a xlink:href="../proc/mem_alloc_host.html" xlink:title="mem_alloc_host">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1148.5,-108 1049.5,-108 1049.5,-84 1148.5,-84 1148.5,-108"/>
+<text text-anchor="middle" x="1099" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mem_alloc_host</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;proc~mem_alloc_host -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge69" class="edge">
+<title>proc~alloc_mem&#45;&gt;proc~mem_alloc_host</title>
+<path fill="none" stroke="#006fff" d="M887.58,-461.57C907.95,-459.38 932.49,-453 947,-436 1039.64,-327.49 885.61,-221.27 983,-117 997.35,-101.64 1018.9,-95.27 1039.49,-93.13"/>
+<polygon fill="#006fff" stroke="#006fff" points="1039.76,-96.62 1049.48,-92.4 1039.25,-89.64 1039.76,-96.62"/>
+</g>
+<!-- proc~ncclgeterrorstring -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node68" class="node">
+<title>proc~ncclgeterrorstring</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node68"><a xlink:href="../proc/ncclgeterrorstring.html" xlink:title="ncclGetErrorString">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1154.5,-528 1043.5,-528 1043.5,-504 1154.5,-504 1154.5,-528"/>
+<text text-anchor="middle" x="1099" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclGetErrorString</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_mem&#45;&gt;proc~ncclgeterrorstring -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge70" class="edge">
+<title>proc~alloc_mem&#45;&gt;proc~ncclgeterrorstring</title>
+<path fill="none" stroke="#006fff" d="M887.61,-471.47C913.72,-478.44 950.47,-487.91 983,-495 999.26,-498.54 1016.9,-501.97 1033.36,-504.99"/>
+<polygon fill="#006fff" stroke="#006fff" points="1032.98,-508.48 1043.44,-506.82 1034.23,-501.59 1032.98,-508.48"/>
+</g>
+<!-- temp -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node71" class="node">
+<title>temp</title>
+<polygon fill="#777777" stroke="#777777" points="1126,-360 1072,-360 1072,-336 1126,-336 1126,-360"/>
+<text text-anchor="middle" x="1099" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">temp</text>
+</g>
+<!-- proc~alloc_mem&#45;&gt;temp -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge72" class="edge">
+<title>proc~alloc_mem&#45;&gt;temp</title>
+<path fill="none" stroke="#006fff" d="M887.75,-459.07C906.93,-455.92 930.2,-449.42 947,-436 973.42,-414.91 955.67,-388.89 983,-369 1005.58,-352.56 1037.12,-347.73 1061.46,-346.77"/>
+<polygon fill="#006fff" stroke="#006fff" points="1061.81,-350.27 1071.74,-346.58 1061.68,-343.27 1061.81,-350.27"/>
+</g>
+<!-- proc~string_f2c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node70" class="node">
+<title>proc~string_f2c</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node70"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="1131,-24 1067,-24 1067,0 1131,0 1131,-24"/>
+<text text-anchor="middle" x="1099" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge73" class="edge">
+<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
+<path fill="none" stroke="#003fff" d="M863.79,-126.83C884.49,-104.34 932.23,-56.43 983,-33 1006.17,-22.31 1034.33,-17.05 1056.98,-14.47"/>
+<polygon fill="#003fff" stroke="#003fff" points="1057.36,-17.95 1066.96,-13.47 1056.66,-10.99 1057.36,-17.95"/>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge75" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#000fff" d="M701.05,-168.42C734.46,-161.86 775.55,-153.8 806.27,-147.77"/>
+<polygon fill="#000fff" stroke="#000fff" points="807.12,-151.17 816.26,-145.81 805.78,-144.31 807.12,-151.17"/>
+</g>
+<!-- interface~nvtxdomaincreate_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node53" class="node">
+<title>interface~nvtxdomaincreate_c</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node53"><a xlink:href="../interface/nvtxdomaincreate_c.html" xlink:title="nvtxDomainCreate_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="914,-193 790,-193 790,-169 914,-169 914,-193"/>
+<text text-anchor="middle" x="852" y="-178.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainCreate_c</text>
+</a>
+</g>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge74" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c</title>
+<path fill="none" stroke="#000fff" d="M701.05,-180.28C725.56,-180.4 754.22,-180.54 779.87,-180.66"/>
+<polygon fill="#000fff" stroke="#000fff" points="779.89,-184.16 789.91,-180.71 779.93,-177.16 779.89,-184.16"/>
+</g>
+<!-- interface~cudageterrorstring_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node44" class="node">
+<title>interface~cudageterrorstring_c</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node44"><a xlink:href="../interface/cudageterrorstring_c.html" xlink:title="cudaGetErrorString_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1378,-45 1251,-45 1251,-21 1378,-21 1378,-45"/>
+<text text-anchor="middle" x="1314.5" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString_c</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge76" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c</title>
+<path fill="none" stroke="#1f00ff" d="M1156.65,-48.43C1182.51,-45.88 1213.44,-42.84 1240.97,-40.13"/>
+<polygon fill="#1f00ff" stroke="#1f00ff" points="1241.33,-43.62 1250.94,-39.15 1240.65,-36.65 1241.33,-43.62"/>
+</g>
+<!-- proc~string_c2f -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node69" class="node">
+<title>proc~string_c2f</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node69"><a xlink:href="../proc/string_c2f.html" xlink:title="string_c2f">
+<polygon fill="#d9534f" stroke="#d9534f" points="1346.5,-87 1282.5,-87 1282.5,-63 1346.5,-63 1346.5,-87"/>
+<text text-anchor="middle" x="1314.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_c2f</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;proc~string_c2f -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge77" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#1f00ff" d="M1156.65,-59.57C1192.99,-63.15 1239.35,-67.71 1272.22,-70.94"/>
+<polygon fill="#1f00ff" stroke="#1f00ff" points="1272.09,-74.44 1282.39,-71.94 1272.78,-67.48 1272.09,-74.44"/>
+</g>
+<!-- proc~free_mem&#45;&gt;proc~get_conf_log_enabled -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge86" class="edge">
+<title>proc~free_mem&#45;&gt;proc~get_conf_log_enabled</title>
+<path fill="none" stroke="#7f00ff" d="M863.82,-755.95C884.56,-733.67 932.37,-686.22 983,-663 995.77,-657.14 1010.03,-652.92 1024.06,-649.87"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1025.08,-653.24 1034.2,-647.86 1023.71,-646.37 1025.08,-653.24"/>
+</g>
+<!-- proc~free_mem&#45;&gt;proc~write_message -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge91" class="edge">
+<title>proc~free_mem&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#7f00ff" d="M885.76,-773.92C906.75,-779.52 932.66,-790.15 947,-810 993.69,-874.64 928.92,-1108.41 983,-1167 998.03,-1183.29 1021.17,-1189.5 1042.75,-1191.27"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1042.69,-1194.77 1052.86,-1191.8 1043.05,-1187.78 1042.69,-1194.77"/>
+</g>
+<!-- proc~free_mem&#45;&gt;fname -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge78" class="edge">
+<title>proc~free_mem&#45;&gt;fname</title>
+<path fill="none" stroke="#7f00ff" d="M854.83,-755.74C862.04,-712.26 892.56,-564.26 983,-495 1005.28,-477.94 1037.03,-473.18 1061.53,-472.41"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1061.58,-475.91 1071.54,-472.31 1061.5,-468.91 1061.58,-475.91"/>
+</g>
+<!-- proc~free_mem&#45;&gt;mpi_abort -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge84" class="edge">
+<title>proc~free_mem&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#7f00ff" d="M885.67,-773.98C906.63,-779.61 932.53,-790.24 947,-810 1030.27,-923.68 886.74,-1022.09 983,-1125 1001.07,-1144.32 1030.57,-1149.41 1055.16,-1149.75"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1055.39,-1153.25 1065.35,-1149.64 1055.31,-1146.25 1055.39,-1153.25"/>
+</g>
+<!-- interface~cudafree -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node43" class="node">
+<title>interface~cudafree</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node43"><a xlink:href="../interface/cudafree.html" xlink:title="cudaFree">
+<polygon fill="#a7506f" stroke="#a7506f" points="1129.5,-696 1068.5,-696 1068.5,-672 1129.5,-672 1129.5,-696"/>
+<text text-anchor="middle" x="1099" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaFree</text>
+</a>
+</g>
+</g>
+<!-- proc~free_mem&#45;&gt;interface~cudafree -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge79" class="edge">
+<title>proc~free_mem&#45;&gt;interface~cudafree</title>
+<path fill="none" stroke="#7f00ff" d="M873.44,-755.93C898.44,-741.68 942.47,-718.25 983,-705 1007.31,-697.05 1035.56,-691.84 1057.98,-688.6"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1058.72,-692.03 1068.15,-687.2 1057.77,-685.09 1058.72,-692.03"/>
+</g>
+<!-- interface~mem_free_host -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node47" class="node">
+<title>interface~mem_free_host</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node47"><a xlink:href="../interface/mem_free_host.html" xlink:title="mem_free_host">
+<polygon fill="#a7506f" stroke="#a7506f" points="1146,-948 1052,-948 1052,-924 1146,-924 1146,-948"/>
+<text text-anchor="middle" x="1099" y="-933.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mem_free_host</text>
+</a>
+</g>
+</g>
+<!-- proc~free_mem&#45;&gt;interface~mem_free_host -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge80" class="edge">
+<title>proc~free_mem&#45;&gt;interface~mem_free_host</title>
+<path fill="none" stroke="#7f00ff" d="M885.69,-775.48C905.84,-781.64 930.84,-792.32 947,-810 980.28,-846.42 945.61,-882.82 983,-915 999.06,-928.82 1021.13,-934.86 1041.66,-937.17"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1041.63,-940.68 1051.89,-938.04 1042.22,-933.7 1041.63,-940.68"/>
+</g>
+<!-- interface~ncclcommderegister -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node48" class="node">
+<title>interface~ncclcommderegister</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node48"><a xlink:href="../interface/ncclcommderegister.html" xlink:title="ncclCommDeregister">
+<polygon fill="#a7506f" stroke="#a7506f" points="1161.5,-906 1036.5,-906 1036.5,-882 1161.5,-882 1161.5,-906"/>
+<text text-anchor="middle" x="1099" y="-891.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclCommDeregister</text>
+</a>
+</g>
+</g>
+<!-- proc~free_mem&#45;&gt;interface~ncclcommderegister -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge81" class="edge">
+<title>proc~free_mem&#45;&gt;interface~ncclcommderegister</title>
+<path fill="none" stroke="#7f00ff" d="M885.93,-777.02C905.44,-783.65 929.64,-794.28 947,-810 970.9,-831.65 956.68,-854.36 983,-873 995.64,-881.95 1010.95,-887.43 1026.23,-890.71"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1025.77,-894.18 1036.24,-892.57 1027.04,-887.3 1025.77,-894.18"/>
+</g>
+<!-- interface~ncclmemfree -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node51" class="node">
+<title>interface~ncclmemfree</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node51"><a xlink:href="../interface/ncclmemfree.html" xlink:title="ncclMemFree">
+<polygon fill="#a7506f" stroke="#a7506f" points="1140.5,-864 1057.5,-864 1057.5,-840 1140.5,-840 1140.5,-864"/>
+<text text-anchor="middle" x="1099" y="-849.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclMemFree</text>
+</a>
+</g>
+</g>
+<!-- proc~free_mem&#45;&gt;interface~ncclmemfree -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge82" class="edge">
+<title>proc~free_mem&#45;&gt;interface~ncclmemfree</title>
+<path fill="none" stroke="#7f00ff" d="M882.18,-780.07C900.93,-788.07 925.69,-799.06 947,-810 963.48,-818.46 965.63,-824.57 983,-831 1003.44,-838.56 1026.96,-843.47 1047.38,-846.63"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1047.04,-850.12 1057.44,-848.08 1048.04,-843.19 1047.04,-850.12"/>
+</g>
+<!-- proc~free_mem&#45;&gt;interface~to_str -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge83" class="edge">
+<title>proc~free_mem&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#7f00ff" d="M859.91,-755.65C876.77,-726.79 923.06,-654.82 983,-621 1007.02,-607.45 1037.94,-602.37 1061.67,-600.58"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1061.91,-604.07 1071.69,-599.99 1061.5,-597.09 1061.91,-604.07"/>
+</g>
+<!-- nvshmem_free -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node58" class="node">
+<title>nvshmem_free</title>
+<polygon fill="#777777" stroke="#777777" points="1144.5,-822 1053.5,-822 1053.5,-798 1144.5,-798 1144.5,-822"/>
+<text text-anchor="middle" x="1099" y="-807.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvshmem_free</text>
+</g>
+<!-- proc~free_mem&#45;&gt;nvshmem_free -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge85" class="edge">
+<title>proc~free_mem&#45;&gt;nvshmem_free</title>
+<path fill="none" stroke="#7f00ff" d="M885.53,-773.58C925.76,-780.47 994.82,-792.31 1043.26,-800.62"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1042.82,-804.09 1053.27,-802.33 1044,-797.19 1042.82,-804.09"/>
+</g>
+<!-- proc~free_mem&#45;&gt;proc~is_backend_nccl -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge87" class="edge">
+<title>proc~free_mem&#45;&gt;proc~is_backend_nccl</title>
+<path fill="none" stroke="#7f00ff" d="M857.47,-755.8C870.7,-721.58 913.13,-624.23 983,-579 999.54,-568.3 1020.06,-562.69 1039.18,-559.86"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1039.83,-563.3 1049.32,-558.58 1038.96,-556.36 1039.83,-563.3"/>
+</g>
+<!-- proc~free_mem&#45;&gt;proc~is_backend_nvshmem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge88" class="edge">
+<title>proc~free_mem&#45;&gt;proc~is_backend_nvshmem</title>
+<path fill="none" stroke="#7f00ff" d="M885.53,-762.42C920.58,-756.41 977.52,-746.65 1023.64,-738.75"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1024.34,-742.18 1033.6,-737.04 1023.16,-735.28 1024.34,-742.18"/>
+</g>
+<!-- proc~is_same_ptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node66" class="node">
+<title>proc~is_same_ptr</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node66"><a xlink:href="../proc/is_same_ptr.html" xlink:title="is_same_ptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1137,-780 1061,-780 1061,-756 1137,-756 1137,-780"/>
+<text text-anchor="middle" x="1099" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_same_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~free_mem&#45;&gt;proc~is_same_ptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge89" class="edge">
+<title>proc~free_mem&#45;&gt;proc~is_same_ptr</title>
+<path fill="none" stroke="#7f00ff" d="M885.53,-768C927.86,-768 1002.11,-768 1050.67,-768"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1050.92,-771.5 1060.92,-768 1050.92,-764.5 1050.92,-771.5"/>
+</g>
+<!-- proc~free_mem&#45;&gt;proc~ncclgeterrorstring -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge90" class="edge">
+<title>proc~free_mem&#45;&gt;proc~ncclgeterrorstring</title>
+<path fill="none" stroke="#7f00ff" d="M855.94,-755.73C866.02,-716.61 903,-594.04 983,-537 997.5,-526.66 1015.58,-520.94 1033.08,-517.89"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1033.9,-521.31 1043.28,-516.39 1032.88,-514.38 1033.9,-521.31"/>
+</g>
+<!-- proc~get_conf_measure_iters&#45;&gt;interface~get_conf_internal -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge92" class="edge">
+<title>proc~get_conf_measure_iters&#45;&gt;interface~get_conf_internal</title>
+<path fill="none" stroke="#af00ff" d="M921.83,-1266.03C994.73,-1261.56 1113.13,-1253.51 1215,-1243 1226.93,-1241.77 1239.65,-1240.25 1251.84,-1238.68"/>
+<polygon fill="#af00ff" stroke="#af00ff" points="1252.47,-1242.13 1261.93,-1237.37 1251.56,-1235.19 1252.47,-1242.13"/>
+</g>
+<!-- proc~get_conf_measure_warmup_iters&#45;&gt;interface~get_conf_internal -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge93" class="edge">
+<title>proc~get_conf_measure_warmup_iters&#45;&gt;interface~get_conf_internal</title>
+<path fill="none" stroke="#df00ff" d="M945.64,-1228.4C1036.63,-1228.8 1172.91,-1229.39 1251.53,-1229.73"/>
+<polygon fill="#df00ff" stroke="#df00ff" points="1251.74,-1233.23 1261.76,-1229.78 1251.78,-1226.23 1251.74,-1233.23"/>
+</g>
+<!-- proc~report_timings&#45;&gt;proc~get_conf_log_enabled -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge97" class="edge">
+<title>proc~report_timings&#45;&gt;proc~get_conf_log_enabled</title>
+<path fill="none" stroke="#ff002f" d="M896.8,-820.27C914.6,-813.88 934,-803.99 947,-789 985.16,-745 939.86,-702.12 983,-663 994.41,-652.66 1009.16,-646.6 1024.26,-643.2"/>
+<polygon fill="#ff002f" stroke="#ff002f" points="1025.03,-646.61 1034.21,-641.32 1023.74,-639.73 1025.03,-646.61"/>
+</g>
+<!-- proc~report_timings&#45;&gt;proc~write_message -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge98" class="edge">
+<title>proc~report_timings&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#ff002f" d="M886.28,-843.19C907.22,-852.66 932.86,-867.94 947,-890 1013.97,-994.53 897.5,-1076.99 983,-1167 998.2,-1183.01 1021.25,-1189.2 1042.73,-1191.03"/>
+<polygon fill="#ff002f" stroke="#ff002f" points="1042.6,-1194.53 1052.78,-1191.6 1042.99,-1187.54 1042.6,-1194.53"/>
+</g>
+<!-- proc~report_timings&#45;&gt;interface~to_str -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge94" class="edge">
+<title>proc~report_timings&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#ff002f" d="M896.81,-820.85C914.83,-814.54 934.4,-804.56 947,-789 995.07,-729.66 928.19,-674.17 983,-621 1003.61,-601 1036.58,-596.7 1061.94,-596.85"/>
+<polygon fill="#ff002f" stroke="#ff002f" points="1061.84,-600.34 1071.93,-597.13 1062.04,-593.35 1061.84,-600.34"/>
+</g>
+<!-- proc~report_timings&#45;&gt;mpi_allreduce -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge95" class="edge">
+<title>proc~report_timings&#45;&gt;mpi_allreduce</title>
+<path fill="none" stroke="#ff002f" d="M896.52,-834.37C914.06,-837.76 933.34,-844.34 947,-857 981.64,-889.11 946.96,-926.46 983,-957 999.9,-971.32 1023.29,-977.25 1044.57,-979.33"/>
+<polygon fill="#ff002f" stroke="#ff002f" points="1044.58,-982.84 1054.81,-980.07 1045.08,-975.86 1044.58,-982.84"/>
+</g>
+<!-- mpi_comm_size -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node57" class="node">
+<title>mpi_comm_size</title>
+<polygon fill="#777777" stroke="#777777" points="1147.5,-1032 1050.5,-1032 1050.5,-1008 1147.5,-1008 1147.5,-1032"/>
+<text text-anchor="middle" x="1099" y="-1017.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_size</text>
+</g>
+<!-- proc~report_timings&#45;&gt;mpi_comm_size -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge96" class="edge">
+<title>proc~report_timings&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#ff002f" d="M882.72,-843.08C903.43,-852.89 930.24,-868.62 947,-890 978.47,-930.16 944.52,-965.5 983,-999 998.65,-1012.62 1020.14,-1018.71 1040.31,-1021.12"/>
+<polygon fill="#ff002f" stroke="#ff002f" points="1040.11,-1024.61 1050.38,-1022.04 1040.74,-1017.64 1040.11,-1024.61"/>
+</g>
+<!-- proc~double_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node76" class="node">
+<title>proc~double_to_string</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node76"><a xlink:href="../proc/double_to_string.html" xlink:title="double_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1364.5,-591 1264.5,-591 1264.5,-567 1364.5,-567 1364.5,-591"/>
+<text text-anchor="middle" x="1314.5" y="-576.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">double_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~double_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge99" class="edge">
+<title>interface~to_str&#45;&gt;proc~double_to_string</title>
+<path fill="none" stroke="#00ff46" stroke-dasharray="5,2" d="M1126.18,-597.42C1157.86,-594.31 1212.18,-588.97 1254.2,-584.83"/>
+<polygon fill="#00ff46" stroke="#00ff46" points="1254.71,-588.3 1264.32,-583.84 1254.02,-581.33 1254.71,-588.3"/>
+</g>
+<!-- proc~float_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node77" class="node">
+<title>proc~float_to_string</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node77"><a xlink:href="../proc/float_to_string.html" xlink:title="float_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1358.5,-549 1270.5,-549 1270.5,-525 1358.5,-525 1358.5,-549"/>
+<text text-anchor="middle" x="1314.5" y="-534.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">float_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~float_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge100" class="edge">
+<title>interface~to_str&#45;&gt;proc~float_to_string</title>
+<path fill="none" stroke="#00ff46" stroke-dasharray="5,2" d="M1126.26,-597.82C1150.03,-595.24 1185.69,-589.84 1215,-579 1232.37,-572.57 1234.13,-565.66 1251,-558 1255.16,-556.11 1259.54,-554.3 1263.97,-552.59"/>
+<polygon fill="#00ff46" stroke="#00ff46" points="1265.51,-555.76 1273.69,-549.02 1263.09,-549.19 1265.51,-555.76"/>
+</g>
+<!-- proc~int32_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node79" class="node">
+<title>proc~int32_to_string</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node79"><a xlink:href="../proc/int32_to_string.html" xlink:title="int32_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1360,-717 1269,-717 1269,-693 1360,-693 1360,-717"/>
+<text text-anchor="middle" x="1314.5" y="-702.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int32_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int32_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge101" class="edge">
+<title>interface~to_str&#45;&gt;proc~int32_to_string</title>
+<path fill="none" stroke="#00ff46" stroke-dasharray="5,2" d="M1126.15,-598.73C1151.16,-598.81 1188.83,-602.47 1215,-621 1241.32,-639.64 1226.08,-663.52 1251,-684 1253.69,-686.21 1256.62,-688.19 1259.7,-689.97"/>
+<polygon fill="#00ff46" stroke="#00ff46" points="1258.19,-693.12 1268.7,-694.45 1261.31,-686.86 1258.19,-693.12"/>
+</g>
+<!-- proc~int64_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node80" class="node">
+<title>proc~int64_to_string</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node80"><a xlink:href="../proc/int64_to_string.html" xlink:title="int64_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1360,-675 1269,-675 1269,-651 1360,-651 1360,-675"/>
+<text text-anchor="middle" x="1314.5" y="-660.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int64_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int64_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge102" class="edge">
+<title>interface~to_str&#45;&gt;proc~int64_to_string</title>
+<path fill="none" stroke="#00ff46" stroke-dasharray="5,2" d="M1126.26,-602.18C1150.03,-604.76 1185.69,-610.16 1215,-621 1232.37,-627.43 1234.13,-634.34 1251,-642 1255.16,-643.89 1259.54,-645.7 1263.97,-647.41"/>
+<polygon fill="#00ff46" stroke="#00ff46" points="1263.09,-650.81 1273.69,-650.98 1265.51,-644.24 1263.09,-650.81"/>
+</g>
+<!-- proc~int8_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node81" class="node">
+<title>proc~int8_to_string</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node81"><a xlink:href="../proc/int8_to_string.html" xlink:title="int8_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1356.5,-633 1272.5,-633 1272.5,-609 1356.5,-609 1356.5,-633"/>
+<text text-anchor="middle" x="1314.5" y="-618.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int8_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int8_to_string -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge103" class="edge">
+<title>interface~to_str&#45;&gt;proc~int8_to_string</title>
+<path fill="none" stroke="#00ff46" stroke-dasharray="5,2" d="M1126.18,-602.58C1159.99,-605.9 1219.59,-611.76 1262.49,-615.98"/>
+<polygon fill="#00ff46" stroke="#00ff46" points="1262.17,-619.47 1272.46,-616.96 1262.85,-612.5 1262.17,-619.47"/>
+</g>
+<!-- proc~get_aux_bytes~2 -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node78" class="node">
+<title>proc~get_aux_bytes~2</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node78"><a xlink:href="../proc/get_aux_bytes~2.html" xlink:title="abstract_reshape_handle%get_aux_bytes">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1215,-1116 983,-1116 983,-1092 1215,-1092 1215,-1116"/>
+<text text-anchor="middle" x="1099" y="-1101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_handle%get_aux_bytes</text>
+</a>
+</g>
+</g>
+<!-- proc~get_aux_bytes_generic&#45;&gt;proc~get_aux_bytes~2 -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge104" class="edge">
+<title>proc~get_aux_bytes_generic&#45;&gt;proc~get_aux_bytes~2</title>
+<path fill="none" stroke="#007bff" d="M919.46,-962.6C929.58,-966.42 939.22,-971.7 947,-979 982.67,-1012.47 945.88,-1051.15 983,-1083 984.38,-1084.18 985.8,-1085.31 987.26,-1086.38"/>
+<polygon fill="#007bff" stroke="#007bff" points="985.7,-1089.53 996.02,-1091.93 989.44,-1083.62 985.7,-1089.53"/>
+</g>
+<!-- proc~is_nvshmem_generic&#45;&gt;proc~is_backend_nvshmem -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge106" class="edge">
+<title>proc~is_nvshmem_generic&#45;&gt;proc~is_backend_nvshmem</title>
+<path fill="none" stroke="#8c00ff" d="M882.65,-898.87C903.32,-889.03 930.12,-873.29 947,-852 977.65,-813.34 945.61,-779.18 983,-747 994.37,-737.21 1008.77,-731.33 1023.5,-727.91"/>
+<polygon fill="#8c00ff" stroke="#8c00ff" points="1024.56,-731.26 1033.71,-725.91 1023.22,-724.39 1024.56,-731.26"/>
+</g>
+<!-- get_backend -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node72" class="node">
+<title>get_backend</title>
+<polygon fill="#777777" stroke="#777777" points="1139.5,-1074 1058.5,-1074 1058.5,-1050 1139.5,-1050 1139.5,-1074"/>
+<text text-anchor="middle" x="1099" y="-1059.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_backend</text>
+</g>
+<!-- proc~is_nvshmem_generic&#45;&gt;get_backend -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge105" class="edge">
+<title>proc~is_nvshmem_generic&#45;&gt;get_backend</title>
+<path fill="none" stroke="#8c00ff" d="M914.07,-915.16C926.1,-918.44 937.83,-923.69 947,-932 984.82,-966.24 944.52,-1007.5 983,-1041 1000.72,-1056.43 1025.93,-1062.19 1048.24,-1063.89"/>
+<polygon fill="#8c00ff" stroke="#8c00ff" points="1048.08,-1067.38 1058.24,-1064.4 1048.43,-1060.39 1048.08,-1067.38"/>
+</g>
+<!-- interface~aligned_alloc -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node73" class="node">
+<title>interface~aligned_alloc</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node73"><a xlink:href="../interface/aligned_alloc.html" xlink:title="aligned_alloc">
+<polygon fill="#a7506f" stroke="#a7506f" points="1356,-129 1273,-129 1273,-105 1356,-105 1356,-129"/>
+<text text-anchor="middle" x="1314.5" y="-114.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">aligned_alloc</text>
+</a>
+</g>
+</g>
+<!-- proc~mem_alloc_host&#45;&gt;interface~aligned_alloc -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge107" class="edge">
+<title>proc~mem_alloc_host&#45;&gt;interface~aligned_alloc</title>
+<path fill="none" stroke="#f600ff" d="M1148.71,-100.79C1182.73,-104.14 1228.05,-108.59 1262.55,-111.99"/>
+<polygon fill="#f600ff" stroke="#f600ff" points="1262.59,-115.51 1272.88,-113 1263.27,-108.54 1262.59,-115.51"/>
+</g>
+<!-- proc~ncclgeterrorstring&#45;&gt;proc~string_c2f -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge109" class="edge">
+<title>proc~ncclgeterrorstring&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#ff00d3" d="M1154.56,-519.41C1176.38,-517.74 1199.88,-511.56 1215,-495 1275.03,-429.26 1195.83,-165.87 1251,-96 1256.46,-89.09 1264.27,-84.44 1272.54,-81.31"/>
+<polygon fill="#ff00d3" stroke="#ff00d3" points="1273.81,-84.58 1282.34,-78.29 1271.75,-77.89 1273.81,-84.58"/>
+</g>
+<!-- interface~ncclgeterrorstring_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node75" class="node">
+<title>interface~ncclgeterrorstring_c</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node75"><a xlink:href="../interface/ncclgeterrorstring_c.html" xlink:title="ncclGetErrorString_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1375.5,-507 1253.5,-507 1253.5,-483 1375.5,-483 1375.5,-507"/>
+<text text-anchor="middle" x="1314.5" y="-492.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ncclGetErrorString_c</text>
+</a>
+</g>
+</g>
+<!-- proc~ncclgeterrorstring&#45;&gt;interface~ncclgeterrorstring_c -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge108" class="edge">
+<title>proc~ncclgeterrorstring&#45;&gt;interface~ncclgeterrorstring_c</title>
+<path fill="none" stroke="#ff00d3" d="M1154.7,-510.62C1181.67,-507.97 1214.5,-504.74 1243.3,-501.9"/>
+<polygon fill="#ff00d3" stroke="#ff00d3" points="1243.69,-505.38 1253.3,-500.92 1243.01,-498.42 1243.69,-505.38"/>
+</g>
+<!-- interface~is_null_ptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node74" class="node">
+<title>interface~is_null_ptr</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node74"><a xlink:href="../interface/is_null_ptr.html" xlink:title="is_null_ptr">
+<polygon fill="#a7506f" stroke="#a7506f" points="1519.5,-87 1453.5,-87 1453.5,-63 1519.5,-63 1519.5,-87"/>
+<text text-anchor="middle" x="1486.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~string_c2f&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge110" class="edge">
+<title>proc~string_c2f&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#ff009e" d="M1346.68,-75C1373.78,-75 1413.27,-75 1443.21,-75"/>
+<polygon fill="#ff009e" stroke="#ff009e" points="1443.36,-78.5 1453.36,-75 1443.36,-71.5 1443.36,-78.5"/>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge111" class="edge">
+<title>interface~is_null_ptr&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M1461.7,-87.01C1453.04,-95.97 1461.3,-105 1486.5,-105 1501.85,-105 1510.92,-101.65 1513.7,-97"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="1517.04,-95.92 1511.3,-87.01 1510.24,-97.55 1517.04,-95.92"/>
+</g>
+<!-- proc~is_null_funptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_node82" class="node">
+<title>proc~is_null_funptr</title>
+<g id="a_proc~~execute_single_transpose_modes~~CallsGraph_node82"><a xlink:href="../proc/is_null_funptr.html" xlink:title="is_null_funptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1678,-87 1595,-87 1595,-63 1678,-63 1678,-87"/>
+<text text-anchor="middle" x="1636.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_funptr</text>
+</a>
+</g>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;proc~is_null_funptr -->
+<g id="proc~~execute_single_transpose_modes~~CallsGraph_edge112" class="edge">
+<title>interface~is_null_ptr&#45;&gt;proc~is_null_funptr</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M1519.61,-75C1538.7,-75 1563.32,-75 1584.96,-75"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="1584.98,-78.5 1594.98,-75 1584.98,-71.5 1584.98,-78.5"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute_single_transpose_modesCallsGraph = svgPanZoom('#procexecute_single_transpose_modesCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_single_transpose_modes~~CalledByGraph Pages: 1 -->
+<svg id="procexecute_single_transpose_modesCalledByGraph" width="641pt" height="30pt"
+ viewBox="0.00 0.00 641.00 29.63" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph" class="graph" transform="scale(0.57 0.57) rotate(0) translate(4 48)">
+<title>proc~~execute_single_transpose_modes~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-48 1121,-48 1121,4 -4,4"/>
+<!-- proc~execute_single_transpose_modes -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_node1" class="node">
+<title>proc~execute_single_transpose_modes</title>
+<polygon fill="none" stroke="black" points="1117,-44 927,-44 927,-20 1117,-20 1117,-44"/>
+<text text-anchor="middle" x="1022" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50">execute_single_transpose_modes</text>
+</g>
+<!-- proc~execute_single -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_node2" class="node">
+<title>proc~execute_single</title>
+<g id="a_proc~~execute_single_transpose_modes~~CalledByGraph_node2"><a xlink:href="../proc/execute_single.html" xlink:title="execute_single">
+<polygon fill="#d9534f" stroke="#d9534f" points="891,-44 800,-44 800,-20 891,-20 891,-44"/>
+<text text-anchor="middle" x="845.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_single</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_single&#45;&gt;proc~execute_single_transpose_modes -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_edge1" class="edge">
+<title>proc~execute_single&#45;&gt;proc~execute_single_transpose_modes</title>
+<path fill="none" stroke="#ff0000" d="M891.44,-32C899.28,-32 907.72,-32 916.4,-32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="916.67,-35.5 926.67,-32 916.67,-28.5 916.67,-35.5"/>
+</g>
+<!-- proc~execute_many -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_node3" class="node">
+<title>proc~execute_many</title>
+<g id="a_proc~~execute_single_transpose_modes~~CalledByGraph_node3"><a xlink:href="../proc/execute_many.html" xlink:title="execute_many">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="764,-24 674,-24 674,0 764,0 764,-24"/>
+<text text-anchor="middle" x="719" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_many</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_many&#45;&gt;proc~execute_single -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_edge2" class="edge">
+<title>proc~execute_many&#45;&gt;proc~execute_single</title>
+<path fill="none" stroke="#ff0000" d="M764.24,-19.11C772.58,-20.45 781.39,-21.86 790,-23.25"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="789.55,-26.72 799.98,-24.85 790.66,-19.81 789.55,-26.72"/>
+</g>
+<!-- proc~run_autotune_backend -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_node4" class="node">
+<title>proc~run_autotune_backend</title>
+<g id="a_proc~~execute_single_transpose_modes~~CalledByGraph_node4"><a xlink:href="../proc/run_autotune_backend.html" xlink:title="run_autotune_backend">
+<polygon fill="#d9534f" stroke="#d9534f" points="638,-44 503,-44 503,-20 638,-20 638,-44"/>
+<text text-anchor="middle" x="570.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_autotune_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~run_autotune_backend&#45;&gt;proc~execute_single -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_edge3" class="edge">
+<title>proc~run_autotune_backend&#45;&gt;proc~execute_single</title>
+<path fill="none" stroke="#ff0000" d="M638.21,-32.75C650.13,-32.85 662.43,-32.94 674,-33 714,-33.2 724,-33.25 764,-33 772.34,-32.95 781.16,-32.87 789.79,-32.77"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="789.83,-36.27 799.79,-32.65 789.75,-29.27 789.83,-36.27"/>
+</g>
+<!-- proc~run_autotune_backend&#45;&gt;proc~execute_many -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_edge4" class="edge">
+<title>proc~run_autotune_backend&#45;&gt;proc~execute_many</title>
+<path fill="none" stroke="#ff0000" d="M638.32,-22.88C646.9,-21.71 655.61,-20.52 663.95,-19.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="664.49,-22.84 673.92,-18.02 663.54,-15.9 664.49,-22.84"/>
+</g>
+<!-- proc~autotune_grid -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_node5" class="node">
+<title>proc~autotune_grid</title>
+<g id="a_proc~~execute_single_transpose_modes~~CalledByGraph_node5"><a xlink:href="../proc/autotune_grid.html" xlink:title="autotune_grid">
+<polygon fill="#d9534f" stroke="#d9534f" points="467,-24 380,-24 380,0 467,0 467,-24"/>
+<text text-anchor="middle" x="423.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid</text>
+</a>
+</g>
+</g>
+<!-- proc~autotune_grid&#45;&gt;proc~run_autotune_backend -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_edge5" class="edge">
+<title>proc~autotune_grid&#45;&gt;proc~run_autotune_backend</title>
+<path fill="none" stroke="#00ffff" d="M467.22,-17.89C475.35,-19.01 484.09,-20.22 492.91,-21.44"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="492.49,-24.91 502.88,-22.81 493.45,-17.98 492.49,-24.91"/>
+</g>
+<!-- proc~create~9 -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_node6" class="node">
+<title>proc~create~9</title>
+<g id="a_proc~~execute_single_transpose_modes~~CalledByGraph_node6"><a xlink:href="../proc/create~9.html" xlink:title="transpose_plan%create">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="137,-44 0,-44 0,-20 137,-20 137,-44"/>
+<text text-anchor="middle" x="68.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan%create</text>
+</a>
+</g>
+</g>
+<!-- proc~create~9&#45;&gt;proc~run_autotune_backend -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_edge6" class="edge">
+<title>proc~create~9&#45;&gt;proc~run_autotune_backend</title>
+<path fill="none" stroke="#00ffff" d="M137.14,-32.75C149.09,-32.85 161.41,-32.94 173,-33 303.67,-33.63 336.33,-33.64 467,-33 475.31,-32.96 484.01,-32.9 492.66,-32.83"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="492.82,-36.33 502.79,-32.75 492.76,-29.33 492.82,-36.33"/>
+</g>
+<!-- proc~autotune_grid_decomposition -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_node7" class="node">
+<title>proc~autotune_grid_decomposition</title>
+<g id="a_proc~~execute_single_transpose_modes~~CalledByGraph_node7"><a xlink:href="../proc/autotune_grid_decomposition.html" xlink:title="autotune_grid_decomposition">
+<polygon fill="#d9534f" stroke="#d9534f" points="344,-24 173,-24 173,0 344,0 344,-24"/>
+<text text-anchor="middle" x="258.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid_decomposition</text>
+</a>
+</g>
+</g>
+<!-- proc~create~9&#45;&gt;proc~autotune_grid_decomposition -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_edge8" class="edge">
+<title>proc~create~9&#45;&gt;proc~autotune_grid_decomposition</title>
+<path fill="none" stroke="#ff0000" d="M137.11,-24.81C145.43,-23.92 154.05,-23.01 162.69,-22.09"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="163.23,-25.55 172.81,-21.01 162.49,-18.59 163.23,-25.55"/>
+</g>
+<!-- proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid -->
+<g id="proc~~execute_single_transpose_modes~~CalledByGraph_edge7" class="edge">
+<title>proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid</title>
+<path fill="none" stroke="#ff0000" d="M344.34,-12C352.94,-12 361.48,-12 369.59,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="369.61,-15.5 379.61,-12 369.61,-8.5 369.61,-15.5"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute_single_transpose_modesCalledByGraph = svgPanZoom('#procexecute_single_transpose_modesCalledByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

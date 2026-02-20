@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,14 +52,9 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -79,7 +73,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 0.0% of total for procedures.</p>Including implementation: 54 statements,  0.3% of total for procedures.">3 statements</a>
+                 title="<p> 0.0% of total for procedures.</p>Including implementation: 75 statements,  0.2% of total for procedures.">3 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -276,7 +270,7 @@ large graphs.</div>
 
         <h2>Module Procedures</h2>
             <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-config_constructor"></span> <h3>private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, reshape_backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_autotune, enable_fourier_reshape) result(config)  
+    <div class="card-header codesum"><span class="anchor" id="proc-config_constructor"></span> <h3>private pure function <a href='../proc/config_constructor.html'>config_constructor</a>(enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, reshape_backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_rma_backends, enable_fused_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_autotune, enable_fourier_reshape, transpose_mode, access_mode, enable_compressed_backends, compression_config_transpose, compression_config_reshape) result(config)  
 </h3></div>
     <div class="card-body">
           
@@ -370,7 +364,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~3"></span>
+              <span class="anchor" id="variable-platform~23"></span>
               type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
             </td>
 <td>intent(in),</td>
@@ -385,7 +379,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~2"></span>
+              <span class="anchor" id="variable-stream~21"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in),</td>
@@ -400,7 +394,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-backend~3"></span>
+              <span class="anchor" id="variable-backend~25"></span>
               type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
             </td>
 <td>intent(in),</td>
@@ -475,6 +469,36 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-enable_rma_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_rma_backends</strong></td>
+            <td>
+<p>Should RMA backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_fused_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_fused_backends</strong></td>
+            <td>
+<p>Should fused backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or not.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-enable_nccl_backends~2"></span>
               logical,
             </td>
@@ -533,6 +557,81 @@ large graphs.</div>
 <p>Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to <code>execute</code> or not.</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-transpose_mode~14"></span>
+              type(<a href='../type/dtfft_transpose_mode_t.html'>dtfft_transpose_mode_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>transpose_mode</strong></td>
+            <td>
+<p>Specifies at which stage the local transposition is performed during global exchange.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-access_mode~3"></span>
+              type(<a href='../type/dtfft_access_mode_t.html'>dtfft_access_mode_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>access_mode</strong></td>
+            <td>
+<p>Specifies the memory access pattern (optimization target) for local transposition in Generic backends.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-enable_compressed_backends~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>enable_compressed_backends</strong></td>
+            <td>
+<p>Should compressed backends be enabled when <code>effort</code> is <code>DTFFT_PATIENT</code> or <code>DTFFT_EXHAUSTIVE</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compression_config_transpose~2"></span>
+              type(<a href='../type/dtfft_compression_config_t.html'>dtfft_compression_config_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>compression_config_transpose</strong></td>
+            <td>
+<p>Options for compression approach during transpositions</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compression_config_reshape~2"></span>
+              type(<a href='../type/dtfft_compression_config_t.html'>dtfft_compression_config_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>compression_config_reshape</strong></td>
+            <td>
+<p>Options for compression approach during transpositions</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -586,9 +685,6 @@ large graphs.</div>
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>

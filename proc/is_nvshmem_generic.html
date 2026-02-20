@@ -1,0 +1,755 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>is_nvshmem_generic &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>is_nvshmem_generic
+      <small>Function</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for procedures.">16 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_reshape_plan_base.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_reshape_plan_base.f90.html'>dtfft_reshape_plan_base.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_reshape_plan_base.html'>dtfft_reshape_plan_base</a></li>
+            <li class="breadcrumb-item active" aria-current="page">is_nvshmem_generic</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private pure function is_nvshmem_generic(plans, backend)  
+</h2>
+    
+
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-plans~5"></span>
+              type(<a href='../type/reshape_container.html'>reshape_container</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>plans</strong>(:)</td>
+            <td>
+                <p>Reshape handles</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-backend~12"></span>
+              type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>backend</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <h3>Return Value
+        <small>
+          <span class="anchor" id="variable-is_nvshmem_generic"></span>
+          logical
+        </small>
+      </h3>
+      
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~is_nvshmem_generic~~CallsGraph Pages: 1 -->
+<svg id="procis_nvshmem_genericCallsGraph" width="298pt" height="74pt"
+ viewBox="0.00 0.00 298.00 74.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~is_nvshmem_generic~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 70)">
+<title>proc~~is_nvshmem_generic~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-70 294,-70 294,4 -4,4"/>
+<!-- proc~is_nvshmem_generic -->
+<g id="proc~~is_nvshmem_generic~~CallsGraph_node1" class="node">
+<title>proc~is_nvshmem_generic</title>
+<polygon fill="none" stroke="black" points="124,-45 0,-45 0,-21 124,-21 124,-45"/>
+<text text-anchor="middle" x="62" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50">is_nvshmem_generic</text>
+</g>
+<!-- get_backend -->
+<g id="proc~~is_nvshmem_generic~~CallsGraph_node2" class="node">
+<title>get_backend</title>
+<polygon fill="#777777" stroke="#777777" points="265.5,-66 184.5,-66 184.5,-42 265.5,-42 265.5,-66"/>
+<text text-anchor="middle" x="225" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_backend</text>
+</g>
+<!-- proc~is_nvshmem_generic&#45;&gt;get_backend -->
+<g id="proc~~is_nvshmem_generic~~CallsGraph_edge1" class="edge">
+<title>proc~is_nvshmem_generic&#45;&gt;get_backend</title>
+<path fill="none" stroke="#ff0000" d="M124.33,-41C140.8,-43.15 158.41,-45.45 174.18,-47.5"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="173.87,-50.99 184.24,-48.81 174.78,-44.05 173.87,-50.99"/>
+</g>
+<!-- proc~is_backend_nvshmem -->
+<g id="proc~~is_nvshmem_generic~~CallsGraph_node3" class="node">
+<title>proc~is_backend_nvshmem</title>
+<g id="a_proc~~is_nvshmem_generic~~CallsGraph_node3"><a xlink:href="../proc/is_backend_nvshmem.html" xlink:title="is_backend_nvshmem">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="290,-24 160,-24 160,0 290,0 290,-24"/>
+<text text-anchor="middle" x="225" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nvshmem</text>
+</a>
+</g>
+</g>
+<!-- proc~is_nvshmem_generic&#45;&gt;proc~is_backend_nvshmem -->
+<g id="proc~~is_nvshmem_generic~~CallsGraph_edge2" class="edge">
+<title>proc~is_nvshmem_generic&#45;&gt;proc~is_backend_nvshmem</title>
+<path fill="none" stroke="#ff0000" d="M124.33,-25C132.69,-23.91 141.35,-22.78 149.92,-21.66"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="150.44,-25.12 159.9,-20.36 149.53,-18.18 150.44,-25.12"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~is_nvshmem_generic~~CalledByGraph Pages: 1 -->
+<svg id="procis_nvshmem_genericCalledByGraph" width="641pt" height="52pt"
+ viewBox="0.00 0.00 641.00 52.16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~is_nvshmem_generic~~CalledByGraph" class="graph" transform="scale(0.33 0.33) rotate(0) translate(4 152)">
+<title>proc~~is_nvshmem_generic~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-152 1913,-152 1913,4 -4,4"/>
+<!-- proc~is_nvshmem_generic -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node1" class="node">
+<title>proc~is_nvshmem_generic</title>
+<polygon fill="none" stroke="black" points="1909,-87 1785,-87 1785,-63 1909,-63 1909,-87"/>
+<text text-anchor="middle" x="1847" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50">is_nvshmem_generic</text>
+</g>
+<!-- proc~alloc_and_set_aux -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node2" class="node">
+<title>proc~alloc_and_set_aux</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node2"><a xlink:href="../proc/alloc_and_set_aux.html" xlink:title="alloc_and_set_aux">
+<polygon fill="#d9534f" stroke="#d9534f" points="1708.5,-108 1599.5,-108 1599.5,-84 1708.5,-84 1708.5,-108"/>
+<text text-anchor="middle" x="1654" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">alloc_and_set_aux</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_and_set_aux&#45;&gt;proc~is_nvshmem_generic -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge1" class="edge">
+<title>proc~alloc_and_set_aux&#45;&gt;proc~is_nvshmem_generic</title>
+<path fill="none" stroke="#ff0000" d="M1708.71,-90.09C1729.19,-87.84 1752.86,-85.24 1774.72,-82.84"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1775.4,-86.28 1784.95,-81.71 1774.63,-79.33 1775.4,-86.28"/>
+</g>
+<!-- proc~is_nvshmem -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node3" class="node">
+<title>proc~is_nvshmem</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node3"><a xlink:href="../proc/is_nvshmem.html" xlink:title="reshape_plan_base%is_nvshmem">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1749,-66 1559,-66 1559,-42 1749,-42 1749,-66"/>
+<text text-anchor="middle" x="1654" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_plan_base%is_nvshmem</text>
+</a>
+</g>
+</g>
+<!-- proc~is_nvshmem&#45;&gt;proc~is_nvshmem_generic -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge2" class="edge">
+<title>proc~is_nvshmem&#45;&gt;proc~is_nvshmem_generic</title>
+<path fill="none" stroke="#ff0000" d="M1749.1,-64.35C1757.74,-65.3 1766.39,-66.25 1774.77,-67.17"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1774.52,-70.66 1784.85,-68.28 1775.29,-63.7 1774.52,-70.66"/>
+</g>
+<!-- proc~execute_autotune -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node4" class="node">
+<title>proc~execute_autotune</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node4"><a xlink:href="../proc/execute_autotune.html" xlink:title="execute_autotune">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1485.5,-108 1377.5,-108 1377.5,-84 1485.5,-84 1485.5,-108"/>
+<text text-anchor="middle" x="1431.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_autotune</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_autotune&#45;&gt;proc~alloc_and_set_aux -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge3" class="edge">
+<title>proc~execute_autotune&#45;&gt;proc~alloc_and_set_aux</title>
+<path fill="none" stroke="#ff0000" d="M1485.6,-96C1516.64,-96 1556.05,-96 1588.83,-96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1589.22,-99.5 1599.22,-96 1589.22,-92.5 1589.22,-99.5"/>
+</g>
+<!-- proc~mem_alloc -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node5" class="node">
+<title>proc~mem_alloc</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node5"><a xlink:href="../proc/mem_alloc.html" xlink:title="reshape_plan_base%mem_alloc">
+<polygon fill="#d9534f" stroke="#d9534f" points="1523,-66 1340,-66 1340,-42 1523,-42 1523,-66"/>
+<text text-anchor="middle" x="1431.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_plan_base%mem_alloc</text>
+</a>
+</g>
+</g>
+<!-- proc~mem_alloc&#45;&gt;proc~is_nvshmem -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge4" class="edge">
+<title>proc~mem_alloc&#45;&gt;proc~is_nvshmem</title>
+<path fill="none" stroke="#00ffff" d="M1523.14,-54C1531.59,-54 1540.2,-54 1548.77,-54"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1548.78,-57.5 1558.78,-54 1548.78,-50.5 1548.78,-57.5"/>
+</g>
+<!-- proc~mem_free -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node6" class="node">
+<title>proc~mem_free</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node6"><a xlink:href="../proc/mem_free.html" xlink:title="reshape_plan_base%mem_free">
+<polygon fill="#d9534f" stroke="#d9534f" points="1520.5,-24 1342.5,-24 1342.5,0 1520.5,0 1520.5,-24"/>
+<text text-anchor="middle" x="1431.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_plan_base%mem_free</text>
+</a>
+</g>
+</g>
+<!-- proc~mem_free&#45;&gt;proc~is_nvshmem -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge5" class="edge">
+<title>proc~mem_free&#45;&gt;proc~is_nvshmem</title>
+<path fill="none" stroke="#00ffff" d="M1495.69,-24.04C1521.98,-29.04 1552.67,-34.89 1579.93,-40.08"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1579.33,-43.53 1589.8,-41.96 1580.64,-36.65 1579.33,-43.53"/>
+</g>
+<!-- proc~autotune_adaptive -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node7" class="node">
+<title>proc~autotune_adaptive</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node7"><a xlink:href="../proc/autotune_adaptive.html" xlink:title="autotune_adaptive">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1302.5,-128 1190.5,-128 1190.5,-104 1302.5,-104 1302.5,-128"/>
+<text text-anchor="middle" x="1246.5" y="-113.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_adaptive</text>
+</a>
+</g>
+</g>
+<!-- proc~autotune_adaptive&#45;&gt;proc~execute_autotune -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge6" class="edge">
+<title>proc~autotune_adaptive&#45;&gt;proc~execute_autotune</title>
+<path fill="none" stroke="#ff0000" d="M1302.9,-109.95C1323.24,-107.72 1346.42,-105.19 1367.39,-102.9"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1367.92,-106.36 1377.48,-101.79 1367.16,-99.4 1367.92,-106.36"/>
+</g>
+<!-- proc~autotune_reshape_plan -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node8" class="node">
+<title>proc~autotune_reshape_plan</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node8"><a xlink:href="../proc/autotune_reshape_plan.html" xlink:title="autotune_reshape_plan">
+<polygon fill="#d9534f" stroke="#d9534f" points="1126.5,-148 989.5,-148 989.5,-124 1126.5,-124 1126.5,-148"/>
+<text text-anchor="middle" x="1058" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_reshape_plan</text>
+</a>
+</g>
+</g>
+<!-- proc~autotune_reshape_plan&#45;&gt;proc~execute_autotune -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge7" class="edge">
+<title>proc~autotune_reshape_plan&#45;&gt;proc~execute_autotune</title>
+<path fill="none" stroke="#ff0000" d="M1126.51,-142.06C1175.97,-145.1 1244.55,-146.39 1304,-137 1334.6,-132.16 1367.88,-121.13 1392.62,-111.73"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1393.94,-114.97 1401.99,-108.09 1391.4,-108.45 1393.94,-114.97"/>
+</g>
+<!-- proc~autotune_reshape_plan&#45;&gt;proc~autotune_adaptive -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge10" class="edge">
+<title>proc~autotune_reshape_plan&#45;&gt;proc~autotune_adaptive</title>
+<path fill="none" stroke="#ff0000" d="M1126.59,-128.75C1144.11,-126.87 1162.93,-124.85 1180.32,-122.99"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1180.81,-126.46 1190.38,-121.91 1180.06,-119.5 1180.81,-126.46"/>
+</g>
+<!-- proc~execute_many -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node9" class="node">
+<title>proc~execute_many</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node9"><a xlink:href="../proc/execute_many.html" xlink:title="execute_many">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="764,-88 674,-88 674,-64 764,-64 764,-88"/>
+<text text-anchor="middle" x="719" y="-73.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_many</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_many&#45;&gt;proc~execute_autotune -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge8" class="edge">
+<title>proc~execute_many&#45;&gt;proc~execute_autotune</title>
+<path fill="none" stroke="#ff0000" d="M764.18,-77.24C885.74,-80.67 1225.56,-90.23 1367.23,-94.22"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1367.39,-97.72 1377.49,-94.51 1367.59,-90.73 1367.39,-97.72"/>
+</g>
+<!-- proc~execute_single -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node16" class="node">
+<title>proc~execute_single</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node16"><a xlink:href="../proc/execute_single.html" xlink:title="execute_single">
+<polygon fill="#d9534f" stroke="#d9534f" points="909,-48 818,-48 818,-24 909,-24 909,-48"/>
+<text text-anchor="middle" x="863.5" y="-33.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_single</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_many&#45;&gt;proc~execute_single -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge18" class="edge">
+<title>proc~execute_many&#45;&gt;proc~execute_single</title>
+<path fill="none" stroke="#0000ff" d="M762.75,-64C777.42,-59.88 794,-55.23 809.38,-50.91"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="810.6,-54.2 819.28,-48.13 808.71,-47.46 810.6,-54.2"/>
+</g>
+<!-- proc~run_execute_single -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node10" class="node">
+<title>proc~run_execute_single</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node10"><a xlink:href="../proc/run_execute_single.html" xlink:title="run_execute_single">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1304,-48 1189,-48 1189,-24 1304,-24 1304,-48"/>
+<text text-anchor="middle" x="1246.5" y="-33.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_execute_single</text>
+</a>
+</g>
+</g>
+<!-- proc~run_execute_single&#45;&gt;proc~execute_autotune -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge9" class="edge">
+<title>proc~run_execute_single&#45;&gt;proc~execute_autotune</title>
+<path fill="none" stroke="#ff0000" d="M1272.97,-48.13C1291.3,-56.52 1316.79,-67.48 1340,-75 1348.79,-77.85 1358.18,-80.47 1367.45,-82.83"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1366.9,-86.3 1377.44,-85.29 1368.57,-79.5 1366.9,-86.3"/>
+</g>
+<!-- proc~create~3 -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node11" class="node">
+<title>proc~create~3</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node11"><a xlink:href="../proc/create~3.html" xlink:title="reshape_plan%create">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="927,-148 800,-148 800,-124 927,-124 927,-148"/>
+<text text-anchor="middle" x="863.5" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_plan%create</text>
+</a>
+</g>
+</g>
+<!-- proc~create~3&#45;&gt;proc~autotune_reshape_plan -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge11" class="edge">
+<title>proc~create~3&#45;&gt;proc~autotune_reshape_plan</title>
+<path fill="none" stroke="#7fff00" d="M927.27,-136C943.87,-136 961.98,-136 979.28,-136"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="979.34,-139.5 989.34,-136 979.34,-132.5 979.34,-139.5"/>
+</g>
+<!-- proc~execute_single_transpose_modes -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node12" class="node">
+<title>proc~execute_single_transpose_modes</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node12"><a xlink:href="../proc/execute_single_transpose_modes.html" xlink:title="execute_single_transpose_modes">
+<polygon fill="#d9534f" stroke="#d9534f" points="1153,-48 963,-48 963,-24 1153,-24 1153,-48"/>
+<text text-anchor="middle" x="1058" y="-33.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_single_transpose_modes</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_single_transpose_modes&#45;&gt;proc~run_execute_single -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge13" class="edge">
+<title>proc~execute_single_transpose_modes&#45;&gt;proc~run_execute_single</title>
+<path fill="none" stroke="#7f00ff" d="M1153.07,-36C1161.76,-36 1170.44,-36 1178.8,-36"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1178.84,-39.5 1188.84,-36 1178.84,-32.5 1178.84,-39.5"/>
+</g>
+<!-- proc~run_autotune_backend -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node13" class="node">
+<title>proc~run_autotune_backend</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node13"><a xlink:href="../proc/run_autotune_backend.html" xlink:title="run_autotune_backend">
+<polygon fill="#d9534f" stroke="#d9534f" points="638,-68 503,-68 503,-44 638,-44 638,-68"/>
+<text text-anchor="middle" x="570.5" y="-53.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_autotune_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~run_autotune_backend&#45;&gt;proc~execute_many -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge12" class="edge">
+<title>proc~run_autotune_backend&#45;&gt;proc~execute_many</title>
+<path fill="none" stroke="#00ffff" d="M638.32,-65.12C646.9,-66.29 655.61,-67.48 663.95,-68.62"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="663.54,-72.1 673.92,-69.98 664.49,-65.16 663.54,-72.1"/>
+</g>
+<!-- proc~run_autotune_backend&#45;&gt;proc~execute_single -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge19" class="edge">
+<title>proc~run_autotune_backend&#45;&gt;proc~execute_single</title>
+<path fill="none" stroke="#0000ff" d="M638.26,-51.41C689.54,-47.89 759.48,-43.08 807.55,-39.78"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="808.02,-43.25 817.76,-39.08 807.54,-36.27 808.02,-43.25"/>
+</g>
+<!-- proc~autotune_grid -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node14" class="node">
+<title>proc~autotune_grid</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node14"><a xlink:href="../proc/autotune_grid.html" xlink:title="autotune_grid">
+<polygon fill="#d9534f" stroke="#d9534f" points="467,-48 380,-48 380,-24 467,-24 467,-48"/>
+<text text-anchor="middle" x="423.5" y="-33.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid</text>
+</a>
+</g>
+</g>
+<!-- proc~autotune_grid&#45;&gt;proc~run_autotune_backend -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge15" class="edge">
+<title>proc~autotune_grid&#45;&gt;proc~run_autotune_backend</title>
+<path fill="none" stroke="#0000ff" d="M467.22,-41.89C475.35,-43.01 484.09,-44.22 492.91,-45.44"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="492.49,-48.91 502.88,-46.81 493.45,-41.98 492.49,-48.91"/>
+</g>
+<!-- proc~create~9 -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node15" class="node">
+<title>proc~create~9</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node15"><a xlink:href="../proc/create~9.html" xlink:title="transpose_plan%create">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="137,-68 0,-68 0,-44 137,-44 137,-68"/>
+<text text-anchor="middle" x="68.5" y="-53.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan%create</text>
+</a>
+</g>
+</g>
+<!-- proc~create~9&#45;&gt;proc~run_autotune_backend -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge16" class="edge">
+<title>proc~create~9&#45;&gt;proc~run_autotune_backend</title>
+<path fill="none" stroke="#0000ff" d="M137.14,-56.75C149.09,-56.85 161.41,-56.94 173,-57 303.67,-57.63 336.33,-57.64 467,-57 475.31,-56.96 484.01,-56.9 492.66,-56.83"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="492.82,-60.33 502.79,-56.75 492.76,-53.33 492.82,-60.33"/>
+</g>
+<!-- proc~autotune_grid_decomposition -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_node17" class="node">
+<title>proc~autotune_grid_decomposition</title>
+<g id="a_proc~~is_nvshmem_generic~~CalledByGraph_node17"><a xlink:href="../proc/autotune_grid_decomposition.html" xlink:title="autotune_grid_decomposition">
+<polygon fill="#d9534f" stroke="#d9534f" points="344,-48 173,-48 173,-24 344,-24 344,-48"/>
+<text text-anchor="middle" x="258.5" y="-33.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">autotune_grid_decomposition</text>
+</a>
+</g>
+</g>
+<!-- proc~create~9&#45;&gt;proc~autotune_grid_decomposition -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge20" class="edge">
+<title>proc~create~9&#45;&gt;proc~autotune_grid_decomposition</title>
+<path fill="none" stroke="#ff0000" d="M137.11,-48.81C145.43,-47.92 154.05,-47.01 162.69,-46.09"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="163.23,-49.55 172.81,-45.01 162.49,-42.59 163.23,-49.55"/>
+</g>
+<!-- proc~execute_single&#45;&gt;proc~execute_single_transpose_modes -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge14" class="edge">
+<title>proc~execute_single&#45;&gt;proc~execute_single_transpose_modes</title>
+<path fill="none" stroke="#00ff00" d="M909.15,-36C922.36,-36 937.41,-36 952.74,-36"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="952.83,-39.5 962.83,-36 952.83,-32.5 952.83,-39.5"/>
+</g>
+<!-- proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid -->
+<g id="proc~~is_nvshmem_generic~~CalledByGraph_edge17" class="edge">
+<title>proc~autotune_grid_decomposition&#45;&gt;proc~autotune_grid</title>
+<path fill="none" stroke="#ff0000" d="M344.34,-36C352.94,-36 361.48,-36 369.59,-36"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="369.61,-39.5 379.61,-36 369.61,-32.5 369.61,-39.5"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocis_nvshmem_genericCalledByGraph = svgPanZoom('#procis_nvshmem_genericCalledByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

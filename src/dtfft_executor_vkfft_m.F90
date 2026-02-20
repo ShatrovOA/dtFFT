@@ -27,9 +27,11 @@ use dtfft_config,                   only: get_conf_stream, get_conf_platform
 use dtfft_errors
 use dtfft_interface_vkfft_m
 use dtfft_parameters
+use dtfft_utils
+#include "_dtfft_mpi.h"
+#include "_dtfft_private.h"
 implicit none
 private
-#include "_dtfft_private.h"
 public :: vkfft_executor
 
   type, extends(abstract_executor) :: vkfft_executor

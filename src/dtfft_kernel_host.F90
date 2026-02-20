@@ -35,9 +35,13 @@ private
 public :: kernel_host
 
 ! Exporting internal kernels for testing purposes
-public :: unpack_pipelined_f32
+public :: unpack_f32
 public :: permute_forward_write_f32, permute_backward_write_f32
 public :: permute_backward_start_write_f32
+public :: permute_forward_write_f32_block_4, permute_backward_write_f32_block_4
+public :: permute_backward_start_write_f32_block_4
+public :: permute_forward_write_f32_block_8, permute_backward_write_f32_block_8
+public :: permute_backward_start_write_f32_block_8
 public :: permute_forward_write_f32_block_16, permute_backward_write_f32_block_16
 public :: permute_backward_start_write_f32_block_16
 public :: permute_forward_write_f32_block_32, permute_backward_write_f32_block_32
@@ -46,308 +50,407 @@ public :: permute_forward_write_f32_block_64, permute_backward_write_f32_block_6
 public :: permute_backward_start_write_f32_block_64
 public :: permute_forward_read_f32, permute_backward_read_f32
 public :: permute_backward_start_read_f32
+public :: permute_forward_read_f32_block_4, permute_backward_read_f32_block_4
+public :: permute_backward_start_read_f32_block_4
+public :: permute_forward_read_f32_block_8, permute_backward_read_f32_block_8
+public :: permute_backward_start_read_f32_block_8
 public :: permute_forward_read_f32_block_16, permute_backward_read_f32_block_16
 public :: permute_backward_start_read_f32_block_16
 public :: permute_forward_read_f32_block_32, permute_backward_read_f32_block_32
 public :: permute_backward_start_read_f32_block_32
 public :: permute_forward_read_f32_block_64, permute_backward_read_f32_block_64
 public :: permute_backward_start_read_f32_block_64
-public :: permute_backward_end_pipelined_write_f32, permute_backward_end_pipelined_read_f32
-public :: permute_backward_end_pipelined_write_f32_block_16
-public :: permute_backward_end_pipelined_read_f32_block_16
-public :: permute_backward_end_pipelined_write_f32_block_32
-public :: permute_backward_end_pipelined_read_f32_block_32
-public :: permute_backward_end_pipelined_write_f32_block_64
-public :: permute_backward_end_pipelined_read_f32_block_64
-public :: unpack_pipelined_f32_block_16
-public :: unpack_pipelined_f32_block_32
-public :: unpack_pipelined_f32_block_64
+public :: permute_backward_end_write_f32, permute_backward_end_read_f32
+public :: permute_backward_end_write_f32_block_4
+public :: permute_backward_end_write_f32_block_8
+public :: permute_backward_end_write_f32_block_16
+public :: permute_backward_end_write_f32_block_32
+public :: permute_backward_end_write_f32_block_64
+public :: permute_backward_end_read_f32_block_4
+public :: permute_backward_end_read_f32_block_8
+public :: permute_backward_end_read_f32_block_16
+public :: permute_backward_end_read_f32_block_32
+public :: permute_backward_end_read_f32_block_64
+public :: unpack_f32_block_4
+public :: unpack_f32_block_8
+public :: unpack_f32_block_16
+public :: unpack_f32_block_32
+public :: unpack_f32_block_64
 
-integer(int8), parameter :: ACCESS_MODE_WRITE = -1_int8
-    !! Aligned writing
-integer(int8), parameter :: ACCESS_MODE_READ  = +1_int8
-    !! Aligned reading
+public :: pack_forward_write_f32, pack_backward_write_f32
+public :: pack_forward_write_f32_block_4, pack_backward_write_f32_block_4
+public :: pack_forward_write_f32_block_8, pack_backward_write_f32_block_8
+public :: pack_forward_write_f32_block_16, pack_backward_write_f32_block_16
+public :: pack_forward_write_f32_block_32, pack_backward_write_f32_block_32
+public :: pack_forward_write_f32_block_64, pack_backward_write_f32_block_64
+public :: pack_forward_read_f32, pack_backward_read_f32
+public :: pack_forward_read_f32_block_4, pack_backward_read_f32_block_4
+public :: pack_forward_read_f32_block_8, pack_backward_read_f32_block_8
+public :: pack_forward_read_f32_block_16, pack_backward_read_f32_block_16
+public :: pack_forward_read_f32_block_32, pack_backward_read_f32_block_32
+public :: pack_forward_read_f32_block_64, pack_backward_read_f32_block_64
 
-integer(int8), parameter :: DEFAULT_ACCESS_MODE = ACCESS_MODE_WRITE
-    !! Assuming that aligned writing is more important then aligned reading
+public :: unpack_forward_write_f32, unpack_forward_read_f32
+public :: unpack_forward_write_f32_block_4, unpack_forward_read_f32_block_4
+public :: unpack_forward_write_f32_block_8, unpack_forward_read_f32_block_8
+public :: unpack_forward_write_f32_block_16, unpack_forward_read_f32_block_16
+public :: unpack_forward_write_f32_block_32, unpack_forward_read_f32_block_32
+public :: unpack_forward_write_f32_block_64, unpack_forward_read_f32_block_64
 
-type :: host_kernel_t
-    integer(int8) :: val
-end type host_kernel_t
+public :: unpack_backward_write_f32, unpack_backward_read_f32
+public :: unpack_backward_write_f32_block_4, unpack_backward_read_f32_block_4
+public :: unpack_backward_write_f32_block_8, unpack_backward_read_f32_block_8
+public :: unpack_backward_write_f32_block_16, unpack_backward_read_f32_block_16
+public :: unpack_backward_write_f32_block_32, unpack_backward_read_f32_block_32
+public :: unpack_backward_write_f32_block_64, unpack_backward_read_f32_block_64
 
-type(host_kernel_t), parameter :: HOST_KERNEL_BASE = host_kernel_t(1_int8)
+public :: pack_f32
+public :: pack_f32_block_4, pack_f32_block_8
+public :: pack_f32_block_16
+public :: pack_f32_block_32, pack_f32_block_64
+
+#ifdef DTFFT_WITH_MOCK_ENABLED
+public :: permute_forward_write_f64, permute_forward_write_f128
+public :: permute_backward_end_pipelined_write_f32, permute_backward_write_f64, permute_backward_write_f128
+public :: permute_backward_start_write_f64, permute_backward_start_write_f128
+public :: permute_backward_end_pipelined_write_f64, permute_backward_end_pipelined_write_f128
+public :: permute_backward_end_write_f64, permute_backward_end_write_f128
+public :: unpack_pipelined_f32, unpack_pipelined_f64, unpack_pipelined_f128
+public :: pack_pipelined_f32, pack_pipelined_f64, pack_pipelined_f128
+public :: pack_forward_write_f64, pack_forward_write_f128
+public :: pack_backward_write_f64, pack_backward_write_f128
+public :: copy_f32, copy_f64, copy_f128
+#endif
+
+    type :: host_kernel_t
+        integer(int8) :: val
+    end type host_kernel_t
+
+    type(host_kernel_t), parameter, public :: HOST_KERNEL_UNSET = host_kernel_t(-1_int8)
+
+    type(host_kernel_t), parameter, public :: HOST_KERNEL_BASE = host_kernel_t(1_int8)
     !! Base host kernel type
-type(host_kernel_t), parameter :: HOST_KERNEL_BLOCK_16 = host_kernel_t(2_int8)
+    type(host_kernel_t), parameter, public :: HOST_KERNEL_BLOCK_4 = host_kernel_t(2_int8)
+    !! Host kernel with block size of 4
+    type(host_kernel_t), parameter, public :: HOST_KERNEL_BLOCK_8 = host_kernel_t(3_int8)
+    !! Host kernel with block size of 8
+    type(host_kernel_t), parameter, public :: HOST_KERNEL_BLOCK_16 = host_kernel_t(4_int8)
     !! Host kernel with block size of 16
-type(host_kernel_t), parameter :: HOST_KERNEL_BLOCK_32 = host_kernel_t(3_int8)
+    type(host_kernel_t), parameter, public :: HOST_KERNEL_BLOCK_32 = host_kernel_t(5_int8)
     !! Host kernel with block size of 32
-type(host_kernel_t), parameter :: HOST_KERNEL_BLOCK_64 = host_kernel_t(4_int8)
+    type(host_kernel_t), parameter, public :: HOST_KERNEL_BLOCK_64 = host_kernel_t(6_int8)
     !! Host kernel with block size of 64
 
-interface operator(==)
-    module procedure host_kernel_eq
-end interface
+    interface operator(==)
+        module procedure host_kernel_eq
+    end interface
 
-type, extends(abstract_kernel) :: kernel_host
-  !! Host kernel implementation
-    integer(int8) :: access_mode
-      !! Access mode for kernel execution
-    procedure(execute_host_interface), pointer :: execute_impl => null()
-      !! Pointer to the execute implementation
+    type, extends(abstract_kernel) :: kernel_host
+    !! Host kernel implementation
+    private
+        type(dtfft_access_mode_t) :: access_mode
+        !! Access mode for kernel execution
+        procedure(execute_host_interface), pointer :: execute_impl => null()
+        !! Pointer to the execute implementation
+    contains
+        procedure :: create_private => create_host    !! Creates kernel
+        procedure :: execute_private => execute_host  !! Executes kernel
+        procedure :: destroy_private => destroy_host  !! Destroys kernel
+        procedure :: execute_benchmark
+        procedure :: select_access_mode_f32
+        procedure :: select_access_mode_f64
+        procedure :: select_access_mode_f128
+    end type kernel_host
+
+    abstract interface
+        subroutine execute_host_interface(self, in, out, neighbor)
+        !! Executes the given kernel on host
+            import
+            class(kernel_host),         intent(in)      :: self     !! Host kernel class
+            type(c_ptr),                intent(in)      :: in       !! Source host-allocated buffer
+            type(c_ptr),                intent(in)      :: out      !! Target host-allocated buffer
+            integer(int32), optional,   intent(in)      :: neighbor !! Source rank for pipelined unpacking
+        end subroutine execute_host_interface
+    end interface
+
 contains
-    procedure :: create_private => create_host    !! Creates kernel
-    procedure :: execute_private => execute_host  !! Executes kernel
-    procedure :: destroy_private => destroy_host  !! Destroys kernel
-    procedure :: execute_benchmark
-    procedure :: select_access_mode_f32
-    procedure :: select_access_mode_f64
-    procedure :: select_access_mode_f128
-end type kernel_host
 
-abstract interface
-    subroutine execute_host_interface(self, in, out, neighbor)
-    !! Executes the given kernel on host
-        import
-        class(kernel_host),         intent(in)      :: self     !! Host kernel class
-        real(real32),     target,   intent(in)      :: in(:)    !! Source host-allocated buffer
-        real(real32),     target,   intent(inout)   :: out(:)   !! Target host-allocated buffer
-        integer(int32), optional,   intent(in)      :: neighbor !! Source rank for pipelined unpacking
-    end subroutine execute_host_interface
-end interface
+    subroutine create_host(self, effort, base_storage, force_effort)
+    !! Creates host kernel
+        class(kernel_host),     intent(inout)   :: self         !! Host kernel class
+        type(dtfft_effort_t),   intent(in)      :: effort       !! Effort level for generating transpose kernels
+        integer(int64),         intent(in)      :: base_storage !! Number of bytes needed to store single element
+        logical,    optional,   intent(in)      :: force_effort !! Should effort be forced or not
+        logical                         :: force_effort_    !! Local copy of force_effort
+        integer(int32)                  :: n_iters          !! Number of iterations to perform when testing kernel
+        integer(int32)                  :: n_warmup_iters   !! Number of warmup iterations to perform before testing kernel
+        real(real32)                    :: best_time        !! Best execution time
+        real(real64)                    :: execution_time   !! Execution time
+        integer(int8)                   :: test_id          !! Current test configuration id
+        type(host_kernel_t)             :: current_kernel   !! Current test configuration
+        type(host_kernel_t)             :: best_kernel      !! Best kernel type
+        character(len=:),   allocatable :: global_phase     !! Global phase name for profiling
+        character(len=:),   allocatable :: local_phase      !! Local phase name for profiling
+        real(real32)                    :: bandwidth        !! Bandwidth for kernel execution
+        integer(int32)                  :: ndims            !! Number of dimensions
+        integer(int32),     allocatable :: fixed_dims(:)    !! Fixed dimensions for bandwidth calculation
+        ! real(real32),       allocatable :: in(:), out(:)    !! Host buffers for benchmarking
+        type(c_ptr) :: in, out
+        type(kernel_type_t)             :: temp_kernel_type !! Temporary storage for kernel type
 
-contains
+        self%access_mode = get_conf_access_mode()
 
-subroutine create_host(self, effort, base_storage, force_effort)
-!! Creates host kernel
-    class(kernel_host),     intent(inout)   :: self         !! Host kernel class
-    type(dtfft_effort_t),   intent(in)      :: effort       !! Effort level for generating transpose kernels
-    integer(int64),         intent(in)      :: base_storage !! Number of bytes needed to store single element
-    logical,    optional,   intent(in)      :: force_effort !! Should effort be forced or not
-    logical                         :: force_effort_    !! Local copy of force_effort
-    integer(int32)                  :: n_iters          !! Number of iterations to perform when testing kernel
-    integer(int32)                  :: n_warmup_iters   !! Number of warmup iterations to perform before testing kernel
-    real(real32)                    :: best_time        !! Best execution time
-    real(real64)                    :: execution_time   !! Execution time
-    integer(int8)                   :: test_id          !! Current test configuration id
-    type(host_kernel_t)             :: current_kernel   !! Current test configuration
-    type(host_kernel_t)             :: best_kernel      !! Best kernel type
-    character(len=:),   allocatable :: global_phase     !! Global phase name for profiling
-    character(len=:),   allocatable :: local_phase      !! Local phase name for profiling
-    real(real32)                    :: bandwidth        !! Bandwidth for kernel execution
-    integer(int32)                  :: ndims            !! Number of dimensions
-    integer(int32),     allocatable :: fixed_dims(:)    !! Fixed dimensions for bandwidth calculation
-    real(real32),       allocatable :: in(:), out(:)    !! Host buffers for benchmarking
-    type(kernel_type_t)             :: temp_kernel_type !! Temporary storage for kernel type
+        force_effort_ = .false.; if (present(force_effort)) force_effort_ = force_effort
+        if ((effort == DTFFT_ESTIMATE .and. force_effort_) &
+            .or. .not. ( effort == DTFFT_EXHAUSTIVE .or. get_conf_kernel_autotune_enabled()) &
+            .or. any(self%kernel_type == [KERNEL_COPY, KERNEL_COPY_PIPELINED]) ) then
+            self%execute_impl => select_kernel(HOST_KERNEL_BASE, base_storage)
+            return
+        end if
 
-    self%access_mode = DEFAULT_ACCESS_MODE
+        n_warmup_iters = get_conf_measure_warmup_iters()
+        n_iters = get_conf_measure_iters()
+        best_time = MAX_REAL32
 
-    force_effort_ = .false.; if (present(force_effort)) force_effort_ = force_effort
-    if ((effort == DTFFT_ESTIMATE .and. force_effort_) &
-        .or. .not. ( effort == DTFFT_EXHAUSTIVE .or. get_conf_kernel_autotune_enabled()) &
-        .or. any(self%kernel_type == [KERNEL_COPY, KERNEL_COPY_PIPELINED]) ) then
-        self%execute_impl => select_kernel(HOST_KERNEL_BASE, base_storage)
-        return
-    end if
+        ndims = size(self%dims)
+        allocate (fixed_dims(ndims))
+        fixed_dims(1:ndims) = self%dims(1:ndims)
+        if (is_unpack_kernel(self%kernel_type) .or. is_pack_kernel(self%kernel_type)) fixed_dims(1:ndims) = self%neighbor_data(1:ndims, 1)
 
-    n_warmup_iters = get_conf_measure_warmup_iters()
-    n_iters = get_conf_measure_iters()
-    best_time = MAX_REAL32
+        in = mem_alloc_host(base_storage * product(self%dims))
+        out = mem_alloc_host(base_storage * product(self%dims))
 
-    ndims = size(self%dims)
-    allocate (fixed_dims(ndims))
-    fixed_dims(1:ndims) = self%dims(1:ndims)
-    if (is_unpack_kernel(self%kernel_type)) fixed_dims(1:ndims) = self%neighbor_data(1:ndims, 1)
+        temp_kernel_type = self%kernel_type
+        select case ( self%kernel_type%val )
+        case ( KERNEL_PERMUTE_BACKWARD_END%val )
+            self%kernel_type = KERNEL_PERMUTE_BACKWARD_END_PIPELINED
+        case ( KERNEL_UNPACK%val )
+            self%kernel_type = KERNEL_UNPACK_PIPELINED
+        case ( KERNEL_PACK%val )
+            self%kernel_type = KERNEL_PACK_PIPELINED
+        case ( KERNEL_UNPACK_FORWARD%val )
+            self%kernel_type = KERNEL_UNPACK_FORWARD_PIPELINED
+        case ( KERNEL_UNPACK_BACKWARD%val )
+            self%kernel_type = KERNEL_UNPACK_BACKWARD_PIPELINED
+        endselect
 
-    allocate (in(base_storage * product(self%dims) / FLOAT_STORAGE_SIZE))
-    allocate (out(base_storage * product(self%dims) / FLOAT_STORAGE_SIZE))
+        allocate( global_phase, source="Benchmarking kernel: '"//self%kernel_string%raw//"'" )
+        PHASE_BEGIN(global_phase, COLOR_STEEL_BLUE)
+        WRITE_INFO(global_phase)
 
-    temp_kernel_type = self%kernel_type
-    if (self%kernel_type == KERNEL_PERMUTE_BACKWARD_END) then
-        self%kernel_type = KERNEL_PERMUTE_BACKWARD_END_PIPELINED
-    else if (self%kernel_type == KERNEL_UNPACK) then
-        self%kernel_type = KERNEL_UNPACK_PIPELINED
-    end if
+        do test_id = HOST_KERNEL_BASE%val, HOST_KERNEL_BLOCK_64%val
+            current_kernel = host_kernel_t(test_id)
 
-    global_phase = "Benchmarking kernel: '"//self%kernel_string//"'"
-    PHASE_BEGIN(global_phase, COLOR_AUTOTUNE)
-    WRITE_INFO(global_phase)
+            self%execute_impl => select_kernel(current_kernel, base_storage)
 
-    do test_id = 1_int8, 4_int8
-        current_kernel = host_kernel_t(test_id)
+            if (current_kernel == HOST_KERNEL_BASE .and. .not. (any(self%kernel_type == [KERNEL_PACK_PIPELINED, KERNEL_UNPACK_PIPELINED]))) then
+                allocate( local_phase, source="Selecting access mode" )
+                REGION_BEGIN(local_phase, COLOR_ORCHID)
+                WRITE_INFO("    "//local_phase)
 
-        self%execute_impl => select_kernel(current_kernel, base_storage)
+                select case (base_storage)
+                case (FLOAT_STORAGE_SIZE)
+                    call self%select_access_mode_f32(in, out, n_warmup_iters, n_iters, execution_time)
+                case (DOUBLE_STORAGE_SIZE)
+                    call self%select_access_mode_f64(in, out, n_warmup_iters, n_iters, execution_time)
+                case (DOUBLE_COMPLEX_STORAGE_SIZE)
+                    call self%select_access_mode_f128(in, out, n_warmup_iters, n_iters, execution_time)
+                end select
+            else
+                allocate( local_phase, source="Testing kernel "//get_host_kernel_string(current_kernel) )
+                REGION_BEGIN(local_phase, COLOR_AUTOTUNE2)
+                WRITE_INFO("    "//local_phase)
 
-        if (current_kernel == HOST_KERNEL_BASE .and. .not. (any(self%kernel_type == [KERNEL_PACK, KERNEL_UNPACK, KERNEL_UNPACK_PIPELINED]))) then
-            local_phase = "Selecting access mode"
-            REGION_BEGIN(local_phase, COLOR_AUTOTUNE2)
-            WRITE_INFO("    "//local_phase)
+                call self%execute_benchmark(in, out, n_warmup_iters, n_iters, execution_time)
+            end if
 
+            WRITE_INFO("        Average execution time = "//to_str(execution_time)//" [ms]")
+            if (execution_time > 0._real64) then
+                bandwidth = 2._real32 * 1000._real32 * real(base_storage * product(fixed_dims), real32) / real(1024 * 1024 * 1024, real32) / real(execution_time, real32)
+                WRITE_INFO("        Bandwidth = "//to_str(bandwidth)//" [GB/s]")
+            end if
+
+            if (execution_time < best_time) then
+                best_time = real(execution_time, real32)
+                best_kernel = current_kernel
+            end if
+
+            REGION_END(local_phase)
+            deallocate( local_phase )
+        end do
+        WRITE_INFO("  Selected kernel: "//get_host_kernel_string(best_kernel))
+
+        self%kernel_type = temp_kernel_type
+        self%execute_impl => select_kernel(best_kernel, base_storage)
+
+        PHASE_END(global_phase)
+        deallocate (fixed_dims)
+        call mem_free_host(in)
+        call mem_free_host(out)
+        deallocate (global_phase)
+    end subroutine create_host
+
+    subroutine execute_benchmark(self, in, out, n_warmup_iters, n_iters, execution_time)
+    !! Executes benchmark for the given kernel
+        class(kernel_host), intent(inout)   :: self             !! Host kernel class
+        type(c_ptr),        intent(in)      :: in               !! Source host-allocated buffer
+        type(c_ptr),        intent(in)      :: out              !! Target host-allocated buffer
+        integer(int32),     intent(in)      :: n_warmup_iters   !! Number of warmup iterations to perform before testing kernel
+        integer(int32),     intent(in)      :: n_iters          !! Number of iterations to perform when testing kernel
+        real(real64),       intent(out)     :: execution_time   !! Execution time of the selected access
+        integer(int32) :: iter
+        real(real64) :: start_time, end_time
+
+#ifdef DTFFT_DEBUG
+        if (.not. associated(self%execute_impl)) then
+            INTERNAL_ERROR("kernel_host%execute_benchmark: Kernel execute implementation is not associated!")
+        end if
+#endif
+
+        REGION_BEGIN("Warmup", COLOR_VIOLET)
+        do iter = 1, n_warmup_iters
+            call self%execute_impl(in, out, 1)
+        end do
+        REGION_END("Warmup")
+
+        REGION_BEGIN("Measure", COLOR_DODGER_BLUE)
+        start_time = MPI_Wtime()
+        do iter = 1, n_iters
+            call self%execute_impl(in, out, 1)
+        end do
+        end_time = MPI_Wtime()
+        execution_time = 1000._real64 * (end_time - start_time) / real(n_iters, real64)
+        REGION_END("Measure")
+    end subroutine execute_benchmark
+
+    subroutine execute_host(self, in, out, stream, sync, neighbor)
+    !! Executes host kernel
+        class(kernel_host),         intent(inout)   :: self         !! Host kernel class
+        type(c_ptr),                intent(in)      :: in           !! Source host-allocated buffer
+        type(c_ptr),                intent(in)      :: out          !! Target host-allocated buffer
+        type(dtfft_stream_t),       intent(in)      :: stream       !! Stream to execute on, unused here
+        logical,                    intent(in)      :: sync         !! Sync stream after kernel execution, unused here
+        integer(int32), optional,   intent(in)      :: neighbor     !! Source rank for pipelined unpacking
+
+#ifdef DTFFT_DEBUG
+        if (.not. associated(self%execute_impl)) then
+            INTERNAL_ERROR("kernel_host%execute_host: Kernel execute implementation is not associated!")
+        end if
+#endif
+
+        call self%execute_impl(in, out, neighbor)
+    end subroutine execute_host
+
+    subroutine destroy_host(self)
+    !! Destroys host kernel
+        class(kernel_host), intent(inout) :: self !! Host kernel class
+
+        nullify (self%execute_impl)
+    end subroutine destroy_host
+
+    function select_kernel(kernel, base_storage) result(fun)
+    !! Selects the kernel implementation based on the given id and base storage size
+        type(host_kernel_t), intent(in) :: kernel           !! Kernel id
+        integer(int64),      intent(in) :: base_storage     !! Size of single element in bytes
+        procedure(execute_host_interface), pointer :: fun   !! Selected kernel implementation
+
+        fun => null()
+        select case (kernel%val)
+        case (HOST_KERNEL_BASE%val)
             select case (base_storage)
             case (FLOAT_STORAGE_SIZE)
-                call self%select_access_mode_f32(in, out, n_warmup_iters, n_iters, execution_time)
+                fun => execute_f32
             case (DOUBLE_STORAGE_SIZE)
-                call self%select_access_mode_f64(in, out, n_warmup_iters, n_iters, execution_time)
+                fun => execute_f64
             case (DOUBLE_COMPLEX_STORAGE_SIZE)
-                call self%select_access_mode_f128(in, out, n_warmup_iters, n_iters, execution_time)
+                fun => execute_f128
+            case default
+                INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
             end select
-        else
-            local_phase = "Testing kernel "//get_host_kernel_string(current_kernel)
-            REGION_BEGIN(local_phase, COLOR_AUTOTUNE2)
-            WRITE_INFO("    "//local_phase)
-
-            call self%execute_benchmark(in, out, n_warmup_iters, n_iters, execution_time)
-        end if
-
-        WRITE_INFO("        Average execution time = "//to_str(execution_time)//" [ms]")
-        if (execution_time > 0._real64) then
-        bandwidth = 2._real32 * 1000._real32 * real(base_storage * product(fixed_dims), real32) / real(1024 * 1024 * 1024, real32) / real(execution_time, real32)
-            WRITE_INFO("        Bandwidth = "//to_str(bandwidth)//" [GB/s]")
-        end if
-
-        if (execution_time < best_time) then
-            best_time = real(execution_time, real32)
-            best_kernel = current_kernel
-        end if
-
-        REGION_END(local_phase)
-    end do
-    WRITE_INFO("  Selected kernel: "//get_host_kernel_string(best_kernel))
-
-    self%kernel_type = temp_kernel_type
-    self%execute_impl => select_kernel(best_kernel, base_storage)
-
-    PHASE_END(global_phase)
-    deallocate (fixed_dims)
-    deallocate (in, out)
-    deallocate (global_phase, local_phase)
-end subroutine create_host
-
-subroutine execute_benchmark(self, in, out, n_warmup_iters, n_iters, execution_time)
-!! Executes benchmark for the given kernel
-    class(kernel_host), intent(inout)   :: self           !! Host kernel class
-    real(real32),       intent(in)      :: in(:)          !! Source host-allocated buffer
-    real(real32),       intent(inout)   :: out(:)         !! Target host-allocated buffer
-    integer(int32),     intent(in)      :: n_warmup_iters !! Number of warmup iterations to perform before testing kernel
-    integer(int32),     intent(in)      :: n_iters        !! Number of iterations to perform when testing kernel
-    real(real64),       intent(out)     :: execution_time !! Execution time of the selected access
-    integer(int32) :: iter
-    real(real64) :: start_time, end_time
-
-#ifdef DTFFT_DEBUG
-    if (.not. associated(self%execute_impl)) then
-        INTERNAL_ERROR("kernel_host%execute_benchmark: Kernel execute implementation is not associated!")
-    end if
-#endif
-
-    REGION_BEGIN("Warmup", COLOR_TRANSPOSE)
-    do iter = 1, n_warmup_iters
-        call self%execute_impl(in, out, 1)
-    end do
-    REGION_END("Warmup")
-
-    REGION_BEGIN("Measure", COLOR_EXECUTE)
-    call cpu_time(start_time)
-    do iter = 1, n_iters
-        call self%execute_impl(in, out, 1)
-    end do
-    call cpu_time(end_time)
-    execution_time = 1000._real64 * (end_time - start_time) / real(n_iters, real64)
-    REGION_END("Measure")
-end subroutine execute_benchmark
-
-subroutine execute_host(self, in, out, stream, neighbor)
-!! Executes host kernel
-    class(kernel_host),         intent(inout)   :: self       !! Host kernel class
-    real(real32),   target,     intent(in)      :: in(:)      !! Source host-allocated buffer
-    real(real32),   target,     intent(inout)   :: out(:)     !! Target host-allocated buffer
-    type(dtfft_stream_t),       intent(in)      :: stream     !! Stream to execute on, unused here
-    integer(int32), optional,   intent(in)      :: neighbor   !! Source rank for pipelined unpacking
-
-#ifdef DTFFT_DEBUG
-    if (.not. associated(self%execute_impl)) then
-        INTERNAL_ERROR("kernel_host%execute_host: Kernel execute implementation is not associated!")
-    end if
-#endif
-
-    call self%execute_impl(in, out, neighbor)
-end subroutine execute_host
-
-subroutine destroy_host(self)
-!! Destroys host kernel
-    class(kernel_host), intent(inout) :: self !! Host kernel class
-
-    nullify (self%execute_impl)
-end subroutine destroy_host
-
-function select_kernel(kernel, base_storage) result(fun)
-!! Selects the kernel implementation based on the given id and base storage size
-    type(host_kernel_t), intent(in) :: kernel           !! Kernel id
-    integer(int64),      intent(in) :: base_storage     !! Size of single element in bytes
-    procedure(execute_host_interface), pointer :: fun   !! Selected kernel implementation
-
-    fun => null()
-    select case (kernel%val)
-    case (HOST_KERNEL_BASE%val)
-        select case (base_storage)
-        case (FLOAT_STORAGE_SIZE)
-            fun => execute_f32
-        case (DOUBLE_STORAGE_SIZE)
-            fun => execute_f64
-        case (DOUBLE_COMPLEX_STORAGE_SIZE)
-            fun => execute_f128
+        case (HOST_KERNEL_BLOCK_4%val)
+            select case (base_storage)
+            case (FLOAT_STORAGE_SIZE)
+                fun => execute_f32_block_4
+            case (DOUBLE_STORAGE_SIZE)
+                fun => execute_f64_block_4
+            case (DOUBLE_COMPLEX_STORAGE_SIZE)
+                fun => execute_f128_block_4
+            case default
+                INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
+            end select
+        case (HOST_KERNEL_BLOCK_8%val)
+            select case (base_storage)
+            case (FLOAT_STORAGE_SIZE)
+                fun => execute_f32_block_8
+            case (DOUBLE_STORAGE_SIZE)
+                fun => execute_f64_block_8
+            case (DOUBLE_COMPLEX_STORAGE_SIZE)
+                fun => execute_f128_block_8
+            case default
+                INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
+            end select
+        case (HOST_KERNEL_BLOCK_16%val)
+            select case (base_storage)
+            case (FLOAT_STORAGE_SIZE)
+                fun => execute_f32_block_16
+            case (DOUBLE_STORAGE_SIZE)
+                fun => execute_f64_block_16
+            case (DOUBLE_COMPLEX_STORAGE_SIZE)
+                fun => execute_f128_block_16
+            case default
+                INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
+            end select
+        case (HOST_KERNEL_BLOCK_32%val)
+            select case (base_storage)
+            case (FLOAT_STORAGE_SIZE)
+                fun => execute_f32_block_32
+            case (DOUBLE_STORAGE_SIZE)
+                fun => execute_f64_block_32
+            case (DOUBLE_COMPLEX_STORAGE_SIZE)
+                fun => execute_f128_block_32
+            case default
+                INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
+            end select
+        case (HOST_KERNEL_BLOCK_64%val)
+            select case (base_storage)
+            case (FLOAT_STORAGE_SIZE)
+                fun => execute_f32_block_64
+            case (DOUBLE_STORAGE_SIZE)
+                fun => execute_f64_block_64
+            case (DOUBLE_COMPLEX_STORAGE_SIZE)
+                fun => execute_f128_block_64
+            case default
+                INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
+            end select
+        case default
+            INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
         end select
-    case (HOST_KERNEL_BLOCK_16%val)
-        select case (base_storage)
-        case (FLOAT_STORAGE_SIZE)
-            fun => execute_f32_block_16
-        case (DOUBLE_STORAGE_SIZE)
-            fun => execute_f64_block_16
-        case (DOUBLE_COMPLEX_STORAGE_SIZE)
-            fun => execute_f128_block_16
-        end select
-    case (HOST_KERNEL_BLOCK_32%val)
-        select case (base_storage)
-        case (FLOAT_STORAGE_SIZE)
-            fun => execute_f32_block_32
-        case (DOUBLE_STORAGE_SIZE)
-            fun => execute_f64_block_32
-        case (DOUBLE_COMPLEX_STORAGE_SIZE)
-            fun => execute_f128_block_32
-        end select
-    case (HOST_KERNEL_BLOCK_64%val)
-        select case (base_storage)
-        case (FLOAT_STORAGE_SIZE)
-            fun => execute_f32_block_64
-        case (DOUBLE_STORAGE_SIZE)
-            fun => execute_f64_block_64
-        case (DOUBLE_COMPLEX_STORAGE_SIZE)
-            fun => execute_f128_block_64
-        end select
-    case default
-        INTERNAL_ERROR("select_kernel: Unknown kernel "//to_str(kernel%val)//" "//to_str(base_storage))
-    end select
-end function select_kernel
+    end function select_kernel
 
-function get_host_kernel_string(kernel) result(kernel_string)
-!! Returns string representation of the given host kernel type
-    type(host_kernel_t), intent(in) :: kernel       !! Host kernel type
-    character(len=:),   allocatable :: kernel_string !! String representation of the kernel
+    function get_host_kernel_string(kernel) result(kernel_string)
+    !! Returns string representation of the given host kernel type
+        type(host_kernel_t), intent(in) :: kernel       !! Host kernel type
+        character(len=:),   allocatable :: kernel_string !! String representation of the kernel
 
-    select case (kernel%val)
-    case (HOST_KERNEL_BASE%val)
-        kernel_string = "BASE"
-    case (HOST_KERNEL_BLOCK_16%val)
-        kernel_string = "BLOCK_16"
-    case (HOST_KERNEL_BLOCK_32%val)
-        kernel_string = "BLOCK_32"
-    case (HOST_KERNEL_BLOCK_64%val)
-        kernel_string = "BLOCK_64"
-    case default
-        kernel_string = "UNKNOWN"
-    end select
-end function get_host_kernel_string
+        select case (kernel%val)
+        case (HOST_KERNEL_BASE%val)
+            allocate( kernel_string, source="BASE" )
+        case (HOST_KERNEL_BLOCK_4%val)
+            allocate( kernel_string, source="BLOCK_4" )
+        case (HOST_KERNEL_BLOCK_8%val)
+            allocate( kernel_string, source="BLOCK_8" )
+        case (HOST_KERNEL_BLOCK_16%val)
+            allocate( kernel_string, source="BLOCK_16" )
+        case (HOST_KERNEL_BLOCK_32%val)
+            allocate( kernel_string, source="BLOCK_32" )
+        case (HOST_KERNEL_BLOCK_64%val)
+            allocate( kernel_string, source="BLOCK_64" )
+        case default
+            allocate( kernel_string, source="UNKNOWN" )
+        end select
+    end function get_host_kernel_string
 
-MAKE_EQ_FUN(host_kernel_t, host_kernel_eq)
+    MAKE_EQ_FUN(host_kernel_t, host_kernel_eq)
 
 #define PREC _f128
 #define BUFFER_TYPE complex(real64)

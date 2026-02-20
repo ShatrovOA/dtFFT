@@ -17,7 +17,6 @@
     <link href="../css/pygments.css" rel="stylesheet">
     <link href="../css/font-awesome.min.css" rel="stylesheet">
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
@@ -53,14 +52,9 @@
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="../program/test_host_kernels.html">Program</a>
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
                 </li>
             </ul>
-              <div class="d-flex align-items-end flex-grow-1">
-                <form action="../search.html" role="search" class="ms-auto">
-                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
-                </form>
-              </div>
           </div><!--/.nav-collapse -->
         </div>
       </nav>
@@ -79,7 +73,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 2.1% of total for derived types.</p>Including implementation: 75 statements,  0.6% of total for derived types.">15 statements</a>
+                 title="<p> 2.7% of total for derived types.</p>Including implementation: 257 statements,  1.8% of total for derived types.">22 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -119,12 +113,18 @@
       </a>
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/abstract_kernel.html#variable-is_created~6">is_created</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-is_created~3">is_created</a>
             <a class="list-group-item" href="../type/abstract_kernel.html#variable-is_dummy">is_dummy</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#variable-kernel_type~15">kernel_type</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#variable-kernel_string~2">kernel_string</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#variable-neighbor_data~6">neighbor_data</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#variable-dims~206">dims</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-is_dummy_kernel">is_dummy_kernel</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-is_dummy_compressed">is_dummy_compressed</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-kernel_type~3">kernel_type</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-kernel_string">kernel_string</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-neighbor_data">neighbor_data</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-dims">dims</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-compressor">compressor</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-is_compress">is_compress</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-is_decompress">is_decompress</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#variable-base_storage~12">base_storage</a>
         </div>
       </div>
     </div>
@@ -151,12 +151,13 @@
       </a>
       <div id="boundprocs-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-create~18">create</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-execute~8">execute</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-destroy~18">destroy</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-create_private~17">create_private</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-execute_private~13">execute_private</a>
-            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-destroy_private~12">destroy_private</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-create~8">create</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-execute~5">execute</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-destroy~8">destroy</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-set_compressor">set_compressor</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-create_private~6">create_private</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-execute_private~5">execute_private</a>
+            <a class="list-group-item" href="../type/abstract_kernel.html#boundprocedure-destroy_private~5">destroy_private</a>
         </div>
       </div>
     </div>
@@ -186,32 +187,64 @@ is resposible for packing/unpacking/permute operations.</p>
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: type~~abstract_kernel~~InheritsGraph Pages: 1 -->
-<svg id="typeabstract_kernelInheritsGraph" width="279pt" height="32pt"
- viewBox="0.00 0.00 279.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="type~~abstract_kernel~~InheritsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<svg id="typeabstract_kernelInheritsGraph" width="326pt" height="116pt"
+ viewBox="0.00 0.00 326.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="type~~abstract_kernel~~InheritsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
 <title>type~~abstract_kernel~~InheritsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 275,-28 275,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-112 322,-112 322,4 -4,4"/>
 <!-- type~abstract_kernel -->
 <g id="type~~abstract_kernel~~InheritsGraph_node1" class="node">
 <title>type~abstract_kernel</title>
-<polygon fill="none" stroke="black" points="271,-24 176,-24 176,0 271,0 271,-24"/>
-<text text-anchor="middle" x="223.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_kernel</text>
+<polygon fill="none" stroke="black" points="318,-66 223,-66 223,-42 318,-42 318,-66"/>
+<text text-anchor="middle" x="270.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50">abstract_kernel</text>
+</g>
+<!-- type~abstract_compressor -->
+<g id="type~~abstract_kernel~~InheritsGraph_node2" class="node">
+<title>type~abstract_compressor</title>
+<g id="a_type~~abstract_kernel~~InheritsGraph_node2"><a xlink:href="../type/abstract_compressor.html" xlink:title="abstract_compressor">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="124,-108 0,-108 0,-84 124,-84 124,-108"/>
+<text text-anchor="middle" x="62" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor</text>
+</a>
+</g>
+</g>
+<!-- type~abstract_kernel&#45;&gt;type~abstract_compressor -->
+<g id="type~~abstract_kernel~~InheritsGraph_edge3" class="edge">
+<title>type~abstract_kernel&#45;&gt;type~abstract_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M222.67,-64.27C216.72,-65.55 210.72,-66.81 205,-68 181.96,-72.77 156.77,-77.8 134.1,-82.26"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="133.35,-78.84 124.21,-84.2 134.7,-85.71 133.35,-78.84"/>
+<text text-anchor="middle" x="173.5" y="-82.4" font-family="Helvetica,sans-Serif" font-size="9.50">compressor</text>
 </g>
 <!-- type~kernel_type_t -->
-<g id="type~~abstract_kernel~~InheritsGraph_node2" class="node">
+<g id="type~~abstract_kernel~~InheritsGraph_node3" class="node">
 <title>type~kernel_type_t</title>
-<g id="a_type~~abstract_kernel~~InheritsGraph_node2"><a xlink:href="../type/kernel_type_t.html" xlink:title="kernel_type_t">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="84,-24 0,-24 0,0 84,0 84,-24"/>
-<text text-anchor="middle" x="42" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_type_t</text>
+<g id="a_type~~abstract_kernel~~InheritsGraph_node3"><a xlink:href="../type/kernel_type_t.html" xlink:title="kernel_type_t">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="104,-66 20,-66 20,-42 104,-42 104,-66"/>
+<text text-anchor="middle" x="62" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_type_t</text>
 </a>
 </g>
 </g>
 <!-- type~abstract_kernel&#45;&gt;type~kernel_type_t -->
 <g id="type~~abstract_kernel~~InheritsGraph_edge1" class="edge">
 <title>type~abstract_kernel&#45;&gt;type~kernel_type_t</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M175.81,-12C150.88,-12 120.15,-12 94.53,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="94.26,-8.5 84.26,-12 94.26,-15.5 94.26,-8.5"/>
-<text text-anchor="middle" x="130" y="-14.4" font-family="Helvetica,sans-Serif" font-size="9.50">kernel_type</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M222.9,-54C190.7,-54 147.85,-54 114.61,-54"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="114.19,-50.5 104.19,-54 114.19,-57.5 114.19,-50.5"/>
+<text text-anchor="middle" x="173.5" y="-56.4" font-family="Helvetica,sans-Serif" font-size="9.50">kernel_type</text>
+</g>
+<!-- type~string -->
+<g id="type~~abstract_kernel~~InheritsGraph_node4" class="node">
+<title>type~string</title>
+<g id="a_type~~abstract_kernel~~InheritsGraph_node4"><a xlink:href="../type/string.html" xlink:title="string">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="89,-24 35,-24 35,0 89,0 89,-24"/>
+<text text-anchor="middle" x="62" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string</text>
+</a>
+</g>
+</g>
+<!-- type~abstract_kernel&#45;&gt;type~string -->
+<g id="type~~abstract_kernel~~InheritsGraph_edge2" class="edge">
+<title>type~abstract_kernel&#45;&gt;type~string</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M222.67,-43.73C216.72,-42.45 210.72,-41.19 205,-40 169.06,-32.56 127.91,-24.49 99.19,-18.94"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="99.68,-15.47 89.2,-17.01 98.36,-22.34 99.68,-15.47"/>
+<text text-anchor="middle" x="173.5" y="-42.4" font-family="Helvetica,sans-Serif" font-size="9.50">kernel_string</text>
 </g>
 </g>
 </svg>
@@ -277,11 +310,11 @@ large graphs.</div>
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: type~~abstract_kernel~~InheritedByGraph Pages: 1 -->
-<svg id="typeabstract_kernelInheritedByGraph" width="588pt" height="164pt"
- viewBox="0.00 0.00 588.00 164.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="type~~abstract_kernel~~InheritedByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 160)">
+<svg id="typeabstract_kernelInheritedByGraph" width="641pt" height="161pt"
+ viewBox="0.00 0.00 641.00 161.48" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="type~~abstract_kernel~~InheritedByGraph" class="graph" transform="scale(0.98 0.98) rotate(0) translate(4 160)">
 <title>type~~abstract_kernel~~InheritedByGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-160 584,-160 584,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-160 647,-160 647,4 -4,4"/>
 <!-- type~abstract_kernel -->
 <g id="type~~abstract_kernel~~InheritedByGraph_node1" class="node">
 <title>type~abstract_kernel</title>
@@ -292,118 +325,122 @@ large graphs.</div>
 <g id="type~~abstract_kernel~~InheritedByGraph_node2" class="node">
 <title>type~abstract_backend</title>
 <g id="a_type~~abstract_kernel~~InheritedByGraph_node2"><a xlink:href="../type/abstract_backend.html" xlink:title="abstract_backend">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="321,-108 214,-108 214,-84 321,-84 321,-108"/>
-<text text-anchor="middle" x="267.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="384,-108 277,-108 277,-84 384,-84 384,-108"/>
+<text text-anchor="middle" x="330.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_backend</text>
 </a>
 </g>
 </g>
 <!-- type~abstract_backend&#45;&gt;type~abstract_kernel -->
 <g id="type~~abstract_kernel~~InheritedByGraph_edge1" class="edge">
 <title>type~abstract_backend&#45;&gt;type~abstract_kernel</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M213.73,-96C180.95,-96 138.84,-96 105.33,-96"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="105.23,-92.5 95.23,-96 105.23,-99.5 105.23,-92.5"/>
-<text text-anchor="middle" x="148" y="-98.4" font-family="Helvetica,sans-Serif" font-size="9.50">unpack_kernel</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M276.98,-96C228.08,-96 155.4,-96 105.21,-96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="105.17,-92.5 95.17,-96 105.17,-99.5 105.17,-92.5"/>
+<text text-anchor="middle" x="179.5" y="-98.4" font-family="Helvetica,sans-Serif" font-size="9.50">pack_kernel, unpack_kernel</text>
 </g>
 <!-- type~kernel_device -->
 <g id="type~~abstract_kernel~~InheritedByGraph_node3" class="node">
 <title>type~kernel_device</title>
 <g id="a_type~~abstract_kernel~~InheritedByGraph_node3"><a xlink:href="../type/kernel_device.html" xlink:title="kernel_device">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="311,-66 224,-66 224,-42 311,-42 311,-66"/>
-<text text-anchor="middle" x="267.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_device</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="374,-66 287,-66 287,-42 374,-42 374,-66"/>
+<text text-anchor="middle" x="330.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_device</text>
 </a>
 </g>
 </g>
 <!-- type~kernel_device&#45;&gt;type~abstract_kernel -->
 <g id="type~~abstract_kernel~~InheritedByGraph_edge4" class="edge">
 <title>type~kernel_device&#45;&gt;type~abstract_kernel</title>
-<path fill="none" stroke="#ff0000" d="M223.81,-48.29C201.15,-46.67 173.08,-46.95 149,-54"/>
+<path fill="none" stroke="#ff0000" d="M286.88,-49.04C256.77,-46.73 215.69,-46.02 180.5,-54"/>
 </g>
 <!-- type~kernel_host -->
 <g id="type~~abstract_kernel~~InheritedByGraph_node4" class="node">
 <title>type~kernel_host</title>
 <g id="a_type~~abstract_kernel~~InheritedByGraph_node4"><a xlink:href="../type/kernel_host.html" xlink:title="kernel_host">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="304.5,-24 230.5,-24 230.5,0 304.5,0 304.5,-24"/>
-<text text-anchor="middle" x="267.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_host</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="367.5,-24 293.5,-24 293.5,0 367.5,0 367.5,-24"/>
+<text text-anchor="middle" x="330.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_host</text>
 </a>
 </g>
 </g>
 <!-- type~kernel_host&#45;&gt;type~abstract_kernel -->
 <g id="type~~abstract_kernel~~InheritedByGraph_edge3" class="edge">
 <title>type~kernel_host&#45;&gt;type~abstract_kernel</title>
-<path fill="none" stroke="#ff0000" d="M230.3,-23.08C220.73,-26.15 210.43,-29.59 201,-33 177.56,-41.48 172.92,-46.99 149,-54"/>
-<path fill="none" stroke="#ff0000" d="M147,-54C124.67,-60.54 100.62,-70.73 81.88,-79.43"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="80.14,-76.38 72.6,-83.82 83.14,-82.71 80.14,-76.38"/>
+<path fill="none" stroke="#ff0000" d="M293.33,-23.33C263.33,-32.45 219.42,-45.17 180.5,-54"/>
+<path fill="none" stroke="#ff0000" d="M178.5,-54C148.38,-60.83 115.27,-71.58 90,-80.49"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="88.62,-77.27 80.38,-83.93 90.97,-83.86 88.62,-77.27"/>
 </g>
 <!-- type~reshape_handle_generic -->
 <g id="type~~abstract_kernel~~InheritedByGraph_node5" class="node">
 <title>type~reshape_handle_generic</title>
 <g id="a_type~~abstract_kernel~~InheritedByGraph_node5"><a xlink:href="../type/reshape_handle_generic.html" xlink:title="reshape_handle_generic">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="580,-156 437,-156 437,-132 580,-132 580,-156"/>
-<text text-anchor="middle" x="508.5" y="-141.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_handle_generic</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="643,-156 500,-156 500,-132 643,-132 643,-156"/>
+<text text-anchor="middle" x="571.5" y="-141.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_handle_generic</text>
 </a>
 </g>
 </g>
 <!-- type~reshape_handle_generic&#45;&gt;type~abstract_kernel -->
 <g id="type~~abstract_kernel~~InheritedByGraph_edge2" class="edge">
 <title>type~reshape_handle_generic&#45;&gt;type~abstract_kernel</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M436.99,-140.65C357.81,-136.25 225.67,-127.01 113,-110 110.47,-109.62 107.89,-109.2 105.3,-108.75"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="105.69,-105.26 95.22,-106.88 104.42,-112.14 105.69,-105.26"/>
-<text text-anchor="middle" x="267.5" y="-135.4" font-family="Helvetica,sans-Serif" font-size="9.50">pack_kernel, unpack_kernel</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M499.63,-141.8C409.42,-138.3 248.97,-129.71 113,-110 110.47,-109.63 107.89,-109.22 105.29,-108.78"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="105.68,-105.3 95.21,-106.94 104.42,-112.18 105.68,-105.3"/>
+<text text-anchor="middle" x="330.5" y="-138.4" font-family="Helvetica,sans-Serif" font-size="9.50">pack_kernel, unpack_kernel</text>
 </g>
 <!-- type~reshape_handle_generic&#45;&gt;type~abstract_backend -->
 <g id="type~~abstract_kernel~~InheritedByGraph_edge5" class="edge">
 <title>type~reshape_handle_generic&#45;&gt;type~abstract_backend</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M466.75,-131.97C451.81,-127.82 434.72,-123.37 419,-120 390.44,-113.87 358.53,-108.56 331.46,-104.51"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="331.74,-101.01 321.34,-103.02 330.72,-107.94 331.74,-101.01"/>
-<text text-anchor="middle" x="385.5" y="-122.4" font-family="Helvetica,sans-Serif" font-size="9.50">comm_handle</text>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M529.75,-131.97C514.81,-127.82 497.72,-123.37 482,-120 453.44,-113.87 421.53,-108.56 394.46,-104.51"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="394.74,-101.01 384.34,-103.02 393.72,-107.94 394.74,-101.01"/>
+<text text-anchor="middle" x="448.5" y="-122.4" font-family="Helvetica,sans-Serif" font-size="9.50">comm_handle</text>
 </g>
 <!-- type~backend_cufftmp -->
 <g id="type~~abstract_kernel~~InheritedByGraph_node6" class="node">
 <title>type~backend_cufftmp</title>
 <g id="a_type~~abstract_kernel~~InheritedByGraph_node6"><a xlink:href="../type/backend_cufftmp.html" xlink:title="backend_cufftmp">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="561,-114 456,-114 456,-90 561,-90 561,-114"/>
-<text text-anchor="middle" x="508.5" y="-99.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_cufftmp</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="624,-114 519,-114 519,-90 624,-90 624,-114"/>
+<text text-anchor="middle" x="571.5" y="-99.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_cufftmp</text>
 </a>
 </g>
 </g>
 <!-- type~backend_cufftmp&#45;&gt;type~abstract_backend -->
-<g id="type~~abstract_kernel~~InheritedByGraph_edge7" class="edge">
+<g id="type~~abstract_kernel~~InheritedByGraph_edge6" class="edge">
 <title>type~backend_cufftmp&#45;&gt;type~abstract_backend</title>
-<path fill="none" stroke="#ff0000" d="M464.39,-89.94C455.29,-87.18 445.78,-84.12 437,-81 414.1,-72.85 410.54,-56.41 386.5,-60"/>
+<path fill="none" stroke="#ff0000" d="M527.39,-89.94C518.29,-87.18 508.78,-84.12 500,-81 477.1,-72.85 473.54,-56.41 449.5,-60"/>
 </g>
 <!-- type~backend_mpi -->
 <g id="type~~abstract_kernel~~InheritedByGraph_node7" class="node">
 <title>type~backend_mpi</title>
 <g id="a_type~~abstract_kernel~~InheritedByGraph_node7"><a xlink:href="../type/backend_mpi.html" xlink:title="backend_mpi">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="550.5,-72 466.5,-72 466.5,-48 550.5,-48 550.5,-72"/>
-<text text-anchor="middle" x="508.5" y="-57.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_mpi</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="613.5,-72 529.5,-72 529.5,-48 613.5,-48 613.5,-72"/>
+<text text-anchor="middle" x="571.5" y="-57.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_mpi</text>
 </a>
 </g>
 </g>
 <!-- type~backend_mpi&#45;&gt;type~abstract_backend -->
-<g id="type~~abstract_kernel~~InheritedByGraph_edge6" class="edge">
+<g id="type~~abstract_kernel~~InheritedByGraph_edge8" class="edge">
 <title>type~backend_mpi&#45;&gt;type~abstract_backend</title>
-<path fill="none" stroke="#ff0000" d="M466.39,-57C442.87,-56.03 412.89,-56.06 386.5,-60"/>
+<path fill="none" stroke="#ff0000" d="M529.39,-57C505.87,-56.03 475.89,-56.06 449.5,-60"/>
 </g>
 <!-- type~backend_nccl -->
 <g id="type~~abstract_kernel~~InheritedByGraph_node8" class="node">
 <title>type~backend_nccl</title>
 <g id="a_type~~abstract_kernel~~InheritedByGraph_node8"><a xlink:href="../type/backend_nccl.html" xlink:title="backend_nccl">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="551,-30 466,-30 466,-6 551,-6 551,-30"/>
-<text text-anchor="middle" x="508.5" y="-15.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_nccl</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="614,-30 529,-30 529,-6 614,-6 614,-30"/>
+<text text-anchor="middle" x="571.5" y="-15.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">backend_nccl</text>
 </a>
 </g>
 </g>
 <!-- type~backend_nccl&#45;&gt;type~abstract_backend -->
-<g id="type~~abstract_kernel~~InheritedByGraph_edge8" class="edge">
+<g id="type~~abstract_kernel~~InheritedByGraph_edge7" class="edge">
 <title>type~backend_nccl&#45;&gt;type~abstract_backend</title>
-<path fill="none" stroke="#ff0000" d="M465.89,-29.61C456.33,-32.49 446.26,-35.7 437,-39 414.1,-47.15 410.54,-56.41 386.5,-60"/>
-<path fill="none" stroke="#ff0000" d="M384.5,-60C380.84,-60.55 346.35,-71.31 315.91,-80.92"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="314.7,-77.64 306.22,-83.99 316.81,-84.31 314.7,-77.64"/>
+<path fill="none" stroke="#ff0000" d="M528.89,-29.61C519.33,-32.49 509.26,-35.7 500,-39 477.1,-47.15 473.54,-56.41 449.5,-60"/>
+<path fill="none" stroke="#ff0000" d="M447.5,-60C443.84,-60.55 409.35,-71.31 378.91,-80.92"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="377.7,-77.64 369.22,-83.99 379.81,-84.31 377.7,-77.64"/>
 </g>
 </g>
 </svg>
-</div>          <div>
+</div>                <script>
+                  var pantypeabstract_kernelInheritedByGraph = svgPanZoom('#typeabstract_kernelInheritedByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
             <a type="button" class="graph-help" data-bs-toggle="modal" href="#InheritedByGraph-help-text">Help</a>
           </div>
           <div class="modal fade" id="InheritedByGraph-help-text" tabindex="-1" role="dialog">
@@ -470,7 +507,7 @@ large graphs.</div>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_created~6"></span>
+              <span class="anchor" id="variable-is_created~3"></span>
               logical,
             </td>
               <td>public</td>
@@ -504,7 +541,41 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kernel_type~15"></span>
+              <span class="anchor" id="variable-is_dummy_kernel"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_dummy_kernel</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                <p>If kernel is of type KERNEL_DUMMY</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_dummy_compressed"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_dummy_compressed</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kernel_type~3"></span>
               type(<a href='kernel_type_t.html'>kernel_type_t</a>),
             </td>
               <td>public</td>
@@ -521,12 +592,12 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kernel_string~2"></span>
-              character(len=:),
+              <span class="anchor" id="variable-kernel_string"></span>
+              type(<a href='string.html'>string</a>),
             </td>
-              <td>public,</td>
+              <td>public</td>
             <td>
-              allocatable
+              
             </td>
             <td>::</td>
             <td><strong>kernel_string</strong></td>
@@ -538,7 +609,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-neighbor_data~6"></span>
+              <span class="anchor" id="variable-neighbor_data"></span>
               integer(kind=int32),
             </td>
               <td>public,</td>
@@ -555,7 +626,7 @@ large graphs.</div>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dims~206"></span>
+              <span class="anchor" id="variable-dims"></span>
               integer(kind=int32),
             </td>
               <td>public,</td>
@@ -568,6 +639,74 @@ large graphs.</div>
                 <td></td>
             <td>
                 <p>Local dimensions to process</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compressor"></span>
+              class(<a href='abstract_compressor.html'>abstract_compressor</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>compressor</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Compressor pointer. Compressor itself is created by generic handle and passed here</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_compress"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_compress</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Enable compression</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_decompress"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_decompress</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>Enable decompression</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_storage~12"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_storage</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
     </tbody>
@@ -583,7 +722,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-create~18"></span>
+      <span class="anchor" id="boundprocedure-create~8"></span>
       <h3>
           procedure, public, pass(self) ::
   <strong>create</strong>
@@ -597,7 +736,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/create~17.html'>create</a>(self, dims, effort, base_storage, kernel_type, neighbor_data, force_effort)  
+    private  subroutine <a href='../proc/create~8.html'>create</a>(self, dims, effort, base_storage, kernel_type, neighbor_data, force_effort, with_compression, with_decompression)  
 </h3>
     
 
@@ -719,6 +858,36 @@ large graphs.</div>
 <p>Should effort be forced or not</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>with_compression</strong></td>
+            <td>
+<p>Enable compression after executing kernel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>with_decompression</strong></td>
+            <td>
+<p>Enable decompression before executing kernel</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -731,7 +900,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-execute~8"></span>
+      <span class="anchor" id="boundprocedure-execute~5"></span>
       <h3>
           procedure, public, pass(self) ::
   <strong>execute</strong>
@@ -745,7 +914,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/execute~13.html'>execute</a>(self, in, out, stream, neighbor)  
+    private  subroutine <a href='../proc/execute~6.html'>execute</a>(self, in, out, stream, neighbor, aux, csize, csizes, skip_compression, skip_rank, sync)  
 </h3>
     
 
@@ -780,14 +949,14 @@ large graphs.</div>
         <tr>
             <td>
               <span class="anchor" ></span>
-              real(kind=real32),
+              type(c_ptr),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>in</strong>(:)</td>
+            <td><strong>in</strong></td>
             <td>
 <p>Source buffer, can be device or host pointer</p>
             </td>
@@ -795,14 +964,14 @@ large graphs.</div>
         <tr>
             <td>
               <span class="anchor" ></span>
-              real(kind=real32),
+              type(c_ptr),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>out</strong>(:)</td>
+            <td><strong>out</strong></td>
             <td>
 <p>Target buffer, can be device or host pointer</p>
             </td>
@@ -837,6 +1006,96 @@ large graphs.</div>
 <p>Source rank for pipelined unpacking</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(c_ptr),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>aux</strong></td>
+            <td>
+<p>Target buffer, can be device or host pointer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>csize</strong></td>
+            <td>
+<p>Compressed buffer size</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>csizes</strong>(:)</td>
+            <td>
+<p>Multiple compression sizes. This should only be used with CUDA backends</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>skip_compression</strong></td>
+            <td>
+<p>Skip compression/decompression stage. Should be used when packing/unpacking from itself.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>skip_rank</strong></td>
+            <td>
+<p>Skip compression/decompression for specific rank when neighbor is not specified.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>sync</strong></td>
+            <td>
+<p>Sync stream after packing/compression. Should be used only for fused backends</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -849,7 +1108,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-destroy~18"></span>
+      <span class="anchor" id="boundprocedure-destroy~8"></span>
       <h3>
           procedure, public, pass(self) ::
   <strong>destroy</strong>
@@ -863,7 +1122,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/destroy~16.html'>destroy</a>(self)  
+    private  subroutine <a href='../proc/destroy~7.html'>destroy</a>(self)  
 </h3>
     
 
@@ -907,7 +1166,76 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-create_private~17"></span>
+      <span class="anchor" id="boundprocedure-set_compressor"></span>
+      <h3>
+          procedure, public, pass(self) ::
+  <strong>set_compressor</strong>
+        
+      </h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/set_compressor.html'>set_compressor</a>(self, compressor)  
+</h3>
+    
+
+  <p>Sets created compressor for the kernel</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='abstract_kernel.html'>abstract_kernel</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>Abstract kernel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='abstract_compressor.html'>abstract_compressor</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>compressor</strong></td>
+            <td>
+<p>Compressor to set</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-create_private~6"></span>
       <h3>
           procedure(<a href='../interface/create_interface~4.html'>create_interface</a>), public, deferred ::
   <strong>create_private</strong>
@@ -1009,7 +1337,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-execute_private~13"></span>
+      <span class="anchor" id="boundprocedure-execute_private~5"></span>
       <h3>
           procedure(<a href='../interface/execute_interface~4.html'>execute_interface</a>), public, deferred ::
   <strong>execute_private</strong>
@@ -1023,7 +1351,7 @@ large graphs.</div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-     subroutine execute_interface(self, in, out, stream, neighbor)  
+     subroutine execute_interface(self, in, out, stream, sync, neighbor)  
 <small>Prototype</small></h3>
 
   <p>Executes underlying kernel</p>
@@ -1057,14 +1385,14 @@ large graphs.</div>
         <tr>
             <td>
               <span class="anchor" ></span>
-              real(kind=real32),
+              type(c_ptr),
             </td>
-<td>intent(in),</td>
+<td>intent(in)</td>
               <td></td>            <td>
-              target
+              
             </td>
             <td>::</td>
-            <td><strong>in</strong>(:)</td>
+            <td><strong>in</strong></td>
             <td>
                 <p>Source buffer, can be device or host pointer</p>
             </td>
@@ -1072,14 +1400,14 @@ large graphs.</div>
         <tr>
             <td>
               <span class="anchor" ></span>
-              real(kind=real32),
+              type(c_ptr),
             </td>
-<td>intent(inout),</td>
+<td>intent(in)</td>
               <td></td>            <td>
-              target
+              
             </td>
             <td>::</td>
-            <td><strong>out</strong>(:)</td>
+            <td><strong>out</strong></td>
             <td>
                 <p>Target buffer, can be device or host pointer</p>
             </td>
@@ -1097,6 +1425,21 @@ large graphs.</div>
             <td><strong>stream</strong></td>
             <td>
                 <p>Stream to execute on, used only for device pointers</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>sync</strong></td>
+            <td>
+                <p>Sync stream after kernel execution</p>
             </td>
         </tr>
         <tr>
@@ -1126,7 +1469,7 @@ large graphs.</div>
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-destroy_private~12"></span>
+      <span class="anchor" id="boundprocedure-destroy_private~5"></span>
       <h3>
           procedure(<a href='../interface/destroy_interface~4.html'>destroy_interface</a>), public, deferred ::
   <strong>destroy_private</strong>
@@ -1225,9 +1568,6 @@ large graphs.</div>
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
 
   </body>
 </html>
