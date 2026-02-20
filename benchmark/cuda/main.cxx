@@ -99,18 +99,18 @@ void run_all(std::vector<int>&dims, bool weak_scaling)
     dtfft::Effort effort = dtfft::Effort::EXHAUSTIVE;
     if( !weak_scaling ) {
 
-        double cudecomp_time =  run_cudecomp(dims, CUDECOMP_DOUBLE_COMPLEX, CUDECOMP_TRANSPOSE_COMM_MPI_P2P);
+        double cudecomp_time =  run_cudecomp(dims, CUDECOMP_DOUBLE_COMPLEX, CUDECOMP_TRANSPOSE_COMM_NCCL);
         if (cudecomp_time > 0) benchmark_results["cuDecomp"] = cudecomp_time;
 
-        double heffte_time = run_heffte<double>(dims);
-        if (heffte_time > 0) benchmark_results["HeFFTe"] = heffte_time;
+        // double heffte_time = run_heffte<double>(dims);
+        // if (heffte_time > 0) benchmark_results["HeFFTe"] = heffte_time;
 
-        setup_dtfft_config(false);
+        setup_dtfft_config(false, dtfft::Backend::NCCL);
         double dtfft_time = run_dtfft_c2c(dims, dtfft::Precision::DOUBLE, dtfft::Executor::CUFFT, false);
         if (dtfft_time > 0) benchmark_results["dtFFT CUFFT"] = dtfft_time;
 
-        double decomp_time = run_2d_decomp(dims);
-        if (decomp_time > 0) benchmark_results["2D-decomp"] = decomp_time;
+        // double decomp_time = run_2d_decomp(dims);
+        // if (decomp_time > 0) benchmark_results["2D-decomp"] = decomp_time;
 
         // double accfft_time = run_accfft<double>(dims);
         // if (accfft_time > 0) benchmark_results["AccFFT"] = accfft_time;
@@ -162,8 +162,8 @@ int main(int argc, char *argv[]) {
     }
 
     std::vector<std::vector<int>> base_dims_sets = {
-        // {256, 256, 256},    // Basic test
-        {1024, 1024, 1024},     // Narrow Z dimension
+        {512, 512, 512},    // Basic test
+        // {1024, 1024, 1024},     // Narrow Z dimension
         // {2048, 32, 2048},     // Narrow Y dimension
         // {32, 2048, 2048},     // Narrow X dimension
         // {1999, 1047, 215}     // Pure evil dimensions
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
 
     for (auto& base_dims : base_dims_sets) {
 
-        std::vector<bool> weak_scaling_opts = {false};
+        std::vector<bool> weak_scaling_opts = {true};
 
         for( auto weak_scaling : weak_scaling_opts )
         {

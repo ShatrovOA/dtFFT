@@ -32,7 +32,7 @@ use dtfft_interface_cuda_runtime
 implicit none
   complex(real64),  pointer :: inout(:,:,:), aux(:)
   type(c_ptr) :: check
-#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD) && !defined(DTFFT_WITH_MOCK_ENABLED)
   integer(int32), parameter :: nx = 255, ny = 333, nz = 135
 #else
   integer(int32), parameter :: nx = 129, ny = 123, nz = 33
@@ -100,6 +100,11 @@ implicit none
 
   conf%enable_datatype_backend = .false.
   conf%enable_mpi_backends = .true.
+! #ifdef DTFFT_WITH_COMPRESSION
+!   conf%backend = DTFFT_BACKEND_MPI_P2P_COMPRESSED
+!   conf%compression_config_transpose%compression_mode = DTFFT_COMPRESSION_MODE_FIXED_RATE
+!   conf%compression_config_transpose%rate = 50.0
+! #endif
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
 
   ! Setting effort=DTFFT_PATIENT will ignore value of `conf%backend` and will run autotune to find best backend
@@ -146,7 +151,7 @@ implicit none
 
   tf = 0.0_real64
   tb = 0.0_real64
-  do iter = 1, 3
+  do iter = 1, 10
     ts = - MPI_Wtime()
 
     call plan%execute(inout, inout, DTFFT_EXECUTE_FORWARD, aux, error_code=ierr);  DTFFT_CHECK(ierr)
@@ -173,8 +178,11 @@ implicit none
 #endif
     tb = tb + ts + MPI_Wtime()
   enddo
+! #ifdef DTFFT_WITH_COMPRESSION
+!   call plan%report_compression()
+! #endif
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check, platform%val)
 #else
   call checkAndReportComplexDouble(int(nx * ny * nz, int64), tf, tb, c_loc(inout), in_size, check)

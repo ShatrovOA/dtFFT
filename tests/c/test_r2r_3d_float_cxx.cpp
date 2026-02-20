@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
   MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD) && !defined(DTFFT_WITH_MOCK_ENABLED)
   const int32_t nx = 256, ny = 512, nz = 1024;
 #else
   const int32_t nx = 333, ny = 99, nz = 17;
@@ -57,17 +57,28 @@ int main(int argc, char *argv[])
 
   attach_gpu_to_process();
   Executor executor = Executor::NONE;
+#ifdef DTFFT_WITH_FFTW
+  executor = Executor::FFTW3;
+#endif
+
   Config conf;
+// #ifdef DTFFT_WITH_COMPRESSION
+//   auto compression_conf = CompressionConfig(
+//     CompressionMode::FIXED_RATE,
+//     16.0
+//   );
+
+//   conf.set_enable_compressed_backends(true)
+//     .set_compression_config_transpose(compression_conf);
+// #endif
+
   // Different FFT kinds are used. Disabling Z-slab
   conf.set_enable_z_slab(false)
     .set_enable_y_slab(false)
     .set_enable_mpi_backends(true)
-    .set_enable_datatype_backend(true)
+    .set_enable_datatype_backend(false)
     .set_enable_pipelined_backends(true);
 
-#ifdef DTFFT_WITH_FFTW
-  executor = Executor::FFTW3;
-#endif
 #ifdef DTFFT_WITH_CUDA
   char* platform_env = std::getenv("DTFFT_PLATFORM");
 
@@ -85,7 +96,11 @@ int main(int argc, char *argv[])
       .set_enable_mpi_backends(true)
       .set_enable_nvshmem_backends(false)
       .set_enable_kernel_autotune(true);
+  } else {
+    conf.set_backend(dtfft::Backend::ADAPTIVE);
   }
+#else
+  conf.set_backend(dtfft::Backend::ADAPTIVE);
 #endif
 
   DTFFT_CXX_CALL( set_config(conf) );
@@ -178,7 +193,6 @@ int main(int argc, char *argv[])
   }
 #endif
   tb += MPI_Wtime();
-
 
 #if defined(DTFFT_WITH_CUDA)
   checkAndReportFloat(nx * ny * nz, tf, tb, inout, in_size, check, static_cast<int32_t>(platform));

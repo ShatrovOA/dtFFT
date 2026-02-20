@@ -16,6 +16,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
+#include "dtfft_config.h"
 module dtfft_interface_nvrtc
 !! nvRTC Interfaces.
 !!
@@ -36,6 +37,9 @@ public :: nvrtcProgram
     type(c_ptr) :: cptr !! Actual pointer
   end type nvrtcProgram
 
+#ifndef DTFFT_WITH_MOCK_ENABLED
+! Real nvRTC interfaces with dynamic loading
+
   abstract interface
     function nvrtcGetErrorString_interface(error_code)                                                &
       result(string)
@@ -50,7 +54,7 @@ public :: nvrtcProgram
   abstract interface
     function nvrtcCreateProgram_interface(prog, src, name, numHeaders, headers, includeNames)         &
       result(nvrtcResult)
-    !! Creates an instance of nvrtcProgram with the given input parameters, 
+    !! Creates an instance of nvrtcProgram with the given input parameters,
     !! and sets the output parameter prog with it.
     import
       type(nvrtcProgram)        :: prog         !! CUDA Runtime Compilation program.
@@ -134,7 +138,7 @@ public :: nvrtcProgram
   abstract interface
     function nvrtcGetLoweredName_interface(prog, name_expression, lowered_name)                       &
       result(nvrtcResult)
-    !! Extracts the lowered (mangled) name for a global function or device/__constant__ variable, 
+    !! Extracts the lowered (mangled) name for a global function or device/__constant__ variable,
     !! and updates *lowered_name to point to it.
     import
       type(nvrtcProgram), value :: prog               !! CUDA Runtime Compilation program.
@@ -154,15 +158,6 @@ public :: nvrtcProgram
       integer(c_int)            :: nvrtcResult        !! The enumerated type nvrtcResult defines API call result codes.
     end function nvrtcAddNameExpression_interface
   end interface
-
-  integer(int32), parameter  :: N_FUNCTIONS_TO_LOAD = 10
-    !! Number of functions to load from nvrtc library
-  logical,        save :: is_loaded = .false.
-    !! Flag indicating whether the library is loaded
-  type(c_ptr),    save :: libnvrtc
-    !! Handle to the loaded library
-  type(c_funptr), save :: nvrtcFunctions(N_FUNCTIONS_TO_LOAD)
-    !! Array of pointers to the nvRTC functions
 
   procedure(nvrtcGetErrorString_interface),   pointer         :: nvrtcGetErrorString_c
     !! Fortran pointer to the nvrtcGetErrorString function
@@ -185,18 +180,121 @@ public :: nvrtcProgram
   procedure(nvrtcAddNameExpression_interface),pointer, public :: nvrtcAddNameExpression
     !! Fortran pointer to the nvrtcAddNameExpression function
 
+#else
+! Mock nvRTC interfaces for CPU testing
+public :: nvrtcCreateProgram, nvrtcDestroyProgram, nvrtcCompileProgram
+public :: nvrtcGetProgramLogSize, nvrtcGetProgramLog
+public :: nvrtcGetCUBINSize, nvrtcGetCUBIN
+public :: nvrtcGetLoweredName, nvrtcAddNameExpression
+#endif
+
+  integer(int32), parameter  :: N_FUNCTIONS_TO_LOAD = 10
+    !! Number of functions to load from nvrtc library
+  logical,        save :: is_loaded = .false.
+    !! Flag indicating whether the library is loaded
+  type(c_ptr),    save :: libnvrtc
+    !! Handle to the loaded library
+  type(c_funptr), save :: nvrtcFunctions(N_FUNCTIONS_TO_LOAD)
+    !! Array of pointers to the nvRTC functions
+
 contains
 
-  function nvrtcGetErrorString(error_code) result(string)
-  !! Helper function that returns a string describing the given nvrtcResult code
-  !! For unrecognized enumeration values, it returns "NVRTC_ERROR unknown"
-    integer(c_int),   intent(in)  :: error_code     !! CUDA Runtime Compilation API result code.
-    character(len=:), allocatable :: string         !! Result string
-    type(c_ptr)                   :: c_string       !! Pointer to C string
+#ifdef DTFFT_WITH_MOCK_ENABLED
+  ! Mock implementations for CPU testing
 
-    c_string = nvrtcGetErrorString_c(error_code)
-    call string_c2f(c_string, string)
-  end function nvrtcGetErrorString
+  function nvrtcGetErrorString_c(error_code) result(string)
+  !! Mock: Returns error string
+    integer(c_int), intent(in) :: error_code
+    type(c_ptr)                :: string
+    character(len=20), target, save :: error_msg = "Mock nvRTC Error"
+    string = c_loc(error_msg)
+  end function nvrtcGetErrorString_c
+
+  function nvrtcCreateProgram(prog, src, name, numHeaders, headers, includeNames) result(nvrtcResult)
+  !! Mock: Creates dummy program
+    type(nvrtcProgram)           :: prog
+    character(c_char)            :: src(*), name(*)
+    integer(c_int),   intent(in) :: numHeaders
+    type(c_ptr),      intent(in) :: headers, includeNames
+    integer(c_int)               :: nvrtcResult
+    prog%cptr = c_null_ptr
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcCreateProgram
+
+  function nvrtcDestroyProgram(prog) result(nvrtcResult)
+  !! Mock: Does nothing
+    type(nvrtcProgram)        :: prog
+    integer(c_int)            :: nvrtcResult
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcDestroyProgram
+
+  function nvrtcCompileProgram(prog, numOptions, options) result(nvrtcResult)
+  !! Mock: Does nothing - compilation is fake
+    type(nvrtcProgram), intent(in) :: prog
+    integer(c_int),     intent(in) :: numOptions
+    type(c_ptr),        intent(in) :: options(*)
+    integer(c_int)                 :: nvrtcResult
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcCompileProgram
+
+  function nvrtcGetProgramLogSize(prog, logSizeRet) result(nvrtcResult)
+  !! Mock: Returns dummy log size
+    type(nvrtcProgram), intent(in)  :: prog
+    integer(c_size_t),  intent(out) :: logSizeRet
+    integer(c_int)                  :: nvrtcResult
+    logSizeRet = 1_c_size_t
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcGetProgramLogSize
+
+  function nvrtcGetProgramLog(prog, log) result(nvrtcResult)
+  !! Mock: Returns empty log
+    type(nvrtcProgram), intent(in) :: prog
+    type(c_ptr),        intent(in) :: log
+    integer(c_int)                 :: nvrtcResult
+    character(c_char), pointer :: log_str(:)
+    if (c_associated(log)) then
+      call c_f_pointer(log, log_str, [1])
+      log_str(1) = c_null_char
+    end if
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcGetProgramLog
+
+  function nvrtcGetCUBINSize(prog, cubinSizeRet) result(nvrtcResult)
+  !! Mock: Returns dummy cubin size
+    type(nvrtcProgram), intent(in)  :: prog
+    integer(c_size_t),  intent(out) :: cubinSizeRet
+    integer(c_int)                  :: nvrtcResult
+    cubinSizeRet = 1024_c_size_t
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcGetCUBINSize
+
+  function nvrtcGetCUBIN(prog, cubin) result(nvrtcResult)
+  !! Mock: Returns dummy cubin
+    type(nvrtcProgram), intent(in) :: prog
+    type(c_ptr),        intent(in) :: cubin
+    integer(c_int)                 :: nvrtcResult
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcGetCUBIN
+
+  function nvrtcGetLoweredName(prog, name_expression, lowered_name) result(nvrtcResult)
+  !! Mock: Returns same name
+    type(nvrtcProgram), intent(in)  :: prog
+    character(c_char),  target      :: name_expression(*)
+    type(c_ptr)               :: lowered_name
+    integer(c_int)            :: nvrtcResult
+    lowered_name = c_loc(name_expression)
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcGetLoweredName
+
+  function nvrtcAddNameExpression(prog, name_expression) result(nvrtcResult)
+  !! Mock: Does nothing
+    type(nvrtcProgram), value :: prog
+    character(c_char)         :: name_expression(*)
+    integer(c_int)            :: nvrtcResult
+    nvrtcResult = 0  ! NVRTC_SUCCESS
+  end function nvrtcAddNameExpression
+
+#endif
 
   function load_nvrtc() result(error_code)
   !! Dynamically loads nvRTC library and its functions
@@ -206,6 +304,7 @@ contains
     error_code = DTFFT_SUCCESS
     if ( is_loaded ) return
 
+#ifndef DTFFT_WITH_MOCK_ENABLED
     allocate(func_names(N_FUNCTIONS_TO_LOAD))
     func_names(1) = string("nvrtcGetErrorString")
     func_names(2) = string("nvrtcCreateProgram")
@@ -232,7 +331,26 @@ contains
     call c_f_procpointer(nvrtcFunctions(8), nvrtcGetProgramLogSize)
     call c_f_procpointer(nvrtcFunctions(9), nvrtcGetLoweredName)
     call c_f_procpointer(nvrtcFunctions(10), nvrtcAddNameExpression)
-
+#endif
     is_loaded = .true.
   end function load_nvrtc
+
+  function nvrtcGetErrorString(error_code) result(string)
+  !! Helper function that returns a string describing the given nvrtcResult code
+  !! For unrecognized enumeration values, it returns "NVRTC_ERROR unknown"
+    integer(c_int),   intent(in)  :: error_code     !! CUDA Runtime Compilation API result code.
+    character(len=:), allocatable :: string         !! Result string
+
+#ifndef DTFFT_WITH_MOCK_ENABLED
+    type(c_ptr)                   :: c_string       !! Pointer to C string
+    c_string = nvrtcGetErrorString_c(error_code)
+    call string_c2f(c_string, string)
+#else
+    if (error_code == 0) then
+      allocate(string, source="NVRTC_SUCCESS (mock)")
+    else
+      allocate(string, source="NVRTC_ERROR (mock)")
+    end if
+#endif
+  end function nvrtcGetErrorString
 end module dtfft_interface_nvrtc

@@ -17,14 +17,21 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
+#if defined (DTFFT_WITH_CUDA) && !defined(__NVCOMPILER) && !defined(DTFFT_WITH_MOCK_ENABLED)
+#error "nvcompiler is required or mock build"
+#endif
 program test_r2r_3d_float
 use iso_fortran_env
-use iso_c_binding, only: c_loc, c_ptr, c_f_pointer
+use iso_c_binding, only: c_loc, c_ptr, c_f_pointer, c_int
 use dtfft
 use dtfft_utils
 use test_utils
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
+#if defined(DTFFT_WITH_CUDA)
+# if defined(__NVCOMPILER)
 use cudafor, only: cuda_stream_kind, cudaStreamCreate, cudaStreamDestroy, cudaStreamSynchronize, cudaSuccess, cudaGetErrorString
+# elif defined (DTFFT_WITH_MOCK_ENABLED)
+use dtfft_interface_cuda_runtime
+# endif
 #endif
 #include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
@@ -36,7 +43,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   real(real32), managed, allocatable :: r_m(:), f_m(:)
 #endif
-  integer(int32), parameter :: nx = 55, ny = 32, nz = 19
+  integer(int32), parameter :: nx = 512, ny = 64, nz = 32
   integer(int32) :: comm_size, comm_rank, ierr, in_counts(3), in_starts(3), comm_dims(3), out_counts(3), iter
   type(dtfft_executor_t) :: executor
   type(dtfft_plan_r2r_t) :: plan
@@ -49,6 +56,8 @@ implicit none
   type(dtfft_platform_t) :: platform
 # if defined(__NVCOMPILER)
   integer(cuda_stream_kind) :: stream
+# elif defined (DTFFT_WITH_MOCK_ENABLED)
+  type(dtfft_stream_t) :: stream
 # endif
 #endif
   type(dtfft_config_t) :: conf
@@ -56,6 +65,13 @@ implicit none
   TYPE_MPI_COMM :: comm
   integer(int32), pointer :: dims(:) => null()
   type(dtfft_request_t) :: request
+  ! interface
+  !   subroutine cali_flush(val) bind(C)
+  !     import
+  !     integer(c_int), intent(in), value :: val
+  !   end subroutine cali_flush
+  ! end interface
+
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -75,8 +91,8 @@ implicit none
 
   call dtfft_create_config(conf)
 
-  backend_to_use = DTFFT_BACKEND_MPI_A2A
-  reshape_backend_to_use = DTFFT_BACKEND_MPI_DATATYPE
+  backend_to_use = DTFFT_BACKEND_MPI_RMA_FUSED
+  reshape_backend_to_use = DTFFT_BACKEND_MPI_P2P_FUSED
 
 #if defined(DTFFT_WITH_CUDA)
   block
@@ -93,9 +109,12 @@ implicit none
 # if defined(__NVCOMPILER)
       CUDA_CALL( cudaStreamCreate(stream) )
       conf%stream = dtfft_stream_t(stream)
+# elif defined (DTFFT_WITH_MOCK_ENABLED)
+      CUDA_CALL( cudaStreamCreate(stream) )
+      conf%stream = stream
 # else
       if ( comm_rank == 0 ) &
-        write(output_unit, '(a)') "This test requires NVFortran in order to run on GPU"
+        write(output_unit, '(a)') "This test requires NVFortran or MOCK build in order to run on GPU"
       call MPI_Finalize(ierr)
       stop
 # endif
@@ -105,9 +124,18 @@ implicit none
 
   conf%backend = backend_to_use
   conf%reshape_backend = reshape_backend_to_use
+  conf%enable_y_slab = .true.
+! #ifdef DTFFT_WITH_COMPRESSION
+!   conf%backend = DTFFT_BACKEND_ADAPTIVE
+!   conf%reshape_backend = DTFFT_BACKEND_ADAPTIVE
+!   conf%compression_config_transpose%compression_mode = DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
+!   conf%compression_config_transpose%tolerance = 1.e-6_real64
+!   conf%compression_config_reshape%compression_mode = DTFFT_COMPRESSION_MODE_FIXED_PRECISION
+!   conf%compression_config_reshape%precision = 20
+! #endif
+
 
   call dtfft_set_config(conf, error_code=ierr); DTFFT_CHECK(ierr)
-  
   do iter = 2, 4
     comm_dims(:) = 0
     if ( iter < 4 ) comm_dims(iter) = 1
@@ -129,7 +157,7 @@ implicit none
       endblock
     endif
 
-  call plan%create(pencil, comm=comm, precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+  call plan%create(pencil, comm=comm, effort=DTFFT_ESTIMATE, precision=DTFFT_SINGLE, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   alloc_size = plan%get_alloc_size(error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(out_counts=out_counts, error_code=ierr); DTFFT_CHECK(ierr)
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
@@ -199,8 +227,8 @@ implicit none
     call plan%transpose(r_m, f_m, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr); DTFFT_CHECK(ierr)
     call plan%reshape(f_m, r_m, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS, error_code=ierr); DTFFT_CHECK(ierr)
   else
-    call plan%transpose(r_m, f_m, DTFFT_TRANSPOSE_Z_TO_Y, error_code=ierr)
-    call plan%transpose(f_m, r_m, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr)
+    call plan%transpose(r_m, f_m, DTFFT_TRANSPOSE_Z_TO_Y, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%transpose(f_m, r_m, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr); DTFFT_CHECK(ierr)
   endif
   if ( platform == DTFFT_PLATFORM_CUDA ) then
     CUDA_CALL( cudaStreamSynchronize(stream) )
@@ -217,17 +245,22 @@ implicit none
     request = plan%reshape_start(f, r, DTFFT_RESHAPE_X_PENCILS_TO_BRICKS, error_code=ierr); DTFFT_CHECK(ierr)
     call plan%reshape_end(request, error_code=ierr); DTFFT_CHECK(ierr)
   else
-    call plan%transpose(r, f, DTFFT_TRANSPOSE_Z_TO_Y, error_code=ierr)
-    call plan%transpose(f, r, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr)
+    call plan%transpose(r, f, DTFFT_TRANSPOSE_Z_TO_Y, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%transpose(f, r, DTFFT_TRANSPOSE_Y_TO_X, error_code=ierr); DTFFT_CHECK(ierr)
   endif
 #endif
+
   DTFFT_CHECK(ierr)
   tb = tb + MPI_Wtime()
 
   call plan%get_dims(dims, error_code=ierr); DTFFT_CHECK(ierr)
 
-#if defined(DTFFT_WITH_CUDA)
-  call checkAndReportFloat(int(product(dims), int64), tf, tb, c_loc(r), in_size, check, DTFFT_PLATFORM_HOST%val)
+#ifdef DTFFT_WITH_COMPRESSION
+  call plan%report_compression()
+#endif
+
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER) && !defined(DTFFT_WITH_MOCK_ENABLED)
+  call checkAndReportFloat(int(product(dims), int64), tf, tb, c_loc(r_m), in_size, check, DTFFT_PLATFORM_HOST%val)
 #else
   call checkAndReportFloat(int(product(dims), int64), tf, tb, c_loc(r), in_size, check)
 #endif

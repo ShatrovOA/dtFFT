@@ -31,6 +31,7 @@ private
 public :: string_f2c
 public :: to_str
 public :: write_message
+public :: get_env
 
 public :: get_inverse_kind
 public :: is_same_ptr, is_null_ptr, ptr_offset
@@ -47,7 +48,7 @@ public :: astring_f2c
 public :: count_unique
 public :: Comm_f2c
 public :: is_device_ptr
-public :: dynamic_load
+public :: dynamic_load, unload_library
 #endif
 
   interface to_str
@@ -146,7 +147,7 @@ public :: all_reduce_inplace
       integer(c_int), value :: fcomm            !! Fortran communicator
     end function Comm_f2c
   end interface
-
+# ifndef DTFFT_WITH_MOCK_ENABLED
   interface
     function is_device_ptr(ptr) result(bool) bind(C)
     !! Checks if pointer can be accessed from device
@@ -155,6 +156,7 @@ public :: all_reduce_inplace
       logical(c_bool)       :: bool   !! Result
     end function is_device_ptr
   end interface
+# endif
 #endif
 
   type :: string
@@ -170,6 +172,20 @@ public :: all_reduce_inplace
   end interface string
 
   integer(int32), save :: write_rank = -1
+
+  interface get_env
+  !! Obtains environment variable
+    module procedure :: get_env_base    !! Base procedure
+    module procedure :: get_env_string  !! For string values
+    module procedure :: get_env_int32   !! For integer(int32) values
+    module procedure :: get_env_int8    !! For integer(int8) values
+    module procedure :: get_env_logical !! For logical values
+  end interface get_env
+
+  character(len=26), parameter :: UPPER_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    !! Upper case alphabet.
+  character(len=26), parameter :: LOWER_ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+    !! Lower case alphabet.
 
 contains
 
@@ -289,7 +305,9 @@ contains
     type(c_funptr)                :: symbol_handle  !! Function pointer
     character(c_char),  allocatable :: cname(:)     !! Temporary string
 
-    if ( is_null_ptr(handle) ) INTERNAL_ERROR("is_null_ptr(handle)")
+    if ( is_null_ptr(handle) ) then
+      INTERNAL_ERROR("is_null_ptr(handle)")
+    endif
 
     call astring_f2c(name//c_null_char, cname)
     symbol_handle = dlsym(handle, cname)
@@ -389,24 +407,30 @@ contains
     allocate( str, source=trim(adjustl(temp)) )
   end function float_to_string
 
-  subroutine write_message(unit, message, prefix)
+  subroutine write_message(unit, message, prefix, is_fatal)
   !! Write message to the specified unit
     integer(int32),   intent(in)            :: unit         !! Unit number
     character(len=*), intent(in)            :: message      !! Message to write
     character(len=*), intent(in), optional  :: prefix       !! Prefix to the message
+    logical,          intent(in), optional  :: is_fatal     !! If true, only rank 0 will print the message, otherwise all ranks will print it
     character(len=:), allocatable           :: prefix_      !! Dummy prefix
+    logical                                 :: is_fatal_
     integer(int32)                          :: ierr         !! Error code
     logical                                 :: is_finalized !! Is MPI Already finalized?
 
-    if ( write_rank < 0 ) then
-      call MPI_Finalized(is_finalized, ierr)
-      if ( is_finalized ) then
-        write_rank = 0
-      else
-        call MPI_Comm_rank(MPI_COMM_WORLD, write_rank, ierr)
+    is_fatal_ = .false.; if ( present(is_fatal) ) is_fatal_ = is_fatal
+
+    if ( .not. is_fatal_ ) then
+      if ( write_rank < 0 ) then
+        call MPI_Finalized(is_finalized, ierr)
+        if ( is_finalized ) then
+          write_rank = 0
+        else
+          call MPI_Comm_rank(MPI_COMM_WORLD, write_rank, ierr)
+        endif
       endif
+      if ( write_rank /= 0 ) return
     endif
-    if ( write_rank /= 0 ) return
 
     if ( present( prefix ) ) then
       allocate( prefix_, source=prefix )
@@ -477,7 +501,7 @@ contains
     n = 0
     do while (size(y) > 0)
         n = n + 1
-        y = pack(y,mask=(y(:) /= y(1))) ! drops all elements that are 
+        y = pack(y,mask=(y(:) /= y(1))) ! drops all elements that are
                                         ! equals to the 1st one (included)
     end do
     deallocate(y)
@@ -564,4 +588,143 @@ contains
     buffer = tmp
   end subroutine all_reduce_inplace_i32
 #endif
+
+#ifdef DTFFT_WITH_MOCK_ENABLED
+  logical function is_device_ptr(ptr) result(bool)
+  !! Mock version of is_device_ptr. Always returns true
+    type(c_ptr),    intent(in) :: ptr   !! Device pointer
+    bool = .true.
+  end function is_device_ptr
+#endif
+
+type(string) function get_env_base(name) result(env)
+  !! Base function of obtaining dtFFT environment variable
+    character(len=*), intent(in)    :: name         !! Name of environment variable without prefix
+    type(string)                    :: full_name    !! Prefixed environment variable name
+    integer(int32)                  :: env_val_len  !! Length of the environment variable
+    integer(int32) :: ierr
+
+    full_name = string("DTFFT_"//name)
+
+    call get_environment_variable(full_name%raw, length=env_val_len)
+    call MPI_Bcast(env_val_len, 1, MPI_INTEGER4, 0, MPI_COMM_WORLD, ierr)
+    allocate(character(env_val_len) :: env%raw)
+    if ( env_val_len == 0 ) then
+      call full_name%destroy()
+      return
+    endif
+    call get_environment_variable(full_name%raw, env%raw)
+    call MPI_Bcast(env%raw, env_val_len, MPI_CHARACTER, 0, MPI_COMM_WORLD, ierr)
+    call full_name%destroy()
+  end function get_env_base
+
+  type(string) function get_env_string(name, default, valid_values) result(env)
+  !! Obtains string environment variable
+    character(len=*), intent(in)            :: name                 !! Name of environment variable without prefix
+    character(len=*), intent(in)            :: default              !! Name of environment variable without prefix
+    type(string),     intent(in)            :: valid_values(:)      !! List of valid variable values
+    logical                                 :: is_correct           !! Is env value is correct
+    integer(int32)    :: i            !! Index in string
+    integer(int32)    :: j            !! Index in alphabet
+    type(string)      :: env_val_str  !! String value of the environment variable
+
+    env_val_str = get_env(name)
+    if ( len(env_val_str%raw) == 0 ) then
+      call env_val_str%destroy()
+      env = string(default)
+      return
+    endif
+
+    ! Converting to lowercase
+    do i=1, len(env_val_str%raw)
+      j = index(UPPER_ALPHABET, env_val_str%raw(i:i))
+      if (j>0) env_val_str%raw(i:i) = LOWER_ALPHABET(j:j)
+    enddo
+
+    is_correct = any([(env_val_str%raw == valid_values(i)%raw, i=1,size(valid_values))])
+
+    if ( is_correct ) then
+      env = string(env_val_str%raw)
+      call env_val_str%destroy()
+      return
+    endif
+    WRITE_ERROR("Invalid environment variable: `DTFFT_"//name//"`, it has been ignored")
+    call env_val_str%destroy()
+    env = string(default)
+  end function get_env_string
+
+  integer(int32) function get_env_int32(name, default, valid_values, min_valid_value) result(env)
+  !! Base Integer function of obtaining dtFFT environment variable
+    character(len=*), intent(in)            :: name               !! Name of environment variable without prefix
+    integer(int32),   intent(in)            :: default            !! Default value in case env is not set or it has wrong value
+    integer(int32),   intent(in), optional  :: valid_values(:)    !! List of valid values
+    integer(int32),   intent(in), optional  :: min_valid_value    !! Mininum valid value. Usually 0 or 1
+    type(string)                            :: env_val_str        !! String value of the environment variable
+    logical                                 :: is_correct         !! Is env value is correct
+    integer(int32)                          :: env_val_passed     !! Value of the environment variable
+    integer(int32)                          :: io_status          !! IO status of reading env variable
+
+#ifdef DTFFT_DEBUG
+    if ( ( present(valid_values).and.present(min_valid_value) )           &
+      .or.(.not.present(valid_values).and..not.present(min_valid_value))  &
+    ) then
+      INTERNAL_ERROR("`get_env_int32`")
+    endif
+#endif
+
+    env_val_str = get_env(name)
+    if ( len(env_val_str%raw) == 0 ) then
+      deallocate(env_val_str%raw)
+      env = default
+      return
+    endif
+    read(env_val_str%raw, *, iostat=io_status) env_val_passed
+    if (io_status /= 0) then
+      WRITE_ERROR("Invalid integer value for environment variable: `DTFFT_"//name//"`=<"//env_val_str%raw//">, it has been ignored")
+      env = default
+      deallocate(env_val_str%raw)
+      return
+    endif
+    is_correct = .false.
+    if ( present( valid_values ) ) then
+      is_correct = any(env_val_passed == valid_values)
+    endif
+    if ( present( min_valid_value ) ) then
+      is_correct = env_val_passed >= min_valid_value
+    endif
+    if ( is_correct ) then
+      env = env_val_passed
+      deallocate(env_val_str%raw)
+      return
+    endif
+    WRITE_ERROR("Invalid integer value for environment variable: `DTFFT_"//name//"`=<"//env_val_str%raw//">, it has been ignored")
+    env = default
+    deallocate(env_val_str%raw)
+  end function get_env_int32
+
+  integer(int8) function get_env_int8(name, default, valid_values) result(env)
+  !! Obtains int8 environment variable
+    character(len=*), intent(in)  :: name               !! Name of environment variable without prefix
+    integer(int8),    intent(in)  :: default            !! Default value in case env is not set or it has wrong value
+    integer(int32),   intent(in)  :: valid_values(:)    !! List of valid values
+    integer(int32)                :: val                !! Value of the environment variable
+
+    val = get_env(name, int(default, int32), valid_values)
+    env = int(val, int8)
+  end function get_env_int8
+
+  logical function get_env_logical(name, default) result(env)
+  !! Obtains logical environment variable
+    character(len=*), intent(in) :: name                !! Name of environment variable without prefix
+    logical,          intent(in) :: default             !! Default value in case env is not set or it has wrong value
+    integer(int32) :: def, val
+
+    if ( default ) then
+      def = 1
+    else
+      def = 0
+    endif
+    val = get_env(name, def, [0, 1])
+    env = val == 1
+  end function get_env_logical
 end module dtfft_utils

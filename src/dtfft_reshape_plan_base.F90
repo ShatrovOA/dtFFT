@@ -19,11 +19,18 @@
 #include "dtfft_config.h"
 #include "dtfft.f03"
 module dtfft_reshape_plan_base
+!! Base class for reshape/transpose plans
 use iso_c_binding
 use iso_fortran_env
 use dtfft_abstract_reshape_handle,      only: reshape_container, execute_args
 use dtfft_abstract_backend,             only: backend_helper
+#ifdef DTFFT_WITH_COMPRESSION
+use dtfft_abstract_compressor
+#endif
 use dtfft_config
+#ifdef DTFFT_WITH_ZFP
+use dtfft_compressor_zfp,               only: compressor_zfp
+#endif
 use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil,                       only: pencil_init, pencil
@@ -56,551 +63,701 @@ public :: get_aux_bytes_generic
 public :: execute_autotune
 public :: report_timings
 
-type :: reshape_plan_base
-    type(dtfft_backend_t)     :: backend
-        !! Backend
-    type(backend_helper)      :: helper
-        !! Backend helper
-    integer(int64)            :: min_buffer_size
-        !! Minimal buffer size for transposition
-    type(dtfft_platform_t)    :: platform
-        !! Platform used for transposition
-    type(dtfft_stream_t)      :: stream
-        !! CUDA stream
-    type(reshape_container), allocatable :: plans(:)
-        !! Plans for each reshape operation
-    type(string), allocatable :: names(:)
-        !! Names of each reshape operation
-contains
-procedure,  pass(self), non_overridable :: init
-procedure,  pass(self), non_overridable :: get_async_active
-procedure,  pass(self), non_overridable :: get_aux_bytes      !! Returns auxiliary buffer size
-procedure,  pass(self), non_overridable :: is_aux_needed
-procedure,  pass(self), non_overridable :: get_backend       !! Returns backend id
-procedure,  pass(self)                  :: destroy
-procedure,  pass(self), non_overridable :: execute
-procedure,  pass(self), non_overridable :: execute_end
-procedure,  pass(self), non_overridable :: mem_alloc
-procedure,  pass(self), non_overridable :: mem_free
-end type reshape_plan_base
+    type :: reshape_plan_base
+    !! Base class for reshape/transpose plans
+        type(dtfft_backend_t)     :: backend
+            !! Backend
+        type(backend_helper)      :: helper
+            !! Backend helper
+        integer(int64)            :: min_buffer_size
+            !! Minimal buffer size for transposition
+        type(dtfft_platform_t)    :: platform
+            !! Platform used for transposition
+        type(dtfft_stream_t)      :: stream
+            !! CUDA stream
+        type(reshape_container), allocatable :: plans(:)
+            !! Plans for each reshape operation
+        type(string), allocatable :: names(:)
+            !! Names of each reshape operation
+        integer(int32), allocatable :: colors(:)
+    contains
+        procedure,  pass(self), non_overridable :: init                 !! Initializes reshape plan base
+        procedure,  pass(self), non_overridable :: get_async_active     !! Returns .true. if any of the plans is running asynchronously
+        procedure,  pass(self), non_overridable :: get_aux_bytes        !! Returns auxiliary buffer size
+        procedure,  pass(self), non_overridable :: is_aux_needed        !! Returns .true. if aux buffer is needed
+        procedure,  pass(self), non_overridable :: get_backend          !! Returns backend id
+        procedure,  pass(self), non_overridable :: report_backends      !! Reports backends used by each plan. Should be used only for adaptive backend
+        procedure,  pass(self), non_overridable :: is_nvshmem
+        procedure,  pass(self), non_overridable :: execute              !! Executes reshape
+        procedure,  pass(self), non_overridable :: execute_end          !! Finishes asynchronous reshape
+        procedure,  pass(self), non_overridable :: mem_alloc            !! Allocates memory
+        procedure,  pass(self), non_overridable :: mem_free             !! Frees memory
+        procedure,  pass(self)                  :: destroy              !! Destroys reshape plan
+#ifdef DTFFT_WITH_COMPRESSION
+        procedure,  pass(self)                  :: report_compression   !! Reports compression statistics
+#endif
+    end type reshape_plan_base
 
 contains
 
-function init(self, platform, effort) result(error_code)
-class(reshape_plan_base),   intent(inout) :: self
-type(dtfft_platform_t),     intent(in)    :: platform
-type(dtfft_effort_t),       intent(in)    :: effort
-integer(int32)                            :: error_code
+#ifdef DTFFT_WITH_COMPRESSION
+    function init(self, platform, effort, backend, autotune_effort, compression_config, base_dtype, base_storage) result(error_code)
+#else
+    function init(self, platform, effort, backend, autotune_effort) result(error_code)
+#endif
+    !! Initializes reshape plan base
+        class(reshape_plan_base),           intent(inout)   :: self                 !! Reshape class
+        type(dtfft_platform_t),             intent(in)      :: platform             !! Execution platform
+        type(dtfft_effort_t),               intent(in)      :: effort               !! Effort level
+        type(dtfft_backend_t),              intent(in)      :: backend
+        type(dtfft_effort_t),               intent(in)      :: autotune_effort
+#ifdef DTFFT_WITH_COMPRESSION
+        type(dtfft_compression_config_t),   intent(in)      :: compression_config   !! Compression configuration
+        TYPE_MPI_DATATYPE,                  intent(in)      :: base_dtype           !! Base datatype
+        integer(int64),                     intent(in)      :: base_storage         !! Number of bytes to store single element of base datatype
+#endif
+        integer(int32)                                      :: error_code           !! Error code
 
-    error_code = DTFFT_SUCCESS
-    self%stream = NULL_STREAM
-    self%backend = BACKEND_NOT_SET
-    self%platform = platform
-    if ( platform == DTFFT_PLATFORM_HOST ) then
-        if ( .not. get_conf_datatype_enabled() .and. .not. get_conf_mpi_enabled() .and. effort%val >= DTFFT_PATIENT%val) then
-            error_code = DTFFT_ERROR_BACKENDS_DISABLED
+        error_code = DTFFT_SUCCESS
+        self%stream = NULL_STREAM
+        self%backend = backend
+        self%platform = platform
+
+        if ( self%backend == DTFFT_BACKEND_ADAPTIVE .and. effort%val < autotune_effort%val ) then
+            error_code = DTFFT_ERROR_INVALID_BACKEND
             return
         endif
+
+        if ( platform == DTFFT_PLATFORM_HOST ) then
+            if ( .not. get_conf_datatype_enabled() .and. .not. get_conf_mpi_enabled() .and. effort%val >= autotune_effort%val) then
+                error_code = DTFFT_ERROR_BACKENDS_DISABLED
+                return
+            endif
+
+            if ( (is_backend_nccl(self%backend) .or. is_backend_nvshmem(self%backend)) .and. effort%val < autotune_effort%val) then
+                error_code = DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+                return
+            endif
 #ifdef DTFFT_WITH_CUDA
-    else
-        if ( .not.get_conf_mpi_enabled() .and. .not.get_conf_nccl_enabled() .and. .not.get_conf_nvshmem_enabled() .and. effort%val >= DTFFT_PATIENT%val) then
-            error_code = DTFFT_ERROR_BACKENDS_DISABLED
-            return
+        else
+            if ( .not.get_conf_mpi_enabled() .and. .not.get_conf_nccl_enabled() .and. .not.get_conf_nvshmem_enabled() .and. effort%val >= autotune_effort%val) then
+                error_code = DTFFT_ERROR_BACKENDS_DISABLED
+                return
+            endif
+
+            ! TODO: fix this
+            if ( self%backend == DTFFT_BACKEND_ADAPTIVE ) then
+                error_code = DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+                return
+            endif
+
+            CHECK_CALL( load_cuda(), error_code )
+            CHECK_CALL( load_nvrtc(), error_code )
+            self%stream = get_conf_stream()
+#endif
         endif
+#ifdef DTFFT_WITH_COMPRESSION
 
-        CHECK_CALL( load_cuda(), error_code )
-        CHECK_CALL( load_nvrtc(), error_code )
-        self%stream = get_conf_stream()
-#endif
-    endif
-end function init
+        if ( (effort%val < autotune_effort%val .and. is_backend_compressed(backend)) .or. (effort%val >=autotune_effort%val .and. get_conf_compression_enabled()) ) then
+            CHECK_CALL( check_compression_config(compression_config), error_code )
 
-subroutine execute(self, in, out, reshape_type, exec_type, aux, error_code)
-!! Executes transposition
-class(reshape_plan_base),     intent(inout) :: self           !! Transposition class
-type(c_ptr),                  intent(in)    :: in             !! Incoming buffer
-type(c_ptr),                  intent(in)    :: out            !! Resulting buffer
-integer(int32),               intent(in)    :: reshape_type   !! Type of reshape to execute
-type(c_ptr),                  intent(in)    :: aux            !! Optional auxiliary buffer
-type(async_exec_t),           intent(in)    :: exec_type      !! Type of execution (sync/async)
-integer(int32),    optional,  intent(out)   :: error_code     !! Error code
-real(real32), pointer :: pin(:)   !! Source buffer
-real(real32), pointer :: pout(:)  !! Destination buffer
-real(real32), pointer :: paux(:)  !! Auxiliary buffer
-type(execute_args)    :: kwargs   !! Additional arguments for execution
-integer(int32)        :: ierr     !! Error code
+            block
+                class(abstract_compressor), allocatable :: compressor
 
-#ifdef DTFFT_DEBUG
-    if ( is_same_ptr(in, out) .or. is_same_ptr(in, aux) .or. is_same_ptr(out, aux) ) INTERNAL_ERROR("reshape_plan_base: wrong pointers for reshape "//self%names(reshape_type)%raw)
-    if ( is_null_ptr(in) .or. is_null_ptr(out) ) INTERNAL_ERROR("reshape_plan_base: null pointer detected for reshape "//self%names(reshape_type)%raw)
-#endif
-
-    REGION_BEGIN('Reshape '//self%names(reshape_type)%raw, COLOR_AUTOTUNE2)
-    call c_f_pointer(in, pin, [self%min_buffer_size])
-    call c_f_pointer(out, pout, [self%min_buffer_size])
-    kwargs%exec_type = exec_type
-    kwargs%stream = self%stream
-
-    if ( is_null_ptr(aux) ) then
-        kwargs%p1 => pin
-    else
-        call c_f_pointer(aux, paux, [self%min_buffer_size])
-        kwargs%p1 => paux
-    endif
-    call self%plans(reshape_type)%p%execute(pin, pout, kwargs, ierr)
-    if( present( error_code ) ) error_code = ierr
-    REGION_END('Reshape '//self%names(reshape_type)%raw)
-end subroutine execute
-
-subroutine execute_end(self, in, out, reshape_type, aux, error_code)
-!! Finishes asynchronous reshape
-class(reshape_plan_base),   intent(inout) :: self           !! Reshape class
-type(c_ptr),                intent(in)    :: in             !! Incoming buffer
-type(c_ptr),                intent(in)    :: out            !! Resulting buffer
-integer(int32),             intent(in)    :: reshape_type   !! Type of reshape to execute
-type(c_ptr),                intent(in)    :: aux
-integer(int32),             intent(out)   :: error_code     !! Error code
-real(real32),   pointer :: pin(:)   !! Source buffer
-real(real32),   pointer :: pout(:)  !! Destination buffer
-real(real32),   pointer :: paux(:)  !! Aux buffer
-type(execute_args)      :: kwargs   !! Additional arguments for execution
-
-    REGION_BEGIN('Reshape '//self%names(reshape_type)%raw//' end', COLOR_AUTOTUNE2)
-    call c_f_pointer(in, pin, [self%min_buffer_size])
-    call c_f_pointer(out, pout, [self%min_buffer_size])
-
-    kwargs%p1 => pin
-    kwargs%p2 => pout
-    if ( .not. is_null_ptr(aux) ) then
-        call c_f_pointer(aux, paux, [self%min_buffer_size])
-        kwargs%p3 => paux
-    else
-        kwargs%p3 => pin
-    endif
-    kwargs%stream = self%stream
-    call self%plans(reshape_type)%p%execute_end(kwargs, error_code)
-    REGION_END('Reshape '//self%names(reshape_type)%raw//' end')
-end subroutine execute_end
-
-logical function get_async_active(self)
-!! Returns .true. if any of the plans is running asynchronously
-class(reshape_plan_base),   intent(in)    :: self           !! Transposition class
-integer(int32)  :: i
-
-    get_async_active = .false.
-    do i = lbound(self%plans, dim=1), ubound(self%plans, dim=1)
-        if ( allocated( self%plans(i)%p ) ) then
-            get_async_active = get_async_active .or. self%plans(i)%p%get_async_active()
-        endif
-    enddo
-end function get_async_active
-
-pure integer(int64) function get_aux_bytes(self)
-!! Returns maximum auxiliary memory size needed by transpose plan
-class(reshape_plan_base), intent(in)    :: self  !! Transposition class
-    get_aux_bytes = 0_int64
-    if ( .not. allocated( self%plans ) ) return
-    get_aux_bytes = get_aux_bytes_generic(self%plans)
-end function get_aux_bytes
-
-pure logical function is_aux_needed(self)
-!! Returns true if aux is needed. false otherwise
-class(reshape_plan_base), intent(in)    :: self  !! Transposition class
-    is_aux_needed = self%get_aux_bytes() > 0
-end function is_aux_needed
-
-type(dtfft_backend_t) function get_backend(self)
-!! Returns plan backend
-class(reshape_plan_base), intent(in)    :: self           !! Transposition class
-    get_backend = self%backend
-end function get_backend
-
-subroutine destroy(self)
-class(reshape_plan_base),   intent(inout) :: self
-integer(int32) :: i
-
-    if ( allocated( self%plans ) ) then
-        call destroy_plans(self%plans)
-        deallocate( self%plans )
-    endif
-    call self%helper%destroy()
-    if ( allocated(self%names) ) then
-        do i = lbound(self%names, dim=1), ubound(self%names, dim=1)
-            call self%names(i)%destroy()
-        enddo
-        deallocate(self%names)
-    endif
-end subroutine destroy
-
-subroutine mem_alloc(self, comm, alloc_bytes, ptr, error_code)
-!! Allocates memory based on selected backend
-class(reshape_plan_base),  intent(inout) :: self           !! Transposition class
-TYPE_MPI_COMM,          intent(in)    :: comm           !! MPI communicator
-integer(int64),         intent(in)    :: alloc_bytes    !! Number of bytes to allocate
-type(c_ptr),            intent(out)   :: ptr            !! Pointer to the allocated memory
-integer(int32),         intent(out)   :: error_code     !! Error code
-
-    call alloc_mem(self%platform, self%helper, self%backend, comm, alloc_bytes, ptr, error_code)
-end subroutine mem_alloc
-
-subroutine mem_free(self, ptr, error_code)
-!! Frees memory allocated with mem_alloc
-class(reshape_plan_base),  intent(inout) :: self           !! Transposition class
-type(c_ptr),            intent(in)    :: ptr            !! Pointer to the memory to free
-integer(int32),         intent(out)   :: error_code     !! Error code
-
-    call free_mem(self%platform, self%helper, self%backend, ptr, error_code)
-end subroutine mem_free
-
-subroutine alloc_mem(platform, helper, backend, comm, alloc_bytes, ptr, error_code)
-!! Allocates memory based on ``backend``
-type(dtfft_platform_t), intent(in)    :: platform
-type(backend_helper),   intent(inout) :: helper         !! Backend helper
-type(dtfft_backend_t),  intent(in)    :: backend        !! GPU backend
-TYPE_MPI_COMM,          intent(in)    :: comm           !! MPI communicator
-integer(int64),         intent(in)    :: alloc_bytes    !! Number of bytes to allocate
-type(c_ptr),            intent(out)   :: ptr            !! Pointer to the allocated memory
-integer(int32),         intent(out)   :: error_code     !! Error code
-#ifdef DTFFT_WITH_CUDA
-integer(int64)  :: free_mem_avail, total_mem_avail
-#endif
-
-    error_code = DTFFT_SUCCESS
-    if ( platform == DTFFT_PLATFORM_HOST ) then
-        ptr = mem_alloc_host(alloc_bytes)
-#ifdef DTFFT_WITH_CUDA
-    else
-        CUDA_CALL( cudaMemGetInfo(free_mem_avail, total_mem_avail) )
-# ifdef DTFFT_DEBUG
-        block
-        integer(int64) :: min_mem, max_mem, min_free_mem, max_free_mem
-        integer(int32) :: mpi_err
-
-            call MPI_Allreduce(alloc_bytes, max_mem, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
-            call MPI_Allreduce(alloc_bytes, min_mem, 1, MPI_INTEGER8, MPI_MIN, comm, mpi_err)
-            call MPI_Allreduce(free_mem_avail, max_free_mem, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
-            call MPI_Allreduce(free_mem_avail, min_free_mem, 1, MPI_INTEGER8, MPI_MIN, comm, mpi_err)
-            WRITE_DEBUG("Trying to allocate "//to_str(min_mem)//"/"//to_str(max_mem)//" (min/max) bytes for backend: '"//dtfft_get_backend_string(backend)//"'")
-            WRITE_DEBUG("Free memory available: "//to_str(min_free_mem)//"/"//to_str(max_free_mem)//" (min/max) bytes")
-        endblock
+                if ( compression_config%compression_lib == DTFFT_COMPRESSION_LIB_ZFP ) then
+# ifdef DTFFT_WITH_ZFP
+                    allocate( compressor_zfp :: compressor )
+# else
+                    INTERNAL_ERROR("ZFP compression requested but dtFFT is not built with ZFP support")
 # endif
-        if ( alloc_bytes > free_mem_avail ) then
-            error_code = DTFFT_ERROR_ALLOC_FAILED
+                endif
+
+                ! Checking compression parameters by creating temporary compressor
+                CHECK_CALL( compressor%create(2_int8, compression_config, platform, base_dtype, base_storage, DIMS_PERMUTE_NONE), error_code )
+                call compressor%destroy()
+                deallocate(compressor)
+            endblock
+        endif
+#else
+        if ( is_backend_compressed(self%backend) .and. effort%val < autotune_effort%val ) then
+            error_code = DTFFT_ERROR_INVALID_BACKEND
             return
         endif
-        if ( is_backend_nccl(backend) ) then
+#endif
+    end function init
+
+    subroutine execute(self, in, out, reshape_type, exec_type, aux, error_code)
+    !! Executes reshape plan
+        class(reshape_plan_base),     intent(inout) :: self           !! Transposition class
+        type(c_ptr),                  intent(in)    :: in             !! Incoming buffer
+        type(c_ptr),                  intent(in)    :: out            !! Resulting buffer
+        integer(int32),               intent(in)    :: reshape_type   !! Type of reshape to execute
+        type(c_ptr),                  intent(in)    :: aux            !! Optional auxiliary buffer
+        type(async_exec_t),           intent(in)    :: exec_type      !! Type of execution (sync/async)
+        integer(int32),    optional,  intent(out)   :: error_code     !! Error code
+        type(execute_args)    :: kwargs     !! Additional arguments for execution
+        integer(int32)        :: ierr       !! Error code
+        logical :: is_pipe, is_fused
+        type(dtfft_backend_t) :: backend
+
+        backend = self%plans(reshape_type)%p%get_backend()
+        is_pipe = is_backend_pipelined(backend)
+        is_fused = is_backend_fused(backend) .or. is_backend_compressed(backend)
+#ifdef DTFFT_DEBUG
+        if ( is_same_ptr(in, out) .or. is_same_ptr(in, aux) .or. is_same_ptr(out, aux) ) then
+            INTERNAL_ERROR("reshape_plan_base: wrong pointers for reshape "//self%names(reshape_type)%raw)
+        endif
+        if ( is_null_ptr(in) .or. is_null_ptr(out) ) then
+            INTERNAL_ERROR("reshape_plan_base: null pointer detected for reshape "//self%names(reshape_type)%raw)
+        endif
+        if ( is_null_ptr(aux) .and. (is_pipe .or. is_fused) ) then
+            INTERNAL_ERROR("reshape_plan_base: aux null pointer detected for reshape "//self%names(reshape_type)%raw)
+        endif
+#endif
+        ! if ( reshape_type == DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS%val ) then
+        !     ! select type ( plan => self%plans(reshape_type)%p )
+        !     ! class is ( reshape_handle_datatype )
+        !     block
+        !         integer :: comm_rank
+
+        !         call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
+        !         if (comm_rank == 0) print*,'comm_rank = ',comm_rank, 'executing', transfer(in, int64), '->', transfer(out, int64), 'aux = ', transfer(aux, int64)
+        !     endblock
+        !     ! endselect
+        ! endif
+
+        REGION_BEGIN(self%names(reshape_type)%raw, self%colors(reshape_type))
+        kwargs%exec_type = exec_type
+        kwargs%stream = self%stream
+        kwargs%p1 = aux
+        call self%plans(reshape_type)%p%execute(in, out, kwargs, ierr)
+        if( present( error_code ) ) error_code = ierr
+        REGION_END(self%names(reshape_type)%raw)
+    end subroutine execute
+
+    subroutine execute_end(self, in, out, reshape_type, aux, error_code)
+    !! Finishes asynchronous reshape
+        class(reshape_plan_base),   intent(inout) :: self           !! Reshape class
+        type(c_ptr),                intent(in)    :: in             !! Incoming buffer
+        type(c_ptr),                intent(in)    :: out            !! Resulting buffer
+        integer(int32),             intent(in)    :: reshape_type   !! Type of reshape to execute
+        type(c_ptr),                intent(in)    :: aux            !! Optional auxiliary buffer
+        integer(int32),             intent(out)   :: error_code     !! Error code
+        ! real(real32),   pointer :: pin(:)   !! Source buffer
+        ! real(real32),   pointer :: pout(:)  !! Destination buffer
+        ! real(real32),   pointer :: paux(:)  !! Aux buffer
+        type(execute_args)      :: kwargs   !! Additional arguments for execution
+
+        REGION_BEGIN(self%names(reshape_type)%raw//' end', self%colors(reshape_type))
+        kwargs%p1 = in
+        kwargs%p2 = out
+        kwargs%p3 = aux
+        kwargs%stream = self%stream
+        call self%plans(reshape_type)%p%execute_end(kwargs, error_code)
+        REGION_END(self%names(reshape_type)%raw//' end')
+    end subroutine execute_end
+
+    logical function get_async_active(self)
+    !! Returns .true. if any of the plans is running asynchronously
+        class(reshape_plan_base),   intent(in)    :: self           !! Reshape class
+        integer(int32)  :: i
+
+        get_async_active = .false.
+        do i = lbound(self%plans, dim=1), ubound(self%plans, dim=1)
+            if ( allocated( self%plans(i)%p ) ) then
+                get_async_active = get_async_active .or. self%plans(i)%p%get_async_active()
+            endif
+        enddo
+    end function get_async_active
+
+    pure integer(int64) function get_aux_bytes(self)
+    !! Returns maximum auxiliary memory size needed by reshape plan
+        class(reshape_plan_base), intent(in)    :: self             !! Reshape class
+        get_aux_bytes = 0_int64
+        if ( .not. allocated( self%plans ) ) return
+        get_aux_bytes = get_aux_bytes_generic(self%plans)
+    end function get_aux_bytes
+
+    pure logical function is_aux_needed(self)
+    !! Returns true if aux is needed. false otherwise
+        class(reshape_plan_base), intent(in)    :: self             !! Reshape class
+        is_aux_needed = self%get_aux_bytes() > 0
+    end function is_aux_needed
+
+    type(dtfft_backend_t) function get_backend(self)
+    !! Returns plan backend
+        class(reshape_plan_base), intent(in)    :: self             !! Reshape class
+        get_backend = self%backend
+    end function get_backend
+
+    subroutine destroy(self)
+    !! Destroys reshape plan
+        class(reshape_plan_base),   intent(inout) :: self           !! Reshape class
+        integer(int32) :: i
+
+        if ( allocated( self%plans ) ) then
+            call destroy_plans(self%plans)
+            deallocate( self%plans )
+        endif
+        call self%helper%destroy()
+        if ( allocated(self%names) ) then
+            do i = lbound(self%names, dim=1), ubound(self%names, dim=1)
+                call self%names(i)%destroy()
+            enddo
+            deallocate(self%names)
+        endif
+        if ( allocated(self%colors) ) deallocate(self%colors)
+    end subroutine destroy
+
+    subroutine report_backends(self)
+    !! Reports backends used by each plan. Should be used only for adaptive backend
+        class(reshape_plan_base),   intent(in)  :: self         !! Reshape class
+        integer(int32) :: i
+        type(dtfft_backend_t) :: backend
+
+        if ( .not. self%backend == DTFFT_BACKEND_ADAPTIVE ) then
+            INTERNAL_ERROR("report_backends: .not. self%backend == DTFFT_BACKEND_ADAPTIVE")
+        endif
+
+        do i = lbound(self%plans, dim=1), ubound(self%plans, dim=1)
+            if ( allocated( self%plans(i)%p ) ) then
+                backend = self%plans(i)%p%get_backend()
+                if ( backend == BACKEND_DUMMY ) cycle
+                WRITE_REPORT("      "//self%names(i)%raw//" :  "//dtfft_get_backend_string(backend))
+            endif
+        enddo
+    end subroutine report_backends
+
+    pure logical function is_nvshmem(self)
+        class(reshape_plan_base),   intent(in)  :: self         !! Reshape class
+
+        is_nvshmem = is_nvshmem_generic(self%plans, self%backend)
+    end function is_nvshmem
+
+    pure logical function is_nvshmem_generic(plans, backend)
+        type(reshape_container),    intent(in)  :: plans(:)          !! Reshape handles
+        type(dtfft_backend_t),      intent(in)  :: backend
+        integer(int32)  :: i
+
+        is_nvshmem_generic = .false.
+        if ( is_backend_nvshmem( backend ) ) then
+            is_nvshmem_generic = .true.
+            return
+        endif
+        if ( .not. backend == DTFFT_BACKEND_ADAPTIVE ) return
+        do i = 1, size(plans)
+            if ( allocated( plans(i)%p ) ) then
+                is_nvshmem_generic = is_nvshmem_generic .or. is_backend_nvshmem( plans(i)%p%get_backend() )
+            endif
+        enddo
+    end function is_nvshmem_generic
+
+#ifdef DTFFT_WITH_COMPRESSION
+    subroutine report_compression(self)
+    !! Reports compression statistics
+        class(reshape_plan_base),   intent(in)  :: self         !! Reshape class
+        integer(int32) :: i
+
+        do i = lbound(self%plans, dim=1), ubound(self%plans, dim=1)
+            if ( allocated( self%plans(i)%p ) ) then
+                call self%plans(i)%p%report_compression(self%names(i)%raw)
+            endif
+        enddo
+    end subroutine report_compression
+#endif
+
+    subroutine mem_alloc(self, comm, alloc_bytes, ptr, error_code)
+    !! Allocates memory based on selected backend
+        class(reshape_plan_base),   intent(inout) :: self               !! Reshape class
+        TYPE_MPI_COMM,              intent(in)    :: comm               !! MPI communicator
+        integer(int64),             intent(in)    :: alloc_bytes        !! Number of bytes to allocate
+        type(c_ptr),                intent(out)   :: ptr                !! Pointer to the allocated memory
+        integer(int32),             intent(out)   :: error_code         !! Error code
+        type(dtfft_backend_t) :: backend
+
+        backend = self%backend; if ( self%is_nvshmem() ) backend = DTFFT_BACKEND_CUFFTMP
+        call alloc_mem(self%platform, self%helper, backend, comm, alloc_bytes, ptr, error_code)
+    end subroutine mem_alloc
+
+    subroutine mem_free(self, ptr, error_code)
+    !! Frees memory allocated with mem_alloc
+        class(reshape_plan_base),   intent(inout) :: self               !! Reshape class
+        type(c_ptr),                intent(in)    :: ptr                !! Pointer to the memory to free
+        integer(int32),             intent(out)   :: error_code         !! Error code
+        type(dtfft_backend_t) :: backend
+
+        backend = self%backend; if ( self%is_nvshmem() ) backend = DTFFT_BACKEND_CUFFTMP
+        call free_mem(self%platform, self%helper, backend, ptr, error_code)
+    end subroutine mem_free
+
+    subroutine alloc_mem(platform, helper, backend, comm, alloc_bytes, ptr, error_code)
+    !! Allocates memory based on ``backend``
+        type(dtfft_platform_t), intent(in)    :: platform           !! Execution platform
+        type(backend_helper),   intent(inout) :: helper             !! Backend helper
+        type(dtfft_backend_t),  intent(in)    :: backend            !! Backend to allocate memory for
+        TYPE_MPI_COMM,          intent(in)    :: comm               !! MPI communicator
+        integer(int64),         intent(in)    :: alloc_bytes        !! Number of bytes to allocate
+        type(c_ptr),            intent(out)   :: ptr                !! Pointer to the allocated memory
+        integer(int32),         intent(out)   :: error_code         !! Error code
+#ifdef DTFFT_WITH_CUDA
+        integer(int64)  :: free_mem_avail, total_mem_avail
+#endif
+
+        error_code = DTFFT_SUCCESS
+        if ( platform == DTFFT_PLATFORM_HOST ) then
+            ptr = mem_alloc_host(alloc_bytes)
+#ifdef DTFFT_WITH_CUDA
+        else
+            CUDA_CALL( cudaMemGetInfo(free_mem_avail, total_mem_avail) )
+# ifdef DTFFT_DEBUG
+            block
+            integer(int64) :: min_mem, max_mem, min_free_mem, max_free_mem
+            integer(int32) :: mpi_err
+
+                call MPI_Allreduce(alloc_bytes, max_mem, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
+                call MPI_Allreduce(alloc_bytes, min_mem, 1, MPI_INTEGER8, MPI_MIN, comm, mpi_err)
+                call MPI_Allreduce(free_mem_avail, max_free_mem, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
+                call MPI_Allreduce(free_mem_avail, min_free_mem, 1, MPI_INTEGER8, MPI_MIN, comm, mpi_err)
+                WRITE_DEBUG("Trying to allocate "//to_str(min_mem)//"/"//to_str(max_mem)//" (min/max) bytes for backend: '"//dtfft_get_backend_string(backend)//"'")
+                WRITE_DEBUG("Free memory available: "//to_str(min_free_mem)//"/"//to_str(max_free_mem)//" (min/max) bytes")
+            endblock
+# endif
+            if ( alloc_bytes > free_mem_avail ) then
+                error_code = DTFFT_ERROR_ALLOC_FAILED
+                return
+            endif
+            if ( is_backend_nccl(backend) ) then
 # ifdef DTFFT_WITH_NCCL
 #   ifdef NCCL_HAVE_MEMALLOC
-            error_code = ncclMemAlloc(ptr, alloc_bytes)
+                error_code = ncclMemAlloc(ptr, alloc_bytes)
 #   else
-            error_code = cudaMalloc(ptr, alloc_bytes)
+                error_code = cudaMalloc(ptr, alloc_bytes)
 #   endif
 #   ifdef NCCL_HAVE_COMMREGISTER
-            if ( error_code == cudaSuccess .and. helper%should_register ) then
-                block
-                type(c_ptr), allocatable :: temp(:,:)
-                type(c_ptr) :: handle
+                if ( error_code == cudaSuccess .and. helper%should_register ) then
+                    block
+                    type(c_ptr), allocatable :: temp(:,:)
+                    type(c_ptr) :: handle
 
-                    if ( size(helper%nccl_register, dim=2) == helper%nccl_register_size ) then
-                        allocate( temp(2, helper%nccl_register_size + NCCL_REGISTER_PREALLOC_SIZE) )
-                        temp(2, 1:helper%nccl_register_size) = helper%nccl_register(2, 1:helper%nccl_register_size)
-                        deallocate( helper%nccl_register )
-                        call move_alloc(temp, helper%nccl_register)
-                    endif
-                    helper%nccl_register_size = helper%nccl_register_size + 1
+                        if ( size(helper%nccl_register, dim=2) == helper%nccl_register_size ) then
+                            allocate( temp(2, helper%nccl_register_size + NCCL_REGISTER_PREALLOC_SIZE) )
+                            temp(2, 1:helper%nccl_register_size) = helper%nccl_register(2, 1:helper%nccl_register_size)
+                            deallocate( helper%nccl_register )
+                            call move_alloc(temp, helper%nccl_register)
+                        endif
+                        helper%nccl_register_size = helper%nccl_register_size + 1
 
-                    NCCL_CALL( ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes, handle) )
-                    helper%nccl_register(1, helper%nccl_register_size) = ptr
-                    helper%nccl_register(2, helper%nccl_register_size) = handle
-                    WRITE_DEBUG("Registered pointer "//to_str(transfer(ptr, int64)))
-                endblock
-            endif
-#   endif
-# else
-        INTERNAL_ERROR("not DTFFT_WITH_NCCL")
-# endif
-        else if ( is_backend_nvshmem(backend) ) then
-# ifdef DTFFT_WITH_NVSHMEM
-            block
-            integer(int64)  :: max_alloc_bytes
-            integer(int32)  :: mpi_err
-
-                call MPI_Allreduce(alloc_bytes, max_alloc_bytes, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
-                ptr = nvshmem_malloc(max_alloc_bytes)
-                if ( is_null_ptr(ptr) ) error_code = DTFFT_ERROR_ALLOC_FAILED
-            endblock
-# else
-      INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
-# endif
-        else
-            error_code = cudaMalloc(ptr, alloc_bytes)
-        endif
-#endif
-    endif
-    if ( error_code /= DTFFT_SUCCESS ) error_code = DTFFT_ERROR_ALLOC_FAILED
-end subroutine alloc_mem
-
-subroutine free_mem(platform, helper, backend, ptr, error_code)
-!! Frees memory based on ``backend``
-type(dtfft_platform_t),         intent(in)    :: platform
-type(backend_helper),           intent(inout) :: helper         !! Backend helper
-type(dtfft_backend_t),          intent(in)    :: backend        !! GPU backend
-type(c_ptr),                    intent(in)    :: ptr            !! Pointer to the memory to free
-integer(int32),                 intent(out)   :: error_code     !! Error code
-
-    error_code = DTFFT_SUCCESS
-    if ( platform == DTFFT_PLATFORM_HOST ) then
-        call mem_free_host(ptr)
-#ifdef DTFFT_WITH_CUDA
-    else
-        if ( is_backend_nccl(backend) ) then
-# ifdef NCCL_HAVE_COMMREGISTER
-            if ( helper%should_register ) then
-                block
-                integer(int32) :: i
-
-                    do i = 1, size(helper%nccl_register, dim=2)
-                        if ( .not. is_same_ptr(ptr, helper%nccl_register(1, i)) ) cycle
-                        NCCL_CALL( ncclCommDeregister(helper%nccl_comm, helper%nccl_register(2, i)) )
-                        helper%nccl_register(1, i) = c_null_ptr
-                        helper%nccl_register(2, i) = c_null_ptr
-                        helper%nccl_register_size = helper%nccl_register_size - 1
-                        WRITE_DEBUG("Pointer "//to_str(transfer(ptr, int64))//" has been removed from registry")
-                    enddo
-                endblock
-            endif
-# endif
-# ifdef DTFFT_WITH_NCCL
-#   ifdef NCCL_HAVE_MEMALLOC
-            error_code = ncclMemFree(ptr)
-#   else
-            error_code = cudaFree(ptr)
+                        NCCL_CALL( ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes, handle) )
+                        helper%nccl_register(1, helper%nccl_register_size) = ptr
+                        helper%nccl_register(2, helper%nccl_register_size) = handle
+                        WRITE_DEBUG("Registered pointer "//to_str(transfer(ptr, int64)))
+                    endblock
+                endif
 #   endif
 # else
             INTERNAL_ERROR("not DTFFT_WITH_NCCL")
 # endif
-        else if ( is_backend_nvshmem(backend) ) then
+            else if ( is_backend_nvshmem(backend) ) then
 # ifdef DTFFT_WITH_NVSHMEM
-            call nvshmem_free(ptr)
+                block
+                integer(int64)  :: max_alloc_bytes
+                integer(int32)  :: mpi_err
+
+                    call MPI_Allreduce(alloc_bytes, max_alloc_bytes, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
+                    ptr = nvshmem_malloc(max_alloc_bytes)
+                    if ( is_null_ptr(ptr) ) error_code = DTFFT_ERROR_ALLOC_FAILED
+                endblock
 # else
-            INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
+        INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
 # endif
+            else
+                error_code = cudaMalloc(ptr, alloc_bytes)
+            endif
+#endif
+        endif
+        if ( error_code /= DTFFT_SUCCESS ) error_code = DTFFT_ERROR_ALLOC_FAILED
+    end subroutine alloc_mem
+
+    subroutine free_mem(platform, helper, backend, ptr, error_code)
+    !! Frees memory based on ``backend``
+        type(dtfft_platform_t),         intent(in)    :: platform       !! Execution platform
+        type(backend_helper),           intent(inout) :: helper         !! Backend helper
+        type(dtfft_backend_t),          intent(in)    :: backend        !! Backend to free memory for
+        type(c_ptr),                    intent(in)    :: ptr            !! Pointer to the memory to free
+        integer(int32),                 intent(out)   :: error_code     !! Error code
+
+        error_code = DTFFT_SUCCESS
+        if ( platform == DTFFT_PLATFORM_HOST ) then
+            call mem_free_host(ptr)
+#ifdef DTFFT_WITH_CUDA
         else
-            error_code = cudaFree(ptr)
+            if ( is_backend_nccl(backend) ) then
+# ifdef NCCL_HAVE_COMMREGISTER
+                if ( helper%should_register ) then
+                    block
+                    integer(int32) :: i
+
+                        do i = 1, size(helper%nccl_register, dim=2)
+                            if ( .not. is_same_ptr(ptr, helper%nccl_register(1, i)) ) cycle
+                            NCCL_CALL( ncclCommDeregister(helper%nccl_comm, helper%nccl_register(2, i)) )
+                            helper%nccl_register(1, i) = c_null_ptr
+                            helper%nccl_register(2, i) = c_null_ptr
+                            helper%nccl_register_size = helper%nccl_register_size - 1
+                            WRITE_DEBUG("Pointer "//to_str(transfer(ptr, int64))//" has been removed from registry")
+                        enddo
+                    endblock
+                endif
+# endif
+# ifdef DTFFT_WITH_NCCL
+#   ifdef NCCL_HAVE_MEMALLOC
+                error_code = ncclMemFree(ptr)
+#   else
+                error_code = cudaFree(ptr)
+#   endif
+# else
+                INTERNAL_ERROR("not DTFFT_WITH_NCCL")
+# endif
+            else if ( is_backend_nvshmem(backend) ) then
+# ifdef DTFFT_WITH_NVSHMEM
+                call nvshmem_free(ptr)
+# else
+                INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
+# endif
+            else
+                error_code = cudaFree(ptr)
+            endif
+#endif
+        endif
+        if ( error_code /= DTFFT_SUCCESS ) error_code = DTFFT_ERROR_FREE_FAILED
+    end subroutine free_mem
+
+    subroutine allocate_plans(plans, backend, backends)
+    !! Allocates array of plans
+        type(reshape_container),            intent(inout) :: plans(:)       !! Plans to allocate
+        type(dtfft_backend_t),  optional,   intent(in)    :: backend        !! Backend to use
+        type(dtfft_backend_t),  optional,   intent(in)    :: backends(:)    !! Backends to use
+        integer(int32) :: i
+        type(dtfft_backend_t) :: backend_
+
+#ifdef DTFFT_DEBUG
+        if ( .not.present(backend) .and. .not.present(backends) ) then
+            INTERNAL_ERROR("allocate_plans: .not.present(backend) .and. .not.present(backends)")
         endif
 #endif
-    endif
-    if ( error_code /= DTFFT_SUCCESS ) error_code = DTFFT_ERROR_FREE_FAILED
-end subroutine free_mem
 
-subroutine allocate_plans(plans, backend)
-!! Allocates array of plans
-type(reshape_container),    intent(inout) :: plans(:)   !! Plans to allocate
-type(dtfft_backend_t),      intent(in)    :: backend    !! Backend to use
-integer(int32) :: i
+        do i = 1, size(plans)
+            if ( present(backend) ) then
+                backend_ = backend
+            else
+                backend_ = backends(i)
+            endif
+            if ( backend_ == DTFFT_BACKEND_MPI_DATATYPE ) then
+                allocate( reshape_handle_datatype :: plans(i)%p )
+            else
+                allocate( reshape_handle_generic :: plans(i)%p )
+            endif
+        enddo
+    end subroutine allocate_plans
 
-    do i = 1, size(plans)
-        if ( backend == DTFFT_BACKEND_MPI_DATATYPE ) then
-            allocate( reshape_handle_datatype :: plans(i)%p )
+    pure integer(int64) function get_aux_bytes_generic(plans)
+    !! Returns maximum auxiliary memory size needed by handles array
+        type(reshape_container),   intent(in)  :: plans(:)          !! Reshape handles
+        integer(int32)  :: i
+
+        get_aux_bytes_generic = 0_int64
+        do i = 1, size(plans)
+            if ( allocated( plans(i)%p ) ) then
+                get_aux_bytes_generic = max( get_aux_bytes_generic, plans(i)%p%get_aux_bytes() )
+            endif
+        enddo
+    end function get_aux_bytes_generic
+
+    subroutine destroy_plans(plans)
+    !! Destroys array of plans
+        type(reshape_container),    intent(inout) :: plans(:)       !! Plans to destroy
+        integer(int32) :: i
+
+        do i = 1, size(plans)
+            if( allocated(plans(i)%p) ) then
+                call plans(i)%p%destroy()
+                deallocate(plans(i)%p)
+            endif
+        enddo
+    end subroutine destroy_plans
+
+    function execute_autotune(plans, comm, backend, platform, helper, stream, buffer_size, report_space_count) result(execution_time)
+    !! Executes autotuning for given plans and returns execution time in milliseconds
+        type(reshape_container),    intent(inout) :: plans(:)       !! Allocated plans
+        TYPE_MPI_COMM,              intent(in)    :: comm           !! Communicator
+        type(dtfft_backend_t),      intent(in)    :: backend        !! Backend to use
+        type(dtfft_platform_t),     intent(in)    :: platform       !! Platform used
+        type(backend_helper),       intent(inout) :: helper         !! Helper to use
+        type(dtfft_stream_t),       intent(in)    :: stream         !! Stream to use
+        integer(int64),             intent(in)    :: buffer_size        !!
+        integer(int32), optional,   intent(in)    :: report_space_count
+        real(real32)                              :: execution_time !! Execution time
+        type(execute_args) :: execute_kwargs
+#ifdef DTFFT_WITH_CUDA
+        type(cudaEvent) :: timer_start, timer_stop
+#endif
+        type(c_ptr) :: in, out, aux
+        ! real(real32), pointer :: pin(:)   !! Source buffer
+        ! real(real32), pointer :: pout(:)  !! Destination buffer
+        ! real(real32), pointer :: paux(:)  !! Auxiliary buffer
+        integer(int32) :: i, iter, ierr
+        integer(int64) :: float_buffer_size
+        ! character(len=:), allocatable :: testing_phase
+        logical :: is_aux_alloc
+        integer(int32) :: n_warmup_iters, n_iters
+        real(real64) :: ts, te
+
+
+        n_warmup_iters = get_conf_measure_warmup_iters()
+        n_iters = get_conf_measure_iters()
+
+#ifdef DTFFT_WITH_CUDA
+        if ( platform == DTFFT_PLATFORM_CUDA ) then
+        CUDA_CALL( cudaEventCreate(timer_start) )
+        CUDA_CALL( cudaEventCreate(timer_stop) )
+        endif
+#endif
+        float_buffer_size = buffer_size / FLOAT_STORAGE_SIZE
+
+        call alloc_mem(platform, helper, backend, comm, buffer_size, in, ierr); DTFFT_CHECK(ierr)
+        call alloc_mem(platform, helper, backend, comm, buffer_size, out, ierr); DTFFT_CHECK(ierr)
+
+        ! call c_f_pointer(in, pin, [float_buffer_size])
+        ! call c_f_pointer(out, pout, [float_buffer_size])
+
+        ! testing_phase = "Testing backend "//dtfft_get_backend_string(backend)
+        ! REGION_BEGIN(testing_phase, COLOR_AUTOTUNE2)
+        ! WRITE_INFO(testing_phase)
+
+        call alloc_and_set_aux(platform, helper, backend, comm, aux, plans, is_aux_alloc)
+        execute_kwargs%p1 = aux
+        ! if( is_aux_alloc ) then
+        !     execute_kwargs%p1 => paux
+        ! else
+        !     execute_kwargs%p1 => pout
+        ! endif
+        execute_kwargs%exec_type = EXEC_BLOCKING
+        execute_kwargs%stream = stream
+
+        ! REGION_BEGIN("Warmup", COLOR_TRANSPOSE)
+        do iter = 1, n_warmup_iters
+            do i = 1, size(plans)
+                call plans(i)%p%execute(in, out, execute_kwargs, ierr)
+            enddo
+        enddo
+#ifdef DTFFT_WITH_CUDA
+        if ( platform == DTFFT_PLATFORM_CUDA ) then
+            CUDA_CALL( cudaStreamSynchronize(stream) )
+        endif
+#endif
+        ! REGION_END("Warmup")
+
+        ! REGION_BEGIN("Measure", COLOR_EXECUTE)
+
+        call MPI_Barrier(comm, ierr)
+        if ( platform == DTFFT_PLATFORM_HOST ) then
+            ts = MPI_Wtime()
+#ifdef DTFFT_WITH_CUDA
         else
-            allocate( reshape_handle_generic :: plans(i)%p )
-        endif
-    enddo
-end subroutine allocate_plans
-
-pure integer(int64) function get_aux_bytes_generic(plans)
-!! Returns maximum auxiliary memory size needed by plans
-type(reshape_container),   intent(in)  :: plans(:)       !! Transpose plans
-integer(int32)  :: i
-
-    get_aux_bytes_generic = 0_int64
-    do i = 1, size(plans)
-        if ( allocated( plans(i)%p ) ) then
-            get_aux_bytes_generic = max( get_aux_bytes_generic, plans(i)%p%get_aux_bytes() )
-        endif
-    enddo
-end function get_aux_bytes_generic
-
-subroutine destroy_plans(plans)
-!! Destroys array of plans
-type(reshape_container),           intent(inout) :: plans(:) !! Plans to destroy
-integer(int32) :: i
-
-    do i = 1, size(plans)
-        if( allocated(plans(i)%p) ) then
-            call plans(i)%p%destroy()
-            deallocate(plans(i)%p)
-        endif
-    enddo
-end subroutine destroy_plans
-
-function execute_autotune(plans, comm, backend, platform, helper, stream, buffer_size, report_space_count) result(execution_time)
-!! Destroys array of plans
-type(reshape_container),    intent(inout) :: plans(:)       !! Allocated plans
-TYPE_MPI_COMM,              intent(in)    :: comm           !! Communicator
-type(dtfft_backend_t),      intent(in)    :: backend        !! Backend to use
-type(dtfft_platform_t),     intent(in)    :: platform       !! Platform used
-type(backend_helper),       intent(inout) :: helper         !! Helper to use
-type(dtfft_stream_t),       intent(in)    :: stream         !! Stream to use
-integer(int64),             intent(in)    :: buffer_size
-integer(int32), optional,   intent(in)    :: report_space_count
-real(real32)                              :: execution_time !! Execution time
-type(execute_args) :: execute_kwargs
-#ifdef DTFFT_WITH_CUDA
-type(cudaEvent) :: timer_start, timer_stop
+            CUDA_CALL( cudaEventRecord(timer_start, stream) )
 #endif
-type(c_ptr) :: in, out, aux
-real(real32), pointer :: pin(:)   !! Source buffer
-real(real32), pointer :: pout(:)  !! Destination buffer
-real(real32), pointer :: paux(:)  !! Auxiliary buffer
-integer(int32) :: i, iter, ierr
-integer(int64) :: float_buffer_size
-! character(len=:), allocatable :: testing_phase
-logical :: is_aux_alloc
-integer(int32) :: n_warmup_iters, n_iters
-real(real64) :: ts, te
-
-
-    n_warmup_iters = get_conf_measure_warmup_iters()
-    n_iters = get_conf_measure_iters()
-
-#ifdef DTFFT_WITH_CUDA
-    if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( cudaEventCreate(timer_start) )
-      CUDA_CALL( cudaEventCreate(timer_stop) )
-    endif
-#endif
-    float_buffer_size = buffer_size / FLOAT_STORAGE_SIZE
-
-    call alloc_mem(platform, helper, backend, comm, buffer_size, in, ierr); DTFFT_CHECK(ierr)
-    call alloc_mem(platform, helper, backend, comm, buffer_size, out, ierr); DTFFT_CHECK(ierr)
-
-    call c_f_pointer(in, pin, [float_buffer_size])
-    call c_f_pointer(out, pout, [float_buffer_size])
-
-    ! testing_phase = "Testing backend "//dtfft_get_backend_string(backend)
-    ! REGION_BEGIN(testing_phase, COLOR_AUTOTUNE2)
-    ! WRITE_INFO(testing_phase)
-
-    call alloc_and_set_aux(platform, helper, backend, comm, aux, paux, plans, is_aux_alloc)
-    if( is_aux_alloc ) then
-        execute_kwargs%p1 => paux
-    else
-        execute_kwargs%p1 => pout
-    endif
-    execute_kwargs%exec_type = EXEC_BLOCKING
-    execute_kwargs%stream = stream
-
-    ! REGION_BEGIN("Warmup", COLOR_TRANSPOSE)
-    do iter = 1, n_warmup_iters
-        do i = 1, size(plans)
-            call plans(i)%p%execute(pin, pout, execute_kwargs, ierr)
+        endif
+        do iter = 1, n_iters
+            do i = 1, size(plans)
+                call plans(i)%p%execute(in, out, execute_kwargs, ierr)
+            enddo
         enddo
-    enddo
+        if ( platform == DTFFT_PLATFORM_HOST ) then
+            te = MPI_Wtime()
+            execution_time = real(te - ts, real32) * 1000._real32
 #ifdef DTFFT_WITH_CUDA
-    if ( platform == DTFFT_PLATFORM_CUDA ) then
-        CUDA_CALL( cudaStreamSynchronize(stream) )
-    endif
+        else
+            CUDA_CALL( cudaEventRecord(timer_stop, stream) )
+            CUDA_CALL( cudaEventSynchronize(timer_stop) )
+            CUDA_CALL( cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
 #endif
-    ! REGION_END("Warmup")
+        endif
+        ! REGION_END("Measure")
 
-    ! REGION_BEGIN("Measure", COLOR_EXECUTE)
-    if ( platform == DTFFT_PLATFORM_HOST ) then
-        ts = MPI_Wtime()
-#ifdef DTFFT_WITH_CUDA
-    else
-        CUDA_CALL( cudaEventRecord(timer_start, stream) )
-#endif
-    endif
-    do iter = 1, n_iters
-        do i = 1, size(plans)
-            call plans(i)%p%execute(pin, pout, execute_kwargs, ierr)
-        enddo
-    enddo
-    if ( platform == DTFFT_PLATFORM_HOST ) then
-        te = MPI_Wtime()
-        execution_time = real(te - ts, real32) * 1000._real32
-#ifdef DTFFT_WITH_CUDA
-    else
-        CUDA_CALL( cudaEventRecord(timer_stop, stream) )
-        CUDA_CALL( cudaEventSynchronize(timer_stop) )
-        CUDA_CALL( cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
-#endif
-    endif
-    ! REGION_END("Measure")
+        ! REGION_END(testing_phase)
 
-    ! REGION_END(testing_phase)
-
-    execution_time = report_timings(comm, execution_time, n_iters, report_space_count)
+        execution_time = report_timings(comm, execution_time, n_iters, report_space_count)
 
 #ifdef DTFFT_WITH_CUDA
-    if ( platform == DTFFT_PLATFORM_CUDA ) then
-      CUDA_CALL( cudaEventDestroy(timer_start) )
-      CUDA_CALL( cudaEventDestroy(timer_stop) )
-    endif
+        if ( platform == DTFFT_PLATFORM_CUDA ) then
+            CUDA_CALL( cudaEventDestroy(timer_start) )
+            CUDA_CALL( cudaEventDestroy(timer_stop) )
+        endif
 #endif
 
-    call free_mem(platform, helper, backend, in, ierr)
-    call free_mem(platform, helper, backend, out, ierr)
-    if ( is_aux_alloc ) then
-        call free_mem(platform, helper, backend, aux, ierr)
-    endif
+        call free_mem(platform, helper, backend, in, ierr)
+        call free_mem(platform, helper, backend, out, ierr)
+        if ( is_aux_alloc ) then
+            call free_mem(platform, helper, backend, aux, ierr)
+        endif
 
-    ! if ( platform == DTFFT_PLATFORM_CUDA .and. is_backend_mpi(backend)) then
-    !     call try_free_mpi_handles(comm, platform, helper)
-    ! endif
-end function execute_autotune
+        ! if ( platform == DTFFT_PLATFORM_CUDA .and. is_backend_mpi(backend)) then
+        !     call try_free_mpi_handles(comm, platform, helper)
+        ! endif
+    end function execute_autotune
 
-function report_timings(comm, elapsed_time, n_iters, space_count) result(max_time)
-TYPE_MPI_COMM,            intent(in)  :: comm
-real(real32),             intent(in)  :: elapsed_time
-integer(int32),           intent(in)  :: n_iters
-integer(int32), optional, intent(in)  :: space_count
-real(real32)                          :: max_time
-real(real32) :: execution_time, min_time, avg_time
-integer(int32) :: ierr, comm_size, space_count_
+    function report_timings(comm, elapsed_time, n_iters, space_count) result(max_time)
+    !! Aggregates and writing timings to stdout
+        TYPE_MPI_COMM,            intent(in)  :: comm
+        real(real32),             intent(in)  :: elapsed_time
+        integer(int32),           intent(in)  :: n_iters
+        integer(int32), optional, intent(in)  :: space_count
+        real(real32)                          :: max_time
+        real(real32) :: execution_time, min_time, avg_time
+        integer(int32) :: ierr, comm_size, space_count_
 
-    execution_time = elapsed_time / real(n_iters, real32)
-    space_count_ = 2; if ( present(space_count) ) space_count_ = space_count
+        execution_time = elapsed_time / real(n_iters, real32)
+        space_count_ = 2; if ( present(space_count) ) space_count_ = space_count
 
-    call MPI_Allreduce(execution_time, min_time, 1, MPI_REAL4, MPI_MIN, comm, ierr)
-    call MPI_Allreduce(execution_time, max_time, 1, MPI_REAL4, MPI_MAX, comm, ierr)
-    call MPI_Allreduce(execution_time, avg_time, 1, MPI_REAL4, MPI_SUM, comm, ierr)
-    call MPI_Comm_size(comm, comm_size, ierr)
+        call MPI_Allreduce(execution_time, min_time, 1, MPI_REAL4, MPI_MIN, comm, ierr)
+        call MPI_Allreduce(execution_time, max_time, 1, MPI_REAL4, MPI_MAX, comm, ierr)
+        call MPI_Allreduce(execution_time, avg_time, 1, MPI_REAL4, MPI_SUM, comm, ierr)
+        call MPI_Comm_size(comm, comm_size, ierr)
 
-    avg_time = avg_time / real(comm_size, real32)
+        avg_time = avg_time / real(comm_size, real32)
 
-    WRITE_INFO(repeat(" ", space_count_)//"max: "//to_str(real(max_time, real64))//" [ms]")
-    WRITE_INFO(repeat(" ", space_count_)//"min: "//to_str(real(min_time, real64))//" [ms]")
-    WRITE_INFO(repeat(" ", space_count_)//"avg: "//to_str(real(avg_time, real64))//" [ms]")
-end function report_timings
+        WRITE_INFO(repeat(" ", space_count_)//"max: "//to_str(real(max_time, real64))//" [ms]")
+        WRITE_INFO(repeat(" ", space_count_)//"min: "//to_str(real(min_time, real64))//" [ms]")
+        WRITE_INFO(repeat(" ", space_count_)//"avg: "//to_str(real(avg_time, real64))//" [ms]")
+    end function report_timings
 
-subroutine alloc_and_set_aux(platform, helper, backend, cart_comm, aux, paux, plans, is_aux_alloc)
-!! Allocates auxiliary memory according to the backend and sets it to the plans
-type(dtfft_platform_t),       intent(in)                :: platform
-type(backend_helper),         intent(inout)             :: helper       !! Backend helper
-type(dtfft_backend_t),        intent(in)                :: backend      !! GPU backend
-TYPE_MPI_COMM,                intent(in)                :: cart_comm    !! Cartesian communicator
-type(c_ptr),                  intent(inout)             :: aux          !! Allocatable auxiliary memory
-real(real32),     pointer,    intent(inout)             :: paux(:)      !! Pointer to auxiliary memory
-type(reshape_container),      intent(in)                :: plans(:)
-logical                                                 :: is_aux_alloc !! Is auxiliary memory allocated
-integer(int64) :: max_work_size_local, max_work_size_global
-integer(int32)  :: mpi_ierr
-integer(int32) :: alloc_ierr
+    subroutine alloc_and_set_aux(platform, helper, backend, cart_comm, aux, plans, is_aux_alloc)
+    !! Allocates auxiliary memory according to the backend and sets it to the plans
+        type(dtfft_platform_t),       intent(in)                :: platform
+        type(backend_helper),         intent(inout)             :: helper       !! Backend helper
+        type(dtfft_backend_t),        intent(in)                :: backend      !! GPU backend
+        TYPE_MPI_COMM,                intent(in)                :: cart_comm    !! Cartesian communicator
+        type(c_ptr),                  intent(inout)             :: aux          !! Allocatable auxiliary memory
+        ! real(real32),     pointer,    intent(inout)             :: paux(:)      !! Pointer to auxiliary memory
+        type(reshape_container),      intent(in)                :: plans(:)
+        logical                                                 :: is_aux_alloc !! Is auxiliary memory allocated
+        integer(int64) :: max_work_size_local, max_work_size_global
+        integer(int32)  :: mpi_ierr
+        integer(int32) :: alloc_ierr
+        type(dtfft_backend_t) :: backend_
 
-    max_work_size_local = get_aux_bytes_generic(plans)
-    call MPI_Allreduce(max_work_size_local, max_work_size_global, 1, MPI_INTEGER8, MPI_MAX, cart_comm, mpi_ierr)
+        max_work_size_local = get_aux_bytes_generic(plans)
+        call MPI_Allreduce(max_work_size_local, max_work_size_global, 1, MPI_INTEGER8, MPI_MAX, cart_comm, mpi_ierr)
 
-    is_aux_alloc = .false.
-    paux => null()
-    if ( max_work_size_global > 0 ) then
-        call alloc_mem(platform, helper, backend, cart_comm, max_work_size_global, aux, alloc_ierr)
-        DTFFT_CHECK(alloc_ierr)
-        call c_f_pointer(aux, paux, [max_work_size_global / 4_int64])
-        is_aux_alloc = .true.
-    endif
-end subroutine alloc_and_set_aux
+        is_aux_alloc = .false.
+        ! paux => null()
+        if ( max_work_size_global > 0 ) then
+            backend_ = backend; if ( is_nvshmem_generic(plans, backend_) ) backend_ = DTFFT_BACKEND_CUFFTMP
+            call alloc_mem(platform, helper, backend_, cart_comm, max_work_size_global, aux, alloc_ierr)
+            DTFFT_CHECK(alloc_ierr)
+            ! call c_f_pointer(aux, paux, [max_work_size_global / 4_int64])
+            is_aux_alloc = .true.
+        endif
+    end subroutine alloc_and_set_aux
 
 ! subroutine try_free_mpi_handles(comm, platform, helper)
 ! TYPE_MPI_COMM,          intent(in)      :: comm

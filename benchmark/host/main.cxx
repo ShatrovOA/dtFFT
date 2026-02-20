@@ -96,8 +96,8 @@ void run_all(std::vector<int> &dims, bool weak_scaling)
 
     std::map<std::string, double> benchmark_results;
 
-    double fftw3_time = run_fftw3(dims);
-    if (fftw3_time > 0) benchmark_results["FFTW3 "] = fftw3_time;
+    // double fftw3_time = run_fftw3(dims);
+    // if (fftw3_time > 0) benchmark_results["FFTW3 "] = fftw3_time;
 
     // double mkl_time = run_mkl(dims);
     // if (mkl_time > 0) benchmark_results["MKL DFTI "] = mkl_time;
@@ -123,31 +123,31 @@ void run_all(std::vector<int> &dims, bool weak_scaling)
         }
     }
 
-    double pfft_time = run_pfft(dims);
-    if (pfft_time > 0) benchmark_results["PFFT"] = pfft_time;
+    // double pfft_time = run_pfft(dims);
+    // if (pfft_time > 0) benchmark_results["PFFT"] = pfft_time;
 
-    // P3DFFT бенчмарк
-    double p3dfft_time = run_p3dfft(dims);
-    if (p3dfft_time > 0) benchmark_results["P3DFFT++"] = p3dfft_time;
+    // // P3DFFT бенчмарк
+    // double p3dfft_time = run_p3dfft(dims);
+    // if (p3dfft_time > 0) benchmark_results["P3DFFT++"] = p3dfft_time;
 
-    double heffte_time = run_heffte<double>(dims);
-    if (heffte_time > 0) benchmark_results["HeFFTe"] = heffte_time;
+    // double heffte_time = run_heffte<double>(dims);
+    // if (heffte_time > 0) benchmark_results["HeFFTe"] = heffte_time;
 
-    try {
-        fftw_mpi_init();
-        double accfft_time = run_accfft(dims);
-        if (accfft_time > 0) benchmark_results["AccFFT"] = accfft_time;
-    } catch (const std::exception& e) {
-        int comm_rank;
+    // try {
+    //     fftw_mpi_init();
+    //     double accfft_time = run_accfft(dims);
+    //     if (accfft_time > 0) benchmark_results["AccFFT"] = accfft_time;
+    // } catch (const std::exception& e) {
+    //     int comm_rank;
 
-        MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+    //     MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 
-        if ( comm_rank == 0 ) e.what();
-    }
+    //     if ( comm_rank == 0 ) e.what();
+    // }
 
-    fftw_mpi_init();
-    double decomp2d_time = run_2d_decomp(dims);
-    if (decomp2d_time > 0) benchmark_results["2d-decomp"] = decomp2d_time;
+    // fftw_mpi_init();
+    // double decomp2d_time = run_2d_decomp(dims);
+    // if (decomp2d_time > 0) benchmark_results["2d-decomp"] = decomp2d_time;
 
     print_benchmark_results(benchmark_results, dims);
 }
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     for (auto &base_dims : base_dims_sets)
     {
 
-        std::vector<bool> weak_scaling_opts = {false};
+        std::vector<bool> weak_scaling_opts = {true};
 
         for (auto weak_scaling : weak_scaling_opts)
         {

@@ -15,15 +15,15 @@ void setup_dtfft_config(bool enable_z_slab, dtfft::Backend backend = dtfft::Back
   conf.set_enable_z_slab(enable_z_slab)
     .set_backend(backend)
     .set_reshape_backend(backend)
-    .set_enable_log(false)
+    .set_enable_log(true)
     .set_measure_iters(10)
     .set_measure_warmup_iters(3)
     .set_enable_kernel_autotune(true)
     .set_enable_fourier_reshape(true)
     .set_enable_pipelined_backends(true)
-    .set_enable_mpi_backends(true)
-    .set_enable_nccl_backends(false)
-    .set_enable_nvshmem_backends(false)
+    .set_enable_mpi_backends(false)
+    .set_enable_nccl_backends(true)
+    .set_enable_nvshmem_backends(true)
     .set_platform(dtfft::Platform::CUDA);
 
   DTFFT_CXX_CALL( dtfft::set_config(conf) );

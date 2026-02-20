@@ -222,6 +222,22 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Invalid backend provided for selected platform
 
+.. f:variable:: DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED
+
+  CUDA support is not available for compression
+
+.. f:variable:: DTFFT_ERROR_COMPRESSION_INVALID_RATE
+
+  Invalid compression rate
+
+.. f:variable:: DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
+
+  Invalid compression precision
+
+.. f:variable:: DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE
+
+  Invalid compression tolerance
+
 Basic types
 ===========
 
@@ -380,13 +396,17 @@ _____________________
 .. f:variable:: DTFFT_MEASURE
 
   Will attempt to find best MPI Grid decomposition.
-  Passing this flag and MPI Communicator with cartesian topology to any plan constructor is same as :f:var:`DTFFT_ESTIMATE`
+  Passing this flag and MPI Communicator with cartesian topology to any plan constructor is same as ``DTFFT_ESTIMATE``
 
 .. f:variable:: DTFFT_PATIENT
 
-  Same as :f:var:`DTFFT_MEASURE` plus cycle through various send and recieve MPI_Datatypes.
+  This effort option extends ``DTFFT_MEASURE`` by selecting the best-performing communication backend for All-to-All communications.
 
-  For GPU Build of the library this value will cycle through enabled GPU Backend in order to find the fastest.
+.. f:variable:: DTFFT_EXHAUSTIVE
+
+  This maximum-effort option extends ``DTFFT_PATIENT`` by including kernel autotuning (both host and GPU, depending on the execution platform) and selecting the best-performing backend for reshape operations.
+
+  This level also enables autotuning of :f:type:`dtfft_transpose_mode_t` by executing each generic backend twice. It is not recommended to use this effort level with **Global-dimension workflow** on a huge number of processes.
 
 ------
 
@@ -465,7 +485,7 @@ _____________________
 ------
 
 dtfft_backend_t
------------------------
+---------------
 
 .. f:type:: dtfft_backend_t
 
@@ -504,6 +524,22 @@ _____________________
 
   MPI peer-to-peer algorithm with scheduled communication
 
+.. f:variable:: DTFFT_BACKEND_MPI_P2P_FUSED
+
+  MPI peer-to-peer pipelined algorithm with overlapping packing, exchange and unpacking with scheduled communication
+
+.. f:variable:: DTFFT_BACKEND_MPI_RMA_FUSED
+
+  MPI RMA pipelined algorithm with overlapping packing, exchange and unpacking with scheduled communication
+
+.. f:variable:: DTFFT_BACKEND_MPI_P2P_COMPRESSED
+
+  MPI peer-to-peer compressed algorithm
+
+.. f:variable:: DTFFT_BACKEND_MPI_RMA_COMPRESSED
+
+  MPI RMA compressed algorithm
+
 .. f:variable:: DTFFT_BACKEND_NCCL
 
   NCCL backend
@@ -512,6 +548,10 @@ _____________________
 
   NCCL backend with overlapping data copying and unpacking
 
+.. f:variable:: DTFFT_BACKEND_NCCL_COMPRESSED
+
+  NCCL backend that performs compression before data exchange and decompression after.
+
 .. f:variable:: DTFFT_BACKEND_CUFFTMP
 
   cuFFTMp backend
@@ -519,6 +559,10 @@ _____________________
 .. f:variable:: DTFFT_BACKEND_CUFFTMP_PIPELINED
 
   cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance.
+
+.. f:variable:: DTFFT_BACKEND_ADAPTIVE
+
+  Adaptive backend that selects best backend for each transpose/reshape operation during plan creation.
 
 Related Type functions
 _______________________
@@ -539,6 +583,114 @@ _______________________
   :p dtfft_backend_t backend [in]: Backend to check
   :r logical:
     ``.true.`` if backend is pipelined, ``.false.`` otherwise
+
+------
+
+dtfft_transpose_mode_t
+----------------------
+
+.. f:type:: dtfft_transpose_mode_t
+
+  Type that specifies at which stage the local transposition is performed during global exchange.
+
+Type Parameters
+_______________
+
+.. f:variable:: DTFFT_TRANSPOSE_MODE_PACK
+
+  Perform transposition during the packing stage (Sender side).
+
+.. f:variable:: DTFFT_TRANSPOSE_MODE_UNPACK
+
+  Perform transposition during the unpacking stage (Receiver side).
+
+------
+
+dtfft_access_mode_t
+-------------------
+
+.. f:type:: dtfft_access_mode_t
+
+  Type that specifies the memory access pattern (optimization target) for local transposition in Generic backends.
+
+Type Parameters
+_______________
+
+.. f:variable:: DTFFT_ACCESS_MODE_WRITE
+
+  Optimize for contiguous write access (default).
+
+.. f:variable:: DTFFT_ACCESS_MODE_READ
+
+  Optimize for contiguous read access.
+
+------
+
+dtfft_compression_mode_t
+------------------------
+
+.. f:type:: dtfft_compression_mode_t
+
+  Type that specifies compression mode.
+
+Type Parameters
+_______________
+
+.. f:variable:: DTFFT_COMPRESSION_MODE_LOSSLESS
+
+  Lossless compression mode.
+
+.. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_RATE
+
+  Fixed rate compression mode.
+
+.. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_PRECISION
+
+  Fixed precision compression mode.
+
+.. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
+
+  Fixed accuracy compression mode.
+
+------
+
+dtfft_compression_lib_t
+-----------------------
+
+.. f:type:: dtfft_compression_lib_t
+
+  Type that specifies compression library.
+
+Type Parameters
+_______________
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_ZFP
+
+  ZFP compression library.
+
+------
+
+dtfft_compression_config_t
+--------------------------
+
+.. f:type:: dtfft_compression_config_t
+
+  Type that specifies compression configuration.
+
+  :f dtfft_compression_lib_t compression_lib:
+    Compression library to use.
+
+  :f dtfft_compression_mode_t compression_mode:
+    Compression mode to use.
+
+  :f real(real64) rate:
+    Rate for ``DTFFT_COMPRESSION_MODE_FIXED_RATE``.
+
+  :f integer(int32) precision:
+    Precision for ``DTFFT_COMPRESSION_MODE_FIXED_PRECISION``.
+
+  :f real(real64) tolerance:
+    Tolerance for ``DTFFT_COMPRESSION_MODE_FIXED_ACCURACY``.
 
 ------
 
@@ -655,6 +807,18 @@ dtfft_config_t
 
     Default is ``.true.``
 
+  :f logical enable_rma_backends:
+
+    Should RMA backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+
+    Default is ``.true.``
+
+  :f logical enable_fused_backends:
+
+    Should fused backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+
+    Default is ``.true.``
+
   :f logical enable_nccl_backends:
     Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
 
@@ -692,6 +856,34 @@ dtfft_config_t
 
     This option can also be controlled using the ``DTFFT_ENABLE_FOURIER_RESHAPE`` environment variable.
 
+  :f dtfft_transpose_mode_t transpose_mode:
+    Specifies at which stage the local transposition is performed during global exchange.
+
+    Default is :f:var:`DTFFT_TRANSPOSE_MODE_PACK`
+
+  :f dtfft_access_mode_t access_mode:
+    Specifies the memory access pattern (write/read) for local transposition in Generic backends.
+
+    Default is :f:var:`DTFFT_ACCESS_MODE_WRITE`
+
+    This option can also be controlled using the ``DTFFT_ACCESS_MODE`` environment variable.
+
+  :f logical enable_compressed_backends:
+    Should compressed backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+
+    Default is ``.false.``
+
+    Only fixed-rate compression can be used during autotuning, since it provides predictable performance characteristics and does not require data-dependent decisions at runtime.
+    To enable compressed backends during autotuning, set this option to ``.true.``, set compression type to ``DTFFT_COMPRESSION_MODE_FIXED_RATE`` and provide desired compression rate.
+
+    This option can also be controlled using the ``DTFFT_ENABLE_COMPRESSED_BACKENDS`` environment variable.
+
+  :f dtfft_compression_config_t compression_config_transpose:
+    Options for compression approach during transpositions.
+
+  :f dtfft_compression_config_t compression_config_reshape:
+    Options for compression approach during reshape operations.
+
 Related Type functions
 _______________________
 
@@ -703,45 +895,11 @@ _______________________
 
 ------
 
-.. f:function:: dtfft_config_t([enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, backend, reshape_backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_kernel_autotune, enable_fourier_reshape])
+.. f:function:: dtfft_config_t([enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, reshape_backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_rma_backends, enable_fused_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_autotune, enable_fourier_reshape, transpose_mode, access_mode, enable_compressed_backends, compression_config_transpose, compression_config_reshape])
 
-  Type bound constructor
+  Type bound constructor. All parameters are optional. Once constructed user can pass config to :f:func:`dtfft_set_config` function in order to set custom configuration to dtFFT.
 
-  .. note:: This version of constructor is only present in the API when ``dtFFT`` was compiled without CUDA Support.
-
-  :o logical enable_log [in, optional]:
-    Should dtFFT print additional information during plan creation or not.
-  :o logical enable_z_slab [in, optional]:
-    Should dtFFT use Z-slab optimization or not.
-  :o logical enable_y_slab [in, optional]:
-    Should dtFFT use Y-slab optimization or not.
-  :o integer(int32) n_measure_warmup_iters [in, optional]:
-    Number of warmup iterations to execute during backend and kernel autotuning when effort level is ``DTFFT_MEASURE`` or higher.
-  :o integer(int32) n_measure_iters [in, optional]:
-    Number of iterations to execute during backend and kernel autotuning when effort level is ``DTFFT_MEASURE`` or higher.
-  :o dtfft_backend_t backend [in, optional]:
-    Backend that will be used by dtFFT when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
-  :o dtfft_backend_t reshape_backend [in, optional]:
-    Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when ``effort`` is ``DTFFT_ESTIMATE`` or ``DTFFT_MEASURE``.
-  :o logical enable_datatype_backend [in, optional]:
-    Should ``DTFFT_BACKEND_MPI_DATATYPE`` be considered for autotuning when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
-  :o logical enable_mpi_backends [in, optional]:
-    Should MPI Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
-  :o logical enable_pipelined_backends [in, optional]:
-    Should pipelined backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
-  :o logical enable_kernel_autotune [in, optional]:
-    Should dtFFT try to optimize kernel launch parameters during plan creation when ``effort`` is below ``DTFFT_EXHAUSTIVE``.
-  :o logical enable_fourier_reshape [in, optional]:
-    Should dtFFT execute reshapes from pencils to bricks in Fourier space.
-  :r dtfft_config_t: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
-
-------
-
-.. f:function:: dtfft_config_t([enable_log, enable_z_slab, enable_y_slab, n_measure_warmup_iters, n_measure_iters, platform, stream, backend, reshape_backend, enable_datatype_backend, enable_mpi_backends, enable_pipelined_backends, enable_nccl_backends, enable_nvshmem_backends, enable_kernel_autotune, enable_fourier_reshape])
-
-  Type bound constructor
-
-  .. note:: This version of constructor is only present in the API when ``dtFFT`` was compiled with CUDA Support.
+  .. note:: Some of the parameters are only available when dtFFT is built with CUDA or with Compression support.
 
   :o logical enable_log [in, optional]:
     Should dtFFT print additional information during plan creation or not.
@@ -767,6 +925,10 @@ _______________________
     Should MPI Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o logical enable_pipelined_backends [in, optional]:
     Should pipelined backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+  :o logical enable_rma_backends [in, optional]:
+    Should RMA backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+  :o logical enable_fused_backends [in, optional]:
+    Should fused backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o logical enable_nccl_backends [in, optional]:
     Should NCCL Backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o logical enable_nvshmem_backends [in, optional]:
@@ -775,6 +937,16 @@ _______________________
     Should dtFFT try to optimize kernel launch parameters during plan creation when ``effort`` is below ``DTFFT_EXHAUSTIVE``.
   :o logical enable_fourier_reshape [in, optional]:
     Should dtFFT execute reshapes from pencils to bricks in Fourier space.
+  :o dtfft_transpose_mode_t transpose_mode [in, optional]:
+    Specifies at which stage the local transposition is performed during global exchange.
+  :o dtfft_access_mode_t access_mode [in, optional]:
+    Specifies the memory access pattern (write/read) for local transposition in Generic backends.
+  :o logical enable_compressed_backends [in, optional]:
+    Should compressed backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
+  :o dtfft_compression_config_t compression_config_transpose [in, optional]:
+    Options for compression approach during transpositions.
+  :o dtfft_compression_config_t compression_config_reshape [in, optional]:
+    Options for compression approach during reshape operations.
   :r dtfft_config_t: Constructed ``dtFFT`` config ready to be set by call to :f:func:`dtfft_set_config`
 
 ------
@@ -956,7 +1128,7 @@ _______
   :p dtfft_reshape_t reshape_type [in]:
     Type of reshape
   :o type(*), dimension(..) aux [inout, optional]:
-    Optional auxiliary buffer. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+    Optional auxiliary buffer. If provided, size must be at least the value returned by :f:func:`get_aux_size_reshape`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -976,7 +1148,7 @@ ___________
   :p dtfft_reshape_t reshape_type [in]:
     Type of reshape
   :p type(c_ptr) aux [in]:
-    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least the value returned by :f:func:`get_aux_size_reshape`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -996,7 +1168,7 @@ _____________
   :p dtfft_reshape_t reshape_type [in]:
     Type of reshape
   :o type(*), dimension(..) aux [inout, optional]:
-    Optional auxiliary buffer. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+    Optional auxiliary buffer. If provided, size must be at least the value returned by :f:func:`get_aux_size_reshape`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r dtfft_request_t request:
@@ -1018,7 +1190,7 @@ _________________
   :p dtfft_reshape_t reshape_type [in]:
     Type of reshape
   :p type(c_ptr) aux [in]:
-    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least the value returned by :f:func:`get_aux_size_reshape`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r dtfft_request_t request:
@@ -1054,7 +1226,7 @@ _________
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
   :o type(*), dimension(..) aux [inout, optional]:
-    Optional auxiliary buffer. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+    Optional auxiliary buffer. If provided, size must be at least the value returned by :f:func:`get_aux_size_transpose`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -1074,7 +1246,7 @@ _____________
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
   :p type(c_ptr) aux [in]:
-    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least the value returned by :f:func:`get_aux_size_transpose`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
 
@@ -1094,7 +1266,7 @@ _______________
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
   :o type(*), dimension(..) aux [inout, optional]:
-    Optional auxiliary buffer. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+    Optional auxiliary buffer. If provided, size must be at least the value returned by :f:func:`get_aux_size_transpose`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r dtfft_request_t request:
@@ -1116,7 +1288,7 @@ ___________________
   :p dtfft_transpose_t transpose_type [in]:
     Type of transposition
   :p type(c_ptr) aux [in]:
-    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least ``alloc_size`` from :f:func:`get_local_sizes`.
+    Auxiliary pointer. Not optional. Must pass ``c_null_ptr`` if not used. If provided, size must be at least the value returned by :f:func:`get_aux_size_transpose`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r dtfft_request_t request:
@@ -1205,9 +1377,7 @@ _______________
   :o integer(int32) out_counts(:) [out, optional]:
     Number of elements in `fourier` space
   :o integer(int64) alloc_size(:) [out, optional]:
-    Minimum number of elements to be allocated for ``in``, ``out`` buffers required by :f:func:`execute`.
-    This also returns minimum number of elements required for ``aux`` buffer required by :f:func:`transpose` and :f:func:`reshape` in case underlying backend is pipelined.
-    Minimum number of ``aux`` elements required by :f:func:`execute` can be obtained by calling :f:func:`get_aux_size`.
+    Minimum number of elements to be allocated for ``in``, ``out`` buffers required by :f:func:`execute`, :f:func:`transpose`, and :f:func:`reshape`.
     Size of each element in bytes can be obtained by calling :f:func:`get_element_size`.
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
@@ -1224,9 +1394,7 @@ ______________
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
   :r integer(int64):
-    Minimum number of elements to be allocated for ``in``, ``out`` buffers required by :f:func:`execute`.
-    This also returns minimum number of elements required for ``aux`` buffer required by :f:func:`transpose` and :f:func:`reshape`.
-    Minimum number of ``aux`` elements required by :f:func:`execute` can be obtained by calling :f:func:`get_aux_size`.
+    Minimum number of elements to be allocated for ``in``, ``out`` buffers required by :f:func:`execute`, :f:func:`transpose`, and :f:func:`reshape`.
 
 ------
 
@@ -1308,6 +1476,34 @@ _____________________
 .. f:function:: get_aux_bytes_reshape([error_code])
 
   Returns minimum number of bytes required for :f:func:`reshape` auxiliary buffer
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r integer(int64):
+    Minimum number of bytes required for auxiliary buffer.
+
+------
+
+get_aux_size_transpose
+______________________
+
+.. f:function:: get_aux_size_transpose([error_code])
+
+  Returns minimum number of elements required for :f:func:`transpose` auxiliary buffer
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+  :r integer(int64):
+    Minimum number of elements required for auxiliary buffer.
+
+------
+
+get_aux_bytes_transpose
+_______________________
+
+.. f:function:: get_aux_bytes_transpose([error_code])
+
+  Returns minimum number of bytes required for :f:func:`transpose` auxiliary buffer
 
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user
@@ -1429,6 +1625,19 @@ ______
 .. f:subroutine:: report([error_code])
 
   Prints plan-related information to stdout
+
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
+report_compression
+__________________
+
+.. f:subroutine:: report_compression([error_code])
+
+  Reports compression ratios for all operations where compression was performed. 
+  This function can be repeatedly called after plan creation and after execution to see how compression ratios evolve.
 
   :o integer(int32) error_code [out, optional]:
     Optional error code returned to user

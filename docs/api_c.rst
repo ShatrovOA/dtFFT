@@ -59,6 +59,14 @@ Enumerators
 
 ---------
 
+.. doxygenenum:: dtfft_transpose_mode_t
+
+---------
+
+.. doxygenenum:: dtfft_access_mode_t
+
+---------
+
 .. doxygenenum:: dtfft_platform_t
 
 ---------
@@ -68,6 +76,14 @@ Enumerators
 ---------
 
 .. doxygenenum:: dtfft_layout_t
+
+---------
+
+.. doxygenenum:: dtfft_compression_lib_t
+
+---------
+
+.. doxygenenum:: dtfft_compression_mode_t
 
 
 Types
@@ -92,6 +108,11 @@ Types
 ---------
 
 .. doxygentypedef:: dtfft_request_t
+
+---------
+
+.. doxygenstruct:: dtfft_compression_config_t
+  :members:
 
 Functions
 =========
@@ -203,6 +224,10 @@ Plan information
 
 ---------
 
+.. doxygenfunction:: dtfft_report_compression
+
+---------
+
 .. doxygenfunction:: dtfft_get_local_sizes
 
 ---------
@@ -228,6 +253,14 @@ Plan information
 ---------
 
 .. doxygenfunction:: dtfft_get_aux_bytes_reshape
+
+---------
+
+.. doxygenfunction:: dtfft_get_aux_size_transpose
+
+---------
+
+.. doxygenfunction:: dtfft_get_aux_bytes_transpose
 
 ---------
 

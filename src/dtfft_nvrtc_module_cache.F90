@@ -23,6 +23,7 @@ module dtfft_nvrtc_module_cache
 use iso_fortran_env
 use iso_c_binding,                only: c_null_ptr
 use dtfft_abstract_kernel,        only: kernel_type_t, get_kernel_string
+use dtfft_errors
 use dtfft_config
 use dtfft_interface_cuda,         only: CUfunction
 use dtfft_interface_cuda_runtime, only: device_props
@@ -30,6 +31,7 @@ use dtfft_nvrtc_block_optimizer,  only: kernel_config
 use dtfft_nvrtc_module
 use dtfft_utils
 #include "_dtfft_private.h"
+#include "_dtfft_mpi.h"
 implicit none
 private
 public :: create_nvrtc_module, get_kernel_instance
@@ -105,12 +107,15 @@ contains
     logical                           :: is_instance_found  !! Flag that indicates if specific kernel instance was found
     type(nvrtc_module)                :: m                  !! New module to create
     type(kernel_config), allocatable  :: configs_to_add(:)  !! Configurations that need to be added
+    type(string) :: str
 
     is_found = .false.
     do i = 1, cache%size
       is_found = cache%cache(i)%check(ndims, kernel_type, base_storage)
       if ( is_found ) exit
     enddo
+
+    str = get_kernel_string(kernel_type)
 
     k = 0
     if ( is_found ) then
@@ -133,18 +138,19 @@ contains
         endif
       enddo
       if ( k > 0 ) then
-        WRITE_DEBUG("Adding "//to_str(k)//" new kernel configurations for module '"//get_kernel_string(kernel_type)//"'")
+        WRITE_DEBUG("Adding "//to_str(k)//" new kernel configurations for module '"//str%raw//"'")
         call m%create(ndims, kernel_type, base_storage, configs_to_add(1:k), props)
       endif
       deallocate( configs_to_add )
     else
-      WRITE_DEBUG("Adding new module with following configs for '"//get_kernel_string(kernel_type)//"'")
+      WRITE_DEBUG("Adding new module with following configs for '"//str%raw//"'")
       do j = 1, size(configs)
         WRITE_DEBUG(to_str(configs(j)%tile_size)//"x"//to_str(configs(j)%block_rows)//": "//to_str(configs(j)%padding))
       enddo
       call m%create(ndims, kernel_type, base_storage, configs, props)
     endif
 
+    call str%destroy()
     if ( k == 0 .and. is_found ) return
     call cache%add(m)
   end subroutine create_nvrtc_module
@@ -158,17 +164,21 @@ contains
     integer(int32),       intent(in)    :: tile_size          !! Tile size (number of columns)
     integer(int32),       intent(in)    :: block_rows         !! Block rows
     type(CUfunction)                    :: fun                !! Retrieved kernel instance
+    integer(int32)  :: ierr
     logical         :: is_found !! Flag that indicates if instance was found
     integer(int32)  :: i        !! Loop counter
+    type(string) :: str
 
-    fun = CUfunction(c_null_ptr)
-    if ( .not. cache%is_created ) INTERNAL_ERROR("get_kernel_instance: cache not created")
+    if ( .not. cache%is_created ) then
+      INTERNAL_ERROR("get_kernel_instance: cache not created")
+    endif
     is_found = .false.
     do i = 1, cache%size
-      fun = cache%cache(i)%get(ndims, kernel_type, base_storage, tile_size, block_rows)
-      if ( .not. is_null_ptr(fun%ptr) ) return
+      ierr = cache%cache(i)%get(ndims, kernel_type, base_storage, tile_size, block_rows, fun)
+      if ( ierr == DTFFT_SUCCESS ) return
     enddo
-    WRITE_DEBUG("Kernel = "//get_kernel_string(kernel_type)//": "//to_str(tile_size)//"x"//to_str(block_rows))
+    str = get_kernel_string(kernel_type)
+    WRITE_DEBUG("Kernel = "//str%raw//": "//to_str(tile_size)//"x"//to_str(block_rows))
     INTERNAL_ERROR("get_kernel_instance: unable to retrive function from cache")
   end function get_kernel_instance
 end module dtfft_nvrtc_module_cache

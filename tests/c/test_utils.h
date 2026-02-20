@@ -3,12 +3,36 @@
 
 #include <dtfft.h>
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
 #include <cuda_runtime.h>
 #endif
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#if defined(DTFFT_WITH_MOCK_ENABLED) && defined(DTFFT_WITH_CUDA)
+// Mock CUDA declarations for CPU testing
+typedef void* cudaStream_t;
+typedef enum {
+    cudaSuccess = 0,
+    cudaErrorMemoryAllocation = 2,
+    cudaErrorInvalidValue = 1
+} cudaError_t;
+
+typedef enum {
+    cudaMemAttachGlobal = 1
+} cudaMemAttachFlags_t;
+
+// Mock CUDA function declarations
+cudaError_t cudaDeviceSynchronize(void);
+cudaError_t cudaStreamCreate(cudaStream_t* stream);
+cudaError_t cudaStreamSynchronize(cudaStream_t stream);
+cudaError_t cudaStreamDestroy(cudaStream_t stream);
+cudaError_t cudaMallocManaged(void** ptr, size_t size, unsigned int flags);
+cudaError_t cudaFree(void* ptr);
+cudaError_t cudaMemset(void* ptr, int value, size_t count);
+const char* cudaGetErrorString(cudaError_t error);
 #endif
 
 

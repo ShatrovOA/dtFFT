@@ -30,6 +30,7 @@ macro: DTFFT_WITH_PROFILER
     DTFFT_WITH_VKFFT
     DTFFT_WITH_FFTW
     DTFFT_WITH_MKL
+    DTFFT_WITH_COMPRESSION
     NCCL_HAVE_COMMREGISTER
     NCCL_HAVE_MEMALLOC
     ENABLE_PERSISTENT_COLLECTIVES
@@ -43,7 +44,7 @@ warn: false
 graph: true
 coloured_edges: true
 sort: permission
-search: true
+search: false
 
 <img src="./media/pencils.png" alt="pencils" width="850"/>
 

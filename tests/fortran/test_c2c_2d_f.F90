@@ -153,7 +153,7 @@ implicit none
 #endif
   tb = tb + MPI_Wtime()
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   call checkAndReportComplexDouble(int(nx * ny, int64), tf, tb, c_loc(in), in_size, check, platform%val)
 #else
   call checkAndReportComplexDouble(int(nx * ny, int64), tf, tb, c_loc(in), in_size, check)

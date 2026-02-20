@@ -15,7 +15,7 @@
 #endif
 
 subroutine FUNC_NAME (n_global, tf, tb, buffer, buf_size, check  &
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
                       , platform                                 &
 #endif
 ) bind(C, name=FUNC_NAME_STR)
@@ -25,13 +25,13 @@ subroutine FUNC_NAME (n_global, tf, tb, buffer, buf_size, check  &
   type(c_ptr),       value, intent(in)  :: buffer
   integer(c_size_t), value, intent(in)  :: buf_size
   type(c_ptr),       value, intent(in)  :: check
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   integer(c_int32_t),value, intent(in)  :: platform
   type(c_ptr) :: buffer_h
 #endif
   real(ERROR_PRECISION) :: local_error
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   if ( dtfft_platform_t(platform) == DTFFT_PLATFORM_CUDA ) then
     buffer_h = mem_alloc_host(STORAGE_BYTES * buf_size)
 

@@ -186,7 +186,7 @@ implicit none
 #endif
   tb = tb + MPI_Wtime()
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
 !$acc host_data use_device(inout) if( platform == DTFFT_PLATFORM_CUDA )
   call checkAndReportDouble(int(nx * ny, int64), tf, tb, c_loc(inout), upper_bound, check, platform%val)
 !$acc end host_data

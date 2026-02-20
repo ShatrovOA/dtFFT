@@ -174,6 +174,8 @@ typedef enum {
     DTFFT_ERROR_R2C_EXECUTE_CALLED = CONF_DTFFT_ERROR_R2C_EXECUTE_CALLED,
     /** Invalid cartesian communicator provided */
     DTFFT_ERROR_INVALID_CART_COMM = CONF_DTFFT_ERROR_INVALID_CART_COMM,
+    /** Invalid transpose mode provided */
+    DTFFT_ERROR_INVALID_TRANSPOSE_MODE = CONF_DTFFT_ERROR_INVALID_TRANSPOSE_MODE,
     /** Invalid stream provided */
     DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM,
     /** Invalid backend provided */
@@ -193,7 +195,21 @@ typedef enum {
     /** Invalid executor provided for selected platform */
     DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR = CONF_DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR,
     /** Invalid backend provided for selected platform */
-    DTFFT_ERROR_INVALID_PLATFORM_BACKEND = CONF_DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+    DTFFT_ERROR_INVALID_PLATFORM_BACKEND = CONF_DTFFT_ERROR_INVALID_PLATFORM_BACKEND,
+    /** Invalid access mode provided */
+    DTFFT_ERROR_INVALID_ACCESS_MODE = CONF_DTFFT_ERROR_INVALID_ACCESS_MODE,
+    /** CUDA support is not available for compression */
+    DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED = CONF_DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED,
+    /** Invalid compression rate */
+    DTFFT_ERROR_COMPRESSION_INVALID_RATE = CONF_DTFFT_ERROR_COMPRESSION_INVALID_RATE,
+    /** Invalid compression precision */
+    DTFFT_ERROR_COMPRESSION_INVALID_PRECISION = CONF_DTFFT_ERROR_COMPRESSION_INVALID_PRECISION,
+    /** Invalid compression tolerance */
+    DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE = CONF_DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE,
+    /** Invalid compression mode */
+    DTFFT_ERROR_COMPRESSION_INVALID_MODE = CONF_DTFFT_ERROR_COMPRESSION_INVALID_MODE,
+    /** Invalid compression library */
+    DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY = CONF_DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY
 } dtfft_error_t;
 
 /** This enum lists valid `execute_type` parameters that can be passed to `::dtfft_execute`. */
@@ -370,7 +386,7 @@ typedef struct
  *                                          Can be NULL if `executor` == `::DTFFT_EXECUTOR_NONE`
  * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]      precision              Precision of transform.
- * @param[in]      effort                 How thoroughly `dtFFT` searches for the optimal plan
+ * @param[in]      effort                 Effort level for the plan creation
  * @param[in]      executor               Type of external FFT executor.
  * @param[out]     plan                   Plan handle ready to be executed
  *
@@ -417,7 +433,7 @@ dtfft_create_plan_r2r_pencil(
  * @param[in]      dims                   Array of size `ndims` containing global dimensions in reverse order
  * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]      precision              Precision of transform.
- * @param[in]      effort                 How thoroughly `dtFFT` searches for the optimal plan
+ * @param[in]      effort                 Effort level for the plan creation
  * @param[in]      executor               Type of external FFT executor.
  * @param[out]     plan                   Plan handle ready to be executed
  *
@@ -459,7 +475,7 @@ dtfft_create_plan_c2c_pencil(
  * @param[in]      dims                   Array of size `ndims` containing global dimensions in reverse order
  * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
  * @param[in]      precision              Precision of transform.
- * @param[in]      effort                 How thoroughly `dtFFT` searches for the optimal plan
+ * @param[in]      effort                 Effort level for the plan creation
  * @param[in]      executor               Type of external FFT executor
  * @param[out]     plan                   Plan handle ready to be executed
  *
@@ -642,13 +658,9 @@ dtfft_destroy(dtfft_plan_t* plan);
  * @param[out]     in_counts       Number of elements of local portion of data in `real` space in reversed order
  * @param[out]     out_starts      Starts of local portion of data in `fourier` space in reversed order
  * @param[out]     out_counts      Number of elements of local portion of data in `fourier` space in reversed order
- * @param[out]     alloc_size      Minimum number of elements to be allocated for `in`, `out` buffers required by `::dtfft_execute`.
- *                                 This also returns minimum number of elements required for `aux` buffer required by `::dtfft_transpose` and `::dtfft_reshape`
- *                                 when underlying backend is pipelined.
- *                                 Minimum number of `aux` elements required by `::dtfft_execute` can be obtained by calling `::dtfft_get_aux_size`.
+ * @param[out]     alloc_size      Minimum number of elements to be allocated for `in`, `out` buffers required by `::dtfft_execute`, `::dtfft_transpose`, or `::dtfft_reshape`.
  *                                 Size of each element in bytes can be obtained by calling `::dtfft_get_element_size`.
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
- * @see `::dtfft_get_aux_size`, `::dtfft_get_backend_pipelined`
  */
 dtfft_error_t
 dtfft_get_local_sizes(dtfft_plan_t plan, int32_t* in_starts, int32_t* in_counts, int32_t* out_starts, int32_t* out_counts, size_t* alloc_size);
@@ -656,7 +668,7 @@ dtfft_get_local_sizes(dtfft_plan_t plan, int32_t* in_starts, int32_t* in_counts,
 /** @brief Wrapper around `dtfft_get_local_sizes` to obtain number of elements only
  *
  * @param[in]      plan            Plan handle
- * @param[out]     alloc_size      Minimum number of elements to be allocated for `in`, `out` or `aux` buffers.
+ * @param[out]     alloc_size      Minimum number of elements to be allocated for `in` and `out` buffers required by `::dtfft_execute`, `::dtfft_transpose`, or `::dtfft_reshape`.
  *                                 Size of each element in bytes can be obtained by calling `::dtfft_get_element_size`.
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  */
@@ -702,6 +714,38 @@ dtfft_get_aux_size_reshape(dtfft_plan_t plan, size_t* aux_size);
  */
 dtfft_error_t
 dtfft_get_aux_bytes_reshape(dtfft_plan_t plan, size_t* aux_bytes);
+
+/** @brief Gets the number of elements required for auxiliary buffer by `::dtfft_transpose`.
+ *
+ * @param[in]      plan            Plan handle
+ * @param[out]     aux_size        Size of auxiliary buffer in elements.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_aux_size_transpose(dtfft_plan_t plan, size_t* aux_size);
+
+/** @brief Gets the number of bytes required for auxiliary buffer by `::dtfft_transpose`.
+ *
+ * @param[in]      plan            Plan handle
+ * @param[out]     aux_bytes       Number of bytes required for auxiliary buffer.
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_get_aux_bytes_transpose(dtfft_plan_t plan, size_t* aux_bytes);
+
+#ifdef DTFFT_WITH_COMPRESSION
+/**
+ * @brief Prints compression-related information to stdout
+ *
+ * @param[in]     plan            Plan handle
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ **/
+dtfft_error_t
+dtfft_report_compression(dtfft_plan_t plan);
+#endif
 
 /**
  * @brief Gets the string description of an error code
@@ -774,9 +818,7 @@ dtfft_get_element_size(dtfft_plan_t plan, size_t* element_size);
  * @brief Returns minimum number of bytes required for in and out buffers.
  *
  * This function is a combination of two calls: `::dtfft_get_alloc_size` and `::dtfft_get_element_size`.
- * Returns minimum number of bytes to be allocated for `in` and `out` buffers required by `::dtfft_execute`.
- * This also returns minimum number of bytes required for `aux` buffer required by `::dtfft_transpose` and `::dtfft_reshape`.
- * Minimum number of `aux` bytes required by `::dtfft_execute` can be obtained by calling `::dtfft_get_aux_bytes`.
+ * Returns minimum number of bytes to be allocated for `in` and `out` buffers required by `::dtfft_execute`, `::dtfft_transpose`, or `::dtfft_reshape`.
  *
  * @param[in]     plan            Plan handle
  * @param[out]    alloc_bytes     Number of bytes required
@@ -902,18 +944,112 @@ typedef enum {
     /** MPI peer-to-peer algorithm with scheduled communication */
     DTFFT_BACKEND_MPI_P2P_SCHEDULED = CONF_DTFFT_BACKEND_MPI_P2P_SCHEDULED,
 
+    /** MPI peer-to-peer pipelined algorithm with overlapping packing,
+     * exchange and unpacking with scheduled communication */
+    DTFFT_BACKEND_MPI_P2P_FUSED = CONF_DTFFT_BACKEND_MPI_P2P_FUSED,
+
+    /** MPI RMA pipelined algorithm with overlapping packing,
+     * exchange and unpacking with scheduled communication
+    */
+    DTFFT_BACKEND_MPI_RMA_FUSED = CONF_DTFFT_BACKEND_MPI_RMA_FUSED,
+
+    /** Extension of Backend.MPI_P2P_FUSED
+     * Data is getting compressed before sending and decompressed after receiving
+     */
+    DTFFT_BACKEND_MPI_P2P_COMPRESSED = CONF_DTFFT_BACKEND_MPI_P2P_COMPRESSED,
+
+    /** Extension of Backend.MPI_RMA_FUSED
+     * Data is getting compressed before sending and decompressed after receiving
+     */
+    DTFFT_BACKEND_MPI_RMA_COMPRESSED = CONF_DTFFT_BACKEND_MPI_RMA_COMPRESSED,
+
     /** NCCL backend */
     DTFFT_BACKEND_NCCL = CONF_DTFFT_BACKEND_NCCL,
 
     /** NCCL backend with overlapping data copying and unpacking */
     DTFFT_BACKEND_NCCL_PIPELINED = CONF_DTFFT_BACKEND_NCCL_PIPELINED,
 
+    /** NCCL backend that performs compression before data exchange and decompression after. */
+    DTFFT_BACKEND_NCCL_COMPRESSED = CONF_DTFFT_BACKEND_NCCL_COMPRESSED,
+
     /** cuFFTMp backend */
     DTFFT_BACKEND_CUFFTMP = CONF_DTFFT_BACKEND_CUFFTMP,
 
     /** cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance */
-    DTFFT_BACKEND_CUFFTMP_PIPELINED = CONF_DTFFT_BACKEND_CUFFTMP_PIPELINED
+    DTFFT_BACKEND_CUFFTMP_PIPELINED = CONF_DTFFT_BACKEND_CUFFTMP_PIPELINED,
+
+    /** Adaptive backend selection: during plan creation dtFFT benchmarks multiple
+     * backends and selects the fastest backend independently for each transpose/reshape operation.
+     * The selection is fixed for the lifetime of the plan.
+     *
+     * @note Can only be used when effort >= `::DTFFT_PATIENT`.
+     * @note Currently only available for HOST execution platform
+    */
+    DTFFT_BACKEND_ADAPTIVE = CONF_DTFFT_BACKEND_ADAPTIVE
 } dtfft_backend_t;
+
+/** This enum specifies at which stage the local transposition is performed during global exchange.
+ * It affects only Generic backends that perform explicit packing/unpacking.
+*/
+typedef enum {
+    /** Perform transposition during the packing stage (Sender side). */
+    DTFFT_TRANSPOSE_MODE_PACK = CONF_DTFFT_TRANSPOSE_MODE_PACK,
+
+    /** Perform transposition during the unpacking stage (Receiver side). */
+    DTFFT_TRANSPOSE_MODE_UNPACK = CONF_DTFFT_TRANSPOSE_MODE_UNPACK
+} dtfft_transpose_mode_t;
+
+/** This enum lists valid `access_mode` parameters that can be passed to `::dtfft_config_t`. */
+typedef enum {
+    /** Optimize for write access (Aligned writing).
+     * This is the default mode.
+     */
+    DTFFT_ACCESS_MODE_WRITE = CONF_DTFFT_ACCESS_MODE_WRITE,
+
+    /** Optimize for read access (Aligned reading) */
+    DTFFT_ACCESS_MODE_READ = CONF_DTFFT_ACCESS_MODE_READ
+} dtfft_access_mode_t;
+
+#ifdef DTFFT_WITH_COMPRESSION
+/** This enum lists valid compression mode parameters. */
+typedef enum {
+    /** Lossless compression mode */
+    DTFFT_COMPRESSION_MODE_LOSSLESS = CONF_DTFFT_COMPRESSION_MODE_LOSSLESS,
+
+    /** Fixed rate compression mode */
+    DTFFT_COMPRESSION_MODE_FIXED_RATE = CONF_DTFFT_COMPRESSION_MODE_FIXED_RATE,
+
+    /** Fixed precision compression mode */
+    DTFFT_COMPRESSION_MODE_FIXED_PRECISION = CONF_DTFFT_COMPRESSION_MODE_FIXED_PRECISION,
+
+    /** Fixed accuracy compression mode */
+    DTFFT_COMPRESSION_MODE_FIXED_ACCURACY = CONF_DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
+} dtfft_compression_mode_t;
+
+/** This enum lists valid compression library parameters. */
+typedef enum {
+    /** ZFP compression library */
+    DTFFT_COMPRESSION_LIB_ZFP = CONF_DTFFT_COMPRESSION_LIB_ZFP
+} dtfft_compression_lib_t;
+
+/** Struct that specifies compression configuration */
+typedef struct {
+    /** Compression library to use */
+    dtfft_compression_lib_t compression_lib;
+
+    /** Compression mode to use */
+    dtfft_compression_mode_t compression_mode;
+
+    /** Rate for `::DTFFT_COMPRESSION_MODE_FIXED_RATE` */
+    double rate;
+
+    /** Precision for `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION` */
+    int32_t precision;
+
+    /** Tolerance for `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY` */
+    double tolerance;
+} dtfft_compression_config_t;
+#endif
 
 #ifdef DTFFT_WITH_CUDA
 /**
@@ -1119,6 +1255,8 @@ typedef struct
      *
      * @details Default is `false`.
      *
+     * This option applies to all `DTFFT_BACKEND_MPI_*` backends, except `::DTFFT_BACKEND_MPI_DATATYPE``.
+     *
      * The following applies only to CUDA builds.
      * MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849
      * It was noticed that during plan autotuning GPU memory not being freed completely.
@@ -1140,6 +1278,20 @@ typedef struct
      * @details Default is `true`.
      */
     bool enable_pipelined_backends;
+
+    /**
+     * @brief Should RMA backends be enabled when `effort` is `::DTFFT_PATIENT` or `::DTFFT_EXHAUSTIVE`.
+     *
+     * @details Default is `true`.
+     */
+    bool enable_rma_backends;
+
+    /**
+     * @brief Should fused backends be enabled when `effort` is `::DTFFT_PATIENT` or `::DTFFT_EXHAUSTIVE`.
+     *
+     * @details Default is `true`.
+     */
+    bool enable_fused_backends;
 
 #ifdef DTFFT_WITH_CUDA
     /**
@@ -1183,6 +1335,49 @@ typedef struct
      * and will reduce overall FFT performance.
      */
     bool enable_fourier_reshape;
+
+    /**
+     * @brief Specifies at which stage the local transposition is performed during global exchange when effort level is below `::DTFFT_EXHAUSTIVE`.
+     *
+     * @details Default is `::DTFFT_TRANSPOSE_MODE_PACK`.
+     *
+     * For `::DTFFT_EXHAUSTIVE` effort level, dtFFT will always choose the best transpose mode based on internal autotuning.
+     * 
+     * @note This option only takes effect when platform is `::DTFFT_PLATFORM_HOST`
+    */
+    dtfft_transpose_mode_t transpose_mode;
+
+    /**
+     * @brief Specifies the memory access pattern (optimization target) for local transposition.
+     *
+     * @details Default is `::DTFFT_ACCESS_MODE_WRITE`.
+     *
+     * This option allows user to force specific access mode (`::DTFFT_ACCESS_MODE_WRITE` or `::DTFFT_ACCESS_MODE_READ`) when autotuning is disabled.
+     * When autotuning is enabled (e.g. `effort` is `::DTFFT_EXHAUSTIVE`), this option is ignored and best access mode is selected automatically.
+     */
+    dtfft_access_mode_t access_mode;
+
+#ifdef DTFFT_WITH_COMPRESSION
+    /**
+     * @brief Should compressed backends be enabled when `effort` is `::DTFFT_PATIENT` or `::DTFFT_EXHAUSTIVE`.
+     *
+     * @details Default is `false`.
+     *
+     * Only fixed-rate compression can be used during autotuning, since it provides predictable performance characteristics and does not require data-dependent decisions at runtime.
+     * To enable compressed backends during autotuning, set this option to true, set compression type to `::DTFFT_COMPRESSION_MODE_FIXED_RATE` and provide desired compression rate.
+     */
+    bool enable_compressed_backends;
+
+    /**
+     * @brief Options for compression approach during transpositions
+     */
+    dtfft_compression_config_t compression_config_transpose;
+
+    /**
+     * @brief Options for compression approach during reshape operations
+     */
+    dtfft_compression_config_t compression_config_reshape;
+#endif
 } dtfft_config_t;
 
 /**

@@ -38,6 +38,14 @@ Enumerators
 
 .. doxygenenum:: dtfft::Reshape
 
+.. doxygenenum:: dtfft::TransposeMode
+
+.. doxygenenum:: dtfft::AccessMode
+
+.. doxygenenum:: dtfft::CompressionLib
+
+.. doxygenenum:: dtfft::CompressionMode
+
 Functions
 =========
 
@@ -63,6 +71,9 @@ Structs
   :members:
 
 .. doxygenstruct:: dtfft::Config
+  :members:
+
+.. doxygenstruct:: dtfft::CompressionConfig
   :members:
 
 Classes

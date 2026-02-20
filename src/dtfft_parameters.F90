@@ -32,12 +32,14 @@ public :: is_valid_execute_type, is_valid_transpose_type, is_valid_reshape_type
 public :: is_valid_executor, is_valid_effort, is_valid_layout
 public :: is_valid_precision, is_valid_r2r_kind
 public :: is_valid_dimension, is_valid_comm_type
+public :: is_valid_transpose_mode, is_valid_access_mode
 public :: dtfft_get_version
 public :: dtfft_get_precision_string, dtfft_get_executor_string
 public :: dtfft_backend_t, dtfft_stream_t
 public :: dtfft_get_backend_string
-public :: is_backend_pipelined, is_backend_mpi
+public :: is_backend_pipelined, is_backend_mpi, is_backend_fused, is_backend_rma
 public :: is_valid_backend, is_backend_nccl, is_backend_cufftmp, is_backend_nvshmem
+public :: is_backend_compressed
 public :: dtfft_get_backend_pipelined
 #ifdef DTFFT_WITH_CUDA
 public :: is_valid_platform
@@ -270,9 +272,11 @@ public :: operator(==)
     module procedure precision_eq       !! Check if two `dtfft_precision_t` are equal
     module procedure r2r_kind_eq        !! Check if two `dtfft_r2r_kind_t` are equal
     module procedure platform_eq        !! Check if two `dtfft_platform_t` are equal
-    module procedure exec_eq
+    module procedure exec_eq            !! Check if two `async_exec_t` are equal
     module procedure backend_eq         !! Check if two `dtfft_backend_t` are equal
     module procedure layout_eq          !! Check if two `dtfft_layout_t` are equal
+    module procedure transpose_mode_eq  !! Check if two `dtfft_transpose_mode_t` are equal
+    module procedure access_mode_eq     !! Check if two `dtfft_access_mode_t` are equal
   end interface
 
 public :: operator(/=)
@@ -287,6 +291,8 @@ public :: operator(/=)
     module procedure platform_ne        !! Check if two `dtfft_platform_t` are not equal
     module procedure backend_ne         !! Check if two `dtfft_backend_t` are not equal
     module procedure layout_ne          !! Check if two `dtfft_layout_t` are not equal
+    module procedure transpose_mode_ne  !! Check if two `dtfft_transpose_mode_t` are not equal
+    module procedure access_mode_ne     !! Check if two `dtfft_access_mode_t` are not equal
   end interface
 
 !------------------------------------------------------------------------------------------------
@@ -337,6 +343,66 @@ public :: operator(/=)
   integer(int32), parameter,  public :: COLOR_TRANSPOSE_PALLETTE(-3:3) = [COLOR_TRANSPOSE_ZX, COLOR_TRANSPOSE_ZY, COLOR_TRANSPOSE_YX, 0, COLOR_TRANSPOSE_XY, COLOR_TRANSPOSE_YZ, COLOR_TRANSPOSE_XZ]
     !! Color pallete for `plan.transpose`
 
+    ! Extended color palette for profiling
+  integer(int32), parameter,  public :: COLOR_CORAL         = int(Z'00FF7F50')
+    !! Coral
+  integer(int32), parameter,  public :: COLOR_TOMATO        = int(Z'00FF6347')
+    !! Tomato
+  integer(int32), parameter,  public :: COLOR_SALMON        = int(Z'00FA8072')
+    !! Salmon
+  integer(int32), parameter,  public :: COLOR_LIME          = int(Z'0000FF00')
+    !! Lime
+  integer(int32), parameter,  public :: COLOR_CHARTREUSE    = int(Z'007FFF00')
+    !! Chartreuse
+  integer(int32), parameter,  public :: COLOR_CYAN          = int(Z'0000FFFF')
+    !! Cyan
+  integer(int32), parameter,  public :: COLOR_DODGER_BLUE   = int(Z'001E90FF')
+    !! Dodger Blue
+  integer(int32), parameter,  public :: COLOR_STEEL_BLUE    = int(Z'004682B4')
+    !! Steel Blue
+  integer(int32), parameter,  public :: COLOR_ORCHID        = int(Z'00DA70D6')
+    !! Orchid
+  integer(int32), parameter,  public :: COLOR_VIOLET        = int(Z'00EE82EE')
+    !! Violet
+  integer(int32), parameter,  public :: COLOR_MAGENTA       = int(Z'00FF00FF')
+    !! Magenta
+  integer(int32), parameter,  public :: COLOR_INDIGO        = int(Z'004B0082')
+    !! Indigo
+  integer(int32), parameter,  public :: COLOR_MAROON        = int(Z'00800000')
+    !! Maroon
+  integer(int32), parameter,  public :: COLOR_OLIVE         = int(Z'00808000')
+    !! Olive
+  integer(int32), parameter,  public :: COLOR_TEAL          = int(Z'00008080')
+    !! Teal
+  integer(int32), parameter,  public :: COLOR_NAVY          = int(Z'00000080')
+    !! Navy
+  integer(int32), parameter,  public :: COLOR_SIENNA        = int(Z'00A0522D')
+    !! Sienna
+  integer(int32), parameter,  public :: COLOR_PERU          = int(Z'00CD853F')
+    !! Peru
+  integer(int32), parameter,  public :: COLOR_KHAKI         = int(Z'00F0E68C')
+    !! Khaki
+  integer(int32), parameter,  public :: COLOR_PLUM          = int(Z'00DDA0DD')
+    !! Plum
+  integer(int32), parameter,  public :: COLOR_LAVENDER      = int(Z'00E6E6FA')
+    !! Lavender
+  integer(int32), parameter,  public :: COLOR_MINT          = int(Z'0098FF98')
+    !! Mint
+  integer(int32), parameter,  public :: COLOR_PEACH         = int(Z'00FFDAB9')
+    !! Peach Puff
+  integer(int32), parameter,  public :: COLOR_SKY_BLUE      = int(Z'0087CEEB')
+    !! Sky Blue
+  integer(int32), parameter,  public :: COLOR_SLATE_BLUE    = int(Z'006A5ACD')
+    !! Slate Blue
+  integer(int32), parameter,  public :: COLOR_SEA_GREEN     = int(Z'002E8B57')
+    !! Sea Green
+  integer(int32), parameter,  public :: COLOR_FOREST_GREEN  = int(Z'00228B22')
+    !! Forest Green
+  integer(int32), parameter,  public :: COLOR_YELLOW_GREEN  = int(Z'009ACD32')
+    !! Yellow Green
+  integer(int32), parameter,  public :: COLOR_ORANGE        = int(Z'00FFA500')
+    !! Orange
+  integer(int32), parameter,  public :: COLOR_RESHAPE_PALLETTE(CONF_DTFFT_RESHAPE_X_BRICKS_TO_PENCILS:CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS) = [COLOR_LIME, COLOR_MAGENTA, COLOR_INDIGO, COLOR_PERU]
 
 
   integer(int32),  parameter,  public  :: VARIABLE_NOT_SET = -111
@@ -363,25 +429,45 @@ public :: operator(/=)
     !! MPI RMA backend
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_RMA_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_RMA_PIPELINED)
     !! MPI Pipelined RMA backend
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_PIPELINED)
+    !! MPI peer-to-peer algorithm with overlapping data exchange and unpacking
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_SCHEDULED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_SCHEDULED)
+    !! MPI peer-to-peer algorithm with scheduled communication
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_FUSED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_FUSED)
+    !! MPI peer-to-peer pipelined algorithm with overlapping packing, exchange and unpacking with scheduled communication
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_RMA_FUSED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_RMA_FUSED)
+    !! MPI RMA pipelined algorithm with overlapping packing, exchange and unpacking with scheduled communication
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_COMPRESSED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_COMPRESSED)
+    !! Extension of ``DTFFT_BACKEND_MPI_P2P_FUSED``. Performs compression before sending and decomporession after recieving.
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_RMA_COMPRESSED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_RMA_COMPRESSED)
+    !! Extension of ``DTFFT_BACKEND_MPI_RMA_FUSED``. Performs compression before sending and decomporession after recieving.
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_NCCL = dtfft_backend_t(CONF_DTFFT_BACKEND_NCCL)
     !! NCCL backend
-  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_PIPELINED)
-    !! MPI peer-to-peer algorithm with overlapping data copying and unpacking
-  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_MPI_P2P_SCHEDULED = dtfft_backend_t(CONF_DTFFT_BACKEND_MPI_P2P_SCHEDULED)
-    !! MPI peer-to-peer algorithm with overlapping data copying and unpacking using MPI_Schedule
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_NCCL_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_NCCL_PIPELINED)
-    !! NCCL backend with overlapping data copying and unpacking
+    !! NCCL backend with overlapping data exchange and unpacking
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_NCCL_COMPRESSED = dtfft_backend_t(CONF_DTFFT_BACKEND_NCCL_COMPRESSED)
+    !! Extension of ``DTFFT_BACKEND_NCCL``. Performs compression before sending and decomporession after recieving.
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_CUFFTMP = dtfft_backend_t(CONF_DTFFT_BACKEND_CUFFTMP)
     !! cuFFTMp backend
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_CUFFTMP_PIPELINED = dtfft_backend_t(CONF_DTFFT_BACKEND_CUFFTMP_PIPELINED)
     !! cuFFTMp backend that uses extra buffer to gain performance
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_ADAPTIVE = dtfft_backend_t(CONF_DTFFT_BACKEND_ADAPTIVE)
+    !! Adaptive backend that selects best available backend at runtime
+    !! Currently only available for HOST execution platform
   type(dtfft_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_backend_t(VARIABLE_NOT_SET)
     !! Backend is not used
+  type(dtfft_backend_t),  parameter,  public  :: BACKEND_DUMMY = dtfft_backend_t(2 * VARIABLE_NOT_SET)
   type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED, DTFFT_BACKEND_CUFFTMP_PIPELINED, DTFFT_BACKEND_MPI_RMA_PIPELINED]
     !! List of pipelined backends
-  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_DATATYPE, DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED, DTFFT_BACKEND_MPI_P2P_SCHEDULED]
+  type(dtfft_backend_t),  parameter :: FUSED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_FUSED, DTFFT_BACKEND_MPI_RMA_FUSED]
+    !! List of fused backends
+  type(dtfft_backend_t),  parameter :: RMA_BACKENDS(*) = [DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED, DTFFT_BACKEND_MPI_RMA_FUSED, DTFFT_BACKEND_MPI_RMA_COMPRESSED]
+    !! List of RMA backends
+  type(dtfft_backend_t),  parameter :: COMPRESSED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_COMPRESSED, DTFFT_BACKEND_MPI_RMA_COMPRESSED, DTFFT_BACKEND_NCCL_COMPRESSED]
+    !! List of backends that support compression
+  type(dtfft_backend_t),  parameter :: MPI_BACKENDS(*) = [DTFFT_BACKEND_MPI_DATATYPE, DTFFT_BACKEND_MPI_P2P, DTFFT_BACKEND_MPI_A2A, DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_MPI_RMA, DTFFT_BACKEND_MPI_RMA_PIPELINED, DTFFT_BACKEND_MPI_P2P_SCHEDULED, DTFFT_BACKEND_MPI_P2P_FUSED, DTFFT_BACKEND_MPI_RMA_FUSED, DTFFT_BACKEND_MPI_P2P_COMPRESSED, DTFFT_BACKEND_MPI_RMA_COMPRESSED]
     !! List of MPI backends
-  type(dtfft_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_BACKEND_NCCL, DTFFT_BACKEND_NCCL_PIPELINED]
+  type(dtfft_backend_t),  parameter :: NCCL_BACKENDS(*) = [DTFFT_BACKEND_NCCL, DTFFT_BACKEND_NCCL_PIPELINED, DTFFT_BACKEND_NCCL_COMPRESSED]
     !! List of NCCL backends
   type(dtfft_backend_t),  parameter :: CUFFTMP_BACKENDS(*) = [DTFFT_BACKEND_CUFFTMP, DTFFT_BACKEND_CUFFTMP_PIPELINED]
     !! List of cuFFTMp backends
@@ -392,18 +478,30 @@ public :: operator(/=)
                                                                     ,DTFFT_BACKEND_MPI_A2A              &
                                                                     ,DTFFT_BACKEND_MPI_P2P_PIPELINED    &
                                                                     ,DTFFT_BACKEND_MPI_P2P_SCHEDULED    &
+                                                                    ,DTFFT_BACKEND_MPI_P2P_FUSED        &
+#ifdef DTFFT_WITH_COMPRESSION
+                                                                    ,DTFFT_BACKEND_MPI_P2P_COMPRESSED   &
+#endif
 #ifdef DTFFT_WITH_RMA
                                                                     ,DTFFT_BACKEND_MPI_RMA              &
                                                                     ,DTFFT_BACKEND_MPI_RMA_PIPELINED    &
+                                                                    ,DTFFT_BACKEND_MPI_RMA_FUSED        &
+# ifdef DTFFT_WITH_COMPRESSION
+                                                                    ,DTFFT_BACKEND_MPI_RMA_COMPRESSED   &
+# endif
 #endif
 #ifdef DTFFT_WITH_NCCL
                                                                     ,DTFFT_BACKEND_NCCL_PIPELINED       &
                                                                     ,DTFFT_BACKEND_NCCL                 &
+# ifdef DTFFT_WITH_COMPRESSION
+                                                                    ,DTFFT_BACKEND_NCCL_COMPRESSED      &
+# endif
 #endif
 #ifdef DTFFT_WITH_NVSHMEM
                                                                     ,DTFFT_BACKEND_CUFFTMP              &
                                                                     ,DTFFT_BACKEND_CUFFTMP_PIPELINED    &
 #endif
+                                                                    ,DTFFT_BACKEND_ADAPTIVE             &
                                                                     ]
     !! List of valid backends that `dtFFT` was compiled for
 
@@ -457,6 +555,48 @@ public :: async_exec_t
   integer(int32),     parameter, public :: DEF_TILE_SIZE = 32
     !! Default tile size for CUDA kernels
 
+public :: dtfft_transpose_mode_t
+  type, bind(C) :: dtfft_transpose_mode_t
+  !! This type specifies at which stage the local transposition is performed during global exchange.
+    integer(c_int32_t) :: val !! Internal value
+  end type dtfft_transpose_mode_t
+
+  type(dtfft_transpose_mode_t), parameter, public :: DTFFT_TRANSPOSE_MODE_PACK = dtfft_transpose_mode_t(CONF_DTFFT_TRANSPOSE_MODE_PACK)
+    !! Perform transposition during the packing stage (Sender side).
+  type(dtfft_transpose_mode_t), parameter, public :: DTFFT_TRANSPOSE_MODE_UNPACK = dtfft_transpose_mode_t(CONF_DTFFT_TRANSPOSE_MODE_UNPACK)
+    !! Perform transposition during the unpacking stage (Receiver side).
+  type(dtfft_transpose_mode_t), parameter :: VALID_TRANSPOSE_MODES(*) = [DTFFT_TRANSPOSE_MODE_PACK, DTFFT_TRANSPOSE_MODE_UNPACK]
+    !! Valid transpose modes
+
+  type(dtfft_transpose_mode_t), parameter, public :: TRANSPOSE_MODE_NOT_SET = dtfft_transpose_mode_t(VARIABLE_NOT_SET)
+    !! Transpose mode not set
+  character(len=*), parameter,  public :: TRANSPOSE_MODE_NAMES(CONF_DTFFT_TRANSPOSE_MODE_PACK:CONF_DTFFT_TRANSPOSE_MODE_UNPACK) = ["PACK  ", "UNPACK"]
+    !! String representations of `dtfft_transpose_mode_t`
+
+public :: dtfft_access_mode_t
+  type, bind(C) :: dtfft_access_mode_t
+  !! This type specifies which access pattern should be used for host kernels.
+    integer(c_int32_t) :: val !! Internal value
+  end type dtfft_access_mode_t
+
+  type(dtfft_access_mode_t), parameter, public :: DTFFT_ACCESS_MODE_WRITE = dtfft_access_mode_t(CONF_DTFFT_ACCESS_MODE_WRITE)
+    !! Optimize for write access (Aligned writing)
+  type(dtfft_access_mode_t), parameter, public :: DTFFT_ACCESS_MODE_READ = dtfft_access_mode_t(CONF_DTFFT_ACCESS_MODE_READ)
+    !! Optimize for read access (Aligned reading)
+  type(dtfft_access_mode_t), parameter :: VALID_ACCESS_MODES(*) = [DTFFT_ACCESS_MODE_WRITE, DTFFT_ACCESS_MODE_READ]
+    !! Valid access modes
+
+  type(dtfft_access_mode_t), parameter, public :: ACCESS_MODE_NOT_SET = dtfft_access_mode_t(VARIABLE_NOT_SET)
+    !! Access mode not set
+
+
+  integer(int32), parameter,  public  :: DIMS_PERMUTE_FORWARD = -1
+    !! For backward permutation
+  integer(int32), parameter,  public  :: DIMS_PERMUTE_BACKWARD = +1
+    !! For forward permutation
+  integer(int32), parameter,  public  :: DIMS_PERMUTE_NONE = 0
+    !! For reshape
+
 contains
 
 MAKE_EQ_FUN(dtfft_execute_t, execute_type_eq)
@@ -469,6 +609,8 @@ MAKE_EQ_FUN(dtfft_r2r_kind_t, r2r_kind_eq)
 MAKE_EQ_FUN(dtfft_platform_t, platform_eq)
 MAKE_EQ_FUN(async_exec_t, exec_eq)
 MAKE_EQ_FUN(dtfft_layout_t, layout_eq)
+MAKE_EQ_FUN(dtfft_transpose_mode_t, transpose_mode_eq)
+MAKE_EQ_FUN(dtfft_access_mode_t, access_mode_eq)
 
 MAKE_NE_FUN(dtfft_execute_t, execute_type_ne)
 MAKE_NE_FUN(dtfft_transpose_t, transpose_type_ne)
@@ -479,6 +621,8 @@ MAKE_NE_FUN(dtfft_precision_t, precision_ne)
 MAKE_NE_FUN(dtfft_r2r_kind_t, r2r_kind_ne)
 MAKE_NE_FUN(dtfft_platform_t, platform_ne)
 MAKE_NE_FUN(dtfft_layout_t, layout_ne)
+MAKE_NE_FUN(dtfft_transpose_mode_t, transpose_mode_ne)
+MAKE_NE_FUN(dtfft_access_mode_t, access_mode_ne)
 
 MAKE_VALID_FUN_DTYPE(dtfft_execute_t, is_valid_execute_type, VALID_EXECUTE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_transpose_t, is_valid_transpose_type, VALID_TRANSPOSE_TYPES)
@@ -488,6 +632,8 @@ MAKE_VALID_FUN_DTYPE(dtfft_effort_t, is_valid_effort, VALID_EFFORTS)
 MAKE_VALID_FUN_DTYPE(dtfft_precision_t, is_valid_precision, VALID_PRECISIONS)
 MAKE_VALID_FUN_DTYPE(dtfft_r2r_kind_t, is_valid_r2r_kind, VALID_R2R_KINDS)
 MAKE_VALID_FUN_DTYPE(dtfft_layout_t, is_valid_layout, VALID_LAYOUTS)
+MAKE_VALID_FUN_DTYPE(dtfft_transpose_mode_t, is_valid_transpose_mode, VALID_TRANSPOSE_MODES)
+MAKE_VALID_FUN_DTYPE(dtfft_access_mode_t, is_valid_access_mode, VALID_ACCESS_MODES)
 
 MAKE_VALID_FUN(integer(int8), is_valid_dimension, VALID_DIMENSIONS)
 MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
@@ -514,7 +660,7 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     select case ( precision%val )
     case ( DTFFT_SINGLE%val )
       allocate(string, source="Single")
-    case ( DTFFT_DOUBLE%val ) 
+    case ( DTFFT_DOUBLE%val )
       allocate(string, source="Double")
     case default
       allocate(string, source="Unknown precision")
@@ -555,9 +701,9 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     case ( DTFFT_BACKEND_MPI_A2A%val )
       allocate(string, source="MPI_A2A")
     case ( DTFFT_BACKEND_MPI_RMA%val )
-      allocate(string, source="MPI_RMA" )
+      allocate(string, source="MPI_RMA")
     case ( DTFFT_BACKEND_MPI_RMA_PIPELINED%val )
-      allocate(string, source="MPI_RMA_PIPELINED" )
+      allocate(string, source="MPI_RMA_PIPELINED")
     case ( DTFFT_BACKEND_MPI_P2P_SCHEDULED%val )
       allocate(string, source="MPI_P2P_SCHEDULED")
     case ( DTFFT_BACKEND_NCCL%val )
@@ -568,8 +714,20 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(string, source="MPI_P2P_PIPELINED")
     case ( DTFFT_BACKEND_NCCL_PIPELINED%val )
       allocate(string, source="NCCL_PIPELINED")
-    case (DTFFT_BACKEND_CUFFTMP_PIPELINED%val)
+    case ( DTFFT_BACKEND_CUFFTMP_PIPELINED%val )
       allocate(string, source="CUFFTMP_PIPELINED")
+    case ( DTFFT_BACKEND_MPI_P2P_FUSED%val )
+      allocate(string, source="MPI_P2P_FUSED")
+    case ( DTFFT_BACKEND_MPI_RMA_FUSED%val )
+      allocate(string, source="MPI_RMA_FUSED")
+    case ( DTFFT_BACKEND_MPI_P2P_COMPRESSED%val )
+      allocate(string, source="MPI_P2P_COMPRESSED")
+    case ( DTFFT_BACKEND_MPI_RMA_COMPRESSED%val )
+      allocate(string, source="MPI_RMA_COMPRESSED")
+    case ( DTFFT_BACKEND_NCCL_COMPRESSED%val )
+      allocate(string, source="NCCL_COMPRESSED")
+    case ( DTFFT_BACKEND_ADAPTIVE%val )
+      allocate(string, source="ADAPTIVE")
     case ( BACKEND_NOT_SET%val )
       allocate(string, source="None")
     case default
@@ -583,6 +741,9 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, dtfft_get_backend_pipelined, PIPELINED_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_pipelined, PIPELINED_BACKENDS)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_mpi, MPI_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_fused, FUSED_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_rma, RMA_BACKENDS)
+  MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_compressed, COMPRESSED_BACKENDS)
 
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_valid_backend, VALID_BACKENDS)
 

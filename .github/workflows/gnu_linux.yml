@@ -25,6 +25,7 @@ jobs:
           sudo apt-get install libopenmpi-dev openmpi-bin
           sudo apt-get install libfftw3-dev
           sudo apt-get install lcov
+          sudo apt-get install libzfp-dev
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
@@ -34,7 +35,10 @@ jobs:
             -DDTFFT_RUNNING_CICD=on \
             -DDTFFT_WITH_FFTW=on \
             -DDTFFT_MPI_VENDOR=openmpi \
-            -DDTFFT_BUILD_C_CXX_API=on
+            -DDTFFT_BUILD_C_CXX_API=on \
+            -DDTFFT_WITH_CUDA=on \
+            -DDTFFT_WITH_MOCK_ENABLED=on \
+            -DDTFFT_WITH_ZFP=on
           cmake --build build
       - name: Coverage
         run: cmake --build build --target coverage

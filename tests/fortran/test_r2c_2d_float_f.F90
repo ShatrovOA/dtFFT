@@ -159,7 +159,7 @@ implicit none
 #endif
   tb = tb + MPI_Wtime()
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   call checkAndReportFloat(int(nx * ny, int64), tf, tb, c_loc(in), int(product(in_counts), int64), check, platform%val)
 #else
   call checkAndReportFloat(int(nx * ny, int64), tf, tb, c_loc(in), int(product(in_counts), int64), check)

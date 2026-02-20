@@ -2,7 +2,7 @@ program test_host_kernels
 use iso_fortran_env
 use dtfft_kernel_host
 implicit none
-    real(real32), allocatable :: in(:), out(:), gold(:)
+    real(real32), allocatable :: in(:), out(:), gold(:), temp(:)
     integer(int32) :: dims3(3), dims2(2), i
 
     dims3 = [33, 77, 21]
@@ -18,166 +18,273 @@ implicit none
 
     call run_permute_backward_end(dims3)
 
-    call run_unpack(dims3)
-    call run_unpack(dims2)
+    call run_pack_unpack(dims3)
+    call run_pack_unpack(dims2)
 
 contains
 
-subroutine run_permute_forward(dims)
-    integer(int32), intent(in) :: dims(:)
+    subroutine run_permute_forward(dims)
+        integer(int32), intent(in) :: dims(:)
+        integer(int32) :: locals(5, 1)
+        integer(int32) :: unpack_dims(3)
 
-    print*,'Testing permute_forward kernels: ndims = ',size(dims)
+        print*,'Testing permute_forward kernels: ndims = ',size(dims)
 
-    allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
+        allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
 
-    do i = 1, size(in)
-        in(i) = real(i, real32)
-    enddo
+        do i = 1, size(in)
+            in(i) = real(i, real32)
+        enddo
 
-    call permute_forward_write_f32(in, gold, dims)
+        call permute_forward_write_f32(in, gold, dims)
 
-    call permute_forward_read_f32(in, out, dims); call compare
-    call permute_forward_write_f32_block_16(in, out, dims); call compare
-    call permute_forward_write_f32_block_32(in, out, dims); call compare
-    call permute_forward_write_f32_block_64(in, out, dims); call compare
-    call permute_forward_read_f32_block_16(in, out, dims); call compare
-    call permute_forward_read_f32_block_32(in, out, dims); call compare
-    call permute_forward_read_f32_block_64(in, out, dims); call compare
-!     print*,'Testing transpose_3d_cache_oblivious kernel'
-!     call cpu_time(start_time)
-!     call transpose_3d_cache_oblivious(in, out, dims)!;call compare
-! call cpu_time(end_time)
-! print*,'Time for transpose_3d_cache_oblivious: ', end_time - start_time
-    deallocate(in, out, gold)
+        call permute_forward_read_f32(in, out, dims);                   call compare("permute_forward_read_f32")
+        call permute_forward_write_f32_block_4(in, out, dims);          call compare("permute_forward_write_f32_block_4")
+        call permute_forward_write_f32_block_8(in, out, dims);          call compare("permute_forward_write_f32_block_8")
+        call permute_forward_write_f32_block_16(in, out, dims);         call compare("permute_forward_write_f32_block_16")
+        call permute_forward_write_f32_block_32(in, out, dims);         call compare("permute_forward_write_f32_block_32")
+        call permute_forward_write_f32_block_64(in, out, dims);         call compare("permute_forward_write_f32_block_64")
+        call permute_forward_read_f32_block_4(in, out, dims);           call compare("permute_forward_read_f32_block_4")
+        call permute_forward_read_f32_block_8(in, out, dims);           call compare("permute_forward_read_f32_block_8")
+        call permute_forward_read_f32_block_16(in, out, dims);          call compare("permute_forward_read_f32_block_16")
+        call permute_forward_read_f32_block_32(in, out, dims);          call compare("permute_forward_read_f32_block_32")
+        call permute_forward_read_f32_block_64(in, out, dims);          call compare("permute_forward_read_f32_block_64")
 
-    print*,'SUCCESS'
-end subroutine run_permute_forward
+        locals(1:size(dims), 1) = dims
+        locals(4, 1) = 0
+        locals(5, 1) = 0
 
-subroutine run_permute_backward(dims)
-    integer(int32), intent(in) :: dims(:)
+        call pack_forward_write_f32(in, out, dims, locals(:, 1));             call compare("pack_forward_write_f32")
+        call pack_forward_write_f32_block_4(in, out, dims, locals(:, 1));     call compare("pack_forward_write_f32_block_4")
+        call pack_forward_write_f32_block_8(in, out, dims, locals(:, 1));     call compare("pack_forward_write_f32_block_8")
+        call pack_forward_write_f32_block_16(in, out, dims, locals(:, 1));    call compare("pack_forward_write_f32_block_16")
+        call pack_forward_write_f32_block_32(in, out, dims, locals(:, 1));    call compare("pack_forward_write_f32_block_32")
+        call pack_forward_write_f32_block_64(in, out, dims, locals(:, 1));    call compare("pack_forward_write_f32_block_64")
+        call pack_forward_read_f32(in, out, dims, locals(:, 1));              call compare("pack_forward_read_f32")
+        call pack_forward_read_f32_block_4(in, out, dims, locals(:, 1));      call compare("pack_forward_read_f32_block_4")
+        call pack_forward_read_f32_block_8(in, out, dims, locals(:, 1));      call compare("pack_forward_read_f32_block_8")
+        call pack_forward_read_f32_block_16(in, out, dims, locals(:, 1));     call compare("pack_forward_read_f32_block_16")
+        call pack_forward_read_f32_block_32(in, out, dims, locals(:, 1));     call compare("pack_forward_read_f32_block_32")
+        call pack_forward_read_f32_block_64(in, out, dims, locals(:, 1));     call compare("pack_forward_read_f32_block_64")
 
-    print*,'Testing permute_backward kernels'
-
-    allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
-
-    do i = 1, size(in)
-        in(i) = real(i, real32)
-    enddo
-
-    call permute_backward_write_f32(in, gold, dims)
-
-    call permute_backward_read_f32(in, out, dims); call compare
-    call permute_backward_write_f32_block_16(in, out, dims); call compare
-    call permute_backward_write_f32_block_32(in, out, dims); call compare
-    call permute_backward_write_f32_block_64(in, out, dims); call compare
-    call permute_backward_read_f32_block_16(in, out, dims); call compare
-    call permute_backward_read_f32_block_32(in, out, dims); call compare
-    call permute_backward_read_f32_block_64(in, out, dims); call compare
-
-    deallocate(in, out, gold)
-
-    print*,'SUCCESS'
-end subroutine run_permute_backward
-
-subroutine run_permute_backward_start(dims)
-    integer(int32), intent(in) :: dims(:)
-
-    print*,'Testing permute_backward_start kernels'
-
-    allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
-
-    do i = 1, size(in)
-        in(i) = real(i, real32)
-    enddo
-
-    call permute_backward_start_write_f32(in, gold, dims)
-
-    call permute_backward_start_read_f32(in, out, dims); call compare
-    call permute_backward_start_write_f32_block_16(in, out, dims); call compare
-    call permute_backward_start_write_f32_block_32(in, out, dims); call compare
-    call permute_backward_start_write_f32_block_64(in, out, dims); call compare
-    call permute_backward_start_read_f32_block_16(in, out, dims); call compare
-    call permute_backward_start_read_f32_block_32(in, out, dims); call compare
-    call permute_backward_start_read_f32_block_64(in, out, dims); call compare
-
-    deallocate(in, out, gold)
-
-    print*,'SUCCESS'
-end subroutine run_permute_backward_start
-
-subroutine run_permute_backward_end(dims)
-    integer(int32), intent(in) :: dims(:)
-    integer(int32) :: ndata(5)
-
-    print*,'Testing permute_backward_end kernels'
-
-    allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
-
-    do i = 1, size(in)
-        in(i) = real(i, real32)
-    enddo
-    gold(:) = -1._real32
-    out(:) = -1._real32
-    ndata = [dims(1) / 2, dims(2) / 2, dims(3) / 2, 1, 1]
-
-    call permute_backward_end_pipelined_write_f32(in, gold, dims, ndata)
-
-
-    call permute_backward_end_pipelined_write_f32_block_16(in, out, dims, ndata); call compare
-    call permute_backward_end_pipelined_write_f32_block_32(in, out, dims, ndata); call compare
-    call permute_backward_end_pipelined_write_f32_block_64(in, out, dims, ndata); call compare
-    call permute_backward_end_pipelined_read_f32_block_16(in, out, dims, ndata); call compare
-    call permute_backward_end_pipelined_read_f32_block_32(in, out, dims, ndata); call compare
-    call permute_backward_end_pipelined_read_f32_block_64(in, out, dims, ndata); call compare
-
-    deallocate(in, out, gold)
-
-    print*,'SUCCESS'
-end subroutine run_permute_backward_end
-
-subroutine run_unpack(dims)
-    integer(int32), intent(in) :: dims(:)
-    integer(int32) :: ndata(5)
-
-    print*,'Testing run_unpack kernels, ndims = ',size(dims)
-
-    allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
-
-    do i = 1, size(in)
-        in(i) = real(i, real32)
-    enddo
-    gold(:) = -1._real32
-    out(:) = -1._real32
-    if( size(dims) == 3) then
-        ndata = [dims(1) / 2, dims(2) / 2, dims(3) / 2, 1, 1]
-    else
-        ndata = [dims(1) / 2, dims(2) / 2, 0, 1, 1]
-    endif
-
-    call unpack_pipelined_f32(in, gold, dims, ndata)
-
-    call unpack_pipelined_f32_block_16(in, out, dims, ndata); call compare
-    call unpack_pipelined_f32_block_32(in, out, dims, ndata); call compare
-    call unpack_pipelined_f32_block_64(in, out, dims, ndata); call compare
-
-    deallocate(in, out, gold)
-
-    print*,'SUCCESS'
-end subroutine run_unpack
-
-
-subroutine compare
-    ! print*, 'Comparing results...'
-    ! print*, gold(1:10)
-    ! print*, out(1:10)
-    do i = 1, size(gold)
-        if ( abs(out(i) - gold(i)) > 1e-6 ) then
-            print*, i, out(i), gold(i)
-            error stop "Test failed"
+        if ( size(dims) == 2 ) then
+            unpack_dims = [dims(2), dims(1), 1]
+        else
+            unpack_dims = [dims(2), dims(3), dims(1)]
         endif
-        out(i) = -1._real32
-    enddo
-end subroutine compare
+        locals(1:size(unpack_dims), 1) = unpack_dims
+
+        call unpack_forward_write_f32(in, out, unpack_dims(1:size(dims)), locals);            call compare("unpack_forward_write_f32")
+        call unpack_forward_write_f32_block_4(in, out, unpack_dims(1:size(dims)), locals);    call compare("unpack_forward_write_f32_block_4")
+        call unpack_forward_write_f32_block_8(in, out, unpack_dims(1:size(dims)), locals);    call compare("unpack_forward_write_f32_block_8")
+        call unpack_forward_write_f32_block_16(in, out, unpack_dims(1:size(dims)), locals);   call compare("unpack_forward_write_f32_block_16")
+        call unpack_forward_write_f32_block_32(in, out, unpack_dims(1:size(dims)), locals);   call compare("unpack_forward_write_f32_block_32")
+        call unpack_forward_write_f32_block_64(in, out, unpack_dims(1:size(dims)), locals);   call compare("unpack_forward_write_f32_block_64")
+        call unpack_forward_read_f32(in, out, unpack_dims(1:size(dims)), locals);             call compare("unpack_forward_read_f32")
+        call unpack_forward_read_f32_block_4(in, out, unpack_dims(1:size(dims)), locals);     call compare("unpack_forward_read_f32_block_4")
+        call unpack_forward_read_f32_block_8(in, out, unpack_dims(1:size(dims)), locals);     call compare("unpack_forward_read_f32_block_8")
+        call unpack_forward_read_f32_block_16(in, out, unpack_dims(1:size(dims)), locals);    call compare("unpack_forward_read_f32_block_16")
+        call unpack_forward_read_f32_block_32(in, out, unpack_dims(1:size(dims)), locals);    call compare("unpack_forward_read_f32_block_32")
+        call unpack_forward_read_f32_block_64(in, out, unpack_dims(1:size(dims)), locals);    call compare("unpack_forward_read_f32_block_64")
+
+    !     print*,'Testing transpose_3d_cache_oblivious kernel'
+    !     call cpu_time(start_time)
+    !     call transpose_3d_cache_oblivious(in, out, dims)!;call compare
+    ! call cpu_time(end_time)
+    ! print*,'Time for transpose_3d_cache_oblivious: ', end_time - start_time
+        deallocate(in, out, gold)
+
+        print*,'SUCCESS'
+    end subroutine run_permute_forward
+
+    subroutine run_permute_backward(dims)
+        integer(int32), intent(in) :: dims(:)
+        integer(int32) :: locals(5, 1)
+        integer(int32) :: unpack_dims(3)
+
+        print*,'Testing permute_backward kernels'
+
+        allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
+
+        do i = 1, size(in)
+            in(i) = real(i, real32)
+        enddo
+
+        call permute_backward_write_f32(in, gold, dims)
+
+        call permute_backward_read_f32(in, out, dims);              call compare("permute_backward_read_f32")
+        call permute_backward_write_f32_block_4(in, out, dims);     call compare("permute_backward_write_f32_block_4")
+        call permute_backward_write_f32_block_8(in, out, dims);     call compare("permute_backward_write_f32_block_8")
+        call permute_backward_write_f32_block_16(in, out, dims);    call compare("permute_backward_write_f32_block_16")
+        call permute_backward_write_f32_block_32(in, out, dims);    call compare("permute_backward_write_f32_block_32")
+        call permute_backward_write_f32_block_64(in, out, dims);    call compare("permute_backward_write_f32_block_64")
+        call permute_backward_read_f32_block_4(in, out, dims);      call compare("permute_backward_read_f32_block_4")
+        call permute_backward_read_f32_block_8(in, out, dims);      call compare("permute_backward_read_f32_block_8")
+        call permute_backward_read_f32_block_16(in, out, dims);     call compare("permute_backward_read_f32_block_16")
+        call permute_backward_read_f32_block_32(in, out, dims);     call compare("permute_backward_read_f32_block_32")
+        call permute_backward_read_f32_block_64(in, out, dims);     call compare("permute_backward_read_f32_block_64")
+
+        locals(1:size(dims), 1) = dims
+        locals(4, 1) = 0
+        locals(5, 1) = 0
+
+        call pack_backward_write_f32(in, out, dims, locals(:, 1));                call compare("pack_backward_write_f32")
+        call pack_backward_write_f32_block_4(in, out, dims, locals(:, 1));        call compare("pack_backward_write_f32_block_4")
+        call pack_backward_write_f32_block_8(in, out, dims, locals(:, 1));        call compare("pack_backward_write_f32_block_8")
+        call pack_backward_write_f32_block_16(in, out, dims, locals(:, 1));       call compare("pack_backward_write_f32_block_16")
+        call pack_backward_write_f32_block_32(in, out, dims, locals(:, 1));       call compare("pack_backward_write_f32_block_32")
+        call pack_backward_write_f32_block_64(in, out, dims, locals(:, 1));       call compare("pack_backward_write_f32_block_64")
+        call pack_backward_read_f32(in, out, dims, locals(:, 1));                 call compare("pack_backward_read_f32")
+        call pack_backward_read_f32_block_4(in, out, dims, locals(:, 1));         call compare("pack_backward_read_f32_block_4")
+        call pack_backward_read_f32_block_8(in, out, dims, locals(:, 1));         call compare("pack_backward_read_f32_block_8")
+        call pack_backward_read_f32_block_16(in, out, dims, locals(:, 1));        call compare("pack_backward_read_f32_block_16")
+        call pack_backward_read_f32_block_32(in, out, dims, locals(:, 1));        call compare("pack_backward_read_f32_block_32")
+        call pack_backward_read_f32_block_64(in, out, dims, locals(:, 1));        call compare("pack_backward_read_f32_block_64")
+
+        unpack_dims = [dims(3), dims(1), dims(2)]
+        locals(1:size(unpack_dims), 1) = unpack_dims
+
+        call unpack_backward_write_f32(in, out, unpack_dims, locals);            call compare("unpack_backward_write_f32")
+        call unpack_backward_write_f32_block_4(in, out, unpack_dims, locals);    call compare("unpack_backward_write_f32_block_4")
+        call unpack_backward_write_f32_block_8(in, out, unpack_dims, locals);    call compare("unpack_backward_write_f32_block_8")
+        call unpack_backward_write_f32_block_16(in, out, unpack_dims, locals);   call compare("unpack_backward_write_f32_block_16")
+        call unpack_backward_write_f32_block_32(in, out, unpack_dims, locals);   call compare("unpack_backward_write_f32_block_32")
+        call unpack_backward_write_f32_block_64(in, out, unpack_dims, locals);   call compare("unpack_backward_write_f32_block_64")
+        call unpack_backward_read_f32(in, out, unpack_dims, locals);             call compare("unpack_backward_read_f32")
+        call unpack_backward_read_f32_block_4(in, out, unpack_dims, locals);     call compare("unpack_backward_read_f32_block_4")
+        call unpack_backward_read_f32_block_8(in, out, unpack_dims, locals);     call compare("unpack_backward_read_f32_block_8")
+        call unpack_backward_read_f32_block_16(in, out, unpack_dims, locals);    call compare("unpack_backward_read_f32_block_16")
+        call unpack_backward_read_f32_block_32(in, out, unpack_dims, locals);    call compare("unpack_backward_read_f32_block_32")
+        call unpack_backward_read_f32_block_64(in, out, unpack_dims, locals);    call compare("unpack_backward_read_f32_block_64")
+
+        deallocate(in, out, gold)
+
+        print*,'SUCCESS'
+    end subroutine run_permute_backward
+
+    subroutine run_permute_backward_start(dims)
+        integer(int32), intent(in) :: dims(:)
+
+        print*,'Testing permute_backward_start kernels'
+
+        allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
+
+        do i = 1, size(in)
+            in(i) = real(i, real32)
+        enddo
+
+        call permute_backward_start_write_f32(in, gold, dims)
+
+        call permute_backward_start_read_f32(in, out, dims);            call compare("permute_backward_start_read_f32")
+        call permute_backward_start_write_f32_block_4(in, out, dims);   call compare("permute_backward_start_write_f32_block_4")
+        call permute_backward_start_write_f32_block_8(in, out, dims);   call compare("permute_backward_start_write_f32_block_8")
+        call permute_backward_start_write_f32_block_16(in, out, dims);  call compare("permute_backward_start_write_f32_block_16")
+        call permute_backward_start_write_f32_block_32(in, out, dims);  call compare("permute_backward_start_write_f32_block_32")
+        call permute_backward_start_write_f32_block_64(in, out, dims);  call compare("permute_backward_start_write_f32_block_64")
+        call permute_backward_start_read_f32_block_4(in, out, dims);    call compare("permute_backward_start_read_f32_block_4")
+        call permute_backward_start_read_f32_block_8(in, out, dims);    call compare("permute_backward_start_read_f32_block_8")
+        call permute_backward_start_read_f32_block_16(in, out, dims);   call compare("permute_backward_start_read_f32_block_16")
+        call permute_backward_start_read_f32_block_32(in, out, dims);   call compare("permute_backward_start_read_f32_block_32")
+        call permute_backward_start_read_f32_block_64(in, out, dims);   call compare("permute_backward_start_read_f32_block_64")
+
+        deallocate(in, out, gold)
+
+        print*,'SUCCESS'
+    end subroutine run_permute_backward_start
+
+    subroutine run_permute_backward_end(dims)
+        integer(int32), intent(in) :: dims(:)
+        integer(int32) :: temp_dims(size(dims))
+        integer(int32) :: locals(5, 1)
+
+        print*,'Testing permute_backward_end kernels'
+
+        allocate( in(product(dims)), temp(product(dims)), out(product(dims)), gold(product(dims)) )
+
+        do i = 1, size(in)
+            in(i) = real(i, real32)
+        enddo
+        gold(:) = -1._real32
+        out(:) = -1._real32
+
+        call permute_backward_write_f32(in, gold, dims)
+        call permute_backward_start_write_f32(in, temp, dims)
+
+        temp_dims = [dims(3), dims(1), dims(2)]
+
+        locals(1:size(dims), 1) = temp_dims
+        locals(4, 1) = 0
+        locals(5, 1) = 0
+
+        call permute_backward_end_write_f32(temp, out, temp_dims, locals);           call compare("permute_backward_end_write_f32")
+        call permute_backward_end_write_f32_block_4(temp, out, temp_dims, locals);   call compare("permute_backward_end_write_f32_block_4")
+        call permute_backward_end_write_f32_block_8(temp, out, temp_dims, locals);   call compare("permute_backward_end_write_f32_block_8")
+        call permute_backward_end_write_f32_block_16(temp, out, temp_dims, locals);  call compare("permute_backward_end_write_f32_block_16")
+        call permute_backward_end_write_f32_block_32(temp, out, temp_dims, locals);  call compare("permute_backward_end_write_f32_block_32")
+        call permute_backward_end_write_f32_block_64(temp, out, temp_dims, locals);  call compare("permute_backward_end_write_f32_block_64")
+        call permute_backward_end_read_f32(temp, out, temp_dims, locals);            call compare("permute_backward_end_read_f32")
+        call permute_backward_end_read_f32_block_4(temp, out, temp_dims, locals);    call compare("permute_backward_end_read_f32_block_4")
+        call permute_backward_end_read_f32_block_8(temp, out, temp_dims, locals);    call compare("permute_backward_end_read_f32_block_8")
+        call permute_backward_end_read_f32_block_16(temp, out, temp_dims, locals);   call compare("permute_backward_end_read_f32_block_16")
+        call permute_backward_end_read_f32_block_32(temp, out, temp_dims, locals);   call compare("permute_backward_end_read_f32_block_32")
+        call permute_backward_end_read_f32_block_64(temp, out, temp_dims, locals);   call compare("permute_backward_end_read_f32_block_64")
+        deallocate(in, out, gold, temp)
+
+        print*,'SUCCESS'
+    end subroutine run_permute_backward_end
+
+    subroutine run_pack_unpack(dims)
+        integer(int32), intent(in) :: dims(:)
+        integer(int32) :: locals(5, 1)
+
+        print*,'Testing pack/unpack kernels, ndims = ',size(dims)
+
+        allocate( in(product(dims)), out(product(dims)), gold(product(dims)) )
+
+        do i = 1, size(in)
+            in(i) = real(i, real32)
+            gold(i) = in(i)
+        enddo
+        ! gold(:) = -1._real32
+        out(:) = -1._real32
+
+        locals(1:size(dims), 1) = dims
+        locals(4, 1) = 0
+        locals(5, 1) = 0
+
+        call unpack_f32(in, out, dims, locals); call compare("unpack_f32")
+        call unpack_f32_block_4(in, out, dims, locals); call compare("unpack_f32_block_4")
+        call unpack_f32_block_8(in, out, dims, locals); call compare("unpack_f32_block_8")
+        call unpack_f32_block_16(in, out, dims, locals); call compare("unpack_f32_block_16")
+        call unpack_f32_block_32(in, out, dims, locals); call compare("unpack_f32_block_32")
+        call unpack_f32_block_64(in, out, dims, locals); call compare("unpack_f32_block_64")
+
+        call pack_f32(in, out, dims, locals); call compare("pack_f32")
+        call pack_f32_block_4(in, out, dims, locals); call compare("pack_f32_block_4")
+        call pack_f32_block_8(in, out, dims, locals); call compare("pack_f32_block_8")
+        call pack_f32_block_16(in, out, dims, locals); call compare("pack_f32_block_16")
+        call pack_f32_block_32(in, out, dims, locals); call compare("pack_f32_block_32")
+        call pack_f32_block_64(in, out, dims, locals); call compare("pack_f32_block_64")
+
+        deallocate(in, out, gold)
+
+        print*,'SUCCESS'
+    end subroutine run_pack_unpack
+
+
+    subroutine compare(test_name)
+        character(len=*), intent(in) :: test_name
+        ! print*, 'Comparing results...'
+        ! print*, gold(1:10)
+        ! print*, out(1:10)
+        do i = 1, size(gold)
+            if ( abs(out(i) - gold(i)) > 1e-6 ) then
+                print*, i, out(i), gold(i)
+                error stop "Test failed: "//test_name
+            endif
+            out(i) = -1._real32
+        enddo
+    end subroutine compare
 
 
 !    recursive subroutine transpose_3d_recursive(in, out, &

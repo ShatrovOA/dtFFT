@@ -243,6 +243,22 @@ dtfft_get_aux_bytes_reshape(dtfft_plan_t plan, size_t* aux_bytes)
     return (dtfft_error_t)dtfft_get_aux_bytes_reshape_c(plan, aux_bytes);
 }
 
+dtfft_error_t
+dtfft_get_aux_size_transpose(dtfft_plan_t plan, size_t* aux_size)
+{
+    if (!aux_size)
+        return DTFFT_ERROR_INVALID_USAGE;
+    return (dtfft_error_t)dtfft_get_aux_size_transpose_c(plan, aux_size);
+}
+
+dtfft_error_t
+dtfft_get_aux_bytes_transpose(dtfft_plan_t plan, size_t* aux_bytes)
+{
+    if (!aux_bytes)
+        return DTFFT_ERROR_INVALID_USAGE;
+    return (dtfft_error_t)dtfft_get_aux_bytes_transpose_c(plan, aux_bytes);
+}
+
 static const char*
 get_string_helper(const int32_t value, size_t initial_size, void (*func)(const int32_t*, char*, size_t*))
 {
@@ -330,6 +346,14 @@ dtfft_report(dtfft_plan_t plan)
 {
     return (dtfft_error_t)dtfft_report_c(plan);
 }
+
+#ifdef DTFFT_WITH_COMPRESSION
+dtfft_error_t
+dtfft_report_compression(dtfft_plan_t plan)
+{
+    return (dtfft_error_t)dtfft_report_compression_c(plan);
+}
+#endif
 
 dtfft_error_t
 dtfft_get_executor(dtfft_plan_t plan, dtfft_executor_t* executor)

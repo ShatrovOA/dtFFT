@@ -29,7 +29,11 @@
 int main(int argc, char* argv[])
 {
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
+#ifdef DTFFT_WITH_MOCK_ENABLED
+    int32_t nx = 333, ny = 444;
+#else
     int32_t nx = 3333, ny = 4444;
+#endif
 #else
     int32_t nx = 11, ny = 39;
 #endif

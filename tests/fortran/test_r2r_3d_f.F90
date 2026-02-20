@@ -23,7 +23,7 @@ program test_r2r_3d
 !< It also tests user-defined 1d communicator
 !------------------------------------------------------------------------------------------------
 use iso_fortran_env
-use iso_c_binding, only: c_loc, c_ptr
+use iso_c_binding, only: c_loc, c_ptr, c_int
 use dtfft
 use test_utils
 #if defined(DTFFT_WITH_CUDA)
@@ -35,7 +35,7 @@ use dtfft_interface_cuda_runtime
 implicit none
   type(c_ptr) :: check
   real(real64), pointer :: in(:), out(:)
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   integer(int32), parameter :: nx = 1024, ny = 1024, nz = 16
 #else
   integer(int32), parameter :: nx = 512, ny = 32, nz = 8
@@ -54,6 +54,13 @@ implicit none
   type(dtfft_platform_t) :: platform
 #endif
   type(dtfft_config_t) :: conf
+  type(dtfft_effort_t) :: effort
+  ! interface
+  !   subroutine cali_flush(val) bind(C)
+  !     import
+  !     integer(c_int), intent(in), value :: val
+  !   end subroutine cali_flush
+  ! end interface
 
   call MPI_Init(ierr)
   call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
@@ -83,6 +90,17 @@ implicit none
   conf%enable_z_slab = .true.
   conf%enable_y_slab = .true.
   conf%enable_mpi_backends = .true.
+! #ifdef DTFFT_WITH_COMPRESSION
+!   conf%backend = DTFFT_BACKEND_MPI_P2P_COMPRESSED
+!   conf%compression_config_transpose%compression_mode = DTFFT_COMPRESSION_MODE_FIXED_RATE
+!   conf%compression_config_transpose%rate = 16.0
+!   ! conf%compression_config_transpose%compression_mode = DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
+!   ! conf%compression_config_transpose%tolerance = 1.e-6_real64
+!   effort = DTFFT_MEASURE
+! #else
+  effort = DTFFT_MEASURE!DTFFT_PATIENT
+  conf%enable_mpi_backends = .false.
+! #endif
 
 #if defined(DTFFT_WITH_CUDA)
   block
@@ -94,7 +112,7 @@ implicit none
     if ( env_len == 0 .or. trim(adjustl(platform_env)) == "cuda" ) then
       conf%backend = DTFFT_BACKEND_MPI_P2P
       conf%platform = DTFFT_PLATFORM_CUDA
-# if defined( DTFFT_WITH_VKFFT )
+# if defined( DTFFT_WITH_VKFFT ) && !defined(DTFFT_WITH_MOCK_ENABLED)
       executor = DTFFT_EXECUTOR_VKFFT
 # endif
     endif
@@ -105,7 +123,7 @@ implicit none
   allocate( dtfft_plan_r2r_t :: plan )
   select type (plan)
   class is ( dtfft_plan_r2r_t )
-    call plan%create([nx, ny, nz], kinds, comm=comm, effort=DTFFT_PATIENT, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
+    call plan%create([nx, ny, nz], kinds, comm=MPI_COMM_WORLD, effort=effort, executor=executor, error_code=ierr); DTFFT_CHECK(ierr)
   endselect
   call plan%report(error_code=ierr); DTFFT_CHECK(ierr)
   call plan%get_local_sizes(in_counts=in_counts, out_counts=out_counts, alloc_size=alloc_size, error_code=ierr); DTFFT_CHECK(ierr)
@@ -159,8 +177,9 @@ implicit none
     tb = tb + temp + MPI_Wtime()
   enddo
 
+  ! call cali_flush(0)
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   call checkAndReportDouble(int(nx * ny * nz, int64), tf, tb, c_loc(in), in_size, check, platform%val)
 #else
   call checkAndReportDouble(int(nx * ny * nz, int64), tf, tb, c_loc(in), in_size, check)

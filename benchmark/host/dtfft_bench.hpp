@@ -20,8 +20,14 @@ void setup_dtfft_config(bool enable_z_slab, bool use_datatypes)
         .set_enable_y_slab(false)
         .set_enable_fourier_reshape(true)
         .set_enable_datatype_backend(use_datatypes)
-        .set_backend(dtfft::Backend::MPI_P2P_PIPELINED)
+        .set_backend(dtfft::Backend::ADAPTIVE)
+        .set_reshape_backend(dtfft::Backend::ADAPTIVE)
         .set_enable_mpi_backends(!use_datatypes);
+#ifdef DTFFT_WITH_COMPRESSION
+    auto comp_conf = dtfft::CompressionConfig(dtfft::CompressionLib::ZFP, dtfft::CompressionMode::FIXED_RATE, 16.0);
+    config.set_compression_config_transpose(comp_conf)
+        .set_enable_compressed_backends(true);
+#endif
     dtfft::set_config(config);
 }
 

@@ -53,7 +53,13 @@ extern "C" {
 #define CONCAT(a,b) PASTE(a,b)
 #endif
 
-#define INTERNAL_ERROR(message) error stop "dtFFT Internal Error: "//message
+#define INTERNAL_ERROR(message) \
+  block;  \
+    use iso_fortran_env, only: error_unit, int32;  \
+    integer(int32) :: ierr; \
+    call write_message(error_unit, message, "dtFFT Internal Error: ", .true.); \
+    call MPI_Abort(MPI_COMM_WORLD, -1, ierr); \
+  endblock
 
 #define CHECK_INPUT_PARAMETER(param, check_func, code)            \
   if ( .not.check_func(param)) then;                              \

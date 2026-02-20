@@ -42,119 +42,139 @@ implicit none
 private
 public :: kernel_device
 
-  type, extends(abstract_kernel) :: kernel_device
-  !! Device kernel class
-  private
-    type(kernel_type_t)   :: internal_kernel_type     !! Actual kernel type used for execution, can be different from `kernel_type`
-    type(CUfunction)      :: cuda_kernel              !! Pointer to CUDA kernel.
-    integer(int32)        :: tile_size                !! Tile size used for this kernel
-    integer(int32)        :: block_rows               !! Number of rows in each block processed by each thread
-    integer(int64)        :: copy_bytes               !! Number of bytes to copy for `KERNEL_COPY` kernel
-    integer(int64)        :: base_storage             !! Number of bytes per element for `KERNEL_COPY_PIPELINED` kernel
-  contains
-    procedure :: create_private => create   !! Creates kernel
-    procedure :: execute_private => execute !! Executes kernel
-    procedure :: destroy_private => destroy !! Destroys kernel
-  end type kernel_device
+    type, extends(abstract_kernel) :: kernel_device
+    !! Device kernel class
+    private
+        type(kernel_type_t)   :: internal_kernel_type     !! Actual kernel type used for execution, can be different from `kernel_type`
+        type(CUfunction)      :: cuda_kernel              !! Pointer to CUDA kernel.
+        integer(int32)        :: tile_size                !! Tile size used for this kernel
+        integer(int32)        :: block_rows               !! Number of rows in each block processed by each thread
+        integer(int64)        :: copy_bytes               !! Number of bytes to copy for `KERNEL_COPY` kernel
+    contains
+        procedure :: create_private => create   !! Creates kernel
+        procedure :: execute_private => execute !! Executes kernel
+        procedure :: destroy_private => destroy !! Destroys kernel
+    end type kernel_device
 
 contains
 
-  subroutine create(self, effort, base_storage, force_effort)
-  !! Creates kernel
-    class(kernel_device),     intent(inout) :: self             !! Device kernel class
-    type(dtfft_effort_t),     intent(in)    :: effort           !! Effort level for generating transpose kernels
-    integer(int64),           intent(in)    :: base_storage     !! Number of bytes needed to store single element
-    logical,        optional, intent(in)    :: force_effort     !! Should effort be forced or not
-    type(device_props)                      :: props              !! GPU architecture properties
-    integer(int32)                          :: device_id          !! Device ID
+    subroutine create(self, effort, base_storage, force_effort)
+    !! Creates kernel
+        class(kernel_device),     intent(inout) :: self             !! Device kernel class
+        type(dtfft_effort_t),     intent(in)    :: effort           !! Effort level for generating transpose kernels
+        integer(int64),           intent(in)    :: base_storage     !! Number of bytes needed to store single element
+        logical,        optional, intent(in)    :: force_effort     !! Should effort be forced or not
+        type(device_props)                      :: props              !! GPU architecture properties
+        integer(int32)                          :: device_id          !! Device ID
 
-    call self%destroy()
-
-    self%base_storage = base_storage
-    if ( self%kernel_type == KERNEL_COPY .or. self%kernel_type == KERNEL_COPY_PIPELINED) then
-      self%is_created = .true.
-      self%copy_bytes = base_storage * product(self%dims)
-      return
-    endif
-
-    self%internal_kernel_type = self%kernel_type
-    if ( self%kernel_type == KERNEL_UNPACK )                              &
-      self%internal_kernel_type = KERNEL_UNPACK_PIPELINED
-    if ( self%kernel_type == KERNEL_PERMUTE_BACKWARD_END )  &
-      self%internal_kernel_type = KERNEL_PERMUTE_BACKWARD_END_PIPELINED
-
-    CUDA_CALL( cudaGetDevice(device_id) )
-    call get_device_props(device_id, props)
-    if ( allocated( self%neighbor_data ) ) then
-      call get_kernel(self%dims, self%internal_kernel_type, effort, base_storage, props,    &
-                      self%tile_size, self%block_rows, self%cuda_kernel, force_effort=force_effort, neighbor_data=self%neighbor_data(:, 1))
-    else
-      call get_kernel(self%dims, self%internal_kernel_type, effort, base_storage, props,    &
-                      self%tile_size, self%block_rows, self%cuda_kernel, force_effort=force_effort)
-    endif
-  end subroutine create
-
-  subroutine execute(self, in, out, stream, neighbor)
-  !! Executes kernel on stream
-    class(kernel_device),       intent(inout) :: self           !! Device kernel class
-    real(real32),    target,    intent(in)    :: in(:)          !! Device pointer
-    real(real32),    target,    intent(inout) :: out(:)         !! Device pointer
-    type(dtfft_stream_t),       intent(in)    :: stream         !! Stream to execute on
-    integer(int32),   optional, intent(in)    :: neighbor       !! Source rank for pipelined unpacking
-    integer(int32) :: nargs, n
-    integer(int32) :: args(MAX_KERNEL_ARGS)
-    type(dim3) :: blocks, threads
-    type(c_ptr) :: in_ptr, out_ptr
-
-    in_ptr = c_loc(in)
-    out_ptr = c_loc(out)
-
-    if ( self%kernel_type == KERNEL_COPY ) then
-      CUDA_CALL( cudaMemcpyAsync(out_ptr, in_ptr, self%copy_bytes, cudaMemcpyDeviceToDevice, stream) )
+        call self%destroy()
 #ifdef DTFFT_DEBUG
-      CUDA_CALL( cudaStreamSynchronize(stream) )
+        if ( any(self%kernel_type == [KERNEL_UNPACK_FORWARD, KERNEL_UNPACK_FORWARD_PIPELINED, KERNEL_UNPACK_BACKWARD, KERNEL_UNPACK_BACKWARD_PIPELINED]) ) then
+            INTERNAL_ERROR("Invalid kernel type for CUDA: "//self%kernel_string%raw)
+        endif
 #endif
-      return
-    endif
+        self%base_storage = base_storage
+        if ( self%kernel_type == KERNEL_COPY .or. self%kernel_type == KERNEL_COPY_PIPELINED) then
+            self%is_created = .true.
+            self%copy_bytes = base_storage * product(self%dims)
+            return
+        endif
 
-    if ( self%kernel_type == KERNEL_COPY_PIPELINED ) then
-      out_ptr = ptr_offset(out_ptr, self%base_storage * self%neighbor_data(5, neighbor))
-      in_ptr = ptr_offset(in_ptr, self%base_storage * self%neighbor_data(4, neighbor))
-      CUDA_CALL( cudaMemcpyAsync(out_ptr, in_ptr, self%base_storage * product(self%neighbor_data(1:3, neighbor)), cudaMemcpyDeviceToDevice, stream) )
-#ifdef DTFFT_DEBUG
-      CUDA_CALL( cudaStreamSynchronize(stream) )
-#endif
-      return
-    endif
+        self%internal_kernel_type = self%kernel_type
+        select case ( self%kernel_type%val )
+            case ( KERNEL_PACK%val )
+                self%internal_kernel_type = KERNEL_PACK_PIPELINED
+            case ( KERNEL_UNPACK%val )
+                self%internal_kernel_type = KERNEL_UNPACK_PIPELINED
+            case ( KERNEL_PERMUTE_BACKWARD_END%val )
+                self%internal_kernel_type = KERNEL_PERMUTE_BACKWARD_END_PIPELINED
+        end select
 
-    if( any(self%kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD, KERNEL_PERMUTE_BACKWARD_START]) ) then
-      call get_kernel_launch_params(self%kernel_type, self%dims, self%tile_size, self%block_rows, blocks, threads)
-      call get_kernel_args(self%kernel_type, self%dims, nargs, args)
-      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in_ptr, out_ptr, blocks, threads, stream, nargs, args) )
-#ifdef DTFFT_DEBUG
-      CUDA_CALL( cudaStreamSynchronize(stream) )
-#endif
-      return
-    endif
+        CUDA_CALL( cudaGetDevice(device_id) )
+        call get_device_props(device_id, props)
+        if ( allocated( self%neighbor_data ) ) then
+            call get_kernel(self%dims, self%internal_kernel_type, self%kernel_string, effort, base_storage, props,    &
+                            self%tile_size, self%block_rows, self%cuda_kernel, force_effort=force_effort, neighbor_data=self%neighbor_data(:, 1))
+        else
+            call get_kernel(self%dims, self%internal_kernel_type, self%kernel_string, effort, base_storage, props,    &
+                            self%tile_size, self%block_rows, self%cuda_kernel, force_effort=force_effort)
+        endif
+    end subroutine create
 
-    if ( any(self%kernel_type == [KERNEL_UNPACK_PIPELINED, KERNEL_PERMUTE_BACKWARD_END_PIPELINED]) ) then
-      call get_kernel_launch_params(self%kernel_type, self%neighbor_data(1:3, neighbor), self%tile_size, self%block_rows, blocks, threads )
-      call get_kernel_args(self%kernel_type, self%dims, nargs, args, self%neighbor_data(:, neighbor))
-      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in_ptr, out_ptr, blocks, threads, stream, nargs, args) )
-#ifdef DTFFT_DEBUG
-      CUDA_CALL( cudaStreamSynchronize(stream) )
-#endif
-      return
-    endif
+    subroutine execute(self, in, out, stream, sync, neighbor)
+    !! Executes kernel on stream
+        class(kernel_device),       intent(inout)   :: self         !! Device kernel class
+        type(c_ptr),                intent(in)      :: in           !! Source buffer, can be device or host pointer
+        type(c_ptr),                intent(in)      :: out          !! Target buffer, can be device or host pointer
+        type(dtfft_stream_t),       intent(in)      :: stream       !! Stream to execute on
+        logical,                    intent(in)      :: sync         !! Sync stream after kernel execution, unused here
+        integer(int32),   optional, intent(in)      :: neighbor     !! Source rank for pipelined unpacking
+        integer(int32) :: nargs, n
+        integer(int32) :: args(MAX_KERNEL_ARGS)
+        type(dim3) :: blocks, threads
+        type(c_ptr) :: in_ptr, out_ptr
 
-    do n = 1, size(self%neighbor_data, dim=2)
-      call get_kernel_launch_params(self%internal_kernel_type, self%neighbor_data(1:3, n), self%tile_size, self%block_rows, blocks, threads )
-      call get_kernel_args(self%internal_kernel_type, self%dims, nargs, args, self%neighbor_data(:, n))
-      CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in_ptr, out_ptr, blocks, threads, stream, nargs, args) )
+        if ( self%kernel_type == KERNEL_COPY ) then
+            CUDA_CALL( cudaMemcpyAsync(out, in, self%copy_bytes, cudaMemcpyDeviceToDevice, stream) )
 #ifdef DTFFT_DEBUG
-      CUDA_CALL( cudaStreamSynchronize(stream) )
+            CUDA_CALL( cudaStreamSynchronize(stream) )
 #endif
-    enddo
+            if ( sync ) then
+                CUDA_CALL( cudaStreamSynchronize(stream) )
+            endif
+            return
+        endif
+
+        if ( self%kernel_type == KERNEL_COPY_PIPELINED ) then
+            out_ptr = ptr_offset(out, self%base_storage * self%neighbor_data(5, neighbor))
+            in_ptr = ptr_offset(in, self%base_storage * self%neighbor_data(4, neighbor))
+            CUDA_CALL( cudaMemcpyAsync(out_ptr, in_ptr, self%base_storage * product(self%neighbor_data(1:3, neighbor)), cudaMemcpyDeviceToDevice, stream) )
+#ifdef DTFFT_DEBUG
+            CUDA_CALL( cudaStreamSynchronize(stream) )
+#endif
+            if ( sync ) then
+                CUDA_CALL( cudaStreamSynchronize(stream) )
+            endif
+            return
+        endif
+
+        if( any(self%kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD, KERNEL_PERMUTE_BACKWARD_START]) ) then
+            call get_kernel_launch_params(self%kernel_type, self%dims, self%tile_size, self%block_rows, blocks, threads)
+            call get_kernel_args(self%kernel_type, self%dims, nargs, args)
+            CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in, out, blocks, threads, stream, nargs, args) )
+#ifdef DTFFT_DEBUG
+            CUDA_CALL( cudaStreamSynchronize(stream) )
+#endif
+            if ( sync ) then
+                CUDA_CALL( cudaStreamSynchronize(stream) )
+            endif
+            return
+        endif
+
+        if ( any(self%kernel_type == [KERNEL_UNPACK_PIPELINED, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_PACK_FORWARD, KERNEL_PACK_BACKWARD]) ) then
+            call get_kernel_launch_params(self%kernel_type, self%neighbor_data(1:3, neighbor), self%tile_size, self%block_rows, blocks, threads )
+            call get_kernel_args(self%kernel_type, self%dims, nargs, args, self%neighbor_data(:, neighbor))
+            CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in, out, blocks, threads, stream, nargs, args) )
+#ifdef DTFFT_DEBUG
+            CUDA_CALL( cudaStreamSynchronize(stream) )
+#endif
+            if ( sync ) then
+                CUDA_CALL( cudaStreamSynchronize(stream) )
+            endif
+            return
+        endif
+
+        do n = 1, size(self%neighbor_data, dim=2)
+            call get_kernel_launch_params(self%internal_kernel_type, self%neighbor_data(1:3, n), self%tile_size, self%block_rows, blocks, threads )
+            call get_kernel_args(self%internal_kernel_type, self%dims, nargs, args, self%neighbor_data(:, n))
+            CUDA_CALL( cuLaunchKernel(self%cuda_kernel, in, out, blocks, threads, stream, nargs, args) )
+#ifdef DTFFT_DEBUG
+            CUDA_CALL( cudaStreamSynchronize(stream) )
+#endif
+        enddo
+        if ( sync ) then
+            CUDA_CALL( cudaStreamSynchronize(stream) )
+        endif
   end subroutine execute
 
   subroutine destroy(self)
@@ -176,24 +196,32 @@ contains
     nargs = 0
     nargs = nargs + 1;  args(nargs) = dims(1)
     nargs = nargs + 1;  args(nargs) = dims(2)
-    if ( kernel_type == KERNEL_UNPACK_PIPELINED .or. kernel_type == KERNEL_PACK ) then
+    nargs = nargs + 1
+    if ( size(dims) == 2 ) then
+      args(nargs) = 1
+    else
+      args(nargs) = dims(3)
+    endif
+
+    if ( is_pack_kernel(kernel_type) .or. is_unpack_kernel(kernel_type) ) then
       nargs = nargs + 1;  args(nargs) = neighbor_data(1)
       nargs = nargs + 1;  args(nargs) = neighbor_data(2)
+      nargs = nargs + 1;  args(nargs) = neighbor_data(3)
       nargs = nargs + 1;  args(nargs) = neighbor_data(4)
       nargs = nargs + 1;  args(nargs) = neighbor_data(5)
     endif
-    if ( size(dims) == 2 .or. kernel_type == KERNEL_UNPACK_PIPELINED .or. kernel_type == KERNEL_PACK ) return
+    ! if ( size(dims) == 2 .or. kernel_type == KERNEL_UNPACK_PIPELINED .or. kernel_type == KERNEL_PACK ) return
 
-    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD, KERNEL_PERMUTE_BACKWARD_START]) ) then
-      nargs = nargs + 1; args(nargs) = dims(3)
-      return
-    endif
+    ! if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD, KERNEL_PERMUTE_BACKWARD_START]) ) then
+    !   nargs = nargs + 1; args(nargs) = dims(3)
+    !   return
+    ! endif
 
-    nargs = nargs + 1; args(nargs) = neighbor_data(1)
-    nargs = nargs + 1; args(nargs) = neighbor_data(2)
-    nargs = nargs + 1; args(nargs) = neighbor_data(3)
-    nargs = nargs + 1; args(nargs) = neighbor_data(4)
-    nargs = nargs + 1; args(nargs) = neighbor_data(5)
+    ! nargs = nargs + 1; args(nargs) = neighbor_data(1)
+    ! nargs = nargs + 1; args(nargs) = neighbor_data(2)
+    ! nargs = nargs + 1; args(nargs) = neighbor_data(3)
+    ! nargs = nargs + 1; args(nargs) = neighbor_data(4)
+    ! nargs = nargs + 1; args(nargs) = neighbor_data(5)
   end subroutine get_kernel_args
 
   subroutine get_kernel_launch_params(kernel_type, dims, tile_size, block_rows, blocks, threads)
@@ -210,7 +238,7 @@ contains
     threads%y = block_rows
     threads%z = 1
 
-    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED, KERNEL_PACK]) ) then
+    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PACK_FORWARD, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED, KERNEL_PACK_PIPELINED]) ) then
       tile_dim = 2
       other_dim = 3
     else
@@ -228,10 +256,11 @@ contains
     endif
   end subroutine get_kernel_launch_params
 
-  subroutine get_kernel(dims, kernel_type, effort, base_storage, props, tile_size, block_rows, kernel, force_effort, neighbor_data)
+  subroutine get_kernel(dims, kernel_type, kernel_string, effort, base_storage, props, tile_size, block_rows, kernel, force_effort, neighbor_data)
   !! Compiles kernel and caches it. Returns compiled kernel.
     integer(int32),           intent(in)    :: dims(:)            !! Local dimensions to process
     type(kernel_type_t),      intent(in)    :: kernel_type        !! Type of kernel to build
+    type(string),             intent(in)    :: kernel_string      !! Kernel string
     type(dtfft_effort_t),     intent(in)    :: effort             !! How thoroughly `dtFFT` searches for the optimal transpose kernel
     integer(int64),           intent(in)    :: base_storage       !! Number of bytes needed to store single element
     type(device_props),       intent(in)    :: props              !! GPU architecture properties
@@ -272,7 +301,7 @@ contains
     integer(int32)                :: args(MAX_KERNEL_ARGS)    !! Kernel arguments
 
 
-    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED, KERNEL_PACK]) ) then
+    if ( any(kernel_type == [KERNEL_PERMUTE_FORWARD, KERNEL_PERMUTE_BACKWARD_END_PIPELINED, KERNEL_UNPACK_PIPELINED, KERNEL_PACK_PIPELINED]) ) then
       tile_dim = 2
       other_dim = 3
     else
@@ -284,8 +313,7 @@ contains
     ndims = size(dims)
     fixed_dims(:) = 1
     fixed_dims(1:ndims) = dims(1:ndims)
-    if ( is_unpack_kernel(kernel_type) .or. kernel_type == KERNEL_PACK) fixed_dims(1:ndims) = neighbor_data(1:ndims)
-
+    if ( is_unpack_kernel(kernel_type) .or. is_pack_kernel(kernel_type)) fixed_dims(1:ndims) = neighbor_data(1:ndims)
     call generate_candidates(fixed_dims, tile_dim, other_dim, base_storage, props, candidates, num_candidates)
     allocate(scores(num_candidates), sorted(num_candidates))
     do i = 1, num_candidates
@@ -313,8 +341,8 @@ contains
     CUDA_CALL( cudaEventCreate(timer_stop) )
     stream = get_conf_stream()
 
-    global_phase = "Testing nvRTC kernel: '"//get_kernel_string(kernel_type)//"' perfomances..."
-    PHASE_BEGIN(global_phase, COLOR_AUTOTUNE)
+    allocate( global_phase, source="Testing nvRTC kernel: '"//kernel_string%raw//"' perfomances..." )
+    PHASE_BEGIN(global_phase, COLOR_STEEL_BLUE)
     WRITE_INFO(global_phase)
 
     n_warmup_iters = get_conf_measure_warmup_iters()
@@ -332,18 +360,18 @@ contains
 
       kernel = get_kernel_instance(ndims, kernel_type, base_storage, tile_size, block_rows)
 
-      local_phase = "Testing block: "//to_str(tile_size)//"x"//to_str(block_rows)
-      REGION_BEGIN(local_phase, COLOR_AUTOTUNE2)
+      allocate( local_phase, source="Testing block: "//to_str(tile_size)//"x"//to_str(block_rows) )
+      REGION_BEGIN(local_phase, COLOR_ORCHID)
       WRITE_INFO("    "//local_phase)
 
-      REGION_BEGIN("Warmup", COLOR_TRANSPOSE)
+      REGION_BEGIN("Warmup", COLOR_VIOLET)
       do iter = 1, n_warmup_iters
         CUDA_CALL( cuLaunchKernel(kernel, in, out, blocks, threads, stream, nargs, args) )
       enddo
       CUDA_CALL( cudaStreamSynchronize(stream) )
       REGION_END("Warmup")
 
-      REGION_BEGIN("Measure", COLOR_EXECUTE)
+      REGION_BEGIN("Measure", COLOR_DODGER_BLUE)
       CUDA_CALL( cudaEventRecord(timer_start, stream) )
       do iter = 1, n_iters
         CUDA_CALL( cuLaunchKernel(kernel, in, out, blocks, threads, stream, nargs, args) )
@@ -354,15 +382,18 @@ contains
       REGION_END("Measure")
       CUDA_CALL( cudaEventElapsedTime(execution_time, timer_start, timer_stop) )
       execution_time = execution_time / real(n_iters, real32)
-      bandwidth = 2.0 * 1000.0 * real(base_storage * product(fixed_dims), real32) / real(1024 * 1024 * 1024, real32) / execution_time
       WRITE_INFO("        Average execution time = "//to_str(real(execution_time, real64))//" [ms]")
-      WRITE_INFO("        Bandwidth = "//to_str(bandwidth)//" [GB/s]")
+      if ( execution_time > 0._real32 ) then
+        bandwidth = 2.0 * 1000.0 * real(base_storage * product(fixed_dims), real32) / real(1024 * 1024 * 1024, real32) / execution_time
+        WRITE_INFO("        Bandwidth = "//to_str(bandwidth)//" [GB/s]")
+      endif
 
       if ( execution_time < best_time ) then
         best_time = execution_time
         best_kernel_id = test_id
       endif
       REGION_END(local_phase)
+      deallocate(local_phase)
     enddo
     config = candidates(sorted(best_kernel_id))
     PHASE_END(global_phase)
@@ -376,6 +407,6 @@ contains
     CUDA_CALL( cudaFree(in) )
     CUDA_CALL( cudaFree(out) )
     deallocate(scores, sorted)
-    deallocate(global_phase, local_phase)
+    deallocate(global_phase)
   end subroutine get_kernel
 end module dtfft_kernel_device

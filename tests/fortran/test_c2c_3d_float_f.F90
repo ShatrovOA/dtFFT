@@ -31,7 +31,7 @@ use dtfft_interface_cuda_runtime
 implicit none
   type(c_ptr) :: check
   complex(real32), pointer :: in(:,:,:), out(:)
-  integer(int32), parameter :: nx = 13, ny = 45, nz = 29
+  integer(int32), parameter :: nx = 355, ny = 499, nz = 29
   integer(int32) :: comm_size, comm_rank, i
   type(dtfft_plan_c2c_t) :: plan
   integer(int32) :: in_counts(3), out_counts(3), in_starts(3)
@@ -90,8 +90,15 @@ implicit none
 
   call attach_gpu_to_process()
 
-  backend = DTFFT_BACKEND_MPI_P2P
-  conf = dtfft_config_t(backend=backend)
+  conf = dtfft_config_t()
+
+! #ifdef DTFFT_WITH_COMPRESSION
+!   conf%backend = DTFFT_BACKEND_MPI_P2P_COMPRESSED
+!   conf%compression_config_transpose%compression_mode = DTFFT_COMPRESSION_MODE_FIXED_RATE
+!   conf%compression_config_transpose%rate = 16.0
+! #else
+  backend = DTFFT_BACKEND_MPI_P2P_FUSED
+! #endif
 
 #if defined(DTFFT_WITH_CUDA)
     ! Can be redefined by environment variable
@@ -173,7 +180,7 @@ implicit none
 #endif
   tb = tb + MPI_Wtime()
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   call checkAndReportComplexFloat(int(nx * ny * nz, int64), tf, tb, c_loc(in), in_size, check, platform%val)
 #else
   call checkAndReportComplexFloat(int(nx * ny * nz, int64), tf, tb, c_loc(in), in_size, check)

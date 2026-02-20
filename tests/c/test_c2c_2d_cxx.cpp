@@ -56,7 +56,9 @@ int main(int argc, char* argv[])
 
     auto config = Config()
         .set_enable_mpi_backends(true)
-        .set_enable_fourier_reshape(true);
+        .set_enable_fourier_reshape(true)
+        .set_transpose_mode(dtfft::TransposeMode::UNPACK)
+        .set_access_mode(dtfft::AccessMode::READ);
 
 #if defined(DTFFT_WITH_CUDA)
     config.set_platform(Platform::CUDA) // Can be changed at runtime via `DTFFT_PLATFORM` environment variable
@@ -80,7 +82,7 @@ int main(int argc, char* argv[])
     bool reshape_required = grid_dims[0] > 1;
 
     // Create plan using pencil
-    PlanC2C plan(pencil, Precision::DOUBLE, Effort::MEASURE);
+    PlanC2C plan(pencil, Precision::DOUBLE, Effort::EXHAUSTIVE);
 
     DTFFT_CXX_CALL(plan.report())
 
@@ -120,13 +122,27 @@ int main(int argc, char* argv[])
     auto work = plan.mem_alloc<complex<double>>(plan.get_aux_size());
     auto out = plan.mem_alloc<complex<double>>(alloc_size);
     auto check = new complex<double>[in_size];
-    complex<double> *work_reshape = nullptr;
     size_t reshape_work_size;
     auto ierr = plan.get_aux_size_reshape(&reshape_work_size);
     if ( ierr == dtfft::Error::SUCCESS && reshape_work_size > 0 ) {
         if ( comm_rank == 0 ) cout << "reshape_work_size = " << reshape_work_size << "\n";
-        work_reshape = plan.mem_alloc<complex<double>>(reshape_work_size);
+        auto reshape_bytes = plan.get_aux_bytes_reshape();
+        if ( reshape_bytes != reshape_work_size * sizeof(complex<double>) ) {
+            DTFFT_THROW_EXCEPTION(static_cast<Error>(-2), "reshape_bytes != reshape_work_size * sizeof(complex<double>)");
+        }
     }
+
+    auto transpose_work_size = plan.get_aux_size_transpose();
+    if ( comm_rank == 0 ) cout << "transpose_work_size = " << transpose_work_size << "\n";
+    auto transpose_bytes = plan.get_aux_bytes_transpose();
+    if ( transpose_bytes != transpose_work_size * sizeof(complex<double>) ) {
+        DTFFT_THROW_EXCEPTION(static_cast<Error>(-2), "transpose_bytes != transpose_work_size * sizeof(complex<double>)");
+    }
+    auto work_size = std::max(reshape_work_size, transpose_work_size);
+
+    std::complex<double>* aux = nullptr;
+    if (work_size > 0) aux = plan.mem_alloc<complex<double>>(work_size);
+
 
     setTestValuesComplexDouble(check, in_size);
 
@@ -138,25 +154,23 @@ int main(int argc, char* argv[])
 #endif
 
     double tf = 0.0 - MPI_Wtime();
-    dtfft_request_t request = nullptr;
 
     if ( reshape_required ) {
-        DTFFT_CXX_CALL(plan.reshape_start(in, work, Reshape::X_BRICKS_TO_PENCILS, work_reshape, &request));
+        auto request_reshape_xb = plan.reshape_start(in, work, Reshape::X_BRICKS_TO_PENCILS, aux);
         if (comm_rank == 0)
             cout << "Doing stuff while data is being reshaped on host" << endl;
-        DTFFT_CXX_CALL(plan.reshape_end(request));
-        DTFFT_CXX_CALL(plan.transpose_start(work, in, Transpose::X_TO_Y, &request));
+        DTFFT_CXX_CALL(plan.reshape_end(request_reshape_xb));
+
+        auto request_transpose_xy = plan.transpose_start(work, in, Transpose::X_TO_Y, aux);
         if (comm_rank == 0)
             cout << "Doing stuff while data is being transposed on host" << endl;
-        DTFFT_CXX_CALL(plan.transpose_end(request));
-        DTFFT_CXX_CALL(plan.reshape(in, out, Reshape::Y_PENCILS_TO_BRICKS, work_reshape));
+        DTFFT_CXX_CALL(plan.transpose_end(request_transpose_xy));
+
+        DTFFT_CXX_CALL(plan.reshape(in, out, Reshape::Y_PENCILS_TO_BRICKS, aux));
         if (comm_rank == 0)
-            cout << "Executed forward using fourier non-blocking reshape" << endl;
+            cout << "Converted pencils to bricks" << endl;
     } else {
-        DTFFT_CXX_CALL(plan.transpose_start(in, out, Transpose::X_TO_Y, &request));
-        if (comm_rank == 0)
-            cout << "Doing stuff while data is being transposed on host" << endl;
-        DTFFT_CXX_CALL(plan.transpose_end(request));
+        DTFFT_CXX_CALL(plan.transpose(in, out, Transpose::X_TO_Y, aux) )
     }
 #if defined(DTFFT_WITH_CUDA)
     if (platform == Platform::CUDA) {
@@ -178,7 +192,7 @@ int main(int argc, char* argv[])
 #endif
 
     double tb = 0.0 - MPI_Wtime();
-    DTFFT_CXX_CALL(plan.execute(out, in, Execute::BACKWARD, work));
+    DTFFT_CXX_CALL(plan.backward(out, in, work));
     if (comm_rank == 0)
         cout << "Executed backwards using blocking execute" << endl;
 

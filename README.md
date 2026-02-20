@@ -37,6 +37,8 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being t
   - [cuFFT](https://docs.nvidia.com/cuda/cufft/)
   - [VkFFT](https://github.com/DTolm/VkFFT)
 - **CUDA Backends**: MPI, NCCL, cuFFTMp for data exchange
+- **Highly customizable**: Lots of options and runtime autotuning
+- **Runtime compression**: Some backends support buffer compression before sending it to another process
 
 ## Limitations
 - Memory is assumed to be contiguous. Ghost boundaries are not allowed.
@@ -107,7 +109,6 @@ The following is an ambitious list of features to implement. The items are in no
 
 - nvSHMEM-based backends
 - HIP platform
-- zfp compression
 - Ghost boundaries and support for halo exchange
 - long double/quad precision
 
