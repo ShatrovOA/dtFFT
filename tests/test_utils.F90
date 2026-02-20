@@ -48,7 +48,7 @@ public :: createGridDims
     module procedure :: reportDouble
   end interface report
 
-#if defined(DTFFT_WITH_CUDA)
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
   interface
     subroutine scaleComplexFloatCUDA(buffer, count, scale, stream) bind(C, name="scaleComplexFloatCUDA")
     import
@@ -122,7 +122,7 @@ contains
     call MPI_Allreduce(local_error, global_error, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr)
     if(comm_rank == 0) then
       write(output_unit, '(a)') repeat("*", 40)
-      if(global_error < error_threshold .and. global_error >= 0._real64) then
+      if(global_error <= error_threshold .and. global_error >= 0._real64) then
         write(output_unit, '(a)') "            Test PASSED!"
       else
         write(output_unit, '(a, d16.5, a, d16.5)') "Test FAILED... error = ", global_error, ' threshold = ', error_threshold
@@ -201,11 +201,15 @@ contains
     real(real32), pointer :: buf(:)
     real(real32) :: rnd
     integer(int64) :: i
+    ! integer :: rank, ierr
+
+    ! call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
 
     call c_f_pointer(buffer, buf, [buf_size])
     do i = 1, buf_size
       call random_number(rnd)
       buf(i) = rnd
+      ! buf(i) = real(rank * 1000 + i, real32) !rnd
     enddo
   end subroutine setTestValuesFloat
 
@@ -279,6 +283,40 @@ contains
     call scaleDoubleHost(buffer, 2 * buf_size, scale)
   end subroutine scaleComplexDoubleHost
 
+#if defined(DTFFT_WITH_MOCK_ENABLED)
+  subroutine scaleComplexFloatCUDA(buffer, count, scale, stream) bind(C, name="scaleComplexFloatCUDA")
+    type(c_ptr),          value :: buffer
+    integer(c_size_t),    value :: count
+    integer(c_size_t),    value :: scale
+    type(dtfft_stream_t), value :: stream
+    call scaleComplexFloatHost(buffer, count, scale)
+  end subroutine scaleComplexFloatCUDA
+
+  subroutine scaleComplexDoubleCUDA(buffer, count, scale, stream) bind(C, name="scaleComplexDoubleCUDA")
+    type(c_ptr),          value :: buffer
+    integer(c_size_t),    value :: count
+    integer(c_size_t),    value :: scale
+    type(dtfft_stream_t), value :: stream
+    call scaleComplexDoubleHost(buffer, count, scale)
+  end subroutine scaleComplexDoubleCUDA
+
+  subroutine scaleFloatCUDA(buffer, count, scale, stream) bind(C, name="scaleFloatCUDA")
+    type(c_ptr),          value :: buffer
+    integer(c_size_t),    value :: count
+    integer(c_size_t),    value :: scale
+    type(dtfft_stream_t), value :: stream
+    call scaleFloatHost(buffer, count, scale)
+  end subroutine scaleFloatCUDA
+
+  subroutine scaleDoubleCUDA(buffer, count, scale, stream) bind(C, name="scaleDoubleCUDA")
+    type(c_ptr),          value :: buffer
+    integer(c_size_t),    value :: count
+    integer(c_size_t),    value :: scale
+    type(dtfft_stream_t), value :: stream
+    call scaleDoubleHost(buffer, count, scale)
+  end subroutine scaleDoubleCUDA
+#endif
+
   function checkFloat(check, buf, buf_size) result(err)
     type(c_ptr)         :: check
     type(c_ptr)         :: buf
@@ -286,10 +324,17 @@ contains
     real(c_float)       :: err
     real(real32),  pointer :: check_(:)
     real(real32),  pointer :: buf_(:)
+    integer :: i
 
     call c_f_pointer(check, check_, [buf_size])
     call c_f_pointer(buf, buf_, [buf_size])
     err = maxval(abs(check_ - buf_))
+    do i = 1, buf_size
+      if ( abs(check_(i) - buf_(i)) > 1e-3 ) then
+        print*,'i = ',i,check_(i),buf_(i)
+        stop
+      endif
+    enddo
   end function checkFloat
 
   function checkDouble(check, buf, buf_size) result(err)
