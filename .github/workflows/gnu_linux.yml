@@ -12,7 +12,7 @@ jobs:
       DTFFT_ENABLE_LOG: "1"
       DTFFT_MEASURE_WARMUP_ITERS: "CUDA"
       DTFFT_MEASURE_ITERS: "-1"
-      DTFFT_ENABLE_FOURIER_RESHAPE: "1"
+      # DTFFT_ENABLE_FOURIER_RESHAPE: "1"
       DTFFT_ENABLE_KERNEL_AUTOTUNE: "1"
       DTFFT_ENABLE_MPI: "1"
       DTFFT_RESHAPE_BACKEND: "MPI_DT"
@@ -41,7 +41,10 @@ jobs:
             -DDTFFT_WITH_ZFP=on
           cmake --build build
       - name: Coverage
-        run: cmake --build build --target coverage
+        run: |
+          DTFFT_PLATFORM=cuda ctest --test-dir build --output-on-failure
+          DTFFT_PLATFORM=host ctest --test-dir build --output-on-failure
+          cmake --build build --target coverage
       - name: Install
         run: sudo cmake --install build
       - name: Test install
