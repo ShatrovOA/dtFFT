@@ -20,7 +20,7 @@
 module dtfft_backend_nccl_m
 !! NCCL Based GPU Backends [[backend_nccl]]
 use iso_fortran_env
-use iso_c_binding, only: c_ptr, c_f_pointer
+use iso_c_binding, only: c_ptr, c_f_pointer, c_loc
 use dtfft_abstract_backend, only: abstract_backend, backend_helper
 use dtfft_interface_cuda_runtime
 use dtfft_interface_nccl

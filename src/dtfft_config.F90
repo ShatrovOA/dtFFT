@@ -60,302 +60,303 @@ public :: get_correct_backend
 public :: get_conf_transpose, get_conf_reshape
 #endif
 
-  logical,                    save  :: is_init_called = .false.
-    !! Has [[init_internal]] already been called or not
-  integer(int32),             save  :: log_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we log messages to stdout or not
-  type(dtfft_platform_t),     save  :: platform_from_env = PLATFORM_NOT_SET
-    !! Platform obtained from environ
-  integer(int32),             save  :: z_slab_from_env = VARIABLE_NOT_SET
-    !! Should Z-slab be used if possible
-  integer(int32),             save  :: y_slab_from_env = VARIABLE_NOT_SET
-    !! Should Y-slab be used if possible
-  integer(int32),             save  :: n_measure_warmup_iters_from_env = VARIABLE_NOT_SET
-    !! Number of warmup iterations for measurements
-  integer(int32),             save  :: n_measure_iters_from_env = VARIABLE_NOT_SET
-    !! Number of measurement iterations
-  logical,                    save  :: is_log_enabled = .false.
-    !! Should we print additional information during plan creation
-  logical,                    save  :: is_z_slab_enabled = .true.
-    !! Should we use Z-slab optimization or not
-  logical,                    save  :: is_y_slab_enabled = .false.
-    !! Should we use Y-slab optimization or not
-  type(dtfft_platform_t),     save  :: platform = DTFFT_PLATFORM_HOST
-    !! Default platform
-  integer(int32),             save  :: n_measure_warmup_iters = CONF_DTFFT_MEASURE_WARMUP_ITERS
-    !! Number of warmup iterations for measurements
-  integer(int32),             save  :: n_measure_iters = CONF_DTFFT_MEASURE_ITERS
-    !! Number of measurement iterations
+    logical,                    protected  :: is_init_called = .false.
+        !! Has [[init_internal]] already been called or not
+    integer(int32),             protected  :: log_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we log messages to stdout or not
+    type(dtfft_platform_t),     protected  :: platform_from_env = PLATFORM_NOT_SET
+        !! Platform obtained from environ
+    integer(int32),             protected  :: z_slab_from_env = VARIABLE_NOT_SET
+        !! Should Z-slab be used if possible
+    integer(int32),             protected  :: y_slab_from_env = VARIABLE_NOT_SET
+        !! Should Y-slab be used if possible
+    integer(int32),             protected  :: n_measure_warmup_iters_from_env = VARIABLE_NOT_SET
+        !! Number of warmup iterations for measurements
+    integer(int32),             protected  :: n_measure_iters_from_env = VARIABLE_NOT_SET
+        !! Number of measurement iterations
+    logical,                    protected  :: is_log_enabled = .false.
+        !! Should we print additional information during plan creation
+    logical,                    protected  :: is_z_slab_enabled = .true.
+        !! Should we use Z-slab optimization or not
+    logical,                    protected  :: is_y_slab_enabled = .false.
+        !! Should we use Y-slab optimization or not
+    type(dtfft_platform_t),     protected  :: platform = DTFFT_PLATFORM_HOST
+        !! Default platform
+    integer(int32),             protected  :: n_measure_warmup_iters = CONF_DTFFT_MEASURE_WARMUP_ITERS
+        !! Number of warmup iterations for measurements
+    integer(int32),             protected  :: n_measure_iters = CONF_DTFFT_MEASURE_ITERS
+        !! Number of measurement iterations
 
-  type(dtfft_backend_t),      save  :: backend_from_env = BACKEND_NOT_SET
-    !! Backend obtained from environ
-  type(dtfft_backend_t),      save  :: reshape_backend_from_env = BACKEND_NOT_SET
-    !! Reshape backend obtained from environ
-  integer(int32),             save  :: datatype_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we use MPI Datatype backend during autotune or not
-  integer(int32),             save  :: mpi_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we use MPI backends during autotune or not
-  integer(int32),             save  :: pipelined_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we use pipelined backends during autotune or not
-  integer(int32),             save  :: kernel_autotune_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we enable kernel autotune or not
-  integer(int32),             save  :: fourier_reshape_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we enable fourier space reshape or not
+    type(dtfft_backend_t),      protected  :: backend_from_env = BACKEND_NOT_SET
+        !! Backend obtained from environ
+    type(dtfft_backend_t),      protected  :: reshape_backend_from_env = BACKEND_NOT_SET
+        !! Reshape backend obtained from environ
+    integer(int32),             protected  :: datatype_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we use MPI Datatype backend during autotune or not
+    integer(int32),             protected  :: mpi_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we use MPI backends during autotune or not
+    integer(int32),             protected  :: pipelined_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we use pipelined backends during autotune or not
+    integer(int32),             protected  :: kernel_autotune_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we enable kernel autotune or not
+    integer(int32),             protected  :: fourier_reshape_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we enable fourier space reshape or not
 #ifdef DTFFT_WITH_RMA
-  integer(int32),             save  :: rma_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we use RMA backends during autotune or not
+    integer(int32),             protected  :: rma_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we use RMA backends during autotune or not
 #endif
-  integer(int32),             save  :: fused_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we use fused backends during autotune or not
-  type(dtfft_transpose_mode_t), save :: transpose_mode_from_env = TRANSPOSE_MODE_NOT_SET
-    !! Transpose mode obtained from environ
-  type(dtfft_access_mode_t),    save :: access_mode_from_env = ACCESS_MODE_NOT_SET
-    !! Access mode obtained from environ
+    integer(int32),             protected  :: fused_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we use fused backends during autotune or not
+    type(dtfft_transpose_mode_t), protected :: transpose_mode_from_env = TRANSPOSE_MODE_NOT_SET
+        !! Transpose mode obtained from environ
+    type(dtfft_access_mode_t),    protected :: access_mode_from_env = ACCESS_MODE_NOT_SET
+        !! Access mode obtained from environ
 
 #ifdef DTFFT_WITH_COMPRESSION
-  integer(int32),               save :: compression_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we use compressed backends during autotune or not
+    integer(int32),               protected :: compression_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we use compressed backends during autotune or not
 #endif
 
 #ifdef DTFFT_WITH_CUDA
-  integer(int32),             save  :: nccl_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we use NCCL backends during autotune or not
-  integer(int32),             save  :: nvshmem_enabled_from_env = VARIABLE_NOT_SET
-    !! Should we use NVSHMEM backends during autotune or not
-  type(dtfft_backend_t),  parameter :: DEFAULT_BACKEND = BACKEND_NOT_SET
-    !! Default backend when cuda is enabled
-  type(dtfft_stream_t),       save  :: main_stream = NULL_STREAM
-    !! Default dtFFT CUDA stream
-  type(dtfft_stream_t),       save  :: custom_stream = NULL_STREAM
-    !! CUDA stream set by the user
-  logical,                    save  :: is_stream_created = .false.
-    !! Is the default stream created?
-  logical,                    save  :: is_custom_stream = .false.
-    !! Is the custom stream provided by the user?
+    integer(int32),             protected  :: nccl_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we use NCCL backends during autotune or not
+    integer(int32),             protected  :: nvshmem_enabled_from_env = VARIABLE_NOT_SET
+        !! Should we use NVSHMEM backends during autotune or not
+    type(dtfft_backend_t),  parameter :: DEFAULT_BACKEND = BACKEND_NOT_SET
+        !! Default backend when cuda is enabled
+    type(dtfft_stream_t),       protected  :: main_stream = NULL_STREAM
+        !! Default dtFFT CUDA stream
+    type(dtfft_stream_t),       protected  :: custom_stream = NULL_STREAM
+        !! CUDA stream set by the user
+    logical,                    protected  :: is_stream_created = .false.
+        !! Is the default stream created?
+    logical,                    protected  :: is_custom_stream = .false.
+        !! Is the custom stream provided by the user?
 #else
-  type(dtfft_backend_t),  parameter :: DEFAULT_BACKEND = DTFFT_BACKEND_MPI_DATATYPE
-    !! Default host backend
+    type(dtfft_backend_t),  parameter :: DEFAULT_BACKEND = DTFFT_BACKEND_MPI_DATATYPE
+        !! Default host backend
 #endif
-  logical,                    save  :: is_datatype_enabled = .true.
-    !! Should we use MPI Datatype backend or not
-  logical,                    save  :: is_pipelined_enabled = .true.
-    !! Should we use pipelined backends or not
-  logical,                    save  :: is_mpi_enabled = .false.
-    !! Should we use MPI backends or not
+    logical,                    protected  :: is_datatype_enabled = .true.
+        !! Should we use MPI Datatype backend or not
+    logical,                    protected  :: is_pipelined_enabled = .true.
+        !! Should we use pipelined backends or not
+    logical,                    protected  :: is_mpi_enabled = .false.
+        !! Should we use MPI backends or not
 #ifdef DTFFT_WITH_CUDA
-  logical,                    save  :: is_nccl_enabled = .true.
-    !! Should we use NCCL backends or not
-  logical,                    save  :: is_nvshmem_enabled = .true.
-    !! Should we use NCCL backends or not
+    logical,                    protected  :: is_nccl_enabled = .true.
+        !! Should we use NCCL backends or not
+    logical,                    protected  :: is_nvshmem_enabled = .true.
+        !! Should we use NCCL backends or not
 #endif
-  logical,                    save  :: is_kernel_autotune_enabled = .false.
-    !! Should we use kernel autotune or not
-  logical,                    save  :: is_fourier_reshape_enabled = .false.
-    !! Should we use reshape in fourier space or not
-  logical,                    save  :: is_rma_enabled = .true.
-    !! Should we use RMA backends or not
-  logical,                    save  :: is_fused_enabled = .true.
-    !! Should we use fused backends or not
-  type(dtfft_backend_t),      save  :: backend = DEFAULT_BACKEND
-    !! Default backend
-  type(dtfft_backend_t),      save  :: reshape_backend = DEFAULT_BACKEND
-    !! Default reshape backend
-  type(dtfft_transpose_mode_t), save :: transpose_mode = DTFFT_TRANSPOSE_MODE_PACK
-    !! Default transpose mode
-  type(dtfft_access_mode_t),    save :: access_mode = DTFFT_ACCESS_MODE_WRITE
-    !! Default access mode
+    logical,                    protected  :: is_kernel_autotune_enabled = .false.
+        !! Should we use kernel autotune or not
+    logical,                    protected  :: is_fourier_reshape_enabled = .false.
+        !! Should we use reshape in fourier space or not
+    logical,                    protected  :: is_rma_enabled = .true.
+        !! Should we use RMA backends or not
+    logical,                    protected  :: is_fused_enabled = .true.
+        !! Should we use fused backends or not
+    type(dtfft_backend_t),      protected  :: backend = DEFAULT_BACKEND
+        !! Default backend
+    type(dtfft_backend_t),      protected  :: reshape_backend = DEFAULT_BACKEND
+        !! Default reshape backend
+    type(dtfft_transpose_mode_t), protected :: transpose_mode = DTFFT_TRANSPOSE_MODE_PACK
+        !! Default transpose mode
+    type(dtfft_access_mode_t),    protected :: access_mode = DTFFT_ACCESS_MODE_WRITE
+        !! Default access mode
 
 #ifdef DTFFT_WITH_COMPRESSION
-  logical,                          save :: is_compression_enabled = .false.
-    !! Should we use compressed backends or not during autotuning
-  type(dtfft_compression_config_t), save :: config_transpose = DEFAULT_COMPRESSION_CONFIG
-    !! Configuration for compression during transpositions
-  type(dtfft_compression_config_t), save :: config_reshape = DEFAULT_COMPRESSION_CONFIG
-    !! Configuration for compression during reshape operations
+    logical,                          protected :: is_compression_enabled = .false.
+        !! Should we use compressed backends or not during autotuning
+    type(dtfft_compression_config_t), protected :: config_transpose = DEFAULT_COMPRESSION_CONFIG
+        !! Configuration for compression during transpositions
+    type(dtfft_compression_config_t), protected :: config_reshape = DEFAULT_COMPRESSION_CONFIG
+        !! Configuration for compression during reshape operations
 #endif
 
-  type, bind(C) :: dtfft_config_t
-  !! Type that can be used to set additional configuration parameters to ``dtFFT``
-    logical(c_bool)           :: enable_log
-      !! Should dtFFT print additional information during plan creation or not.
-      !!
-      !! Default is false.
-    logical(c_bool)           :: enable_z_slab
-      !! Should dtFFT use Z-slab optimization or not.
-      !!
-      !! Default is true.
-      !!
-      !! One should consider disabling Z-slab optimization in order to resolve `DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error
-      !! OR when underlying FFT implementation of 2D plan is too slow.
-      !! In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
-    logical(c_bool)           :: enable_y_slab
-      !! Should dtFFT use Y-slab optimization or not.
-      !!
-      !! Default is false.
-      !!
-      !! One should consider disabling Y-slab optimization in order to resolve `DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error
-      !! OR when underlying FFT implementation of 2D plan is too slow.
-      !! In all other cases it is considered that Y-slab is always faster, since it reduces number of data transpositions.
-    integer(c_int32_t)        :: n_measure_warmup_iters
-      !! Number of warmup iterations to execute during backend and kernel autotuning when effort level is `DTFFT_MEASURE` or higher.
-      !!
-      !! Default is 2.
-    integer(c_int32_t)        :: n_measure_iters
-      !! Number of iterations to execute during backend and kernel autotuning when effort level is `DTFFT_MEASURE` or higher.
-      !!
-      !! Default is 5.
+    type, bind(C) :: dtfft_config_t
+    !! Type that can be used to set additional configuration parameters to ``dtFFT``
+        logical(c_bool)           :: enable_log
+        !! Should dtFFT print additional information during plan creation or not.
+        !!
+        !! Default is false.
+        logical(c_bool)           :: enable_z_slab
+        !! Should dtFFT use Z-slab optimization or not.
+        !!
+        !! Default is true.
+        !!
+        !! One should consider disabling Z-slab optimization in order to resolve `DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error
+        !! OR when underlying FFT implementation of 2D plan is too slow.
+        !! In all other cases it is considered that Z-slab is always faster, since it reduces number of data transpositions.
+        logical(c_bool)           :: enable_y_slab
+        !! Should dtFFT use Y-slab optimization or not.
+        !!
+        !! Default is false.
+        !!
+        !! One should consider disabling Y-slab optimization in order to resolve `DTFFT_ERROR_VKFFT_R2R_2D_PLAN` error
+        !! OR when underlying FFT implementation of 2D plan is too slow.
+        !! In all other cases it is considered that Y-slab is always faster, since it reduces number of data transpositions.
+        integer(c_int32_t)        :: n_measure_warmup_iters
+        !! Number of warmup iterations to execute during backend and kernel autotuning when effort level is `DTFFT_MEASURE` or higher.
+        !!
+        !! Default is 2.
+        integer(c_int32_t)        :: n_measure_iters
+        !! Number of iterations to execute during backend and kernel autotuning when effort level is `DTFFT_MEASURE` or higher.
+        !!
+        !! Default is 5.
 #ifdef DTFFT_WITH_CUDA
-    type(dtfft_platform_t)    :: platform
-      !! Selects platform to execute plan.
-      !!
-      !! Default is `DTFFT_PLATFORM_HOST`.
-      !!
-      !! This option is only available when dtFFT is built with device support.
-      !! Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
-      !! This enables a single library installation to support both host and CUDA plans.
+        type(dtfft_platform_t)    :: platform
+        !! Selects platform to execute plan.
+        !!
+        !! Default is `DTFFT_PLATFORM_HOST`.
+        !!
+        !! This option is only available when dtFFT is built with device support.
+        !! Even when dtFFT is built with device support, it does not necessarily mean that all plans must be device-related.
+        !! This enables a single library installation to support both host and CUDA plans.
 
-    type(dtfft_stream_t)      :: stream
-      !! Main CUDA stream that will be used in dtFFT.
-      !!
-      !! This parameter is a placeholder for user to set custom stream.
-      !!
-      !! Stream that is actually used by dtFFT plan is returned by `plan%get_stream` function.
-      !!
-      !! When user sets stream he is responsible of destroying it.
-      !!
-      !! Stream must not be destroyed before call to `plan%destroy`.
+        type(dtfft_stream_t)      :: stream
+        !! Main CUDA stream that will be used in dtFFT.
+        !!
+        !! This parameter is a placeholder for user to set custom stream.
+        !!
+        !! Stream that is actually used by dtFFT plan is returned by `plan%get_stream` function.
+        !!
+        !! When user sets stream he is responsible of destroying it.
+        !!
+        !! Stream must not be destroyed before call to `plan%destroy`.
 #endif
-    type(dtfft_backend_t)     :: backend
-      !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
-      !!
-      !! Default for HOST platform is `DTFFT_BACKEND_MPI_DATATYPE`.
-      !!
-      !! Default for CUDA platform is `DTFFT_BACKEND_NCCL` if NCCL is enabled, otherwise `DTFFT_BACKEND_MPI_P2P`.
+        type(dtfft_backend_t)     :: backend
+        !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+        !!
+        !! Default for HOST platform is `DTFFT_BACKEND_MPI_DATATYPE`.
+        !!
+        !! Default for CUDA platform is `DTFFT_BACKEND_NCCL` if NCCL is enabled, otherwise `DTFFT_BACKEND_MPI_P2P`.
 
-    type(dtfft_backend_t)     :: reshape_backend
-      !! Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
-      !!
-      !! Default for HOST platform is `DTFFT_BACKEND_MPI_DATATYPE`.
-      !!
-      !! Default for CUDA platform is `DTFFT_BACKEND_NCCL` if NCCL is enabled, otherwise `DTFFT_BACKEND_MPI_P2P`.
+        type(dtfft_backend_t)     :: reshape_backend
+        !! Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+        !!
+        !! Default for HOST platform is `DTFFT_BACKEND_MPI_DATATYPE`.
+        !!
+        !! Default for CUDA platform is `DTFFT_BACKEND_NCCL` if NCCL is enabled, otherwise `DTFFT_BACKEND_MPI_P2P`.
 
-    logical(c_bool)           :: enable_datatype_backend
-      !! Should `DTFFT_BACKEND_MPI_DATATYPE` be considered for autotuning when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is true.
-      !!
-      !! This option only works when `platform` is `DTFFT_PLATFORM_HOST`.
-      !! When `platform` is `DTFFT_PLATFORM_CUDA`, `DTFFT_BACKEND_MPI_DATATYPE` is always disabled during autotuning.
+        logical(c_bool)           :: enable_datatype_backend
+        !! Should `DTFFT_BACKEND_MPI_DATATYPE` be considered for autotuning when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is true.
+        !!
+        !! This option only works when `platform` is `DTFFT_PLATFORM_HOST`.
+        !! When `platform` is `DTFFT_PLATFORM_CUDA`, `DTFFT_BACKEND_MPI_DATATYPE` is always disabled during autotuning.
 
-    logical(c_bool)           :: enable_mpi_backends
-      !! Should MPI Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is false.
-      !!
-      !! The following applies only to CUDA builds.
-      !! MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849
-      !! It was noticed that during plan autotuning GPU memory not being freed completely.
-      !! For example:
-      !! 1024x1024x512 C2C, double precision, single GPU, using Z-slab optimization, with MPI backends enabled, plan autotuning will leak 8Gb GPU memory.
-      !! Without Z-slab optimization, running on 4 GPUs, will leak 24Gb on each of the GPUs.
-      !!
-      !! One of the workarounds is to disable MPI Backends by default, which is done here.
-      !!
-      !! Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to `mpiexec`,
-      !! but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
+        logical(c_bool)           :: enable_mpi_backends
+        !! Should MPI Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is false.
+        !!
+        !! The following applies only to CUDA builds.
+        !! MPI Backends are disabled by default during autotuning process due to OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849
+        !! It was noticed that during plan autotuning GPU memory not being freed completely.
+        !! For example:
+        !! 1024x1024x512 C2C, double precision, single GPU, using Z-slab optimization, with MPI backends enabled, plan autotuning will leak 8Gb GPU memory.
+        !! Without Z-slab optimization, running on 4 GPUs, will leak 24Gb on each of the GPUs.
+        !!
+        !! One of the workarounds is to disable MPI Backends by default, which is done here.
+        !!
+        !! Other is to pass "--mca btl_smcuda_use_cuda_ipc 0" to `mpiexec`,
+        !! but it was noticed that disabling CUDA IPC seriously affects overall performance of MPI algorithms
 
-    logical(c_bool)           :: enable_pipelined_backends
-      !! Should pipelined backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is true.
-    logical(c_bool)           :: enable_rma_backends
-      !! Should RMA backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is true.
-    logical(c_bool)           :: enable_fused_backends
-      !! Should fused backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is true.
+        logical(c_bool)           :: enable_pipelined_backends
+        !! Should pipelined backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is true.
+        logical(c_bool)           :: enable_rma_backends
+        !! Should RMA backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is true.
+        logical(c_bool)           :: enable_fused_backends
+        !! Should fused backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is true.
 #ifdef DTFFT_WITH_CUDA
-    logical(c_bool)           :: enable_nccl_backends
-      !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is true.
-      !!
-      !! This option is only defined when dtFFT is built with CUDA support.
+        logical(c_bool)           :: enable_nccl_backends
+        !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is true.
+        !!
+        !! This option is only defined when dtFFT is built with CUDA support.
 
-    logical(c_bool)           :: enable_nvshmem_backends
-      !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is true.
-      !!
-      !! This option is only defined when dtFFT is built with CUDA support.
+        logical(c_bool)           :: enable_nvshmem_backends
+        !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is true.
+        !!
+        !! This option is only defined when dtFFT is built with CUDA support.
 #endif
-    logical(c_bool)            :: enable_kernel_autotune
-      !! Should dtFFT try to optimize kernel launch parameters during plan creation when `effort` is below `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is false.
-      !!
-      !! Kernel optimization is always enabled for `DTFFT_EXHAUSTIVE` effort level.
-      !! Setting this option to true enables kernel optimization for lower effort levels (`DTFFT_ESTIMATE`, `DTFFT_MEASURE`, `DTFFT_PATIENT`).
-      !! This may increase plan creation time but can improve runtime performance.
-      !! Since kernel optimization is performed without data transfers, the time increase is usually minimal.
+        logical(c_bool)            :: enable_kernel_autotune
+        !! Should dtFFT try to optimize kernel launch parameters during plan creation when `effort` is below `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is false.
+        !!
+        !! Kernel optimization is always enabled for `DTFFT_EXHAUSTIVE` effort level.
+        !! Setting this option to true enables kernel optimization for lower effort levels (`DTFFT_ESTIMATE`, `DTFFT_MEASURE`, `DTFFT_PATIENT`).
+        !! This may increase plan creation time but can improve runtime performance.
+        !! Since kernel optimization is performed without data transfers, the time increase is usually minimal.
 
-    logical(c_bool)             :: enable_fourier_reshape
-      !! Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to `execute`.
-      !!
-      !! Default is false.
-      !!
-      !! When enabled, data will be in brick layout in Fourier space, which may be useful for certain operations
-      !! between forward and backward transforms. However, this requires additional data transpositions
-      !! and will reduce overall FFT performance.
+        logical(c_bool)             :: enable_fourier_reshape
+        !! Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to `execute`.
+        !!
+        !! Default is false.
+        !!
+        !! When enabled, data will be in brick layout in Fourier space, which may be useful for certain operations
+        !! between forward and backward transforms. However, this requires additional data transpositions
+        !! and will reduce overall FFT performance.
 
-    type(dtfft_transpose_mode_t) :: transpose_mode
-      !! Specifies at which stage the local transposition is performed during global exchange.
-      !!
-      !! Default is `DTFFT_TRANSPOSE_MODE_PACK`.
-      !!
-      !! It affects only Generic backends that perform explicit packing/unpacking.
-      !! This option only takes effect when `effort` is less than `DTFFT_EXHAUSTIVE`.
-      !!
-      !! For `DTFFT_EXHAUSTIVE` effort level, dtFFT will always choose the best transpose mode based on internal benchmarking.
+        type(dtfft_transpose_mode_t) :: transpose_mode
+        !! Specifies at which stage the local transposition is performed during global exchange.
+        !!
+        !! Default is `DTFFT_TRANSPOSE_MODE_PACK`.
+        !!
+        !! It affects only Generic backends that perform explicit packing/unpacking.
+        !! This option only takes effect when `effort` is less than `DTFFT_EXHAUSTIVE`.
+        !!
+        !! For `DTFFT_EXHAUSTIVE` effort level, dtFFT will always choose the best transpose mode based on internal benchmarking.
 
-    type(dtfft_access_mode_t) :: access_mode
-      !! Specifies the memory access pattern (optimization target) for local transposition.
-      !!
-      !! Default is `DTFFT_ACCESS_MODE_WRITE`.
-      !!
-      !! This setting applies only to Host (CPU) Generic backends.
-      !!
-      !! This option allows user to force specific access mode (`DTFFT_ACCESS_MODE_WRITE` or `DTFFT_ACCESS_MODE_READ`) when autotuning is disabled.
-      !! When autotuning is enabled (e.g. `effort` is `DTFFT_EXHAUSTIVE`), this option is ignored and best access mode is selected automatically.
+        type(dtfft_access_mode_t) :: access_mode
+        !! Specifies the memory access pattern (optimization target) for local transposition.
+        !!
+        !! Default is `DTFFT_ACCESS_MODE_WRITE`.
+        !!
+        !! This setting applies only to Host (CPU) Generic backends.
+        !!
+        !! This option allows user to force specific access mode (`DTFFT_ACCESS_MODE_WRITE` or `DTFFT_ACCESS_MODE_READ`) when autotuning is disabled.
+        !! When autotuning is enabled (e.g. `effort` is `DTFFT_EXHAUSTIVE`), this option is ignored and best access mode is selected automatically.
 #ifdef DTFFT_WITH_COMPRESSION
-    logical(c_bool)           :: enable_compressed_backends
-      !! Should compressed backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-      !!
-      !! Default is false.
-      !!
-      !! Only fixed-rate compression can be used during autotuning, since it provides predictable performance characteristics and does not require data-dependent decisions at runtime.
-      !! To enable compressed backends during autotuning, set this option to true, set compression type to `DTFFT_COMPRESSION_MODE_FIXED_RATE` and provide desired compression rate.
+        logical(c_bool)           :: enable_compressed_backends
+        !! Should compressed backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        !!
+        !! Default is false.
+        !!
+        !! Only fixed-rate compression can be used during autotuning, since it provides predictable performance characteristics and does not require data-dependent decisions at runtime.
+        !! To enable compressed backends during autotuning, set this option to true, set compression type to `DTFFT_COMPRESSION_MODE_FIXED_RATE` and provide desired compression rate.
 
-    type(dtfft_compression_config_t)  :: compression_config_transpose
-      !! Options for compression approach during transpositions
+        type(dtfft_compression_config_t)  :: compression_config_transpose
+        !! Options for compression approach during transpositions
 
-    type(dtfft_compression_config_t)  :: compression_config_reshape
-      !! Options for compression approach during reshape operations
+        type(dtfft_compression_config_t)  :: compression_config_reshape
+        !! Options for compression approach during reshape operations
 #endif
-  end type dtfft_config_t
+    end type dtfft_config_t
 
-  interface dtfft_config_t
-  !! Interface to create a new configuration
-    module procedure config_constructor !! Default constructor
-  end interface dtfft_config_t
+    interface dtfft_config_t
+    !! Interface to create a new configuration
+        module procedure config_constructor !! Default constructor
+    end interface dtfft_config_t
 
-  interface get_conf_internal
-  !! Returns value from configuration unless environment variable is set
-    module procedure get_conf_internal_logical  !! For logical values
-    module procedure get_conf_internal_int32    !! For integer(int32) values
-  end interface get_conf_internal
+
+    interface get_conf_internal
+    !! Returns value from configuration unless environment variable is set
+        module procedure get_conf_internal_logical  !! For logical values
+        module procedure get_conf_internal_int32    !! For integer(int32) values
+    end interface get_conf_internal
 
 contains
 
@@ -976,7 +977,6 @@ contains
   elemental function get_conf_transpose() result(config)
   !! Returns compression config for transposes
     type(dtfft_compression_config_t) :: config  !! Result
-
     config = config_transpose
   end function get_conf_transpose
 
