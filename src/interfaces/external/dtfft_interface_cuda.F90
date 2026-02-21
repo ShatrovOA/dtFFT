@@ -228,17 +228,17 @@ contains
   !! Mock: Does nothing, always returns success
     integer(int32)  :: error_code
     type(string), allocatable :: func_names(:)
+    integer(int32)  :: ierr
 
     error_code = DTFFT_SUCCESS
     if ( is_loaded ) return
     allocate(func_names(1))
     func_names(1) = string("dtfft_execute")
 
-#if defined(__linux__) || defined(__linux) || defined(linux)
-    error_code = dynamic_load("libdtfft.so", func_names, libcuda, cuFunctions)
-#else
-    error_code = dynamic_load("libdtfft.dylib", func_names, libcuda, cuFunctions)
-#endif
+    ! Just try loading both libs
+    ierr = dynamic_load("libdtfft.so", func_names, libcuda, cuFunctions)
+    ierr = dynamic_load("libdtfft.dylib", func_names, libcuda, cuFunctions)
+
     call destroy_strings(func_names)
     if ( error_code /= DTFFT_SUCCESS ) return
     is_loaded = .true.
