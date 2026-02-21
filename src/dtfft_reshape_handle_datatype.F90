@@ -751,8 +751,6 @@ contains
         TYPE_MPI_DATATYPE   :: temp1
         integer(int32)      :: i, j, k, dsp, dsp2, count, ierr                 !! Error code
         integer(int32), allocatable :: displs(:)
-        integer(MPI_ADDRESS_KIND) :: lb_, extent_, size_
-
 
         send_displ = recv_counts(1) * int(base_storage, int32)
         call MPI_Type_vector(send%counts(2) * send%counts(3), recv_counts(1), send%counts(1), base_type, temp1, ierr)

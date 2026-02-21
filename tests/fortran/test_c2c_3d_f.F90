@@ -35,7 +35,7 @@ implicit none
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD) && !defined(DTFFT_WITH_MOCK_ENABLED)
   integer(int32), parameter :: nx = 255, ny = 333, nz = 135
 #else
-  integer(int32), parameter :: nx = 129, ny = 123, nz = 33
+  integer(int32), parameter :: nx = 129, ny = 99, nz = 33
 #endif
   integer(int32) :: comm_size, comm_rank, ierr
   type(dtfft_executor_t) :: executor

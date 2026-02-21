@@ -197,13 +197,14 @@ contains
         type(dtfft_transpose_t) :: transpose_type
         type(dtfft_reshape_t)   :: reshape_type
         type(dtfft_transpose_mode_t) :: transpose_mode
-        integer(int32) :: ssdispl, rrdispl, tmpdspl
+        integer(int32) :: ssdispl, rrdispl
         logical :: is_reshape_only, ignore_transpose_mode
         logical :: with_compression
         integer(int32) :: dims_permutations
         logical :: zslab, yslab
         integer(int8) :: reshape_strat
         logical :: is_pack_free, is_unpack_free
+        integer(int32) :: pack_free_int, unpack_free_int
 
         transpose_type = kwargs%helper%transpose_type
         reshape_type   = kwargs%helper%reshape_type
@@ -259,8 +260,10 @@ contains
         ndims = send%rank
         is_pack_free = (reshape_type == DTFFT_RESHAPE_X_BRICKS_TO_PENCILS .or. reshape_type == DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS) &
             .and. (all([(send%counts(2) == out%sizes(2, i), i=0,comm_size - 1)]) .or. ndims == 2)
-        call MPI_Allreduce(is_pack_free, self%is_pack_free, 1, MPI_LOGICAL, MPI_LAND, comm, ierr)
-
+        ! Stupid workaround, something is not working for MPI_LAND op for MPI_LOGICAL
+        pack_free_int = 0; if ( is_pack_free ) pack_free_int = 1
+        ALL_REDUCE(pack_free_int, MPI_INTEGER, MPI_SUM, comm, ierr)
+        self%is_pack_free = pack_free_int == comm_size
         if ( .not. self%is_transpose .and. send%rank == 3 ) then
             zslab = .true.
             yslab = .true.
@@ -475,7 +478,10 @@ contains
 
         is_unpack_free = (reshape_type == DTFFT_RESHAPE_X_PENCILS_TO_BRICKS .or. reshape_type == DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS) &
             .and. (all([(send%counts(2) == out%sizes(2, i), i=0,comm_size - 1)]) .or. ndims == 2)
-        call MPI_Allreduce(is_unpack_free, self%is_unpack_free, 1, MPI_LOGICAL, MPI_LAND, comm, ierr)
+    ! Another Stupid workaround, something is not working for MPI_LAND op for MPI_LOGICAL
+        unpack_free_int = 0; if ( is_unpack_free ) unpack_free_int = 1
+        ALL_REDUCE(unpack_free_int, MPI_INTEGER, MPI_SUM, comm, ierr)
+        self%is_unpack_free = unpack_free_int == comm_size
         rdispl = 0; rrdispl = 0
         do i = 0, comm_size - 1
         ! Recieving from i with tag i

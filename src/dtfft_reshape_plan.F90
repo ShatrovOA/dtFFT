@@ -368,7 +368,7 @@ contains
             !! Array of pencil decompositions
         type(dtfft_backend_t),  optional,       intent(in)    :: backends(SIDX:EIDX)
             !! Adaptive backends
-        integer(int32),         optional,       intent(in)    :: plan_id
+        integer(int8),          optional,       intent(in)    :: plan_id
             !! Single plan id to create
         type(create_args) :: args
         logical :: is_adaptive
@@ -460,7 +460,8 @@ contains
         type(dtfft_backend_t),  allocatable :: backends_to_run(:)
         type(dtfft_backend_t) :: current_backend_id
         real(real32) :: execution_time, best_time_
-        integer(int32) :: b, r
+        integer(int32) :: b
+        integer(int8)  :: r
         type(reshape_container), allocatable :: plans(:)
         logical :: nccl_enabled
 #ifdef DTFFT_WITH_CUDA
@@ -574,20 +575,21 @@ contains
         type(pencil),           intent(in)      :: pencils(:)       !! Array of pencil decompositions
         type(dtfft_stream_t),   intent(in)      :: stream           !! Stream to use
         integer(int64),         intent(in)      :: buffer_size      !! Size of the buffer to use during autotune (in bytes)
-        type(backend_helper),   intent(inout)                      :: helper
-        integer(int32),         intent(in)      :: plan_id
-        character(len=:), allocatable :: reshape
+        type(backend_helper),   intent(inout)   :: helper
+        integer(int8),          intent(in)      :: plan_id
+        type(string) :: reshape
         type(reshape_container), allocatable :: plans(:)
 
-        allocate( reshape, source="Reshape "//RESHAPE_NAMES(plan_id) )
-        REGION_BEGIN(reshape, COLOR_AUTOTUNE)
-        WRITE_INFO("  "//reshape)
+        reshape = string("Reshape "//RESHAPE_NAMES(plan_id))
+        REGION_BEGIN(reshape%raw, COLOR_AUTOTUNE)
+        WRITE_INFO("  "//reshape%raw)
         call create_reshape_plans(plans, backend, platform, helper, DTFFT_ESTIMATE, .true., base_init_dtype, base_init_storage, &
             base_dtype, base_storage, bricks, pencils, plan_id=plan_id)
 
         execution_time = execute_autotune(plans, base_comm, backend, platform, helper, stream, buffer_size, 4)
         call destroy_plans(plans)
-        REGION_END(reshape)
-        deallocate( plans, reshape )
+        REGION_END(reshape%raw)
+        deallocate( plans )
+        call reshape%destroy()
     end function autotune_adaptive
 end module dtfft_reshape_plan

@@ -234,9 +234,8 @@ public :: ncclDataType
 
 #else
   ! Storage for MPI requests in mock mode
-
-  TYPE_MPI_REQUEST, save, allocatable :: mpi_requests(:)
-  integer(int32), save :: num_requests = 0
+    TYPE_MPI_REQUEST, allocatable  :: requests(:)
+    integer(int32)    :: num_requests
 #endif
 
 contains
@@ -309,7 +308,7 @@ contains
     if (mpi_ierr == MPI_SUCCESS) then
       ! Store request for later completion
       num_requests = num_requests + 1
-      mpi_requests(num_requests) = mpi_request
+      requests(num_requests) = mpi_request
       ncclResult_t = 0  ! ncclSuccess
     else
       ncclResult_t = 1  ! ncclError
@@ -329,13 +328,13 @@ contains
     integer(int32)    :: mpi_ierr
     integer(int32)    :: mpi_count
 
-    mpi_count = int(count, kind=4)
+    mpi_count = int(count, kind=int32)
     call MPI_Irecv(recvbuff, mpi_count, MPI_REAL, peer, 0, MPI_COMM_WORLD, mpi_request, mpi_ierr)
 
     if (mpi_ierr == MPI_SUCCESS) then
       ! Store request for later completion
       num_requests = num_requests + 1
-      mpi_requests(num_requests) = mpi_request
+      requests(num_requests) = mpi_request
       ncclResult_t = 0  ! ncclSuccess
     else
       ncclResult_t = 1  ! ncclError
@@ -347,11 +346,11 @@ contains
     integer(c_int32_t)                    :: ncclResult_t
     integer(int32) :: comm_size, mpi_ierr
 
-    if ( allocated(mpi_requests) ) then
-      INTERNAL_ERROR("ncclGroupStart: mpi_requests should not be allocated at this point")
+    if ( num_requests /= 0 ) then
+      INTERNAL_ERROR("ncclGroupStart: num_requests is not zero")
     end if
     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, mpi_ierr)
-    allocate(mpi_requests(comm_size * 2))  ! Allocate enough space for all sends and receives
+    allocate(requests(comm_size * 2))  ! Allocate enough space for all sends and receives
     num_requests = 0
     ncclResult_t = 0  ! ncclSuccess
   end function ncclGroupStart
@@ -359,22 +358,29 @@ contains
   function ncclGroupEnd() result(ncclResult_t)
   !! Mock: Completes all pending MPI requests
     integer(c_int32_t)                    :: ncclResult_t
-    integer                               :: mpi_ierr
+    integer(int32)                        :: i, mpi_ierr
 
-    if ( .not. allocated(mpi_requests) ) then
+    if ( .not. allocated(requests) ) then
       INTERNAL_ERROR("ncclGroupEnd: mpi_requests should be allocated at this point")
     end if
     if ( num_requests == 0 ) then
       INTERNAL_ERROR("ncclGroupEnd: num_requests should be greater than 0 at this point")
     end if
 
-    call MPI_Waitall(num_requests, mpi_requests, MPI_STATUSES_IGNORE, mpi_ierr)
+    ! call MPI_Waitall(num_requests, requests, MPI_STATUSES_IGNORE, mpi_ierr)
+    ! MPI_Waitall is somehow messing with internal memory
+    ! `get_conf_fourier_reshape_enabled` returns different value after MPI_Waitall
+    ! Waiting for each request individually
+    do i = 1, num_requests
+      call MPI_Wait(requests(i), MPI_STATUS_IGNORE, mpi_ierr)
+    enddo
+
     if (mpi_ierr == MPI_SUCCESS) then
       ncclResult_t = 0  ! ncclSuccess
     else
       ncclResult_t = 1  ! ncclError
     end if
-    deallocate(mpi_requests)
+    deallocate(requests)
     num_requests = 0
   end function ncclGroupEnd
 
