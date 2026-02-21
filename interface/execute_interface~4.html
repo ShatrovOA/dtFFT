@@ -73,20 +73,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">22 statements</a>
+                 title=" 0.1% of total for procedures.">36 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_abstract_kernel.F90"> Source File</a>
+              <a href="../src/dtfft_abstract_reshape_handle.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_kernel.f90.html'>dtfft_abstract_kernel.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_kernel.html'>dtfft_abstract_kernel</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_abstract_reshape_handle.f90.html'>dtfft_abstract_reshape_handle.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_abstract_reshape_handle.html'>dtfft_abstract_reshape_handle</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute_interface</li>
           </ol>
         </nav>
@@ -134,7 +134,7 @@
     
     <div class="col-md-9" id='text'>
       <h2>interface <br>
-      private  subroutine execute_interface(self, in, out, stream, sync, neighbor)  
+      private  subroutine execute_interface(self, in, out, kwargs, error_code)  
 </h2>    
 
     
@@ -152,8 +152,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~223"></span>
-              class(<a href='../type/abstract_kernel.html'>abstract_kernel</a>),
+              <span class="anchor" id="variable-self~247"></span>
+              class(<a href='../type/abstract_reshape_handle.html'>abstract_reshape_handle</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -162,12 +162,12 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Abstract kernel</p>
+                <p>Abstract reshape Handle</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~567"></span>
+              <span class="anchor" id="variable-in~575"></span>
               type(c_ptr),
             </td>
 <td>intent(in)</td>
@@ -177,12 +177,12 @@
             <td>::</td>
             <td><strong>in</strong></td>
             <td>
-                <p>Source buffer, can be device or host pointer</p>
+                <p>Send pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~567"></span>
+              <span class="anchor" id="variable-out~575"></span>
               type(c_ptr),
             </td>
 <td>intent(in)</td>
@@ -192,59 +192,44 @@
             <td>::</td>
             <td><strong>out</strong></td>
             <td>
-                <p>Target buffer, can be device or host pointer</p>
+                <p>Recv pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~52"></span>
-              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+              <span class="anchor" id="variable-kwargs~10"></span>
+              type(<a href='../type/execute_args.html'>execute_args</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>stream</strong></td>
+            <td><strong>kwargs</strong></td>
             <td>
-                <p>Stream to execute on, used only for device pointers</p>
+                <p>Additional arguments</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-sync~4"></span>
-              logical,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>sync</strong></td>
-            <td>
-                <p>Sync stream after kernel execution</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-neighbor~166"></span>
+              <span class="anchor" id="variable-error_code~154"></span>
               integer(kind=int32),
             </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
+<td>intent(out)</td>
+              <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>neighbor</strong></td>
+            <td><strong>error_code</strong></td>
             <td>
-                <p>Source rank for pipelined unpacking</p>
+                <p>Error code</p>
             </td>
         </tr>
     </tbody>
   </table>
 
     <h3>Description</h3>
-    <p>Executes underlying kernel</p>
+    <p>Executes reshape handle</p>
     <br>
 
  </div>
