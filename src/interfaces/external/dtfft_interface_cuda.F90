@@ -234,7 +234,7 @@ contains
     allocate(func_names(1))
     func_names(1) = string("dtfft_execute")
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__linux) || defined(linux)
     error_code = dynamic_load("libdtfft.so", func_names, libcuda, cuFunctions)
 #else
     error_code = dynamic_load("libdtfft.dylib", func_names, libcuda, cuFunctions)
