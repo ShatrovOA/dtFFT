@@ -353,12 +353,12 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
       endif()
     endif()
 
-    if ( DTFFT_WITH_CUDA )
+    if ( DTFFT_WITH_CUDA AND NOT SKIP_CUDA_COVERAGE )
       add_custom_target(coverage
         COMMAND DTFFT_PLATFORM=cuda ${CMAKE_MAKE_PROGRAM} test
         COMMAND DTFFT_PLATFORM=host ${CMAKE_MAKE_PROGRAM} test
         COMMAND ${LCOV_PATH} --capture --directory "CMakeFiles" --output-file coverage.info --gcov-tool ${GCOV_PATH}
-        COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '/opt/*'  --output-file coverage.info
+        COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '/opt/*' 'src/interfaces/external/*'  --output-file coverage.info
         COMMAND ${GENHTML_COMMAND}
         # '${PROJECT_SOURCE_DIR}/include/*'
       )
@@ -366,7 +366,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
       add_custom_target(coverage
         COMMAND ${CMAKE_MAKE_PROGRAM} test
         COMMAND ${LCOV_PATH} --capture --directory "CMakeFiles" --output-file coverage.info --gcov-tool ${GCOV_PATH}
-        COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '/opt/*'  --output-file coverage.info
+        COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '/opt/*' 'src/interfaces/external/*'  --output-file coverage.info
         COMMAND ${GENHTML_COMMAND}
         # '${PROJECT_SOURCE_DIR}/include/*'
       )

@@ -97,7 +97,7 @@ public :: dtfft_plan_r2r_t
 
   type, abstract :: dtfft_plan_t
   !! Abstract class for all ``dtFFT`` plans
-  ! private
+  private
     integer(int8)                                 :: ndims
       !! Number of global dimensions
     integer(int32),                   allocatable :: dims(:)

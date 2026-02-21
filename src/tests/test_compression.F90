@@ -13,10 +13,9 @@ use dtfft_utils
 #include "_dtfft_private.h"
 implicit none
 integer(int32) :: ierror
-type(dtfft_stream_t) :: stream
 
     call MPI_Init(ierror)
-    ierror = init_internal()
+    ! ierror = init_internal()
 
     call test_pack_unpack([16, 16, 16])
     call test_pack_unpack([16, 16])
@@ -41,13 +40,17 @@ contains
         complex(real32), allocatable :: test(:)
         integer(int32) :: compressed_sizes(1)
         integer(int32) :: i
+        type(dtfft_compression_config_t) :: config
 
         locals(:, 1) = 0
         locals(1:size(dims), 1) = dims
 
         print*,'Testing Pack/Unpack kernels with compression, ndims = ', size(dims)
 
-        ierror = compressor%create(size(dims, kind=int8), DEFAULT_COMPRESSION_CONFIG, DTFFT_PLATFORM_HOST, MPI_COMPLEX, COMPLEX_STORAGE_SIZE, DIMS_PERMUTE_NONE)
+        config = dtfft_compression_config_t(DTFFT_COMPRESSION_LIB_ZFP, DTFFT_COMPRESSION_MODE_LOSSLESS)
+        ierror = check_compression_config(config)
+
+        ierror = compressor%create(size(dims, kind=int8), config, DTFFT_PLATFORM_HOST, MPI_COMPLEX, COMPLEX_STORAGE_SIZE, DIMS_PERMUTE_NONE)
 
         call packer%create(dims, DTFFT_ESTIMATE, COMPLEX_STORAGE_SIZE, KERNEL_PACK, locals, with_compression=.true.)
         call packer%set_compressor(compressor)
