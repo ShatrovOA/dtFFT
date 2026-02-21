@@ -259,7 +259,7 @@ implicit none
   call plan%report_compression()
 #endif
 
-#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER) && !defined(DTFFT_WITH_MOCK_ENABLED)
+#if defined(DTFFT_WITH_CUDA) && defined(__NVCOMPILER)
   call checkAndReportFloat(int(product(dims), int64), tf, tb, c_loc(r_m), in_size, check, DTFFT_PLATFORM_HOST%val)
 #else
   call checkAndReportFloat(int(product(dims), int64), tf, tb, c_loc(r), in_size, check)

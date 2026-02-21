@@ -42,10 +42,7 @@ jobs:
             -DDTFFT_WITH_ZFP=on
           cmake --build build
       - name: Coverage
-        run: |
-          DTFFT_PLATFORM=cuda ctest --test-dir build --output-on-failure
-          DTFFT_PLATFORM=host ctest --test-dir build --output-on-failure
-          cmake --build build --target coverage
+        run: cmake --build build --target coverage
       - name: Install
         run: sudo cmake --install build
       - name: Test install
