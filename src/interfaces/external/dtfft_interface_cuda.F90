@@ -237,14 +237,15 @@ contains
 
     ! Just try loading both libs
     ierr = dynamic_load("libdtfft.so", func_names, libcuda, cuFunctions)
-    ierr = dynamic_load("libdtfft.dylib", func_names, libcuda, cuFunctions)
+    if ( ierr /= DTFFT_SUCCESS ) then
+      ierr = dynamic_load("libdtfft.dylib", func_names, libcuda, cuFunctions)
+    endif
 
     call destroy_strings(func_names)
-    if ( error_code /= DTFFT_SUCCESS ) return
+    if ( ierr == DTFFT_SUCCESS ) then
+      call unload_library(libcuda)
+    endif
     is_loaded = .true.
-
-    call unload_library(libcuda)
-    is_loaded = .false.
   end function load_cuda
 
 #else

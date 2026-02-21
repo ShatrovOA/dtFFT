@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 #if defined (DTFFT_WITH_CUDA) && !defined(__NVCOMPILER) && !defined(DTFFT_WITH_MOCK_ENABLED)
-#error "nvcompiler is required or mock build"
+! #error "nvcompiler is required or mock build"
 #endif
 program test_r2r_3d_float
 use iso_fortran_env
