@@ -1,5 +1,5 @@
 set(TEST_SOURCES "test_host_kernels.F90")
-if ( DTFFT_WITH_CUDA )
+if ( DTFFT_WITH_CUDA AND NOT SKIP_CUDA_COVERAGE )
   list(APPEND TEST_SOURCES "test_device_kernels.F90")
 endif()
 if ( DTFFT_WITH_COMPRESSION )
