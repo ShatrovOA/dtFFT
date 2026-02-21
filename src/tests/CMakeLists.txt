@@ -1,6 +1,10 @@
 set(TEST_SOURCES "test_host_kernels.F90")
 if ( DTFFT_WITH_CUDA )
-  list(APPEND ${TEST_SOURCES} "test_device_kernels.F90")
+  list(APPEND TEST_SOURCES "test_device_kernels.F90")
+endif()
+if ( DTFFT_WITH_COMPRESSION )
+  message("DTFFT_WITH_COMPRESSION = true")
+  list(APPEND TEST_SOURCES "test_compression.F90")
 endif()
 
 foreach(test ${TEST_SOURCES})
