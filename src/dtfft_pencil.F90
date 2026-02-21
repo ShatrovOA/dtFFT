@@ -85,7 +85,7 @@ public :: pencil_c2f, pencil_f2c
   private
     procedure, pass(self),  public  :: create         !! Creates pencil
     procedure, pass(self),  public  :: destroy        !! Destroys pencil
-    procedure, pass(self),  public  :: output         !! Writes pencil data to stdout
+    ! procedure, pass(self),  public  :: output         !! Writes pencil data to stdout
     !                                                   !! Used only for debugging purposes
     procedure, pass(self),  public  :: make_public    !! Creates public object that users can use to create own FFT backends
   end type pencil
@@ -298,66 +298,66 @@ contains
     deallocate(shift)
   end function check_if_even
 
-  subroutine output(self, name, vec)
-  !! Writes pencil data to stdout
-    class(pencil),                intent(in)  :: self                 !! Pencil
-    character(len=*),             intent(in)  :: name                 !! Name of pencil
-    type(c_ptr),    intent(in) :: vec
-    ! real(real32),    target,      intent(in)  :: vec(:)               !! Device pointer to data
-    integer(int32)                            :: iter                 !! Iteration counter
-    integer(int32)                            :: i,j,k,ijk            !! Counters
-    integer(int32)                            :: comm_size            !! Number of MPI processes
-    integer(int32)                            :: comm_rank            !! Rank of current MPI process
-    integer(int32)                            :: ierr                 !! Error code
-#ifdef DTFFT_WITH_CUDA
-    real(real32),    target,      allocatable :: buf(:)               !! Host buffer
-#else
-    real(real32),   pointer,  contiguous      :: buf(:)
-#endif
+!   subroutine output(self, name, vec)
+!   !! Writes pencil data to stdout
+!     class(pencil),                intent(in)  :: self                 !! Pencil
+!     character(len=*),             intent(in)  :: name                 !! Name of pencil
+!     type(c_ptr),    intent(in) :: vec
+!     ! real(real32),    target,      intent(in)  :: vec(:)               !! Device pointer to data
+!     integer(int32)                            :: iter                 !! Iteration counter
+!     integer(int32)                            :: i,j,k,ijk            !! Counters
+!     integer(int32)                            :: comm_size            !! Number of MPI processes
+!     integer(int32)                            :: comm_rank            !! Rank of current MPI process
+!     integer(int32)                            :: ierr                 !! Error code
+! #ifdef DTFFT_WITH_CUDA
+!     real(real32),    target,      allocatable :: buf(:)               !! Host buffer
+! #else
+!     real(real32),   pointer,  contiguous      :: buf(:)
+! #endif
 
-    call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
-    call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+!     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
+!     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
 
-#ifdef DTFFT_WITH_CUDA
-    allocate( buf( product(self%counts) ) )
-    ! if ( is_device_ptr(c_loc(vec)) ) then
-    if ( is_device_ptr(vec) ) then
-      CUDA_CALL( cudaDeviceSynchronize())
-      CUDA_CALL( cudaMemcpy(c_loc(buf), vec, int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
-    endif
-#else
-    call c_f_pointer(vec, buf, [product(self%counts)])
-#endif
+! #ifdef DTFFT_WITH_CUDA
+!     allocate( buf( product(self%counts) ) )
+!     ! if ( is_device_ptr(c_loc(vec)) ) then
+!     if ( is_device_ptr(vec) ) then
+!       CUDA_CALL( cudaDeviceSynchronize())
+!       CUDA_CALL( cudaMemcpy(c_loc(buf), vec, int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
+!     endif
+! #else
+!     call c_f_pointer(vec, buf, [product(self%counts)])
+! #endif
 
-    do iter = 0, comm_size - 1
-      call MPI_Barrier(MPI_COMM_WORLD, ierr)
-      ! if ( iter == comm_rank .and. comm_rank == 0) then
-      if ( iter == comm_rank) then
-        write(output_unit,'(a)') name
-        write(output_unit, '(a)', advance="no") repeat(' ', 5)
-        do i = 0, self%counts(1) - 1
-          write(output_unit, '(i11)', advance="no") self%starts(1) + i
-        enddo
-        write(output_unit, "(a)") ""
-        do k = 0, self%counts(3) - 1
-          do j = 0, self%counts(2) - 1
-            ijk = k * self%counts(2) * self%counts(1) + j * self%counts(1)
-            write(output_unit,'(2i5, *(f11.2))') self%starts(2) + j, self%starts(3) + k, (buf(ijk + i + 1), i=0,self%counts(1) - 1)
-          enddo
-          write(output_unit, '(a)') ' '
-          flush(output_unit)
-        enddo
-        write(output_unit, '(a)') ' '
-        write(output_unit, '(a)') ' '
-        flush(output_unit)
-      endif
-      call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    enddo
+!     do iter = 0, comm_size - 1
+!       call MPI_Barrier(MPI_COMM_WORLD, ierr)
+!       ! if ( iter == comm_rank .and. comm_rank == 0) then
+!       if ( iter == comm_rank) then
+!         write(output_unit,'(a)') name
+!         write(output_unit, '(a)', advance="no") repeat(' ', 5)
+!         do i = 0, self%counts(1) - 1
+!           write(output_unit, '(i11)', advance="no") self%starts(1) + i
+!         enddo
+!         write(output_unit, "(a)") ""
+!         do k = 0, self%counts(3) - 1
+!           do j = 0, self%counts(2) - 1
+!             ijk = k * self%counts(2) * self%counts(1) + j * self%counts(1)
+!             write(output_unit,'(2i5, *(f11.2))') self%starts(2) + j, self%starts(3) + k, (buf(ijk + i + 1), i=0,self%counts(1) - 1)
+!           enddo
+!           write(output_unit, '(a)') ' '
+!           flush(output_unit)
+!         enddo
+!         write(output_unit, '(a)') ' '
+!         write(output_unit, '(a)') ' '
+!         flush(output_unit)
+!       endif
+!       call MPI_Barrier(MPI_COMM_WORLD, ierr)
+!     enddo
 
-#ifdef DTFFT_WITH_CUDA
-    deallocate(buf)
-#endif
-  end subroutine output
+! #ifdef DTFFT_WITH_CUDA
+!     deallocate(buf)
+! #endif
+!   end subroutine output
 
   type(dtfft_pencil_t) function make_public(self)
   !! Creates public object that users can use to create own FFT backends
