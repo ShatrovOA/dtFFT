@@ -1,0 +1,787 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>test_compression.F90 &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>test_compression.F90
+      <small>Source File</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.5% of total for source files.">161 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/test_compression.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+            <li class="breadcrumb-item active" aria-current="page">test_compression.F90</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#progs-0"
+         aria-expanded="false" aria-controls="progs-0">
+         <h4 class="card-header bg-primary text-white">Programs</h4>
+      </a>
+      <div id="progs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_compression.html">test_compression</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../sourcefile/test_compression.f90.html#src">test_compression.F90</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">This file depends on</h3>
+          </div>
+          <div class="card-body">
+            <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: sourcefile~~test_compression.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefiletest_compressionf90EfferentGraph" width="641pt" height="227pt"
+ viewBox="0.00 0.00 641.00 227.46" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~test_compression.f90~~EfferentGraph" class="graph" transform="scale(0.47 0.47) rotate(0) translate(4 482.15)">
+<title>sourcefile~~test_compression.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-482.15 1366,-482.15 1366,4 -4,4"/>
+<!-- sourcefile~test_compression.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~test_compression.f90</title>
+<polygon fill="none" stroke="black" points="1362,-52.34 1235,-52.34 1235,-28.34 1362,-28.34 1362,-52.34"/>
+<text text-anchor="middle" x="1298.5" y="-37.94" font-family="Helvetica,sans-Serif" font-size="10.50">test_compression.F90</text>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~dtfft_abstract_compressor.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node2"><a xlink:href="../sourcefile/dtfft_abstract_compressor.f90.html" xlink:title="dtfft_abstract_compressor.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="677,-248.34 505,-248.34 505,-224.34 677,-224.34 677,-248.34"/>
+<text text-anchor="middle" x="591" y="-233.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M965.5,-236.34C885.94,-236.34 865.59,-227.71 786.5,-236.34"/>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~dtfft_abstract_kernel.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node3"><a xlink:href="../sourcefile/dtfft_abstract_kernel.f90.html" xlink:title="dtfft_abstract_kernel.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1039,-168.34 894,-168.34 894,-144.34 1039,-144.34 1039,-168.34"/>
+<text text-anchor="middle" x="966.5" y="-153.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_kernel.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1293.01,-52.55C1278.16,-90.62 1226.54,-206.46 1138,-236.34"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1136,-236.34C1079.39,-255.46 1016.85,-205.46 986.34,-176.05"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="988.52,-173.28 978.95,-168.72 983.58,-178.25 988.52,-173.28"/>
+</g>
+<!-- sourcefile~dtfft_compressor_zfp.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node4" class="node">
+<title>sourcefile~dtfft_compressor_zfp.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node4"><a xlink:href="../sourcefile/dtfft_compressor_zfp.f90.html" xlink:title="dtfft_compressor_zfp.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="858,-288.34 713,-288.34 713,-264.34 858,-264.34 858,-288.34"/>
+<text text-anchor="middle" x="785.5" y="-273.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_compressor_zfp.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_compressor_zfp.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_compressor_zfp.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M965.5,-236.34C918.06,-236.34 865.21,-249.89 829.31,-261.22"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="828.09,-257.94 819.66,-264.34 830.25,-264.6 828.09,-257.94"/>
+</g>
+<!-- sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node5" class="node">
+<title>sourcefile~dtfft_config.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node5"><a xlink:href="../sourcefile/dtfft_config.f90.html" xlink:title="dtfft_config.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="833,-208.34 738,-208.34 738,-184.34 833,-184.34 833,-208.34"/>
+<text text-anchor="middle" x="785.5" y="-193.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge4" class="edge">
+<title>sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1136,-236.34C1065.05,-260.3 1042.39,-236.34 967.5,-236.34"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M965.5,-236.34C918.06,-236.34 865.21,-222.8 829.31,-211.47"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="830.25,-208.09 819.66,-208.35 828.09,-214.75 830.25,-208.09"/>
+</g>
+<!-- sourcefile~dtfft_kernel_host.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node6" class="node">
+<title>sourcefile~dtfft_kernel_host.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node6"><a xlink:href="../sourcefile/dtfft_kernel_host.f90.html" xlink:title="dtfft_kernel_host.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1199,-52.34 1075,-52.34 1075,-28.34 1199,-28.34 1199,-52.34"/>
+<text text-anchor="middle" x="1137" y="-37.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_kernel_host.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_kernel_host.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge5" class="edge">
+<title>sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_kernel_host.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1234.92,-40.34C1226.45,-40.34 1217.71,-40.34 1209.11,-40.34"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1209.09,-36.85 1199.09,-40.34 1209.09,-43.85 1209.09,-36.85"/>
+</g>
+<!-- sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node7" class="node">
+<title>sourcefile~dtfft_parameters.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node7"><a xlink:href="../sourcefile/dtfft_parameters.f90.html" xlink:title="dtfft_parameters.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="124,-228.34 0,-228.34 0,-204.34 124,-204.34 124,-228.34"/>
+<text text-anchor="middle" x="62" y="-213.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge6" class="edge">
+<title>sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1269.21,-28.25C1237.73,-15.98 1185.08,1.03 1138,-0.34"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1136,-0.34C1059.06,-2.6 1044.34,-35.85 967.5,-40.34"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M965.5,-40.34C886.08,-44.99 865.1,-52.63 786.5,-40.34"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M784.5,-40.34C562.72,-5.68 492.42,8.24 280,-64.34 197.05,-92.69 117.34,-163.08 82.02,-197.2"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="79.48,-194.78 74.78,-204.28 84.38,-199.78 79.48,-194.78"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node8" class="node">
+<title>sourcefile~dtfft_utils.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node8"><a xlink:href="../sourcefile/dtfft_utils.f90.html" xlink:title="dtfft_utils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="244,-208.34 160,-208.34 160,-184.34 244,-184.34 244,-208.34"/>
+<text text-anchor="middle" x="202" y="-193.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge7" class="edge">
+<title>sourcefile~test_compression.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1136,-0.34C1107.63,-1.63 1099.4,-4.83 1075,-19.34 1055.82,-30.75 1059.52,-45.58 1039,-54.34 903.32,-112.31 518.31,-41.28 375.5,-78.34"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M373.5,-78.34C332.55,-89.37 316.04,-75 280,-97.34 249.24,-116.42 225.96,-152.47 213.41,-175.41"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="210.27,-173.87 208.7,-184.34 216.46,-177.13 210.27,-173.87"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge10" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M532.71,-248.36C512.66,-252.02 489.92,-255.54 469,-257.34 385.31,-264.55 363.26,-268.49 280,-257.34 244.84,-252.64 238.27,-240.15 203,-236.34"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge11" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M547.83,-224.22C534.09,-220.06 518.82,-215.22 505,-210.34 446.51,-189.7 437.51,-157.1 375.5,-158.34"/>
+</g>
+<!-- sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node9" class="node">
+<title>sourcefile~dtfft_errors.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node9"><a xlink:href="../sourcefile/dtfft_errors.f90.html" xlink:title="dtfft_errors.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="109,-364.34 15,-364.34 15,-340.34 109,-340.34 109,-364.34"/>
+<text text-anchor="middle" x="62" y="-349.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge8" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M526.38,-248.36C518.52,-251.89 511.11,-256.45 505,-262.34 469.79,-296.3 503.13,-331.31 469,-366.34 446.97,-388.96 233.72,-473.64 203,-466.34"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M201,-466.34C146.78,-452.18 100.46,-401.39 77.83,-372.62"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="80.44,-370.27 71.58,-364.46 74.88,-374.53 80.44,-370.27"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node11" class="node">
+<title>sourcefile~dtfft_interface_nvtx.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node11"><a xlink:href="../sourcefile/dtfft_interface_nvtx.f90.html" xlink:title="dtfft_interface_nvtx.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="443.5,-130.34 305.5,-130.34 305.5,-106.34 443.5,-106.34 443.5,-130.34"/>
+<text text-anchor="middle" x="374.5" y="-115.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge9" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M529.44,-224.25C520.66,-220.73 512.18,-216.2 505,-210.34 479.11,-189.23 495.16,-165.13 469,-144.34 464.07,-140.42 458.58,-137.09 452.8,-134.27"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="454.09,-131.01 443.53,-130.22 451.29,-137.43 454.09,-131.01"/>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge12" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M947.58,-168.42C926.81,-181.96 891.17,-203.79 858,-217.34 827.56,-229.78 819.19,-232.78 786.5,-236.34"/>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M784.5,-236.34C753.01,-239.78 718.45,-240.68 687.41,-240.44"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="687.07,-236.93 677.03,-240.31 686.98,-243.93 687.07,-236.93"/>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge13" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M911.79,-168.35C890.09,-173.2 865.03,-178.8 843.05,-183.71"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="842.19,-180.31 833.19,-185.91 843.71,-187.15 842.19,-180.31"/>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge15" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M954.45,-144.17C928.45,-116.79 860.04,-51.84 786.5,-40.34"/>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge16" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M590,-158.34C494.78,-153.71 470.81,-156.43 375.5,-158.34"/>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M373.5,-158.34C329.9,-159.22 281.48,-171.1 247.42,-181.35"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="246.29,-178.03 237.77,-184.32 248.35,-184.72 246.29,-178.03"/>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge14" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M893.86,-158.69C818.65,-160.7 696.96,-162.64 592,-158.34"/>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M590,-158.34C535.01,-155.67 473.31,-143.14 430.26,-132.8"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="430.82,-129.34 420.27,-130.37 429.16,-136.14 430.82,-129.34"/>
+</g>
+<!-- sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge17" class="edge">
+<title>sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M726.74,-264.34C705.71,-259.97 681.74,-254.99 659.91,-250.46"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="660.55,-247.01 650.05,-248.41 659.13,-253.87 660.55,-247.01"/>
+</g>
+<!-- sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge21" class="edge">
+<title>sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M590,-276.34C399.21,-292.39 344.66,-300.91 160,-250.34 141.3,-245.22 120.99,-238.32 103.82,-232.08"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="104.7,-228.67 94.1,-228.49 102.27,-235.24 104.7,-228.67"/>
+</g>
+<!-- sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge22" class="edge">
+<title>sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M590,-276.34C452.47,-288.12 406.25,-313.16 280,-257.34 259.59,-248.32 261.52,-236.17 244,-222.34 240.4,-219.51 236.49,-216.7 232.55,-214.04"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="234.3,-211.01 224,-208.51 230.49,-216.88 234.3,-211.01"/>
+</g>
+<!-- sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge18" class="edge">
+<title>sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M768.52,-288.66C700.89,-339.3 431.12,-525.96 203,-466.34"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node10" class="node">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node10"><a xlink:href="../sourcefile/dtfft_interface_cuda_runtime.f90.html" xlink:title="dtfft_interface_cuda_runtime.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="469,-248.34 280,-248.34 280,-224.34 469,-224.34 469,-248.34"/>
+<text text-anchor="middle" x="374.5" y="-233.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge19" class="edge">
+<title>sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M712.62,-273.44C676.38,-272.71 631.79,-272.94 592,-276.34"/>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M590,-276.34C560.3,-278.89 486.07,-263.19 433.27,-250.72"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="433.89,-247.27 423.35,-248.35 432.26,-254.07 433.89,-247.27"/>
+</g>
+<!-- sourcefile~dtfft_interface_zfp.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_node12" class="node">
+<title>sourcefile~dtfft_interface_zfp.f90</title>
+<g id="a_sourcefile~~test_compression.f90~~EfferentGraph_node12"><a xlink:href="../sourcefile/dtfft_interface_zfp.f90.html" xlink:title="dtfft_interface_zfp.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="656.5,-328.34 525.5,-328.34 525.5,-304.34 656.5,-304.34 656.5,-328.34"/>
+<text text-anchor="middle" x="591" y="-313.94" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_zfp.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_interface_zfp.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge20" class="edge">
+<title>sourcefile~dtfft_compressor_zfp.f90&#45;&gt;sourcefile~dtfft_interface_zfp.f90</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M726.74,-288.35C705.71,-292.72 681.74,-297.7 659.91,-302.23"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="659.13,-298.82 650.05,-304.28 660.55,-305.68 659.13,-298.82"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge23" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90</title>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M737.9,-206.03C714.52,-210.89 685.76,-216.86 659.97,-222.22"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="658.96,-218.86 649.88,-224.32 660.38,-225.71 658.96,-218.86"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge26" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M590,-196.34C452.53,-208.78 416.19,-192.84 280,-215.34 245,-221.13 238.42,-238.31 203,-236.34"/>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M201,-236.34C179.21,-234.88 155.64,-231.97 134.25,-228.8"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="134.68,-225.33 124.27,-227.29 133.63,-232.25 134.68,-225.33"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge27" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M737.72,-193.99C698.67,-192.59 641.59,-191.86 592,-196.34"/>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M590,-196.34C493.58,-205.07 472.3,-156.4 375.5,-158.34"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge24" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M590,-196.34C551.47,-200.09 538.18,-195.41 505,-215.34 483.93,-228.01 490.01,-244.58 469,-257.34 357.46,-325.12 201.66,-344.55 119.26,-350.12"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="118.86,-346.63 109.1,-350.76 119.3,-353.62 118.86,-346.63"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge25" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#00ff91" stroke-dasharray="5,2" d="M590,-196.34C537.26,-201.12 478.16,-212.6 435.37,-222.05"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="434.4,-218.68 425.4,-224.28 435.93,-225.51 434.4,-218.68"/>
+</g>
+<!-- sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge28" class="edge">
+<title>sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90</title>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M1125.86,-52.47C1109.4,-71.46 1075.07,-108.31 1039,-130.34 1032.72,-134.18 1025.79,-137.58 1018.79,-140.54"/>
+<polygon fill="#0091ff" stroke="#0091ff" points="1017.26,-137.39 1009.26,-144.33 1019.84,-143.89 1017.26,-137.39"/>
+</g>
+<!-- sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge29" class="edge">
+<title>sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M1131.55,-52.6C1120.7,-80.49 1089.98,-148.5 1039,-177.34 978.79,-211.41 897.2,-210.78 843.26,-205.23"/>
+<polygon fill="#0091ff" stroke="#0091ff" points="843.51,-201.74 833.19,-204.1 842.74,-208.69 843.51,-201.74"/>
+</g>
+<!-- sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge31" class="edge">
+<title>sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M1074.72,-38.63C1042.74,-38.17 1002.98,-38.27 967.5,-40.34"/>
+</g>
+<!-- sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge32" class="edge">
+<title>sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M1119.11,-52.37C1100.48,-64.89 1069.16,-83.83 1039,-92.34 847.48,-146.4 790.81,-127 592,-118.34"/>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M590,-118.34C493.26,-111.64 469.37,-53.98 375.5,-78.34"/>
+</g>
+<!-- sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge30" class="edge">
+<title>sourcefile~dtfft_kernel_host.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#0091ff" stroke-dasharray="5,2" d="M590,-118.34C544.9,-116.38 494.41,-116.28 453.75,-116.71"/>
+<polygon fill="#0091ff" stroke="#0091ff" points="453.6,-113.21 443.64,-116.83 453.68,-120.21 453.6,-113.21"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge34" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff00da" stroke-dasharray="5,2" d="M159.97,-202.29C151.77,-203.48 142.94,-204.76 134.06,-206.05"/>
+<polygon fill="#ff00da" stroke="#ff00da" points="133.45,-202.6 124.05,-207.5 134.45,-209.53 133.45,-202.6"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge33" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff00da" stroke-dasharray="5,2" d="M190.17,-208.59C166.39,-235.47 109.42,-299.87 80.49,-332.57"/>
+<polygon fill="#ff00da" stroke="#ff00da" points="77.78,-330.35 73.78,-340.16 83.03,-334.99 77.78,-330.35"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge35" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M279.95,-239.96C254.9,-239.94 227.87,-239.03 203,-236.34"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge36" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M322.34,-224.34C300.75,-219.28 275.66,-213.39 254.08,-208.33"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="254.65,-204.87 244.12,-205.99 253.05,-211.68 254.65,-204.87"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_compression.f90~~EfferentGraph_edge37" class="edge">
+<title>sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M318.55,-130.44C305.61,-134.15 292.08,-138.76 280,-144.34 260.53,-153.33 240.53,-167.01 225.78,-178.08"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="223.56,-175.37 217.76,-184.24 227.82,-180.92 223.56,-175.37"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var pansourcefiletest_compressionf90EfferentGraph = svgPanZoom('#sourcefiletest_compressionf90EfferentGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#EfferentGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="EfferentGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="202pt" height="32pt"
+ viewBox="0.00 0.00 201.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 197.5,-28 197.5,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="193.5,-24 88.5,-24 88.5,0 193.5,0 193.5,-24"/>
+<text text-anchor="middle" x="141" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a file to a file which it depends on. A file
+is dependent upon another if the latter must be compiled before the former
+can be.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+<br>
+      <section>
+        <h2><span class="anchor" id="src"></span>Source Code</h2>
+        <div class="hl codehilite"><pre><span></span><a id="ln-1" name="ln-1" href="#ln-1"></a><span class="k">program </span><span class="n">test_compression</span>
+<a id="ln-2" name="ln-2" href="#ln-2"></a><span class="k">use </span><span class="nb">iso_c_binding</span>
+<a id="ln-3" name="ln-3" href="#ln-3"></a><span class="k">use </span><span class="n">iso_fortran_env</span>
+<a id="ln-4" name="ln-4" href="#ln-4"></a><span class="k">use </span><span class="n">dtfft_abstract_kernel</span>
+<a id="ln-5" name="ln-5" href="#ln-5"></a><span class="k">use </span><span class="n">dtfft_abstract_compressor</span>
+<a id="ln-6" name="ln-6" href="#ln-6"></a><span class="k">use </span><span class="n">dtfft_compressor_zfp</span>
+<a id="ln-7" name="ln-7" href="#ln-7"></a><span class="k">use </span><span class="n">dtfft_config</span>
+<a id="ln-8" name="ln-8" href="#ln-8"></a><span class="k">use </span><span class="n">dtfft_kernel_host</span>
+<a id="ln-9" name="ln-9" href="#ln-9"></a><span class="k">use </span><span class="n">dtfft_parameters</span>
+<a id="ln-10" name="ln-10" href="#ln-10"></a><span class="k">use </span><span class="n">dtfft_utils</span>
+<a id="ln-11" name="ln-11" href="#ln-11"></a><span class="cp">#include &quot;_dtfft_cuda.h&quot;</span>
+<a id="ln-12" name="ln-12" href="#ln-12"></a><span class="cp">#include &quot;_dtfft_mpi.h&quot;</span>
+<a id="ln-13" name="ln-13" href="#ln-13"></a><span class="cp">#include &quot;_dtfft_private.h&quot;</span>
+<a id="ln-14" name="ln-14" href="#ln-14"></a><span class="k">implicit none</span>
+<a id="ln-15" name="ln-15" href="#ln-15"></a><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ierror</span>
+<a id="ln-16" name="ln-16" href="#ln-16"></a><span class="k">type</span><span class="p">(</span><span class="n">dtfft_stream_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">stream</span>
+<a id="ln-17" name="ln-17" href="#ln-17"></a>
+<a id="ln-18" name="ln-18" href="#ln-18"></a><span class="w">    </span><span class="k">call </span><span class="n">MPI_Init</span><span class="p">(</span><span class="n">ierror</span><span class="p">)</span>
+<a id="ln-19" name="ln-19" href="#ln-19"></a><span class="w">    </span><span class="n">ierror</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">init_internal</span><span class="p">()</span>
+<a id="ln-20" name="ln-20" href="#ln-20"></a>
+<a id="ln-21" name="ln-21" href="#ln-21"></a><span class="w">    </span><span class="k">call </span><span class="n">test_pack_unpack</span><span class="p">([</span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">])</span>
+<a id="ln-22" name="ln-22" href="#ln-22"></a><span class="w">    </span><span class="k">call </span><span class="n">test_pack_unpack</span><span class="p">([</span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">])</span>
+<a id="ln-23" name="ln-23" href="#ln-23"></a>
+<a id="ln-24" name="ln-24" href="#ln-24"></a><span class="w">    </span><span class="k">call </span><span class="n">test_transpose</span><span class="p">([</span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_BACKWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">)</span>
+<a id="ln-25" name="ln-25" href="#ln-25"></a><span class="w">    </span><span class="k">call </span><span class="n">test_transpose</span><span class="p">([</span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="n">KERNEL_PACK</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PACK</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK_BACKWARD</span><span class="p">)</span>
+<a id="ln-26" name="ln-26" href="#ln-26"></a><span class="w">    </span><span class="k">call </span><span class="n">test_transpose</span><span class="p">([</span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="n">KERNEL_PACK_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PACK_BACKWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">)</span>
+<a id="ln-27" name="ln-27" href="#ln-27"></a><span class="w">    </span><span class="k">call </span><span class="n">test_transpose</span><span class="p">([</span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_BACKWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">)</span>
+<a id="ln-28" name="ln-28" href="#ln-28"></a><span class="w">    </span><span class="k">call </span><span class="n">test_transpose</span><span class="p">([</span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="n">KERNEL_PACK</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PACK</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK_BACKWARD</span><span class="p">)</span>
+<a id="ln-29" name="ln-29" href="#ln-29"></a><span class="w">    </span><span class="k">call </span><span class="n">test_transpose</span><span class="p">([</span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">128</span><span class="p">],</span><span class="w"> </span><span class="n">KERNEL_PACK_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PACK_BACKWARD</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">)</span>
+<a id="ln-30" name="ln-30" href="#ln-30"></a>
+<a id="ln-31" name="ln-31" href="#ln-31"></a><span class="w">    </span><span class="k">call </span><span class="n">MPI_Finalize</span><span class="p">(</span><span class="n">ierror</span><span class="p">)</span>
+<a id="ln-32" name="ln-32" href="#ln-32"></a><span class="k">contains</span>
+<a id="ln-33" name="ln-33" href="#ln-33"></a>
+<a id="ln-34" name="ln-34" href="#ln-34"></a><span class="k">    subroutine </span><span class="n">test_pack_unpack</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
+<a id="ln-35" name="ln-35" href="#ln-35"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dims</span><span class="p">(:)</span>
+<a id="ln-36" name="ln-36" href="#ln-36"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">kernel_host</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">packer</span><span class="p">,</span><span class="w"> </span><span class="n">unpacker</span>
+<a id="ln-37" name="ln-37" href="#ln-37"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">compressor_zfp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">compressor</span>
+<a id="ln-38" name="ln-38" href="#ln-38"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">locals</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<a id="ln-39" name="ln-39" href="#ln-39"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span>
+<a id="ln-40" name="ln-40" href="#ln-40"></a><span class="w">        </span><span class="kt">complex</span><span class="p">(</span><span class="n">real32</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">in_ptr</span><span class="p">(:)</span>
+<a id="ln-41" name="ln-41" href="#ln-41"></a><span class="w">        </span><span class="kt">complex</span><span class="p">(</span><span class="n">real32</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">test</span><span class="p">(:)</span>
+<a id="ln-42" name="ln-42" href="#ln-42"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">compressed_sizes</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="ln-43" name="ln-43" href="#ln-43"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span>
+<a id="ln-44" name="ln-44" href="#ln-44"></a>
+<a id="ln-45" name="ln-45" href="#ln-45"></a><span class="w">        </span><span class="n">locals</span><span class="p">(:,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="ln-46" name="ln-46" href="#ln-46"></a><span class="w">        </span><span class="n">locals</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dims</span>
+<a id="ln-47" name="ln-47" href="#ln-47"></a>
+<a id="ln-48" name="ln-48" href="#ln-48"></a><span class="w">        </span><span class="k">print</span><span class="o">*</span><span class="p">,</span><span class="s1">&#39;Testing Pack/Unpack kernels with compression, ndims = &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
+<a id="ln-49" name="ln-49" href="#ln-49"></a>
+<a id="ln-50" name="ln-50" href="#ln-50"></a><span class="w">        </span><span class="n">ierror</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">compressor</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span><span class="w"> </span><span class="nb">kind</span><span class="o">=</span><span class="n">int8</span><span class="p">),</span><span class="w"> </span><span class="n">DEFAULT_COMPRESSION_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_PLATFORM_HOST</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMPLEX</span><span class="p">,</span><span class="w"> </span><span class="n">COMPLEX_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">DIMS_PERMUTE_NONE</span><span class="p">)</span>
+<a id="ln-51" name="ln-51" href="#ln-51"></a>
+<a id="ln-52" name="ln-52" href="#ln-52"></a><span class="w">        </span><span class="k">call </span><span class="n">packer</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_ESTIMATE</span><span class="p">,</span><span class="w"> </span><span class="n">COMPLEX_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PACK</span><span class="p">,</span><span class="w"> </span><span class="n">locals</span><span class="p">,</span><span class="w"> </span><span class="n">with_compression</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-53" name="ln-53" href="#ln-53"></a><span class="w">        </span><span class="k">call </span><span class="n">packer</span><span class="p">%</span><span class="n">set_compressor</span><span class="p">(</span><span class="n">compressor</span><span class="p">)</span>
+<a id="ln-54" name="ln-54" href="#ln-54"></a>
+<a id="ln-55" name="ln-55" href="#ln-55"></a><span class="w">        </span><span class="k">call </span><span class="n">unpacker</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_ESTIMATE</span><span class="p">,</span><span class="w"> </span><span class="n">COMPLEX_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_UNPACK</span><span class="p">,</span><span class="w"> </span><span class="n">locals</span><span class="p">,</span><span class="w"> </span><span class="n">with_decompression</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-56" name="ln-56" href="#ln-56"></a><span class="w">        </span><span class="k">call </span><span class="n">unpacker</span><span class="p">%</span><span class="n">set_compressor</span><span class="p">(</span><span class="n">compressor</span><span class="p">)</span>
+<a id="ln-57" name="ln-57" href="#ln-57"></a>
+<a id="ln-58" name="ln-58" href="#ln-58"></a><span class="w">        </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mem_alloc_host</span><span class="p">(</span><span class="n">COMPLEX_STORAGE_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="w">        </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mem_alloc_host</span><span class="p">(</span><span class="n">COMPLEX_STORAGE_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+<a id="ln-60" name="ln-60" href="#ln-60"></a><span class="w">        </span><span class="n">aux</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mem_alloc_host</span><span class="p">(</span><span class="n">COMPLEX_STORAGE_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+<a id="ln-61" name="ln-61" href="#ln-61"></a>
+<a id="ln-62" name="ln-62" href="#ln-62"></a><span class="w">        </span><span class="k">call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">in_ptr</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">)])</span>
+<a id="ln-63" name="ln-63" href="#ln-63"></a><span class="w">        </span><span class="k">allocate</span><span class="p">(</span><span class="n">test</span><span class="p">(</span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
+<a id="ln-64" name="ln-64" href="#ln-64"></a><span class="w">        </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
+<a id="ln-65" name="ln-65" href="#ln-65"></a><span class="w">            </span><span class="n">in_ptr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">cmplx</span><span class="p">(</span><span class="kt">real</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">real32</span><span class="p">),</span><span class="w"> </span><span class="mf">0.0_real32</span><span class="p">)</span>
+<a id="ln-66" name="ln-66" href="#ln-66"></a><span class="w">            </span><span class="n">test</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">in_ptr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<a id="ln-67" name="ln-67" href="#ln-67"></a><span class="w">        </span><span class="k">end do</span>
+<a id="ln-68" name="ln-68" href="#ln-68"></a>
+<a id="ln-69" name="ln-69" href="#ln-69"></a><span class="k">        call </span><span class="n">packer</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="n">csizes</span><span class="o">=</span><span class="n">compressed_sizes</span><span class="p">,</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-70" name="ln-70" href="#ln-70"></a><span class="w">        </span><span class="k">call </span><span class="n">unpacker</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-71" name="ln-71" href="#ln-71"></a>
+<a id="ln-72" name="ln-72" href="#ln-72"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="nb">any</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">in_ptr</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">test</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">1.e-5_real32</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-73" name="ln-73" href="#ln-73"></a><span class="k">            </span><span class="n">INTERNAL_ERROR</span><span class="p">(</span><span class="s2">&quot;Test FAILED&quot;</span><span class="p">)</span>
+<a id="ln-74" name="ln-74" href="#ln-74"></a><span class="w">        </span><span class="k">end if</span>
+<a id="ln-75" name="ln-75" href="#ln-75"></a>
+<a id="ln-76" name="ln-76" href="#ln-76"></a><span class="k">        call </span><span class="n">compressor</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-77" name="ln-77" href="#ln-77"></a><span class="w">        </span><span class="k">call </span><span class="n">packer</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-78" name="ln-78" href="#ln-78"></a><span class="w">        </span><span class="k">call </span><span class="n">unpacker</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-79" name="ln-79" href="#ln-79"></a>
+<a id="ln-80" name="ln-80" href="#ln-80"></a><span class="w">        </span><span class="k">call </span><span class="n">mem_free_host</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>
+<a id="ln-81" name="ln-81" href="#ln-81"></a><span class="w">        </span><span class="k">call </span><span class="n">mem_free_host</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="w">        </span><span class="k">call </span><span class="n">mem_free_host</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span>
+<a id="ln-83" name="ln-83" href="#ln-83"></a>
+<a id="ln-84" name="ln-84" href="#ln-84"></a><span class="w">        </span><span class="k">print</span><span class="o">*</span><span class="p">,</span><span class="s1">&#39;SUCCESS&#39;</span>
+<a id="ln-85" name="ln-85" href="#ln-85"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">test_pack_unpack</span>
+<a id="ln-86" name="ln-86" href="#ln-86"></a>
+<a id="ln-87" name="ln-87" href="#ln-87"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">test_transpose</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="n">fu</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">bu</span><span class="p">)</span>
+<a id="ln-88" name="ln-88" href="#ln-88"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">      </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dims</span><span class="p">(:)</span>
+<a id="ln-89" name="ln-89" href="#ln-89"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">kernel_type_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="n">fu</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">bu</span>
+<a id="ln-90" name="ln-90" href="#ln-90"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">kernel_host</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">forward</span><span class="p">,</span><span class="w"> </span><span class="n">backward</span><span class="p">,</span><span class="w"> </span><span class="n">forward_unpacker</span><span class="p">,</span><span class="w"> </span><span class="n">backward_unpacker</span>
+<a id="ln-91" name="ln-91" href="#ln-91"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">compressor_zfp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">compressor_forward</span><span class="p">,</span><span class="w"> </span><span class="n">compressor_backward</span>
+<a id="ln-92" name="ln-92" href="#ln-92"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">locals</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<a id="ln-93" name="ln-93" href="#ln-93"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">temp_dims</span><span class="p">(:)</span>
+<a id="ln-94" name="ln-94" href="#ln-94"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span>
+<a id="ln-95" name="ln-95" href="#ln-95"></a><span class="w">        </span><span class="kt">real</span><span class="p">(</span><span class="n">real64</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">in_ptr</span><span class="p">(:),</span><span class="w"> </span><span class="n">out_ptr</span><span class="p">(:)</span>
+<a id="ln-96" name="ln-96" href="#ln-96"></a><span class="w">        </span><span class="kt">real</span><span class="p">(</span><span class="n">real64</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">test</span><span class="p">(:)</span>
+<a id="ln-97" name="ln-97" href="#ln-97"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">compressed_sizes</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="ln-98" name="ln-98" href="#ln-98"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span>
+<a id="ln-99" name="ln-99" href="#ln-99"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">sf</span><span class="p">,</span><span class="w"> </span><span class="n">sfu</span><span class="p">,</span><span class="w"> </span><span class="n">sb</span><span class="p">,</span><span class="w"> </span><span class="n">sbu</span>
+<a id="ln-100" name="ln-100" href="#ln-100"></a>
+<a id="ln-101" name="ln-101" href="#ln-101"></a><span class="w">        </span><span class="n">sf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_kernel_string</span><span class="p">(</span><span class="n">f</span><span class="p">);</span><span class="w"> </span><span class="n">sfu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_kernel_string</span><span class="p">(</span><span class="n">fu</span><span class="p">)</span>
+<a id="ln-102" name="ln-102" href="#ln-102"></a><span class="w">        </span><span class="n">sb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_kernel_string</span><span class="p">(</span><span class="n">b</span><span class="p">);</span><span class="w"> </span><span class="n">sbu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_kernel_string</span><span class="p">(</span><span class="n">bu</span><span class="p">)</span>
+<a id="ln-103" name="ln-103" href="#ln-103"></a><span class="w">        </span><span class="k">print</span><span class="o">*</span><span class="p">,</span><span class="s1">&#39;Testing transpose kernels with compression, ndims = &#39;</span><span class="o">//</span><span class="n">to_str</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+<a id="ln-104" name="ln-104" href="#ln-104"></a><span class="w">        </span><span class="k">print</span><span class="o">*</span><span class="p">,</span><span class="s1">&#39;    Forward method = &#39;</span><span class="o">//</span><span class="n">sf</span><span class="p">%</span><span class="n">raw</span><span class="o">//</span><span class="s2">&quot; + &quot;</span><span class="o">//</span><span class="n">sfu</span><span class="p">%</span><span class="n">raw</span>
+<a id="ln-105" name="ln-105" href="#ln-105"></a><span class="w">        </span><span class="k">print</span><span class="o">*</span><span class="p">,</span><span class="s1">&#39;    Backward method = &#39;</span><span class="o">//</span><span class="n">sb</span><span class="p">%</span><span class="n">raw</span><span class="o">//</span><span class="s2">&quot; + &quot;</span><span class="o">//</span><span class="n">sbu</span><span class="p">%</span><span class="n">raw</span>
+<a id="ln-106" name="ln-106" href="#ln-106"></a>
+<a id="ln-107" name="ln-107" href="#ln-107"></a><span class="w">        </span><span class="k">call </span><span class="n">sf</span><span class="p">%</span><span class="n">destroy</span><span class="p">();</span><span class="w"> </span><span class="k">call </span><span class="n">sfu</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-108" name="ln-108" href="#ln-108"></a><span class="w">        </span><span class="k">call </span><span class="n">sb</span><span class="p">%</span><span class="n">destroy</span><span class="p">();</span><span class="w"> </span><span class="k">call </span><span class="n">sbu</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-109" name="ln-109" href="#ln-109"></a>
+<a id="ln-110" name="ln-110" href="#ln-110"></a><span class="w">        </span><span class="k">allocate</span><span class="p">(</span><span class="w"> </span><span class="n">temp_dims</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-111" name="ln-111" href="#ln-111"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-112" name="ln-112" href="#ln-112"></a><span class="k">            </span><span class="n">temp_dims</span><span class="p">(:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">dims</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dims</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+<a id="ln-113" name="ln-113" href="#ln-113"></a><span class="w">        </span><span class="k">else</span>
+<a id="ln-114" name="ln-114" href="#ln-114"></a><span class="k">            </span><span class="n">temp_dims</span><span class="p">(:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">dims</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dims</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dims</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+<a id="ln-115" name="ln-115" href="#ln-115"></a><span class="w">        </span><span class="k">end if</span>
+<a id="ln-116" name="ln-116" href="#ln-116"></a><span class="k">        </span><span class="n">locals</span><span class="p">(:,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="ln-117" name="ln-117" href="#ln-117"></a>
+<a id="ln-118" name="ln-118" href="#ln-118"></a><span class="w">        </span><span class="n">ierror</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">compressor_forward</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span><span class="w"> </span><span class="nb">kind</span><span class="o">=</span><span class="n">int8</span><span class="p">),</span><span class="w"> </span><span class="n">DEFAULT_COMPRESSION_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_PLATFORM_HOST</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_REAL8</span><span class="p">,</span><span class="w"> </span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">DIMS_PERMUTE_BACKWARD</span><span class="p">)</span>
+<a id="ln-119" name="ln-119" href="#ln-119"></a><span class="w">        </span><span class="n">ierror</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">compressor_backward</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span><span class="w"> </span><span class="nb">kind</span><span class="o">=</span><span class="n">int8</span><span class="p">),</span><span class="w"> </span><span class="n">DEFAULT_COMPRESSION_CONFIG</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_PLATFORM_HOST</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_REAL8</span><span class="p">,</span><span class="w"> </span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">DIMS_PERMUTE_FORWARD</span><span class="p">)</span>
+<a id="ln-120" name="ln-120" href="#ln-120"></a>
+<a id="ln-121" name="ln-121" href="#ln-121"></a><span class="w">        </span><span class="n">locals</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dims</span>
+<a id="ln-122" name="ln-122" href="#ln-122"></a><span class="w">        </span><span class="k">call </span><span class="n">forward</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_ESTIMATE</span><span class="p">,</span><span class="w"> </span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">f</span><span class="p">,</span><span class="w"> </span><span class="n">locals</span><span class="p">,</span><span class="w"> </span><span class="n">with_compression</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-123" name="ln-123" href="#ln-123"></a><span class="w">        </span><span class="k">call </span><span class="n">forward</span><span class="p">%</span><span class="n">set_compressor</span><span class="p">(</span><span class="n">compressor_forward</span><span class="p">)</span>
+<a id="ln-124" name="ln-124" href="#ln-124"></a>
+<a id="ln-125" name="ln-125" href="#ln-125"></a><span class="w">        </span><span class="n">locals</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">temp_dims</span>
+<a id="ln-126" name="ln-126" href="#ln-126"></a><span class="w">        </span><span class="k">call </span><span class="n">forward_unpacker</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">temp_dims</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_ESTIMATE</span><span class="p">,</span><span class="w"> </span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">fu</span><span class="p">,</span><span class="w"> </span><span class="n">locals</span><span class="p">,</span><span class="w"> </span><span class="n">with_decompression</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-127" name="ln-127" href="#ln-127"></a><span class="w">        </span><span class="k">call </span><span class="n">forward_unpacker</span><span class="p">%</span><span class="n">set_compressor</span><span class="p">(</span><span class="n">compressor_forward</span><span class="p">)</span>
+<a id="ln-128" name="ln-128" href="#ln-128"></a>
+<a id="ln-129" name="ln-129" href="#ln-129"></a><span class="w">        </span><span class="n">locals</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">temp_dims</span>
+<a id="ln-130" name="ln-130" href="#ln-130"></a><span class="w">        </span><span class="k">call </span><span class="n">backward</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">temp_dims</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_ESTIMATE</span><span class="p">,</span><span class="w"> </span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">locals</span><span class="p">,</span><span class="w"> </span><span class="n">with_compression</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-131" name="ln-131" href="#ln-131"></a><span class="w">        </span><span class="k">call </span><span class="n">backward</span><span class="p">%</span><span class="n">set_compressor</span><span class="p">(</span><span class="n">compressor_backward</span><span class="p">)</span>
+<a id="ln-132" name="ln-132" href="#ln-132"></a>
+<a id="ln-133" name="ln-133" href="#ln-133"></a><span class="w">        </span><span class="n">locals</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">size</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dims</span>
+<a id="ln-134" name="ln-134" href="#ln-134"></a><span class="w">        </span><span class="k">call </span><span class="n">backward_unpacker</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_ESTIMATE</span><span class="p">,</span><span class="w"> </span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">bu</span><span class="p">,</span><span class="w"> </span><span class="n">locals</span><span class="p">,</span><span class="w"> </span><span class="n">with_decompression</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-135" name="ln-135" href="#ln-135"></a><span class="w">        </span><span class="k">call </span><span class="n">backward_unpacker</span><span class="p">%</span><span class="n">set_compressor</span><span class="p">(</span><span class="n">compressor_backward</span><span class="p">)</span>
+<a id="ln-136" name="ln-136" href="#ln-136"></a>
+<a id="ln-137" name="ln-137" href="#ln-137"></a><span class="w">        </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mem_alloc_host</span><span class="p">(</span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+<a id="ln-138" name="ln-138" href="#ln-138"></a><span class="w">        </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mem_alloc_host</span><span class="p">(</span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+<a id="ln-139" name="ln-139" href="#ln-139"></a><span class="w">        </span><span class="n">aux</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mem_alloc_host</span><span class="p">(</span><span class="n">DOUBLE_STORAGE_SIZE</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+<a id="ln-140" name="ln-140" href="#ln-140"></a>
+<a id="ln-141" name="ln-141" href="#ln-141"></a><span class="w">        </span><span class="k">call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">in_ptr</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">)])</span>
+<a id="ln-142" name="ln-142" href="#ln-142"></a><span class="w">        </span><span class="k">call </span><span class="nb">c_f_pointer</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">out_ptr</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">)])</span>
+<a id="ln-143" name="ln-143" href="#ln-143"></a><span class="w">        </span><span class="k">allocate</span><span class="p">(</span><span class="n">test</span><span class="p">(</span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
+<a id="ln-144" name="ln-144" href="#ln-144"></a><span class="w">        </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nb">product</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
+<a id="ln-145" name="ln-145" href="#ln-145"></a><span class="w">            </span><span class="n">in_ptr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">real64</span><span class="p">)</span>
+<a id="ln-146" name="ln-146" href="#ln-146"></a><span class="w">            </span><span class="n">test</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">in_ptr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<a id="ln-147" name="ln-147" href="#ln-147"></a><span class="w">        </span><span class="k">end do</span>
+<a id="ln-148" name="ln-148" href="#ln-148"></a>
+<a id="ln-149" name="ln-149" href="#ln-149"></a><span class="k">        if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">KERNEL_PACK</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-150" name="ln-150" href="#ln-150"></a><span class="k">            call </span><span class="n">forward</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="n">csizes</span><span class="o">=</span><span class="n">compressed_sizes</span><span class="p">,</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-151" name="ln-151" href="#ln-151"></a><span class="w">            </span><span class="k">call </span><span class="n">forward_unpacker</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-152" name="ln-152" href="#ln-152"></a><span class="w">        </span><span class="k">else</span>
+<a id="ln-153" name="ln-153" href="#ln-153"></a><span class="k">            call </span><span class="n">forward</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">neighbor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="n">csize</span><span class="o">=</span><span class="n">compressed_sizes</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-154" name="ln-154" href="#ln-154"></a><span class="w">            </span><span class="k">call </span><span class="n">forward_unpacker</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-155" name="ln-155" href="#ln-155"></a><span class="w">        </span><span class="k">endif</span>
+<a id="ln-156" name="ln-156" href="#ln-156"></a>
+<a id="ln-157" name="ln-157" href="#ln-157"></a><span class="k">        if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_BACKWARD</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">KERNEL_PACK</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-158" name="ln-158" href="#ln-158"></a><span class="k">            call </span><span class="n">backward</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="n">csizes</span><span class="o">=</span><span class="n">compressed_sizes</span><span class="p">,</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-159" name="ln-159" href="#ln-159"></a><span class="w">            </span><span class="k">call </span><span class="n">backward_unpacker</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">neighbor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-160" name="ln-160" href="#ln-160"></a><span class="w">        </span><span class="k">else</span>
+<a id="ln-161" name="ln-161" href="#ln-161"></a><span class="k">            call </span><span class="n">backward</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">neighbor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="n">csize</span><span class="o">=</span><span class="n">compressed_sizes</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-162" name="ln-162" href="#ln-162"></a><span class="w">            </span><span class="k">call </span><span class="n">backward_unpacker</span><span class="p">%</span><span class="n">execute</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">NULL_STREAM</span><span class="p">,</span><span class="w"> </span><span class="n">neighbor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">aux</span><span class="o">=</span><span class="n">aux</span><span class="p">,</span><span class="w"> </span><span class="k">sync</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a id="ln-163" name="ln-163" href="#ln-163"></a><span class="w">        </span><span class="k">endif</span>
+<a id="ln-164" name="ln-164" href="#ln-164"></a>
+<a id="ln-165" name="ln-165" href="#ln-165"></a><span class="k">        if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="nb">any</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">in_ptr</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">test</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">1.e-15_real64</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-166" name="ln-166" href="#ln-166"></a><span class="k">            </span><span class="n">INTERNAL_ERROR</span><span class="p">(</span><span class="s2">&quot;Test FAILED&quot;</span><span class="p">)</span>
+<a id="ln-167" name="ln-167" href="#ln-167"></a><span class="w">        </span><span class="k">end if</span>
+<a id="ln-168" name="ln-168" href="#ln-168"></a>
+<a id="ln-169" name="ln-169" href="#ln-169"></a><span class="k">        call </span><span class="n">compressor_forward</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-170" name="ln-170" href="#ln-170"></a><span class="w">        </span><span class="k">call </span><span class="n">compressor_backward</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-171" name="ln-171" href="#ln-171"></a><span class="w">        </span><span class="k">call </span><span class="n">forward</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-172" name="ln-172" href="#ln-172"></a><span class="w">        </span><span class="k">call </span><span class="n">backward</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-173" name="ln-173" href="#ln-173"></a><span class="w">        </span><span class="k">call </span><span class="n">forward_unpacker</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-174" name="ln-174" href="#ln-174"></a><span class="w">        </span><span class="k">call </span><span class="n">backward_unpacker</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-175" name="ln-175" href="#ln-175"></a>
+<a id="ln-176" name="ln-176" href="#ln-176"></a><span class="w">        </span><span class="k">call </span><span class="n">mem_free_host</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>
+<a id="ln-177" name="ln-177" href="#ln-177"></a><span class="w">        </span><span class="k">call </span><span class="n">mem_free_host</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<a id="ln-178" name="ln-178" href="#ln-178"></a><span class="w">        </span><span class="k">call </span><span class="n">mem_free_host</span><span class="p">(</span><span class="n">aux</span><span class="p">)</span>
+<a id="ln-179" name="ln-179" href="#ln-179"></a><span class="w">        </span><span class="k">deallocate</span><span class="p">(</span><span class="n">temp_dims</span><span class="p">,</span><span class="w"> </span><span class="n">test</span><span class="p">)</span>
+<a id="ln-180" name="ln-180" href="#ln-180"></a>
+<a id="ln-181" name="ln-181" href="#ln-181"></a><span class="w">        </span><span class="k">print</span><span class="o">*</span><span class="p">,</span><span class="s1">&#39;SUCCESS&#39;</span>
+<a id="ln-182" name="ln-182" href="#ln-182"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">test_transpose</span>
+<a id="ln-183" name="ln-183" href="#ln-183"></a><span class="k">end program </span><span class="n">test_compression</span>
+</pre></div>
+
+      </section>
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>
