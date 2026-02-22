@@ -277,7 +277,7 @@ The example below decomposes a :math:`64 \times 64 \times 64` grid by splitting 
 Bricks decomposition
 --------------------
 
-For 2D and 3D plans, a common special case of the local-decomposition workflow is a **brick** layout where each MPI rank owns a sub-domain of the global domain.
+For 2D and 3D plans, a common special case of the local-decomposition workflow is a **brick** layout where data is distributed across all dimensions. This layout can be more efficient for certain applications and is natively supported by ``dtFFT``. The library automatically detects when a brick decomposition is used and applies optimized reshape strategies to realign data for FFT execution.
 
 **3D case.** Assume the global domain is :math:`N_x \times N_y \times N_z` and ranks are arranged as :math:`P_0 \times P_1 \times P_2`.
 
@@ -370,43 +370,12 @@ Two parameters govern the numerical representation and FFT backend selection:
   - ``DTFFT_EXECUTOR_CUFFT`` – cuFFT (GPU only, available when compiled with CUDA support)
   - ``DTFFT_EXECUTOR_VKFFT`` – VkFFT (GPU only, available when compiled with VkFFT support)
 
-Selecting plan effort
----------------------
-
-The ``effort`` parameter in ``dtFFT`` determines the level of optimization applied during plan creation, influencing how data transposition is configured. The choice of ``effort`` impacts both plan creation time and runtime performance. Higher effort levels increase setup time but can enhance transposition efficiency, especially for large datasets or complex grids. The supported effort levels defined by :f:type:`dtfft_effort_t` control the extent of this optimization as follows:
-
-DTFFT_ESTIMATE
-______________
-
-This minimal-effort option prioritizes fast plan creation.
-
-On the host, ``dtFFT`` selects a default grid decomposition. If the selected backend is ``DTFFT_BACKEND_MPI_DATATYPE``, it constructs MPI datatypes based on environment variables such as ``DTFFT_DTYPE_X_Y`` and ``DTFFT_DTYPE_Y_Z`` (see :ref:`MPI Datatype Selection variables <datatype_selection>`), which define the default send and receive strategies.
-
-DTFFT_MEASURE
-_____________
-
-With this moderate-effort setting, ``dtFFT`` explores multiple grid decomposition strategies to reduce communication overhead during transposition, cycling through possible grid layouts to find an efficient configuration. On the host, it uses the same MPI datatypes as defined by environment variables in ``DTFFT_ESTIMATE``. On the GPU, it employs the same backend as specified in the configuration for ``DTFFT_ESTIMATE``.
-
-If a Cartesian communicator is provided or plan is being created using :f:type:`dtfft_pencil_t` structure, it reverts to ``DTFFT_ESTIMATE`` behavior, relying on the user-specified topology.
-
-DTFFT_PATIENT
-_____________
-
-This effort option extends ``DTFFT_MEASURE`` by selecting the best-performing communication backend for All-to-All communications.
-
-DTFFT_EXHAUSTIVE
-________________
-
-This maximum-effort option extends ``DTFFT_PATIENT`` by including kernel autotuning (both host and GPU, depending on the execution platform) and selecting the best-performing backend for reshape operations.
-
-.. note:: Kernel autotuning can be enabled with all efforts below ``DTFFT_EXHAUSTIVE`` by setting the ``enable_kernel_autotune`` field of :f:type:`dtfft_config_t` to ``true`` or using the :ref:`DTFFT_ENABLE_KERNEL_AUTOTUNE<enable_kernel_autotune>` environment variable.
-
 .. _config_link:
 
 Setting Additional Configurations
 ---------------------------------
 
-The :f:type:`dtfft_config_t` type allows users to set additional configuration parameters for ``dtFFT`` before plan creation, tailoring its behavior to specific needs. These settings are optional and can be applied using the constructor ``dtfft_config_t()`` or the :f:func:`dtfft_create_config` function, followed by a call to :f:func:`dtfft_set_config`.
+The :f:type:`dtfft_config_t` type allows users to set additional configuration parameters for ``dtFFT`` before plan creation, tailoring its behavior to specific needs, such as backend selection and performance tuning. These settings are optional and can be applied using the constructor ``dtfft_config_t()`` or the :f:func:`dtfft_create_config` function, followed by a call to :f:func:`dtfft_set_config`.
 
 Configurations must be set prior to creating a plan to take effect. The available parameters are summarized below:
 
@@ -479,6 +448,16 @@ Configurations must be set prior to creating a plan to take effect. The availabl
      - ``.true.``
      - 
      - Allow pipelined backends to be tested during backend autotune.
+   * - ``enable_rma_backends``
+     - logical
+     - ``.true.``
+     - 
+     - Allow RMA backends to be tested during backend autotune.
+   * - ``enable_fused_backends``
+     - logical
+     - ``.true.``
+     - 
+     - Allow fused backends to be tested during backend autotune.
    * - ``enable_nccl_backends``
      - logical
      - ``.true.``
@@ -499,6 +478,32 @@ Configurations must be set prior to creating a plan to take effect. The availabl
      - ``.false.``
      -
      - Execute reshapes from pencils to bricks in Fourier space during calls to :f:func:`execute`.
+   * - ``transpose_mode``
+     - :f:type:`dtfft_transpose_mode_t`
+     - ``DTFFT_TRANSPOSE_MODE_PACK``
+     -
+     - Specifies at which stage the local transposition is performed during global exchange when effort level is below ``DTFFT_EXHAUSTIVE``. This option only applies for HOST execution platform.
+   * - ``access_mode``
+     - :f:type:`dtfft_access_mode_t`
+     - ``DTFFT_ACCESS_MODE_WRITE``
+     -
+     - Specifies the memory access pattern (write/read) for local transpositions in Generic backends. This option only applies for HOST execution platform.
+   * - ``enable_compressed_backends``
+     - logical
+     - ``.false.``
+     -
+     - Enable compressed backends during autotuning (only fixed-rate compression allowed).
+   * - ``compression_config_transpose``
+     - :f:type:`dtfft_compression_config_t`
+     - 
+     -
+     - Compression configuration for transpose operations.
+   * - ``compression_config_reshape``
+     - :f:type:`dtfft_compression_config_t`
+     - 
+     -
+     - Compression configuration for reshape operations.
+
 
 .. note::
    Fields marked “CUDA” are available only if the library was compiled with CUDA (``DTFFT_WITH_CUDA``).
@@ -585,6 +590,91 @@ The following example creates a config object, disables Z-slab, enables MPI back
     dtfft::set_config(config);
 
     // Now we can create a plan
+
+Selecting plan effort
+---------------------
+
+The ``effort`` parameter in ``dtFFT`` determines the level of optimization applied during plan creation, influencing how data transposition is configured. The choice of ``effort`` impacts both plan creation time and runtime performance. Higher effort levels increase setup time but can enhance transposition efficiency, especially for large datasets or complex grids. The supported effort levels defined by :f:type:`dtfft_effort_t` control the extent of this optimization as follows:
+
+DTFFT_ESTIMATE
+______________
+
+This minimal-effort option prioritizes fast plan creation.
+
+On the host, ``dtFFT`` selects a default grid decomposition. All configurations, such as communication backend and transpose mode are extracted from :f:type:`dtfft_config_t` structure or corresponding environment variables without any autotuning.
+
+DTFFT_MEASURE
+_____________
+
+With this moderate-effort setting, ``dtFFT`` explores multiple grid decomposition strategies to reduce communication overhead during transposition, cycling through possible grid layouts to find an efficient configuration. Just like ``DTFFT_ESTIMATE``, other configurations are taken from :f:type:`dtfft_config_t` structure or corresponding environment variables without autotuning.
+
+If a Cartesian communicator is provided or plan is being created using :f:type:`dtfft_pencil_t` structure, it reverts to ``DTFFT_ESTIMATE`` behavior, relying on the user-specified topology.
+
+DTFFT_PATIENT
+_____________
+
+This effort option extends ``DTFFT_MEASURE`` by selecting the best-performing communication backend for transpose operations. At this level backend for reshape operations is not autotuned and taken from :f:type:`dtfft_config_t` structure or corresponding environment variable.
+
+DTFFT_EXHAUSTIVE
+________________
+
+This maximum-effort option extends ``DTFFT_PATIENT`` by including kernel autotuning, that executes local transposes and packing/unpacking operations, and selecting the best-performing backend for reshape operations. This level also enables autotuning of :f:type:`dtfft_transpose_mode_t` by executing each generic backend twice. It is not recommended to use this effort level with **Global-dimension workflow** on a huge number of processes.
+
+.. note:: Kernel autotuning can be enabled with all efforts below ``DTFFT_EXHAUSTIVE`` by setting the ``enable_kernel_autotune`` field of :f:type:`dtfft_config_t` to ``true`` or using the :ref:`DTFFT_ENABLE_KERNEL_AUTOTUNE<enable_kernel_autotune>` environment variable.
+
+Selecting backend
+-----------------
+
+The communication backend is responsible for data exchange during transpositions and reshapes. ``dtFFT`` supports multiple backends, each with distinct performance characteristics and requirements. The backend selection can be influenced by the ``backend`` and ``reshape_backend`` fields in :f:type:`dtfft_config_t` or corresponding environment variables. Following backends are available for both host and CUDA platforms:
+
+- **MPI_P2P** (:f:var:`DTFFT_BACKEND_MPI_P2P`) – Point-to-point MPI communication using ``MPI_Isend`` and ``MPI_Irecv``.
+- **MPI_A2A** (:f:var:`DTFFT_BACKEND_MPI_A2A`) – Collective MPI communication using ``MPI_Alltoall[v]``. Note that this backend does not support padding in order to make all exchange size to be equal. ``MPI_Alltoallv`` is used when sizes are unequal.
+- **MPI_DATATYPE** (:f:var:`DTFFT_BACKEND_MPI_DATATYPE`) - Collective MPI communication using derived datatypes to represent non-contiguous data layouts, combined with ``MPI_Alltoall[w]``.
+
+.. note:: This backend is not recommended to use on CUDA platform.
+.. note:: This backend is not used during autotuning on CUDA platform.
+
+- **MPI_P2P_PIPELINED** (:f:var:`DTFFT_BACKEND_MPI_P2P_PIPELINED`) – A pipelined version of the MPI_P2P backend. This backend performs packing all data at once before communication is started. After that **MPI_P2P** communication is launched and unpacking is performed in chunks while communication is ongoing.
+- **MPI_P2P_SCHEDULED** (:f:var:`DTFFT_BACKEND_MPI_P2P_SCHEDULED`) – A scheduled version of the MPI_P2P backend. This backend uses round-robin scheduling and utilizing ``MPI_Sendrecv``.
+- **MPI_RMA** (:f:var:`DTFFT_BACKEND_MPI_RMA`) – Same as **MPI_P2P** , however one-sided communication is used via ``MPI_Rget``. Can only be used when ``dtFFT`` is built with MPI RMA support.
+- **MPI_RMA_PIPELINED** (:f:var:`DTFFT_BACKEND_MPI_RMA_PIPELINED`) – Same as **MPI_P2P_PIPELINED**, however one-sided communication is used.
+- **MPI_P2P_FUSED** (:f:var:`DTFFT_BACKEND_MPI_P2P_FUSED`) – An extension of **MPI_P2P_PIPELINED** and **MPI_P2P_SCHEDULED** backends that adds packing to the pipeline while utilizing scheduling for communication. 
+- **MPI_P2P_COMPRESSED** (:f:var:`DTFFT_BACKEND_MPI_P2P_COMPRESSED`) – An extension of **MPI_P2P_FUSED** backend that adds data compression before communication and decompression after communication. Can only be used when ``dtFFT`` is built with compression support.
+- **MPI_RMA_FUSED** (:f:var:`DTFFT_BACKEND_MPI_RMA_FUSED`) – Same as **MPI_P2P_FUSED**, however one-sided communication is used.
+- **MPI_RMA_COMPRESSED** (:f:var:`DTFFT_BACKEND_MPI_RMA_COMPRESSED`) – Same as **MPI_P2P_COMPRESSED**, however one-sided communication is used.
+
+Following backends are available only when ``dtFFT`` is built with CUDA support and CUDA platform is selected:
+
+- **NCCL** (:f:var:`DTFFT_BACKEND_NCCL`) - NVIDIA Collective Communications Library (NCCL) backend for GPU-to-GPU communication.
+- **NCCL_PIPELINED** (:f:var:`DTFFT_BACKEND_NCCL_PIPELINED`) – A pipelined version of the NCCL backend. This backend does not launch communication with **self** data, instead it performs only packing and unpacking for that part.
+- **NCCL_COMPRESSED** (:f:var:`DTFFT_BACKEND_NCCL_COMPRESSED`) – An extension of **NCCL_PIPELINED** backend that adds data compression before communication and decompression after communication. Can only be used when ``dtFFT`` is built with compression support.
+- **CUFFTMP** (:f:var:`DTFFT_BACKEND_CUFFTMP`) - Backend that uses **cuFFTMp** library standalone reshape functionality for GPU-to-GPU communication. This backend requires explicit memory copy via ``cudaMemcpyAsync`` in order to move data to result buffer after communication.
+- **CUFFTMP_PIPELINED** (:f:var:`DTFFT_BACKEND_CUFFTMP_PIPELINED`) – Same as **CUFFTMP**, however it requires additional buffer to remove explicit memory copy after communication.
+
+All backends listed above can be selected via :f:type:`dtfft_config_t` (fields ``backend`` and ``reshape_backend``) and will be used for all transpose and reshape operations when ``effort < DTFFT_PATIENT``.
+
+The :f:var:`DTFFT_BACKEND_ADAPTIVE` backend can be selected when ``effort >= DTFFT_PATIENT``. In this mode, dtFFT selects the fastest backend independently for each transpose/reshape operation (the selection is performed during plan creation and remains fixed for the lifetime of the plan).
+
+.. note:: Currently, :f:var:`DTFFT_BACKEND_ADAPTIVE` is only available for the HOST execution platform.
+
+Compression
+-----------
+
+dtFFT supports data compression during transposition for certain backends to reduce communication overhead. Currently, compression is implemented using the `ZFP library <https://zfp.readthedocs.io/en/release1.0.1/index.html>`_, supporting all its compression modes except expert-mode. Note that although ZFP does not natively support compression of complex numbers, dtFFT handles this by compressing the real and imaginary parts separately in two passes. When setting compression parameters, consider the data type of the complex numbers (float or double).
+
+When compression is enabled, dtFFT expects the compressed data size to always be smaller than the original. If this condition is not met (it can happen even if fixed-rate mode is used),  an error occurs and the program aborts.
+
+Backends supporting compression can be used during autotuning, but only fixed-rate compression is allowed to ensure predictable and stable performance measurements during the tuning process.
+
+The compression configuration is specified using the :f:type:`dtfft_compression_config_t` structure, which includes the following fields:
+
+- **compression_lib**: The compression library to use (currently only :f:var:`DTFFT_COMPRESSION_LIB_ZFP` is supported).
+- **compression_mode**: The compression mode (:f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`, :f:var:`DTFFT_COMPRESSION_MODE_FIXED_RATE`, :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`, or :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`).
+- **rate**: Compression rate for fixed-rate mode (bits per value, higher values for less compression).
+- **precision**: Number of bits of precision for fixed-precision mode.
+- **tolerance**: Tolerance for fixed-accuracy mode.
+
+When compression is not intended to be used, but library is built with compression support, do not change the default values of :f:type:`dtfft_compression_config_t` structure, since it may trigger an error during checking the validity of the compression configuration.
 
 Memory Allocation
 =================
@@ -915,11 +1005,22 @@ This method transposes data according to the specified ``transpose_type`` parame
 
 **Datatype Backend Version**: When the backend is ``DTFFT_BACKEND_MPI_DATATYPE``, calling :f:func:`transpose` executes a single ``MPI_Ialltoall(w)`` call followed by ``MPI_Wait`` to complete the operation. In contrast, :f:func:`transpose_start` initiates the ``MPI_Ialltoall(w)`` call and returns a ``dtfft_request_t`` handle that must later be finalized with :f:func:`transpose_end`. In both cases, non-contiguous MPI datatypes are used; once the operation completes, the ``out`` buffer contains the transposed data and the ``in`` buffer remains unchanged.
 
-**Generic Version**: Performs a three-step transposition:
+**Generic Version**: Performs a three-step transposition: packing/exchange/unpacking. When only local transposition is needed (e.g., on a single process), it performs the operation directly without communication. 
+In other cases transposition depends on the selected :f:type:`dtfft_transpose_mode_t` and :f:type:`dtfft_backend_t`. 
 
-- Executes a local transposition kernel. On a single process, this completes the task and control returns to the user.
+Consider the need to perform a transpose on :math:`P` processes. When ``DTFFT_TRANSPOSE_MODE_PACK`` is selected, the steps are:
+
+- Executes a single, computationally intensive transposition kernel.
 - Performs data redistribution using the selected backend.
-- The final step runs data-unpacking kernel(s) to rearrange received data into the ``out`` buffer.
+- Executes :math:`P` lightweight unpacking kernels. If the backend supports pipelining, these unpacking kernels may overlap with communication.
+
+When ``DTFFT_TRANSPOSE_MODE_UNPACK`` is selected, the steps are:
+
+- Executes :math:`P` lightweight packing kernels.
+- Performs data redistribution using the selected backend.
+- Executes :math:`P` medium-weight transposition kernels. 
+
+Second approach may yield better performance of pipelined backends, as transposition is overlapped with communication.
 
 In the Generic version, the ``in`` buffer may serve as intermediate storage and its contents may be modified. If you need to preserve ``in``, copy it beforehand.
 
@@ -985,7 +1086,7 @@ This method redistributes data between **brick** and **pencil** decompositions, 
 
 Reshape operations may use a **separate backend** that is independent of the main transpose backend. The backend type is the same (i.e., :f:type:`dtfft_backend_t`), and the set of supported backend values is the same as for transpose. The reshape backend can be configured via ``reshape_backend`` in :f:type:`dtfft_config_t` or via the environment variable ``DTFFT_RESHAPE_BACKEND`` (see :doc:`environ`). To inspect the selected backends at runtime, use :f:func:`get_backend` (transpose) and :f:func:`get_reshape_backend` (reshape).
 
-The split-phase API is primarily useful for **host** plans to overlap communication with computation. After :f:func:`reshape_start` returns, both ``in`` and ``out`` buffers must remain valid and must not be modified until :f:func:`reshape_end` completes.
+The split-phase API is primarily useful for **host** plans to overlap communication with computation. After :f:func:`reshape_start` returns, ``in``, ``out`` and ``aux`` buffers must remain valid and must not be modified until :f:func:`reshape_end` completes.
 
 This method reshapes data according to the specified ``reshape_type`` parameter. Supported options include:
 
@@ -1099,7 +1200,8 @@ The auxiliary buffer ``aux`` is optional for all plan execution functions. If ``
 If you choose to provide ``aux`` yourself, the minimum size depends on the operation:
 
 - For :f:func:`execute`: Use :f:func:`get_aux_size` (or :f:func:`get_aux_bytes` for byte size).
-- For :f:func:`transpose` and :f:func:`reshape`: If the underlying backend is pipelined, allocate at least ``alloc_size`` elements from :f:func:`get_local_sizes` (or use :f:func:`get_alloc_bytes` for byte size). For non-pipelined backends, ``aux`` is not used for transpose/reshape. To check pipelining, call :f:func:`dtfft_get_backend_pipelined` and pass backends obtained from :f:func:`get_backend` and :f:func:`get_reshape_backend`.
+- For :f:func:`transpose`: Use :f:func:`get_aux_size_transpose` (or :f:func:`get_aux_bytes_transpose` for byte size). If the returned size is zero, ``aux`` is not needed.
+- For :f:func:`reshape`: Use :f:func:`get_aux_size_reshape` (or :f:func:`get_aux_bytes_reshape` for byte size). If the returned size is zero, ``aux`` is not needed.
 
 
 Plan properties
@@ -1120,6 +1222,8 @@ After creating a plan, several methods are available to inspect its runtime conf
   Available only in CUDA-enabled builds, it enables integration with existing CUDA workflows by exposing the stream used for GPU operations.
 
 - :f:func:`report`: Prints detailed plan information to stdout, including grid decomposition and backend selection. This diagnostic tool aids in understanding the plan's configuration and troubleshooting unexpected behavior.
+
+- :f:func:`report_compression`: Reports compression ratios for all operations where compression was performed. This function can be repeatedly called after plan creation and after execution to see how compression ratios evolve.
 
 - :f:func:`get_executor`: Returns the executor type used for FFT computations within the plan.
 

@@ -72,7 +72,7 @@ struct AccFFTTraits<float> {
 };
 
 template<typename T>
-void run_accfft(const std::vector<int>& dims) {
+double run_accfft_private(const std::vector<int>& dims, const std::vector<int>& grid_dims) {
     using Traits = AccFFTTraits<T>;
     using ComplexType = typename Traits::ComplexType;
     using PlanType = typename Traits::PlanType;
@@ -81,15 +81,8 @@ void run_accfft(const std::vector<int>& dims) {
     MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
-    if (comm_rank == 0) {
-        printf("----------------------------------------\n");
-        printf("AccFFT GPU benchmark\n");
-        printf("Precision is %s\n", Traits::precision_name());
-        printf("----------------------------------------\n");
-    }
-
     // Create Cartesian Communicator
-    int c_dims[2] = {0};
+    int c_dims[2] = {grid_dims[1], grid_dims[2]};
     MPI_Comm c_comm;
     accfft_create_comm(MPI_COMM_WORLD, c_dims, &c_comm);
 
@@ -118,18 +111,18 @@ void run_accfft(const std::vector<int>& dims) {
     float ms;
 
     // Warmup
-    if (comm_rank == 0) {
-        printf("Started warmup\n");
-    }
+    // if (comm_rank == 0) {
+    //     printf("Started warmup\n");
+    // }
     for (int iter = 0; iter < WARMUP_ITERATIONS; iter++) {
         Traits::execute_c2c(plan, ACCFFT_FORWARD, data_gpu, data_hat_gpu);
         Traits::execute_c2c(plan, ACCFFT_BACKWARD, data_hat_gpu, data_gpu);
     }
 
     MPI_Barrier(c_comm);
-    if (comm_rank == 0) {
-        printf("Ended warmup\n");
-    }
+    // if (comm_rank == 0) {
+    //     printf("Ended warmup\n");
+    // }
 
     CUDA_CALL(cudaEventRecord(startEvent));
     for (int iter = 0; iter < TEST_ITERATIONS; iter++) {
@@ -147,12 +140,12 @@ void run_accfft(const std::vector<int>& dims) {
     MPI_Allreduce(&ms, &avg_ms, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
     avg_ms /= (float)comm_size;
 
-    if (comm_rank == 0) {
-        printf("min time: %f [ms]\n", min_ms);
-        printf("max time: %f [ms]\n", max_ms);
-        printf("avg time: %f [ms]\n", avg_ms);
-        printf("----------------------------------------\n");
-    }
+    // if (comm_rank == 0) {
+    //     printf("min time: %f [ms]\n", min_ms);
+    //     printf("max time: %f [ms]\n", max_ms);
+    //     printf("avg time: %f [ms]\n", avg_ms);
+    //     printf("----------------------------------------\n");
+    // }
 
     // Cleanup
     CUDA_CALL(cudaFree(data_gpu));
@@ -163,13 +156,82 @@ void run_accfft(const std::vector<int>& dims) {
     Traits::destroy_plan(plan);
     Traits::cleanup();
     MPI_Comm_free(&c_comm);
+
+    return (double)max_ms;
 }
 
-// Wrapper functions for external usage
-void run_accfft_double(const std::vector<int>& dims) {
-    run_accfft<double>(dims);
+template<typename T>
+double run_accfft(const std::vector<int>& dims) {
+    int comm_rank, comm_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+
+    int product = 1;
+    for( auto d : dims) {
+        product = product * d;
+    }
+    product /= comm_size;
+    size_t p = (size_t)product * 2 * sizeof(T);
+    product *= 2 * sizeof(T);
+
+    if ( (size_t)product != p ) {
+        if (comm_rank == 0) {
+            printf("Skipping AccFFT benchmark\n");
+        }
+
+        return -1.0;
+    }
+
+    if (comm_rank == 0) {
+        using Traits = AccFFTTraits<T>;
+        printf("----------------------------------------\n");
+        printf("AccFFT GPU benchmark\n");
+        printf("Precision is %s\n", Traits::precision_name());
+        printf("----------------------------------------\n");
+    }
+
+    double best_time = INFINITY;
+    int best_grid[3];
+    double test_time;
+
+    for (int p = 1; p <= comm_size; p++)
+    {
+        if (comm_size % p)
+            continue;
+        int q = comm_size / p;
+        if (dims[1] < p || dims[2] < q)
+            continue;
+        if ( dims[0] < p || dims[1] < q)
+            continue;
+
+        test_time = run_accfft_private<T>(dims, {1, p, q});
+
+        if ( test_time < best_time )
+        {
+            best_time = test_time;
+            best_grid[0] = 1;
+            best_grid[1] = p;
+            best_grid[2] = q;
+        }
+
+    }
+
+    if (comm_rank == 0)
+    {
+        printf("AccFFT Results\n");
+        printf("----------------------------------------\n");
+        printf("Fastest execution time: %f\n", best_time);
+        printf("Fastest grid: %ix%ix%i\n", best_grid[0], best_grid[1], best_grid[2]);
+        printf("----------------------------------------\n");
+    }
+    return best_time;
 }
 
-void run_accfft_float(const std::vector<int>& dims) {
-    run_accfft<float>(dims);
-}
+// // Wrapper functions for external usage
+// double run_accfft_double(const std::vector<int>& dims) {
+//     return run_accfft<double>(dims);
+// }
+
+// double run_accfft_float(const std::vector<int>& dims) {
+//     return run_accfft<float>(dims);
+// }

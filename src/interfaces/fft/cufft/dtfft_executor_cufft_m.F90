@@ -28,7 +28,7 @@ use dtfft_errors
 use dtfft_interface_cufft
 use dtfft_interface_cuda_runtime
 use dtfft_parameters
-use dtfft_utils,                    only: to_str
+use dtfft_utils,                    only: to_str, write_message
 #include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
 #include "_dtfft_private.h"

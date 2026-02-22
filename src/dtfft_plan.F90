@@ -37,7 +37,7 @@ use dtfft_executor_vkfft_m,           only: vkfft_executor
 #endif
 use dtfft_config
 use dtfft_errors
-use dtfft_pencil,                     only: pencil_ => pencil, pencil_init, get_local_sizes_private => get_local_sizes, dtfft_pencil_t, from_bricks
+use dtfft_pencil,                     only: pencil_ => pencil, pencil_init, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
 use dtfft_parameters
 use dtfft_reshape_plan,               only: reshape_plan
 use dtfft_transpose_plan,             only: transpose_plan
@@ -65,6 +65,7 @@ public :: dtfft_plan_r2r_t
     logical                 :: is_started = .false. !! Flag that indicates if transpose was started
     type(c_ptr)             :: in                   !! Input pointer
     type(c_ptr)             :: out                  !! Output pointer
+    type(c_ptr)             :: aux                  !! Aux pointer
   end type async_request
 
 #ifdef ENABLE_INPUT_CHECK
@@ -190,13 +191,20 @@ public :: dtfft_plan_r2r_t
     procedure,  pass(self), non_overridable, public :: get_pencil         !! Returns pencil decomposition
     procedure,  pass(self), non_overridable, public :: get_element_size   !! Returns number of bytes required to store single element.
     procedure,  pass(self), non_overridable, public :: get_alloc_bytes    !! Returns minimum number of bytes required to execute plan
-    procedure,  pass(self), non_overridable, public :: get_aux_size       !! Returns size of auxiliary buffer in bytes
+    procedure,  pass(self), non_overridable, public :: get_aux_size       !! Returns size of auxiliary buffer in elements
     procedure,  pass(self), non_overridable, public :: get_aux_bytes      !! Returns minimum number of bytes required for auxiliary buffer
+    procedure,  pass(self), non_overridable, public :: get_aux_size_reshape     !! Returns size of auxiliary buffer for `reshape` in elements
+    procedure,  pass(self), non_overridable, public :: get_aux_bytes_reshape    !! Returns minimum number of bytes required for auxiliary buffer for `reshape`
+    procedure,  pass(self), non_overridable, public :: get_aux_size_transpose   !! Returns size of auxiliary buffer for `transpose` in elements
+    procedure,  pass(self), non_overridable, public :: get_aux_bytes_transpose  !! Returns minimum number of bytes required for auxiliary buffer for `transpose`
     procedure,  pass(self), non_overridable, public :: get_executor       !! Returns FFT Executor associated with plan
     procedure,  pass(self), non_overridable, public :: get_dims           !! Returns global dimensions
     procedure,  pass(self), non_overridable, public :: get_grid_dims      !! Returns grid decomposition dimensions
     procedure,  pass(self), non_overridable, public :: get_precision      !! Returns precision of plan
     procedure,  pass(self), non_overridable, public :: report             !! Prints plan details
+#ifdef DTFFT_WITH_COMPRESSION
+    procedure,  pass(self), non_overridable, public :: report_compression !! Reports compression
+#endif
     procedure,  pass(self), non_overridable, public :: mem_alloc_ptr      !! Allocates memory for type(c_ptr)
     generic,                                 public :: mem_alloc =>       &
                                                        mem_alloc_r32_1d,  &
@@ -376,7 +384,7 @@ contains
       !! returned by `alloc_size` parameter of [[dtfft_plan_t(type):get_local_sizes]] subroutine
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
-    REGION_BEGIN("dtfft_reshape", COLOR_TRANSPOSE)
+    REGION_BEGIN("dtfft_reshape", COLOR_OLIVE)
     call self%reshape_private(in, out, reshape_type, aux, EXEC_BLOCKING, error_code)
     REGION_END("dtfft_reshape")
   end subroutine reshape_ptr
@@ -434,16 +442,18 @@ contains
     integer(int32)  :: ierr     !! Error code
     type(async_request),     pointer          :: internal_handle
       !! Handle to internal reshape structure
+    type(c_ptr) :: true_aux
 
-    PHASE_BEGIN("dtfft_reshape_start", COLOR_TRANSPOSE)
+    PHASE_BEGIN("dtfft_reshape_start", COLOR_TEAL)
     request = dtfft_request_t(c_null_ptr)
-    call self%reshape_private(in, out, reshape_type, aux, EXEC_NONBLOCKING, ierr)
+    call self%reshape_private(in, out, reshape_type, aux, EXEC_NONBLOCKING, ierr, true_aux)
     if( ierr == DTFFT_SUCCESS ) then
       allocate(internal_handle)
       internal_handle%request_type = reshape_type%val
       internal_handle%is_started = .true.
       internal_handle%in = in
       internal_handle%out = out
+      internal_handle%aux = true_aux
       request%val = c_loc(internal_handle)
     endif
     if ( present( error_code ) ) error_code = ierr
@@ -464,8 +474,8 @@ contains
 
     ierr = DTFFT_SUCCESS
     CHECK_REQUEST(request, internal_handle, dtfft_reshape_t, is_valid_reshape_type)
-    PHASE_BEGIN("dtfft_reshape_end", COLOR_TRANSPOSE)
-    call self%rplan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, ierr)
+    PHASE_BEGIN("dtfft_reshape_end", COLOR_SIENNA)
+    call self%rplan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, internal_handle%aux, ierr)
     PHASE_END("dtfft_reshape_end")
     CHECK_ERROR_AND_RETURN
     deallocate(internal_handle)
@@ -473,7 +483,7 @@ contains
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine reshape_end
 
-  subroutine reshape_private(self, in, out, reshape_type, aux, exec_type, error_code)
+  subroutine reshape_private(self, in, out, reshape_type, aux, exec_type, error_code, true_aux)
   !! Performs reshape from `bricks` to `pencils` layout or vice versa using type(c_ptr) pointers instead of buffers
     class(dtfft_plan_t),        intent(inout) :: self
       !! Abstract plan
@@ -492,6 +502,7 @@ contains
       !! Type of asynchronous execution.
     integer(int32),   optional, intent(out)   :: error_code
       !! Optional error code returned to user
+    type(c_ptr),      optional, intent(out)   :: true_aux
     integer(int32)  :: ierr    !! Error code
     type(c_ptr)   :: aux1, aux2
 
@@ -526,6 +537,7 @@ contains
     CHECK_ERROR_AND_RETURN
 #endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+    if ( present( true_aux ) ) true_aux = aux1
   end subroutine reshape_private
 
   subroutine transpose(self, in, out, transpose_type, aux, error_code)
@@ -646,6 +658,7 @@ contains
       internal_handle%is_started = .true.
       internal_handle%in = in
       internal_handle%out = out
+      internal_handle%aux = c_null_ptr
       request%val = c_loc(internal_handle)
     endif
     if ( present( error_code ) ) error_code = ierr
@@ -668,7 +681,7 @@ contains
     CHECK_REQUEST(request, internal_handle, dtfft_transpose_t, is_valid_transpose_type)
 
     PHASE_BEGIN("dtfft_transpose_end", COLOR_TRANSPOSE)
-    call self%plan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, ierr)
+    call self%plan%execute_end(internal_handle%in, internal_handle%out, internal_handle%request_type, internal_handle%aux, ierr)
     PHASE_END("dtfft_transpose_end")
     CHECK_ERROR_AND_RETURN
     deallocate(internal_handle)
@@ -875,9 +888,12 @@ contains
 
     if ( self%is_transpose_plan ) then
       if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
-        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+        ! call self%pencils(1)%output("X aligned", in)
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux)
+        ! call self%pencils(2)%output("Y aligned", out)
       else
-        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux)
+        ! call self%pencils(1)%output("X BACK aligned", out)
       endif
       return
     endif
@@ -975,9 +991,12 @@ contains
         return
       endif
       if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
-        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Z%val, EXEC_BLOCKING, aux2)
+        ! call self%pencils(1)%output("X align", in)
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_X_TO_Z%val, EXEC_BLOCKING, aux)
+        ! call self%pencils(3)%output("Z align", out)
       else
-        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Z_TO_X%val, EXEC_BLOCKING, aux2)
+        call self%plan%execute(in, out, DTFFT_TRANSPOSE_Z_TO_X%val, EXEC_BLOCKING, aux)
+        ! call self%pencils(1)%output("BACK X align", out)
       endif
       return
     endif
@@ -1049,11 +1068,16 @@ contains
 
     if ( self%is_transpose_plan ) then
       if ( execute_type == DTFFT_EXECUTE_FORWARD ) then
+        ! call self%pencils(1)%output("X aling", in)
         call self%plan%execute(in, aux, DTFFT_TRANSPOSE_X_TO_Y%val, EXEC_BLOCKING, aux2)
+        ! call self%pencils(2)%output("Y aling", aux)
         call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_Z%val, EXEC_BLOCKING, aux2)
+        ! call self%pencils(3)%output("Z aling", out)
       else
         call self%plan%execute(in, aux, DTFFT_TRANSPOSE_Z_TO_Y%val, EXEC_BLOCKING, aux2)
+        ! call self%pencils(2)%output("BACK Y aling", aux)
         call self%plan%execute(aux, out, DTFFT_TRANSPOSE_Y_TO_X%val, EXEC_BLOCKING, aux2)
+        ! call self%pencils(1)%output("BACK X aling", out)
       endif
       return
     endif
@@ -1358,18 +1382,13 @@ contains
     integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr         !! Error code
+    integer(int64) :: aux_bytes
 
     ierr = DTFFT_SUCCESS
     get_aux_size = 0
-    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    aux_bytes = self%get_aux_bytes(ierr)
     CHECK_ERROR_AND_RETURN
-
-    get_aux_size = self%rplan%get_aux_bytes() / self%storage_size
-    get_aux_size = max(get_aux_size, self%plan%get_aux_bytes() / self%storage_size)
-    get_aux_size = max(get_aux_size, self%get_alloc_size())
-    if ( is_backend_pipelined(self%plan%get_backend()) .or. is_backend_pipelined(self%rplan%get_backend()) ) then
-      get_aux_size = get_aux_size * 2_int64
-    endif
+    get_aux_size = aux_bytes / self%get_element_size()
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_aux_size
 
@@ -1381,19 +1400,86 @@ contains
     integer(int32), optional,   intent(out)   :: error_code
       !! Optional error code returned to user
     integer(int32)  :: ierr         !! Error code
-    integer(int64)  :: aux_size     !! Number of elements required
-    integer(int64)  :: element_size !! Size of each element
 
     ierr = DTFFT_SUCCESS
     get_aux_bytes = 0
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
+    if ( self%is_reshape_enabled ) then
+      get_aux_bytes = self%rplan%get_aux_bytes()
+    endif
 
-    aux_size = self%get_aux_size()
-    element_size = self%get_element_size()
-    get_aux_bytes = aux_size * element_size
+    get_aux_bytes = max( get_aux_bytes, self%plan%get_aux_bytes() )
+    ! Pipelined backend returns non-zero value when workspace is needed.
+    ! `dtfft_plan_t` always needs aux buffer in order to support inplace execution
+    get_aux_bytes = get_aux_bytes + self%get_alloc_bytes()
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end function get_aux_bytes
+
+  integer(int64) function get_aux_size_reshape(self, error_code)
+  !! Returns minimum number of elements required for `reshape` auxiliary buffer
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr         !! Error code
+
+    get_aux_size_reshape = self%get_aux_bytes_reshape(ierr)
+    CHECK_ERROR_AND_RETURN
+    get_aux_size_reshape = get_aux_size_reshape / self%get_element_size()
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_aux_size_reshape
+
+  integer(int64) function get_aux_bytes_reshape(self, error_code)
+  !! Returns minimum number of bytes required for `reshape` auxiliary buffer
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr         !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_aux_bytes_reshape = 0
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    if ( .not. self%is_reshape_enabled )                                                        &
+      ierr = DTFFT_ERROR_RESHAPE_NOT_SUPPORTED
+    CHECK_ERROR_AND_RETURN
+
+    get_aux_bytes_reshape = self%rplan%get_aux_bytes()
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_aux_bytes_reshape
+
+  integer(int64) function get_aux_size_transpose(self, error_code)
+  !! Returns minimum number of elements required for `reshape` auxiliary buffer
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr         !! Error code
+
+    get_aux_size_transpose = self%get_aux_bytes_transpose(ierr)
+    CHECK_ERROR_AND_RETURN
+    get_aux_size_transpose = get_aux_size_transpose / self%get_element_size()
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_aux_size_transpose
+
+  integer(int64) function get_aux_bytes_transpose(self, error_code)
+  !! Returns minimum number of bytes required for `transpose` auxiliary buffer
+    class(dtfft_plan_t),        intent(in)    :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out)   :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr         !! Error code
+
+    ierr = DTFFT_SUCCESS
+    get_aux_bytes_transpose = 0
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+
+    get_aux_bytes_transpose = self%plan%get_aux_bytes()
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+  end function get_aux_bytes_transpose
 
   type(dtfft_executor_t) function get_executor(self, error_code)
   !! Returns FFT Executor associated with plan
@@ -1489,6 +1575,11 @@ contains
     WRITE_REPORT("  Initial grid         :  "//get_grid_str(comm_dims))
         call self%rplan%get_grid(2_int8, comm_dims)
     WRITE_REPORT("  Final grid           :  "//get_grid_str(comm_dims))
+        if ( self%is_final_reshape_enabled ) then
+    WRITE_REPORT("  Final reshape enabled:  True")
+        else
+    WRITE_REPORT("  Final reshape enabled:  False")
+        endif
         nullify(comm_dims)
       endblock
     endif
@@ -1522,8 +1613,10 @@ contains
       endif
     endif
     WRITE_REPORT("  Backend              :  "//dtfft_get_backend_string(self%plan%get_backend()))
+    if ( self%plan%get_backend() == DTFFT_BACKEND_ADAPTIVE ) call self%plan%report_backends()
     if ( self%is_reshape_enabled ) then
     WRITE_REPORT("  Reshape Backend      :  "//dtfft_get_backend_string(self%rplan%get_backend()))
+      if ( self%rplan%get_backend() == DTFFT_BACKEND_ADAPTIVE ) call self%rplan%report_backends()
     endif
     WRITE_REPORT("**End of report**")
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
@@ -1541,6 +1634,39 @@ contains
       allocate(grid_str, source=to_str(dims(1))//"x"//to_str(dims(2))//"x"//to_str(dims(3)))
     endif
   end function get_grid_str
+
+#ifdef DTFFT_WITH_COMPRESSION
+  subroutine report_compression(self, error_code)
+  !! Report compression ratios for all operations where compression was performed
+  !! This function can be repeatedly called after plan creation and after execution
+  !! to see how compression ratios evolve.
+    class(dtfft_plan_t),        intent(in)  :: self
+      !! Abstract plan
+    integer(int32), optional,   intent(out) :: error_code
+      !! Optional error code returned to user
+    integer(int32)  :: ierr     !! Error code
+    logical :: transpose_compressed, reshape_compressed
+
+    ierr = DTFFT_SUCCESS
+    if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
+    CHECK_ERROR_AND_RETURN
+    transpose_compressed = is_backend_compressed(self%plan%get_backend())
+    reshape_compressed = is_backend_compressed(self%rplan%get_backend())
+    if ( .not.transpose_compressed  .and. .not.reshape_compressed ) then
+      if ( present( error_code ) ) error_code = ierr
+      return
+    endif
+
+    WRITE_REPORT("**Compression report**")
+    if ( self%is_reshape_enabled .and. reshape_compressed) then
+      call self%rplan%report_compression()
+    endif
+    if ( transpose_compressed ) then
+      call self%plan%report_compression()
+    endif
+    WRITE_REPORT("**End of report**")
+  end subroutine report_compression
+#endif
 
   type(dtfft_backend_t) function get_backend(self, error_code)
   !! Returns selected backend during autotuning
@@ -1714,22 +1840,6 @@ contains
       call self%get_local_sizes_internal(in_starts, in_counts, out_starts, out_counts, alloc_size)
     endif
     if ( present( alloc_size ) ) alloc_size = max( max(alloc_size_, alloc_size2), alloc_size )
-
-#ifdef DTFFT_WITH_CUDA
-    if ( is_backend_nvshmem( self%plan%get_backend() ) .and. present(alloc_size) ) then
-      block
-        integer(int64) :: aux_size
-
-        ! cufftMp pipelined may require aux buffer that is larger than
-        ! required by dtfft. in such case we must make sure that
-        ! buffer allocated by user is large enough
-        aux_size = self%plan%get_aux_bytes()
-        alloc_size = max(alloc_size, aux_size / self%storage_size )
-
-        ALL_REDUCE(alloc_size, MPI_INTEGER8, MPI_MAX, self%comm, ierr)
-      endblock
-    endif
-#endif
     if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine get_local_sizes
 
@@ -1794,7 +1904,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
     type(dtfft_r2r_kind_t), optional, intent(in)    :: kinds(:)
@@ -2001,7 +2111,7 @@ contains
     type(dtfft_precision_t),optional,   intent(in)    :: precision
       !! Precision of transform: `DTFFT_SINGLE` or `DTFFT_DOUBLE`
     type(dtfft_effort_t),   optional,   intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional,   intent(in)    :: executor
       !! Type of External FFT Executor
     type(dtfft_r2r_kind_t), optional,   intent(in)    :: kinds(:)
@@ -2015,8 +2125,12 @@ contains
 
     self%platform = get_conf_platform()
 #ifdef DTFFT_DEBUG
-    if ( .not.present(dims) .and. .not.present(pencil) ) INTERNAL_ERROR(".not.present(dims) .and. .not.present(pencil)")
-    if ( present(dims) .and. present(pencil) ) INTERNAL_ERROR("present(dims) .and. present(pencil)")
+    if ( .not.present(dims) .and. .not.present(pencil) ) then
+      INTERNAL_ERROR(".not.present(dims) .and. .not.present(pencil)")
+    endif
+    if ( present(dims) .and. present(pencil) ) then
+      INTERNAL_ERROR("present(dims) .and. present(pencil)")
+    endif
 #endif
     if ( allocated(self%dims) ) deallocate(self%dims)
     if ( present(dims) ) then
@@ -2060,7 +2174,11 @@ contains
       if ( self%platform == DTFFT_PLATFORM_HOST ) then
         CHECK_INPUT_PARAMETER(executor, is_host_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR)
       else if ( self%platform == DTFFT_PLATFORM_CUDA  ) then
+# ifdef DTFFT_WITH_MOCK_ENABLED
+        CHECK_INPUT_PARAMETER(executor, is_host_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR)
+# else
         CHECK_INPUT_PARAMETER(executor, is_cuda_executor, DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR)
+# endif
       endif
 #endif
       self%executor = executor
@@ -2173,11 +2291,10 @@ contains
     integer(int64)                                :: alloc_size, shift_size
       !! Number of elements to be allocated
     integer(int32) :: ierr
-    logical :: is_pipe
+    logical :: is_reshape_aux_required
 
     shift_size = self%get_alloc_bytes()
-    is_pipe = is_backend_pipelined(self%plan%get_backend()) .or. is_backend_pipelined(self%rplan%get_backend())
-
+    is_reshape_aux_required = self%plan%is_aux_needed() .or. self%rplan%is_aux_needed()
     aux2_ptr = c_null_ptr
     if ( self%is_aux_alloc .or. .not.is_null_ptr(aux) ) then
       if ( self%is_aux_alloc ) then
@@ -2185,22 +2302,22 @@ contains
       else
         aux_ptr = aux
       endif
-      if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_pipe) then
+      if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_reshape_aux_required) then
         aux2_ptr = ptr_offset(aux_ptr, shift_size)
       endif
       return
     endif
 
-    if ( called_by == CHECK_AUX_CALLED_BY_RESHAPE .and. .not. is_pipe) then
-      aux_ptr = c_null_ptr
-      return
-    endif
+    ! if ( called_by == CHECK_AUX_CALLED_BY_RESHAPE .and. .not. is_reshape_aux_required) then
+    !   aux_ptr = c_null_ptr
+    !   return
+    ! endif
 
     alloc_size = self%get_aux_bytes()
     WRITE_DEBUG("Allocating auxiliary buffer of "//to_str(alloc_size)//" bytes")
     self%aux_ptr = self%mem_alloc_ptr(alloc_size, ierr);  DTFFT_CHECK(ierr)
     aux_ptr = self%aux_ptr
-    if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_pipe) then
+    if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_reshape_aux_required) then
       aux2_ptr = ptr_offset(self%aux_ptr, shift_size)
     endif
     self%is_aux_alloc = .true.
@@ -2219,7 +2336,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
     integer(int32),         optional, intent(out)   :: error_code
@@ -2243,7 +2360,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
     integer(int32),         optional, intent(out)   :: error_code
@@ -2270,7 +2387,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
     integer(int8)           :: fft_rank           !! Rank of FFT transform
@@ -2325,7 +2442,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
     integer(int32),         optional, intent(out)   :: error_code
@@ -2347,7 +2464,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
     integer(int32),         optional, intent(out)   :: error_code
@@ -2372,7 +2489,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
 
@@ -2403,7 +2520,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
       !! Type of External FFT Executor
     TYPE_MPI_DATATYPE,      optional, intent(in)    :: sngl_type_init
@@ -2446,7 +2563,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
     !! Type of External FFT Executor
     integer(int32),         optional, intent(out)   :: error_code
@@ -2468,7 +2585,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
     !! Type of External FFT Executor
     integer(int32),         optional, intent(out)   :: error_code
@@ -2493,7 +2610,7 @@ contains
     type(dtfft_precision_t),optional, intent(in)    :: precision
       !! Presicion of Transform
     type(dtfft_effort_t),   optional, intent(in)    :: effort
-      !! How thoroughly `dtFFT` searches for the optimal plan
+      !! Effort level for the plan creation
     type(dtfft_executor_t), optional, intent(in)    :: executor
     !! Type of External FFT Executor
     integer(int32),   allocatable     :: fixed_dims(:)      !! Fixed dimensions for R2C

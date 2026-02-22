@@ -19,13 +19,25 @@ target_sources(dtfft PRIVATE
   dtfft_utils.F90
 )
 
+if ( DTFFT_WITH_COMPRESSION )
+  target_sources(dtfft PRIVATE dtfft_abstract_compressor.F90)
+endif()
+
+if ( DTFFT_WITH_ZFP )
+  target_sources(dtfft PRIVATE dtfft_compressor_zfp.F90)
+endif()
+
 if (DTFFT_WITH_CUDA)
   target_sources(dtfft PRIVATE
-    dtfft_helpers.c
     dtfft_kernel_device.F90
     dtfft_nvrtc_block_optimizer.F90
     dtfft_nvrtc_module_cache.F90
     dtfft_nvrtc_module.F90)
+
+  if ( NOT DTFFT_WITH_MOCK_ENABLED )
+    target_sources(dtfft PRIVATE
+      dtfft_helpers.c)
+  endif()
 
   if (USE_NCCL)
     target_sources(dtfft PRIVATE dtfft_backend_nccl.F90)

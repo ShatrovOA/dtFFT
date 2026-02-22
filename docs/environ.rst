@@ -22,7 +22,6 @@ Purpose
 
 Logging enables monitoring of key operations, including:
 
-- **Selected Datatype IDs**: Reports the :ref:`datatype IDs<datatype_selection>` or GPU backend chosen during autotuning when ``effort`` is :f:var:`DTFFT_PATIENT`.
 - **Execution Times During Autotune**: Logs timing data for autotuning stages.
 
 Accepted Values
@@ -61,7 +60,7 @@ Specifies the number of measurement iterations for transposition and data exchan
 Purpose
 -------
 
-Single measurements may be inconsistent due to system noise or cache effects. By repeating transpositions, ``dtFFT`` averages performance data, ensuring robust selection of optimal backends or MPI datatypes during autotuning.
+Single measurements may be inconsistent due to system noise or cache effects. By repeating transpositions, ``dtFFT`` averages performance data, ensuring robust selection of optimal backends or kernel during autotuning.
 
 Accepted Values
 ---------------
@@ -128,12 +127,18 @@ Accepted Values
   - ``mpi_a2a``: MPI backend using ``MPI_Alltoallv``.
   - ``mpi_p2p_pipe``: Pipelined MPI peer-to-peer backend with overlapping data transfers and unpacking.
   - ``mpi_p2p_sched``: MPI peer-to-peer backend with scheduled communication.
+  - ``mpi_p2p_fused``: Fused MPI peer-to-peer backend that integrates packing into the communication pipeline.
+  - ``mpi_p2p_compressed``: Extension of Fused MPI P2P backend that uses data compression before communication.
   - ``mpi_rma``: MPI RMA backend that uses MPI_Rget for data transfers.
   - ``mpi_rma_pipe``: Pipelined MPI RMA backend with overlapping data transfers and unpacking.
+  - ``mpi_rma_fused``: Fused MPI RMA backend that integrates packing into the communication pipeline.
+  - ``mpi_rma_compressed``: Extension of Fused MPI RMA backend that uses data compression before communication.
   - ``nccl``: NCCL backend.
   - ``nccl_pipe``: Pipelined NCCL backend with overlapping data transfers and unpacking.
+  - ``nccl_compressed``: NCCL backend that performs compression before data exchange and decompression after.
   - ``cufftmp``: cuFFTMp backend.
   - ``cufftmp_pipe``: cuFFTMp backend that uses additional buffer to avoid extra copy and gain performance.
+  - ``adaptive``: Adaptive backend that selects best backend for each transpose/reshape operation during plan creation.
 
 - **Default**: When built with CUDA Support: ``nccl`` if NCCL is available in the library build; otherwise, ``mpi_p2p``.
   When built without CUDA Support: ``mpi_dt``.
@@ -380,6 +385,78 @@ Accepted Values
 - **Default**: ``1``
 
 
+DTFFT_ENABLE_RMA
+================
+
+Specifies whether to enable RMA backends when ``effort`` is :f:var:`DTFFT_PATIENT`.
+When enabled, RMA backends are tested during autotuning.
+
+Purpose
+-------
+
+RMA backends provide efficient communication for distributed systems using Remote Memory Access.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Disable RMA backends.
+  - ``1``: Enable RMA backends.
+
+- **Default**: ``1``
+
+
+DTFFT_ENABLE_FUSED
+==================
+
+Specifies whether to enable fused backends when ``effort`` is :f:var:`DTFFT_PATIENT`.
+When enabled, fused backends are tested during autotuning.
+
+Purpose
+-------
+
+Fused backends improve the pipeline algorithm by integrating packing operations into the communication pipeline for enhanced performance. They utilize a round-robin communication schedule to optimize all-to-all data exchanges.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Disable fused backends.
+  - ``1``: Enable fused backends.
+
+- **Default**: ``1``
+
+
+DTFFT_ENABLE_COMPRESSED
+=======================
+
+Controls whether compressed backends are enabled during autotuning when ``effort`` is :f:var:`DTFFT_PATIENT` or :f:var:`DTFFT_EXHAUSTIVE`.
+
+Purpose
+-------
+
+Compressed backends use data compression techniques to reduce the amount of data transferred during transpositions, potentially improving performance for certain workloads.
+However, compression introduces additional computational overhead and may not always provide benefits.
+
+Only fixed-rate compression can be used during autotuning, since it provides predictable performance characteristics and does not require data-dependent decisions at runtime.
+To enable compressed backends during autotuning, set this option to ``1``, set compression type to :f:var:`DTFFT_COMPRESSION_FIXED_RATE` and provide desired compression rate.
+
+Accepted Values
+---------------
+
+- **Type**: Integer
+- **Accepted Values**:
+
+  - ``0``: Disable compressed backends during autotuning (default).
+  - ``1``: Enable compressed backends during autotuning.
+
+- **Default**: ``0``
+
+
 .. _enable_kernel_autotune:
 
 DTFFT_ENABLE_KERNEL_AUTOTUNE
@@ -412,7 +489,6 @@ Accepted Values
 
   - Only applicable in builds with CUDA support (``DTFFT_WITH_CUDA`` defined) and when the execution platform is set
     to ``cuda`` (via :ref:`DTFFT_PLATFORM<dtfft_platform_env>` or :f:type:`dtfft_config_t`).
-  - This setting can be overridden by the ``enable_kernel_autotune`` field in :f:type:`dtfft_config_t`.
 
 
 DTFFT_ENABLE_FOURIER_RESHAPE
@@ -442,64 +518,55 @@ Accepted Values
 - **Default**: ``0``
 
 
-.. note::
+DTFFT_TRANSPOSE_MODE
+====================
 
-  - This setting can be overridden by the ``enable_fourier_reshape`` field in :f:type:`dtfft_config_t`.
-  - The performance impact depends on the problem size and number of MPI processes.
-
-
-.. _datatype_selection:
-
-MPI Datatype Selection Variables
-================================
-
-These environment variables control how MPI derived datatypes are constructed for global data transpositions in the host version of ``dtFFT``. They apply only when ``effort`` is :f:var:`DTFFT_ESTIMATE` or :f:var:`DTFFT_MEASURE`; for :f:var:`DTFFT_PATIENT`, the library autotunes the best datatype automatically.
+Specifies at which stage the local transposition is performed during global exchange.
 
 Purpose
 -------
 
-MPI derived datatypes define the memory layout for data exchanged between processes during transposition. Two construction methods are supported:
-
-- **Method 1** (``1``): Contiguous send datatype with sparse receive datatype.
-- **Method 2** (``2``): Sparse send datatype with contiguous receive datatype (default).
-
-These variables allow manual selection based on data characteristics or system requirements.
+By default, dtFFT performs local transposition before data exchange (packing) by executing single computationally intensive kernel.
+This is efficient for most cases, but in some scenarios, performing local transposition after data exchange (unpacking) may yield better performance.
+This variable allows users to select the preferred transpose mode based on their specific use case and system characteristics.
 
 Accepted Values
 ---------------
+- **Type**: String
+- **Supported Values**:
 
-- **Type**: Integer
-- **Values**:
+  - ``pack``: Perform local transposition before data exchange (default).
+  - ``unpack``: Perform local transposition after data exchange.
 
-  - ``1`` (Method 1)
-  - ``2`` (Method 2)
+- **Default**: ``pack``
 
-DTFFT_DTYPE_X_Y
-_______________
+.. note::
 
-Controls datatype construction for X-to-Y transposition.
+  - This setting is used only if ``effort`` is less than :f:var:`DTFFT_EXHAUSTIVE`.
+    For :f:var:`DTFFT_EXHAUSTIVE`, the library autotunes the best transpose mode automatically.
 
-DTFFT_DTYPE_Y_Z
-_______________
 
-Controls datatype construction for Y-to-Z transposition.
+DTFFT_ACCESS_MODE
+=================
 
-DTFFT_DTYPE_X_Z
-_______________
+Specifies the memory access pattern (write-aligned vs read-aligned) for local transposition in Generic backends.
 
-Controls datatype construction for X-to-Z transposition.
+Purpose
+-------
 
-DTFFT_DTYPE_Y_X
-_______________
+This variable controls the loop order during local data transposition.
+Write-aligned access (contiguous writes, scattered reads) is generally faster on CPUs due to better cache line utilization and avoiding false sharing in some cases.
+Read-aligned access (contiguous reads, scattered writes) might be beneficial on certain architectures or memory subsystems.
 
-Controls datatype construction for Y-to-X transposition.
+Accepted Values
+---------------
+- **Type**: String
+- **Supported Values**:
 
-DTFFT_DTYPE_Z_Y
-_______________
+  - ``write``: Optimize for contiguous write access (default).
+  - ``read``: Optimize for contiguous read access.
 
-Controls datatype construction for Z-to-Y transposition.
+- **Default**: ``write``
 
-DTFFT_DTYPE_Z_X
-_______________
-
-Controls datatype construction for Z-to-X transposition.
+.. note::
+   This variable applies only to Host (CPU) execution.

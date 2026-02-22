@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 {
   dtfft_plan_t plan;
   int32_t nx = 512, ny = 64, nz = 96;
-  double complex *in, *out, *check, *aux;
+  double complex *in, *out, *temp, *check, *aux;
   int comm_rank, comm_size;
   int32_t in_counts[3], in_starts[3], out_counts[3];
 
@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
   conf.enable_z_slab = false;
   conf.enable_y_slab = false;
   conf.enable_fourier_reshape = true;
+  conf.transpose_mode = DTFFT_TRANSPOSE_MODE_UNPACK;
 
 #if defined(DTFFT_WITH_CUDA)
   conf.platform = DTFFT_PLATFORM_CUDA;
@@ -180,6 +181,12 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
   size_t aux_bytes;
   DTFFT_CALL( dtfft_get_aux_bytes(plan, &aux_bytes) )
+  size_t aux_bytes_transpose;
+  DTFFT_CALL( dtfft_get_aux_bytes_transpose(plan, &aux_bytes_transpose) )
+  if ( comm_size == 8) {
+    size_t aux_bytes_reshape;
+    DTFFT_CALL( dtfft_get_aux_bytes_reshape(plan, &aux_bytes_reshape) )
+  }
 
   size_t in_size = in_counts[0] * in_counts[1] * in_counts[2];
   size_t out_size = out_counts[0] * out_counts[1] * out_counts[2];
@@ -191,15 +198,18 @@ int main(int argc, char *argv[])
   DTFFT_CALL( dtfft_get_platform(plan, &platform) )
   if ( platform == DTFFT_PLATFORM_CUDA ) {
     CUDA_SAFE_CALL( cudaMallocManaged((void**)&in, alloc_bytes, cudaMemAttachGlobal) )
+    CUDA_SAFE_CALL( cudaMallocManaged((void**)&temp, alloc_bytes, cudaMemAttachGlobal) )
     CUDA_SAFE_CALL( cudaMallocManaged((void**)&out, alloc_bytes, cudaMemAttachGlobal) )
     CUDA_SAFE_CALL( cudaMallocManaged((void**)&aux, aux_bytes, cudaMemAttachGlobal) )
   } else {
     DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&in) )
+    DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&temp) )
     DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&out) )
     DTFFT_CALL( dtfft_mem_alloc(plan, aux_bytes, (void**)&aux) )
   }
 #else
   DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&in) )
+  DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&temp) )
   DTFFT_CALL( dtfft_mem_alloc(plan, alloc_bytes, (void**)&out) )
   DTFFT_CALL( dtfft_mem_alloc(plan, aux_bytes, (void**)&aux) )
 #endif
@@ -221,12 +231,12 @@ int main(int argc, char *argv[])
     } else {
       if ( comm_size == 8 ) {
         DTFFT_CALL( dtfft_reshape(plan, in, out, DTFFT_RESHAPE_X_BRICKS_TO_PENCILS, aux) )
-        DTFFT_CALL( dtfft_transpose(plan, out, aux, DTFFT_TRANSPOSE_X_TO_Y, in) )
-        DTFFT_CALL( dtfft_transpose(plan, aux, in, DTFFT_TRANSPOSE_Y_TO_Z, out) )
+        DTFFT_CALL( dtfft_transpose(plan, out, temp, DTFFT_TRANSPOSE_X_TO_Y, aux) )
+        DTFFT_CALL( dtfft_transpose(plan, temp, in, DTFFT_TRANSPOSE_Y_TO_Z, aux) )
         DTFFT_CALL( dtfft_reshape(plan, in, out, DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS, aux) )
       } else {
-        DTFFT_CALL( dtfft_transpose(plan, in, aux, DTFFT_TRANSPOSE_X_TO_Y, out) )
-        DTFFT_CALL( dtfft_transpose(plan, aux, out, DTFFT_TRANSPOSE_Y_TO_Z, in) )
+        DTFFT_CALL( dtfft_transpose(plan, in, temp, DTFFT_TRANSPOSE_X_TO_Y, aux) )
+        DTFFT_CALL( dtfft_transpose(plan, temp, out, DTFFT_TRANSPOSE_Y_TO_Z, aux) )
       }
     }
   } else {

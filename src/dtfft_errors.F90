@@ -35,7 +35,7 @@ public :: dtfft_get_error_string
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_N_DIMENSIONS = CONF_DTFFT_ERROR_INVALID_N_DIMENSIONS
     !! Invalid Number of dimensions provided. Valid options are 2 and 3
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_DIMENSION_SIZE = CONF_DTFFT_ERROR_INVALID_DIMENSION_SIZE
-    !! One or more provided dimension sizes <= 0 
+    !! One or more provided dimension sizes <= 0
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_COMM_TYPE = CONF_DTFFT_ERROR_INVALID_COMM_TYPE
     !! Invalid communicator type provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PRECISION = CONF_DTFFT_ERROR_INVALID_PRECISION
@@ -51,7 +51,7 @@ public :: dtfft_get_error_string
   integer(int32),  parameter,  public  :: DTFFT_ERROR_MISSING_R2R_KINDS = CONF_DTFFT_ERROR_MISSING_R2R_KINDS
     !! For R2R plan, `kinds` parameter must be passed if `executor` != `DTFFT_EXECUTOR_NONE`
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_R2R_KINDS = CONF_DTFFT_ERROR_INVALID_R2R_KINDS
-    !! Invalid values detected in `kinds` parameter 
+    !! Invalid values detected in `kinds` parameter
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2C_TRANSPOSE_PLAN = CONF_DTFFT_ERROR_R2C_TRANSPOSE_PLAN
     !! Transpose plan is not supported in R2C, use R2R or C2C plan instead
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INPLACE_TRANSPOSE = CONF_DTFFT_ERROR_INPLACE_TRANSPOSE
@@ -120,6 +120,10 @@ public :: dtfft_get_error_string
     !! Execute called for transpose-only R2C Plan
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_CART_COMM = CONF_DTFFT_ERROR_INVALID_CART_COMM
     !! Invalid cartesian communicator provided
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_TRANSPOSE_MODE = CONF_DTFFT_ERROR_INVALID_TRANSPOSE_MODE
+    !! Invalid transpose mode provided
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_ACCESS_MODE = CONF_DTFFT_ERROR_INVALID_ACCESS_MODE
+    !! Invalid access mode provided
   integer(int32),  parameter,  public  :: DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED = CONF_DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED
     !! Selected `executor` do not support R2R FFTs
   integer(int32),  parameter,  public  :: DTFFT_ERROR_GPU_INVALID_STREAM = CONF_DTFFT_ERROR_GPU_INVALID_STREAM
@@ -131,7 +135,7 @@ public :: dtfft_get_error_string
   integer(int32),  parameter,  public  :: DTFFT_ERROR_VKFFT_R2R_2D_PLAN = CONF_DTFFT_ERROR_VKFFT_R2R_2D_PLAN
     !! When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions
   integer(int32),  parameter,  public  :: DTFFT_ERROR_BACKENDS_DISABLED = CONF_DTFFT_ERROR_BACKENDS_DISABLED
-    !! Passed `effort` ==  `DTFFT_PATIENT` but all GPU Backends has been disabled by `dtfft_config_t` */
+    !! Passed `effort` ==  `DTFFT_PATIENT` but all Backends has been disabled by `dtfft_config_t` */
   integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_DEVICE_PTR = CONF_DTFFT_ERROR_NOT_DEVICE_PTR
     !! One of pointers passed to `plan.execute` or `plan.transpose` cannot be accessed from device
   integer(int32),  parameter,  public  :: DTFFT_ERROR_NOT_NVSHMEM_PTR = CONF_DTFFT_ERROR_NOT_NVSHMEM_PTR
@@ -142,6 +146,18 @@ public :: dtfft_get_error_string
     !! Invalid executor provided for selected platform
   integer(int32),  parameter,  public  :: DTFFT_ERROR_INVALID_PLATFORM_BACKEND = CONF_DTFFT_ERROR_INVALID_PLATFORM_BACKEND
     !! Invalid backend provided for selected platform
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED = CONF_DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED
+    !! CUDA support is not available for compression
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_INVALID_RATE = CONF_DTFFT_ERROR_COMPRESSION_INVALID_RATE
+    !! Invalid compression rate
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_INVALID_PRECISION = CONF_DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
+    !! Invalid compression precision
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE = CONF_DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE
+    !! Invalid compression tolerance
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_INVALID_MODE = CONF_DTFFT_ERROR_COMPRESSION_INVALID_MODE
+    !! Invalid compression mode
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY = CONF_DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY
+    !! Invalid compression library
 
 contains
 
@@ -249,6 +265,10 @@ contains
       allocate(error_string, source="Execute called for transpose-only R2C Plan")
     case ( DTFFT_ERROR_INVALID_CART_COMM )
       allocate(error_string, source="Invalid cartesian communicator provided")
+    case ( DTFFT_ERROR_INVALID_TRANSPOSE_MODE )
+      allocate(error_string, source="Invalid transpose mode provided")
+    case ( DTFFT_ERROR_INVALID_ACCESS_MODE )
+      allocate(error_string, source="Invalid access mode provided")
     case ( DTFFT_ERROR_GPU_INVALID_STREAM )
       allocate(error_string, source="Invalid stream provided")
     case ( DTFFT_ERROR_INVALID_BACKEND )
@@ -258,7 +278,7 @@ contains
     case ( DTFFT_ERROR_VKFFT_R2R_2D_PLAN )
       allocate(error_string, source="When using R2R FFT and executor type is vkFFT and plan uses Z-slab optimization, it is required that types of R2R transform are same in X and Y directions")
     case ( DTFFT_ERROR_BACKENDS_DISABLED )
-      allocate(error_string, source="Passed `effort` ==  `DTFFT_PATIENT` but all backends has been disabled by `dtfft_config_t`")
+      allocate(error_string, source="Passed `effort` >=  `DTFFT_PATIENT` but all backends are disabled for autotune")
     case ( DTFFT_ERROR_NOT_DEVICE_PTR )
       allocate(error_string, source="One of pointers passed to `dtfft_execute` or `dtfft_transpose` cannot be accessed from device" )
     case ( DTFFT_ERROR_NOT_NVSHMEM_PTR )
@@ -269,6 +289,18 @@ contains
       allocate(error_string, source="Invalid executor provided for selected platform")
     case ( DTFFT_ERROR_INVALID_PLATFORM_BACKEND )
       allocate(error_string, source="Invalid backend provided for selected platform")
+    case ( DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED )
+      allocate(error_string, source="CUDA support is not available for compression")
+    case ( DTFFT_ERROR_COMPRESSION_INVALID_RATE )
+      allocate(error_string, source="Invalid compression rate")
+    case ( DTFFT_ERROR_COMPRESSION_INVALID_PRECISION )
+      allocate(error_string, source="Invalid compression precision")
+    case ( DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE )
+      allocate(error_string, source="Invalid compression tolerance")
+    case ( DTFFT_ERROR_COMPRESSION_INVALID_MODE )
+      allocate(error_string, source="Invalid compression mode")
+    case ( DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY )
+      allocate(error_string, source="Invalid compression library")
     case default
       allocate(error_string, source="Unknown error")
     endselect

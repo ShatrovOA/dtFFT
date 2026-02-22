@@ -93,6 +93,18 @@ extern int32_t
 dtfft_get_aux_bytes_c(const void*, size_t*);
 
 extern int32_t
+dtfft_get_aux_size_reshape_c(const void*, size_t*);
+
+extern int32_t
+dtfft_get_aux_bytes_reshape_c(const void*, size_t*);
+
+extern int32_t
+dtfft_get_aux_size_transpose_c(const void*, size_t*);
+
+extern int32_t
+dtfft_get_aux_bytes_transpose_c(const void*, size_t*);
+
+extern int32_t
 dtfft_mem_alloc_c(const void*, size_t, void**);
 
 extern int32_t
@@ -124,6 +136,9 @@ dtfft_set_config_c(const void*);
 
 extern int32_t
 dtfft_report_c(const void*);
+
+extern int32_t
+dtfft_report_compression_c(const void*);
 
 extern int32_t
 dtfft_get_executor_c(const void*, int32_t*);

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <cudecomp.h>
+#include <cufft.h>
 
 
 #define CHECK_CUDECOMP_EXIT(call)                                                                                      \
@@ -16,9 +17,26 @@
     }                                                                                                                  \
   } while (false)
 
+#define CHECK_CUFFT(call)                                                                                               \
+  do {                                                                                                                  \
+    cufftResult err = call;                                                                                             \
+    if ( CUFFT_SUCCESS != err ) {                                                                                       \
+      fprintf(stderr, "%s:%d CUFFT error. (error code %d)\n", __FILE__, __LINE__, err);                                 \
+      exit(EXIT_FAILURE);                                                                                               \
+    }                                                                                                                   \
+  } while (false)
+
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
+static void create_cufft_plan(cudecompPencilInfo_t pencil, cufftHandle *plan, size_t *work_size)
+{
+  cufftHandle plan_;
+  CHECK_CUFFT( cufftCreate(&plan_) );
+  CHECK_CUFFT( cufftMakePlan1d(plan_, pencil.shape[0], CUFFT_Z2Z, pencil.shape[1] * pencil.shape[2], work_size) );
+  *plan = plan_;
+}
+
+double run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype, cudecompTransposeCommBackend_t backend) {
   cudecompHandle_t handle;
   CHECK_CUDECOMP_EXIT(cudecompInit(&handle, MPI_COMM_WORLD));
 
@@ -56,7 +74,7 @@ void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
   config.transpose_axis_contiguous[0] = true;
   config.transpose_axis_contiguous[1] = true;
   config.transpose_axis_contiguous[2] = true;
-  config.transpose_comm_backend = CUDECOMP_TRANSPOSE_COMM_NCCL;
+  config.transpose_comm_backend = backend;
 
     // Set up autotune options structure
   cudecompGridDescAutotuneOptions_t options;
@@ -64,7 +82,7 @@ void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
 
     // General options
   options.n_warmup_trials = 3;
-  options.n_trials = 15;
+  options.n_trials = 10;
   options.dtype = dtype;
   options.disable_nccl_backends = false;
   options.disable_nvshmem_backends = true;
@@ -123,10 +141,6 @@ void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
   CHECK_CUDECOMP_EXIT(cudecompMalloc(handle, grid_desc, (void**)&inout, data_num_elements * dtype_size));
   CUDA_CALL(cudaMemset(inout, 0, data_num_elements * dtype_size));
 
-  float* work;
-  CHECK_CUDECOMP_EXIT(cudecompMalloc(handle, grid_desc, (void**)(&work),
-                                     work_size * dtype_size));
-
   cudaStream_t stream;
   CUDA_CALL( cudaStreamCreate(&stream) );
 
@@ -134,6 +148,43 @@ void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
   CUDA_CALL( cudaEventCreate(&startEvent) );
   CUDA_CALL( cudaEventCreate(&stopEvent) );
   float ms;
+
+  cufftHandle xplan = 0, yplan = 0, zplan = 0;
+  size_t xplan_worksize, yplan_worksize, zplan_worksize;
+
+  create_cufft_plan(pinfo_x, &xplan, &xplan_worksize);
+
+  bool y_copy = false;
+  bool z_copy = false;
+  if ( pinfo_x.shape[0] == pinfo_y.shape[0] && pinfo_x.shape[1] * pinfo_x.shape[2] == pinfo_y.shape[1] * pinfo_y.shape[2] ) {
+    yplan = xplan;
+    yplan_worksize = xplan_worksize;
+    y_copy = true;
+  } else {
+    create_cufft_plan(pinfo_y, &yplan, &yplan_worksize);
+  }
+
+  if ( pinfo_x.shape[0] == pinfo_z.shape[0] && pinfo_x.shape[1] * pinfo_x.shape[2] == pinfo_z.shape[1] * pinfo_z.shape[2] ) {
+    zplan = xplan;
+    zplan_worksize = xplan_worksize;
+    z_copy = true;
+  } else if ( pinfo_y.shape[0] == pinfo_z.shape[0] && pinfo_y.shape[1] * pinfo_y.shape[2] == pinfo_z.shape[1] * pinfo_z.shape[2] ) {
+    zplan = yplan;
+    zplan_worksize = yplan_worksize;
+    z_copy = true;
+  } else {
+    create_cufft_plan(pinfo_z, &zplan, &zplan_worksize);
+  }
+
+  float* work;
+  size_t final_work_size = MAX(work_size * dtype_size, MAX(xplan_worksize, MAX(yplan_worksize, zplan_worksize)));
+
+  CHECK_CUDECOMP_EXIT(cudecompMalloc(handle, grid_desc, (void**)(&work),
+                                     final_work_size));
+
+  CHECK_CUFFT( cufftSetWorkArea(xplan, work) ); CHECK_CUFFT( cufftSetStream(xplan, stream) );
+  CHECK_CUFFT( cufftSetWorkArea(yplan, work) ); CHECK_CUFFT( cufftSetStream(yplan, stream) );
+  CHECK_CUFFT( cufftSetWorkArea(zplan, work) ); CHECK_CUFFT( cufftSetStream(zplan, stream) );
 
   if(comm_rank == 0) {
     printf("Started warmup\n");
@@ -173,11 +224,17 @@ void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
   CUDA_CALL( cudaEventRecord(startEvent, stream) );
 
   for ( int iter = 0; iter < TEST_ITERATIONS; iter++ ) {
+    CHECK_CUFFT( cufftExecZ2Z(xplan, reinterpret_cast<cufftDoubleComplex*>(inout), 
+      reinterpret_cast<cufftDoubleComplex*>(inout), CUFFT_FORWARD) );
+
     // Transpose from X-pencils to Y-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeXToY(handle, grid_desc, inout, inout,
                             work, dtype,
                             NULL, NULL, NULL, NULL, stream));
+
+    CHECK_CUFFT( cufftExecZ2Z(yplan, reinterpret_cast<cufftDoubleComplex*>(inout), 
+      reinterpret_cast<cufftDoubleComplex*>(inout), CUFFT_FORWARD) );
 
     // Transpose from Y-pencils to Z-pencils.
     CHECK_CUDECOMP_EXIT(
@@ -185,17 +242,29 @@ void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
                             work, dtype,
                             NULL, NULL, NULL, NULL, stream));
 
+    CHECK_CUFFT( cufftExecZ2Z(zplan, reinterpret_cast<cufftDoubleComplex*>(inout), 
+      reinterpret_cast<cufftDoubleComplex*>(inout), CUFFT_FORWARD) );
+
+    CHECK_CUFFT( cufftExecZ2Z(zplan, reinterpret_cast<cufftDoubleComplex*>(inout), 
+      reinterpret_cast<cufftDoubleComplex*>(inout), CUFFT_INVERSE) );
+
     // Transpose from Z-pencils to Y-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeZToY(handle, grid_desc, inout, inout,
                             work, dtype,
                             NULL, NULL, NULL, NULL, stream));
 
+    CHECK_CUFFT( cufftExecZ2Z(yplan, reinterpret_cast<cufftDoubleComplex*>(inout), 
+      reinterpret_cast<cufftDoubleComplex*>(inout), CUFFT_INVERSE) );
+
     // Transpose from Y-pencils to X-pencils.
     CHECK_CUDECOMP_EXIT(
       cudecompTransposeYToX(handle, grid_desc, inout, inout,
                             work, dtype,
                             NULL, NULL, NULL, NULL, stream));
+
+    CHECK_CUFFT( cufftExecZ2Z(xplan, reinterpret_cast<cufftDoubleComplex*>(inout), 
+      reinterpret_cast<cufftDoubleComplex*>(inout), CUFFT_INVERSE) );
   }
 
   CUDA_CALL( cudaEventRecord(stopEvent, stream) );
@@ -222,4 +291,10 @@ void run_cudecomp(std::vector<int>& dims, cudecompDataType_t dtype) {
   CHECK_CUDECOMP_EXIT(cudecompFree(handle, grid_desc, work));
   CHECK_CUDECOMP_EXIT(cudecompGridDescDestroy(handle, grid_desc));
   CHECK_CUDECOMP_EXIT(cudecompFinalize(handle));
+
+  CHECK_CUFFT( cufftDestroy(xplan) );
+  if(!y_copy) CHECK_CUFFT( cufftDestroy(yplan) );
+  if(!z_copy) CHECK_CUFFT( cufftDestroy(zplan) );
+
+  return (double)max_ms;
 }

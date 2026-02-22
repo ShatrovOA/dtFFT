@@ -35,10 +35,9 @@ implicit none
 private
 public :: pencil, pencil_init
 public :: dtfft_pencil_t, dtfft_pencil_c
-public :: get_local_sizes
+public :: get_local_sizes, get_float_buffer_size
 public :: get_transpose_type, get_reshape_type
 public :: pencil_c2f, pencil_f2c
-public :: from_bricks
 
   type :: dtfft_pencil_t
   !! Structure to hold pencil decomposition info
@@ -303,7 +302,8 @@ contains
 !   !! Writes pencil data to stdout
 !     class(pencil),                intent(in)  :: self                 !! Pencil
 !     character(len=*),             intent(in)  :: name                 !! Name of pencil
-!     real(real32),    target,      intent(in)  :: vec(:)               !! Device pointer to data
+!     type(c_ptr),    intent(in) :: vec
+!     ! real(real32),    target,      intent(in)  :: vec(:)               !! Device pointer to data
 !     integer(int32)                            :: iter                 !! Iteration counter
 !     integer(int32)                            :: i,j,k,ijk            !! Counters
 !     integer(int32)                            :: comm_size            !! Number of MPI processes
@@ -311,6 +311,8 @@ contains
 !     integer(int32)                            :: ierr                 !! Error code
 ! #ifdef DTFFT_WITH_CUDA
 !     real(real32),    target,      allocatable :: buf(:)               !! Host buffer
+! #else
+!     real(real32),   pointer,  contiguous      :: buf(:)
 ! #endif
 
 !     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
@@ -318,24 +320,29 @@ contains
 
 ! #ifdef DTFFT_WITH_CUDA
 !     allocate( buf( product(self%counts) ) )
-!     if ( is_device_ptr(c_loc(vec)) ) then
+!     ! if ( is_device_ptr(c_loc(vec)) ) then
+!     if ( is_device_ptr(vec) ) then
 !       CUDA_CALL( cudaDeviceSynchronize())
-!       CUDA_CALL( cudaMemcpy(c_loc(buf), c_loc(vec), int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
+!       CUDA_CALL( cudaMemcpy(c_loc(buf), vec, int(real32, int64) * product(self%counts), cudaMemcpyDeviceToHost) )
 !     endif
+! #else
+!     call c_f_pointer(vec, buf, [product(self%counts)])
 ! #endif
 
 !     do iter = 0, comm_size - 1
 !       call MPI_Barrier(MPI_COMM_WORLD, ierr)
-!       if ( iter == comm_rank ) then
+!       ! if ( iter == comm_rank .and. comm_rank == 0) then
+!       if ( iter == comm_rank) then
 !         write(output_unit,'(a)') name
+!         write(output_unit, '(a)', advance="no") repeat(' ', 5)
+!         do i = 0, self%counts(1) - 1
+!           write(output_unit, '(i11)', advance="no") self%starts(1) + i
+!         enddo
+!         write(output_unit, "(a)") ""
 !         do k = 0, self%counts(3) - 1
 !           do j = 0, self%counts(2) - 1
 !             ijk = k * self%counts(2) * self%counts(1) + j * self%counts(1)
-! #ifdef DTFFT_WITH_CUDA
-!             write(output_unit,'(2i5, *(f9.2))') j, k, (buf(ijk + i + 1), i=0,self%counts(1) - 1)
-! #else
-!             write(output_unit,'(2i5, *(f9.2))') j, k, (vec(ijk + i + 1), i=0,self%counts(1) - 1)
-! #endif
+!             write(output_unit,'(2i5, *(f11.2))') self%starts(2) + j, self%starts(3) + k, (buf(ijk + i + 1), i=0,self%counts(1) - 1)
 !           enddo
 !           write(output_unit, '(a)') ' '
 !           flush(output_unit)
@@ -487,7 +494,7 @@ contains
     if (send%aligned_dim == 1 .and. recv%aligned_dim == 1) then
       if ( send%is_distributed ) then
         reshape_type = DTFFT_RESHAPE_X_BRICKS_TO_PENCILS
-      else 
+      else
         reshape_type = DTFFT_RESHAPE_X_PENCILS_TO_BRICKS
       end if
     else
@@ -499,6 +506,17 @@ contains
     endif
   end function get_reshape_type
 
+  integer(int64) function get_float_buffer_size(p1, p2, base_storage)
+    type(pencil),     intent(in)  :: p1           !! First pencil
+    type(pencil),     intent(in)  :: p2           !! Second pencil
+    integer(int64),   intent(in)  :: base_storage
+    integer(int64) :: scaler
+
+    scaler = base_storage / FLOAT_STORAGE_SIZE
+    call get_local_sizes([p1, p2], alloc_size=get_float_buffer_size)
+    get_float_buffer_size = get_float_buffer_size * scaler
+  end function get_float_buffer_size
+
   function from_bricks(self, platform, bricks, comm) result(error_code)
     class(pencil_init),     intent(inout) :: self
     type(dtfft_platform_t), intent(in)  :: platform       !! Platform to create plan for
@@ -506,7 +524,6 @@ contains
     TYPE_MPI_COMM,          intent(in)  :: comm         !! MPI Communicator passed to plan constructors
     integer(int32)                        :: error_code   !! Error code
     integer(int32) :: top_type, ierr, comm_rank
-    type(dtfft_pencil_t) :: p
     logical :: is_nice_grid_found
     integer(int8)     :: ndims      !! Number of dimensions
     integer(int32),   allocatable   :: comm_dims(:)   !! Dims in cartesian communicator
@@ -514,6 +531,9 @@ contains
     TYPE_MPI_COMM,    allocatable   :: pencil_comms(:)
     integer(int8)     :: d
     integer(int32) :: i, y_size, z_size, tile_size, fast_dim_size
+    integer(int32) :: a_rank, b_rank, c_rank, bb_rank, cc_rank
+    integer(int32) :: ay, az
+    integer(int32) :: color, key
     type(pencil) :: temp_pencil
 
     error_code = DTFFT_SUCCESS
@@ -654,10 +674,16 @@ contains
       pencil_comms(2) = MPI_COMM_SELF
       pencil_comms(3) = bricks%comms(1)
 
+      ay = 0
+      call MPI_Comm_rank(pencil_comms(3), az, ierr)
+
       pencil_starts(2) = bricks%starts(2)
       call MPI_Allreduce(bricks%starts(3), pencil_starts(3), 1, MPI_INTEGER, MPI_MIN, pencil_comms(3), ierr)
     else if ( z_size == 1 ) then
       pencil_comms(2) = bricks%comms(1)
+
+      call MPI_Comm_rank(pencil_comms(2), ay, ierr)
+      az = 0
 
       call MPI_Allreduce(bricks%starts(2), pencil_starts(2), 1, MPI_INTEGER, MPI_MIN, pencil_comms(2), ierr)
 
@@ -686,19 +712,57 @@ contains
         remain_dims(2) = .true.
         call MPI_Cart_sub(cart_comm, remain_dims, pencil_comms(3), ierr)
 
+        ! Use the ranks within pencil_comms to define (ay,az).
+        ! This preserves the locality-friendly mapping encoded by MPI_Cart_sub.
+        call MPI_Comm_rank(pencil_comms(2), ay, ierr)
+        call MPI_Comm_rank(pencil_comms(3), az, ierr)
+
         call MPI_Comm_free(cart_comm, ierr)
         ! pencil_dims(2:) = bricks%dims(2:)
-
-        ! call MPI_Allreduce(bricks%starts(2), pencil_starts(2), 1, MPI_INTEGER, MPI_MIN, bricks%comms(2), ierr)
-        ! call MPI_Allreduce(bricks%starts(3), pencil_starts(3), 1, MPI_INTEGER, MPI_MIN, bricks%comms(3), ierr)
 
         call MPI_Allreduce(bricks%starts(2), pencil_starts(2), 1, MPI_INTEGER, MPI_MIN, pencil_comms(2), ierr)
         call MPI_Allreduce(bricks%starts(3), pencil_starts(3), 1, MPI_INTEGER, MPI_MIN, pencil_comms(3), ierr)
       endblock
     endif
-
     call temp_pencil%create(ndims, 1_int8, pencil_dims, pencil_comms)
     temp_pencil%starts(:) = temp_pencil%starts(:) + pencil_starts(:)
+
+    ! Build pencil_init directly from the already constructed 1D communicators.
+    ! This avoids reconstructing communicators from starts/counts, which becomes
+    ! ambiguous when some ranks have zero local volume (counts == 0).
+    call self%destroy()
+    allocate(self%starts, source=temp_pencil%starts)
+    allocate(self%counts, source=temp_pencil%counts)
+    allocate(self%comms(ndims))
+    allocate(self%dims, source=bricks%dims)
+
+    ! Process coordinates in the original bricks process grid.
+    call MPI_Comm_rank(bricks%comms(1), a_rank, ierr)
+    if ( ndims >= 2 ) call MPI_Comm_rank(bricks%comms(2), b_rank, ierr)
+    if ( ndims == 3 ) call MPI_Comm_rank(bricks%comms(3), c_rank, ierr)
+
+    ! dim=1 is not distributed for pencils
+    call MPI_Comm_dup(MPI_COMM_SELF, self%comms(1), ierr)
+
+    if ( ndims == 2 ) then
+      ! New grid: 1 x (P1 * y_size)
+      color = 0
+      key = temp_pencil%starts(2)
+      call MPI_Comm_split(comm, color, key, self%comms(2), ierr)
+    else
+      ! New grid: 1 x (P1 * y_size) x (P2 * z_size)
+      color = c_rank * z_size + az
+      key = temp_pencil%starts(2)
+      call MPI_Comm_split(comm, color, key, self%comms(2), ierr)
+
+      color = b_rank * y_size + ay
+      key = temp_pencil%starts(3)
+      call MPI_Comm_split(comm, color, key, self%comms(3), ierr)
+
+      call MPI_Comm_rank(self%comms(2), bb_rank, ierr)
+      call MPI_Comm_rank(self%comms(3), cc_rank, ierr)
+
+    endif
 
     do d = 2, ndims
       if ( pencil_comms(d) /= bricks%comms(1) .and. pencil_comms(d) /= MPI_COMM_SELF ) then
@@ -706,13 +770,7 @@ contains
       endif
     enddo
 
-    p = dtfft_pencil_t(temp_pencil%starts, temp_pencil%counts)
-
-    ierr = self%create(p, comm)
-
-    if ( ierr /= DTFFT_SUCCESS ) INTERNAL_ERROR("from_bricks: unable to create pencil")
     call temp_pencil%destroy()
-    call p%destroy()
     deallocate( pencil_dims, pencil_comms, comm_dims )
   end function from_bricks
 
@@ -1006,7 +1064,7 @@ contains
       enddo
       matched = matched .and. count_matched
 
-      if (  (matched .and. all_lbounds(var_dim, i) /= lbounds(var_dim)) & 
+      if ( (matched .and. all_lbounds(var_dim, i) /= lbounds(var_dim)) &
           .or. i - 1 == comm_rank                   &
           .or. (matched .and. (all_lbounds(var_dim, i) == lbounds(var_dim) .and. (all_counts(var_dim, i) == 0 .or. all_counts(var_dim, comm_rank + 1) == 0)))) then
         neighbor_count = neighbor_count + 1

@@ -45,7 +45,8 @@ jobs:
             -DDTFFT_WITH_CUDA=on \
             -DDTFFT_WITH_CUFFT=on \
             -DDTFFT_WITHOUT_NVSHMEM=on \
-            -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda
+            -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda \
+            -DSKIP_CUDA_COVERAGE=on
           cmake --build build
       - name: Test
         run: ctest --test-dir build --output-on-failure
@@ -97,7 +98,8 @@ jobs:
             -DDTFFT_WITH_PROFILER=on \
             -DDTFFT_WITH_CUDA=on \
             -DDTFFT_WITH_CUFFT=on \
-            -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda
+            -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda \
+            -DSKIP_CUDA_COVERAGE=on
           cmake --build build
       - name: Test
         run: ctest --test-dir build --output-on-failure

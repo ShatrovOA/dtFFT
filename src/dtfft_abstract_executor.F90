@@ -27,6 +27,7 @@ use dtfft_parameters
 use dtfft_utils
 #include "_dtfft_profile.h"
 #include "_dtfft_private.h"
+#include "_dtfft_mpi.h"
 implicit none
 private
 public :: abstract_executor
@@ -136,9 +137,15 @@ contains
     self%is_inverse_copied = .false.
     self%fft_type = fft_type
 #ifdef DTFFT_DEBUG
-    if ( fft_rank /= FFT_1D .and. fft_rank /= FFT_2D ) INTERNAL_ERROR("fft_rank /= FFT_1D .and. fft_rank /= FFT_2D")
-    if ( (fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil)) ) INTERNAL_ERROR("(fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil))")
-    if ( (fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds)) ) INTERNAL_ERROR("(fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds))")
+    if ( fft_rank /= FFT_1D .and. fft_rank /= FFT_2D ) then
+      INTERNAL_ERROR("fft_rank /= FFT_1D .and. fft_rank /= FFT_2D")
+    endif
+    if ( (fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil)) ) then
+      INTERNAL_ERROR("(fft_type == FFT_R2C).and.(.not.present(complex_pencil) .or. .not.present(real_pencil))")
+    endif
+    if ( (fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds)) ) then
+      INTERNAL_ERROR("(fft_type == FFT_R2R).and.(.not.present(real_pencil) .or..not.present(r2r_kinds))")
+    endif
 #endif
     allocate( fft_sizes(fft_rank), inembed(fft_rank), onembed(fft_rank) )
 
@@ -197,11 +204,11 @@ contains
     endif
     self%profile = self%profile//to_str(fft_sizes(1))
     if ( fft_rank == 2 ) self%profile = self%profile // "x" // to_str(fft_sizes(2))
-    self%profile = self%profile // "x" // to_str(how_many)
+    self%profile = self%profile // ":" // to_str(how_many)
 
-    REGION_BEGIN("dtfft_create_fft: "//self%profile, COLOR_FFT)
+    REGION_BEGIN("create FFT "//self%profile, COLOR_FFT)
     call self%create_private(fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, create, r2r_kinds)
-    REGION_END("dtfft_create_fft: "//self%profile)
+    REGION_END("create FFT "//self%profile)
     ! This should only happen when current process do not have any data, so FFT plan is not required here
     if ( is_null_ptr(self%plan_forward) .or. is_null_ptr(self%plan_backward) ) return
     if ( create == DTFFT_SUCCESS ) self%is_created = .true.
@@ -216,11 +223,13 @@ contains
     integer(int8),            intent(in)  :: sign   !! Sign of transform
     if ( .not.self%is_created ) return
 #ifdef DTFFT_DEBUG
-    if ( is_same_ptr(in, out) .and. self%fft_type == FFT_R2C ) INTERNAL_ERROR("inplace FFT_R2C")
+    if ( is_same_ptr(in, out) .and. self%fft_type == FFT_R2C ) then
+      INTERNAL_ERROR("inplace FFT_R2C")
+    endif
 #endif
-    REGION_BEGIN("dtfft_execute_fft "//self%profile, COLOR_FFT)
+    REGION_BEGIN("FFT "//self%profile, COLOR_FFT)
     call self%execute_private(in, out, sign)
-    REGION_END("dtfft_execute_fft "//self%profile)
+    REGION_END("FFT "//self%profile)
   end subroutine execute
 
   subroutine destroy(self)

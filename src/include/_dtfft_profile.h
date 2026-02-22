@@ -1,5 +1,5 @@
 #if defined( DTFFT_WITH_PROFILER )
-# if defined( DTFFT_WITH_CUDA )
+# if defined( DTFFT_WITH_CUDA ) && !defined( DTFFT_WITH_MOCK_ENABLED )
 use dtfft_interface_nvtx
 #define REGION_BEGIN(name, color) call push_nvtx_domain_range(name, color)
 #define REGION_END(name) call pop_nvtx_domain_range()

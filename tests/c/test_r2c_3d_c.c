@@ -91,9 +91,26 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+// #ifdef DTFFT_WITH_COMPRESSION
+// #if defined(DTFFT_WITH_CUDA)
+// #   if defined(DTFFT_WITH_NCCL)
+//         config.backend = DTFFT_BACKEND_NCCL_COMPRESSED;
+//         config.compression_config_transpose.compression_mode = DTFFT_COMPRESSION_MODE_FIXED_RATE;
+//         config.compression_config_transpose.rate = 32.0;
+// #   else
+//         config.backend = DTFFT_BACKEND_MPI_P2P;
+// #   endif
+// #endif
+//     config.backend = DTFFT_BACKEND_MPI_P2P_COMPRESSED;
+//     config.compression_config_transpose.compression_mode = DTFFT_COMPRESSION_MODE_FIXED_PRECISION;
+//     config.compression_config_transpose.precision = 32;
+// #endif
+
     config.enable_mpi_backends = true;
     config.enable_z_slab = false;
+    config.transpose_mode = DTFFT_TRANSPOSE_MODE_UNPACK;
     DTFFT_CALL(dtfft_set_config(&config))
+    printf("Backend = %s\n", dtfft_get_backend_string(config.backend));
 
     // Create plan
     DTFFT_CALL(dtfft_create_plan_r2c(3, n, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor, &plan))
@@ -107,7 +124,9 @@ int main(int argc, char* argv[])
         pencil.starts[i] = in_starts[i];
         pencil.counts[i] = in_counts[i];
     }
-    DTFFT_CALL(dtfft_create_plan_r2c_pencil(&pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, executor, &plan))
+    config.enable_kernel_autotune = true;
+    DTFFT_CALL(dtfft_set_config(&config))
+    DTFFT_CALL(dtfft_create_plan_r2c_pencil(&pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, executor, &plan))
     DTFFT_CALL(dtfft_report(plan))
     dtfft_backend_t backend;
     DTFFT_CALL(dtfft_get_backend(plan, &backend))

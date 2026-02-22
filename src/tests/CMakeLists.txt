@@ -1,4 +1,11 @@
 set(TEST_SOURCES "test_host_kernels.F90")
+if ( DTFFT_WITH_CUDA AND NOT SKIP_CUDA_COVERAGE )
+  list(APPEND TEST_SOURCES "test_device_kernels.F90")
+endif()
+if ( DTFFT_WITH_COMPRESSION )
+  message("DTFFT_WITH_COMPRESSION = true")
+  list(APPEND TEST_SOURCES "test_compression.F90")
+endif()
 
 foreach(test ${TEST_SOURCES})
   get_filename_component(test_name ${test} NAME_WLE)
@@ -16,7 +23,7 @@ foreach(test ${TEST_SOURCES})
 
   add_test(
     NAME ${test_name}
-    COMMAND ./${test_name}
+    COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 ./${test_name}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   )
 endforeach()

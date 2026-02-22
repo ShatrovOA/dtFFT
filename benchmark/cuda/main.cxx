@@ -1,12 +1,77 @@
-    #include "config.hpp"
-    #include "dtfft_bench.hpp"
-    #include "cudecomp_bench.hpp"
-    #include "accfft_bench.hpp"
-    #include "heffte_bench.hpp"
+#include "config.hpp"
+#include "dtfft_bench.hpp"
+#include "cudecomp_bench.hpp"
+#include "accfft_bench.hpp"
+#include "heffte_bench.hpp"
+#include "2d_decomp_bench.hpp"
+
+#include <map>
+#include <iomanip>
+#include <limits>
+#include <exception>
+
+
+void check_mem()
+{
+    size_t mf, ma;
+    cudaMemGetInfo(&mf, &ma);
+    printf("Available memory = %zu\n", mf);
+}
+
+void print_benchmark_results(std::map<std::string, double> &benchmark_results, std::vector<int> &dims)
+{
+    int comm_rank;
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+
+    if (comm_rank != 0)
+        return;
+
+    if (benchmark_results.empty())
+    {
+        printf("No benchmark results to display.\n");
+        return;
+    }
+
+    printf("\n");
+    printf("===============================================\n");
+    printf("    BENCHMARK RESULTS [%ix%ix%i]\n", dims[0], dims[1], dims[2]);
+    printf("===============================================\n");
+    printf("%-30s %12s\n", "Benchmark", "Time (ms)");
+    printf("-----------------------------------------------\n");
+
+    // Найдем лучший результат
+    double best_time = std::numeric_limits<double>::max();
+    std::string best_benchmark;
+
+    for (const auto &result : benchmark_results)
+    {
+        if (result.second > 0 && result.second < best_time)
+        {
+            best_time = result.second;
+            best_benchmark = result.first;
+        }
+    }
+
+    for (const auto &result : benchmark_results)
+    {
+        const char *marker = (result.first == best_benchmark && result.second > 0) ? " <-- WINNER" : "";
+        printf("%-30s %12.3f%s\n",
+               result.first.c_str(),
+               result.second,
+               marker);
+    }
+
+    printf("===============================================\n");
+    printf("\n");
+}
+
 
 std::vector<int> scale_dims_balanced(const std::vector<int>& base_dims, int comm_size) {
     std::vector<int> scaled_dims = base_dims;
     int remaining_procs = comm_size;
+
+    if ( remaining_procs == 1 ) return scaled_dims;
 
     while (remaining_procs > 1) {
         for (int dim_idx = 2; dim_idx >= 0 && remaining_procs > 1; dim_idx--) {
@@ -29,29 +94,48 @@ void run_all(std::vector<int>&dims, bool weak_scaling)
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 
-    // run_cudecomp(dims, CUDECOMP_DOUBLE_COMPLEX);
-    run_cudecomp(dims, CUDECOMP_DOUBLE);
-    // run_cudecomp(dims, CUDECOMP_FLOAT);
+    std::map<std::string, double> benchmark_results;
 
-    std::vector<bool> z_slab_opts = {true, false};
-    for ( auto enable_z_slab : z_slab_opts ) {
-        setup_dtfft_config(enable_z_slab);
-        // run_dtfft_c2c(dims, dtfft::Precision::DOUBLE, dtfft::Executor::NONE, enable_z_slab);
-        run_dtfft_r2r(dims, dtfft::Precision::DOUBLE, enable_z_slab);
-        // run_dtfft_r2r(dims, dtfft::Precision::SINGLE, enable_z_slab);
-    }
-
+    dtfft::Effort effort = dtfft::Effort::EXHAUSTIVE;
     if( !weak_scaling ) {
-        // run_heffte<double>(dims, false);
-        run_heffte<float>(dims, false);
-        setup_dtfft_config(false);
-        // run_dtfft_c2c(dims, dtfft::Precision::DOUBLE, dtfft::Executor::CUFFT, false);
-        run_dtfft_c2c(dims, dtfft::Precision::SINGLE, dtfft::Executor::CUFFT, false);
-        if ( comm_size > 1 ) {
-            // run_accfft<double>(dims);
-            run_accfft<float>(dims);
+
+        double cudecomp_time =  run_cudecomp(dims, CUDECOMP_DOUBLE_COMPLEX, CUDECOMP_TRANSPOSE_COMM_NCCL);
+        if (cudecomp_time > 0) benchmark_results["cuDecomp"] = cudecomp_time;
+
+        // double heffte_time = run_heffte<double>(dims);
+        // if (heffte_time > 0) benchmark_results["HeFFTe"] = heffte_time;
+
+        setup_dtfft_config(false, dtfft::Backend::NCCL);
+        double dtfft_time = run_dtfft_c2c(dims, dtfft::Precision::DOUBLE, dtfft::Executor::CUFFT, false);
+        if (dtfft_time > 0) benchmark_results["dtFFT CUFFT"] = dtfft_time;
+
+        // double decomp_time = run_2d_decomp(dims);
+        // if (decomp_time > 0) benchmark_results["2D-decomp"] = decomp_time;
+
+        // double accfft_time = run_accfft<double>(dims);
+        // if (accfft_time > 0) benchmark_results["AccFFT"] = accfft_time;
+        // check_mem();
+    } else {
+        dtfft::Backend backend = dtfft::Backend::NCCL;
+        effort = dtfft::Effort::MEASURE;
+        std::vector<bool> z_slab_opts = {true, false};
+        for ( auto enable_z_slab : z_slab_opts ) {
+            setup_dtfft_config(enable_z_slab, backend);
+            double dtfft_time = run_dtfft_c2c(dims, dtfft::Precision::DOUBLE, dtfft::Executor::NONE, enable_z_slab, effort);
+
+            if (dtfft_time > 0) {
+                auto bench_name = std::string("dtFFT transpose-only");
+                if (enable_z_slab)
+                    bench_name += " Z-slab";
+                benchmark_results[bench_name] = dtfft_time;
+            }
+            // run_dtfft_r2r(dims, dtfft::Precision::DOUBLE, enable_z_slab);
+            // run_dtfft_r2r(dims, dtfft::Precision::SINGLE, enable_z_slab);
         }
+        check_mem();
     }
+
+    print_benchmark_results(benchmark_results, dims);
 }
 
 
@@ -78,8 +162,8 @@ int main(int argc, char *argv[]) {
     }
 
     std::vector<std::vector<int>> base_dims_sets = {
-        {1024, 1024, 512},    // Basic test
-        // {2048, 2048, 32},     // Narrow Z dimension
+        {512, 512, 512},    // Basic test
+        // {1024, 1024, 1024},     // Narrow Z dimension
         // {2048, 32, 2048},     // Narrow Y dimension
         // {32, 2048, 2048},     // Narrow X dimension
         // {1999, 1047, 215}     // Pure evil dimensions
@@ -87,14 +171,12 @@ int main(int argc, char *argv[]) {
 
     for (auto& base_dims : base_dims_sets) {
 
-        std::vector<bool> weak_scaling_opts = {true, false};
+        std::vector<bool> weak_scaling_opts = {true};
 
         for( auto weak_scaling : weak_scaling_opts )
         {
             std::vector<int> final_dims;
-            if ( weak_scaling && comm_size == 1 ) {
-                continue;
-            } else if (weak_scaling) {
+            if (weak_scaling) {
                 final_dims = scale_dims_balanced(base_dims, comm_size);
 
                 if (comm_rank == 0) {

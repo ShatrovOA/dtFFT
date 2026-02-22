@@ -193,6 +193,8 @@ enum class Error {
     R2C_EXECUTE_CALLED = DTFFT_ERROR_R2C_EXECUTE_CALLED,
     /** Invalid cartesian communicator provided */
     INVALID_CART_COMM = DTFFT_ERROR_INVALID_CART_COMM,
+    /** Invalid transpose mode provided */
+    INVALID_TRANSPOSE_MODE = DTFFT_ERROR_INVALID_TRANSPOSE_MODE,
     /** Invalid stream provided */
     GPU_INVALID_STREAM = DTFFT_ERROR_GPU_INVALID_STREAM,
     /** Invalid backend provided */
@@ -207,10 +209,10 @@ enum class Error {
     /** Passed `effort` ==  `Effort::PATIENT` but all GPU backends have been
        disabled by `Config` */
     BACKENDS_DISABLED = DTFFT_ERROR_BACKENDS_DISABLED,
-    /** One of pointers passed to `Plan.execute` or `Plan.transpose` cannot be
+    /** One of pointers passed to `Plan::execute` or `Plan::transpose` cannot be
        accessed from device */
     NOT_DEVICE_PTR = DTFFT_ERROR_NOT_DEVICE_PTR,
-    /** One of pointers passed to `Plan.execute` or `Plan.transpose` is not an
+    /** One of pointers passed to `Plan::execute` or `Plan::transpose` is not an
        `NVSHMEM` pointer */
     NOT_NVSHMEM_PTR = DTFFT_ERROR_NOT_NVSHMEM_PTR,
     /** Invalid platform provided */
@@ -218,7 +220,19 @@ enum class Error {
     /** Invalid executor provided for selected platform */
     INVALID_PLATFORM_EXECUTOR = DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR,
     /** Invalid backend provided for selected platform */
-    INVALID_PLATFORM_BACKEND = DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+    INVALID_PLATFORM_BACKEND = DTFFT_ERROR_INVALID_PLATFORM_BACKEND,
+    /** CUDA support is not available for compression */
+    COMPRESSION_CUDA_NOT_SUPPORTED = DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED,
+    /** Invalid compression rate */
+    COMPRESSION_INVALID_RATE = DTFFT_ERROR_COMPRESSION_INVALID_RATE,
+    /** Invalid compression precision */
+    COMPRESSION_INVALID_PRECISION = DTFFT_ERROR_COMPRESSION_INVALID_PRECISION,
+    /** Invalid compression tolerance */
+    COMPRESSION_INVALID_TOLERANCE = DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE,
+    /** Invalid compression mode */
+    COMPRESSION_INVALID_MODE = DTFFT_ERROR_COMPRESSION_INVALID_MODE,
+    /** Invalid compression library */
+    COMPRESSION_INVALID_LIBRARY = DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY
 };
 
 /** @brief Returns the string description of an error code
@@ -229,7 +243,7 @@ enum class Error {
 std::string get_error_string(Error error_code) noexcept;
 
 /** This enum lists valid `execute_type` parameters that can be passed to
- * Plan.execute. */
+ * Plan::execute. */
 enum class Execute {
     /** Perform XYZ --> YZX --> ZXY plan execution (Forward) */
     FORWARD = DTFFT_EXECUTE_FORWARD,
@@ -239,7 +253,7 @@ enum class Execute {
 };
 
 /** This enum lists valid `transpose_type` parameters that can be passed to
- * Plan.transpose */
+ * Plan::transpose */
 enum class Transpose {
     /** Transpose from Fortran X aligned to Fortran Y aligned */
     X_TO_Y = DTFFT_TRANSPOSE_X_TO_Y,
@@ -254,20 +268,20 @@ enum class Transpose {
     Z_TO_Y = DTFFT_TRANSPOSE_Z_TO_Y,
 
     /** Transpose from Fortran X aligned to Fortran Z aligned
-     * @note This value is valid only for 3D plans, and Plan.get_z_slab_enabled()
+     * @note This value is valid only for 3D plans, and Plan::get_z_slab_enabled()
      * must return `true`
      */
     X_TO_Z = DTFFT_TRANSPOSE_X_TO_Z,
 
     /** Transpose from Fortran Z aligned to Fortran X aligned
-     * @note This value is valid only for 3D plans, and Plan.get_z_slab_enabled()
+     * @note This value is valid only for 3D plans, and Plan::get_z_slab_enabled()
      * must return `true`
      */
     Z_TO_X = DTFFT_TRANSPOSE_Z_TO_X
 };
 
 /** This enum lists valid `reshape_type` parameters that can be passed to
- * Plan.reshape */
+ * Plan::reshape */
 enum class Reshape {
     /** Reshape from X bricks to X pencils */
     X_BRICKS_TO_PENCILS = DTFFT_RESHAPE_X_BRICKS_TO_PENCILS,
@@ -430,18 +444,49 @@ enum class Backend {
     /** MPI peer-to-peer algorithm with scheduled communication */
     MPI_P2P_SCHEDULED = DTFFT_BACKEND_MPI_P2P_SCHEDULED,
 
+    /** MPI peer-to-peer pipelined algorithm with overlapping packing,
+     * exchange and unpacking with scheduled communication */
+    MPI_P2P_FUSED = DTFFT_BACKEND_MPI_P2P_FUSED,
+
+    /** MPI RMA pipelined algorithm with overlapping packing,
+     * exchange and unpacking with scheduled communication
+    */
+    MPI_RMA_FUSED = DTFFT_BACKEND_MPI_RMA_FUSED,
+
+    /** Extension of Backend.MPI_P2P_FUSED
+     * Data is getting compressed before sending and decompressed after receiving
+     */
+    MPI_P2P_COMPRESSED = DTFFT_BACKEND_MPI_P2P_COMPRESSED,
+
+    /** Extension of Backend.MPI_RMA_FUSED
+     * Data is getting compressed before sending and decompressed after receiving
+     */
+    MPI_RMA_COMPRESSED = DTFFT_BACKEND_MPI_RMA_COMPRESSED,
+
     /** NCCL backend */
     NCCL = DTFFT_BACKEND_NCCL,
 
     /** NCCL backend with overlapping data copying and unpacking */
     NCCL_PIPELINED = DTFFT_BACKEND_NCCL_PIPELINED,
 
+    /** NCCL backend that performs compression before data exchange and decompression after. */
+    NCCL_COMPRESSED = DTFFT_BACKEND_NCCL_COMPRESSED,
+
     /** cuFFTMp backend */
     CUFFTMP = DTFFT_BACKEND_CUFFTMP,
 
     /** cuFFTMp backend that uses additional buffer to avoid extra copy and gain
        performance */
-    CUFFTMP_PIPELINED = DTFFT_BACKEND_CUFFTMP_PIPELINED
+    CUFFTMP_PIPELINED = DTFFT_BACKEND_CUFFTMP_PIPELINED,
+
+    /** Adaptive backend selection: during plan creation dtFFT benchmarks multiple
+     * backends and selects the fastest backend independently for each transpose/reshape operation.
+     * The selection is fixed for the lifetime of the plan.
+     *
+     * @note Can only be used when effort >= Effort.DTFFT_PATIENT.
+     * @note Currently only available for HOST execution platform
+    */
+    ADAPTIVE = DTFFT_BACKEND_ADAPTIVE
 };
 
 /**
@@ -469,6 +514,63 @@ enum class Platform {
     HOST = DTFFT_PLATFORM_HOST,
     /** CUDA */
     CUDA = DTFFT_PLATFORM_CUDA,
+};
+#endif
+
+#ifdef DTFFT_WITH_COMPRESSION
+/** Enum that specifies compression mode */
+enum class CompressionMode {
+    /** Lossless compression mode */
+    LOSSLESS = DTFFT_COMPRESSION_MODE_LOSSLESS,
+    /** Fixed rate compression mode */
+    FIXED_RATE = DTFFT_COMPRESSION_MODE_FIXED_RATE,
+    /** Fixed precision compression mode */
+    FIXED_PRECISION = DTFFT_COMPRESSION_MODE_FIXED_PRECISION,
+    /** Fixed accuracy compression mode */
+    FIXED_ACCURACY = DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
+};
+
+/** Enum that specifies compression library */
+enum class CompressionLib {
+    /** ZFP compression library */
+    ZFP = DTFFT_COMPRESSION_LIB_ZFP
+};
+
+/** Struct that specifies compression configuration */
+struct CompressionConfig {
+    /** Compression library to use */
+    CompressionLib compression_lib = CompressionLib::ZFP;
+    /** Compression mode to use */
+    CompressionMode compression_mode = CompressionMode::LOSSLESS;
+    /** Rate for CompressionMode::FIXED_RATE */
+    double rate = -1.0;
+    /** Precision for CompressionMode::FIXED_PRECISION */
+    int32_t precision = -1;
+    /** Tolerance for CompressionMode::FIXED_ACCURACY */
+    double tolerance = -1.0;
+
+    /** Default constructor */
+    CompressionConfig() = default;
+
+    /** Constructor with parameters */
+    CompressionConfig(CompressionLib lib, CompressionMode mode, double rate = -1.0, int32_t precision = -1, double tolerance = -1.0)
+        : compression_lib(lib), compression_mode(mode), rate(rate), precision(precision), tolerance(tolerance) {}
+
+    /** Fixed rate or fixed accuracy compression constructor */
+    CompressionConfig(CompressionMode mode, double value) {
+        compression_mode = mode;
+        if (mode == CompressionMode::FIXED_RATE) {
+            rate = value;
+        } else if (mode == CompressionMode::FIXED_ACCURACY) {
+            tolerance = value;
+        } else {
+            // Invalid mode for double parameter
+            throw std::invalid_argument("Invalid CompressionMode");
+        }
+    }
+
+    /** Fixed precision compression constructor */
+    CompressionConfig(int32_t precision) : compression_mode(dtfft::CompressionMode::FIXED_PRECISION), precision(precision) {}
 };
 #endif
 
@@ -516,7 +618,7 @@ public:
  * 2. To obtain Pencil from Plan in all possible layouts, in order to run FFT
  * not available in dtFFT.
  *
- * @see Plan.get_pencil()
+ * @see Plan::get_pencil()
  */
 struct Pencil {
 private:
@@ -572,6 +674,28 @@ public:
     const dtfft_pencil_t& c_struct() const;
 };
 
+/** This enum specifies at which stage the local transposition is performed during global exchange.
+ * It affects only Generic backends that perform explicit packing/unpacking.
+ */
+enum class TransposeMode {
+    /** Perform transposition during the packing stage (Sender side). */
+    PACK = DTFFT_TRANSPOSE_MODE_PACK,
+
+    /** Perform transposition during the unpacking stage (Receiver side). */
+    UNPACK = DTFFT_TRANSPOSE_MODE_UNPACK
+};
+
+/** This enum specifies whether to prioritize write-aligned (contiguous in memory) or read-aligned (scattered access) operations
+ * during local transposition in Generic backends.
+ */
+enum class AccessMode {
+    /** Write-aligned access (scattered read, contiguous write). Usually faster on CPUs. */
+    WRITE = DTFFT_ACCESS_MODE_WRITE,
+
+    /** Read-aligned access (contiguous read, scattered write). */
+    READ = DTFFT_ACCESS_MODE_READ
+};
+
 /** Class to set additional configuration parameters to dtFFT
  * @see set_config()
  */
@@ -620,7 +744,7 @@ public:
      * @details Default is `false`
      *
      * If `true` then `dtFFT` will skip the transpose step between Y and Z aligned
-     * layouts during call to Plan.execute(). One should consider disabling Y-slab
+     * layouts during call to Plan::execute(). One should consider disabling Y-slab
      * optimization in order to resolve `Error::VKFFT_R2R_2D_PLAN` error or when
      * underlying FFT implementation of 2D plan is too slow.
      *
@@ -671,7 +795,7 @@ public:
      * @brief Sets Main CUDA stream that will be used in dtFFT.
      *
      * @details This parameter is a placeholder for user to set custom stream.
-     * Stream that is actually used by dtFFT plan is returned by Plan.get_stream
+     * Stream that is actually used by dtFFT plan is returned by Plan::get_stream
      * function. When user sets stream he is responsible of destroying it.
      *
      * Stream must not be destroyed before call to destroy.
@@ -733,6 +857,8 @@ public:
      *
      * @details Default is `false`.
      *
+     * This option applies to all `Backend::MPI_*` backends, except Backend::MPI_DATATYPE.
+     *
      * The following applies only to CUDA builds.
      * MPI Backends are disabled by default during autotuning process due to
      * OpenMPI Bug https://github.com/open-mpi/ompi/issues/12849 It was noticed
@@ -767,6 +893,32 @@ public:
     set_enable_pipelined_backends(bool enable_pipelined_backends) noexcept
     {
         config.enable_pipelined_backends = enable_pipelined_backends;
+        return *this;
+    }
+
+    /**
+     * @brief Sets whether RMA backends be enabled when `effort` is
+     * Effort::PATIENT or Effort::EXHAUSTIVE.
+     *
+     * @details Default is `true`.
+     */
+    Config&
+    set_enable_rma_backends(bool enable_rma_backends) noexcept
+    {
+        config.enable_rma_backends = enable_rma_backends;
+        return *this;
+    }
+
+    /**
+     * @brief Sets whether fused backends be enabled when `effort` is
+     * Effort::PATIENT or Effort::EXHAUSTIVE.
+     *
+     * @details Default is `true`.
+     */
+    Config&
+    set_enable_fused_backends(bool enable_fused_backends) noexcept
+    {
+        config.enable_fused_backends = enable_fused_backends;
         return *this;
     }
 
@@ -820,8 +972,8 @@ public:
      * @details Default is `false`.
      *
      * When enabled, data will be in brick layout in Fourier space, which may be useful for certain operations
-     * between forward and backward transforms. However, this requires additional data transpositions
-     * and will reduce overall FFT performance.
+     * between forward and backward transforms. However, this requires additional all-to-all exchange
+     * and will reduce overall performance.
      */
     Config&
     set_enable_fourier_reshape(bool enable_fourier_reshape) noexcept
@@ -829,6 +981,82 @@ public:
         config.enable_fourier_reshape = enable_fourier_reshape;
         return *this;
     }
+
+    /**
+     * @brief Sets at which stage the local transposition is performed during global exchange when effort level is below Effort::EXHAUSTIVE.
+     *
+     * @details Default is TransposeMode::PACK.
+     *
+     * For Effort::EXHAUSTIVE effort level, dtFFT will always choose the best transpose mode based on internal autotuning.
+     * 
+     * @note This option only takes effect if platform == Platform::HOST
+     */
+    Config&
+    set_transpose_mode(TransposeMode transpose_mode) noexcept
+    {
+        config.transpose_mode = static_cast<dtfft_transpose_mode_t>(transpose_mode);
+        return *this;
+    }
+
+    /**
+     * @brief Sets the memory access mode for local transposition in Generic backends.
+     *
+     * This setting allows choosing between write-aligned (contiguous write) or read-aligned (contiguous read)
+     * memory access patterns during the local transposition phase.
+     *
+     * @details Default is AccessMode::WRITE.
+     *
+     * Write-aligned access is generally faster on CPU architectures due to cache line utilization optimization.
+     * However, specific hardware or memory subsystem characteristics might favor read-aligned access.
+     */
+    Config&
+    set_access_mode(AccessMode access_mode) noexcept
+    {
+        config.access_mode = static_cast<dtfft_access_mode_t>(access_mode);
+        return *this;
+    }
+
+#ifdef DTFFT_WITH_COMPRESSION
+    /**
+     * @brief Should compressed backends be enabled when `effort` is Effort::PATIENT or Effort::EXHAUSTIVE.
+     *
+     * @details Default is `false`.
+     *
+     * Only fixed-rate compression can be used during autotuning, since it provides predictable performance characteristics and does not require data-dependent decisions at runtime.
+     * To enable compressed backends during autotuning, set this option to true, set compression type to CompressionMode::FIXED_RATE and provide desired compression rate.
+     */
+    Config& set_enable_compressed_backends(bool enable_compressed_backends) noexcept
+    {
+        config.enable_compressed_backends = enable_compressed_backends;
+        return *this;
+    }
+
+    /**
+     * @brief Sets compression configuration for transpositions
+     */
+    Config& set_compression_config_transpose(const CompressionConfig& compression_config) noexcept
+    {
+        config.compression_config_transpose.compression_lib = static_cast<dtfft_compression_lib_t>(compression_config.compression_lib);
+        config.compression_config_transpose.compression_mode = static_cast<dtfft_compression_mode_t>(compression_config.compression_mode);
+        config.compression_config_transpose.rate = compression_config.rate;
+        config.compression_config_transpose.precision = compression_config.precision;
+        config.compression_config_transpose.tolerance = compression_config.tolerance;
+        return *this;
+    }
+
+    /**
+     * @brief Sets compression configuration for reshape operations
+     */
+    Config& set_compression_config_reshape(const CompressionConfig& compression_config) noexcept
+    {
+        config.compression_config_reshape.compression_lib = static_cast<dtfft_compression_lib_t>(compression_config.compression_lib);
+        config.compression_config_reshape.compression_mode = static_cast<dtfft_compression_mode_t>(compression_config.compression_mode);
+        config.compression_config_reshape.rate = compression_config.rate;
+        config.compression_config_reshape.precision = compression_config.precision;
+        config.compression_config_reshape.tolerance = compression_config.tolerance;
+        return *this;
+    }
+#endif
 
     /** @return Underlying C structure */
     dtfft_config_t c_struct() const { return config; }
@@ -854,7 +1082,7 @@ protected:
 public:
     /** @brief Checks if plan is using Z-slab optimization.
      * If `true` then flags Transpose::X_TO_Z and Transpose::Z_TO_X will be valid
-     * to pass to Plan.transpose method.
+     * to pass to Plan::transpose method.
      *
      * @param[out]     is_z_slab_enabled       Boolean value if Z-slab is used.
      *
@@ -872,7 +1100,7 @@ public:
     bool get_z_slab_enabled() const;
 
     /** @brief Checks if plan is using Y-slab optimization.
-     * If `true` then during call to Plan.execute the transpose between Y and Z
+     * If `true` then during call to Plan::execute the transpose between Y and Z
      * aligned layouts will be skipped.
      *
      * @param[out]     is_y_slab_enabled       Boolean value if Y-slab is used.
@@ -895,6 +1123,15 @@ public:
      * @return Error::SUCCESS if call was without error, error code otherwise
      */
     Error report() const noexcept;
+
+#ifdef DTFFT_WITH_COMPRESSION
+    /**
+     * @brief Prints compression-related information to stdout
+     *
+     * @return Error::SUCCESS if call was without error, error code otherwise
+     */
+    Error report_compression() const noexcept;
+#endif
 
     /**
      * @brief Obtains pencil information from plan. This can be useful when user
@@ -1006,8 +1243,6 @@ public:
      * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_aux_bytes() bytes.
      *
      * @return Error::SUCCESS on success or error code on failure.
-     * @note Not all plans support in-place plan executing. Refer to the manual
-     * for list of unsupported cases.
      */
     Error forward(void* in, void* out, void* aux) const noexcept;
 
@@ -1157,7 +1392,7 @@ public:
      * @param[inout]   in                    Input pointer
      * @param[out]     out                   Pointer of transposed data
      * @param[in]      transpose_type        Type of transpose to perform.
-     * @param[inout]   aux                   Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_alloc_size() elements.
+     * @param[inout]   aux                   Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_aux_size_transpose() elements.
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
@@ -1171,7 +1406,7 @@ public:
      * @param[inout]   in                   Input pointer
      * @param[out]     out                  Output pointer
      * @param[in]      transpose_type       Type of transpose to perform
-     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_alloc_bytes() bytes.
+     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_aux_size_transpose() bytes.
      * @param[out]     request              Handle to manage the asynchronous
      *                                      operation
      *
@@ -1195,6 +1430,20 @@ public:
         dtfft_request_t* request) const noexcept;
 
     /**
+     * @brief Starts an asynchronous transpose operation in single dimension, e.g.
+     * X align -> Y align
+     * @attention `in` and `out` cannot be the same pointers
+     *
+     * @param[inout]   in                   Input pointer
+     * @param[out]     out                  Output pointer
+     * @param[in]      transpose_type       Type of transpose to perform
+     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_aux_size_transpose() bytes.
+     *
+     * @return Handle to manage the asynchronous operation
+     */
+    dtfft_request_t transpose_start(void* in, void* out, Transpose transpose_type, void* aux = nullptr) const;
+
+    /**
      * @brief Ends an asynchronous transpose operation.
      *
      * @param[inout] request Handle to manage the asynchronous operation
@@ -1208,7 +1457,7 @@ public:
      * @param[inout]   in                    Input pointer
      * @param[out]     out                   Pointer of reshaped data
      * @param[in]      reshape_type          Type of reshape to perform.
-     * @param[inout]   aux                   Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_alloc_size() elements.
+     * @param[inout]   aux                   Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_aux_size_reshape() elements.
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
@@ -1221,7 +1470,7 @@ public:
      * @param[inout]   in                   Input pointer
      * @param[out]     out                  Output pointer
      * @param[in]      reshape_type         Type of reshape to perform
-     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_alloc_size() elements.
+     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_aux_size_reshape() elements.
      * @param[out]     request              Handle to manage the asynchronous
      *                                      operation
      *
@@ -1244,6 +1493,20 @@ public:
     Error reshape_start(void* in, void* out, Reshape reshape_type, dtfft_request_t* request) const noexcept;
 
     /**
+     * @brief Starts an asynchronous reshape operation from bricks to pencils
+     * and vice versa
+     * @attention `in` and `out` cannot be the same pointers
+     *
+     * @param[inout]   in                   Input pointer
+     * @param[out]     out                  Output pointer
+     * @param[in]      reshape_type         Type of reshape to perform
+     * @param[inout]   aux                  Auxiliary pointer. Can be `nullptr`. If provided, must be at least get_aux_size_reshape() elements.
+     *
+     * @return Handle to manage the asynchronous operation
+     */
+    dtfft_request_t reshape_start(void* in, void* out, Reshape reshape_type, void* aux = nullptr) const;
+
+    /**
      * @brief Ends an asynchronous reshape operation.
      *
      * @param[inout] request Handle to manage the asynchronous operation
@@ -1254,12 +1517,8 @@ public:
     /** @brief Wrapper around `Plan.get_local_sizes` to obtain `alloc_size` only
      *
      * @param[out]     alloc_size       Minimum number of elements to be allocated
-     *                                  for `in` and `out` buffers required by `Plan.execute`.
-     *                                  This also returns minimum number of elements required for `aux` buffer
-     *                                  required by `Plan.transpose` and `Plan.reshape`.
-     *                                  Minimum number of `aux` elements required by `Plan.execute` can be obtained
-     *                                  by calling `Plan.get_aux_size`.
-     *                                  Size of each element in bytes can be obtained by calling `Plan.get_element_size`.
+     *                                  for `in` and `out` buffers required by `Plan::execute`, `Plan::transpose`, and `Plan::reshape`.
+     *                                  Size of each element in bytes can be obtained by calling `Plan::get_element_size`.
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
@@ -1267,9 +1526,7 @@ public:
 
     /** @brief Wrapper around Plan.get_local_sizes to obtain `alloc_size` only
      *
-     * @return Minimum number of elements to be allocated for `in` and `out` buffers required by `Plan.execute`.
-     *         This also returns minimum number of elements required for `aux` buffer required by `Plan.transpose` and `Plan.reshape`.
-     *         Minimum number of `aux` elements required by `Plan.execute` can be obtained by calling `Plan.get_aux_size`.
+     * @return Minimum number of elements to be allocated for `in` and `out` buffers required by `Plan::execute`, `Plan::transpose`, and `Plan::reshape`.
      *
      * @throws Exception if underlying call fails
      */
@@ -1279,7 +1536,7 @@ public:
      *
      * @param[out]   aux_size              Number of elements required for
      *                                     auxiliary buffer. Size of each element in bytes can be obtained by calling
-     *                                     `Plan.get_element_size`.
+     *                                     `Plan::get_element_size`.
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
@@ -1310,6 +1567,63 @@ public:
      */
     std::size_t get_aux_bytes() const;
 
+    /** @brief Get number of elements required by Plan::reshape
+     *
+     * @param[out]  aux_size    Number of elements required for auxiliary buffer during reshape operation.
+     *                          Size of each element in bytes can be obtained by calling `Plan::get_element_size`.
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_aux_size_reshape(std::size_t* aux_size) const noexcept;
+
+    /** @brief Get number of elements required by Plan::reshape
+     *
+     * @return Number of elements required for auxiliary buffer during reshape operation.
+     * @throws Exception if underlying call fails
+     */
+    std::size_t get_aux_size_reshape() const;
+
+    /** @brief Get number of bytes required by Plan.reshape
+     *
+     * @param[out]  aux_bytes   Number of bytes required for auxiliary buffer during reshape operation.
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_aux_bytes_reshape(std::size_t* aux_bytes) const noexcept;
+
+    /** @brief Get number of bytes required by Plan::reshape
+     *
+     * @return Number of bytes required for auxiliary buffer during reshape operation.
+     * @throws Exception if underlying call fails
+     */
+    std::size_t get_aux_bytes_reshape() const;
+
+    /** @brief Get number of elements required by Plan::transpose
+     *
+     * @param[out]  aux_size    Number of elements required for auxiliary buffer during transpose operations.
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_aux_size_transpose(std::size_t* aux_size) const noexcept;
+
+    /** @brief Get number of elements required by Plan::transpose
+     *
+     * @return Number of elements required for auxiliary buffer during transpose operations.
+     * @throws Exception if underlying call fails
+     */
+    std::size_t get_aux_size_transpose() const;
+
+    /** @brief Get number of bytes required by Plan::transpose
+     *
+     * @param[out]  aux_bytes   Number of bytes required for auxiliary buffer during transpose operations.
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error get_aux_bytes_transpose(std::size_t* aux_bytes) const noexcept;
+
+    /** @brief Get number of bytes required by Plan::transpose
+     *
+     * @return Number of bytes required for auxiliary buffer during transpose operations.
+     * @throws Exception if underlying call fails
+     */
+    std::size_t get_aux_bytes_transpose() const;
+
     /** @brief Get grid decomposition information. Results may differ on different
      * MPI processes
      *
@@ -1322,8 +1636,8 @@ public:
      * @param[out]   out_counts             Sizes  of local portion of data in
      * 'fourier' space in reversed order
      * @param[out]   alloc_size             Minimum number of elements to be
-     * allocated for `in`, `out` or `aux` buffers. Size of each element in bytes
-     * can be obtained by calling `Plan.get_element_size`.
+     * allocated for `in`, `out` buffers. Size of each element in bytes
+     * can be obtained by calling `Plan::get_element_size`.
      *
      * @return Error::SUCCESS on success or error code on failure.
      *
@@ -1349,7 +1663,7 @@ public:
      * @param[out]   out_counts             Sizes  of local portion of data in
      * 'fourier' space in reversed order
      * @param[out]   alloc_size             Minimum number of elements needs to be
-     * allocated for `in`, `out` or `aux` buffers. Size of each element in bytes
+     * allocated for `in`, `out` buffers. Size of each element in bytes
      * can be obtained by calling `Plan.get_element_size`.
      *
      * @return Error::SUCCESS on success or error code on failure.
@@ -1383,11 +1697,10 @@ public:
     /**
      * @brief Returns minimum number of bytes required for in and out buffers.
      *
-     * This function is a combination of two calls: Plan.get_alloc_size and
-     * Plan.get_element_size.
-     * Returns minimum number of bytes to be allocated for `in` and `out` buffers required by `Plan.execute`.
-     * This also returns minimum number of bytes required for `aux` buffer required by `Plan.transpose` and `Plan.reshape`.
-     * Minimum number of `aux` bytes required by `Plan.execute` can be obtained by calling `Plan.get_aux_bytes`.
+     * This function is a combination of two calls: Plan::get_alloc_size and
+     * Plan::get_element_size.
+     * Returns minimum number of bytes to be allocated for `in` and `out` buffers required by `Plan::execute`.
+     * Minimum number of `aux` bytes required by `Plan::execute` can be obtained by calling `Plan::get_aux_bytes`.
      *
      * @param[out]    alloc_bytes    Number of bytes required
      *
@@ -1398,11 +1711,10 @@ public:
     /**
      * @brief Returns minimum number of bytes required for in and out buffers.
      *
-     * This function is a combination of two calls: Plan.get_alloc_size and
-     * Plan.get_element_size.
-     * Returns minimum number of bytes to be allocated for `in` and `out` buffers required by `Plan.execute`.
-     * This also returns minimum number of bytes required for `aux` buffer required by `Plan.transpose` and `Plan.reshape`.
-     * Minimum number of `aux` bytes required by `Plan.execute` can be obtained by calling `Plan.get_aux_bytes`.
+     * This function is a combination of two calls: Plan::get_alloc_size and
+     * Plan::get_element_size.
+     * Returns minimum number of bytes to be allocated for `in` and `out` buffers required by `Plan::execute`.
+     * Minimum number of `aux` bytes required by `Plan::execute` can be obtained by calling `Plan::get_aux_bytes`.
      *
      * @return  Number of bytes of each buffer required to execute plan
      *
@@ -1645,8 +1957,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor
      *
      * @throws Exception In case error occurs during plan creation
@@ -1662,8 +1973,7 @@ public:
      * @param[in]    dims                   Vector with global dimensions in
      *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1678,8 +1988,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor
      *
      * @throws Exception In case error occurs during plan creation
@@ -1695,8 +2004,7 @@ public:
      *
      * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      *
      * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
      * instead.
@@ -1713,8 +2021,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor
      *
      * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
@@ -1739,8 +2046,7 @@ public:
      *                                      Cartesian communicator
      * @param[in]    executor               Type of external FFT executor
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1757,8 +2063,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor
      *
      * @throws Exception In case error occurs during plan creation
@@ -1775,8 +2080,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1798,8 +2102,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor.
      *
      * @throws Exception In case error occurs during plan creation
@@ -1816,8 +2119,7 @@ public:
      * @param[in]    dims                   Vector with global dimensions in
      *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1835,8 +2137,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor.
      *
      * @throws Exception In case error occurs during plan creation
@@ -1852,8 +2153,7 @@ public:
      *
      * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -1868,8 +2168,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor.
      *
      * @throws Exception In case error occurs during plan creation
@@ -1888,8 +2187,7 @@ public:
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
-     * @param[in]    effort                 How thoroughly `dtFFT` searches for
-     *                                      the optimal plan
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor.
      *
      * @throws Exception In case error occurs during plan creation

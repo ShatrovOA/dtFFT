@@ -25,7 +25,7 @@
 
 #include "test_utils.h"
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
   int32_t nx = 4, ny = 64, nz = 16;
   double *in, *check, *out;
@@ -52,18 +52,29 @@ int main(int argc, char *argv[])
 
   dtfft_config_t conf;
   DTFFT_CALL( dtfft_create_config(&conf) )
+  conf.enable_datatype_backend = false;
   conf.enable_mpi_backends = true;
+  conf.enable_z_slab = false;
+  conf.access_mode = DTFFT_ACCESS_MODE_READ;
+  conf.transpose_mode = DTFFT_TRANSPOSE_MODE_UNPACK;
+#ifdef DTFFT_WITH_CUDA
+  conf.backend = DTFFT_BACKEND_MPI_A2A;
+#else
+  conf.backend = DTFFT_BACKEND_ADAPTIVE;
+#endif
+  // DTFFT_CALL( dtfft_set_config(&conf) )
   DTFFT_CALL( dtfft_set_config(&conf) )
 
   // Create plan
   dtfft_plan_t plan;
 
-  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, DTFFT_EXECUTOR_NONE, &plan) )
+  DTFFT_CALL( dtfft_create_plan_r2r(3, n, NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_EXHAUSTIVE, DTFFT_EXECUTOR_NONE, &plan) )
   DTFFT_CALL( dtfft_get_pencil(plan, DTFFT_LAYOUT_X_PENCILS, &pencils[0]) )
-  DTFFT_CALL( dtfft_destroy(&plan) )
+  // DTFFT_CALL( dtfft_destroy(&plan) )
+
 
   // Recreate plan with pencils
-  DTFFT_CALL( dtfft_create_plan_r2r_pencil(&pencils[0], NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_PATIENT, DTFFT_EXECUTOR_NONE, &plan) )
+  // DTFFT_CALL( dtfft_create_plan_r2r_pencil(&pencils[0], NULL, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_EXHAUSTIVE, DTFFT_EXECUTOR_NONE, &plan) )
   DTFFT_CALL( dtfft_report(plan) )
   size_t alloc_bytes;
   DTFFT_CALL( dtfft_get_alloc_bytes(plan, &alloc_bytes) )
@@ -137,9 +148,9 @@ int main(int argc, char *argv[])
   tb += MPI_Wtime();
 
 #if defined(DTFFT_WITH_CUDA)
-  checkAndReportDouble(nx * ny, tf, tb, in, in_size, check, (int32_t)platform);
+  checkAndReportDouble(nx * ny * nz, tf, tb, in, in_size, check, (int32_t)platform);
 #else
-  checkAndReportDouble(nx * ny, tf, tb, in, in_size, check);
+  checkAndReportDouble(nx * ny * nz, tf, tb, in, in_size, check);
 #endif
 
   DTFFT_CALL( dtfft_mem_free(plan, in) )
