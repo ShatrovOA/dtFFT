@@ -50,28 +50,40 @@ public :: CUmodule
 public :: CUfunction
 #ifdef DTFFT_WITH_MOCK_ENABLED
   abstract interface
-    pure subroutine simple_interface_r32(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+    pure &
+#endif
+    subroutine simple_interface_r32(in, out, dims)
     import
       real(real32),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
       real(real32),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
       integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
     end subroutine simple_interface_r32
 
-    pure subroutine simple_interface_r64(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+    pure &
+#endif
+    subroutine simple_interface_r64(in, out, dims)
     import
       real(real64),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
       real(real64),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
       integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
     end subroutine simple_interface_r64
 
-    pure subroutine simple_interface_r128(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+    pure &
+#endif
+    subroutine simple_interface_r128(in, out, dims)
     import
       complex(real64),  intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
       complex(real64),  intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
       integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
     end subroutine simple_interface_r128
 
-    pure subroutine pipe_interface_r32(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+    pure &
+#endif
+    subroutine pipe_interface_r32(in, out, dims, locals)
     import
       real(real32),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
       real(real32),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
@@ -79,7 +91,10 @@ public :: CUfunction
       integer(int32),   intent(in)    :: locals(:)                  !! Local memory size specification
     end subroutine pipe_interface_r32
 
-    pure subroutine pipe_interface_r64(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+    pure &
+#endif
+    subroutine pipe_interface_r64(in, out, dims, locals)
     import
       real(real64),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
       real(real64),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
@@ -87,7 +102,10 @@ public :: CUfunction
       integer(int32),   intent(in)    :: locals(:)                  !! Local memory size specification
     end subroutine pipe_interface_r64
 
-    pure subroutine pipe_interface_r128(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+    pure &
+#endif
+    subroutine pipe_interface_r128(in, out, dims, locals)
     import
       complex(real64),  intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
       complex(real64),  intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer

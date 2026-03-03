@@ -302,18 +302,22 @@ contains
 
     subroutine execute_self_copy(self, in, out, stream)
     !! Executes self copy
-        class(abstract_backend),    intent(inout)   :: self       !! Abstract backend
-        real(real32),               intent(in)      :: in(:)      !! Send pointer
-        real(real32),               intent(inout)   :: out(:)     !! Recv pointer
-        type(dtfft_stream_t),       intent(in)      :: stream     !! CUDA stream
-        integer(int64) :: float_count
+        class(abstract_backend),    intent(inout)   :: self             !! Abstract backend
+        real(real32),               intent(in)      :: in(BUFFER_SPEC)  !! Send pointer
+        real(real32),               intent(inout)   :: out(BUFFER_SPEC) !! Recv pointer
+        type(dtfft_stream_t),       intent(in)      :: stream           !! CUDA stream
+        integer(int32) :: float_count, i
 
         if (self%self_copy_bytes == 0) return
 
         REGION_BEGIN("self_copy", COLOR_TOMATO)
         if (self%platform == DTFFT_PLATFORM_HOST) then
-            float_count = self%self_copy_bytes / FLOAT_STORAGE_SIZE
-            out(self%self_recv_displ:self%self_recv_displ + float_count - 1) = in(self%self_send_displ:self%self_send_displ + float_count - 1)
+            float_count = int(self%self_copy_bytes / FLOAT_STORAGE_SIZE, int32)
+        !$omp parallel do simd private(i)
+            do i = 0, float_count - 1
+                out(self%self_recv_displ + i) = in(self%self_send_displ + i)
+            enddo
+        !$omp end parallel do simd
 #ifdef DTFFT_WITH_CUDA
         else
             CUDA_CALL( cudaEventRecord(self%execution_event, stream) )

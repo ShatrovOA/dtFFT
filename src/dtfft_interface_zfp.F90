@@ -63,6 +63,9 @@ public :: zfp_exec_policy
     type(zfp_exec_policy), parameter, public :: zfp_exec_serial = zfp_exec_policy(0)
     !! Serial execution policy
 
+    type(zfp_exec_policy), parameter, public :: zfp_exec_omp = zfp_exec_policy(1)
+    !! OpenMP parallel execution policy
+
     type(zfp_exec_policy), parameter, public :: zfp_exec_cuda = zfp_exec_policy(2)
     !! CUDA parallel execution policy
 
@@ -330,17 +333,14 @@ contains
         endif
     end subroutine zfp_field_set_stride
 
-    subroutine zfp_stream_set_rate(stream, field, rate, is_complex)
+    subroutine zfp_stream_set_rate(stream, field, rate)
     !! Set compression rate with alignment for complex data
         type(zfp_stream),   intent(in)  :: stream    !! compressed stream
         type(zfp_field),    intent(in)  :: field     !! field metadata
         real(c_double),     intent(in)  :: rate      !! desired rate in compressed bits/scalar
-        logical,            intent(in)  :: is_complex !! whether data is complex
         real(c_double) :: dummy
-        integer(c_int) :: align
 
-        align = 1; if( is_complex ) align = 0
-        dummy = zfp_stream_set_rate_interface(stream, rate, zfp_field_type(field), zfp_field_dimensionality(field), align)
+        dummy = zfp_stream_set_rate_interface(stream, rate, zfp_field_type(field), zfp_field_dimensionality(field), 1)
     end subroutine zfp_stream_set_rate
 
     subroutine zfp_stream_set_precision(stream, prec)

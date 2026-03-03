@@ -22,6 +22,9 @@ module dtfft_executor_mkl_m
 !! https://software.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-fortran/top/fourier-transform-functions/fft-functions.html
 use iso_fortran_env,              only: int8, int32, int64, error_unit
 use iso_c_binding,                only: c_int, c_long, c_ptr
+#ifdef DTFFT_WITH_OPENMP
+use omp_lib
+#endif
 use dtfft_abstract_executor,      only: abstract_executor, FFT_C2C, FFT_R2C, FFT_R2R
 use dtfft_errors
 use dtfft_interface_mkl_m
@@ -79,6 +82,9 @@ contains
     MKL_DFTI_CALL( "DftiSetValue", mkl_dfti_set_value(plan, DFTI_INPUT_DISTANCE, idist) )
     MKL_DFTI_CALL( "DftiSetValue", mkl_dfti_set_value(plan, DFTI_OUTPUT_DISTANCE, odist) )
     MKL_DFTI_CALL( "DftiSetValue", mkl_dfti_set_value(plan, DFTI_CONJUGATE_EVEN_STORAGE, DFTI_COMPLEX_COMPLEX) )
+#ifdef DTFFT_WITH_OPENMP
+    MKL_DFTI_CALL( "DftiSetValue", mkl_dfti_set_value(plan, DFTI_THREAD_LIMIT, omp_get_max_threads()) )
+#endif
     MKL_DFTI_CALL( "DftiCommitDescriptor", mkl_dfti_commit_desc(plan) )
   end subroutine make_plan
 

@@ -23,6 +23,7 @@ use iso_c_binding
 use iso_fortran_env
 use dtfft_abstract_compressor
 use dtfft_errors
+use dtfft_config
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
 #endif
@@ -40,6 +41,7 @@ public :: compressor_zfp
     !! ZFP-based compressor implementation
     private
         logical                         :: is_complex   !! Indicates if the data type is complex
+        logical                         :: is_fixed_rate
         integer(int64)                  :: imag_offset  !! Byte offset for imaginary part in complex data
         type(dtfft_compression_config_t):: config       !! Compression configuration parameters
         type(zfp_exec_policy)           :: policy       !! ZFP execution policy (serial or CUDA)
@@ -58,6 +60,8 @@ public :: compressor_zfp
         procedure   :: init                             !! Initializes ZFP stream and field for compression/decompression
     end type compressor_zfp
 
+    logical, save :: WARNING_ISSUED = .false.
+
 contains
 
     integer(int32) function create(self, config, platform, base_type)
@@ -71,7 +75,23 @@ contains
         self%imag_offset = 0
         self%is_complex = GET_MPI_VALUE(base_type) == GET_MPI_VALUE(MPI_COMPLEX) .or. GET_MPI_VALUE(base_type) == GET_MPI_VALUE(MPI_DOUBLE_COMPLEX)
         self%config = config
+#ifdef DTFFT_WITH_OPENMP
+# ifdef ZFP_WITH_OPENMP
+        self%policy = zfp_exec_omp
+        if ( .not. WARNING_ISSUED ) then
+            WRITE_WARN("ZFP Does not support OpenMP decompression. All decompressions will be performed in a serial manner.")
+            WARNING_ISSUED = .true.
+        endif
+# else
+        if ( .not. WARNING_ISSUED ) then
+            WRITE_WARN("ZFP Does not support OpenMP execution policy. All compressions and decompressions will be performed in a serial manner.")
+            WARNING_ISSUED = .true.
+        endif
         self%policy = zfp_exec_serial
+# endif
+#else
+        self%policy = zfp_exec_serial
+#endif
         if ( platform == DTFFT_PLATFORM_CUDA ) then
 #if !defined(ZFP_WITH_CUDA) && !defined(DTFFT_WITH_MOCK_ENABLED)
             create = DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED
@@ -112,12 +132,14 @@ contains
             endif
         endif
 
+        self%is_fixed_rate = .false.
         select case ( config%compression_mode%val )
         case ( DTFFT_COMPRESSION_MODE_FIXED_RATE%val )
             if ( config%rate <= 1.0_real64 ) then
                 create = DTFFT_ERROR_COMPRESSION_INVALID_RATE
                 return
             endif
+            self%is_fixed_rate = .true.
         case ( DTFFT_COMPRESSION_MODE_FIXED_PRECISION%val )
             if ( config%precision <= 1 ) then
                 create = DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
@@ -136,18 +158,24 @@ contains
 #endif
     end function create
 
-    subroutine init(self, uncompressed_ptr, dims, zfp, field)
+    subroutine init(self, uncompressed_ptr, dims, is_decompression, zfp, field)
     !! Initializes ZFP stream and field for compression/decompression
         class(compressor_zfp),      intent(inout)   :: self             !! Compressor instance
         type(c_ptr),                intent(in)      :: uncompressed_ptr !! Pointer to uncompressed data
         integer(int32),             intent(in)      :: dims(:)          !! Array dimensions
+        logical,                    intent(in)      :: is_decompression !! Decompression flag. Used only in omp build
         type(zfp_stream),           intent(out)     :: zfp              !! ZFP stream
         type(zfp_field),            intent(out)     :: field            !! ZFP field
         integer(c_int) :: exec
-        integer(int32), allocatable :: strides(:)
+        integer(int32), allocatable :: strides(:), work_dims(:)
+
+        allocate(work_dims, source=dims)
+        if ( self%is_complex .and. self%is_fixed_rate ) then
+            work_dims(1) = 2 * work_dims(1)
+        endif
 
         field = zfp_create_field(uncompressed_ptr, self%scalar_type, dims)
-        if ( self%is_complex ) then
+        if ( self%is_complex .and. .not. self%is_fixed_rate) then
             allocate( strides(self%ndims) )
 
             strides(1) = 2
@@ -161,12 +189,16 @@ contains
         endif
 
         zfp = zfp_stream_open(bitstream(c_null_ptr))
-        exec = zfp_stream_set_execution(zfp, self%policy)
+        if ( is_decompression .and. self%policy%val == zfp_exec_omp%val) then
+            exec = zfp_stream_set_execution(zfp, zfp_exec_serial)
+        else
+            exec = zfp_stream_set_execution(zfp, self%policy)
+        endif
         select case ( self%config%compression_mode%val )
         case ( DTFFT_COMPRESSION_MODE_LOSSLESS%val )
             call zfp_stream_set_reversible(zfp)
         case ( DTFFT_COMPRESSION_MODE_FIXED_RATE%val )
-            call zfp_stream_set_rate(zfp, field, self%config%rate, self%is_complex)
+            call zfp_stream_set_rate(zfp, field, self%config%rate)
         case ( DTFFT_COMPRESSION_MODE_FIXED_PRECISION%val )
             call zfp_stream_set_precision(zfp, self%config%precision)
         case ( DTFFT_COMPRESSION_MODE_FIXED_ACCURACY%val )
@@ -187,16 +219,16 @@ contains
         integer(c_size_t) :: max_size
 
         compress = 0_int64
-        call self%init(in, dims, zfp, field)
+        call self%init(in, dims, .false., zfp, field)
         max_size = zfp_stream_maximum_size(zfp, field)
-        if ( self%is_complex ) max_size = max_size * 2
+        if ( self%is_complex .and. .not. self%is_fixed_rate ) max_size = max_size * 2
         bs = stream_open(out, max_size)
         call zfp_stream_set_bit_stream(zfp, bs)
         call zfp_stream_rewind(zfp)
 
         compress = zfp_compress(zfp, field)
 
-        if ( self%is_complex ) then
+        if ( self%is_complex .and. .not. self%is_fixed_rate) then
             call zfp_field_set_pointer(field, ptr_offset(in, self%imag_offset))
             compress = zfp_compress(zfp, field)
         endif
@@ -218,16 +250,21 @@ contains
         type(bitstream) :: bs
         integer(int64) :: decompressed_size
 
-        call self%init(out, dims, zfp, field)
+        call self%init(out, dims, .true., zfp, field)
         bs = stream_open(in, product(dims) * self%storage_size)
         call zfp_stream_set_bit_stream(zfp, bs)
         call zfp_stream_rewind(zfp)
 
         decompressed_size = zfp_decompress(zfp, field)
-        if ( self%is_complex ) then
+        if ( self%is_complex .and. .not. self%is_fixed_rate) then
             call zfp_field_set_pointer(field, ptr_offset(out, self%imag_offset))
             decompressed_size = zfp_decompress(zfp, field)
         endif
+#ifdef DTFFT_DEBUG
+        if ( decompressed_size == 0 ) then
+            INTERNAL_ERROR("Decompression failed")
+        endif
+#endif
         ! if ( decompressed_size /= compressed_size ) then
         !     INTERNAL_ERROR("compressor_zfp.decompress: decompressed_size /= compressed_size")
         ! endif
