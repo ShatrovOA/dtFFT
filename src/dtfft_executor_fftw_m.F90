@@ -113,8 +113,11 @@ contains
                 ! Check if number of threads is configured
                 block
                     integer(c_int) :: n_threads
-
+# ifdef FFTW_HAS_PLANNER_NTHREADS
                     n_threads = fftw_planner_nthreads()
+#else
+                    n_threads = 1_c_int
+#endif
                     if ( n_threads == 1 ) then ! 1 is default
                         call fftw_plan_with_nthreads(omp_get_max_threads())
                     endif
