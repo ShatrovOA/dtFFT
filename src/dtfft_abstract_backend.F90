@@ -313,7 +313,7 @@ contains
         REGION_BEGIN("self_copy", COLOR_TOMATO)
         if (self%platform == DTFFT_PLATFORM_HOST) then
             float_count = int(self%self_copy_bytes / FLOAT_STORAGE_SIZE, int32)
-        !$omp parallel do simd private(i)
+        !$omp parallel do simd
             do i = 0, float_count - 1
                 out(self%self_recv_displ + i) = in(self%self_send_displ + i)
             enddo

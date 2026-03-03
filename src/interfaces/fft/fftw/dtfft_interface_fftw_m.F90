@@ -23,7 +23,10 @@ use dtfft_interface_fftw_native_m, only: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DES
 use dtfft_interface_fftw_native_m, only: fftw_destroy_plan, fftwf_destroy_plan
 use dtfft_interface_fftw_native_m, only: fftw_malloc, fftw_free
 #ifdef DTFFT_WITH_OPENMP
-use dtfft_interface_fftw_native_m, only: fftw_init_threads, fftw_plan_with_nthreads, fftw_planner_nthreads
+use dtfft_interface_fftw_native_m, only: fftw_init_threads, fftw_plan_with_nthreads
+# ifdef FFTW_HAS_PLANNER_NTHREADS
+use dtfft_interface_fftw_native_m, only: fftw_planner_nthreads
+# endif
 #endif
 implicit none
 private
@@ -39,7 +42,10 @@ public :: fftw_plan_many_dft_c2r, fftwf_plan_many_dft_c2r
 public :: fftw_plan_many_r2r, fftwf_plan_many_r2r
 public :: fftw_malloc, fftw_free
 #ifdef DTFFT_WITH_OPENMP
-public :: fftw_init_threads, fftw_plan_with_nthreads, fftw_planner_nthreads
+public :: fftw_init_threads, fftw_plan_with_nthreads
+# ifdef FFTW_HAS_PLANNER_NTHREADS
+public :: fftw_planner_nthreads
+# endif
 #endif
 
   interface
