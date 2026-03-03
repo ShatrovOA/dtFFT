@@ -30,6 +30,7 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being t
 - **Interfaces**: Fortran, C, and C++ APIs
 - **Decompositions**: 2D and 3D transposition plans with Bricks, Pencils and Slab decompositions support
 - **Transpositions**: Custom MPI datatypes enhanced with standard host-based transpositions
+- **OpenMP Support**: Host-based transpositions can be accelerated using OpenMP
 - **GPU Support**: CUDA acceleration with runtime kernel compilation
 - **FFT Libraries**: built-in support:
   - [FFTW3](https://www.fftw.org/)
@@ -42,7 +43,6 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being t
 
 ## Limitations
 - Memory is assumed to be contiguous. Ghost boundaries are not allowed.
-- OpenMP for multicore parallelism is not supported.
 - Maximum number of elements per process/GPU cannot exceed $2^{31} - 1$ - max value of int32
 
 ## Requirements

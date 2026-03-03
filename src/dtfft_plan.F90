@@ -22,6 +22,9 @@ module dtfft_plan
 !! This module describes [[dtfft_plan_t]], [[dtfft_plan_c2c_t]], [[dtfft_plan_r2c_t]] and [[dtfft_plan_r2r_t]] types
 use iso_c_binding,                    only: c_loc, c_f_pointer, c_ptr, c_bool, c_null_ptr
 use iso_fortran_env,                  only: int8, int32, int64, real32, real64, output_unit, error_unit
+#ifdef DTFFT_WITH_OPENMP
+use omp_lib,                          only: omp_get_max_threads
+#endif
 use dtfft_abstract_executor,          only: abstract_executor, FFT_1D, FFT_2D, FFT_C2C, FFT_R2C, FFT_R2R
 #ifdef DTFFT_WITH_FFTW
 use dtfft_executor_fftw_m,            only: fftw_executor
@@ -1588,6 +1591,11 @@ contains
     WRITE_REPORT("  Execution platform   :  HOST")
     else
     WRITE_REPORT("  Execution platform   :  CUDA")
+    endif
+#endif
+#ifdef DTFFT_WITH_OPENMP
+    if ( self%platform == DTFFT_PLATFORM_HOST ) then
+    WRITE_REPORT("  Number of OMP threads:  "//to_str(omp_get_max_threads()))
     endif
 #endif
     select type( self )

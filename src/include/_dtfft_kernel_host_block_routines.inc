@@ -85,7 +85,10 @@ subroutine GET_BLOCK_KERNEL_NAME(execute)(self, in, out, neighbor)
     endif
 end subroutine GET_BLOCK_KERNEL_NAME(execute)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_forward_write)(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_forward_write)(in, out, dims)
 !! Forward permutation of a 2D and 3D arrays
 !!
 !! Forward permutation is defined as:
@@ -102,6 +105,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_forward_write)(in, out, dims)
     nx = dims(1); ny = dims(2)
 
     if ( size(dims) == 2 ) then
+    !$omp parallel do collapse(2) private(xb,yb,x,y,iidx,oidx)
         do xb = 0, nx - 1, BLOCK_SIZE
             do yb = 0, ny - 1, BLOCK_SIZE
                 do x = xb, min(xb + BLOCK_SIZE - 1, nx - 1)
@@ -113,12 +117,14 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_forward_write)(in, out, dims)
                 enddo
             enddo
         enddo
+    !$omp end parallel do
         return
     endif
 
     nz = dims(3)
     nx_ny = nx * ny
     ny_nz = ny * nz
+!$omp parallel do collapse(3) private(xb,zb,yb,x,z,y,iidx,oidx)
     do xb = 0, nx - 1, BLOCK_SIZE
         do zb = 0, nz - 1, BLOCK_SIZE
             do yb = 0, ny - 1, BLOCK_SIZE
@@ -134,9 +140,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_forward_write)(in, out, dims)
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(permute_forward_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_forward_read)(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_forward_read)(in, out, dims)
 !! Forward permutation of a 2D and 3D arrays
 !!
 !! Forward permutation is defined as:
@@ -153,6 +163,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_forward_read)(in, out, dims)
     nx = dims(1); ny = dims(2)
 
     if ( size(dims) == 2 ) then
+    !$omp parallel do collapse(2) private(yb,xb,y,x,iidx,oidx)
         do yb = 0, ny - 1, BLOCK_SIZE
             do xb = 0, nx - 1, BLOCK_SIZE
                 do y = yb, min(yb + BLOCK_SIZE - 1, ny - 1)
@@ -164,12 +175,14 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_forward_read)(in, out, dims)
                 enddo
             enddo
         enddo
+    !$omp end parallel do
         return
     endif
 
     nz = dims(3)
     nx_ny = nx * ny
     ny_nz = ny * nz
+!$omp parallel do collapse(3) private(zb,yb,xb,z,y,x,iidx,oidx)
     do zb = 0, nz - 1, BLOCK_SIZE
         do yb = 0, ny - 1, BLOCK_SIZE
             do xb = 0, nx - 1, BLOCK_SIZE
@@ -185,9 +198,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_forward_read)(in, out, dims)
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(permute_forward_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_write)(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_backward_write)(in, out, dims)
 !! Backward permutation of a 2D and 3D arrays
 !!
 !! Backward permutation is defined as:
@@ -202,6 +219,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_write)(in, out, dims)
     nx = dims(1); ny = dims(2); nz = dims(3)
     nx_ny = nx * ny
     nz_nx = nz * nx
+!$omp parallel do collapse(3) private(yb,xb,zb,y,x,z,iidx,oidx)
     do yb = 0, ny - 1, BLOCK_SIZE
         do xb = 0, nx - 1, BLOCK_SIZE
             do zb = 0, nz - 1, BLOCK_SIZE
@@ -217,9 +235,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_write)(in, out, dims)
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(permute_backward_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_read)(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_backward_read)(in, out, dims)
 !! Backward permutation of a 2D and 3D arrays
 !!
 !! Backward permutation is defined as:
@@ -234,6 +256,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_read)(in, out, dims)
     nx = dims(1); ny = dims(2); nz = dims(3)
     nx_ny = nx * ny
     nz_nx = nz * nx
+!$omp parallel do collapse(3) private(zb,yb,xb,z,y,x,iidx,oidx)
     do zb = 0, nz - 1, BLOCK_SIZE
         do yb = 0, ny - 1, BLOCK_SIZE
             do xb = 0, nx - 1, BLOCK_SIZE
@@ -249,9 +272,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_read)(in, out, dims)
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(permute_backward_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_write)(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_write)(in, out, dims)
 !! Backward permutation start of a 3D array
 !!
 !! Backward permutation start is defined as:
@@ -267,6 +294,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_write)(in, out, dim
     nx = dims(1); ny = dims(2); nz = dims(3)
     nx_ny = nx * ny
     nz_ny = nz * ny
+!$omp parallel do collapse(3) private(xb,yb,zb,x,y,z,iidx,oidx)
     do xb = 0, nx - 1, BLOCK_SIZE
         do yb = 0, ny - 1, BLOCK_SIZE
             do zb = 0, nz - 1, BLOCK_SIZE
@@ -282,9 +310,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_write)(in, out, dim
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_read)(in, out, dims)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_read)(in, out, dims)
 !! Backward permutation start of a 3D array
 !!
 !! Backward permutation start is defined as:
@@ -300,6 +332,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_read)(in, out, dims
     nx = dims(1); ny = dims(2); nz = dims(3)
     nx_ny = nx * ny
     nz_ny = nz * ny
+!$omp parallel do collapse(3) private(zb,yb,xb,z,y,x,iidx,oidx)
     do zb = 0, nz - 1, BLOCK_SIZE
         do yb = 0, ny - 1, BLOCK_SIZE
             do xb = 0, nx - 1, BLOCK_SIZE
@@ -315,9 +348,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_read)(in, out, dims
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(permute_backward_start_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_write)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_write)(in, out, dims, locals)
 !! Backward permutation end of a 3D array for a single neighbor
 !!
 !! Backward permutation end is defined as:
@@ -336,6 +373,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_write)(in, 
     nx_ny = nx * ny
     nzz_nxx = nzz * nxx
 
+!$omp parallel do collapse(2) private(zb,yb,z,y,x,iidx,oidx)
     do zb = 0, nzz - 1, BLOCK_SIZE
         do yb = 0, nyy - 1, BLOCK_SIZE
             do z = zb, min(zb + BLOCK_SIZE - 1, nzz - 1)
@@ -349,9 +387,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_write)(in, 
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_write)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_write)(in, out, dims, locals)
 !! Backward permutation end of a 3D array for all neighbors
 !!
 !! Backward permutation end is defined as:
@@ -368,7 +410,10 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_write)(in, out, dims,
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_read)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_read)(in, out, dims, locals)
 !! Backward permutation end of a 3D array for a single neighbor
 !!
 !! Backward permutation end is defined as:
@@ -387,6 +432,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_read)(in, o
     nx_ny = nx * ny
     nzz_nxx = nzz * nxx
 
+!$omp parallel do collapse(2) private(yb,zb,y,z,x,iidx,oidx)
     do yb = 0, nyy - 1, BLOCK_SIZE
         do zb = 0, nzz - 1, BLOCK_SIZE
             do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
@@ -400,9 +446,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_read)(in, o
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_pipelined_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_read)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_read)(in, out, dims, locals)
 !! Backward permutation end of a 3D array for all neighbors
 !!
 !! Backward permutation end is defined as:
@@ -419,7 +469,10 @@ pure subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_read)(in, out, dims, 
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(permute_backward_end_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_pipelined)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_pipelined)(in, out, dims, locals)
 !! Unpacks part of contiguous buffer recieved from a single rank.
 !!
 !! For 3D arrays:
@@ -439,36 +492,45 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_pipelined)(in, out, dims, locals)
     din = locals(4); dout = locals(5)
 
     if ( size(dims) == 2 ) then
-        do yb = 0, nyy - 1, BLOCK_SIZE
-            do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
-                iidx = din  + y * nxx + 1
-                oidx = dout + y * nx  + 1
-                do x = 0, nxx - 1
-                    out(oidx + x) = in(iidx + x)
-                enddo
+    !$omp parallel do private(y,x,iidx,oidx)
+        do y = 0, nyy - 1
+            iidx = din  + y * nxx + 1
+            oidx = dout + y * nx  + 1
+        !$omp simd
+            do x = 0, nxx - 1
+                out(oidx + x) = in(iidx + x)
             enddo
+        !$omp end simd
         enddo
+    !$omp end parallel do
         return
     endif
     nzz = locals(3)
     nx_ny = nx * ny
     nxx_nyy = nxx * nyy
+!$omp parallel do collapse(2) private(zb,yb,z,y,x,iidx,oidx)
     do zb = 0, nzz - 1, BLOCK_SIZE
         do yb = 0, nyy - 1, BLOCK_SIZE
             do z = zb, min(zb + BLOCK_SIZE - 1, nzz - 1)
                 do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
                     iidx = din  + z * nxx_nyy + y * nxx + 1
                     oidx = dout + z * nx_ny   + y * nx  + 1
+                !$omp simd
                     do x = 0, nxx - 1
                         out(oidx + x) = in(iidx + x)
                     enddo
+                !$omp end simd
                 enddo
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_pipelined)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack)(in, out, dims, locals)
 !! Unpacks pack of contiguous buffer recieved from all ranks.
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
@@ -481,7 +543,10 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack)(in, out, dims, locals)
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(unpack)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(pack_pipelined)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(pack_pipelined)(in, out, dims, locals)
 !! Pack part `in` buffer into contiguous buffer in order to send to a single rank, BUFFER_TYPE version.
 !!
 !! For 3D arrays:
@@ -501,37 +566,46 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_pipelined)(in, out, dims, locals)
     din = locals(4); dout = locals(5)
 
     if ( size(dims) == 2 ) then
-        do yb = 0, nyy - 1, BLOCK_SIZE
-            do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
-                iidx = din + y * nx + 1
-                oidx = dout + y * nxx + 1
-                do x = 0, nxx - 1
-                    out(oidx + x) = in(iidx + x)
-                enddo
+    !$omp parallel do private(y,x,iidx,oidx)
+        do y = 0, nyy - 1
+            iidx = din + y * nx + 1
+            oidx = dout + y * nxx + 1
+        !$omp simd
+            do x = 0, nxx - 1
+                out(oidx + x) = in(iidx + x)
             enddo
+        !$omp end simd
         enddo
+    !$omp end parallel do
         return
     endif
 
     nzz = locals(3)
     nx_ny = nx * ny
     nxx_nyy = nxx * nyy
+!$omp parallel do collapse(2) private(zb,yb,z,y,x,iidx,oidx)
     do zb = 0, nzz - 1, BLOCK_SIZE
         do yb = 0, nyy - 1, BLOCK_SIZE
             do z = zb, min(zb + BLOCK_SIZE - 1, nzz - 1)
                 do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
                     iidx = din + z * nx_ny + y * nx + 1
                     oidx = dout + z * nxx_nyy + y * nxx + 1
+                !$omp simd
                     do x = 0, nxx - 1
                         out(oidx + x) = in(iidx + x)
                     enddo
+                !$omp end simd
                 enddo
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(pack_pipelined)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(pack)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(pack)(in, out, dims, locals)
 !! Packs data into contiguous buffer ready to send to all ranks, BUFFER_TYPE version.
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
@@ -544,7 +618,10 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack)(in, out, dims, locals)
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(pack)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_write)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_write)(in, out, dims, locals)
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)                    !! Dimensions of the array
@@ -557,6 +634,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_write)(in, out, d
     din = locals(4); dout = locals(5)
 
     if ( size(dims) == 2 ) then
+    !$omp parallel do collapse(2) private(yb,xb,y,x,iidx,oidx)
         do yb = 0, nyy - 1, BLOCK_SIZE
             do xb = 0, nxx - 1, BLOCK_SIZE
                 do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
@@ -568,6 +646,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_write)(in, out, d
                 enddo
             enddo
         enddo
+    !$omp end parallel do
         return
     endif
 
@@ -576,6 +655,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_write)(in, out, d
     nzz_nxx = nzz * nxx
     ny_nx = ny * nx
 
+!$omp parallel do collapse(3) private(zb,yb,xb,z,y,x,iidx,oidx)
     do zb = 0, nzz - 1, BLOCK_SIZE
         do yb = 0, nyy - 1, BLOCK_SIZE
             do xb = 0, nxx - 1, BLOCK_SIZE
@@ -591,9 +671,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_write)(in, out, d
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_read)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_read)(in, out, dims, locals)
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)                    !! Dimensions of the array
@@ -606,6 +690,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_read)(in, out, di
     din = locals(4); dout = locals(5)
 
     if ( size(dims) == 2 ) then
+    !$omp parallel do collapse(2) private(xb,yb,x,y,iidx,oidx)
         do xb = 0, nxx - 1, BLOCK_SIZE
             do yb = 0, nyy - 1, BLOCK_SIZE
                 do x = xb, min(xb + BLOCK_SIZE - 1, nxx - 1)
@@ -617,6 +702,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_read)(in, out, di
                 enddo
             enddo
         enddo
+    !$omp end parallel do
         return
     endif
 
@@ -625,6 +711,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_read)(in, out, di
     nxx_nzz = nxx * nzz
     nx_ny = nx * ny
 
+!$omp parallel do collapse(3) private(yb,xb,zb,y,x,z,iidx,oidx)
     do yb = 0, nyy - 1, BLOCK_SIZE
         do xb = 0, nxx - 1, BLOCK_SIZE
             do zb = 0, nzz - 1, BLOCK_SIZE
@@ -640,9 +727,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_read)(in, out, di
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_pipelined_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_write)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_write)(in, out, dims, locals)
 !! Unpacks pack of contiguous buffer recieved from all ranks, BUFFER_TYPE version.
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
@@ -655,7 +746,10 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_write)(in, out, dims, local
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_read)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_read)(in, out, dims, locals)
 !! Unpacks pack of contiguous buffer recieved from all ranks, BUFFER_TYPE version.
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
@@ -668,7 +762,10 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_read)(in, out, dims, locals
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_forward_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_write)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_write)(in, out, dims, locals)
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)                    !! Dimensions of the array
@@ -683,6 +780,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_write)(in, out, 
     nzz_nyy = nzz * nyy
     ny_nx = ny * nx
 
+!$omp parallel do collapse(3) private(zb,yb,xb,z,y,x,iidx,oidx)
     do zb = 0, nzz - 1, BLOCK_SIZE
         do yb = 0, nyy - 1, BLOCK_SIZE
             do xb = 0, nxx - 1, BLOCK_SIZE
@@ -698,9 +796,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_write)(in, out, 
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_read)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_read)(in, out, dims, locals)
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
     integer(int32), intent(in)    :: dims(:)                    !! Dimensions of the array
@@ -714,6 +816,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_read)(in, out, d
     nzz_nyy = nzz * nyy
     nx_ny = nx * ny
 
+!$omp parallel do collapse(3) private(xb,zb,yb,x,z,y,iidx,oidx)
     do xb = 0, nxx - 1, BLOCK_SIZE
         do zb = 0, nzz - 1, BLOCK_SIZE
             do yb = 0, nyy - 1, BLOCK_SIZE
@@ -729,9 +832,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_read)(in, out, d
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_pipelined_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_write)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_write)(in, out, dims, locals)
 !! Unpacks pack of contiguous buffer recieved from all ranks, BUFFER_TYPE version.
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
@@ -744,7 +851,10 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_write)(in, out, dims, loca
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_read)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_read)(in, out, dims, locals)
 !! Unpacks pack of contiguous buffer recieved from all ranks, BUFFER_TYPE version.
     BUFFER_TYPE,    intent(in)    :: in(BUFFER_SPEC)    !! Source host-allocated buffer
     BUFFER_TYPE,    intent(inout) :: out(BUFFER_SPEC)   !! Target host-allocated buffer
@@ -757,7 +867,10 @@ pure subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_read)(in, out, dims, local
     enddo
 end subroutine GET_BLOCK_KERNEL_NAME(unpack_backward_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_write)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(pack_forward_write)(in, out, dims, locals)
 !! Forward permutation of a 2D and 3D arrays, contiguous writing, BUFFER_TYPE version
 !!
 !! Forward permutation is defined as:
@@ -777,6 +890,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_write)(in, out, dims, locals)
     din = locals(4); dout = locals(5)
 
     if ( size(dims) == 2 ) then
+    !$omp parallel do collapse(2) private(xb,yb,x,y,iidx,oidx)
         do xb = 0, nxx - 1, BLOCK_SIZE
             do yb = 0, nyy - 1, BLOCK_SIZE
                 do x = xb, min(xb + BLOCK_SIZE - 1, nxx - 1)
@@ -788,6 +902,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_write)(in, out, dims, locals)
                 enddo
             enddo
         enddo
+    !$omp end parallel do
         return
     endif
 
@@ -795,6 +910,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_write)(in, out, dims, locals)
     nzz = locals(3)
     nx_ny = nx * ny
     nyy_nzz = nyy * nzz
+!$omp parallel do collapse(3) private(xb,zb,yb,x,z,y,iidx,oidx)
     do xb = 0, nxx - 1, BLOCK_SIZE
         do zb = 0, nzz - 1, BLOCK_SIZE
             do yb = 0, nyy - 1, BLOCK_SIZE
@@ -810,9 +926,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_write)(in, out, dims, locals)
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(pack_forward_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_read)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(pack_forward_read)(in, out, dims, locals)
 !! Forward permutation of a 2D and 3D arrays, contiguous reading, BUFFER_TYPE version
 !!
 !! Forward permutation is defined as:
@@ -831,6 +951,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_read)(in, out, dims, locals)
     nxx = locals(1); nyy = locals(2)
     din = locals(4); dout = locals(5)
     if ( size(dims) == 2 ) then
+    !$omp parallel do collapse(2) private(yb,xb,y,x,iidx,oidx)
         do yb = 0, nyy - 1, BLOCK_SIZE
             do xb = 0, nxx - 1, BLOCK_SIZE
                 do y = yb, min(yb + BLOCK_SIZE - 1, nyy - 1)
@@ -842,6 +963,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_read)(in, out, dims, locals)
                 enddo
             enddo
         enddo
+    !$omp end parallel do
         return
     endif
 
@@ -849,6 +971,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_read)(in, out, dims, locals)
     nzz = locals(3)
     nx_ny = nx * ny
     nyy_nzz = nyy * nzz
+!$omp parallel do collapse(3) private(zb,yb,xb,z,y,x,iidx,oidx)
     do zb = 0, nzz - 1, BLOCK_SIZE
         do yb = 0, nyy - 1, BLOCK_SIZE
             do xb = 0, nxx - 1, BLOCK_SIZE
@@ -864,9 +987,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_forward_read)(in, out, dims, locals)
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(pack_forward_read)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(pack_backward_write)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(pack_backward_write)(in, out, dims, locals)
 !! Backward permutation of a 2D and 3D arrays, contiguous writing, BUFFER_TYPE version
 !!
 !! Backward permutation is defined as:
@@ -885,6 +1012,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_backward_write)(in, out, dims, locals
     nx_ny = nx * ny
     nzz_nxx = nzz * nxx
 
+!$omp parallel do collapse(3) private(yb,xb,zb,y,x,z,iidx,oidx)
     do yb = 0, nyy - 1, BLOCK_SIZE
         do xb = 0, nxx - 1, BLOCK_SIZE
             do zb = 0, nzz - 1, BLOCK_SIZE
@@ -900,9 +1028,13 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_backward_write)(in, out, dims, locals
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(pack_backward_write)
 
-pure subroutine GET_BLOCK_KERNEL_NAME(pack_backward_read)(in, out, dims, locals)
+#ifndef DTFFT_WITH_OPENMP
+pure &
+#endif
+subroutine GET_BLOCK_KERNEL_NAME(pack_backward_read)(in, out, dims, locals)
 !! Backward permutation of a 2D and 3D arrays, contiguous reading, BUFFER_TYPE version
 !!
 !! Backward permutation is defined as:
@@ -920,6 +1052,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_backward_read)(in, out, dims, locals)
     din = locals(4); dout = locals(5)
     nx_ny = nx * ny
     nzz_nxx = nzz * nxx
+!$omp parallel do collapse(3) private(zb,yb,xb,z,y,x,iidx,oidx)
     do zb = 0, nzz - 1, BLOCK_SIZE
         do yb = 0, nyy - 1, BLOCK_SIZE
             do xb = 0, nxx - 1, BLOCK_SIZE
@@ -935,6 +1068,7 @@ pure subroutine GET_BLOCK_KERNEL_NAME(pack_backward_read)(in, out, dims, locals)
             enddo
         enddo
     enddo
+!$omp end parallel do
 end subroutine GET_BLOCK_KERNEL_NAME(pack_backward_read)
 
 #undef GET_BLOCK_SUB_NAME

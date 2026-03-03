@@ -39,15 +39,15 @@ option(DTFFT_WITH_MOCK_ENABLED "Mock GPU libraries calls with CPU implementation
 option(DTFFT_WITH_NCCL "Build dtFFT with NCCL support.
                         Enabling this option when DTFFT_WITH_HPC_SDK=ON and DTFFT_WITH_CUDA=ON
                         requires to set NCCL_ROOT enviroment variable to find custom installation of NCCL" OFF)
-
 option(DTFFT_WITHOUT_NCCL "Build dtFFT without NCCL support.
                            Disables automatic NCCL usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
 option(DTFFT_WITHOUT_NVSHMEM "Build dtFFT without NVSHMEM-enabled backends.
                               Disables automatic NVSHMEM usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
-
 option(DTFFT_ENABLE_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
 
 option(DTFFT_WITH_ZFP "Enable ZFP support for data compression" OFF)
+option(DTFFT_WITH_OPENMP "Enable OpenMP parallelization for generic approach" OFF)
+option(DTFFT_WITH_FFTW_THREADS "Enable threads support of FFTW library instead of OpenMP" OFF)
 
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
@@ -158,6 +158,12 @@ if( NOT DTFFT_WITH_FFTW
 endif()
 if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
   set( DTFFT_WITH_CUDA ON )
+endif()
+
+if ( DTFFT_WITH_OPENMP )
+  find_package(OpenMP REQUIRED)
+  target_compile_definitions(dtfft PRIVATE DTFFT_WITH_OPENMP)
+  target_link_libraries(dtfft PRIVATE OpenMP::OpenMP_Fortran)
 endif()
 
 if (DTFFT_WITH_MOCK_ENABLED)
@@ -310,6 +316,9 @@ if ( DTFFT_WITH_ZFP )
   set(DTFFT_WITH_COMPRESSION ON)
   if ( ZFP_WITH_CUDA )
     target_compile_definitions(dtfft PRIVATE ZFP_WITH_CUDA)
+  endif()
+  if ( ZFP_WITH_OPENMP AND DTFFT_WITH_OPENMP )
+    target_compile_definitions(dtfft PRIVATE ZFP_WITH_OPENMP)
   endif()
 endif()
 
@@ -511,6 +520,7 @@ message(STATUS "Build C/C++ API:           : ${DTFFT_BUILD_C_CXX_API}")
 message(STATUS "Build tests                : ${DTFFT_BUILD_TESTS}")
 message(STATUS "Coverage                   : ${DTFFT_ENABLE_COVERAGE}")
 message(STATUS "Profiler                   : ${DTFFT_WITH_PROFILER}")
+message(STATUS "OpenMP enabled             : ${DTFFT_WITH_OPENMP}")
 message(STATUS "CUDA enabled               : ${DTFFT_WITH_CUDA}")
 if ( DTFFT_WITH_CUDA )
   if ( DTFFT_WITH_MOCK_ENABLED )

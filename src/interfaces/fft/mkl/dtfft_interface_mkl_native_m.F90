@@ -35,5 +35,6 @@ public :: DFTI_NO_ERROR,                &
           DFTI_INPLACE,                 &
           DFTI_NOT_INPLACE,             &
           DFTI_INPUT_STRIDES,           &
-          DFTI_OUTPUT_STRIDES
+          DFTI_OUTPUT_STRIDES,          &
+          DFTI_THREAD_LIMIT
 end module dtfft_interface_mkl_native_m

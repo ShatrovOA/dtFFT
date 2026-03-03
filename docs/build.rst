@@ -122,13 +122,22 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON``
      - Enables input parameter checks for plan execution functions. Should be turned off by advanced users to best performance.
    * - ``DTFFT_WITH_ZFP``
-      - ``ON`` / ``OFF``
-      - ``OFF``
-      - Enables ZFP support for compressed transposes. Requires the ``zfp_DIR`` variable to point to the ZFP installation path.
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables ZFP support for compressed transposes. Requires the ``zfp_DIR`` variable to point to the ZFP installation path.
    * - ``DTFFT_WITH_MOCK_ENABLED``
-      - ``ON`` / ``OFF``
-      - ``OFF``
-      - Enables mock version of CUDA support for testing and development without a CUDA-capable GPU. This option is intended for development and testing purposes only and should not be used in production environments.
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables mock version of CUDA support for testing and development without a CUDA-capable GPU. This option is intended for development and testing purposes only and should not be used in production environments.
+   * - ``DTFFT_WITH_OPENMP``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables OpenMP support.
+   * - ``DTFFT_WITH_FFTW_THREADS``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables threads library of FFTW instead of OpenMP. This option is only applicable if both ``DTFFT_WITH_FFTW`` and ``DTFFT_WITH_OPENMP`` are enabled.
+
 
 Building the Library
 ====================

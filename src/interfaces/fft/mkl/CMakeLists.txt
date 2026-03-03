@@ -1,6 +1,10 @@
 
 set(MKL_ARCH intel64)
-set(MKL_THREADING sequential)
+if( DTFFT_WITH_OPENMP )
+  set(MKL_THREADING intel_thread)
+else()
+  set(MKL_THREADING sequential)
+endif()
 set(MKL_INTERFACE lp64)
 if(DTFFT_BUILD_SHARED)
   set(MKL_LINK dynamic)
