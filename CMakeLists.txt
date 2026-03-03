@@ -161,7 +161,7 @@ if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
 endif()
 
 if ( DTFFT_WITH_OPENMP )
-  find_package(OpenMP REQUIRED)
+  find_package(OpenMP REQUIRED COMPONENTS Fortran)
   target_compile_definitions(dtfft PRIVATE DTFFT_WITH_OPENMP)
   target_link_libraries(dtfft PRIVATE OpenMP::OpenMP_Fortran)
 endif()
