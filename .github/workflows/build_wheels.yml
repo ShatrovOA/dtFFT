@@ -31,8 +31,6 @@ jobs:
       contents: read
     name: ${{ matrix.config.package_name }} / ${{ matrix.config.platform }} / ${{ matrix.mpi }} / py${{ matrix.python_version }}
     runs-on: ${{ matrix.config.os }}
-    # Homebrew fftw on macOS depends on OpenMPI — skip MPICH + FFTW combinations.
-    if: "!(matrix.config.os == 'macos-latest' && matrix.mpi == 'mpich' && matrix.config.extra_features != '')"
     strategy:
       fail-fast: false
       matrix:
@@ -75,12 +73,12 @@ jobs:
       # ── macOS system dependencies ──────────────────────────────────────────
       # 'openmpi' and 'mpich' are the exact Homebrew formula names.
       - name: Install MPI (macOS)
-        if: runner.os == 'macOS'
+        if: startsWith(runner.os, 'macos')
         run: brew install ${{ matrix.mpi }} ${{ contains(matrix.config.extra_features, 'fftw') && 'fftw' || '' }}
 
       # ── Linux system dependencies ──────────────────────────────────────────
       - name: Install MPI + FFTW (Linux)
-        if: runner.os == 'Linux'
+        if: startsWith(runner.os, 'linux')
         run: |
           sudo apt-get update -q
           if [ "${{ matrix.mpi }}" = "openmpi" ]; then
