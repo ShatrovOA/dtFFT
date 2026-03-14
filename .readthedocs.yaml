@@ -10,10 +10,14 @@ build:
   os: ubuntu-24.04
   tools:
     python: "3.13"
-    # You can also specify other tool versions:
-    # nodejs: "23"
-    # rust: "1.82"
-    # golang: "1.23"
+  commands:
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - sudo apt-get -q update
+    - sudo apt-get -y install gfortran-14
+    - sudo apt-get install libopenmpi-dev openmpi-bin
+    - sudo apt-get install cmake
+    - python -m pip install .
+
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

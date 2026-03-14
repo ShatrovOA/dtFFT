@@ -40,20 +40,20 @@ jobs:
         mpi: ["openmpi", "mpich"]
         config:
           # ── macOS Apple Silicon ──────────────────────────────────────────
-          - {package_name: dtfft,         platform: macos-arm64,   os: macos-latest,     extra_features: "",           cuda_version: ""}
-          - {package_name: dtfft-fftw,    platform: macos-arm64,   os: macos-latest,     extra_features: "fftw",       cuda_version: ""}
+          - {package_name: dtfft,         platform: macos-arm64,   os: macos-latest,     extra_features: "",           cuda_version: "",       cupy_package: ""}
+          - {package_name: dtfft-fftw,    platform: macos-arm64,   os: macos-latest,     extra_features: "fftw",       cuda_version: "",       cupy_package: ""}
           # ── Linux x86_64 ─────────────────────────────────────────────────
-          - {package_name: dtfft,         platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "",           cuda_version: ""}
-          - {package_name: dtfft-fftw,    platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "fftw",       cuda_version: ""}
-          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "11.8.0"}
-          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "12.6.0"}
-          - {package_name: dtfft-cuda13x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "13.2.0"}
+          - {package_name: dtfft,         platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "",           cuda_version: "",       cupy_package: ""}
+          - {package_name: dtfft-fftw,    platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "fftw",       cuda_version: "",       cupy_package: ""}
+          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "11.8.0", cupy_package: "cupy-cuda11x"}
+          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "12.6.0", cupy_package: "cupy-cuda12x"}
+          - {package_name: dtfft-cuda13x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "13.2.0", cupy_package: "cupy-cuda13x"}
           # ── Linux aarch64 ────────────────────────────────────────────────
-          - {package_name: dtfft,         platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "",           cuda_version: ""}
-          - {package_name: dtfft-fftw,    platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "fftw",       cuda_version: ""}
-          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "11.8.0"}
-          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "12.6.0"}
-          - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "13.2.0"}
+          - {package_name: dtfft,         platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "",           cuda_version: "",       cupy_package: ""}
+          - {package_name: dtfft-fftw,    platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "fftw",       cuda_version: "",       cupy_package: ""}
+          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "11.8.0", cupy_package: "cupy-cuda11x"}
+          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "12.6.0", cupy_package: "cupy-cuda12x"}
+          - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "13.2.0", cupy_package: "cupy-cuda13x"}
 
     steps:
       - name: Checkout
@@ -107,7 +107,7 @@ jobs:
         env:
           DTFFT_PACKAGE_NAME: ${{ matrix.config.package_name }}-${{ matrix.mpi }}
           EXTRA_FEATURES: ${{ matrix.config.extra_features }}
-          CUPY_PACKAGE: ${{ contains(matrix.config.package_name, 'cuda') && replace(matrix.config.package_name, 'dtfft-', 'cupy-') || '' }}
+          CUPY_PACKAGE: ${{ matrix.config.cupy_package }}
         run: pip wheel . --no-deps --no-build-isolation -w dist/
 
       # ── Upload artifact ────────────────────────────────────────────────────
