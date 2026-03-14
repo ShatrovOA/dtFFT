@@ -209,7 +209,9 @@ typedef enum {
     /** Invalid compression mode */
     DTFFT_ERROR_COMPRESSION_INVALID_MODE = CONF_DTFFT_ERROR_COMPRESSION_INVALID_MODE,
     /** Invalid compression library */
-    DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY = CONF_DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY
+    DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY = CONF_DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY,
+    /** Compressed backends are not used for this plan */
+    DTFFT_ERROR_COMPRESSION_NOT_USED = CONF_DTFFT_ERROR_COMPRESSION_NOT_USED
 } dtfft_error_t;
 
 /** This enum lists valid `execute_type` parameters that can be passed to `::dtfft_execute`. */
@@ -985,7 +987,13 @@ typedef enum {
      * @note Can only be used when effort >= `::DTFFT_PATIENT`.
      * @note Currently only available for HOST execution platform
     */
-    DTFFT_BACKEND_ADAPTIVE = CONF_DTFFT_BACKEND_ADAPTIVE
+    DTFFT_BACKEND_ADAPTIVE = CONF_DTFFT_BACKEND_ADAPTIVE,
+
+    /** Backend is not defined. This value is used when no backend is selected, for example when executing on a single process.
+     *
+     * @note This value should never be set by user directly. It can only be returned by the library.
+     */
+    DTFFT_BACKEND_NONE = CONF_DTFFT_UNDEFINED
 } dtfft_backend_t;
 
 /** This enum specifies at which stage the local transposition is performed during global exchange.

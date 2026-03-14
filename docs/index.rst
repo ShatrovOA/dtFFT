@@ -60,5 +60,6 @@ Table of Contents
    api_fortran
    api_c
    api_cxx
+   api_python
    environ
    benchmarks

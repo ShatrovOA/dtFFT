@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
   vector<int32_t> dims = {ny, nx};
   PlanR2C *plan;
   try {
-    plan = new PlanR2C(dims, executor);
+    plan = new PlanR2C(dims, Precision::DOUBLE, Effort::ESTIMATE);
   } catch (const Exception& err) {
     cerr << err.what() << endl;
     MPI_Abort(MPI_COMM_WORLD, -1);
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
   // Recreate plan with pencil
   auto pencil = Pencil(in_starts, in_counts);
-  plan = new PlanR2C(pencil, executor);
+  plan = new PlanR2C(pencil, MPI_COMM_WORLD, Precision::DOUBLE, Effort::ESTIMATE, executor);
   auto reported_pencil = plan->get_pencil(Layout::X_PENCILS);
   if ( reported_pencil.get_starts() != in_starts || reported_pencil.get_counts() != in_counts ) {
     cerr << "Plan reported wrong decomposition." << endl;

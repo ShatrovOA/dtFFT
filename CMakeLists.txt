@@ -25,6 +25,7 @@ option(DTFFT_WITH_VKFFT "Build dtFFT with VkFFT support" OFF)
 option(DTFFT_BUILD_TESTS "Create dtFFT tests" OFF)
 option(DTFFT_BUILD_SHARED "Build shared library" ON)
 option(DTFFT_BUILD_C_CXX_API "Create C API" ON)
+option(DTFFT_BUILD_PYTHON_API "Create Python API" OFF)
 
 option(DTFFT_ENABLE_COVERAGE "Create coverage with gcov utility" OFF)
 option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
@@ -37,15 +38,18 @@ option(DTFFT_ENABLE_INPUT_CHECK "Enable checks for user input for all dtFFT func
 option(DTFFT_WITH_CUDA "Build dtFFT with CUDA support" OFF)
 option(DTFFT_WITH_MOCK_ENABLED "Mock GPU libraries calls with CPU implementations for testing and debugging without GPU hardware" OFF)
 option(DTFFT_WITH_NCCL "Build dtFFT with NCCL support.
-                        Enabling this option when DTFFT_WITH_HPC_SDK=ON and DTFFT_WITH_CUDA=ON
+                        Enabling this option when nvfortran compiler detected and DTFFT_WITH_CUDA=ON
                         requires to set NCCL_ROOT enviroment variable to find custom installation of NCCL" OFF)
 option(DTFFT_WITHOUT_NCCL "Build dtFFT without NCCL support.
-                           Disables automatic NCCL usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
+                           Disables automatic NCCL usage when nvfortran compiler detected AND DTFFT_WITH_CUDA=ON" OFF)
 option(DTFFT_WITHOUT_NVSHMEM "Build dtFFT without NVSHMEM-enabled backends.
-                              Disables automatic NVSHMEM usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
+                              Disables automatic NVSHMEM usage when nvfortran compiler detected AND DTFFT_WITH_CUDA=ON" OFF)
 option(DTFFT_ENABLE_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
 
+# Compression libraries
 option(DTFFT_WITH_ZFP "Enable ZFP support for data compression" OFF)
+
+# OpenMP options
 option(DTFFT_WITH_OPENMP "Enable OpenMP parallelization for generic approach" OFF)
 option(DTFFT_WITH_FFTW_THREADS "Enable threads support of FFTW library instead of OpenMP" OFF)
 
@@ -502,6 +506,10 @@ install(FILES
 install(DIRECTORY ${DTFFT_MODULE_DIR}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.mod")
+
+if (DTFFT_BUILD_PYTHON_API)
+  find_package(pybind11 3.0.0 REQUIRED)
+endif()
 
 if(DTFFT_BUILD_TESTS)
   enable_testing()

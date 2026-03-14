@@ -73,3 +73,26 @@ jobs:
         run: |
           cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
           cmake --build build
+
+  python314_openmpi:
+    name: Python tests with GCC-15 + OpenMPI
+    runs-on: macos-latest
+    env:
+      CC: "gcc-15"
+      CXX: "g++-15"
+      FC: "gfortran-15"
+      CMAKE_ARGS: "-DDTFFT_WITH_FFTW=on -DDTFFT_BUILD_TESTS=on"
+    steps:
+      - name: Get Requirements
+          run: |
+            brew install openmpi
+            brew install fftw
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: |
+          python3.14 -m venv venv
+          venv/bin/pip install .
+      - name: Test
+        run: |
+          ctest --test-dir $(find _skbuild -maxdepth 2 -name "cmake-build" -type d) --output-on-failure

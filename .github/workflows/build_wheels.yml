@@ -1,0 +1,141 @@
+name: Build Python Wheels
+
+on:
+  push:
+    tags:
+      - "v*"         # same tag as the C++ library release, e.g. v3.2.0
+                     # Python package version is read from CMakeLists.txt automatically
+  pull_request:      # build (but don't publish) on every PR
+  workflow_dispatch: # manual trigger
+
+# ── Matrix legend ──────────────────────────────────────────────────────────────
+# python_version        – CPython version used to build the wheel
+# mpi                   – MPI implementation: openmpi or mpich
+#                         mpi4py is compiled from source against whichever is installed.
+#                         The MPI variant is appended to the PyPI distribution name so
+#                         that OpenMPI and MPICH wheels are separate packages on PyPI
+#                         (same convention as mpi4py ≥ 4.x: mpi4py-openmpi/mpi4py-mpich).
+#                         Example: dtfft-fftw + openmpi → dtfft-fftw-openmpi
+# config.package_name   – base PyPI distribution name (without MPI suffix);
+#                         CUPY_PACKAGE is derived from it: dtfft-cuda12x → cupy-cuda12x
+# config.platform       – human-readable label used in the artifact name
+# config.os             – GitHub-hosted runner image
+# config.extra_features – comma-separated EXTRA_FEATURES value (maps to CMake flags)
+# config.cuda_version   – CUDA toolkit version to install; empty string for non-CUDA builds
+# ──────────────────────────────────────────────────────────────────────────────
+
+jobs:
+  build:
+    permissions:
+      id-token: write  # required for OIDC Trusted Publisher auth on PyPI
+      contents: read
+    name: ${{ matrix.config.package_name }} / ${{ matrix.config.platform }} / ${{ matrix.mpi }} / py${{ matrix.python_version }}
+    runs-on: ${{ matrix.config.os }}
+    # Homebrew fftw on macOS depends on OpenMPI — skip MPICH + FFTW combinations.
+    if: "!(matrix.config.os == 'macos-latest' && matrix.mpi == 'mpich' && matrix.config.extra_features != '')"
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        mpi: ["openmpi", "mpich"]
+        config:
+          # ── macOS Apple Silicon ──────────────────────────────────────────
+          - {package_name: dtfft,         platform: macos-arm64,   os: macos-latest,     extra_features: "",           cuda_version: ""}
+          - {package_name: dtfft-fftw,    platform: macos-arm64,   os: macos-latest,     extra_features: "fftw",       cuda_version: ""}
+          # ── Linux x86_64 ─────────────────────────────────────────────────
+          - {package_name: dtfft,         platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "",           cuda_version: ""}
+          - {package_name: dtfft-fftw,    platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "fftw",       cuda_version: ""}
+          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "11.8.0"}
+          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "12.6.0"}
+          - {package_name: dtfft-cuda13x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "13.2.0"}
+          # ── Linux aarch64 ────────────────────────────────────────────────
+          - {package_name: dtfft,         platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "",           cuda_version: ""}
+          - {package_name: dtfft-fftw,    platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "fftw",       cuda_version: ""}
+          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "11.8.0"}
+          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "12.6.0"}
+          - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "13.2.0"}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      # ── CUDA toolkit ───────────────────────────────────────────────────────
+      - name: Install CUDA toolkit
+        if: matrix.config.cuda_version != ''
+        uses: Jimver/cuda-toolkit@master
+        with:
+          cuda: ${{ matrix.config.cuda_version }}
+          method: network
+
+      # ── macOS system dependencies ──────────────────────────────────────────
+      # 'openmpi' and 'mpich' are the exact Homebrew formula names.
+      - name: Install MPI (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ${{ matrix.mpi }} ${{ contains(matrix.config.extra_features, 'fftw') && 'fftw' || '' }}
+
+      # ── Linux system dependencies ──────────────────────────────────────────
+      - name: Install MPI + FFTW (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -q
+          if [ "${{ matrix.mpi }}" = "openmpi" ]; then
+            sudo apt-get install -y libopenmpi-dev openmpi-bin
+          else
+            sudo apt-get install -y mpich libmpich-dev
+          fi
+          ${{ contains(matrix.config.extra_features, 'fftw') && 'sudo apt-get install -y libfftw3-dev' || 'true' }}
+
+      # ── Python build dependencies ──────────────────────────────────────────
+      # mpi4py must be compiled from source so it links against the MPI installed above.
+      - name: Install Python build dependencies
+        run: |
+          pip install --upgrade pip
+          pip install scikit-build cmake ninja numpy
+          pip install --no-binary mpi4py mpi4py
+
+      # ── Build wheel ────────────────────────────────────────────────────────
+      # MPI implementation is embedded in the package name so that OpenMPI and
+      # MPICH wheels are published as distinct PyPI distributions (same approach
+      # as mpi4py ≥ 4.x: mpi4py-openmpi / mpi4py-mpich).
+      # CUPY_PACKAGE is derived from package_name: dtfft-cuda12x → cupy-cuda12x.
+      - name: Build wheel
+        env:
+          DTFFT_PACKAGE_NAME: ${{ matrix.config.package_name }}-${{ matrix.mpi }}
+          EXTRA_FEATURES: ${{ matrix.config.extra_features }}
+          CUPY_PACKAGE: ${{ contains(matrix.config.package_name, 'cuda') && replace(matrix.config.package_name, 'dtfft-', 'cupy-') || '' }}
+        run: pip wheel . --no-deps --no-build-isolation -w dist/
+
+      # ── Upload artifact ────────────────────────────────────────────────────
+      - name: Upload wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.config.package_name }}-${{ matrix.config.platform }}-${{ matrix.mpi }}-py${{ matrix.python_version }}
+          path: dist/*.whl
+
+  publish:
+    name: Publish to PyPI
+    # Only publish when a version tag is pushed; wait for all wheels to be built.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # required for OIDC Trusted Publisher auth
+
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: dist/
+          merge-multiple: true
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/

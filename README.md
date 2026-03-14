@@ -27,7 +27,7 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being t
 ## Features
 - **Transform Types**: R2C, C2C, and R2R transforms
 - **Precision**: Single and double precision support
-- **Interfaces**: Fortran, C, and C++ APIs
+- **Interfaces**: Fortran, C, C++ and Python APIs
 - **Decompositions**: 2D and 3D transposition plans with Bricks, Pencils and Slab decompositions support
 - **Transpositions**: Custom MPI datatypes enhanced with standard host-based transpositions
 - **OpenMP Support**: Host-based transpositions can be accelerated using OpenMP
@@ -103,6 +103,7 @@ Available at [dtFFT Internal Documentation](https://shatrovoa.github.io/dtFFT/in
 - [C API](https://dtfft.readthedocs.io/latest/api_c.html)
 - [C++ API](https://dtfft.readthedocs.io/latest/api_cxx.html)
 - [Fortran API](https://dtfft.readthedocs.io/latest/api_fortran.html)
+- [Python API](https://dtfft.readthedocs.io/latest/api_python.html)
 
 ## Roadmap
 The following is an ambitious list of features to implement. The items are in no particular order.

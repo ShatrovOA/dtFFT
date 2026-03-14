@@ -50,6 +50,6 @@ endif()
 
 add_subdirectory(interfaces)
 
-if(DTFFT_BUILD_TESTS)
+if(DTFFT_BUILD_TESTS AND NOT DTFFT_BUILD_PYTHON_API)
   add_subdirectory(tests)
 endif()
