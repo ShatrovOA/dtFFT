@@ -217,7 +217,7 @@ contains
         allocate( best_decomposition(ndims) )
         best_decomposition(:) = comm_dims(:)
         call MPI_Comm_size(base_comm_, comm_size, ierr)
-        if ( comm_size == 1 .and. self%backend /= DTFFT_BACKEND_MPI_DATATYPE ) self%backend = BACKEND_NOT_SET
+        if ( comm_size == 1 .and. self%backend /= DTFFT_BACKEND_MPI_DATATYPE ) self%backend = DTFFT_BACKEND_NONE
 
         pencils_created = .false.
         if ( ndims == 2 .or. is_custom_cart_comm .or. self%is_z_slab .or. self%is_y_slab ) then
@@ -316,7 +316,7 @@ contains
                     backs(-1 * n_transpose_plans + d - 1) = bbacks(n_transpose_plans - d + 1)
                     backs(d) = fbacks(d)
                 enddo
-                backs(0) = BACKEND_NOT_SET
+                backs(0) = DTFFT_BACKEND_NONE
 
                 call allocate_plans(self%plans, backends=backs)
 
@@ -512,14 +512,14 @@ contains
                 if ( backend /= DTFFT_BACKEND_ADAPTIVE ) then
                     backends(1) = backend
                 else
-                    backends(1) = get_correct_backend(BACKEND_NOT_SET)
+                    backends(1) = get_correct_backend(DTFFT_BACKEND_NONE)
                 endif
             else
-                backends(1) = get_correct_backend(BACKEND_NOT_SET)
+                backends(1) = get_correct_backend(DTFFT_BACKEND_NONE)
             endif
             if ( present(fbacks) .and. present(bbacks) ) then
-                fbacks_(:, 1) = BACKEND_NOT_SET;    fbacks_(:, 1) = get_correct_backend(fbacks_(:, 1))
-                bbacks_(:, 1) = BACKEND_NOT_SET;    bbacks_(:, 1) = get_correct_backend(bbacks_(:, 1))
+                fbacks_(:, 1) = DTFFT_BACKEND_NONE;    fbacks_(:, 1) = get_correct_backend(fbacks_(:, 1))
+                bbacks_(:, 1) = DTFFT_BACKEND_NONE;    bbacks_(:, 1) = get_correct_backend(bbacks_(:, 1))
             endif
             forw_modes(:, 1) = transpose_mode
             back_modes(:, 1) = transpose_mode
@@ -688,13 +688,13 @@ contains
         n_transpose_plans = size(pencils, kind=int8) - 1_int8
         if ( is_z_slab ) n_transpose_plans = n_transpose_plans + 1
 
-        allocate( fbacks_(n_transpose_plans), source=BACKEND_NOT_SET )
-        allocate( bbacks_(n_transpose_plans), source=BACKEND_NOT_SET )
+        allocate( fbacks_(n_transpose_plans), source=DTFFT_BACKEND_NONE )
+        allocate( bbacks_(n_transpose_plans), source=DTFFT_BACKEND_NONE )
         allocate( ftimes(n_transpose_plans), source=MAX_REAL32 )
         allocate( btimes(n_transpose_plans), source=MAX_REAL32 )
 
-        fbacks_(:) = BACKEND_NOT_SET;   fbacks_(:) = get_correct_backend(fbacks_)
-        bbacks_(:) = BACKEND_NOT_SET;   bbacks_(:) = get_correct_backend(bbacks_)
+        fbacks_(:) = DTFFT_BACKEND_NONE;   fbacks_(:) = get_correct_backend(fbacks_)
+        bbacks_(:) = DTFFT_BACKEND_NONE;   bbacks_(:) = get_correct_backend(bbacks_)
         ftimes(:) = MAX_REAL32
         btimes(:) = MAX_REAL32
         if ( is_z_slab ) then
@@ -705,7 +705,7 @@ contains
             btimes(2) = 0.0_real32
         endif
 
-        backend_ = BACKEND_NOT_SET
+        backend_ = DTFFT_BACKEND_NONE
         is_udb = .false.
         if ( present(backend) ) then
             backend_ = backend

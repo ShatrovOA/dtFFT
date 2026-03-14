@@ -454,7 +454,7 @@ public :: operator(/=)
   type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_ADAPTIVE = dtfft_backend_t(CONF_DTFFT_BACKEND_ADAPTIVE)
     !! Adaptive backend that selects best available backend at runtime
     !! Currently only available for HOST execution platform
-  type(dtfft_backend_t),  parameter,  public  :: BACKEND_NOT_SET = dtfft_backend_t(VARIABLE_NOT_SET)
+  type(dtfft_backend_t),  parameter,  public  :: DTFFT_BACKEND_NONE = dtfft_backend_t(VARIABLE_NOT_SET)
     !! Backend is not used
   type(dtfft_backend_t),  parameter,  public  :: BACKEND_DUMMY = dtfft_backend_t(2 * VARIABLE_NOT_SET)
   type(dtfft_backend_t),  parameter :: PIPELINED_BACKENDS(*) = [DTFFT_BACKEND_MPI_P2P_PIPELINED, DTFFT_BACKEND_NCCL_PIPELINED, DTFFT_BACKEND_CUFFTMP_PIPELINED, DTFFT_BACKEND_MPI_RMA_PIPELINED]
@@ -728,7 +728,7 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
       allocate(string, source="NCCL_COMPRESSED")
     case ( DTFFT_BACKEND_ADAPTIVE%val )
       allocate(string, source="ADAPTIVE")
-    case ( BACKEND_NOT_SET%val )
+    case ( DTFFT_BACKEND_NONE%val )
       allocate(string, source="None")
     case default
       allocate(string, source="Unknown backend")

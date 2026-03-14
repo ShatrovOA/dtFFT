@@ -158,6 +158,8 @@ public :: dtfft_get_error_string
     !! Invalid compression mode
   integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY = CONF_DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY
     !! Invalid compression library
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_NOT_USED = CONF_DTFFT_ERROR_COMPRESSION_NOT_USED
+    !! Compressed backends are not used for this plan
 
 contains
 
@@ -301,6 +303,8 @@ contains
       allocate(error_string, source="Invalid compression mode")
     case ( DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY )
       allocate(error_string, source="Invalid compression library")
+    case ( DTFFT_ERROR_COMPRESSION_NOT_USED )
+      allocate(error_string, source="Compressed backends are not used for this plan")
     case default
       allocate(error_string, source="Unknown error")
     endselect

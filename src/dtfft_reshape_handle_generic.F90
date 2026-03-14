@@ -828,7 +828,7 @@ contains
 
         get_backend = BACKEND_DUMMY
         if ( .not. self%is_created ) return
-        get_backend = BACKEND_NOT_SET
+        get_backend = DTFFT_BACKEND_NONE
         if ( .not. self%has_exchange ) return
         get_backend = self%comm_handle%backend
     end function get_backend
