@@ -49,15 +49,15 @@ jobs:
           # ── Linux x86_64 ─────────────────────────────────────────────────
           - {package_name: dtfft,         platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "",           cuda_version: "",       cupy_package: ""}
           - {package_name: dtfft-fftw,    platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "fftw",       cuda_version: "",       cupy_package: ""}
-          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "11.8.0", cupy_package: "cupy-cuda11x"}
-          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "12.6.0", cupy_package: "cupy-cuda12x"}
-          - {package_name: dtfft-cuda13x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "13.2.0", cupy_package: "cupy-cuda13x"}
+          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-22.04,     extra_features: "cuda,cufft", cuda_version: "11.8.0", cupy_package: "cupy-cuda11x"}
+          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "12.9.0", cupy_package: "cupy-cuda12x"}
+          - {package_name: dtfft-cuda13x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "13.1.0", cupy_package: "cupy-cuda13x"}
           # ── Linux aarch64 ────────────────────────────────────────────────
           - {package_name: dtfft,         platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "",           cuda_version: "",       cupy_package: ""}
           - {package_name: dtfft-fftw,    platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "fftw",       cuda_version: "",       cupy_package: ""}
-          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "11.8.0", cupy_package: "cupy-cuda11x"}
-          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "12.6.0", cupy_package: "cupy-cuda12x"}
-          - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "13.2.0", cupy_package: "cupy-cuda13x"}
+          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-22.04-arm, extra_features: "cuda,cufft", cuda_version: "11.8.0", cupy_package: "cupy-cuda11x"}
+          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "12.9.0", cupy_package: "cupy-cuda12x"}
+          - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "13.1.0", cupy_package: "cupy-cuda13x"}
 
     steps:
       - name: Checkout
@@ -77,13 +77,12 @@ jobs:
           method: network
 
       # ── macOS system dependencies ──────────────────────────────────────────
-      # 'openmpi' and 'mpich' are the exact Homebrew formula names.
-      - name: Install MPI (macOS)
+      - name: Install macOS system dependencies
         if: startsWith(runner.os, 'macos')
-        run: brew install ${{ matrix.mpi }} ${{ contains(matrix.config.extra_features, 'fftw') && 'fftw' || '' }}
+        run: brew install gfortran ${{ matrix.mpi }} ${{ contains(matrix.config.extra_features, 'fftw') && 'fftw' || '' }}
 
       # ── Linux system dependencies ──────────────────────────────────────────
-      - name: Install MPI + FFTW (Linux)
+      - name: Install Linux system dependencies
         if: startsWith(runner.os, 'linux')
         run: |
           sudo apt-get update -q
@@ -93,14 +92,6 @@ jobs:
             sudo apt-get install -y mpich libmpich-dev
           fi
           ${{ contains(matrix.config.extra_features, 'fftw') && 'sudo apt-get install -y libfftw3-dev' || 'true' }}
-
-      # ── Python build dependencies ──────────────────────────────────────────
-      # mpi4py must be compiled from source so it links against the MPI installed above.
-      - name: Install Python build dependencies
-        run: |
-          pip install --upgrade pip
-          pip install scikit-build cmake ninja numpy auditwheel
-          pip install --no-binary mpi4py mpi4py
 
       # ── Build wheel ────────────────────────────────────────────────────────
       # MPI implementation is embedded in the package name so that OpenMPI and
@@ -112,7 +103,7 @@ jobs:
           DTFFT_PACKAGE_NAME: ${{ matrix.config.package_name }}-${{ matrix.mpi }}
           EXTRA_FEATURES: ${{ matrix.config.extra_features }}
           CUPY_PACKAGE: ${{ matrix.config.cupy_package }}
-        run: pip wheel . --no-deps --no-build-isolation -w dist/
+        run: pip wheel . --no-deps -w dist/
 
       # ── Upload artifact ────────────────────────────────────────────────────
       - name: Upload wheel
