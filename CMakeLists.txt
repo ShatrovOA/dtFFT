@@ -122,8 +122,8 @@ if (NOT HAVE_ASSUMED_RANK_AND_TYPE OR NOT HAVE_BLOCK_STATEMENT)
 endif()
 
 
-check_ompi_fix_required(${MPI_C_INCLUDE_DIRS})
-check_mpich_fix_required(${MPI_C_INCLUDE_DIRS})
+check_ompi_fix_required("${MPI_C_INCLUDE_DIRS}")
+check_mpich_fix_required("${MPI_C_INCLUDE_DIRS}")
 
 if ( OMPI_FIX_REQUIRED )
   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:OMPI_FIX_REQUIRED>)
@@ -136,7 +136,7 @@ endif()
 
 
 if ( DTFFT_ENABLE_PERSISTENT_COMM )
-  check_persistent_collectives(${MPI_Fortran_MODULE_DIR} "${MPI_Fortran_LIBRARIES}" ${mpi_mod})
+  check_persistent_collectives("${MPI_Fortran_MODULE_DIR}" "${MPI_Fortran_LIBRARIES}" ${mpi_mod})
 
   # Preprocessor used for gpu p2p algorithms, e.g. MPI_Send_init
   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:ENABLE_PERSISTENT_COMM>)
@@ -252,7 +252,7 @@ if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
   if ( DTFFT_USE_MPI )
     set(HAVE_MPI_INT64 OFF)
   else()
-    check_int64_supported(${MPI_Fortran_MODULE_DIR} ${MPI_Fortran_LIBRARIES})
+    check_int64_supported("${MPI_Fortran_MODULE_DIR}" "${MPI_Fortran_LIBRARIES}")
   endif()
   if ( HAVE_MPI_INT64 )
     target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=MPI_COUNT_KIND;ADDR_KIND=MPI_ADDRESS_KIND>)
@@ -449,7 +449,7 @@ SET(DTFFT_HEADERS "${DTFFT_HEADER_DIR}/dtfft.f03")
 
 if(DTFFT_BUILD_C_CXX_API)
   set(DTFFT_HEADERS "${DTFFT_HEADERS};${DTFFT_HEADER_DIR}/dtfft.h;${DTFFT_HEADER_DIR}/dtfft.hpp;${DTFFT_CONF_HEADER}")
-  target_link_libraries(dtfft PUBLIC MPI::MPI_CXX)
+  target_link_libraries(dtfft PUBLIC MPI::MPI_C MPI::MPI_CXX)
 endif()
 set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
 target_include_directories(dtfft PUBLIC

@@ -2,11 +2,17 @@ name: Build Python Wheels
 
 on:
   push:
-    tags:
-      - "v*"         # same tag as the C++ library release, e.g. v3.2.0
-                     # Python package version is read from CMakeLists.txt automatically
+    branches:
+      - development
+      - master
   pull_request:      # build (but don't publish) on every PR
   workflow_dispatch: # manual trigger
+    inputs:
+      publish_test_pypi:
+        description: 'Publish to Test PyPI'
+        required: false
+        type: boolean
+        default: false
 
 # ── Matrix legend ──────────────────────────────────────────────────────────────
 # python_version        – CPython version used to build the wheel
@@ -93,7 +99,7 @@ jobs:
       - name: Install Python build dependencies
         run: |
           pip install --upgrade pip
-          pip install scikit-build cmake ninja numpy
+          pip install scikit-build cmake ninja numpy auditwheel
           pip install --no-binary mpi4py mpi4py
 
       # ── Build wheel ────────────────────────────────────────────────────────
@@ -136,4 +142,27 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          packages-dir: dist/
+
+  publish_test:
+    name: Publish to Test PyPI
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_test_pypi
+    needs: build
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: dist/
+          merge-multiple: true
+
+      - name: Publish to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
           packages-dir: dist/
