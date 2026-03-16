@@ -109,7 +109,7 @@ jobs:
             EXTRA_FEATURES=${{ matrix.config.extra_features }}
             DTFFT_PACKAGE_NAME=${{ matrix.config.package_name }}-${{ matrix.mpi }}
             CUPY_PACKAGE=${{ matrix.config.cupy_package }}
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
             auditwheel repair \
@@ -117,7 +117,7 @@ jobs:
               --exclude libmpi_cxx.so.* \
               --exclude libmpi_mpifh.so.* \
               --exclude libmpi_usempi_ignore_tkr.so.* \
-              --exclude libmpi_usempif08.so.* \ 
+              --exclude libmpi_usempif08.so.* \
               --exclude libgfortran.so.* \
               --exclude libpmpi.so.* \
               --exclude libmpicxx.so.* \
