@@ -52,7 +52,7 @@ jobs:
           # ── Linux aarch64 ────────────────────────────────────────────────
           - {package_name: dtfft,         platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "",           cupy_package: "",             cibw_archs: aarch64, cibw_image: "quay.io/pypa/manylinux_2_28_aarch64"}
           - {package_name: dtfft-fftw,    platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "fftw",       cupy_package: "",             cibw_archs: aarch64, cibw_image: "quay.io/pypa/manylinux_2_28_aarch64"}
-          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-22.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda11x", cibw_archs: aarch64, cibw_image: "sameli/manylinux2014_aarch64_cuda_11.8"}
+          # - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-22.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda11x", cibw_archs: aarch64, cibw_image: "sameli/manylinux2014_aarch64_cuda_11.8"}
           - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda12x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_34_aarch64_cuda_12.9"}
           # - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda13x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_28_aarch64_cuda_13.2"}
 
@@ -67,13 +67,11 @@ jobs:
 
       # ── Build wheels (all Python versions) with cibuildwheel ──────────────
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23
+        uses: pypa/cibuildwheel@v3.4.0
         env:
-          GITHUB_TOKEN: ${{ github.token }}
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_SKIP: "*-musllinux*"
           CIBW_PRERELEASE_PYTHONS: "1"
-          CIBW_BUILD_FRONTEND: "pip; args: --no-deps"
           CIBW_ARCHS: ${{ matrix.config.cibw_archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.config.cibw_image }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.config.cibw_image }}
@@ -103,6 +101,7 @@ jobs:
             CUPY_PACKAGE=${{ matrix.config.cupy_package }}
             PATH=/usr/lib64/${{ matrix.mpi }}/bin:/usr/local/cuda/bin:$PATH
             LD_LIBRARY_PATH=/usr/lib64/${{ matrix.mpi }}/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+            CMAKE_ARGS="-DDTFFT_USE_MPI=ON"
 
           # Environment on macOS (brew puts MPI binaries in PATH automatically)
           CIBW_ENVIRONMENT_MACOS: >-
@@ -110,6 +109,24 @@ jobs:
             EXTRA_FEATURES=${{ matrix.config.extra_features }}
             DTFFT_PACKAGE_NAME=${{ matrix.config.package_name }}-${{ matrix.mpi }}
             CUPY_PACKAGE=${{ matrix.config.cupy_package }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+            auditwheel repair \
+              --exclude libmpi.so.* \
+              --exclude libmpi_cxx.so.* \
+              --exclude libmpi_mpifh.so.* \
+              --exclude libmpi_usempi_ignore_tkr.so.* \
+              --exclude libmpi_usempif08.so.* \ 
+              --exclude libgfortran.so.* \
+              --exclude libpmpi.so.* \
+              --exclude libmpicxx.so.* \
+              --exclude libmpifort.so.* \
+              --exclude libcudart.so.* \
+              --exclude libcufft.so.* \
+              --exclude libfftw3.so.* \
+              --exclude libfftw3f.so.* \
+              -w {dest_dir} {wheel}
 
       - name: Upload wheel
         uses: actions/upload-artifact@v6
