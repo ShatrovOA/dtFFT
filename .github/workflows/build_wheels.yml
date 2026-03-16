@@ -46,14 +46,14 @@ jobs:
           # ── Linux x86_64 ─────────────────────────────────────────────────
           - {package_name: dtfft,         platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "",           cupy_package: "",             cibw_archs: x86_64,  cibw_image: "quay.io/pypa/manylinux_2_28_x86_64"}
           - {package_name: dtfft-fftw,    platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "fftw",       cupy_package: "",             cibw_archs: x86_64,  cibw_image: "quay.io/pypa/manylinux_2_28_x86_64"}
-          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-22.04,     extra_features: "cuda,cufft", cupy_package: "cupy-cuda11x", cibw_archs: x86_64,  cibw_image: "sameli/manylinux_2_28_x86_64_cuda_11.8"}
-          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cupy_package: "cupy-cuda12x", cibw_archs: x86_64,  cibw_image: "sameli/manylinux_2_28_x86_64_cuda_12.6"}
+          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-22.04,     extra_features: "cuda,cufft", cupy_package: "cupy-cuda11x", cibw_archs: x86_64,  cibw_image: "sameli/manylinux2014_x86_64_cuda_11.8"}
+          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cupy_package: "cupy-cuda12x", cibw_archs: x86_64,  cibw_image: "sameli/manylinux_2_34_x86_64_cuda_12.9"}
           # - {package_name: dtfft-cuda13x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cupy_package: "cupy-cuda13x", cibw_archs: x86_64,  cibw_image: "sameli/manylinux_2_28_x86_64_cuda_13.2"}
           # ── Linux aarch64 ────────────────────────────────────────────────
           - {package_name: dtfft,         platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "",           cupy_package: "",             cibw_archs: aarch64, cibw_image: "quay.io/pypa/manylinux_2_28_aarch64"}
           - {package_name: dtfft-fftw,    platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "fftw",       cupy_package: "",             cibw_archs: aarch64, cibw_image: "quay.io/pypa/manylinux_2_28_aarch64"}
-          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-22.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda11x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_28_aarch64_cuda_11.8"}
-          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda12x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_28_aarch64_cuda_12.6"}
+          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-22.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda11x", cibw_archs: aarch64, cibw_image: "sameli/manylinux2014_aarch64_cuda_11.8"}
+          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda12x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_34_aarch64_cuda_12.9"}
           # - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda13x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_28_aarch64_cuda_13.2"}
 
     steps:
@@ -69,6 +69,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.23
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
           CIBW_SKIP: "*-musllinux*"
           CIBW_PRERELEASE_PYTHONS: "1"
@@ -92,10 +93,6 @@ jobs:
             if echo "${{ matrix.config.extra_features }}" | grep -q "fftw"; then
               $PKG install -y fftw-devel
             fi
-
-          # Compile mpi4py from source against the installed MPI (once per Python version)
-          CIBW_BEFORE_BUILD_LINUX: pip install --no-binary mpi4py mpi4py
-          CIBW_BEFORE_BUILD_MACOS: pip install --no-binary mpi4py mpi4py
 
           # Environment passed into the Linux container for all hooks and the build
           # $PATH / $LD_LIBRARY_PATH are expanded inside the container at launch time
