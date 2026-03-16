@@ -2,11 +2,9 @@ name: Build Python Wheels
 
 on:
   push:
-    branches:
-      - development
-      - master
-  pull_request:      # build (but don't publish) on every PR
-  workflow_dispatch: # manual trigger
+    branches: [development, master]
+  pull_request:
+  workflow_dispatch:
     inputs:
       publish_test_pypi:
         description: 'Publish to Test PyPI'
@@ -15,116 +13,125 @@ on:
         default: false
 
 # ── Matrix legend ──────────────────────────────────────────────────────────────
-# python_version        – CPython version used to build the wheel
 # mpi                   – MPI implementation: openmpi or mpich
 #                         mpi4py is compiled from source against whichever is installed.
 #                         The MPI variant is appended to the PyPI distribution name so
-#                         that OpenMPI and MPICH wheels are separate packages on PyPI
-#                         (same convention as mpi4py ≥ 4.x: mpi4py-openmpi/mpi4py-mpich).
+#                         that OpenMPI and MPICH wheels are separate packages on PyPI.
 #                         Example: dtfft-fftw + openmpi → dtfft-fftw-openmpi
-# config.package_name   – base PyPI distribution name (without MPI suffix);
-#                         CUPY_PACKAGE is derived from it: dtfft-cuda12x → cupy-cuda12x
+# config.package_name   – base PyPI distribution name (without MPI suffix)
 # config.platform       – human-readable label used in the artifact name
 # config.os             – GitHub-hosted runner image
 # config.extra_features – comma-separated EXTRA_FEATURES value (maps to CMake flags)
-# config.cuda_version   – CUDA toolkit version to install; empty string for non-CUDA builds
+# config.cupy_package   – cupy variant declared as runtime dep; empty for CPU wheels
+# config.cibw_archs     – CIBW_ARCHS: arm64 | x86_64 | aarch64
+# config.cibw_image     – manylinux Docker image passed to cibuildwheel; empty for macOS
+#                         CUDA builds use sameli/manylinux images with CUDA pre-installed.
+#                         Verify available tags at: https://hub.docker.com/u/sameli
 # ──────────────────────────────────────────────────────────────────────────────
 
 jobs:
   build:
-    permissions:
-      id-token: write  # required for OIDC Trusted Publisher auth on PyPI
-      contents: read
-    name: ${{ matrix.config.package_name }} / ${{ matrix.config.platform }} / ${{ matrix.mpi }} / py${{ matrix.python_version }}
+    name: ${{ matrix.config.package_name }} / ${{ matrix.config.platform }} / ${{ matrix.mpi }}
     runs-on: ${{ matrix.config.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        python_version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         mpi: ["openmpi", "mpich"]
         config:
           # ── macOS Apple Silicon ──────────────────────────────────────────
-          - {package_name: dtfft,         platform: macos-arm64,   os: macos-latest,     extra_features: "",           cuda_version: "",       cupy_package: ""}
-          - {package_name: dtfft-fftw,    platform: macos-arm64,   os: macos-latest,     extra_features: "fftw",       cuda_version: "",       cupy_package: ""}
+          - {package_name: dtfft,         platform: macos-arm64,   os: macos-latest,     extra_features: "",           cupy_package: "",             cibw_archs: arm64,   cibw_image: ""}
+          - {package_name: dtfft-fftw,    platform: macos-arm64,   os: macos-latest,     extra_features: "fftw",       cupy_package: "",             cibw_archs: arm64,   cibw_image: ""}
           # ── Linux x86_64 ─────────────────────────────────────────────────
-          - {package_name: dtfft,         platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "",           cuda_version: "",       cupy_package: ""}
-          - {package_name: dtfft-fftw,    platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "fftw",       cuda_version: "",       cupy_package: ""}
-          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-22.04,     extra_features: "cuda,cufft", cuda_version: "11.8.0", cupy_package: "cupy-cuda11x"}
-          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "12.9.0", cupy_package: "cupy-cuda12x"}
-          - {package_name: dtfft-cuda13x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cuda_version: "13.1.0", cupy_package: "cupy-cuda13x"}
+          - {package_name: dtfft,         platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "",           cupy_package: "",             cibw_archs: x86_64,  cibw_image: "quay.io/pypa/manylinux_2_28_x86_64"}
+          - {package_name: dtfft-fftw,    platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "fftw",       cupy_package: "",             cibw_archs: x86_64,  cibw_image: "quay.io/pypa/manylinux_2_28_x86_64"}
+          - {package_name: dtfft-cuda11x, platform: linux-x86_64,  os: ubuntu-22.04,     extra_features: "cuda,cufft", cupy_package: "cupy-cuda11x", cibw_archs: x86_64,  cibw_image: "sameli/manylinux_2_28_x86_64_cuda_11.8"}
+          - {package_name: dtfft-cuda12x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cupy_package: "cupy-cuda12x", cibw_archs: x86_64,  cibw_image: "sameli/manylinux_2_28_x86_64_cuda_12.6"}
+          # - {package_name: dtfft-cuda13x, platform: linux-x86_64,  os: ubuntu-24.04,     extra_features: "cuda,cufft", cupy_package: "cupy-cuda13x", cibw_archs: x86_64,  cibw_image: "sameli/manylinux_2_28_x86_64_cuda_13.2"}
           # ── Linux aarch64 ────────────────────────────────────────────────
-          - {package_name: dtfft,         platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "",           cuda_version: "",       cupy_package: ""}
-          - {package_name: dtfft-fftw,    platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "fftw",       cuda_version: "",       cupy_package: ""}
-          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-22.04-arm, extra_features: "cuda,cufft", cuda_version: "11.8.0", cupy_package: "cupy-cuda11x"}
-          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "12.9.0", cupy_package: "cupy-cuda12x"}
-          - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cuda_version: "13.1.0", cupy_package: "cupy-cuda13x"}
+          - {package_name: dtfft,         platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "",           cupy_package: "",             cibw_archs: aarch64, cibw_image: "quay.io/pypa/manylinux_2_28_aarch64"}
+          - {package_name: dtfft-fftw,    platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "fftw",       cupy_package: "",             cibw_archs: aarch64, cibw_image: "quay.io/pypa/manylinux_2_28_aarch64"}
+          - {package_name: dtfft-cuda11x, platform: linux-aarch64, os: ubuntu-22.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda11x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_28_aarch64_cuda_11.8"}
+          - {package_name: dtfft-cuda12x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda12x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_28_aarch64_cuda_12.6"}
+          # - {package_name: dtfft-cuda13x, platform: linux-aarch64, os: ubuntu-24.04-arm, extra_features: "cuda,cufft", cupy_package: "cupy-cuda13x", cibw_archs: aarch64, cibw_image: "sameli/manylinux_2_28_aarch64_cuda_13.2"}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python_version }}
-
-      # ── CUDA toolkit ───────────────────────────────────────────────────────
-      - name: Install CUDA toolkit
-        if: matrix.config.cuda_version != ''
-        uses: Jimver/cuda-toolkit@master
-        with:
-          cuda: ${{ matrix.config.cuda_version }}
-          method: network
-
-      # ── macOS system dependencies ──────────────────────────────────────────
+      # ── macOS: install MPI + optional FFTW via Homebrew ───────────────────
       - name: Install macOS system dependencies
         if: startsWith(runner.os, 'macos')
         run: brew install gfortran ${{ matrix.mpi }} ${{ contains(matrix.config.extra_features, 'fftw') && 'fftw' || '' }}
 
-      # ── Linux system dependencies ──────────────────────────────────────────
-      - name: Install Linux system dependencies
-        if: startsWith(runner.os, 'linux')
-        run: |
-          sudo apt-get update -q
-          if [ "${{ matrix.mpi }}" = "openmpi" ]; then
-            sudo apt-get install -y libopenmpi-dev openmpi-bin
-          else
-            sudo apt-get install -y mpich libmpich-dev
-          fi
-          ${{ contains(matrix.config.extra_features, 'fftw') && 'sudo apt-get install -y libfftw3-dev' || 'true' }}
-
-      # ── Build wheel ────────────────────────────────────────────────────────
-      # MPI implementation is embedded in the package name so that OpenMPI and
-      # MPICH wheels are published as distinct PyPI distributions (same approach
-      # as mpi4py ≥ 4.x: mpi4py-openmpi / mpi4py-mpich).
-      # CUPY_PACKAGE is derived from package_name: dtfft-cuda12x → cupy-cuda12x.
-      - name: Build wheel
+      # ── Build wheels (all Python versions) with cibuildwheel ──────────────
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.23
         env:
-          DTFFT_PACKAGE_NAME: ${{ matrix.config.package_name }}-${{ matrix.mpi }}
-          EXTRA_FEATURES: ${{ matrix.config.extra_features }}
-          CUPY_PACKAGE: ${{ matrix.config.cupy_package }}
-        run: pip wheel . --no-deps -w dist/
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-* cp314-*"
+          CIBW_SKIP: "*-musllinux*"
+          CIBW_PRERELEASE_PYTHONS: "1"
+          CIBW_BUILD_FRONTEND: "pip; args: --no-deps"
+          CIBW_ARCHS: ${{ matrix.config.cibw_archs }}
+          CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.config.cibw_image }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.config.cibw_image }}
+          CIBW_BUILD_VERBOSITY: 1
 
-      # ── Upload artifact ────────────────────────────────────────────────────
+          # Install MPI + optional FFTW inside the Linux container (once per container)
+          # manylinux_2_28 = AlmaLinux 8 → dnf; manylinux2014 = CentOS 7 → yum
+          # NOTE: CIBW_ENVIRONMENT is NOT available in before_all, so matrix values
+          # are substituted directly via GitHub Actions expressions.
+          CIBW_BEFORE_ALL_LINUX: |
+            if command -v dnf &>/dev/null; then PKG=dnf; else PKG=yum; fi
+            if [ "${{ matrix.mpi }}" = "openmpi" ]; then
+              $PKG install -y openmpi-devel
+            else
+              $PKG install -y mpich-devel
+            fi
+            if echo "${{ matrix.config.extra_features }}" | grep -q "fftw"; then
+              $PKG install -y fftw-devel
+            fi
+
+          # Compile mpi4py from source against the installed MPI (once per Python version)
+          CIBW_BEFORE_BUILD_LINUX: pip install --no-binary mpi4py mpi4py
+          CIBW_BEFORE_BUILD_MACOS: pip install --no-binary mpi4py mpi4py
+
+          # Environment passed into the Linux container for all hooks and the build
+          # $PATH / $LD_LIBRARY_PATH are expanded inside the container at launch time
+          CIBW_ENVIRONMENT_LINUX: >-
+            MPI_IMPL=${{ matrix.mpi }}
+            EXTRA_FEATURES=${{ matrix.config.extra_features }}
+            DTFFT_PACKAGE_NAME=${{ matrix.config.package_name }}-${{ matrix.mpi }}
+            CUPY_PACKAGE=${{ matrix.config.cupy_package }}
+            PATH=/usr/lib64/${{ matrix.mpi }}/bin:/usr/local/cuda/bin:$PATH
+            LD_LIBRARY_PATH=/usr/lib64/${{ matrix.mpi }}/lib:/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+          # Environment on macOS (brew puts MPI binaries in PATH automatically)
+          CIBW_ENVIRONMENT_MACOS: >-
+            MPI_IMPL=${{ matrix.mpi }}
+            EXTRA_FEATURES=${{ matrix.config.extra_features }}
+            DTFFT_PACKAGE_NAME=${{ matrix.config.package_name }}-${{ matrix.mpi }}
+            CUPY_PACKAGE=${{ matrix.config.cupy_package }}
+
       - name: Upload wheel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: wheel-${{ matrix.config.package_name }}-${{ matrix.config.platform }}-${{ matrix.mpi }}-py${{ matrix.python_version }}
-          path: dist/*.whl
+          name: wheel-${{ matrix.config.package_name }}-${{ matrix.config.platform }}-${{ matrix.mpi }}
+          path: wheelhouse/*.whl
 
   publish:
     name: Publish to PyPI
-    # Only publish when a version tag is pushed; wait for all wheels to be built.
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write  # required for OIDC Trusted Publisher auth
+      id-token: write
 
     steps:
       - name: Download all wheels
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: wheel-*
           path: dist/
@@ -146,7 +153,7 @@ jobs:
 
     steps:
       - name: Download all wheels
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: wheel-*
           path: dist/
