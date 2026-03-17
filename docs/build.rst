@@ -194,6 +194,12 @@ The installation also provides the following CMake variables for conditional com
 Python Package
 ==============
 
+``dtFFT`` exposes a large number of CMake configuration options (see :ref:`Configuration Options<config_link>` above) that cannot all be reflected in pre-built packages. The wheels published on PyPI cover only a limited subset of the available functionality.
+For most real-world use cases — especially those requiring a specific MPI implementation, FFTW3, cuFFT, or other optional backends — it is strongly recommended to build the package from source so that all required options can be enabled.
+
+Installing from PyPI
+--------------------
+
 Pre-built wheels are available on PyPI for Linux (x86_64 and aarch64) and macOS (Apple Silicon).
 Choose the variant that matches your environment:
 
@@ -231,18 +237,6 @@ Choose the variant that matches your environment:
      - Linux (x86_64, aarch64)
      - CPU
      - system ``libfftw3``
-   * - ``dtfft-cuda11x-openmpi``
-     - cuFFT
-     - OpenMPI
-     - Linux (x86_64, aarch64)
-     - CPU + NVIDIA GPU (CUDA 11)
-     - CUDA 11 toolkit, ``cupy-cuda11x``
-   * - ``dtfft-cuda11x-mpich``
-     - cuFFT
-     - MPICH
-     - Linux (x86_64, aarch64)
-     - CPU + NVIDIA GPU (CUDA 11)
-     - CUDA 11 toolkit, ``cupy-cuda11x``
    * - ``dtfft-cuda12x-openmpi``
      - cuFFT
      - OpenMPI
@@ -255,26 +249,9 @@ Choose the variant that matches your environment:
      - Linux (x86_64, aarch64)
      - CPU + NVIDIA GPU (CUDA 12)
      - CUDA 12 toolkit, ``cupy-cuda12x``
-   * - ``dtfft-cuda13x-openmpi``
-     - cuFFT
-     - OpenMPI
-     - Linux (x86_64, aarch64)
-     - CPU + NVIDIA GPU (CUDA 13)
-     - CUDA 13 toolkit, ``cupy-cuda13x``
-   * - ``dtfft-cuda13x-mpich``
-     - cuFFT
-     - MPICH
-     - Linux (x86_64, aarch64)
-     - CPU + NVIDIA GPU (CUDA 13)
-     - CUDA 13 toolkit, ``cupy-cuda13x``
 
 All packages share the same importable namespace: ``import dtfft``.
-
-Installing from PyPI
---------------------
-
-Each variant is available in two MPI flavours (``-openmpi`` and ``-mpich``).
-Choose the one matching the MPI runtime installed on your system:
+To install, simply run:
 
 .. code-block:: bash
 
@@ -292,62 +269,68 @@ Choose the one matching the MPI runtime installed on your system:
 Installing from Source
 ----------------------
 
+A source distribution (sdist) of ``dtfft`` is published to PyPI alongside the pre-built wheels as part of the CI/CD pipeline.
+This allows installation with fully custom CMake options on any supported platform — without cloning the repository.
+Build-time Python dependencies (``scikit-build``, ``cmake``, ``ninja``, ``pybind11``) are declared in ``pyproject.toml`` and are installed automatically by pip.
+
 Building from source requires:
 
-- A Fortran compiler (GCC ≥ 12, Intel, or NVHPC)
+- A Fortran compiler (GCC ≥ 10, Intel, or NVHPC)
 - CMake ≥ 3.25
-- An MPI implementation (OpenMPI or MPICH) with development headers
+- An MPI implementation with development headers
 - Python ≥ 3.9
-- ``pip``, ``scikit-build``, ``cmake``, ``ninja``, ``pybind11 ≥ 3`` Python packages
 
-1. **Clone the repository**:
+.. warning::
+
+   The Python environment must contain:
+
+   - ``mpi4py`` **compiled against the exact MPI implementation** that dtFFT will be linked with.
+     Installing a pre-built binary via ``pip install mpi4py`` may link against a different MPI and cause runtime errors.
+     Always build it from source: ``pip install --no-binary mpi4py mpi4py``.
+   - ``cupy`` matching your **CUDA toolkit version** (e.g. ``cupy-cuda12x`` for CUDA 12) when building with CUDA support.
+     Using a mismatched CuPy version will lead to import failures or silent data corruption.
+
+1. **Install runtime Python dependencies**:
 
    .. code-block:: bash
 
-      git clone https://github.com/ShatrovOA/dtFFT.git
-      cd dtFFT
-
-2. **Install build-time Python dependencies**:
-
-   .. code-block:: bash
-
-      pip install scikit-build cmake ninja "pybind11>=3"
       # mpi4py must be compiled against the MPI you have installed
       pip install --no-binary mpi4py mpi4py numpy
+      # for CUDA builds, install cupy matching your CUDA version, e.g.:
+      # pip install cupy-cuda12x
 
-3. **Build and install the wheel**:
+2. **Build and install from source**:
 
-   Use the ``EXTRA_FEATURES`` environment variable to select optional backends.
-   ``scikit-build`` forwards ``CMAKE_ARGS`` directly to CMake, so any additional
-   CMake flags can be passed there as well.
+   Use the ``CMAKE_ARGS`` environment variable to enable optional backends.
+   pip will automatically fetch the source distribution from PyPI and build it locally.
 
    **Transpose-only (no FFT backend)**:
 
    .. code-block:: bash
 
-      pip install . --no-build-isolation
+      pip install dtfft
 
    **With FFTW3**:
 
    .. code-block:: bash
 
-      EXTRA_FEATURES=fftw pip install . --no-build-isolation
+      CMAKE_ARGS="-DDTFFT_WITH_FFTW=ON" pip install dtfft
 
    **With cuFFT (CUDA)**:
 
    .. code-block:: bash
 
-      EXTRA_FEATURES=cuda,cufft pip install . --no-build-isolation
+      CMAKE_ARGS="-DDTFFT_WITH_CUDA=ON -DDTFFT_WITH_CUFFT=ON" pip install dtfft
 
    .. note::
 
-      If FFTW3 is not in a standard location, pass its path via CMake:
+      If FFTW3 is not in a standard location, pass its path via ``CMAKE_ARGS`` as well:
 
       .. code-block:: bash
 
-         CMAKE_ARGS="-DFFTWDIR=/path/to/fftw" EXTRA_FEATURES=fftw pip install . --no-build-isolation
+         CMAKE_ARGS="-DDTFFT_WITH_FFTW=ON -DFFTWDIR=/path/to/fftw" pip install dtfft
 
-4. **Verify the installation**:
+3. **Verify the installation**:
 
    .. code-block:: python
 

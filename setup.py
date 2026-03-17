@@ -37,6 +37,17 @@ package_name = os.environ.get("DTFFT_PACKAGE_NAME", "dtfft").strip()
 
 is_cuda_build = "cuda" in features
 
+# Also detect CUDA intent from CMAKE_ARGS (e.g. when building from sdist via
+# CMAKE_ARGS="-DDTFFT_WITH_CUDA=ON ..." pip install dtfft)
+_cmake_args_env = os.environ.get("CMAKE_ARGS", "")
+_CUDA_CMAKE_FLAGS = {"DTFFT_WITH_CUDA", "DTFFT_WITH_CUFFT", "DTFFT_WITH_VKFFT"}
+if not is_cuda_build:
+    import re as _re
+    for _flag in _CUDA_CMAKE_FLAGS:
+        if _re.search(rf"-D{_flag}\s*=\s*(ON|TRUE|1)\b", _cmake_args_env, _re.IGNORECASE):
+            is_cuda_build = True
+            break
+
 cmake_args = [
     "-DDTFFT_BUILD_PYTHON_API=ON",
 ]
@@ -63,14 +74,6 @@ if "tests" in features:
     cmake_args.append("-DCMAKE_BUILD_TYPE=Debug")
 else:
     cmake_args.append("-DCMAKE_BUILD_TYPE=Release")
-
-
-def exclude_static_libraries(cmake_manifest):
-    print("*" * 50)
-    print("cmake_manifest")
-    print(cmake_manifest)
-    print("*" * 50)
-    return list(filter(lambda name: not (name.endswith(".a")), cmake_manifest))
 
 
 def _build_readme(pkg_name: str, feats: set) -> str:
@@ -148,7 +151,10 @@ def _build_readme(pkg_name: str, feats: set) -> str:
     )
 
 
-long_description = _build_readme(package_name, features)
+if os.environ.get("DTFFT_SDIST", "").strip():
+    long_description = (Path(__file__).parent / "src" / "interfaces" / "python" / "README_sdist.md").read_text()
+else:
+    long_description = _build_readme(package_name, features)
 
 setup(
     name=package_name,
