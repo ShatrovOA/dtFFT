@@ -60,6 +60,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # ── macOS: install Fortran compiler, MPI, and optional FFTW on the host ──
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install gcc ${{ matrix.mpi }}
+          if echo "${{ matrix.config.extra_features }}" | grep -q "fftw"; then
+            brew install fftw
+          fi
+          # Export the full versioned path to gfortran so cibuildwheel can pass it to CMake
+          GCC_PREFIX=$(brew --prefix gcc)
+          GCC_VER=$(find "$GCC_PREFIX/bin" -name 'gcc-[0-9]*' | sort -V | tail -1 | xargs basename | sed 's/gcc-//')
+          echo "GFORTRAN_PATH=$GCC_PREFIX/bin/gfortran-$GCC_VER" >> "$GITHUB_ENV"
+          echo "GCC_PATH=$GCC_PREFIX/bin/gcc-$GCC_VER" >> "$GITHUB_ENV"
+          echo "GXX_PATH=$GCC_PREFIX/bin/g++-$GCC_VER" >> "$GITHUB_ENV"
+
       # ── Build wheels (all Python versions) with cibuildwheel ──────────────
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.4.0
@@ -86,12 +101,6 @@ jobs:
               $PKG install -y fftw-devel
             fi
 
-          CIBW_BEFORE_ALL_MACOS: |
-            brew install gfortran ${{ matrix.mpi }}
-            if echo "${{ matrix.config.extra_features }}" | grep -q "fftw"; then
-              brew install fftw
-            fi
-
           # Environment passed into the Linux container for all hooks and the build
           # $PATH / $LD_LIBRARY_PATH are expanded inside the container at launch time
           CIBW_ENVIRONMENT_LINUX: >-
@@ -114,9 +123,9 @@ jobs:
             CUPY_PACKAGE=${{ matrix.config.cupy_package }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
             PATH=/opt/homebrew/bin:$PATH
-            CC=gcc
-            CXX=g++
-            FC=gfortran
+            FC=${{ env.GFORTRAN_PATH }}
+            CC=${{ env.GCC_PATH }}
+            CXX=${{ env.GXX_PATH }}
 
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
             auditwheel repair \
