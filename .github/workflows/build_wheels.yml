@@ -60,11 +60,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # ── macOS: install MPI + optional FFTW via Homebrew ───────────────────
-      - name: Install macOS system dependencies
-        if: startsWith(runner.os, 'macos')
-        run: brew install gfortran ${{ matrix.mpi }} ${{ contains(matrix.config.extra_features, 'fftw') && 'fftw' || '' }}
-
       # ── Build wheels (all Python versions) with cibuildwheel ──────────────
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.4.0
@@ -89,6 +84,12 @@ jobs:
             fi
             if echo "${{ matrix.config.extra_features }}" | grep -q "fftw"; then
               $PKG install -y fftw-devel
+            fi
+
+          CIBW_BEFORE_ALL_MACOS: |
+            brew install gfortran ${{ matrix.mpi }}
+            if echo "${{ matrix.config.extra_features }}" | grep -q "fftw"; then
+              brew install fftw
             fi
 
           # Environment passed into the Linux container for all hooks and the build
