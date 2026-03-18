@@ -84,7 +84,7 @@ jobs:
           CIBW_ARCHS: ${{ matrix.config.cibw_archs }}
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.config.cibw_image }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.config.cibw_image }}
-          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BUILD_VERBOSITY: 0
 
           # Install MPI + optional FFTW inside the Linux container (once per container)
           # manylinux_2_28 = AlmaLinux 8 → dnf; manylinux2014 = CentOS 7 → yum
@@ -123,6 +123,7 @@ jobs:
             CUPY_PACKAGE=${{ matrix.config.cupy_package }}
             GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
             PATH=/opt/homebrew/bin:$PATH
+            CMAKE_ARGS="-DDTFFT_USE_MPI=ON"
             FC=${{ env.GFORTRAN_PATH }}
             CC=${{ env.GCC_PATH }}
             CXX=${{ env.GXX_PATH }}
