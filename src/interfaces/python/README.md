@@ -1,6 +1,6 @@
 # {PACKAGE_TITLE}
 
-[![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen)](https://github.com/ShatrovOA/dtFFT/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen)](https://github.com/ShatrovOA/dtFFT/blob/master/LICENSE)
 [![Documentation](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/{PACKAGE_NAME})](https://pypi.org/project/{PACKAGE_NAME}/)
 [![Python](https://img.shields.io/pypi/pyversions/{PACKAGE_NAME})](https://pypi.org/project/{PACKAGE_NAME}/)
@@ -62,12 +62,8 @@ conflict-free dependency for your environment:
 | `dtfft-mpich` | none (transpose-only) | MPICH | CPU | — |
 | `dtfft-fftw-openmpi` | FFTW3 | OpenMPI | CPU | system libfftw3 |
 | `dtfft-fftw-mpich` | FFTW3 | MPICH | CPU | system libfftw3 |
-| `dtfft-cuda11x-openmpi` | cuFFT | OpenMPI | CPU + NVIDIA GPU (CUDA 11) | `cupy-cuda11x` |
-| `dtfft-cuda11x-mpich` | cuFFT | MPICH | CPU + NVIDIA GPU (CUDA 11) | `cupy-cuda11x` |
 | `dtfft-cuda12x-openmpi` | cuFFT | OpenMPI | CPU + NVIDIA GPU (CUDA 12) | `cupy-cuda12x` |
 | `dtfft-cuda12x-mpich` | cuFFT | MPICH | CPU + NVIDIA GPU (CUDA 12) | `cupy-cuda12x` |
-| `dtfft-cuda13x-openmpi` | cuFFT | OpenMPI | CPU + NVIDIA GPU (CUDA 13) | `cupy-cuda13x` |
-| `dtfft-cuda13x-mpich` | cuFFT | MPICH | CPU + NVIDIA GPU (CUDA 13) | `cupy-cuda13x` |
 
 All packages share the same importable namespace: `import dtfft`.
 

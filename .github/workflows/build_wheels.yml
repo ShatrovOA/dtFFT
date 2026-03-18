@@ -64,7 +64,7 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install gcc ${{ matrix.mpi }}
+          brew install ${{ matrix.mpi }}
           if echo "${{ matrix.config.extra_features }}" | grep -q "fftw"; then
             brew install fftw
           fi
@@ -165,7 +165,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
