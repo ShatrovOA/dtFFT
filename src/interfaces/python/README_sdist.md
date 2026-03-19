@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen)](https://github.com/ShatrovOA/dtFFT/blob/master/LICENSE)
 [![Documentation](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/dtfft)](https://pypi.org/project/dtfft/)
-[![Python](https://img.shields.io/pypi/pyversions/dtfft)](https://pypi.org/project/dtfft/)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dtfft)
 
 Python bindings for **[dtFFT](https://github.com/ShatrovOA/dtFFT)** — a high-performance library for parallel data transpositions and Fast Fourier Transforms via MPI.
 
@@ -12,7 +12,7 @@ It gives you full control over all build options via CMake flags.
 
 > If you need a pre-built wheel (no compiler required), use one of the variant packages:
 > `dtfft-openmpi`, `dtfft-mpich`, `dtfft-fftw-openmpi`, `dtfft-cuda12x-openmpi`, etc.
-> See the [full list on PyPI](https://test.pypi.org/search/?q=dtfft) or the
+> See the [full list on PyPI](https://pypi.org/search/?q=dtfft) or the
 > [documentation](https://dtfft.readthedocs.io/latest/build.html#installing-from-pypi).
 
 ## Installation

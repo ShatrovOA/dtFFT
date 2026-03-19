@@ -1,11 +1,16 @@
 # dtFFT - DataTyped Fast Fourier Transform
 
 [![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)](https://github.com/ShatrovOA/dtFFT/releases)
-[![Building](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml)
 [![codecov](https://codecov.io/gh/ShatrovOA/dtFFT/graph/badge.svg?token=6BI4AQVH7Z)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)](https://github.com/ShatrovOA/dtFFT/blob/main/LICENSE)
-[![Documentation Status](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)
+[![Linux GNU tests](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml)
+[![Macos GNU tests](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_macos.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_macos.yml)
+[![HPC-SDK tests](https://github.com/ShatrovOA/dtFFT/actions/workflows/hpc_sdk_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/hpc_sdk_linux.yml)
+[![Intel tests](https://github.com/ShatrovOA/dtFFT/actions/workflows/intel_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/intel_linux.yml)
 [![Build and Deploy Documentation](https://github.com/ShatrovOA/dtFFT/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gh-pages.yml)
+[![Documentation Status](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)
+[![PyPI](https://img.shields.io/pypi/v/dtfft)](https://pypi.org/project/dtfft/)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dtfft)
 
 ![Pencils](docs/images/pencils.png)
 
