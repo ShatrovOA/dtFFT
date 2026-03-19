@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 #if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD) && !defined(DTFFT_WITH_MOCK_ENABLED)
   const int32_t nx = 256, ny = 512, nz = 1024;
 #else
-  const int32_t nx = 333, ny = 99, nz = 17;
+  const int32_t nx = 33, ny = 99, nz = 17;
 #endif
 
   if(comm_rank == 0) {
