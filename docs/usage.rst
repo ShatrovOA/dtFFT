@@ -30,6 +30,7 @@ To simplify error checking, ``dtFFT`` provides predefined macros that wrap funct
 - **Fortran**: The ``DTFFT_CHECK`` macro, defined in ``dtfft.f03``, checks the ``error_code`` and halts execution with an informative message if an error occurs. Include this header with ``#include "dtfft.f03"`` to use it. Note: using this macro requires preprocessing.
 - **C**: The ``DTFFT_CALL`` macro wraps function calls, checks the returned :c:type:`dtfft_error_t`, and triggers an appropriate response (printing an error message and exiting) if the call fails.
 - **C++**: The ``DTFFT_CXX_CALL`` macro similarly wraps calls, throws a C++ exception, and displays an error message.
+- **Python**: The Python API raises an exception on error, so standard try-except blocks can be used for error handling.
 
 Below is an example demonstrating error handling with these macros:
 
@@ -63,6 +64,15 @@ Below is an example demonstrating error handling with these macros:
     ...
 
     DTFFT_CXX_CALL( plan.execute(a, b, dtfft::Execute::FORWARD, nullptr) );
+
+  .. code-tab:: python
+
+    import dtfft
+
+    try:
+        plan.execute(a, b, dtfft.Execute.FORWARD)
+    except dtfft.dtfft_Exception as e:
+        print(f"Error occurred: {e}")
 
 Plan Creation
 =============
@@ -178,6 +188,17 @@ The example below illustrates the global-dimension workflow by creating a 3D C2C
 
       return 0;
     }
+  
+  .. code-tab:: python
+
+    import dtfft
+    from mpi4py import MPI
+
+    # Set dimensions
+    dims = [32, 32, 32]
+
+    # Create plan
+    plan = dtfft.PlanC2C(dims, MPI.COMM_WORLD, dtfft.Precision.DOUBLE, dtfft.Effort.PATIENT, dtfft.Executor.NONE)
 
 .. _plan_creation_pencil:
 
@@ -273,6 +294,22 @@ The example below decomposes a :math:`64 \times 64 \times 64` grid by splitting 
 
       return 0;
     }
+
+  .. code-tab:: python
+
+    import dtfft
+    from mpi4py import MPI
+
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+
+    starts = [0, 0, rank * (64 // size)]
+    counts = [64, 64, 64 // size]
+
+    pencil = dtfft.Pencil(starts, counts)
+
+    plan = dtfft.PlanC2C(pencil, comm, dtfft.Precision.DOUBLE, dtfft.Effort.ESTIMATE, dtfft.Executor.NONE)
 
 Bricks decomposition
 --------------------
@@ -591,6 +628,37 @@ The following example creates a config object, disables Z-slab, enables MPI back
 
     // Now we can create a plan
 
+  .. code-tab:: python
+
+    import dtfft
+    import cupy as cp
+
+    # Can create config using type constructor
+    config = dtfft.Config(
+        enable_z_slab=False,
+        enable_mpi_backends=True,
+        stream=cp.cuda.Stream()
+    )
+
+    # or create config with default values
+    # and set fields individually
+    config = dtfft.Config()
+
+    # Disable Z-slab optimization
+    config.enable_z_slab = False
+
+    # Enable MPI backends for autotuning
+    config.enable_mpi_backends = True
+
+    # Create and set custom CUDA stream
+    my_stream = cp.cuda.Stream()
+    config.stream = my_stream
+
+    # Python API is slightly different
+    # One should pass config when creating the plan instead of setting it globally
+    plan = dtfft.PlanC2C(..., config=config)
+
+
 Selecting plan effort
 ---------------------
 
@@ -747,6 +815,11 @@ The minimum number of bytes required for each buffer is ``alloc_size * element_s
     // OR use convenient wrapper
     auto element_size = plan.get_element_size();
 
+  .. code-tab:: python
+
+    # This block of code is not required in Python, since more pythonic method 
+    # get_ndarray (see below) returns an array with the correct size and dtype
+
 Note that :f:func:`get_local_sizes` does not describe intermediate pencil layouts. For both 2D and 3D plans, detailed layout information can be retrieved via the ``pencil`` interface (see `Retrieving memory layouts (Pencils)`_ below).
 
 The ``dtFFT`` library provides functions to allocate and free memory tailored to the plan:
@@ -832,6 +905,24 @@ If NCCL is used and supports buffer registration via ``ncclCommRegister``, and t
     auto b = plan.mem_alloc<std::complex<double>>(alloc_size);
     auto aux = plan.mem_alloc<std::complex<double>>(alloc_size);
 
+  .. code-tab:: python
+    
+    import dtfft
+    import cupy as cp
+
+    # Create a plan (example parameters)
+    plan = dtfft.PlanC2C(...)
+
+    # Get allocation size via plan property
+    alloc_size = plan.alloc_size
+
+    # Allocate memory
+    a = plan.get_ndarray(alloc_size)
+    # One may optionally specify shape, dtype and memory order ('C' or 'F')
+    # Returned array is either NumPy or CuPy array depending on the execution platform of the plan
+
+    b = plan.get_ndarray(alloc_size, shape=(...), dtype=np.complex128, order='F')
+
 .. note:: Memory allocated with :f:func:`mem_alloc` must be deallocated with :f:func:`mem_free` **before** the plan is destroyed to avoid memory leaks.
 
 Retrieving memory layouts (Pencils)
@@ -887,6 +978,14 @@ This call returns a ``dtfft_pencil_t`` structure containing:
     auto z_pencil = plan.get_pencil(dtfft::Layout::Z_PENCILS);
 
     // Access pencil properties, e.g., x_pencil.get_dim(), x_pencil.get_starts()
+
+  .. code-tab:: python
+
+    x_pencil = plan.get_pencil(dtfft.Layout.X_PENCILS)
+    y_pencil = plan.get_pencil(dtfft.Layout.Y_PENCILS)
+    z_pencil = plan.get_pencil(dtfft.Layout.Z_PENCILS)
+
+     # Access pencil properties, e.g., x_pencil.dim, x_pencil.starts
 
 Plan Execution
 ==============
@@ -975,6 +1074,23 @@ Below is an example of executing a plan forward and backward:
     // Backward execution
     DTFFT_CXX_CALL( plan.execute(b, a, dtfft::Execute::BACKWARD, aux) )
 
+    // C++ interface also provides convinient method for inplace execution
+    auto a_fourier = plan.forward(a, aux);
+    // `a_fourier` is a reference to the same memory as `a`, but now contains Fourier-space data.
+
+    auto a_back = plan.backward(a_fourier, aux);
+    // `a_back` is a reference to the same memory as `a_fourier` (and `a`), but now contains real-space data again.
+
+  .. code-tab:: python
+    
+    # Assuming a 3D FFT plan is created and arrays `a`, `b`, and `aux` are created with appropriate sizes and dtypes
+    plan.execute(a, b, dtfft.Execute.FORWARD, aux)
+
+    # Process Fourier-space data in buffer `b`
+    # ... (e.g., apply filtering)
+
+    # Backward execution
+    plan.execute(b, a, dtfft.Execute.BACKWARD, aux)
 
 Transpose
 ---------
@@ -1074,6 +1190,17 @@ Below is an example of transposing data from X to Y and back:
 
     // Reverse transposition
     DTFFT_CXX_CALL( plan.transpose(b, a, dtfft::Transpose::Y_TO_X, nullptr) )
+
+  .. code-tab:: python
+    
+    # Assuming plan is created and arrays `a` and `b` are created with appropriate sizes and dtypes
+    plan.transpose(a, b, dtfft.Transpose.X_TO_Y)
+
+    # Process Y-aligned data in buffer `b`
+    # ... (e.g., apply scaling or analysis)
+
+    # Reverse transposition
+    plan.transpose(b, a, dtfft.Transpose.Y_TO_X)
 
 Reshape
 -------
@@ -1191,6 +1318,30 @@ Below is an example of a full custom 3D FFT workflow using :f:func:`reshape` and
     // 7) Z-pencils -> bricks
     DTFFT_CXX_CALL( plan.reshape(b, a, dtfft::Reshape::Z_PENCILS_TO_BRICKS, nullptr) )
 
+  .. code-tab:: python
+
+    # Assuming a bricks-decomposition plan is created and arrays `a`, `b` are created with appropriate sizes and dtypes.
+    # 1) Bricks -> X-pencils
+    plan.reshape(a, b, dtfft.Reshape.X_BRICKS_TO_PENCILS)
+
+    # 2) 1D FFTs along X on X-pencil layout (external FFT)
+    # fft_x_inplace(b)
+
+    # 3) X-pencils -> Y-pencils
+    plan.transpose(b, a, dtfft.Transpose.X_TO_Y)
+
+    # 4) 1D FFTs along Y on Y-pencil layout (external FFT)
+    # fft_y_inplace(a)
+
+    # 5) Y-pencils -> Z-pencils
+    plan.transpose(a, b, dtfft.Transpose.Y_TO_Z)
+
+    # 6) 1D FFTs along Z on Z-pencil layout (external FFT)
+    # fft_z_inplace(b)
+
+    # 7) Z-pencils -> bricks
+    plan.reshape(b, a, dtfft.Reshape.Z_PENCILS_TO_BRICKS)
+
 
 Auxiliary Buffer Size
 ---------------------
@@ -1286,6 +1437,21 @@ Below is an example of properly finalizing a plan and freeing allocated memory:
     DTFFT_CXX_CALL( plan.mem_free(aux) )  // Free buffer ``aux``
     DTFFT_CXX_CALL( plan.destroy() )      // Explicitly destroy the plan (optional if using destructor)
                                           // Automatic ~Plan() call when `plan` goes out of scope
+
+  .. code-tab:: python
+
+    # In Python, memory management is handled automatically avoiding leaks.
+    # Arrays derived from `plan.get_ndarray()` maintain a strong reference to the plan.
+    # The underlying C++ plan and memory allocations are safely destroyed 
+    # only when the plan and all of its associated arrays are garbage-collected.
+    
+    del a, b, aux  # Remove references to the allocated arrays
+    del plan       # The underlying plan and memory are appropriately freed here
+    
+    # Alternatively, you can explicitly call destroy(). If any arrays are 
+    # still actively holding memory, actual destruction is delayed until 
+    # the last array reference is discarded.
+    # plan.destroy()
 
 Complete Example
 ================
@@ -1473,3 +1639,33 @@ creating a plan, allocating memory, executing forward and backward transformatio
       MPI_Finalize();
       return 0;
     }
+
+  .. code-tab:: python
+
+    import numpy as np
+    from mpi4py import MPI
+    import dtfft
+
+    # Create a 3D complex-to-complex plan with example dimensions
+    dims = (64, 64, 64)
+    plan = dtfft.PlanC2C(dims, MPI.COMM_WORLD, dtfft.Precision.DOUBLE, dtfft.Effort.PATIENT, dtfft.Executor.NONE)
+
+    # Get allocation sizes
+    alloc_size = plan.alloc_size
+    aux_size = plan.aux_size
+
+    # Allocate memory using get_ndarray (automatically freed when plan is destroyed)
+    a = plan.get_ndarray(alloc_size, dtype=np.complex128)  # Real-space buffer
+    b = plan.get_ndarray(alloc_size, dtype=np.complex128)  # Fourier-space buffer
+    aux = plan.get_ndarray(aux_size, dtype=np.complex128)  # Auxiliary buffer
+
+    # Forward execution
+    plan.execute(a, b, dtfft.Execute.FORWARD, aux)
+
+    # Process Fourier-space data in buffer `b` (e.g., apply filtering)
+    # ...
+
+    # Backward execution
+    plan.execute(b, a, dtfft.Execute.BACKWARD, aux)
+
+    # No need to manually free memory; it will be automatically released when `plan` goes out of scope or is explicitly destroyed.

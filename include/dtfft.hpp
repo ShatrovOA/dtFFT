@@ -232,7 +232,9 @@ enum class Error {
     /** Invalid compression mode */
     COMPRESSION_INVALID_MODE = DTFFT_ERROR_COMPRESSION_INVALID_MODE,
     /** Invalid compression library */
-    COMPRESSION_INVALID_LIBRARY = DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY
+    COMPRESSION_INVALID_LIBRARY = DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY,
+    /** Compressed backends are not used for this plan */
+    COMPRESSION_NOT_USED = DTFFT_ERROR_COMPRESSION_NOT_USED
 };
 
 /** @brief Returns the string description of an error code
@@ -486,7 +488,13 @@ enum class Backend {
      * @note Can only be used when effort >= Effort.DTFFT_PATIENT.
      * @note Currently only available for HOST execution platform
     */
-    ADAPTIVE = DTFFT_BACKEND_ADAPTIVE
+    ADAPTIVE = DTFFT_BACKEND_ADAPTIVE,
+
+    /** Backend is not defined. This value is used when no backend is selected, for example when executing on a single process.
+     *
+     * @note This value should never be set by user directly. It can only be returned by the library.
+     */
+    NONE = DTFFT_BACKEND_NONE
 };
 
 /**
@@ -2006,9 +2014,6 @@ public:
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 Effort level for the plan creation
      *
-     * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
-     * instead.
-     *
      * @throws Exception In case error occurs during plan creation
      */
     explicit PlanC2C(const Pencil& pencil, Precision precision,
@@ -2023,9 +2028,6 @@ public:
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor
-     *
-     * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
-     * instead.
      *
      * @throws Exception In case error occurs during plan creation
      */
@@ -2044,18 +2046,31 @@ public:
      *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
+     * @param[in]    precision              Precision of transform.
+     * @param[in]    effort                 Effort level for the plan creation
      * @param[in]    executor               Type of external FFT executor
+     *
+     * @throws Exception In case error occurs during plan creation
+     */
+    explicit PlanR2C(const std::vector<int32_t>& dims,
+        MPI_Comm comm = MPI_COMM_WORLD,
+        Precision precision = Precision::DOUBLE,
+        Effort effort = Effort::ESTIMATE,
+        Executor executor = Executor::NONE);
+
+    /** @brief Real-to-Complex Transpose-only Plan constructor.
+     *
+     * @param[in]    dims                   Vector with global dimensions in
+     *                                      reversed order. `dims.size()` must be 2 or 3
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 Effort level for the plan creation
      *
      * @throws Exception In case error occurs during plan creation
      */
-    explicit PlanR2C(const std::vector<int32_t>& dims, Executor executor,
-        MPI_Comm comm = MPI_COMM_WORLD,
-        Precision precision = Precision::DOUBLE,
+    explicit PlanR2C(const std::vector<int32_t>& dims, Precision precision,
         Effort effort = Effort::ESTIMATE);
 
-    /** Real-to-Complex Generic Plan constructor.
+    /** @brief Real-to-Complex Generic Plan constructor.
      *
      * @param[in]    ndims                  Number of dimensions: 2 or 3
      * @param[in]    dims                   Buffer of size `ndims` with global
@@ -2068,26 +2083,46 @@ public:
      *
      * @throws Exception In case error occurs during plan creation
      */
-    explicit PlanR2C(int8_t ndims, const int32_t* dims, Executor executor,
+    explicit PlanR2C(int8_t ndims, const int32_t* dims,
         MPI_Comm comm = MPI_COMM_WORLD,
         Precision precision = Precision::DOUBLE,
-        Effort effort = Effort::ESTIMATE);
+        Effort effort = Effort::ESTIMATE,
+        Executor executor = Executor::NONE);
 
-    /** @brief Real-to-Complex Plan constructor.
+    /** @brief Real-to-Complex Plan constructor using pencil decomposition
+     * information.
      *
      * @param[in]    pencil                 Initialized Pencil object.
-     * @param[in]    executor               Type of external FFT executor
+     * @param[in]    precision              Precision of transform.
+     * @param[in]    effort                 Effort level for the plan creation
+     *
+     * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
+     * instead.
+     *
+     * @throws Exception In case error occurs during plan creation
+     */
+    explicit PlanR2C(const Pencil& pencil, Precision precision,
+        Effort effort = Effort::ESTIMATE);
+
+    /** @brief Real-to-Complex Plan constructor using pencil decomposition
+     * information.
+     *
+     * @param[in]    pencil                 Initialized Pencil object.
      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
      *                                      Cartesian communicator
      * @param[in]    precision              Precision of transform.
      * @param[in]    effort                 Effort level for the plan creation
+     * @param[in]    executor               Type of external FFT executor
+     *
+     * @note Parameter `executor` cannot be Executor::NONE. PlanC2C should be used
+     * instead.
      *
      * @throws Exception In case error occurs during plan creation
      */
-    explicit PlanR2C(const Pencil& pencil, Executor executor,
-        MPI_Comm comm = MPI_COMM_WORLD,
+    explicit PlanR2C(const Pencil& pencil, MPI_Comm comm = MPI_COMM_WORLD,
         Precision precision = Precision::DOUBLE,
-        Effort effort = Effort::ESTIMATE);
+        Effort effort = Effort::ESTIMATE,
+        Executor executor = Executor::NONE);
 };
 
 /** Real-to-Real Plan */

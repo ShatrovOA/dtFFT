@@ -87,9 +87,9 @@ public :: get_conf_transpose, get_conf_reshape
     integer(int32),             protected  :: n_measure_iters = CONF_DTFFT_MEASURE_ITERS
         !! Number of measurement iterations
 
-    type(dtfft_backend_t),      protected  :: backend_from_env = BACKEND_NOT_SET
+    type(dtfft_backend_t),      protected  :: backend_from_env = DTFFT_BACKEND_NONE
         !! Backend obtained from environ
-    type(dtfft_backend_t),      protected  :: reshape_backend_from_env = BACKEND_NOT_SET
+    type(dtfft_backend_t),      protected  :: reshape_backend_from_env = DTFFT_BACKEND_NONE
         !! Reshape backend obtained from environ
     integer(int32),             protected  :: datatype_enabled_from_env = VARIABLE_NOT_SET
         !! Should we use MPI Datatype backend during autotune or not
@@ -122,7 +122,7 @@ public :: get_conf_transpose, get_conf_reshape
         !! Should we use NCCL backends during autotune or not
     integer(int32),             protected  :: nvshmem_enabled_from_env = VARIABLE_NOT_SET
         !! Should we use NVSHMEM backends during autotune or not
-    type(dtfft_backend_t),  parameter :: DEFAULT_BACKEND = BACKEND_NOT_SET
+    type(dtfft_backend_t),  parameter :: DEFAULT_BACKEND = DTFFT_BACKEND_NONE
         !! Default backend when cuda is enabled
     type(dtfft_stream_t),       protected  :: main_stream = NULL_STREAM
         !! Default dtFFT CUDA stream
@@ -511,7 +511,7 @@ contains
 
       select case ( bcknd_env%raw )
       case ( "undefined" )
-        get_backend_from_env = BACKEND_NOT_SET
+        get_backend_from_env = DTFFT_BACKEND_NONE
       case ( "mpi_dt" )
         get_backend_from_env = DTFFT_BACKEND_MPI_DATATYPE
       case ( "mpi_p2p" )
@@ -548,10 +548,10 @@ contains
         get_backend_from_env = DTFFT_BACKEND_ADAPTIVE
       endselect
 
-      if ( get_backend_from_env /= BACKEND_NOT_SET .and. .not.is_valid_backend(get_backend_from_env) ) then
+      if ( get_backend_from_env /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(get_backend_from_env) ) then
         WRITE_ERROR("Backend '"//bcknd_env%raw//"' is not available in this build.")
         WRITE_ERROR("Environment variable 'DTFFT_"//name//"' has been ignored")
-        get_backend_from_env = BACKEND_NOT_SET
+        get_backend_from_env = DTFFT_BACKEND_NONE
       endif
 
       call bcknd_env%destroy()
@@ -745,11 +745,11 @@ contains
     endif
     access_mode = config%access_mode
 
-    if ( config%backend /= BACKEND_NOT_SET .and. .not.is_valid_backend(config%backend)) then
+    if ( config%backend /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(config%backend)) then
       if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_BACKEND
       return
     endif
-    if ( config%reshape_backend /= BACKEND_NOT_SET .and. .not.is_valid_backend(config%reshape_backend)) then
+    if ( config%reshape_backend /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(config%reshape_backend)) then
       if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_BACKEND
       return
     endif
@@ -766,7 +766,7 @@ contains
   elemental type(dtfft_backend_t) function get_correct_backend(back)
     type(dtfft_backend_t), intent(in) :: back
 
-    if ( back == BACKEND_NOT_SET ) then
+    if ( back == DTFFT_BACKEND_NONE ) then
 #ifdef DTFFT_WITH_CUDA
       if ( get_conf_platform() == DTFFT_PLATFORM_CUDA ) then
 # ifdef DTFFT_WITH_NCCL
@@ -863,13 +863,13 @@ contains
   elemental type(dtfft_backend_t) function get_conf_backend()
   !! Returns backend set by the user or default one
     get_conf_backend = get_correct_backend(backend)
-    if ( backend_from_env /= BACKEND_NOT_SET) get_conf_backend = backend_from_env
+    if ( backend_from_env /= DTFFT_BACKEND_NONE) get_conf_backend = backend_from_env
   end function get_conf_backend
 
   elemental type(dtfft_backend_t) function get_conf_reshape_backend()
   !! Returns reshape backend set by the user or default one
     get_conf_reshape_backend = get_correct_backend(reshape_backend)
-    if ( reshape_backend_from_env /= BACKEND_NOT_SET) get_conf_reshape_backend = reshape_backend_from_env
+    if ( reshape_backend_from_env /= DTFFT_BACKEND_NONE) get_conf_reshape_backend = reshape_backend_from_env
   end function get_conf_reshape_backend
 
   elemental function get_conf_datatype_enabled() result(bool)

@@ -6,6 +6,7 @@ set(DTFFT_WITH_C_CXX_API @DTFFT_BUILD_C_CXX_API@)
 set(DTFFT_WITH_MPI_MODULE @DTFFT_USE_MPI@)
 set(DTFFT_WITH_NCCL @DTFFT_WITH_NCCL@)
 set(DTFFT_WITH_NVSHMEM @DTFFT_WITH_NVSHMEM@)
+set(DTFFT_WITH_OPENMP @DTFFT_WITH_OPENMP@)
 
 include(CMakeFindDependencyMacro)
 
@@ -18,6 +19,9 @@ if ( DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
     list(APPEND CMAKE_PREFIX_PATH "${NVHPC_CMAKE_PATH}")
     find_dependency(NVHPC REQUIRED)
   endif()
+endif()
+if ( DTFFT_WITH_OPENMP )
+  find_dependency(OpenMP REQUIRED)
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/dtfftTargets.cmake")

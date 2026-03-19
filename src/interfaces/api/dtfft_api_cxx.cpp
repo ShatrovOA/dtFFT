@@ -1,4 +1,3 @@
-#include <cassert>
 #include <dtfft.hpp>
 
 namespace dtfft {
@@ -58,7 +57,12 @@ namespace dtfft {
 
     Pencil::Pencil(const int32_t n_dims, const int32_t* starts, const int32_t* counts)
     {
-        assert(n_dims >= 2 && n_dims <= 3);
+        if ( starts == nullptr || counts == nullptr ) {
+            DTFFT_CXX_CALL(dtfft::Error::INVALID_USAGE);
+        }
+        if (n_dims < 2 || n_dims > 3) {
+            DTFFT_CXX_CALL(dtfft::Error::INVALID_USAGE);
+        }
         pencil.ndims = n_dims;
         for (int32_t i = 0; i < n_dims; ++i) {
             pencil.starts[i] = starts[i];
@@ -77,37 +81,49 @@ namespace dtfft {
 
     uint8_t Pencil::get_ndims() const
     {
-        assert(is_created);
+        if ( !is_created ) {
+            DTFFT_CXX_CALL(dtfft::Error::INVALID_USAGE);
+        }
         return pencil.ndims;
     }
 
     uint8_t Pencil::get_dim() const
     {
-        assert(is_obtained);
+        if ( !is_obtained ) {
+            DTFFT_CXX_CALL(dtfft::Error::INVALID_USAGE);
+        }
         return pencil.dim;
     }
 
     std::vector<int32_t> Pencil::get_starts() const
     {
-        assert(is_obtained);
+        if ( !is_obtained ) {
+            DTFFT_CXX_CALL(dtfft::Error::INVALID_USAGE);
+        }
         return { pencil.starts, pencil.starts + pencil.ndims };
     }
 
     std::vector<int32_t> Pencil::get_counts() const
     {
-        assert(is_obtained);
+        if ( !is_obtained ) {
+            DTFFT_CXX_CALL(dtfft::Error::INVALID_USAGE);
+        }
         return { pencil.counts, pencil.counts + pencil.ndims };
     }
 
     size_t Pencil::get_size() const
     {
-        assert(is_obtained);
+        if ( !is_obtained ) {
+            DTFFT_CXX_CALL(dtfft::Error::INVALID_USAGE);
+        }
         return pencil.size;
     }
 
     const dtfft_pencil_t& Pencil::c_struct() const
     {
-        assert(is_created);
+        if ( !is_created ) {
+            DTFFT_CXX_CALL(dtfft::Error::INVALID_USAGE);
+        }
         return pencil;
     }
 
@@ -619,24 +635,32 @@ namespace dtfft {
             static_cast<dtfft_executor_t>(executor), &_plan);
         DTFFT_CXX_CALL(static_cast<Error>(error_code))
     }
-    #ifndef DTFFT_TRANSPOSE_ONLY
+
     PlanR2C::PlanR2C(
         const std::vector<int32_t>& dims,
-        const Executor executor,
         MPI_Comm comm,
         const Precision precision,
+        const Effort effort,
+        const Executor executor)
+        : PlanR2C(static_cast<int8_t>(dims.size()), dims.data(), comm, precision, effort, executor)
+    {
+    }
+
+    PlanR2C::PlanR2C(
+        const std::vector<int32_t>& dims,
+        const Precision precision,
         const Effort effort)
-        : PlanR2C(static_cast<int8_t>(dims.size()), dims.data(), executor, comm, precision, effort)
+        : PlanR2C(static_cast<int8_t>(dims.size()), dims.data(), MPI_COMM_WORLD, precision, effort)
     {
     }
 
     PlanR2C::PlanR2C(
         const int8_t ndims,
         const int32_t* dims,
-        const Executor executor,
         MPI_Comm comm,
         const Precision precision,
-        const Effort effort)
+        const Effort effort,
+        const Executor executor)
     {
         dtfft_error_t error_code = dtfft_create_plan_r2c(ndims, dims, comm,
             static_cast<dtfft_precision_t>(precision),
@@ -647,10 +671,18 @@ namespace dtfft {
 
     PlanR2C::PlanR2C(
         const Pencil& pencil,
-        const Executor executor,
-        MPI_Comm comm,
         const Precision precision,
         const Effort effort)
+        : PlanR2C(pencil, MPI_COMM_WORLD, precision, effort)
+    {
+    }
+
+    PlanR2C::PlanR2C(
+        const Pencil& pencil,
+        MPI_Comm comm,
+        const Precision precision,
+        const Effort effort,
+        const Executor executor)
     {
         dtfft_error_t error_code = dtfft_create_plan_r2c_pencil(&pencil.c_struct(), comm,
             static_cast<dtfft_precision_t>(precision),
@@ -658,7 +690,6 @@ namespace dtfft {
             static_cast<dtfft_executor_t>(executor), &_plan);
         DTFFT_CXX_CALL(static_cast<Error>(error_code))
     }
-    #endif
 
     PlanR2R::PlanR2R(
         const std::vector<int32_t>& dims,

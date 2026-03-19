@@ -1,11 +1,16 @@
 # dtFFT - DataTyped Fast Fourier Transform
 
 [![Status](https://img.shields.io/badge/status-stable-brightgreen.svg)](https://github.com/ShatrovOA/dtFFT/releases)
-[![Building](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml)
 [![codecov](https://codecov.io/gh/ShatrovOA/dtFFT/graph/badge.svg?token=6BI4AQVH7Z)](https://codecov.io/gh/ShatrovOA/dtFFT)
 [![License](https://img.shields.io/github/license/ShatrovOA/dtFFT?color=brightgreen&logo=License)](https://github.com/ShatrovOA/dtFFT/blob/main/LICENSE)
-[![Documentation Status](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)
+[![Linux GNU tests](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_linux.yml)
+[![Macos GNU tests](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_macos.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gnu_macos.yml)
+[![HPC-SDK tests](https://github.com/ShatrovOA/dtFFT/actions/workflows/hpc_sdk_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/hpc_sdk_linux.yml)
+[![Intel tests](https://github.com/ShatrovOA/dtFFT/actions/workflows/intel_linux.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/intel_linux.yml)
 [![Build and Deploy Documentation](https://github.com/ShatrovOA/dtFFT/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/ShatrovOA/dtFFT/actions/workflows/gh-pages.yml)
+[![Documentation Status](https://readthedocs.org/projects/dtfft/badge/?version=latest)](https://dtfft.readthedocs.io/latest/?badge=latest)
+[![PyPI](https://img.shields.io/pypi/v/dtfft)](https://pypi.org/project/dtfft/)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dtfft)
 
 ![Pencils](docs/images/pencils.png)
 
@@ -27,9 +32,10 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being t
 ## Features
 - **Transform Types**: R2C, C2C, and R2R transforms
 - **Precision**: Single and double precision support
-- **Interfaces**: Fortran, C, and C++ APIs
+- **Interfaces**: Fortran, C, C++ and Python APIs
 - **Decompositions**: 2D and 3D transposition plans with Bricks, Pencils and Slab decompositions support
 - **Transpositions**: Custom MPI datatypes enhanced with standard host-based transpositions
+- **OpenMP Support**: Host-based transpositions can be accelerated using OpenMP
 - **GPU Support**: CUDA acceleration with runtime kernel compilation
 - **FFT Libraries**: built-in support:
   - [FFTW3](https://www.fftw.org/)
@@ -42,7 +48,6 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being t
 
 ## Limitations
 - Memory is assumed to be contiguous. Ghost boundaries are not allowed.
-- OpenMP for multicore parallelism is not supported.
 - Maximum number of elements per process/GPU cannot exceed $2^{31} - 1$ - max value of int32
 
 ## Requirements
@@ -103,6 +108,7 @@ Available at [dtFFT Internal Documentation](https://shatrovoa.github.io/dtFFT/in
 - [C API](https://dtfft.readthedocs.io/latest/api_c.html)
 - [C++ API](https://dtfft.readthedocs.io/latest/api_cxx.html)
 - [Fortran API](https://dtfft.readthedocs.io/latest/api_fortran.html)
+- [Python API](https://dtfft.readthedocs.io/latest/api_python.html)
 
 ## Roadmap
 The following is an ambitious list of features to implement. The items are in no particular order.

@@ -3,7 +3,6 @@ if ( DTFFT_WITH_CUDA AND NOT SKIP_CUDA_COVERAGE )
   list(APPEND TEST_SOURCES "test_device_kernels.F90")
 endif()
 if ( DTFFT_WITH_COMPRESSION )
-  message("DTFFT_WITH_COMPRESSION = true")
   list(APPEND TEST_SOURCES "test_compression.F90")
 endif()
 

@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 
   auto pencil = Pencil(starts, counts);
 
-  auto plan = PlanR2C(pencil, executor, MPI_COMM_WORLD, Precision::SINGLE, Effort::MEASURE);
+  auto plan = PlanR2C(pencil, MPI_COMM_WORLD, Precision::SINGLE, Effort::MEASURE, executor);
   DTFFT_CXX_CALL( plan.report() )
   vector<int32_t> in_counts(3), out_sizes(3);
   DTFFT_CXX_CALL( plan.get_local_sizes(nullptr, in_counts.data(), nullptr, out_sizes.data(), nullptr) )

@@ -65,7 +65,6 @@ function(check_int64_supported MPI_INCLUDES MPI_LIBS)
 endfunction()
 
 function(check_ompi_fix_required MPI_INCLUDES)
-  # Set required includes and libraries for MPI
   set(file "${PROJECT_BINARY_DIR}/detect_ompi_version.c")
   file(WRITE ${file} "
       #include <stdio.h>
@@ -75,8 +74,13 @@ function(check_ompi_fix_required MPI_INCLUDES)
         return OMPI_MAJOR_VERSION < 5 ? 1 : 0;
       }
     ")
+  if (MPI_INCLUDES)
+    set(_cmake_flags CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MPI_INCLUDES}")
+  else()
+    set(_cmake_flags "")
+  endif()
   try_run(OMPI_LESS_5 compile_result ${PROJECT_BINARY_DIR} ${file}
-          CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MPI_INCLUDES}"
+          ${_cmake_flags}
           COMPILE_OUTPUT_VARIABLE compile_output
           RUN_OUTPUT_VARIABLE run_output)
   if(NOT compile_result)
@@ -91,7 +95,6 @@ function(check_ompi_fix_required MPI_INCLUDES)
 endfunction(check_ompi_fix_required)
 
 function(check_mpich_fix_required MPI_INCLUDES)
-  # Set required includes and libraries for MPI
   set(file "${PROJECT_BINARY_DIR}/detect_mpich_version.c")
   file(WRITE ${file} "
       #include <stdio.h>
@@ -103,8 +106,13 @@ function(check_mpich_fix_required MPI_INCLUDES)
         return correct_version >= MPICH_NUMVERSION ? 1 : 0;
       }
     ")
+  if (MPI_INCLUDES)
+    set(_cmake_flags CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MPI_INCLUDES}")
+  else()
+    set(_cmake_flags "")
+  endif()
   try_run(MPICH_LESS_41 compile_result ${PROJECT_BINARY_DIR} ${file}
-          CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${MPI_INCLUDES}"
+          ${_cmake_flags}
           COMPILE_OUTPUT_VARIABLE compile_output
           RUN_OUTPUT_VARIABLE run_output)
   if(NOT compile_result)

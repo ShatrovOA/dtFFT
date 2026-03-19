@@ -11,13 +11,17 @@ jobs:
       FC: "ifx"
       DTFFT_ENABLE_LOG: "1"
     steps:
+      - name: Free space
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
       - name: Get Requirements
         run: |
           sudo echo "deb [trusted=yes] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo apt-get update -y
           sudo apt install -y intel-oneapi-base-toolkit intel-oneapi-hpc-toolkit
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build
         run: |
           source /opt/intel/oneapi/setvars.sh
@@ -44,7 +48,7 @@ jobs:
           cmake --build build
 
   host_static:
-    name: Intel OneAPI Static
+    name: Intel OneAPI Static + OpenMP
     runs-on: ubuntu-latest
     env:
       CC: "icx"
@@ -52,13 +56,17 @@ jobs:
       FC: "ifx"
       DTFFT_ENABLE_LOG: "1"
     steps:
+      - name: Free space
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
       - name: Get Requirements
         run: |
           sudo echo "deb [trusted=yes] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo apt-get update -y
           sudo apt install -y intel-oneapi-base-toolkit intel-oneapi-hpc-toolkit
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build
         run: |
           source /opt/intel/oneapi/setvars.sh
@@ -66,6 +74,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_BUILD_TESTS=on \
             -DDTFFT_BUILD_SHARED=OFF \
+            -DDTFFT_WITH_OPENMP=on \
             -DDTFFT_USE_MPI=on \
             -DDTFFT_BUILD_C_CXX_API=on
           cmake --build build
@@ -106,7 +115,7 @@ jobs:
   #         sudo apt-get -q update
   #         sudo apt-get -y install cuda-toolkit-12-8
   #     - name: Checkout
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v6
   #     - name: Build
   #       run: |
   #         source /opt/intel/oneapi/setvars.sh

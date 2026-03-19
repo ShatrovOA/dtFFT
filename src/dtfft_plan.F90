@@ -22,6 +22,9 @@ module dtfft_plan
 !! This module describes [[dtfft_plan_t]], [[dtfft_plan_c2c_t]], [[dtfft_plan_r2c_t]] and [[dtfft_plan_r2r_t]] types
 use iso_c_binding,                    only: c_loc, c_f_pointer, c_ptr, c_bool, c_null_ptr
 use iso_fortran_env,                  only: int8, int32, int64, real32, real64, output_unit, error_unit
+#ifdef DTFFT_WITH_OPENMP
+use omp_lib,                          only: omp_get_max_threads
+#endif
 use dtfft_abstract_executor,          only: abstract_executor, FFT_1D, FFT_2D, FFT_C2C, FFT_R2C, FFT_R2R
 #ifdef DTFFT_WITH_FFTW
 use dtfft_executor_fftw_m,            only: fftw_executor
@@ -1590,6 +1593,11 @@ contains
     WRITE_REPORT("  Execution platform   :  CUDA")
     endif
 #endif
+#ifdef DTFFT_WITH_OPENMP
+    if ( self%platform == DTFFT_PLATFORM_HOST ) then
+    WRITE_REPORT("  Number of OMP threads:  "//to_str(omp_get_max_threads()))
+    endif
+#endif
     select type( self )
     class is ( dtfft_plan_c2c_t )
     WRITE_REPORT("  Plan type            :  Complex-to-Complex")
@@ -1652,10 +1660,8 @@ contains
     CHECK_ERROR_AND_RETURN
     transpose_compressed = is_backend_compressed(self%plan%get_backend())
     reshape_compressed = is_backend_compressed(self%rplan%get_backend())
-    if ( .not.transpose_compressed  .and. .not.reshape_compressed ) then
-      if ( present( error_code ) ) error_code = ierr
-      return
-    endif
+    if ( .not.transpose_compressed  .and. .not.reshape_compressed ) ierr = DTFFT_ERROR_COMPRESSION_NOT_USED
+    CHECK_ERROR_AND_RETURN
 
     WRITE_REPORT("**Compression report**")
     if ( self%is_reshape_enabled .and. reshape_compressed) then
@@ -1665,6 +1671,7 @@ contains
       call self%plan%report_compression()
     endif
     WRITE_REPORT("**End of report**")
+    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
   end subroutine report_compression
 #endif
 
@@ -1677,7 +1684,7 @@ contains
     integer(int32)  :: ierr     !! Error code
 
     ierr = DTFFT_SUCCESS
-    get_backend = BACKEND_NOT_SET
+    get_backend = DTFFT_BACKEND_NONE
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
 
@@ -1694,7 +1701,7 @@ contains
     integer(int32)  :: ierr     !! Error code
 
     ierr = DTFFT_SUCCESS
-    get_reshape_backend = BACKEND_NOT_SET
+    get_reshape_backend = DTFFT_BACKEND_NONE
     if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
     CHECK_ERROR_AND_RETURN
     if ( .not. self%is_reshape_enabled ) ierr = DTFFT_ERROR_RESHAPE_NOT_SUPPORTED

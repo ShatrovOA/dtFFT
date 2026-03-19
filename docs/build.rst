@@ -122,13 +122,22 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON``
      - Enables input parameter checks for plan execution functions. Should be turned off by advanced users to best performance.
    * - ``DTFFT_WITH_ZFP``
-      - ``ON`` / ``OFF``
-      - ``OFF``
-      - Enables ZFP support for compressed transposes. Requires the ``zfp_DIR`` variable to point to the ZFP installation path.
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables ZFP support for compressed transposes. Requires the ``zfp_DIR`` variable to point to the ZFP installation path.
    * - ``DTFFT_WITH_MOCK_ENABLED``
-      - ``ON`` / ``OFF``
-      - ``OFF``
-      - Enables mock version of CUDA support for testing and development without a CUDA-capable GPU. This option is intended for development and testing purposes only and should not be used in production environments.
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables mock version of CUDA support for testing and development without a CUDA-capable GPU. This option is intended for development and testing purposes only and should not be used in production environments.
+   * - ``DTFFT_WITH_OPENMP``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables OpenMP support.
+   * - ``DTFFT_WITH_FFTW_THREADS``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables threads library of FFTW instead of OpenMP. This option is only applicable if both ``DTFFT_WITH_FFTW`` and ``DTFFT_WITH_OPENMP`` are enabled.
+
 
 Building the Library
 ====================
@@ -176,3 +185,155 @@ The installation also provides the following CMake variables for conditional com
 - ``DTFFT_WITH_CUDA``: Indicates CUDA support
 - ``DTFFT_WITH_C_CXX_API``: Indicates C/C++ API availability
 - ``DTFFT_WITH_MPI_MODULE``: Indicates use of the ``mpi`` module
+- ``DTFFT_WITH_NCCL``: Indicates NCCL support
+- ``DTFFT_WITH_NVSHMEM``: Indicates NVSHMEM support
+- ``DTFFT_WITH_OPENMP``: Indicates OpenMP support
+
+.. _python_install_link:
+
+Python Package
+==============
+
+``dtFFT`` exposes a large number of CMake configuration options (see :ref:`Configuration Options<config_link>` above) that cannot all be reflected in pre-built packages. The wheels published on PyPI cover only a limited subset of the available functionality.
+For most real-world use cases — especially those requiring a specific MPI implementation, FFTW3, cuFFT, or other optional backends — it is strongly recommended to build the package from source so that all required options can be enabled.
+
+Installing from PyPI
+--------------------
+
+Pre-built wheels are available on PyPI for Linux (x86_64 and aarch64) and macOS (Apple Silicon).
+Choose the variant that matches your environment:
+
+.. list-table:: PyPI package variants
+   :widths: 22 12 10 22 18 16
+   :header-rows: 1
+
+   * - Package
+     - FFT backend
+     - MPI
+     - OS
+     - Platform
+     - Extra system requirements
+   * - ``dtfft-openmpi``
+     - none (transpose only)
+     - OpenMPI
+     - Linux (x86_64, aarch64), macOS (arm64)
+     - CPU
+     - —
+   * - ``dtfft-mpich``
+     - none (transpose only)
+     - MPICH
+     - Linux (x86_64, aarch64), macOS (arm64)
+     - CPU
+     - —
+   * - ``dtfft-fftw-openmpi``
+     - FFTW3
+     - OpenMPI
+     - Linux (x86_64, aarch64), macOS (arm64)
+     - CPU
+     - system ``libfftw3``
+   * - ``dtfft-fftw-mpich``
+     - FFTW3
+     - MPICH
+     - Linux (x86_64, aarch64)
+     - CPU
+     - system ``libfftw3``
+   * - ``dtfft-cuda12x-openmpi``
+     - cuFFT
+     - OpenMPI
+     - Linux (x86_64, aarch64)
+     - CPU + NVIDIA GPU (CUDA 12)
+     - CUDA 12 toolkit, ``cupy-cuda12x``
+   * - ``dtfft-cuda12x-mpich``
+     - cuFFT
+     - MPICH
+     - Linux (x86_64, aarch64)
+     - CPU + NVIDIA GPU (CUDA 12)
+     - CUDA 12 toolkit, ``cupy-cuda12x``
+
+All packages share the same importable namespace: ``import dtfft``.
+To install, simply run:
+
+.. code-block:: bash
+
+   # Transpose-only (no FFT backend) — OpenMPI
+   pip install dtfft-openmpi
+   # Transpose-only (no FFT backend) — MPICH
+   pip install dtfft-mpich
+
+   # With FFTW3 — OpenMPI
+   pip install dtfft-fftw-openmpi
+
+   # CUDA 12 — OpenMPI
+   pip install dtfft-cuda12x-openmpi
+
+Installing from Source
+----------------------
+
+A source distribution (sdist) of ``dtfft`` is published to PyPI alongside the pre-built wheels as part of the CI/CD pipeline.
+This allows installation with fully custom CMake options on any supported platform — without cloning the repository.
+Build-time Python dependencies (``scikit-build``, ``cmake``, ``ninja``, ``pybind11``) are declared in ``pyproject.toml`` and are installed automatically by pip.
+
+Building from source requires:
+
+- A Fortran compiler (GCC ≥ 10, Intel, or NVHPC)
+- CMake ≥ 3.25
+- An MPI implementation with development headers
+- Python ≥ 3.9
+
+.. warning::
+
+   The Python environment must contain:
+
+   - ``mpi4py`` **compiled against the exact MPI implementation** that dtFFT will be linked with.
+     Installing a pre-built binary via ``pip install mpi4py`` may link against a different MPI and cause runtime errors.
+     Always build it from source: ``pip install --no-binary mpi4py mpi4py``.
+   - ``cupy`` matching your **CUDA toolkit version** (e.g. ``cupy-cuda12x`` for CUDA 12) when building with CUDA support.
+     Using a mismatched CuPy version will lead to import failures or silent data corruption.
+
+1. **Install runtime Python dependencies**:
+
+   .. code-block:: bash
+
+      # mpi4py must be compiled against the MPI you have installed
+      pip install --no-binary mpi4py mpi4py numpy
+      # for CUDA builds, install cupy matching your CUDA version, e.g.:
+      # pip install cupy-cuda12x
+
+2. **Build and install from source**:
+
+   Use the ``CMAKE_ARGS`` environment variable to enable optional backends.
+   pip will automatically fetch the source distribution from PyPI and build it locally.
+
+   **Transpose-only (no FFT backend)**:
+
+   .. code-block:: bash
+
+      pip install dtfft
+
+   **With FFTW3**:
+
+   .. code-block:: bash
+
+      CMAKE_ARGS="-DDTFFT_WITH_FFTW=ON" pip install dtfft
+
+   **With cuFFT (CUDA)**:
+
+   .. code-block:: bash
+
+      CMAKE_ARGS="-DDTFFT_WITH_CUDA=ON -DDTFFT_WITH_CUFFT=ON" pip install dtfft
+
+   .. note::
+
+      If FFTW3 is not in a standard location, pass its path via ``CMAKE_ARGS`` as well:
+
+      .. code-block:: bash
+
+         CMAKE_ARGS="-DDTFFT_WITH_FFTW=ON -DFFTWDIR=/path/to/fftw" pip install dtfft
+
+3. **Verify the installation**:
+
+   .. code-block:: python
+
+      import dtfft
+      print(dtfft.is_fftw_enabled())   # True if built with FFTW3
+      print(dtfft.is_cufft_enabled())  # True if built with cuFFT

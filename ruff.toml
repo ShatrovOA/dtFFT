@@ -1,0 +1,46 @@
+# Ruff configuration for dtFFT Python sources.
+# Docs: https://docs.astral.sh/ruff/configuration/
+
+# Hint for isort: where first-party packages live.
+src = ["src/interfaces/python", "tests/python"]
+
+# Generated files, build artifacts, and vendored code.
+exclude = [
+    ".git",
+    "__pycache__",
+    "_skbuild",
+    "build",
+]
+
+# Minimum Python version to target.
+target-version = "py39"
+
+line-length = 100
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "ERA", # eradicate (commented-out code)
+    "PL",  # pylint
+]
+
+ignore = [
+    "E501",   # line too long — handled by formatter
+    "PLR0913", # too many arguments in function definition (Config.__init__ has many)
+    "ERA001",  # Commented-out code
+]
+
+[lint.isort]
+known-first-party = ["dtfft"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true

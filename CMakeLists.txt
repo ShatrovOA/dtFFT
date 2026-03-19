@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(dtfft VERSION 3.1.0
+project(dtfft VERSION 3.2.0
               DESCRIPTION "Library to perform FFT on a distributed memory cluster."
               HOMEPAGE_URL "https://github.com/ShatrovOA/dtFFT"
               LANGUAGES Fortran C CXX)
@@ -25,6 +25,7 @@ option(DTFFT_WITH_VKFFT "Build dtFFT with VkFFT support" OFF)
 option(DTFFT_BUILD_TESTS "Create dtFFT tests" OFF)
 option(DTFFT_BUILD_SHARED "Build shared library" ON)
 option(DTFFT_BUILD_C_CXX_API "Create C API" ON)
+option(DTFFT_BUILD_PYTHON_API "Create Python API" OFF)
 
 option(DTFFT_ENABLE_COVERAGE "Create coverage with gcov utility" OFF)
 option(DTFFT_USE_MPI "Use Fortran `mpi` module instead of `mpi_f08`" OFF)
@@ -37,17 +38,20 @@ option(DTFFT_ENABLE_INPUT_CHECK "Enable checks for user input for all dtFFT func
 option(DTFFT_WITH_CUDA "Build dtFFT with CUDA support" OFF)
 option(DTFFT_WITH_MOCK_ENABLED "Mock GPU libraries calls with CPU implementations for testing and debugging without GPU hardware" OFF)
 option(DTFFT_WITH_NCCL "Build dtFFT with NCCL support.
-                        Enabling this option when DTFFT_WITH_HPC_SDK=ON and DTFFT_WITH_CUDA=ON
+                        Enabling this option when nvfortran compiler detected and DTFFT_WITH_CUDA=ON
                         requires to set NCCL_ROOT enviroment variable to find custom installation of NCCL" OFF)
-
 option(DTFFT_WITHOUT_NCCL "Build dtFFT without NCCL support.
-                           Disables automatic NCCL usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
+                           Disables automatic NCCL usage when nvfortran compiler detected AND DTFFT_WITH_CUDA=ON" OFF)
 option(DTFFT_WITHOUT_NVSHMEM "Build dtFFT without NVSHMEM-enabled backends.
-                              Disables automatic NVSHMEM usage when DTFFT_WITH_HPC_SDK=ON AND DTFFT_WITH_CUDA=ON" OFF)
-
+                              Disables automatic NVSHMEM usage when nvfortran compiler detected AND DTFFT_WITH_CUDA=ON" OFF)
 option(DTFFT_ENABLE_DEVICE_CHECKS "Enable error checking for all GPU libraries calls" ON)
 
+# Compression libraries
 option(DTFFT_WITH_ZFP "Enable ZFP support for data compression" OFF)
+
+# OpenMP options
+option(DTFFT_WITH_OPENMP "Enable OpenMP parallelization for generic approach" OFF)
+option(DTFFT_WITH_FFTW_THREADS "Enable threads support of FFTW library instead of OpenMP" OFF)
 
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
@@ -118,8 +122,8 @@ if (NOT HAVE_ASSUMED_RANK_AND_TYPE OR NOT HAVE_BLOCK_STATEMENT)
 endif()
 
 
-check_ompi_fix_required(${MPI_C_INCLUDE_DIRS})
-check_mpich_fix_required(${MPI_C_INCLUDE_DIRS})
+check_ompi_fix_required("${MPI_C_INCLUDE_DIRS}")
+check_mpich_fix_required("${MPI_C_INCLUDE_DIRS}")
 
 if ( OMPI_FIX_REQUIRED )
   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:OMPI_FIX_REQUIRED>)
@@ -132,7 +136,7 @@ endif()
 
 
 if ( DTFFT_ENABLE_PERSISTENT_COMM )
-  check_persistent_collectives(${MPI_Fortran_MODULE_DIR} "${MPI_Fortran_LIBRARIES}" ${mpi_mod})
+  check_persistent_collectives("${MPI_Fortran_MODULE_DIR}" "${MPI_Fortran_LIBRARIES}" ${mpi_mod})
 
   # Preprocessor used for gpu p2p algorithms, e.g. MPI_Send_init
   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:ENABLE_PERSISTENT_COMM>)
@@ -158,6 +162,12 @@ if( NOT DTFFT_WITH_FFTW
 endif()
 if ( DTFFT_WITH_VKFFT OR DTFFT_WITH_CUFFT )
   set( DTFFT_WITH_CUDA ON )
+endif()
+
+if ( DTFFT_WITH_OPENMP )
+  find_package(OpenMP REQUIRED COMPONENTS Fortran)
+  target_compile_definitions(dtfft PRIVATE DTFFT_WITH_OPENMP)
+  target_link_libraries(dtfft PRIVATE OpenMP::OpenMP_Fortran)
 endif()
 
 if (DTFFT_WITH_MOCK_ENABLED)
@@ -239,17 +249,17 @@ if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
     target_link_libraries(dtfft PRIVATE ${NCCL_LIBRARIES})
   endif()
 
-  if ( DTFFT_USE_MPI )
-    set(HAVE_MPI_INT64 OFF)
-  else()
-    check_int64_supported(${MPI_Fortran_MODULE_DIR} ${MPI_Fortran_LIBRARIES})
-  endif()
-  if ( HAVE_MPI_INT64 )
-    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=MPI_COUNT_KIND;ADDR_KIND=MPI_ADDRESS_KIND>)
-  else()
-    message(WARNING "MPI 64bit integer indexing is disabled. Overflows might occur if MPI Backends will be used")
-    target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=int32;ADDR_KIND=int32>)
-  endif()
+  # if ( DTFFT_USE_MPI )
+  #   set(HAVE_MPI_INT64 OFF)
+  # else()
+  #   check_int64_supported("${MPI_Fortran_MODULE_DIR}" "${MPI_Fortran_LIBRARIES}")
+  # endif()
+  # if ( HAVE_MPI_INT64 )
+  #   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=MPI_COUNT_KIND;ADDR_KIND=MPI_ADDRESS_KIND>)
+  # else()
+  #   message(WARNING "MPI 64bit integer indexing is disabled. Overflows might occur if MPI Backends will be used")
+  #   target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:CNT_KIND=int32;ADDR_KIND=int32>)
+  # endif()
 
   set(USE_NVSHMEM OFF)
   if( WITH_HPC_SDK AND NOT DTFFT_WITHOUT_NVSHMEM)
@@ -310,6 +320,9 @@ if ( DTFFT_WITH_ZFP )
   set(DTFFT_WITH_COMPRESSION ON)
   if ( ZFP_WITH_CUDA )
     target_compile_definitions(dtfft PRIVATE ZFP_WITH_CUDA)
+  endif()
+  if ( ZFP_WITH_OPENMP AND DTFFT_WITH_OPENMP )
+    target_compile_definitions(dtfft PRIVATE ZFP_WITH_OPENMP)
   endif()
 endif()
 
@@ -436,7 +449,7 @@ SET(DTFFT_HEADERS "${DTFFT_HEADER_DIR}/dtfft.f03")
 
 if(DTFFT_BUILD_C_CXX_API)
   set(DTFFT_HEADERS "${DTFFT_HEADERS};${DTFFT_HEADER_DIR}/dtfft.h;${DTFFT_HEADER_DIR}/dtfft.hpp;${DTFFT_CONF_HEADER}")
-  target_link_libraries(dtfft PUBLIC MPI::MPI_CXX)
+  target_link_libraries(dtfft PUBLIC MPI::MPI_C MPI::MPI_CXX)
 endif()
 set_target_properties(dtfft PROPERTIES PUBLIC_HEADER "${DTFFT_HEADERS}")
 target_include_directories(dtfft PUBLIC
@@ -494,6 +507,10 @@ install(DIRECTORY ${DTFFT_MODULE_DIR}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.mod")
 
+if (DTFFT_BUILD_PYTHON_API)
+  find_package(pybind11 3.0.0 REQUIRED)
+endif()
+
 if(DTFFT_BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
@@ -511,6 +528,7 @@ message(STATUS "Build C/C++ API:           : ${DTFFT_BUILD_C_CXX_API}")
 message(STATUS "Build tests                : ${DTFFT_BUILD_TESTS}")
 message(STATUS "Coverage                   : ${DTFFT_ENABLE_COVERAGE}")
 message(STATUS "Profiler                   : ${DTFFT_WITH_PROFILER}")
+message(STATUS "OpenMP enabled             : ${DTFFT_WITH_OPENMP}")
 message(STATUS "CUDA enabled               : ${DTFFT_WITH_CUDA}")
 if ( DTFFT_WITH_CUDA )
   if ( DTFFT_WITH_MOCK_ENABLED )
