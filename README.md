@@ -95,7 +95,6 @@ call plan%destroy()
 **More examples** can be found in the `tests` folder of the repository.
 
 ## Documentation
-
 The documentation consists of two parts:
 
 **User Documentation**:
