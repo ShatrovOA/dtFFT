@@ -23,6 +23,7 @@ module dtfft_plan
 use iso_c_binding,                      only: c_loc, c_f_pointer, c_ptr, c_bool, c_null_ptr
 use iso_fortran_env,                    only: int8, int16, int32, int64, real32, real64, output_unit, error_unit
 use dtfft_abstract_executor
+use dtfft_config
 use dtfft_executor,                     only: DTFFT_EXECUTOR_NONE, dtfft_executor_t, allocate_executor, is_valid_executor, dtfft_get_executor_string, operator(==), operator(/=)
 #ifdef DTFFT_WITH_CUDA
 use dtfft_executor,                     only: is_host_executor, is_cuda_executor
@@ -42,9 +43,7 @@ use dtfft_interface_nvshmem,          only: is_nvshmem_ptr
 #ifdef DTFFT_WITH_OPENMP
 use omp_lib,                          only: omp_get_max_threads
 #endif
-use dtfft_config
 use dtfft_utils
-use dtfft_serializer
 #include "_dtfft_profile.h"
 #include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
