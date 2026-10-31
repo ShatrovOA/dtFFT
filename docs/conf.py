@@ -60,7 +60,12 @@ def _inject_docs_optional_symbols(mod):
             obj.__doc__ = doc
             return obj
 
-        ZFP = (1, "Use ZFP compression library.")
+        ZFP = (11, "Use ZFP compression library.")
+        SZ3 = (21, "Use SZ3 compression library.")
+        SZP = (31, "Use SZp compression library.")
+        # CUSZ = (41, "Use cuSZ GPU compression library.")
+        CUSZP = (51, "Use cuSZp GPU compression library.")
+        BITCOMP = (61, "Use bitcomp compression library.")
 
     class CompressionConfig:
         """Compression configuration for transpose/reshape paths.

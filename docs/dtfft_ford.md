@@ -1,14 +1,22 @@
 project: dtFFT
 src_dir: ../src
-    ../src/interfaces/api
-    ../src/interfaces/cuda
-    ../src/interfaces/fft/cufft
-    ../src/interfaces/fft/fftw
-    ../src/interfaces/fft/mkl
-    ../src/interfaces/fft/vkfft
-include: ../src/include
+    ../src/api
+    ../src/backend
+    ../src/compression
+    ../src/compression/interfaces
+    ../src/core
+    ../src/core/interfaces
+    ../src/fft
+    ../src/fft/interfaces
+    ../src/kernel
+    ../src/kernel/impl
+    ../src/kernel/interfaces
+    ../src/reshape
+include: ../include
     ../build
-    ../include
+    ../src/core/include
+    ../src/fft/include
+    ../src/kernel/include
 output_dir: html/
 project_github: https://github.com/ShatrovOA/dtFFT
 author: Oleg Shatrov
@@ -46,5 +54,5 @@ coloured_edges: true
 sort: permission
 search: false
 
-<img src="./media/pencils.png" alt="pencils" width="850"/>
+<img src="./images/pencils.png" alt="pencils" width="850"/>
 

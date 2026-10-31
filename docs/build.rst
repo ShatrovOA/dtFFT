@@ -16,6 +16,14 @@ Since ``dtFFT`` is primarily written in Fortran, a modern Fortran compiler (2008
 - **Intel Fortran (ifort / ifx)**: Version 18 and above
 - **NVHPC Fortran (nvfortran)**: Version 24.5 and above
 
+Compiler flags are organized in ``cmake/compiler-flags`` by CMake compiler ID.
+Additional profiles are provided for LLVM Flang, Arm Flang, Cray, IBM XL,
+NAG, Fujitsu, and PGI. Since these compilers are not part of the regular test
+matrix, their optional flags are checked with CMake before being enabled.
+Other Fortran compilers use the same conservative, feature-checked fallback.
+The presence of a profile does not mean that the compiler has been tested with
+dtFFT.
+
 Currently, ``dtFFT`` can only be built using CMake (version 3.25 or higher recommended). Ensure CMake is installed and available in your PATH before proceeding.
 
 **Requirements**:
@@ -125,6 +133,26 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Enables ZFP support for compressed transposes. Requires the ``zfp_DIR`` variable to point to the ZFP installation path.
+   * - ``DTFFT_WITH_SZ3``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables SZ3 support for compressed transposes. Requires the ``SZ3_DIR`` variable to point to the SZ3 installation path.
+   * - ``DTFFT_WITH_SZP``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables SZp support for compressed transposes. Requires the ``SZp_DIR`` variable to point to the SZp installation path.
+   * - ``DTFFT_WITH_CUSZ``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables cuSZ support for CUDA compressed transposes. Requires ``DTFFT_WITH_CUDA=ON`` and ``CUSZ_DIR`` to point to the cuSZ CMake package.
+   * - ``DTFFT_WITH_CUSZP``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables cuSZp support for CUDA compressed transposes. Requires ``DTFFT_WITH_CUDA=ON`` and ``cuSZp_DIR`` to point to the cuSZp CMake package.
+   * - ``DTFFT_WITH_BITCOMP``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables bitcomp support for compressed transposes. Requires ``DTFFT_WITH_CUDA=ON`` and ``nvcomp_DIR`` to point to the nvcomp CMake package.
    * - ``DTFFT_WITH_MOCK_ENABLED``
      - ``ON`` / ``OFF``
      - ``OFF``

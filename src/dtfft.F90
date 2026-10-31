@@ -21,7 +21,9 @@ module dtfft
 !! Main ``dtFFT`` module. Should be used in a Fortran program.
 #ifdef DTFFT_WITH_COMPRESSION
 use dtfft_abstract_compressor
+use dtfft_compressor
 #endif
+use dtfft_executor
 use dtfft_config
 use dtfft_errors
 use dtfft_parameters
@@ -111,7 +113,7 @@ public :: DTFFT_DCT_1,                                              &
 
 ! Transpose and access modes
 public :: DTFFT_TRANSPOSE_MODE_PACK, DTFFT_TRANSPOSE_MODE_UNPACK
-public :: DTFFT_ACCESS_MODE_WRITE, DTFFT_ACCESS_MODE_READ
+public :: DTFFT_ACCESS_MODE_WRITE, DTFFT_ACCESS_MODE_READ, DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS
 
 ! Error codes
 public :: DTFFT_SUCCESS
@@ -174,6 +176,12 @@ public :: DTFFT_ERROR_NOT_NVSHMEM_PTR
 public :: DTFFT_ERROR_INVALID_PLATFORM
 public :: DTFFT_ERROR_INVALID_PLATFORM_EXECUTOR
 public :: DTFFT_ERROR_INVALID_PLATFORM_BACKEND
+public :: DTFFT_ERROR_FILE_NOT_FOUND
+public :: DTFFT_ERROR_FILE_INVALID
+public :: DTFFT_ERROR_FILE_VERSION_MISMATCH
+public :: DTFFT_ERROR_FILE_PLAN_MISMATCH
+public :: DTFFT_ERROR_FILE_WRITE_FAILED
+public :: DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED
 
 ! Configuration
 public :: dtfft_config_t
@@ -212,6 +220,11 @@ public :: dtfft_compression_lib_t
 public :: dtfft_compression_mode_t
 public :: dtfft_compression_config_t
 public :: DTFFT_COMPRESSION_LIB_ZFP
+public :: DTFFT_COMPRESSION_LIB_SZ3
+public :: DTFFT_COMPRESSION_LIB_SZP
+! public :: DTFFT_COMPRESSION_LIB_CUSZ
+public :: DTFFT_COMPRESSION_LIB_CUSZP
+public :: DTFFT_COMPRESSION_LIB_BITCOMP
 public :: DTFFT_COMPRESSION_MODE_LOSSLESS
 public :: DTFFT_COMPRESSION_MODE_FIXED_RATE
 public :: DTFFT_COMPRESSION_MODE_FIXED_PRECISION

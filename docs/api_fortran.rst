@@ -238,8 +238,35 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Invalid compression tolerance
 
+.. f:variable:: DTFFT_ERROR_FILE_NOT_FOUND
+
+  Plan file cannot be opened
+
+.. f:variable:: DTFFT_ERROR_FILE_INVALID
+
+  Plan file is not a valid ``dtFFT`` plan file or is corrupted
+
+.. f:variable:: DTFFT_ERROR_FILE_VERSION_MISMATCH
+
+  Plan file layout is not one this version of ``dtFFT`` can read: either newer than this
+  library understands, or an older layout that is no longer supported
+
+.. f:variable:: DTFFT_ERROR_FILE_PLAN_MISMATCH
+
+  Plan stored in file does not match current run: different number of MPI processes,
+  different plan class, different platform, or a backend that is not available in this build
+
+.. f:variable:: DTFFT_ERROR_FILE_WRITE_FAILED
+
+  Failed to write plan to file
+
+.. f:variable:: DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED
+
+  Plan file contains a backend that is not supported by this build
+
 Basic types
 ===========
+
 
 dtfft_execute_t
 ---------------------
@@ -667,6 +694,26 @@ _______________
 .. f:variable:: DTFFT_COMPRESSION_LIB_ZFP
 
   ZFP compression library.
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_SZ3
+
+  SZ3 compression library.
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_SZP
+
+  SZp compression library.
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_CUSZ
+
+  cuSZ GPU compression library.
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_CUSZP
+
+  cuSZp GPU compression library.
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_BITCOMP
+
+  bitcomp compression library.
 
 ------
 
@@ -1630,6 +1677,60 @@ ______
     Optional error code returned to user
 
 ------
+
+save
+____
+
+.. f:subroutine:: save(filename[, error_code])
+
+  Saves plan to file.
+
+  A plan created with a high ``effort`` level spends most of its creation time on
+  benchmarking. Saving it lets a later run rebuild the same plan with ``load``, without
+  measuring anything.
+
+  The file records the number of MPI processes and refuses to load on a different one.
+  It does **not** record how ranks were placed across nodes and devices: keeping that
+  identical between runs is the caller's responsibility. A plan replayed onto a different
+  placement stays correct, but the choices in it were measured for a layout that no longer
+  holds, so it may no longer be the fastest one.
+
+  A file also carries the layout version of the format itself. A later ``dtFFT`` reads a
+  file written by an earlier one as long as it still understands that layout; only a file
+  newer than the reader, or one whose layout has been retired, is refused. The library
+  version and build configuration are recorded too, but for diagnostics -- what is actually
+  enforced is that every backend named in the file exists in this build, since which
+  backends are compiled in varies.
+
+  :p character(len=*) filename [in]:
+    Name of file to save the plan to
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
+load
+____
+
+.. f:subroutine:: load(filename[, comm, error_code])
+
+  Loads plan from file previously written by ``save``.
+
+  The plan is fully rebuilt: communicators, pencils, reshape handles, kernels and FFT plans
+  are all created exactly as they are for a freshly tuned plan. Nothing is benchmarked.
+
+  The variable being loaded into must be of the same concrete plan class as the one stored
+  in the file, otherwise ``DTFFT_ERROR_FILE_PLAN_MISMATCH`` is returned.
+
+  :p character(len=*) filename [in]:
+    Name of file containing the plan
+  :o TYPE_MPI_COMM comm [in, optional]:
+    MPI communicator: ``MPI_COMM_WORLD`` (default) or Cartesian communicator
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
 
 report_compression
 __________________

@@ -217,6 +217,31 @@ Plan execution
 
 .. doxygenfunction:: dtfft_reshape_end
 
+Saving and loading plans
+========================
+
+A plan created with a high ``effort`` level spends most of its creation time benchmarking.
+:c:func:`dtfft_save_plan` writes those results to a file, and :c:func:`dtfft_load_plan`
+rebuilds the very same plan from it without measuring anything.
+
+The file records the number of MPI processes and refuses to load on a different one. It
+does **not** record how ranks were placed across nodes and devices: keeping that identical
+between runs is the caller's responsibility. A plan replayed onto a different placement
+stays correct, but the choices in it were measured for a layout that no longer holds, so it
+may no longer be the fastest one.
+
+A file also carries the layout version of the format itself. A later ``dtFFT`` reads a file
+written by an earlier one as long as it still understands that layout; only a file newer than
+the reader, or one whose layout has been retired, is refused. The library version and build
+configuration are recorded too, but for diagnostics -- what is actually enforced is that every
+backend named in the file exists in this build, since which backends are compiled in varies.
+
+.. doxygenfunction:: dtfft_save_plan
+
+---------
+
+.. doxygenfunction:: dtfft_load_plan
+
 Plan information
 ======================
 
