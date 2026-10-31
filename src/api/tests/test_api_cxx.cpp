@@ -288,7 +288,6 @@ main(int argc, char* argv[])
                   (int)dtfft::Error::SUCCESS);
             check("get reshape backend value on X-distributed pencil",
                   (int)custom_plan.get_reshape_backend(), (int)reshape_backend);
-            printf("reshape_backend=%s\n", dtfft::get_backend_string(reshape_backend).c_str());
             check("get reshape auxiliary size on X-distributed pencil",
                   (int)custom_plan.get_aux_size_reshape(&aux_size),
                   (int)dtfft::Error::SUCCESS);
@@ -298,7 +297,6 @@ main(int argc, char* argv[])
             check("get reshape auxiliary bytes on X-distributed pencil",
                   (int)custom_plan.get_aux_bytes_reshape(),
                   int(aux_bytes));
-            printf("aux_bytes=%zu\n", aux_bytes);
         } else {
             check("reshape unsupported for single-rank pencil",
                   (int)custom_plan.get_reshape_backend(reshape_backend),

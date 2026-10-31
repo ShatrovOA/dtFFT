@@ -569,11 +569,10 @@ contains
                 offset_in = (idx - 1) * out_dim
                 offset_out = (idx - 1) * dims(1)
                 do i = 1, dims(1)
-                    r_coeff = real(cl(offset_in + 1))
+                    r_coeff = real(cl(offset_in + 1), real64)
                     do n1 = 2, dims(1) / 2 + shift
                         phase =  2.0_real64 * PI * real((n1 - 1) * (i - 1), real64) / NX
-                        ! Используем Re(F(k) * exp(i*phase)) = Re(F(k))*cos(phase) - Im(F(k))*sin(phase)
-                        r_coeff = r_coeff + 2.0_real64 * (real(cl(offset_in + n1)) * cos(phase) - aimag(cl(offset_in + n1)) * sin(phase))
+                        r_coeff = r_coeff + 2.0_real64 * (real(cl(offset_in + n1), real64) * cos(phase) - aimag(cl(offset_in + n1)) * sin(phase))
                     enddo
 
                     if (mod(dims(1), 2) == 0) then
@@ -639,7 +638,6 @@ contains
             call compute_r2c(source, expected, fft_rank, dims, sign, DTFFT_PLATFORM_HOST)
             call c_f_pointer(expected, expected_real, [ product(dims)])
             call c_f_pointer(result, result_real, [product(dims)] )
-            ! print*,'result_real = ',result_real(1:dims(1))
             do i = 1, size(expected_real)
                 if ( abs(result_real(i) - expected_real(i)) > 1.0e-5_real64 ) then
                     print *, "R2C backward test failed at index ", i, " : expected ", expected_real(i), " but got ", result_real(i)
@@ -705,7 +703,7 @@ contains
         real(real64), allocatable, target :: source(:)
         complex(real64), allocatable, target :: result(:), result2(:)
         integer(int32) :: i, ierr, out_dim
-        type(c_ptr) :: source_ptr, result_ptr
+        type(c_ptr) :: source_ptr, result_ptr, result2_ptr
         type(c_ptr) :: source_fft_ptr, result_fft_ptr
         integer(c_size_t) :: source_bytes, result_bytes
         class(abstract_executor), allocatable :: fft
@@ -742,9 +740,12 @@ contains
                          source_bytes, result_bytes, FFT_FORWARD)
         call verify_r2c(source_ptr, result_ptr, FFT_1D, dims, FFT_FORWARD)
 
-        call execute_fft(executor, fft, result_ptr, source_ptr, result_fft_ptr, source_fft_ptr, &
+        allocate(result2, source=result)
+        result2_ptr = c_loc(result2)
+        call execute_fft(executor, fft, result2_ptr, source_ptr, result_fft_ptr, source_fft_ptr, &
                          result_bytes, source_bytes, FFT_BACKWARD)
         call verify_r2c(result_ptr, source_ptr, FFT_1D, dims, FFT_BACKWARD)
+        deallocate(result2)
         call fft%destroy()
 
         if ( size(dims) == 3 ) then

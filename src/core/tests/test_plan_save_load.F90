@@ -184,8 +184,10 @@ contains
         type(dtfft_config_t)    :: conf, default_conf
         character(len=:), allocatable :: tag
         character(len=*), parameter :: filename = "test_save_load_adaptive.dtfft"
+        character(len=3) :: is_zlab
 
-        allocate( tag, source="adaptive(z_slab="//merge("on ", "off", use_z_slab)//")" )
+        is_zlab = merge("on ", "off", use_z_slab)
+        allocate( tag, source="adaptive(z_slab="//is_zlab//")" )
 
         call dtfft_create_config(default_conf)
         conf = default_conf
