@@ -21,12 +21,9 @@ module dtfft_reshape_handle_generic
 !! This module describes [[reshape_handle_generic]] class
 !! It is responsible for managing both Host and CUDA-based transposition operations
 !! It executes transpose kernels, memory transfers between GPUs/Hosts, and data unpacking if required
-use iso_c_binding,                        only: c_ptr, c_f_pointer
+use iso_c_binding,                        only: c_ptr, c_f_pointer, c_loc, c_null_ptr
 use iso_fortran_env
 use dtfft_abstract_backend,               only: abstract_backend, backend_helper
-#ifdef DTFFT_WITH_COMPRESSION
-use dtfft_abstract_compressor
-#endif
 use dtfft_abstract_kernel
 use dtfft_abstract_reshape_handle,        only: abstract_reshape_handle, create_args, execute_args
 #ifdef DTFFT_WITH_NVSHMEM
@@ -36,17 +33,19 @@ use dtfft_backend_cufftmp_m,              only: backend_cufftmp
 use dtfft_backend_nccl_m,                 only: backend_nccl
 #endif
 use dtfft_backend_mpi,                    only: backend_mpi
-#ifdef DTFFT_WITH_ZFP
-use dtfft_compressor_zfp,                 only: compressor_zfp
+#ifdef DTFFT_WITH_COMPRESSION
+use dtfft_abstract_compressor
+use dtfft_compressor
 #endif
 use dtfft_config
 use dtfft_errors
 #ifdef DTFFT_WITH_CUDA
 use dtfft_kernel_device,                  only: kernel_device
 #endif
-use dtfft_kernel_host,                    only: kernel_host
+use dtfft_kernel_host,                    only: kernel_host, host_kernel_t
 use dtfft_pencil,                         only: pencil
 use dtfft_parameters
+use dtfft_serializer,                     only: serializer
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
@@ -96,7 +95,7 @@ public :: reshape_handle_generic
     !!        Decompress data (optional), then unpack with optional transpose
     !!    * If done for `P` ranks exit
     private
-        logical                                   :: is_created = .false.
+        ! logical                                   :: is_created = .false.
         logical                                   :: has_exchange = .false.   !! If current handle has exchanges
         logical                                   :: is_pipelined = .false.   !! If underlying exchanges are pipelined
         logical                                   :: is_fused = .false.       !! If underlying exchanges are fused
@@ -107,6 +106,9 @@ public :: reshape_handle_generic
         class(abstract_kernel),     allocatable   :: pack_kernel              !! Kernel for data transposition
         class(abstract_kernel),     allocatable   :: unpack_kernel            !! Kernel for unpacking data
         class(abstract_backend),    allocatable   :: comm_handle              !! Communication handle
+        type(dtfft_backend_t)                     :: loaded_backend           !! Backend used for communication
+        type(kernel_options)                      :: pack_kernel_options       !! Options for pack kernel
+        type(kernel_options)                      :: unpack_kernel_options     !! Options for unpack kernel
 #ifdef DTFFT_WITH_COMPRESSION
         class(abstract_compressor), allocatable   :: compressor               !! Compressor
 #endif
@@ -117,13 +119,98 @@ public :: reshape_handle_generic
         procedure, pass(self) :: get_async_active !! Returns if async transpose is active
         procedure, pass(self) :: destroy          !! Destroys Generic Transpose Handle
         procedure, pass(self) :: get_aux_bytes    !! Returns number of bytes required by aux buffer
-        procedure, pass(self) :: get_backend
+        procedure, pass(self) :: get_backend_private => get_backend
+        ! procedure, pass(self) :: get_kernel_decisions  !! Returns tuning results of local kernels
+        procedure, pass(self) :: save_private
+        procedure, pass(self) :: load_private
 #ifdef DTFFT_WITH_COMPRESSION
         procedure, pass(self) :: report_compression
 #endif
     end type reshape_handle_generic
 
 contains
+
+    ! subroutine get_kernel_decisions(self, pack_decision, unpack_decision)
+    ! !! Returns the tuning results of both local kernels, ready to be written to a plan file
+    !     class(reshape_handle_generic),  intent(in)  :: self             !! Generic reshape handle
+    !     type(kernel_decision),          intent(out) :: pack_decision    !! Pack kernel tuning result
+    !     type(kernel_decision),          intent(out) :: unpack_decision  !! Unpack kernel tuning result
+
+    !     pack_decision = kernel_decision()
+    !     unpack_decision = kernel_decision()
+
+    !     ! A slot can be allocated but never created -- a handle without an exchange only
+    !     ! builds its pack kernel. Reading tuning results out of such a kernel would store
+    !     ! whatever its members happen to hold, which is not a decision at all.
+    !     if ( allocated(self%pack_kernel) ) then
+    !         if ( self%pack_kernel%is_created ) pack_decision = read_kernel_decision(self%pack_kernel)
+    !     endif
+    !     if ( allocated(self%unpack_kernel) ) then
+    !         if ( self%unpack_kernel%is_created ) unpack_decision = read_kernel_decision(self%unpack_kernel)
+    !     endif
+    ! end subroutine get_kernel_decisions
+
+! #ifdef DTFFT_WITH_CUDA
+!     type(c_ptr) function build_kernel_options(decision, host_opts, device_opts)
+! #else
+!     type(c_ptr) function build_kernel_options(decision, host_opts)
+! #endif
+!     !! Turns a stored tuning result back into the options struct the kernel expects.
+!     !!
+!     !! Returns `c_null_ptr` for an absent slot, which is how a kernel is told to work its
+!     !! own parameters out. `host_opts` and `device_opts` must outlive the kernel's `create`,
+!     !! which is why they are owned by the caller rather than by this function.
+!         type(kernel_decision),               intent(in)    :: decision     !! Stored tuning result
+!         type(kernel_host_options),   target, intent(inout) :: host_opts    !! Storage for host options
+! #ifdef DTFFT_WITH_CUDA
+!         type(kernel_device_options), target, intent(inout) :: device_opts  !! Storage for device options
+! #endif
+
+!         build_kernel_options = c_null_ptr
+!         select case ( decision%slot_kind )
+!         case ( KERNEL_SLOT_HOST )
+!             host_opts = kernel_host_options(host_kernel_t(decision%host_kernel),                &
+!                                             dtfft_access_mode_t(int(decision%access_mode, int32)), &
+!                                             decision%co_threshold)
+!             build_kernel_options = c_loc(host_opts)
+! #ifdef DTFFT_WITH_CUDA
+!         case ( KERNEL_SLOT_DEVICE )
+!             device_opts = kernel_device_options(int(decision%tile_size, int32), int(decision%block_rows, int32))
+!             build_kernel_options = c_loc(device_opts)
+! #endif
+!         endselect
+!     end function build_kernel_options
+
+!     type(kernel_decision) function read_kernel_decision(kernel)
+!     !! Reads the tuning result out of a kernel.
+!     !!
+!     !! Host and device kernels are tuned on different parameters, so the decision records
+!     !! which of the two it describes.
+!         class(abstract_kernel), intent(in) :: kernel   !! Kernel to interrogate
+
+!         type(host_kernel_t)       :: host_kernel
+!         type(dtfft_access_mode_t) :: access_mode
+!         type(kernel_type_t)       :: internal_kernel_type
+!         integer(int32)            :: threshold, tile_size, block_rows
+
+!         read_kernel_decision = kernel_decision()
+!         select type ( kernel )
+!         type is ( kernel_host )
+!             call kernel%get_decision(host_kernel, access_mode, threshold)
+!             read_kernel_decision%slot_kind = KERNEL_SLOT_HOST
+!             read_kernel_decision%host_kernel = host_kernel%val
+!             read_kernel_decision%access_mode = int(access_mode%val, int8)
+!             read_kernel_decision%co_threshold = threshold
+! #ifdef DTFFT_WITH_CUDA
+!         type is ( kernel_device )
+!             call kernel%get_decision(tile_size, block_rows, internal_kernel_type)
+!             read_kernel_decision%slot_kind = KERNEL_SLOT_DEVICE
+!             read_kernel_decision%tile_size = int(tile_size, int16)
+!             read_kernel_decision%block_rows = int(block_rows, int16)
+!             read_kernel_decision%internal_kernel_type = int(internal_kernel_type%val, int8)
+! #endif
+!         endselect
+!     end function read_kernel_decision
 
     subroutine create_data_handle(self, info, comm, comm_size)
     !! Creates handle
@@ -171,6 +258,46 @@ contains
         endif
     end subroutine check_if_overflow
 
+    subroutine save_private(self, fh)
+        class(reshape_handle_generic),  intent(in)    :: self         !! Abstract reshape Handle
+        type(serializer),               intent(inout) :: fh
+        type(kernel_options) :: options
+
+        if ( allocated(self%comm_handle) ) then
+            call fh%save(int(self%comm_handle%backend%val, int8))
+        else
+            call fh%save(int(DTFFT_BACKEND_NONE%val, int8))
+        endif
+
+        options = self%pack_kernel%get_kernel_options()
+        call options%save(fh)
+
+        call fh%save(self%unpack_kernel%is_created)
+        if ( self%unpack_kernel%is_created ) then
+            options = self%unpack_kernel%get_kernel_options()
+            call options%save(fh)
+        endif
+    end subroutine save_private
+
+    integer(int32) function load_private(self, fh) result(ierr)
+        class(reshape_handle_generic),  intent(inout) :: self         !! Abstract reshape Handle
+        type(serializer),               intent(inout) :: fh
+        integer(int8) :: backend_val
+        logical :: is_unpacked_created
+
+        ierr = DTFFT_SUCCESS
+        call fh%load(backend_val); self%loaded_backend%val = int(backend_val, int32)
+        if ( self%loaded_backend /= DTFFT_BACKEND_NONE .and. .not. is_valid_backend(self%loaded_backend) ) then
+            ierr = DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED
+            return
+        endif
+        call self%pack_kernel_options%load(fh)
+        call fh%load(is_unpacked_created)
+        if ( is_unpacked_created ) then
+            call self%unpack_kernel_options%load(fh)
+        endif
+    end function load_private
+
     subroutine create(self, comm, send, recv, kwargs)
     !! Creates Generic Transpose Handle
         class(reshape_handle_generic),    intent(inout) :: self           !! Generic Transpose Handle
@@ -197,6 +324,7 @@ contains
         type(dtfft_transpose_t) :: transpose_type
         type(dtfft_reshape_t)   :: reshape_type
         type(dtfft_transpose_mode_t) :: transpose_mode
+        type(dtfft_backend_t) :: true_backend
         integer(int32) :: ssdispl, rrdispl
         logical :: is_reshape_only, ignore_transpose_mode
         logical :: with_compression
@@ -205,10 +333,27 @@ contains
         integer(int8) :: reshape_strat
         logical :: is_pack_free, is_unpack_free
         integer(int32) :: pack_free_int, unpack_free_int
+        ! Kernel launch parameters replayed from a saved plan. Declared here, with `target`,
+        ! so that the pointers handed to the kernels stay valid for the whole of `create`.
+        ! type(kernel_host_options),   target :: host_pack_opts, host_unpack_opts
+!         type(c_ptr)                         :: pack_opts, unpack_opts
+! #ifdef DTFFT_WITH_CUDA
+!         type(kernel_device_options), target :: device_pack_opts, device_unpack_opts
+! #endif
+
+!         pack_opts = c_null_ptr
+!         unpack_opts = c_null_ptr
+! #ifdef DTFFT_WITH_CUDA
+!         pack_opts = build_kernel_options(kwargs%pack_decision, host_pack_opts, device_pack_opts)
+!         unpack_opts = build_kernel_options(kwargs%unpack_decision, host_unpack_opts, device_unpack_opts)
+! #else
+!         pack_opts = build_kernel_options(kwargs%pack_decision, host_pack_opts)
+!         unpack_opts = build_kernel_options(kwargs%unpack_decision, host_unpack_opts)
+! #endif
 
         transpose_type = kwargs%helper%transpose_type
         reshape_type   = kwargs%helper%reshape_type
-        transpose_mode = kwargs%transpose_mode
+        transpose_mode = self%transpose_mode
         ignore_transpose_mode = kwargs%platform == DTFFT_PLATFORM_CUDA
 
         call self%destroy()
@@ -248,7 +393,12 @@ contains
             self%is_fused = .false.
             self%is_async_supported = .false.
             self%is_created = .true.
-            call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, force_effort=kwargs%force_effort)
+            if ( self%is_loaded ) then
+                call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, force_effort=kwargs%force_effort, &
+                    options=self%pack_kernel_options)
+            else
+                call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, force_effort=kwargs%force_effort)
+            endif
             return
         endif
 
@@ -423,29 +573,30 @@ contains
         enddo
 
         is_two_step_permute = .false.
-        self%is_pipelined = is_backend_pipelined(kwargs%backend)
-        self%is_fused = is_backend_fused(kwargs%backend) .or. is_backend_compressed(kwargs%backend)
+        true_backend = kwargs%backend; if ( self%is_loaded ) true_backend = self%loaded_backend
+        self%is_pipelined = is_backend_pipelined(true_backend)
+        self%is_fused = is_backend_fused(true_backend) .or. is_backend_compressed(true_backend)
         if ( self%is_fused ) self%is_pipelined = .true.
         if ( self%is_transpose ) then
             is_two_step_permute = any(transpose_type == [DTFFT_TRANSPOSE_Y_TO_X, DTFFT_TRANSPOSE_Z_TO_Y])           &
                             .and. ndims == 3                                                                          &
-                            .and. (.not. is_backend_cufftmp(kwargs%backend))                                          &
-                            .and. (.not. self%is_fused .or. kwargs%backend == DTFFT_BACKEND_NCCL_COMPRESSED)
+                            .and. (.not. is_backend_cufftmp(true_backend))                                          &
+                            .and. (.not. self%is_fused .or. true_backend == DTFFT_BACKEND_NCCL_COMPRESSED)
 
             if ( is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_START
             if ( transpose_mode == DTFFT_TRANSPOSE_MODE_UNPACK .and. .not.ignore_transpose_mode) kernel_type = KERNEL_PACK
         else ! reshape
             kernel_type = KERNEL_PACK
             if ( self%is_pack_free ) kernel_type = KERNEL_DUMMY
-            if ( is_backend_cufftmp(kwargs%backend) ) then
+            if ( is_backend_cufftmp(true_backend) ) then
                 kernel_type = KERNEL_DUMMY
                 is_reshape_only = .true.
                 self%is_fused = .true.
             endif
         endif
 
-        if ( self%is_fused .and. .not. kwargs%backend == DTFFT_BACKEND_NCCL_COMPRESSED) kernel_type = get_fused(kernel_type)
-        with_compression = is_backend_compressed(kwargs%backend)
+        if ( self%is_fused .and. .not. true_backend == DTFFT_BACKEND_NCCL_COMPRESSED) kernel_type = get_fused(kernel_type)
+        with_compression = is_backend_compressed(true_backend)
 #ifndef DTFFT_WITH_COMPRESSION
         if ( with_compression ) then
             INTERNAL_ERROR("ndef DTFFT_WITH_COMPRESSION")
@@ -453,25 +604,22 @@ contains
 #endif
 #ifdef DTFFT_WITH_COMPRESSION
         if ( with_compression ) then
-        block
-            type(dtfft_compression_lib_t) :: lib
-
-            lib = kwargs%compression_config%compression_lib
-            select case ( lib%val )
-#ifdef DTFFT_WITH_ZFP
-            case ( DTFFT_COMPRESSION_LIB_ZFP%val )
-                allocate( compressor_zfp :: self%compressor )
+            call allocate_compressor(kwargs%compression_config%compression_lib, self%compressor)
+#ifdef DTFFT_DEBUG
+            if ( .not. allocated(self%compressor) ) then
+                INTERNAL_ERROR("reshape_handle_generic.create: Unknown compression lib")
+            endif
 #endif
-            case default
-                INTERNAL_ERROR("Unknown compression lib")
-            endselect
-
-            ierr = self%compressor%create(ndims, kwargs%compression_config, kwargs%platform, kwargs%base_type, kwargs%base_storage, dims_permutations)
-        endblock
+            ierr = self%compressor%create(ndims, kwargs%compression_config, kwargs%platform, kwargs%base_type, dims_permutations)
         endif
 #endif
-
-        call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort, with_compression=with_compression)
+        if ( self%is_loaded ) then
+            call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort, &
+                        with_compression=with_compression, options=self%pack_kernel_options)
+        else
+            call self%pack_kernel%create(send%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort, &
+                with_compression=with_compression)
+        endif
 #ifdef DTFFT_WITH_COMPRESSION
         if ( with_compression ) call self%pack_kernel%set_compressor(self%compressor)
 #endif
@@ -619,8 +767,8 @@ contains
         if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_PIPELINED
         if ( is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_END
         if ( self%is_pipelined .and. is_two_step_permute ) kernel_type = KERNEL_PERMUTE_BACKWARD_END_PIPELINED
-        if ( kwargs%backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_COPY
-        if ( kwargs%backend == DTFFT_BACKEND_CUFFTMP_PIPELINED ) kernel_type = KERNEL_DUMMY
+        if ( true_backend == DTFFT_BACKEND_CUFFTMP ) kernel_type = KERNEL_COPY
+        if ( true_backend == DTFFT_BACKEND_CUFFTMP_PIPELINED ) kernel_type = KERNEL_DUMMY
 
         if ( self%is_unpack_free ) kernel_type = KERNEL_DUMMY
         if ( is_reshape_only ) kernel_type = KERNEL_DUMMY
@@ -633,21 +781,27 @@ contains
                 if ( self%is_pipelined ) kernel_type = KERNEL_UNPACK_BACKWARD_PIPELINED
             endif
         endif
-        call self%unpack_kernel%create(recv%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort, with_decompression=with_compression)
+        if ( self%is_loaded ) then
+            call self%unpack_kernel%create(recv%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort, &
+                with_decompression=with_compression, options=self%unpack_kernel_options)
+        else
+            call self%unpack_kernel%create(recv%counts, kwargs%effort, kwargs%base_storage, kernel_type, neighbor_data, kwargs%force_effort, &
+                with_decompression=with_compression)
+        endif
 #ifdef DTFFT_WITH_COMPRESSION
         if ( with_compression ) call self%unpack_kernel%set_compressor(self%compressor)
 #endif
 
-        if ( is_backend_mpi(kwargs%backend) ) then
+        if ( is_backend_mpi(true_backend) ) then
             allocate( backend_mpi :: self%comm_handle )
 #ifdef DTFFT_WITH_CUDA
-        else if ( is_backend_nccl(kwargs%backend) ) then
+        else if ( is_backend_nccl(true_backend) ) then
 # ifdef DTFFT_WITH_NCCL
             allocate( backend_nccl :: self%comm_handle )
 # else
             INTERNAL_ERROR("not DTFFT_WITH_NCCL")
 # endif
-        else if ( is_backend_cufftmp(kwargs%backend) ) then
+        else if ( is_backend_cufftmp(true_backend) ) then
 # ifdef DTFFT_WITH_NVSHMEM
             allocate( backend_cufftmp :: self%comm_handle )
 # else
@@ -658,15 +812,15 @@ contains
             INTERNAL_ERROR("Unknown backend")
         endif
 
-        self%is_async_supported = is_backend_mpi(kwargs%backend)                                                &
+        self%is_async_supported = is_backend_mpi(true_backend)                                                &
                                 .and. .not. self%is_pipelined                                                 &
                                 .and. kwargs%platform == DTFFT_PLATFORM_HOST                                  &
-                                .and. .not.(kwargs%backend == DTFFT_BACKEND_MPI_P2P_SCHEDULED)
+                                .and. .not.(true_backend == DTFFT_BACKEND_MPI_P2P_SCHEDULED)
 
         block
             type(dtfft_backend_t) :: fixed_backend
 
-            fixed_backend = kwargs%backend
+            fixed_backend = true_backend
             if ( is_reshape_only ) then
                 self%is_pipelined = .false.
                 fixed_backend = DTFFT_BACKEND_CUFFTMP
@@ -826,8 +980,6 @@ contains
     elemental type(dtfft_backend_t) function get_backend(self)
         class(reshape_handle_generic),   intent(in)    :: self       !! Abstract reshape Handle
 
-        get_backend = BACKEND_DUMMY
-        if ( .not. self%is_created ) return
         get_backend = DTFFT_BACKEND_NONE
         if ( .not. self%has_exchange ) return
         get_backend = self%comm_handle%backend

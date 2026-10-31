@@ -26,20 +26,20 @@ module dtfft_abstract_kernel
 !! `create_private`, `execute_private` and `destroy_private` procedures.
 use iso_fortran_env
 use iso_c_binding
-#ifdef DTFFT_WITH_COMPRESSION
-use dtfft_abstract_compressor
-#endif
+use dtfft_abstract_compressor, only: abstract_compressor
 use dtfft_config
 use dtfft_parameters
+use dtfft_serializer
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
 #include "_dtfft_profile.h"
 implicit none
 private
-public :: abstract_kernel
+public :: abstract_kernel, kernel_options
 public :: kernel_type_t, get_kernel_string, get_fused
 public :: is_unpack_kernel, is_pack_kernel, is_transpose_kernel
+public :: bytes_to_floats
 
 public :: operator(==)
     interface operator(==)
@@ -113,12 +113,10 @@ public :: operator(/=)
         logical                                 :: is_dummy_kernel = .false.    !! If kernel is of type KERNEL_DUMMY
         logical                                 :: is_dummy_compressed = .false.
         type(kernel_type_t)                     :: kernel_type              !! Type of the kernel
-        type(string)                            :: kernel_string            
+        type(string)                            :: kernel_string
         integer(int32),             allocatable :: neighbor_data(:,:)       !! Neighbor data for pipelined unpacking
         integer(int32),             allocatable :: dims(:)                  !! Local dimensions to process
-#ifdef DTFFT_WITH_COMPRESSION
         class(abstract_compressor), pointer     :: compressor               !! Compressor pointer. Compressor itself is created by generic handle and passed here
-#endif
         logical                                 :: is_compress              !! Enable compression
         logical                                 :: is_decompress            !! Enable decompression
         integer(int64)                          :: base_storage             !! 
@@ -126,21 +124,54 @@ public :: operator(/=)
         procedure,                    pass(self)  :: create           !! Creates kernel
         procedure,                    pass(self)  :: execute          !! Executes kernel
         procedure,                    pass(self)  :: destroy          !! Destroys kernel
-#ifdef DTFFT_WITH_COMPRESSION
         procedure,                    pass(self)  :: set_compressor
-#endif
-        procedure(create_interface),  deferred    :: create_private   !! Creates underlying kernel
-        procedure(execute_interface), deferred    :: execute_private  !! Executes underlying kernel
-        procedure(destroy_interface), deferred    :: destroy_private  !! Destroys underlying kernel
+        procedure(create_interface),                deferred    :: create_private   !! Creates underlying kernel
+        procedure(execute_interface),               deferred    :: execute_private  !! Executes underlying kernel
+        procedure(destroy_interface),               deferred    :: destroy_private  !! Destroys underlying kernel
+        procedure(get_kernel_options_interface),    deferred    :: get_kernel_options
     end type abstract_kernel
 
+    integer(int8), parameter, public :: KERNEL_SLOT_ABSENT = 0_int8
+      !! Kernel slot is not used by this reshape handle
+    integer(int8), parameter, public :: KERNEL_SLOT_HOST   = 1_int8
+      !! Slot holds a host kernel decision
+    integer(int8), parameter, public :: KERNEL_SLOT_DEVICE = 2_int8
+      !! Slot holds a device kernel decision
+
+    type :: kernel_options
+    !! Result of local kernel autotuning for a single pack or unpack slot.
+    !!
+    !! Host and device kernels are tuned on different parameters, so both variants share one
+    !! fixed-size record and `slot_kind` says which fields are meaningful.
+        integer(int8)  :: slot_kind = KERNEL_SLOT_ABSENT
+        !! One of `KERNEL_SLOT_*`
+        integer(int8)  :: host_kernel = 0
+        !! Host: selected host kernel variant
+        type(dtfft_access_mode_t) :: access_mode = dtfft_access_mode_t(0)
+        !! Host: selected memory access pattern
+        ! integer(int8)  :: internal_kernel_type 
+        !! Device: kernel type actually used, which may differ from the requested one
+        ! integer(int8)  :: padding
+        ! !! Device: shared memory padding
+        integer(int32) :: co_threshold = 0
+        !! Host: cache oblivious threshold
+        integer(int16) :: tile_size = 0
+        !! Device: tile size
+        integer(int16) :: block_rows = 0
+        !! Device: number of rows processed per block
+    contains
+        procedure, pass(self) :: save
+        procedure, pass(self) :: load
+    end type kernel_options
+
     abstract interface
-        subroutine create_interface(self, effort, base_storage, force_effort)
+        subroutine create_interface(self, effort, base_storage, options, force_effort)
         import
         !! Creates underlying kernel
             class(abstract_kernel),         intent(inout) :: self             !! Abstract kernel
             type(dtfft_effort_t),           intent(in)    :: effort           !! Effort level for generating transpose kernels
             integer(int64),                 intent(in)    :: base_storage     !! Number of bytes needed to store single element
+            type(kernel_options), optional, intent(in)    :: options          !! Pointer to kernel options struct
             logical,              optional, intent(in)    :: force_effort     !! Should effort be forced or not
         end subroutine create_interface
 
@@ -160,6 +191,12 @@ public :: operator(/=)
         !! Destroys underlying kernel
             class(abstract_kernel), intent(inout) :: self               !! Abstract kernel
         end subroutine destroy_interface
+
+        type(kernel_options) function get_kernel_options_interface(self)
+        import
+            !! Destroys underlying kernel
+            class(abstract_kernel), intent(in)  :: self               !! Abstract kernel
+        end function get_kernel_options_interface
     end interface
 
 contains
@@ -216,7 +253,11 @@ contains
         endselect
     end function get_fused
 
-    subroutine create(self, dims, effort, base_storage, kernel_type, neighbor_data, force_effort, with_compression, with_decompression)
+#if defined(DTFFT_WITH_CUDA) && defined(DTFFT_WITH_MOCK_ENABLED)
+    recursive   &
+#endif
+    subroutine create(self, dims, effort, base_storage, kernel_type, neighbor_data, force_effort, &
+        with_compression, with_decompression, options)
     !! Creates kernel
         class(abstract_kernel),         intent(inout) :: self               !! Abstract kernel
         integer(int32),                 intent(in)    :: dims(:)            !! Local dimensions to process
@@ -227,12 +268,16 @@ contains
         logical,              optional, intent(in)    :: force_effort       !! Should effort be forced or not
         logical,              optional, intent(in)    :: with_compression   !! Enable compression after executing kernel
         logical,              optional, intent(in)    :: with_decompression !! Enable decompression before executing kernel
+        type(kernel_options), optional, intent(in)    :: options            !! Pointer to kernel options struct
 
         call self%destroy()
-        self%is_compress = .false.;   if ( present(with_compression) ) self%is_compress = with_compression
-        self%is_decompress = .false.; if ( present(with_decompression) ) self%is_decompress = with_decompression
+        OPTVAL( self%is_compress, .false., with_compression )
+        OPTVAL( self%is_decompress, .false., with_decompression )
         self%is_dummy = .false.
         self%is_dummy_kernel = .false.
+#ifdef DTFFT_WITH_COMPRESSION
+        self%compressor => null()
+#endif
         if ( any(dims == 0) ) then
             self%is_created = .true.
             self%is_dummy = .true.
@@ -283,10 +328,13 @@ contains
         endif
         self%kernel_string = get_kernel_string(self%kernel_type)
 
-        if ( .not. self%is_dummy_compressed ) call self%create_private(effort, base_storage, force_effort)
+        if ( .not. self%is_dummy_compressed ) call self%create_private(effort, base_storage, options, force_effort)
         self%is_created = .true.
     end subroutine create
 
+#if defined(DTFFT_WITH_CUDA) && defined(DTFFT_WITH_MOCK_ENABLED)
+    recursive   &
+#endif
     subroutine execute(self, in, out, stream, neighbor, aux, csize, csizes, skip_compression, skip_rank, sync)
     !! Executes kernel
         class(abstract_kernel),     intent(inout) :: self             !! Abstract kernel
@@ -295,8 +343,8 @@ contains
         type(dtfft_stream_t),       intent(in)    :: stream           !! Stream to execute on, used only for device pointers
         integer(int32),   optional, intent(in)    :: neighbor         !! Source rank for pipelined unpacking
         type(c_ptr),      optional, intent(in)    :: aux              !! Target buffer, can be device or host pointer
-        integer(int32),   optional, intent(inout) :: csize            !! Compressed buffer size
-        integer(int32),   optional, intent(inout) :: csizes(:)        !! Multiple compression sizes. This should only be used with CUDA backends
+        integer(int64),   optional, intent(inout) :: csize            !! Compressed buffer size
+        integer(int64),   optional, intent(inout) :: csizes(:)        !! Multiple compression sizes. This should only be used with CUDA backends
         logical,          optional, intent(in)    :: skip_compression !! Skip compression/decompression stage. Should be used when packing/unpacking from itself.
         integer(int32),   optional, intent(in)    :: skip_rank        !! Skip compression/decompression for specific rank when neighbor is not specified.
         logical,          optional, intent(in)    :: sync             !! Sync stream after packing/compression. Should be used only for fused backends
@@ -304,15 +352,15 @@ contains
         integer :: batch_id
         integer(int32) :: skip_rank_
 #ifdef DTFFT_WITH_COMPRESSION
-        integer(int64)  :: compressed_bytes
+        ! integer(int64)  :: compressed_bytes
 #endif
 
         if ( self%is_dummy .or. self%is_dummy_kernel ) return
-        skip_compression_ = .false.; if( present(skip_compression) ) skip_compression_ = skip_compression
+        OPTVAL(skip_compression_, .false., skip_compression)
         with_compression = self%is_compress .or. self%is_decompress
         if ( self%is_dummy_compressed .and. skip_compression_ ) return
-        skip_rank_ = -1; if ( present(skip_rank) ) skip_rank_ = skip_rank
-        sync_ = .false.; if ( present(sync) ) sync_ = sync
+        OPTVAL(skip_rank_, -1, skip_rank)
+        OPTVAL(sync_, .false., sync)
 
 #ifdef DTFFT_DEBUG
         if ( .not. self%is_created ) then
@@ -335,13 +383,23 @@ contains
             INTERNAL_ERROR("abstract_kernel.execute: compression missing workspace")
         endif
         if ( self%is_compress .and. .not.skip_compression_ .and. present(csize) .and. present(csizes) ) then
-            INTERNAL_ERROR("abstract_kernel.execute: present(csize) .and. present(csizes)")
+            INTERNAL_ERROR("abstract_kernel.execute.compress: present(csize) .and. present(csizes)")
         endif
         if ( self%is_compress .and. .not.skip_compression_ .and. .not.present(csize) .and. .not.present(csizes) ) then
-            INTERNAL_ERROR("abstract_kernel.execute: .not.present(csize) .and. .not.present(csizes)")
+            INTERNAL_ERROR("abstract_kernel.execute.compress: .not.present(csize) .and. .not.present(csizes)")
         endif
         if ( self%is_compress .and. .not.skip_compression_ .and. present(csize) .and. .not. present(neighbor) ) then
-            INTERNAL_ERROR("abstract_kernel.execute: present(csize) .and. .not. present(neighbor)")
+            INTERNAL_ERROR("abstract_kernel.execute.compress: present(csize) .and. .not. present(neighbor)")
+        endif
+
+        if ( self%is_decompress .and. .not.skip_compression_ .and. present(csize) .and. present(csizes) ) then
+            INTERNAL_ERROR("abstract_kernel.execute.decompress: present(csize) .and. present(csizes)")
+        endif
+        if ( self%is_decompress .and. .not.skip_compression_ .and. .not.present(csize) .and. .not.present(csizes) ) then
+            INTERNAL_ERROR("abstract_kernel.execute.decompress: .not.present(csize) .and. .not.present(csizes)")
+        endif
+        if ( self%is_decompress .and. .not.skip_compression_ .and. present(csize) .and. .not. present(neighbor) ) then
+            INTERNAL_ERROR("abstract_kernel.execute.decompress: present(csize) .and. .not. present(neighbor)")
         endif
 # endif
 #endif
@@ -353,11 +411,14 @@ contains
             if ( self%is_decompress .and. .not.skip_compression_ ) then
                 work = out; if ( .not. self%is_dummy_compressed ) work = aux
                 call self%compressor%pre_sync(stream)
-                if ( present(neighbor) ) then
-                    call self%compressor%decompress(self%neighbor_data(:, neighbor), self%neighbor_data(4, neighbor), in, work, stream)
+                if ( present(neighbor) .and. present(csize) ) then
+                    call self%compressor%decompress(self%neighbor_data(:, neighbor), self%neighbor_data(4, neighbor), in, work, stream, csize)
+                else if ( present(neighbor) .and. present(csizes) ) then
+                    call self%compressor%decompress(self%neighbor_data(:, neighbor), self%neighbor_data(4, neighbor), in, work, stream, csizes(neighbor))
                 else
                     do batch_id = 1, size(self%neighbor_data, dim=2)
-                        call self%compressor%decompress(self%neighbor_data(:, batch_id), self%neighbor_data(4, batch_id), in, work, stream)
+                        if ( skip_rank_ == batch_id ) cycle
+                        call self%compressor%decompress(self%neighbor_data(:, batch_id), self%neighbor_data(4, batch_id), in, work, stream, csizes(batch_id))
                     enddo
                 endif
                 call self%compressor%post_sync(stream)
@@ -371,13 +432,11 @@ contains
                 endif
                 call self%compressor%pre_sync(stream)
                 if ( present(neighbor) ) then
-                    compressed_bytes = self%compressor%compress(self%neighbor_data(:, neighbor), self%neighbor_data(5, neighbor), work, out, stream)
-                    csize = bytes_to_floats(compressed_bytes)
+                    csize = self%compressor%compress(self%neighbor_data(:, neighbor), self%neighbor_data(5, neighbor), work, out, stream)
                 else
                     do batch_id = 1, size(self%neighbor_data, dim=2)
                         if ( skip_rank_ == batch_id ) cycle
-                        compressed_bytes = self%compressor%compress(self%neighbor_data(:, batch_id), self%neighbor_data(5, batch_id), work, out, stream)
-                        csizes(batch_id) = bytes_to_floats(compressed_bytes)
+                        csizes(batch_id) = self%compressor%compress(self%neighbor_data(:, batch_id), self%neighbor_data(5, batch_id), work, out, stream)
                     enddo
                 endif
                 call self%compressor%post_sync(stream)
@@ -387,11 +446,11 @@ contains
                 call self%execute_private(in, out, stream, sync_, neighbor)
                 if ( allocated( self%neighbor_data ) ) then
                     if ( present(csize) ) then
-                        csize = product( self%neighbor_data(1:3, neighbor) ) * int( self%base_storage / FLOAT_STORAGE_SIZE, int32 )
+                        csize = self%base_storage * product( self%neighbor_data(1:3, neighbor) )
                     endif
                     if ( present(csizes) ) then
                         do batch_id = 1, size(self%neighbor_data, dim=2)
-                            csizes(batch_id) = product( self%neighbor_data(1:3, batch_id) ) * int( self%base_storage / FLOAT_STORAGE_SIZE, int32 )
+                            csizes(batch_id) = self%base_storage * product( self%neighbor_data(1:3, batch_id) )
                         enddo
                     endif
                 endif
@@ -402,13 +461,56 @@ contains
         REGION_END(self%kernel_string%raw)
     end subroutine execute
 
+    subroutine destroy(self)
+    !! Destroys kernel
+        class(abstract_kernel), intent(inout) :: self                 !! Abstract kernel
+
+        if ( .not. self%is_created ) return
+        if ( self%is_dummy ) then
+            self%is_created = .false.
+            return
+        endif
+        call self%destroy_private()
 #ifdef DTFFT_WITH_COMPRESSION
+        self%compressor => null()
+#endif
+        if ( allocated(self%dims) ) deallocate(self%dims)
+        if ( allocated(self%neighbor_data) ) deallocate(self%neighbor_data)
+        call self%kernel_string%destroy()
+        self%is_dummy_compressed = .false.
+        self%is_created = .false.
+    end subroutine destroy
+
     subroutine set_compressor(self, compressor)
     !! Sets created compressor for the kernel
         class(abstract_kernel),             intent(inout) :: self       !! Abstract kernel
         class(abstract_compressor), target, intent(in)    :: compressor !! Compressor to set
         self%compressor => compressor
     end subroutine set_compressor
+
+    subroutine save(self, fh)
+        class(kernel_options),  intent(in)    :: self
+        type(serializer),       intent(inout) :: fh
+
+        call fh%save(self%slot_kind, .true.)
+        call fh%save(self%host_kernel, .true.)
+        call fh%save(self%access_mode%val, .true.)
+        call fh%save(self%co_threshold, .true.)
+        call fh%save(self%tile_size, .true.)
+        call fh%save(self%block_rows, .true.)
+    end subroutine save
+
+    subroutine load(self, fh)
+        class(kernel_options),  intent(inout) :: self
+        type(serializer),       intent(inout) :: fh
+
+        call fh%load(self%slot_kind, .true.)
+        call fh%load(self%host_kernel, .true.)
+        call fh%load(self%access_mode%val, .true.)
+        call fh%load(self%co_threshold, .true.)
+        call fh%load(self%tile_size, .true.)
+        call fh%load(self%block_rows, .true.)
+    end subroutine load
 
     elemental function bytes_to_floats(bytes) result(floats)
     !! Converts number of bytes to number of floats needed to store them
@@ -429,24 +531,6 @@ contains
         end if
         floats = int(n_floats, int32)
     end function bytes_to_floats
-#endif
-
-    subroutine destroy(self)
-    !! Destroys kernel
-        class(abstract_kernel), intent(inout) :: self                 !! Abstract kernel
-
-        if ( .not. self%is_created ) return
-        if ( self%is_dummy ) then
-            self%is_created = .false.
-            return
-        endif
-        call self%destroy_private()
-        if ( allocated(self%dims) ) deallocate(self%dims)
-        if ( allocated(self%neighbor_data) ) deallocate(self%neighbor_data)
-        call self%kernel_string%destroy()
-        self%is_dummy_compressed = .false.
-        self%is_created = .false.
-    end subroutine destroy
 
     MAKE_EQ_FUN(kernel_type_t, kernel_type_eq)
     MAKE_NE_FUN(kernel_type_t, kernel_type_ne)

@@ -69,18 +69,100 @@
 			 <thead><tr><th>Program</th><th>Source File</th><th>Description</th></tr></thead>
 			 <tbody>
 			   <tr>
-                 <td><a href='../program/test_compression.html'>test_compression</a></td>
-                 <td><a href='../sourcefile/test_compression.f90.html'>test_compression.F90</a></td>
+                 <td><a href='../program/main.html'>main</a></td>
+                 <td><a href='../sourcefile/main.f90.html'>main.F90</a></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../program/test_backend_compressed.html'>test_backend_compressed</a></td>
+                 <td><a href='../sourcefile/test_backend_compressed.f90.html'>test_backend_compressed.F90</a></td>
+                 <td><p>Tests all compressed backends on all platforms available in current build.</p><a href="../program/test_backend_compressed.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_backend_mpi.html'>test_backend_mpi</a></td>
+                 <td><a href='../sourcefile/test_backend_mpi.f90.html'>test_backend_mpi.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_compression.html'>test_compression</a></td>
+                 <td><a href='../sourcefile/test_kernel_compressed.f90.html'>test_kernel_compressed.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_compressors_device.html'>test_compressors_device</a></td>
+                 <td><a href='../sourcefile/test_compressors_device.f90.html'>test_compressors_device.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_compressors_host.html'>test_compressors_host</a></td>
+                 <td><a href='../sourcefile/test_compressors_host.f90.html'>test_compressors_host.F90</a></td>
+                 <td><p>Unit tests for all compressors available in current build:
+creation and validation of compression configs, round-trip of compress + decompress
+for every supported compression mode, data type, number of dimensions and dimension permutation</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../program/test_device_kernels.html'>test_device_kernels</a></td>
-                 <td><a href='../sourcefile/test_device_kernels.f90.html'>test_device_kernels.F90</a></td>
+                 <td><a href='../sourcefile/test_kernel_device.f90.html'>test_kernel_device.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_ffts.html'>test_ffts</a></td>
+                 <td><a href='../sourcefile/test_ffts.f90.html'>test_ffts.F90</a></td>
                  <td></td>
                </tr>
 			   <tr>
                  <td><a href='../program/test_host_kernels.html'>test_host_kernels</a></td>
-                 <td><a href='../sourcefile/test_host_kernels.f90.html'>test_host_kernels.F90</a></td>
+                 <td><a href='../sourcefile/test_kernel_host.f90.html'>test_kernel_host.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_mem_alloc.html'>test_mem_alloc</a></td>
+                 <td><a href='../sourcefile/test_mem_alloc.f90.html'>test_mem_alloc.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_plan_save_load.html'>test_plan_save_load</a></td>
+                 <td><a href='../sourcefile/test_plan_save_load.f90.html'>test_plan_save_load.F90</a></td>
+                 <td><p>Checks that a plan written with <code>plan%save</code> can be rebuilt with <code>plan%load</code> and that the
+rebuilt plan is indistinguishable from the tuned one &ndash; without running any autotuning.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_r2r_2d.html'>test_r2r_2d</a></td>
+                 <td><a href='../sourcefile/test_pencils_f.f90.html'>test_pencils_f.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_reshape_handles.html'>test_reshape_handles</a></td>
+                 <td><a href='../sourcefile/test_reshape_handles.f90.html'>test_reshape_handles.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_reshape_plans.html'>test_reshape_plans</a></td>
+                 <td><a href='../sourcefile/test_reshape_plans.f90.html'>test_reshape_plans.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_rtc_block_optimizer.html'>test_rtc_block_optimizer</a></td>
+                 <td><a href='../sourcefile/test_rtc_block_optimizer.f90.html'>test_rtc_block_optimizer.F90</a></td>
+                 <td><p>Kernel cases: each row encodes (kernel_type_val, tile_dim, other_dim, needs_neighbor)
+  - KERNEL_PERMUTE_FORWARD             tile_dim=2, other_dim=3
+  - KERNEL_PERMUTE_BACKWARD            tile_dim=3, other_dim=2
+  - KERNEL_PERMUTE_BACKWARD_START      tile_dim=3, other_dim=2
+  - KERNEL_PERMUTE_BACKWARD_END_PIPELINED tile_dim=2, other_dim=3, needs_neighbor
+  - KERNEL_UNPACK_PIPELINED            tile_dim=2, other_dim=3, needs_neighbor
+  - KERNEL_PACK_PIPELINED              tile_dim=2, other_dim=3, needs_neighbor
+For pack/unpack kernels generate_candidates and evaluate_analytical_performance
+operate on neighbor dimensions, not on local dims.  We use dims itself as a
+simple stand-in for neighbor_data so the API contract is exercised correctly.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_rtc_module_cache.html'>test_rtc_module_cache</a></td>
+                 <td><a href='../sourcefile/test_rtc_module_cache.f90.html'>test_rtc_module_cache.F90</a></td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../program/test_serializer.html'>test_serializer</a></td>
+                 <td><a href='../sourcefile/test_serializer.f90.html'>test_serializer.F90</a></td>
                  <td></td>
                </tr>
 			 </tbody></table>

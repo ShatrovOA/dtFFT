@@ -26,12 +26,12 @@ module dtfft_abstract_reshape_handle
 use iso_fortran_env
 use iso_c_binding
 use dtfft_abstract_backend
-#ifdef DTFFT_WITH_COMPRESSION
 use dtfft_abstract_compressor, only: dtfft_compression_config_t
-#endif
 use dtfft_config
+use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil
+use dtfft_serializer,           only: serializer
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
@@ -41,6 +41,8 @@ public :: abstract_reshape_handle
 public :: reshape_container
 public :: create_args
 public :: execute_args
+
+    character(len=*),   parameter :: RESHAPE_HANDLE = "__reshape_handle"
 
     type :: create_args
     !! Arguments for creating transpose handle
@@ -53,9 +55,7 @@ public :: execute_args
         integer(int8)                       :: comm_id            !! ID of communicator to use
         integer(int64)                      :: base_storage       !! Base storage size in bytes
         type(dtfft_transpose_mode_t)        :: transpose_mode     !! Transpose mode to use
-#ifdef DTFFT_WITH_COMPRESSION
         type(dtfft_compression_config_t)    :: compression_config !! Compression options
-#endif
     end type create_args
 
     type :: execute_args
@@ -70,9 +70,16 @@ public :: execute_args
     type, abstract :: abstract_reshape_handle
     !! Abstract reshape handle type
         logical                         :: is_transpose !! Is this a transpose operation
+        type(dtfft_transpose_mode_t)    :: transpose_mode
+        logical                         :: is_loaded = .false.
+        logical                         :: is_created = .false.
     contains
         procedure, non_overridable, pass(self)            :: create           !! Creates reshape handle
+        procedure, non_overridable, pass(self)            :: save
+        procedure, non_overridable, pass(self)            :: load
+        procedure, non_overridable, pass(self)            :: get_backend
         procedure,                  pass(self)            :: get_aux_bytes     !! Returns number of bytes required by aux buffer
+        ! procedure,                  pass(self)            :: get_kernel_decisions !! Returns tuning results of local kernels
 #ifdef DTFFT_WITH_COMPRESSION
         procedure,                  pass(self)            :: report_compression
 #endif
@@ -81,7 +88,9 @@ public :: execute_args
         procedure(execute_end_interface),       deferred  :: execute_end      !! Finishes async reshape
         procedure(destroy_interface),           deferred  :: destroy          !! Destroys reshape handle
         procedure(get_async_active_interface),  deferred  :: get_async_active !! Returns if async reshape is active
-        procedure(get_backend_interface),       deferred  :: get_backend
+        procedure(get_backend_interface),       deferred  :: get_backend_private
+        procedure(save_interface),              deferred  :: save_private
+        procedure(load_interface),              deferred  :: load_private
     end type abstract_reshape_handle
 
     type :: reshape_container
@@ -134,9 +143,34 @@ public :: execute_args
         import
             class(abstract_reshape_handle),   intent(in)    :: self       !! Abstract reshape Handle
         end function get_backend_interface
+
+        subroutine save_interface(self, fh)
+        import
+            class(abstract_reshape_handle),   intent(in)    :: self       !! Abstract reshape Handle
+            type(serializer),                 intent(inout) :: fh
+        end subroutine save_interface
+
+        integer(int32) function load_interface(self, fh) result(ierr)
+        import
+            class(abstract_reshape_handle),   intent(inout) :: self       !! Abstract reshape Handle
+            type(serializer),                 intent(inout) :: fh
+        end function load_interface
     end interface
 
 contains
+
+    ! subroutine get_kernel_decisions(self, pack_decision, unpack_decision)
+    ! !! Returns tuning results of the local kernels this handle owns.
+    ! !!
+    ! !! Default is "no kernels": handles built on MPI derived datatypes do not run local
+    ! !! kernels at all. [[reshape_handle_generic]] overrides this.
+    !     class(abstract_reshape_handle), intent(in)  :: self             !! Abstract reshape handle
+    !     type(kernel_decision),          intent(out) :: pack_decision    !! Pack kernel tuning result
+    !     type(kernel_decision),          intent(out) :: unpack_decision  !! Unpack kernel tuning result
+
+    !     pack_decision = kernel_decision()
+    !     unpack_decision = kernel_decision()
+    ! end subroutine get_kernel_decisions
 
     subroutine create(self, send, recv, kwargs)
     !! Creates reshape handle
@@ -167,6 +201,9 @@ contains
                 INTERNAL_ERROR("kwargs%transpose_mode /= DTFFT_TRANSPOSE_MODE_PACK .and. kwargs%transpose_mode /= DTFFT_TRANSPOSE_MODE_UNPACK.")
             endif
 #endif
+            if ( .not. self%is_loaded ) then
+                self%transpose_mode = kwargs%transpose_mode
+            endif
         else
             reshape_type = get_reshape_type(send, recv)
 #ifdef DTFFT_DEBUG
@@ -201,7 +238,48 @@ contains
 !         endblock
 ! #endif
         call self%create_private(comm, send, recv, kwargs)
+        self%is_created = .true.
     end subroutine create
+
+    subroutine save(self, fh)
+        class(abstract_reshape_handle), intent(in)    :: self         !! Abstract reshape Handle
+        type(serializer),               intent(inout) :: fh
+
+        if ( .not. self%is_created ) return
+        call fh%save(RESHAPE_HANDLE)
+        call fh%save(self%is_transpose)
+        if ( self%is_transpose ) then
+            call fh%save(int(self%transpose_mode%val, int8))
+        endif
+        call self%save_private(fh)
+    end subroutine save
+
+    integer(int32) function load(self, fh) result(ierr)
+        class(abstract_reshape_handle), intent(inout) :: self         !! Abstract reshape Handle
+        type(serializer),               intent(inout) :: fh
+        character(len=len(RESHAPE_HANDLE)) :: handle
+        integer(int8) :: temp
+
+        ierr = DTFFT_SUCCESS
+        call fh%load(handle)
+        if ( handle /= RESHAPE_HANDLE ) then
+            ierr = DTFFT_ERROR_FILE_INVALID
+            return
+        endif
+        call fh%load(self%is_transpose)
+        if ( self%is_transpose ) then
+            call fh%load(temp); self%transpose_mode%val = int(temp, int32)
+        endif
+        CHECK_CALL( self%load_private(fh), ierr )
+        self%is_loaded = .true.
+    end function load
+
+    elemental type(dtfft_backend_t) function get_backend(self)
+        class(abstract_reshape_handle),   intent(in)    :: self       !! Abstract reshape Handle
+        get_backend = BACKEND_DUMMY
+        if ( .not. self%is_created ) return
+        get_backend = self%get_backend_private()
+    end function get_backend
 
     pure integer(int64) function get_aux_bytes(self)
     !! Returns number of bytes required by aux buffer

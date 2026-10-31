@@ -1,0 +1,1524 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dtfft_compressor_cuszp &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>dtfft_compressor_cuszp
+      <small>Module</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.2% of total for modules and submodules.">76 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_compressor_cuszp.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_compressor_cuszp.f90.html'>dtfft_compressor_cuszp.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">dtfft_compressor_cuszp</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#types-0"
+         aria-expanded="false" aria-controls="types-0">
+         <h4 class="card-header bg-primary text-white">Derived Types</h4>
+      </a>
+      <div id="types-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#type-compressor_cuszp">compressor_cuszp</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#proc-create~20">create</a>
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#proc-compress~6">compress</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#proc-decompress~6">decompress</a>
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#proc-destroy~21">destroy</a>
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#proc-pre_sync~5">pre_sync</a>
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#proc-post_sync~5">post_sync</a>
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#proc-sync~5">sync</a>
+            <a class="list-group-item" href="../module/dtfft_compressor_cuszp.html#proc-get_supported_modes~5">get_supported_modes</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+
+    <div class="col-md-9" id='text'>
+      <p>cuSZp-based CUDA compressor implementation</p>
+<br>          <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='dtfft_interface_cuszp.html'>dtfft_interface_cuszp</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='dtfft_abstract_compressor.html'>dtfft_abstract_compressor</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='dtfft_errors.html'>dtfft_errors</a></li>
+                  <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_compressor_cuszp~~UsesGraph Pages: 1 -->
+<svg id="moduledtfft_compressor_cuszpUsesGraph" width="641pt" height="359pt"
+ viewBox="0.00 0.00 641.00 358.57" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph" class="graph" transform="scale(0.75 0.75) rotate(0) translate(4 472.6)">
+<title>module~~dtfft_compressor_cuszp~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-472.6 848,-472.6 848,4 -4,4"/>
+<!-- module~dtfft_compressor_cuszp -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node1" class="node">
+<title>module~dtfft_compressor_cuszp</title>
+<polygon fill="none" stroke="black" points="844,-99.26 707,-99.26 707,-75.26 844,-75.26 844,-99.26"/>
+<text text-anchor="middle" x="775.5" y="-84.86" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_compressor_cuszp</text>
+</g>
+<!-- iso_c_binding -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-159.26 5,-159.26 5,-135.26 89,-135.26 89,-159.26"/>
+<text text-anchor="middle" x="47" y="-144.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor_cuszp&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge1" class="edge">
+<title>module~dtfft_compressor_cuszp&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M757.35,-75.08C737.43,-61.45 703.2,-39.54 671,-26.26 639.41,-13.23 630.33,-12.11 596.5,-7.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M594.5,-7.26C520.13,3.39 499.48,1.86 425.5,-11.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M423.5,-11.26C395.83,-16.17 390.35,-23.14 365,-35.26 335.03,-49.59 332.66,-69.36 299.5,-71.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-71.26C246.25,-74.2 232.56,-62.39 182,-71.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-71.26C136.66,-78.86 93.9,-108.69 69.27,-128.64"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="66.8,-126.14 61.34,-135.23 71.27,-131.53 66.8,-126.14"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-243.26 0,-243.26 0,-219.26 94,-219.26 94,-243.26"/>
+<text text-anchor="middle" x="47" y="-228.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor_cuszp&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge2" class="edge">
+<title>module~dtfft_compressor_cuszp&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-459.26C246.33,-455.14 228.45,-481.11 182,-459.26"/>
+</g>
+<!-- module~dtfft_abstract_compressor -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node4" class="node">
+<title>module~dtfft_abstract_compressor</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node4"><a xlink:href="../module/dtfft_abstract_compressor.html" xlink:title="dtfft_abstract_compressor">
+<polygon fill="#337ab7" stroke="#337ab7" points="671,-217.26 520,-217.26 520,-193.26 671,-193.26 671,-217.26"/>
+<text text-anchor="middle" x="595.5" y="-202.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge3" class="edge">
+<title>module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M756.12,-99.44C724.6,-120.34 660.07,-163.12 623.45,-187.39"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="621.18,-184.7 614.78,-193.14 625.05,-190.54 621.18,-184.7"/>
+</g>
+<!-- module~dtfft_errors -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node5" class="node">
+<title>module~dtfft_errors</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node5"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
+<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-431.26 145.5,-431.26 145.5,-407.26 216.5,-407.26 216.5,-431.26"/>
+<text text-anchor="middle" x="181" y="-416.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M594.5,-400.26C478.76,-467.21 432.73,-470.52 299.5,-459.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-459.26C268.44,-456.92 237.31,-445.57 214.7,-435.56"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="216.11,-432.36 205.56,-431.38 213.2,-438.72 216.11,-432.36"/>
+</g>
+<!-- module~dtfft_interface_cuszp -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node6" class="node">
+<title>module~dtfft_interface_cuszp</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node6"><a xlink:href="../module/dtfft_interface_cuszp.html" xlink:title="dtfft_interface_cuszp">
+<polygon fill="#337ab7" stroke="#337ab7" points="657,-59.26 534,-59.26 534,-35.26 657,-35.26 657,-59.26"/>
+<text text-anchor="middle" x="595.5" y="-44.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuszp</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_interface_cuszp -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_interface_cuszp</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M721.09,-75.26C701.91,-70.95 680.08,-66.04 660.11,-61.56"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="660.7,-58.1 650.18,-59.32 659.16,-64.93 660.7,-58.1"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node7" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node7"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-199.26 130,-199.26 130,-175.26 232,-175.26 232,-199.26"/>
+<text text-anchor="middle" x="181" y="-184.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge6" class="edge">
+<title>module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M706.87,-81.18C619.99,-74.41 474.53,-66.9 425.5,-87.26"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node8" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node8"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-317.26 268,-317.26 268,-293.26 329,-293.26 329,-317.26"/>
+<text text-anchor="middle" x="298.5" y="-302.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge7" class="edge">
+<title>module~dtfft_compressor_cuszp&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M772.13,-99.33C761.85,-148.08 716.09,-331.08 596.5,-400.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M594.5,-400.26C549.29,-426.41 533.6,-376.62 484,-360.26 434.38,-343.9 376.58,-327.02 339.08,-316.34"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="339.64,-312.87 329.06,-313.51 337.73,-319.6 339.64,-312.87"/>
+</g>
+<!-- mpi_f08 -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node9" class="node">
+<title>mpi_f08</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node9"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-201.26 19.5,-201.26 19.5,-177.26 74.5,-177.26 74.5,-201.26"/>
+<text text-anchor="middle" x="47" y="-186.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor_cuszp&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_compressor_cuszp&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M594.5,-7.26C560.67,-2.42 552.91,-17.08 520,-26.26 450.66,-45.61 433.27,-50.44 365,-73.26 262.28,-107.6 142.67,-152.81 84.08,-175.3"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="82.62,-172.12 74.54,-178.97 85.13,-178.65 82.62,-172.12"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge9" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M580.21,-193.23C539.29,-160.06 417.06,-69.86 299.5,-71.26"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M423.5,-421.26C372.23,-441.49 353.1,-408.42 299.5,-421.26"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M591.1,-217.49C580.92,-251.87 547.37,-350.29 484,-402.26 462.86,-419.6 450.93,-411.23 425.5,-421.26"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M423.5,-421.26C369.88,-442.41 354.89,-367.31 299.5,-383.26"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M520,-199.03C439.75,-192.59 320.66,-183.91 299.5,-187.26"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M423.5,-285.26C395.56,-291.47 363.68,-296.57 339.24,-300.07"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="338.67,-296.61 329.25,-301.47 339.64,-303.55 338.67,-296.61"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge16" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M575.11,-217.45C553.49,-230.69 517.17,-251.87 484,-266.26 458.92,-277.14 452.19,-279.33 425.5,-285.26"/>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M423.5,-285.26C391.31,-292.42 159.98,-255 130,-241.26 110.81,-232.46 111.78,-221.65 94,-210.26 90.86,-208.25 87.49,-206.33 84.06,-204.52"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="85.46,-201.31 74.94,-200.02 82.36,-207.58 85.46,-201.31"/>
+</g>
+<!-- module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node11" class="node">
+<title>module~dtfft_interface_nvtx</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node11"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
+<polygon fill="#337ab7" stroke="#337ab7" points="482,-177.26 367,-177.26 367,-153.26 482,-153.26 482,-177.26"/>
+<text text-anchor="middle" x="424.5" y="-162.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge12" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M543.79,-193.26C525.75,-188.99 505.23,-184.13 486.42,-179.68"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="487,-176.22 476.46,-177.32 485.39,-183.03 487,-176.22"/>
+</g>
+<!-- module~dtfft_serializer -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node12" class="node">
+<title>module~dtfft_serializer</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node12"><a xlink:href="../module/dtfft_serializer.html" xlink:title="dtfft_serializer">
+<polygon fill="#337ab7" stroke="#337ab7" points="468.5,-393.26 380.5,-393.26 380.5,-369.26 468.5,-369.26 468.5,-393.26"/>
+<text text-anchor="middle" x="424.5" y="-378.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_serializer</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_serializer -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_serializer</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M582.88,-217.36C554.18,-247.25 479.69,-324.82 444.48,-361.5"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="441.6,-359.44 437.2,-369.08 446.65,-364.29 441.6,-359.44"/>
+</g>
+<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M149.4,-407.18C142.45,-403.45 135.5,-398.83 130,-393.26 89.39,-352.21 64.92,-286.96 54.27,-253.17"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="57.55,-251.92 51.3,-243.37 50.86,-253.95 57.55,-251.92"/>
+</g>
+<!-- module~dtfft_interface_cuszp&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_interface_cuszp&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M554.86,-35.21C513.03,-23.14 449.87,-6.94 425.5,-11.26"/>
+</g>
+<!-- module~dtfft_interface_cuszp&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_interface_cuszp&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M533.98,-56.68C501.09,-63.01 460.17,-72.86 425.5,-87.26"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M423.5,-87.26C358.12,-114.42 369.15,-174.57 299.5,-187.26"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-187.26C279.69,-190.51 260.08,-191.46 242.15,-191.34"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="242.16,-187.84 232.1,-191.16 242.03,-194.84 242.16,-187.84"/>
+</g>
+<!-- module~dtfft_interface_cuda -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_node10" class="node">
+<title>module~dtfft_interface_cuda</title>
+<g id="a_module~~dtfft_compressor_cuszp~~UsesGraph_node10"><a xlink:href="../module/dtfft_interface_cuda.html" xlink:title="dtfft_interface_cuda">
+<polygon fill="#337ab7" stroke="#337ab7" points="484,-257.26 365,-257.26 365,-233.26 484,-233.26 484,-257.26"/>
+<text text-anchor="middle" x="424.5" y="-242.86" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_interface_cuszp&#45;&gt;module~dtfft_interface_cuda -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_interface_cuszp&#45;&gt;module~dtfft_interface_cuda</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M585.47,-59.52C567.14,-84.19 523.93,-141.32 484,-186.26 471.86,-199.93 457.4,-214.53 445.89,-225.78"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="443.2,-223.51 438.46,-232.99 448.08,-228.54 443.2,-223.51"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge21" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M140.4,-175.26C126.94,-171.18 111.74,-166.58 97.61,-162.29"/>
+<polygon fill="#003fff" stroke="#003fff" points="98.62,-158.94 88.03,-159.39 96.59,-165.64 98.62,-158.94"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M143.93,-199.28C128.51,-204.43 110.32,-210.49 93.94,-215.95"/>
+<polygon fill="#003fff" stroke="#003fff" points="92.41,-212.77 84.03,-219.25 94.62,-219.41 92.41,-212.77"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#003fff" stroke-dasharray="5,2" d="M129.72,-188.02C114.74,-188.25 98.61,-188.49 84.68,-188.71"/>
+<polygon fill="#003fff" stroke="#003fff" points="84.45,-185.21 74.5,-188.86 84.55,-192.21 84.45,-185.21"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M267.75,-310.71C243.64,-313.75 209.3,-314.9 182,-303.26"/>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-303.26C147.44,-289.38 149.06,-271.09 130,-241.26 110.53,-210.77 119.96,-193.46 94,-168.26 92.9,-167.19 91.73,-166.17 90.51,-165.19"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="92.15,-162.08 81.9,-159.42 88.26,-167.89 92.15,-162.08"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge25" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M268,-315.29C233.44,-325.28 175.16,-336.6 130,-317.26 99.11,-304.03 74.33,-272.82 60.39,-251.86"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="63.27,-249.87 54.93,-243.33 57.37,-253.64 63.27,-249.87"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M290.86,-317.44C280.36,-335.79 258.39,-370.79 232,-393.26 228.24,-396.46 224.02,-399.41 219.67,-402.08"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="217.64,-399.21 210.65,-407.17 221.08,-405.31 217.64,-399.21"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge27" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M291.33,-293.14C281.15,-274.11 259.22,-236.94 232,-213.26 228.32,-210.06 224.17,-207.12 219.88,-204.46"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="221.41,-201.3 210.98,-199.4 217.95,-207.38 221.41,-201.3"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge28" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-303.26C157.33,-293.59 147.72,-296.4 130,-279.26 105.14,-255.21 119.09,-234.07 94,-210.26 90.92,-207.34 87.36,-204.77 83.61,-202.53"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="85.15,-199.38 74.67,-197.87 81.92,-205.59 85.15,-199.38"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M364.76,-238.3C344,-235.3 320.57,-231.31 299.5,-226.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-226.26C259.11,-217.07 268.01,-182.44 232,-166.26 190.1,-147.43 137.57,-143.72 99.38,-144.1"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="98.93,-140.61 89,-144.31 99.07,-147.61 98.93,-140.61"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge30" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-227.26C155.18,-225.8 127.7,-226.29 104.27,-227.35"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="103.96,-223.86 94.15,-227.85 104.31,-230.85 103.96,-223.86"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge31" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M386.74,-257.39C379.01,-261.05 371.29,-265.63 365,-271.26 322.03,-309.71 354.91,-367.3 299.5,-383.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-383.26C273.89,-390.06 247.74,-398.16 226.3,-404.96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="224.97,-401.71 216.5,-408.08 227.09,-408.38 224.97,-401.71"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge32" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-226.26C272.15,-220.19 244.47,-210.94 222.56,-202.97"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="223.52,-199.59 212.93,-199.41 221.09,-206.16 223.52,-199.59"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge33" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M395.37,-257.35C385.69,-261.62 374.81,-266.54 365,-271.26 353.84,-276.63 341.77,-282.8 331.06,-288.39"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="329.29,-285.37 322.06,-293.12 332.54,-291.56 329.29,-285.37"/>
+</g>
+<!-- module~dtfft_interface_cuda&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge34" class="edge">
+<title>module~dtfft_interface_cuda&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-226.26C247.58,-214.3 233.25,-230.28 182,-227.26"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M180,-227.26C146.65,-225.3 110.27,-214.1 84.16,-204.37"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="85.28,-201.05 74.69,-200.73 82.77,-207.58 85.28,-201.05"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge35" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M396.66,-153.21C338.52,-127.34 204.32,-68.99 182,-71.26"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge36" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M410.57,-177.56C398.45,-189.26 380.02,-207.5 365,-224.26 347.02,-244.33 327.77,-268.49 314.83,-285.16"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="312.01,-283.09 308.68,-293.14 317.56,-287.36 312.01,-283.09"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge37" class="edge">
+<title>module~dtfft_serializer&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M391,-393.27C366.21,-402.05 331.07,-413.7 299.5,-421.26"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M297.5,-421.26C244.95,-433.85 230.9,-482.26 182,-459.26"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M180,-459.26C158.49,-449.14 146.9,-456.98 130,-440.26 76.58,-387.42 57.12,-295.65 50.76,-253.54"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="54.21,-252.92 49.35,-243.5 47.28,-253.89 54.21,-252.92"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge38" class="edge">
+<title>module~dtfft_serializer&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M380.21,-376.48C356.01,-375.15 325.57,-375.75 299.5,-383.26"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge39" class="edge">
+<title>module~dtfft_serializer&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M392.76,-369.21C383.61,-365.19 373.7,-360.42 365,-355.26 349.6,-346.13 333.61,-333.98 321.28,-323.95"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="323.31,-321.09 313.38,-317.4 318.85,-326.48 323.31,-321.09"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor_cuszp~~UsesGraph_edge40" class="edge">
+<title>module~dtfft_serializer&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M380.23,-374.24C303.2,-361.4 148.57,-333.9 130,-317.26 92.63,-283.78 127.59,-247.53 94,-210.26 91.09,-207.03 87.59,-204.27 83.83,-201.91"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="85.22,-198.69 74.75,-197.11 81.95,-204.88 85.22,-198.69"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_compressor_cuszpUsesGraph = svgPanZoom('#moduledtfft_compressor_cuszpUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+      
+      <br>
+
+
+
+
+
+
+        <section>
+          <h2>Derived Types</h2>
+              <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-compressor_cuszp"></span>
+      <h3>
+        type, public, extends(<a href='../type/abstract_compressor.html'>abstract_compressor</a>)&nbsp;::&nbsp;
+        <a href='../type/compressor_cuszp.html'>compressor_cuszp</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      <p>cuSZp-based CUDA compressor implementation</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_complex"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_complex</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Indicates if the data type is complex</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ndims~14"></span>
+              integer(kind=int8),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ndims</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Number of dimensions</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-storage_size"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>storage_size</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Size of storage per element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-true_storage_size"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>true_storage_size</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Size of storage per element</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compressed_rate"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>compressed_rate</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Accumulated compression rate</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-execution_count"></span>
+              integer(kind=int64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>execution_count</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Number of compression executions</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims_permutation"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims_permutation</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Dimension permutation flag</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tolerance~9"></span>
+              real(kind=real32),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tolerance</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Compression tolerance for cuSZp</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_compressor.html#boundprocedure-create~8'>create</a></strong></td>
+                <td>../../<p>Initializes the compressor with given parameters</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_compressor.html#boundprocedure-compress~2'>compress</a></strong></td>
+                <td>../../<p>Compresses the input data and returns the compressed size</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_compressor.html#boundprocedure-decompress'>decompress</a></strong></td>
+                <td>../../<p>Decompresses the input data into the output buffer</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_compressor.html#boundprocedure-get_average_rate'>get_average_rate</a></strong></td>
+                <td>../../<p>Returns the average compression rate over all executions</p></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_compressor.html#boundprocedure-check_tolerance'>check_tolerance</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, non_overridable, pass(self) ::
+  <strong><a href='../type/abstract_compressor.html#boundprocedure-get_n_elements'>get_n_elements</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/compressor_cuszp.html#boundprocedure-create_private~21'>create_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/create~20.html'>create</a></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/compressor_cuszp.html#boundprocedure-compress_private~6'>compress_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/compress~6.html'>compress</a></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/compressor_cuszp.html#boundprocedure-decompress_private~6'>decompress_private</a></strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/proc/decompress~6.html'>decompress</a></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/compressor_cuszp.html#boundprocedure-destroy~23'>destroy</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/compressor_cuszp.html#boundprocedure-sync~10'>sync</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/compressor_cuszp.html#boundprocedure-pre_sync~6'>pre_sync</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public ::
+  <strong><a href='../type/compressor_cuszp.html#boundprocedure-post_sync~6'>post_sync</a></strong></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>  procedure, public, nopass ::
+  <strong><a href='../type/compressor_cuszp.html#boundprocedure-get_supported_modes~6'>get_supported_modes</a></strong></td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create~20"></span> <h3>private  function <a href='../proc/create~20.html'>create</a>(self, config, platform)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Create a cuSZp compressor instance with the specified configuration and platform</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~306"></span>
+              class(<a href='../type/compressor_cuszp.html'>compressor_cuszp</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>cuSZp compressor instance</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-config~32"></span>
+              type(<a href='../type/dtfft_compression_config_t.html'>dtfft_compression_config_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>config</strong></td>
+            <td>
+<p>Compression configuration parameters</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-platform~37"></span>
+              type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>platform</strong></td>
+            <td>
+<p>Platform type (should be CUDA for cuSZp)</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int32)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-compress~6"></span> <h3>private  function <a href='../proc/compress~6.html'>compress</a>(self, dims, in, out, stream)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Compress data using cuSZp</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~307"></span>
+              class(<a href='../type/compressor_cuszp.html'>compressor_cuszp</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>cuSZp compressor instance</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~505"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+<p>Dimensions of the data to compress</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~576"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+<p>Pointer to the input data to compress</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~576"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+<p>Pointer to the output buffer for compressed data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~88"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>CUDA stream for asynchronous operations</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int64)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-decompress~6"></span> <h3>private  subroutine <a href='../proc/decompress~6.html'>decompress</a>(self, dims, in, out, stream, compressed_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Decompress data using cuSZp</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~308"></span>
+              class(<a href='../type/compressor_cuszp.html'>compressor_cuszp</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>cuSZp compressor instance</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~506"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+<p>Dimensions of the data to decompress</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~577"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+<p>Pointer to the input data to decompress</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~577"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+<p>Pointer to the output buffer for decompressed data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~89"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>CUDA stream for asynchronous operations</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compressed_size~12"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>compressed_size</strong></td>
+            <td>
+<p>Size of the compressed data</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-destroy~21"></span> <h3>private  subroutine <a href='../proc/destroy~21.html'>destroy</a>(self)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>No-op for cuSZp compressor, but required for interface compliance</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~309"></span>
+              class(<a href='../type/compressor_cuszp.html'>compressor_cuszp</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>cuSZp compressor instance</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-pre_sync~5"></span> <h3>private  subroutine <a href='../proc/pre_sync~5.html'>pre_sync</a>(self, stream)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>No-op for cuSZp compressor, but required for interface compliance</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~310"></span>
+              class(<a href='../type/compressor_cuszp.html'>compressor_cuszp</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>cuSZp compressor instance</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~90"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>CUDA stream for synchronization</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-post_sync~5"></span> <h3>private  subroutine <a href='../proc/post_sync~5.html'>post_sync</a>(self, stream)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>No-op for cuSZp compressor, but required for interface compliance</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~311"></span>
+              class(<a href='../type/compressor_cuszp.html'>compressor_cuszp</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>cuSZp compressor instance</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~91"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>CUDA stream for synchronization</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-sync~5"></span> <h3>private  subroutine <a href='../proc/sync~5.html'>sync</a>(self, stream)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Synchronize the CUDA stream for cuSZp compressor, but required for interface compliance</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~312"></span>
+              class(<a href='../type/compressor_cuszp.html'>compressor_cuszp</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+<p>cuSZp compressor instance</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~92"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+<p>CUDA stream for synchronization</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_supported_modes~5"></span> <h3>private pure subroutine <a href='../proc/get_supported_modes~5.html'>get_supported_modes</a>(host_modes, cuda_modes, use_tolerance)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Returns supported compression modes
+Arrays are of size 4, corresponding to the order of <code>VALID_COMPRESSION_MODES</code>:
+1. DTFFT_COMPRESSION_MODE_LOSSLESS
+2. DTFFT_COMPRESSION_MODE_FIXED_RATE
+3. DTFFT_COMPRESSION_MODE_FIXED_PRECISION
+4. DTFFT_COMPRESSION_MODE_FIXED_ACCURACY</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-host_modes~7"></span>
+              logical,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>host_modes</strong>(4)</td>
+            <td>
+<p>Supported host compression modes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cuda_modes~7"></span>
+              logical,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>cuda_modes</strong>(4)</td>
+            <td>
+<p>Supported cuda compression modes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-use_tolerance~7"></span>
+              logical,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>use_tolerance</strong></td>
+            <td>
+<p>.true.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

@@ -1,0 +1,1192 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dtfft_executor.F90 &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>dtfft_executor.F90
+      <small>Source File</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.2% of total for source files.">93 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_executor.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+            <li class="breadcrumb-item active" aria-current="page">dtfft_executor.F90</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#mods-0"
+         aria-expanded="false" aria-controls="mods-0">
+         <h4 class="card-header bg-primary text-white">Modules</h4>
+      </a>
+      <div id="mods-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_executor.html">dtfft_executor</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../sourcefile/dtfft_executor.f90.html#src">dtfft_executor.F90</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">This file depends on</h3>
+          </div>
+          <div class="card-body">
+            <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: sourcefile~~dtfft_executor.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefiledtfft_executorf90EfferentGraph" width="641pt" height="315pt"
+ viewBox="0.00 0.00 641.00 314.62" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph" class="graph" transform="scale(0.43 0.43) rotate(0) translate(4 722.41)">
+<title>sourcefile~~dtfft_executor.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-722.41 1476,-722.41 1476,4 -4,4"/>
+<!-- sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~dtfft_executor.f90</title>
+<polygon fill="none" stroke="black" points="1472,-348.41 1365,-348.41 1365,-324.41 1472,-324.41 1472,-348.41"/>
+<text text-anchor="middle" x="1418.5" y="-334.01" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_executor.F90</text>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~dtfft_abstract_executor.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node2"><a xlink:href="../sourcefile/dtfft_abstract_executor.f90.html" xlink:title="dtfft_abstract_executor.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1146.5,-254.41 990.5,-254.41 990.5,-230.41 1146.5,-230.41 1146.5,-254.41"/>
+<text text-anchor="middle" x="1068.5" y="-240.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_executor.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1373.07,-324.41C1309.41,-307.22 1192.37,-275.6 1123.71,-257.06"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1124.5,-253.65 1113.94,-254.42 1122.68,-260.4 1124.5,-253.65"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~dtfft_executor_cufft.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node3"><a xlink:href="../sourcefile/dtfft_executor_cufft.f90.html" xlink:title="dtfft_executor_cufft.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1329,-172.41 1191,-172.41 1191,-148.41 1329,-148.41 1329,-172.41"/>
+<text text-anchor="middle" x="1260" y="-158.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_cufft.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_cufft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_cufft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1414,-324.29C1404.97,-295.17 1378.08,-220.76 1329,-181.41 1327.2,-179.97 1325.3,-178.62 1323.32,-177.37"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1324.71,-174.14 1314.25,-172.45 1321.37,-180.29 1324.71,-174.14"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node4" class="node">
+<title>sourcefile~dtfft_executor_fftw.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node4"><a xlink:href="../sourcefile/dtfft_executor_fftw.f90.html" xlink:title="dtfft_executor_fftw.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1326.5,-405.41 1193.5,-405.41 1193.5,-381.41 1326.5,-381.41 1326.5,-405.41"/>
+<text text-anchor="middle" x="1260" y="-391.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_fftw.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_fftw.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_fftw.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1384.31,-348.5C1360.86,-357.04 1329.23,-368.56 1303.87,-377.8"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1302.34,-374.63 1294.14,-381.34 1304.74,-381.21 1302.34,-374.63"/>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node5" class="node">
+<title>sourcefile~dtfft_executor_mkl.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node5"><a xlink:href="../sourcefile/dtfft_executor_mkl.f90.html" xlink:title="dtfft_executor_mkl.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1326.5,-560.41 1193.5,-560.41 1193.5,-536.41 1326.5,-536.41 1326.5,-560.41"/>
+<text text-anchor="middle" x="1260" y="-546.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_mkl.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge4" class="edge">
+<title>sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_mkl.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1414.99,-348.73C1407.68,-381.57 1383.37,-472.18 1329,-522.41 1325.15,-525.97 1320.77,-529.05 1316.13,-531.73"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1314.28,-528.74 1306.94,-536.38 1317.44,-534.98 1314.28,-528.74"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node6" class="node">
+<title>sourcefile~dtfft_executor_vkfft.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node6"><a xlink:href="../sourcefile/dtfft_executor_vkfft.f90.html" xlink:title="dtfft_executor_vkfft.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1328.5,-214.41 1191.5,-214.41 1191.5,-190.41 1328.5,-190.41 1328.5,-214.41"/>
+<text text-anchor="middle" x="1260" y="-200.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor_vkfft.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_vkfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge5" class="edge">
+<title>sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_vkfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1403.34,-324.29C1375.87,-300.77 1315.21,-248.83 1282.65,-220.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1284.89,-218.26 1275.02,-214.42 1280.34,-223.58 1284.89,-218.26"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node7" class="node">
+<title>sourcefile~dtfft_utils.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node7"><a xlink:href="../sourcefile/dtfft_utils.f90.html" xlink:title="dtfft_utils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="244,-368.41 160,-368.41 160,-344.41 244,-344.41 244,-368.41"/>
+<text text-anchor="middle" x="202" y="-354.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge6" class="edge">
+<title>sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1406.95,-348.51C1367.58,-392.3 1223.51,-540.39 1069.5,-548.41"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1067.5,-548.41C984.38,-556.9 960.83,-529.24 879.5,-548.41"/>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge11" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M548.5,-476.41C430.33,-446.13 389.98,-472.2 280,-419.41 257.66,-408.69 236.18,-390.21 221.61,-376.03"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="223.81,-373.27 214.27,-368.67 218.85,-378.22 223.81,-373.27"/>
+</g>
+<!-- sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node9" class="node">
+<title>sourcefile~dtfft_errors.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node9"><a xlink:href="../sourcefile/dtfft_errors.f90.html" xlink:title="dtfft_errors.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="109,-368.41 15,-368.41 15,-344.41 109,-344.41 109,-368.41"/>
+<text text-anchor="middle" x="62" y="-354.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge7" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M726.5,-514.41C641.64,-544.75 436.43,-693.59 350.5,-666.41"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M348.5,-666.41C259.76,-636.92 288.62,-552.04 203,-514.41"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node14" class="node">
+<title>sourcefile~dtfft_interface_nvtx.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node14"><a xlink:href="../sourcefile/dtfft_interface_nvtx.f90.html" xlink:title="dtfft_interface_nvtx.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="418.5,-368.41 280.5,-368.41 280.5,-344.41 418.5,-344.41 418.5,-368.41"/>
+<text text-anchor="middle" x="349.5" y="-354.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge8" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1055.5,-254.7C1005.29,-305.69 810.77,-498.69 728.5,-514.41"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M726.5,-514.41C651.15,-541.35 628.02,-496.28 550.5,-476.41"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M548.5,-476.41C478.32,-458.43 483.42,-410.55 419,-377.41 415.27,-375.49 411.33,-373.72 407.3,-372.07"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="408.4,-368.75 397.8,-368.49 405.93,-375.3 408.4,-368.75"/>
+</g>
+<!-- sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node16" class="node">
+<title>sourcefile~dtfft_parameters.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node16"><a xlink:href="../sourcefile/dtfft_parameters.f90.html" xlink:title="dtfft_parameters.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="124,-326.41 0,-326.41 0,-302.41 124,-302.41 124,-326.41"/>
+<text text-anchor="middle" x="62" y="-312.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge9" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1041.11,-230.3C1005.08,-214.04 938.25,-184.82 879.5,-164.41"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node17" class="node">
+<title>sourcefile~dtfft_pencil.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node17"><a xlink:href="../sourcefile/dtfft_pencil.f90.html" xlink:title="dtfft_pencil.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="925.5,-330.41 831.5,-330.41 831.5,-306.41 925.5,-306.41 925.5,-330.41"/>
+<text text-anchor="middle" x="878.5" y="-316.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_pencil.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge10" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1038.59,-254.48C1014.01,-264.7 977.75,-279.67 946,-292.41 937.64,-295.77 928.67,-299.31 920.11,-302.67"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="918.71,-299.46 910.67,-306.36 921.26,-305.98 918.71,-299.46"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge12" class="edge">
+<title>sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M1209.88,-172.51C1203.32,-175 1196.84,-177.95 1191,-181.41 1171.81,-192.8 1174.22,-205.07 1155,-216.41 1148.07,-220.51 1140.43,-224.01 1132.66,-226.99"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="1131.4,-223.72 1123.16,-230.38 1133.75,-230.32 1131.4,-223.72"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge17" class="edge">
+<title>sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M877.5,-88.41C846.14,-90.38 837.15,-95 811,-112.41 765.84,-142.5 782.52,-197.25 728.5,-202.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M726.5,-202.41C605.91,-213.94 555.33,-158.53 455,-226.41 425.7,-246.24 446.38,-275 419,-297.41 394.55,-317.43 381.21,-309 350.5,-316.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M348.5,-316.41C316.13,-323.49 280.23,-333.33 252.2,-341.49"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="250.85,-338.23 242.24,-344.41 252.82,-344.95 250.85,-338.23"/>
+</g>
+<!-- sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node8" class="node">
+<title>sourcefile~dtfft_config.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node8"><a xlink:href="../sourcefile/dtfft_config.f90.html" xlink:title="dtfft_config.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="775,-311.41 680,-311.41 680,-287.41 775,-287.41 775,-311.41"/>
+<text text-anchor="middle" x="727.5" y="-297.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge13" class="edge">
+<title>sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M1200.76,-172.48C1163.17,-180.47 1113.31,-191.47 1069.5,-202.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M1067.5,-202.41C1029.73,-211.85 1019.63,-211.46 982,-221.41 908.55,-240.84 824.47,-267.63 773.98,-284.22"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="772.74,-280.94 764.34,-287.39 774.93,-287.59 772.74,-280.94"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge14" class="edge">
+<title>sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M1204.35,-172.49C1199.52,-174.94 1194.97,-177.88 1191,-181.41 1161.3,-207.91 1181.23,-233.48 1155,-263.41 1095.73,-331.06 1045.21,-304.42 982,-368.41 959.88,-390.81 968.02,-406.92 946,-429.41 835.56,-542.23 780.79,-537.6 644,-616.41 603.17,-639.94 597.36,-661.47 550.5,-666.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M548.5,-666.41C461.23,-677.74 434.01,-694.17 350.5,-666.41"/>
+</g>
+<!-- sourcefile~dtfft_interface_cufft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node10" class="node">
+<title>sourcefile~dtfft_interface_cufft.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node10"><a xlink:href="../sourcefile/dtfft_interface_cufft.f90.html" xlink:title="dtfft_interface_cufft.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="419,-208.41 280,-208.41 280,-184.41 419,-184.41 419,-208.41"/>
+<text text-anchor="middle" x="349.5" y="-194.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cufft.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_interface_cufft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge15" class="edge">
+<title>sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_interface_cufft.f90</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M726.5,-12.41C711.28,-9.64 466.65,-64.23 455,-74.41 420.69,-104.4 451.16,-138.13 419,-170.41 415.54,-173.89 411.56,-176.91 407.3,-179.53"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="405.42,-176.57 398.25,-184.37 408.72,-182.75 405.42,-176.57"/>
+</g>
+<!-- sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge16" class="edge">
+<title>sourcefile~dtfft_executor_cufft.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M1238.3,-148.24C1217.87,-136.87 1185.37,-120.48 1155,-112.41 1036.21,-80.86 1002.17,-80.73 879.5,-88.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M877.5,-88.41C803.21,-91.11 801.66,-25.62 728.5,-12.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M726.5,-12.41C649.52,1.48 626.52,6.04 550.5,-12.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M548.5,-12.41C507.67,-22.33 491.44,-5.49 455,-26.41 390.71,-63.32 421.99,-136.81 350.5,-156.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M348.5,-156.41C318.03,-164.77 309.34,-163.7 280,-175.41 243.99,-189.79 239.11,-202.29 203,-216.41"/>
+<path fill="none" stroke="#ffff00" stroke-dasharray="5,2" d="M201,-216.41C154.08,-234.76 108.11,-272.49 82.86,-295.41"/>
+<polygon fill="#ffff00" stroke="#ffff00" points="80.39,-292.93 75.42,-302.29 85.14,-298.07 80.39,-292.93"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge18" class="edge">
+<title>sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1243.81,-381.31C1210.83,-355.03 1132.43,-292.56 1093,-261.14"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1094.76,-258.07 1084.76,-254.57 1090.4,-263.54 1094.76,-258.07"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge22" class="edge">
+<title>sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1193.45,-390.84C1132.62,-391.83 1042.59,-402.25 982,-449.41 952.82,-472.12 973.43,-499.62 946,-524.41 922.69,-545.48 910.5,-543.29 879.5,-548.41"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M877.5,-548.41C612.61,-595.44 508.73,-593.06 280,-451.41 250.44,-433.11 227.19,-399.35 214.27,-377.4"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="217.21,-375.48 209.23,-368.51 211.12,-378.94 217.21,-375.48"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge19" class="edge">
+<title>sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1253.36,-405.47C1236.52,-440.89 1185.93,-543.32 1155,-562.41 1050.41,-626.97 988.54,-529.7 879.5,-586.41"/>
+</g>
+<!-- sourcefile~dtfft_interface_fftw.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node11" class="node">
+<title>sourcefile~dtfft_interface_fftw.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node11"><a xlink:href="../sourcefile/dtfft_interface_fftw.f90.html" xlink:title="dtfft_interface_fftw.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1135.5,-482.41 1001.5,-482.41 1001.5,-458.41 1135.5,-458.41 1135.5,-482.41"/>
+<text text-anchor="middle" x="1068.5" y="-468.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_fftw.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_interface_fftw.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge20" class="edge">
+<title>sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_interface_fftw.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1236.75,-405.63C1216.01,-416.7 1184,-432.98 1155,-444.41 1144.94,-448.38 1134.03,-452.11 1123.47,-455.44"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="1122.43,-452.1 1113.9,-458.39 1124.49,-458.79 1122.43,-452.1"/>
+</g>
+<!-- sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge21" class="edge">
+<title>sourcefile~dtfft_executor_fftw.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M1254.59,-381.17C1239.74,-340.7 1190.55,-212.43 1155,-188.41 1053.15,-119.61 995.6,-204.75 879.5,-164.41"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M877.5,-164.41C807.37,-138.96 623.41,-72.62 550.5,-88.41"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M548.5,-88.41C506.58,-95.94 486.6,-80.85 455,-109.41 417.47,-143.34 455.68,-182.56 419,-217.41 396.1,-239.18 382.01,-238.68 350.5,-236.41"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M348.5,-236.41C283.39,-231.73 263.79,-192.64 203,-216.41"/>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge23" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1251.34,-536.04C1222.35,-489.23 1119.17,-322.62 1082.53,-263.45"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1085.29,-261.27 1077.05,-254.61 1079.34,-264.95 1085.29,-261.27"/>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge28" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1193.18,-546.73C1156.71,-546.23 1110.57,-546.28 1069.5,-548.41"/>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge24" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1067.5,-666.41C920.59,-699.84 877.91,-646.96 728.5,-666.41"/>
+</g>
+<!-- sourcefile~dtfft_interface_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node12" class="node">
+<title>sourcefile~dtfft_interface_mkl.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node12"><a xlink:href="../sourcefile/dtfft_interface_mkl.f90.html" xlink:title="dtfft_interface_mkl.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="946,-638.41 811,-638.41 811,-614.41 946,-614.41 946,-638.41"/>
+<text text-anchor="middle" x="878.5" y="-624.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_mkl.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_interface_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge25" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_interface_mkl.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1246.61,-560.42C1218.23,-586.87 1145.08,-649.22 1069.5,-666.41"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1067.5,-666.41C1041.3,-672.37 973.66,-655.01 927.09,-641.3"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="928.08,-637.94 917.5,-638.44 926.08,-644.65 928.08,-637.94"/>
+</g>
+<!-- sourcefile~dtfft_interface_mkl_native.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node13" class="node">
+<title>sourcefile~dtfft_interface_mkl_native.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node13"><a xlink:href="../sourcefile/dtfft_interface_mkl_native.f90.html" xlink:title="dtfft_interface_mkl_native.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1155,-718.41 982,-718.41 982,-694.41 1155,-694.41 1155,-718.41"/>
+<text text-anchor="middle" x="1068.5" y="-704.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_mkl_native.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_interface_mkl_native.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge26" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_interface_mkl_native.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1252.75,-560.65C1238.83,-586.69 1202.7,-647.83 1155,-680.41 1149.1,-684.45 1142.55,-687.87 1135.79,-690.77"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1134.5,-687.51 1126.46,-694.41 1137.05,-694.03 1134.5,-687.51"/>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge27" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M1193.2,-538.8C1116.05,-526.92 996.74,-506.44 982,-491.41 920.6,-428.8 995.04,-370.12 946,-297.41 918.21,-256.21 599.42,-79.63 550.5,-88.41"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge29" class="edge">
+<title>sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1202.14,-214.42C1181.53,-218.77 1158.06,-223.72 1136.64,-228.24"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="1135.7,-224.86 1126.64,-230.35 1137.15,-231.71 1135.7,-224.86"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge34" class="edge">
+<title>sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1067.5,-126.41C1009,-121.12 1002.81,-163.48 946,-178.41 851.94,-203.15 825.48,-195.1 728.5,-202.41"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge30" class="edge">
+<title>sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1191.38,-194.53C1154.78,-192.22 1109.08,-192.52 1069.5,-202.41"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge31" class="edge">
+<title>sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1254.3,-214.49C1242.15,-244.32 1206.95,-322.43 1155,-368.41 1091.42,-424.68 1038.02,-385.62 982,-449.41 947.22,-489.02 982.56,-524.44 946,-562.41 924.21,-585.05 907.18,-571.54 879.5,-586.41"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M877.5,-586.41C850.19,-600.51 838.58,-591.84 811,-605.41 770.09,-625.56 773.72,-660.53 728.5,-666.41"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M726.5,-666.41C648.93,-676.51 628.29,-658.2 550.5,-666.41"/>
+</g>
+<!-- sourcefile~dtfft_interface_vkfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node15" class="node">
+<title>sourcefile~dtfft_interface_vkfft.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node15"><a xlink:href="../sourcefile/dtfft_interface_vkfft.f90.html" xlink:title="dtfft_interface_vkfft.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="419,-288.41 280,-288.41 280,-264.41 419,-264.41 419,-288.41"/>
+<text text-anchor="middle" x="349.5" y="-274.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_vkfft.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_interface_vkfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge32" class="edge">
+<title>sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_interface_vkfft.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M877.5,-126.41C784.17,-114.85 530.37,-94.18 455,-150.41 417.14,-178.66 452.11,-216.73 419,-250.41 415.61,-253.86 411.72,-256.86 407.55,-259.46"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="405.79,-256.43 398.67,-264.27 409.13,-262.59 405.79,-256.43"/>
+</g>
+<!-- sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge33" class="edge">
+<title>sourcefile~dtfft_executor_vkfft.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1213.31,-190.3C1205.72,-187.73 1198.03,-184.76 1191,-181.41 1173.63,-173.16 1172.16,-166.09 1155,-157.41 1118.92,-139.18 1109.68,-130.77 1069.5,-126.41"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M1067.5,-126.41C984.43,-117.41 962.24,-138.09 879.5,-126.41"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M877.5,-126.41C801.3,-115.66 624.89,7.28 550.5,-12.41"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge35" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M159.97,-356.41C147.31,-356.41 133.13,-356.41 119.61,-356.41"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="119.44,-352.91 109.44,-356.41 119.44,-359.91 119.44,-352.91"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge36" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M161.45,-344.38C146.15,-339.72 128.47,-334.34 112.35,-329.43"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="113.14,-326.02 102.55,-326.45 111.1,-332.71 113.14,-326.02"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge41" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M548.5,-240.41C506.71,-233.24 492.08,-238.84 455,-259.41 434.66,-270.7 438.94,-285.42 419,-297.41 391.93,-313.7 381.2,-308.94 350.5,-316.41"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge38" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M717.07,-311.57C702.89,-329.13 674.49,-361.63 644,-381.41 601.07,-409.28 248.9,-537.05 203,-514.41"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge40" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M705.41,-287.36C689.1,-278.49 665.71,-266.75 644,-259.41 603.83,-245.84 592.29,-247.59 550.5,-240.41"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M548.5,-240.41C454.29,-224.24 442.69,-131.14 350.5,-156.41"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node18" class="node">
+<title>sourcefile~dtfft_abstract_compressor.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node18"><a xlink:href="../sourcefile/dtfft_abstract_compressor.f90.html" xlink:title="dtfft_abstract_compressor.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="635.5,-372.41 463.5,-372.41 463.5,-348.41 635.5,-348.41 635.5,-372.41"/>
+<text text-anchor="middle" x="549.5" y="-358.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge37" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M691.73,-311.47C664.01,-321.07 625,-334.59 595,-344.99"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="593.5,-341.81 585.2,-348.39 595.79,-348.42 593.5,-341.81"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node19" class="node">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node19"><a xlink:href="../sourcefile/dtfft_interface_cuda_runtime.f90.html" xlink:title="dtfft_interface_cuda_runtime.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="644,-292.41 455,-292.41 455,-268.41 644,-268.41 644,-292.41"/>
+<text text-anchor="middle" x="549.5" y="-278.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge39" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M679.8,-294.37C671.73,-293.5 663.07,-292.57 654.18,-291.61"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="654.4,-288.11 644.08,-290.52 653.65,-295.07 654.4,-288.11"/>
+</g>
+<!-- sourcefile~dtfft_interface_cufft.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge43" class="edge">
+<title>sourcefile~dtfft_interface_cufft.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M330.68,-208.57C315.69,-219.48 294.46,-236.64 280,-255.41 257.68,-284.39 268.13,-301.93 244,-329.41 241.15,-332.66 237.83,-335.67 234.33,-338.42"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="232.11,-335.71 225.98,-344.35 236.16,-341.42 232.11,-335.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_cufft.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge42" class="edge">
+<title>sourcefile~dtfft_interface_cufft.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#cbff00" stroke-dasharray="5,2" d="M279.82,-199.18C254.97,-201.89 227.1,-206.99 203,-216.41"/>
+</g>
+<!-- sourcefile~dtfft_interface_mkl.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge44" class="edge">
+<title>sourcefile~dtfft_interface_mkl.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ff66" stroke-dasharray="5,2" d="M810.9,-628.33C672.8,-630.96 361.35,-629.51 280,-566.41 264.46,-554.36 225.29,-429.87 209.63,-378.45"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="212.91,-377.21 206.66,-368.65 206.21,-379.24 212.91,-377.21"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge45" class="edge">
+<title>sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#0066ff" stroke-dasharray="5,2" d="M280.44,-356.41C271.6,-356.41 262.68,-356.41 254.18,-356.41"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="254.07,-352.91 244.07,-356.41 254.07,-359.91 254.07,-352.91"/>
+</g>
+<!-- sourcefile~dtfft_interface_vkfft.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge48" class="edge">
+<title>sourcefile~dtfft_interface_vkfft.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#3200ff" stroke-dasharray="5,2" d="M311.03,-288.47C300.71,-292.37 289.7,-297.08 280,-302.41 262.48,-312.06 260.36,-317.91 244,-329.41 239.67,-332.46 235.02,-335.62 230.47,-338.66"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="228.36,-335.86 221.94,-344.29 232.21,-341.7 228.36,-335.86"/>
+</g>
+<!-- sourcefile~dtfft_interface_vkfft.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge46" class="edge">
+<title>sourcefile~dtfft_interface_vkfft.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#3200ff" stroke-dasharray="5,2" d="M201,-315.41C169.04,-321.9 133.81,-332.42 106.95,-341.19"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="105.85,-337.86 97.45,-344.32 108.04,-344.51 105.85,-337.86"/>
+</g>
+<!-- sourcefile~dtfft_interface_vkfft.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge47" class="edge">
+<title>sourcefile~dtfft_interface_vkfft.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#3200ff" stroke-dasharray="5,2" d="M308.98,-288.42C279.89,-296.92 239.27,-308.06 203,-315.41"/>
+<path fill="none" stroke="#3200ff" stroke-dasharray="5,2" d="M201,-315.41C179.61,-319.75 155.98,-320.88 134.4,-320.53"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="134.41,-317.03 124.32,-320.26 134.22,-324.02 134.41,-317.03"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge54" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0098" stroke-dasharray="5,2" d="M726.5,-438.41C670.34,-449.65 694.88,-365.72 644,-339.41 585.88,-309.37 414.07,-300.94 350.5,-316.41"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge49" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#ff0098" stroke-dasharray="5,2" d="M831.17,-312.51C816.67,-310.66 800.49,-308.59 785.34,-306.66"/>
+<polygon fill="#ff0098" stroke="#ff0098" points="785.42,-303.14 775.06,-305.35 784.53,-310.09 785.42,-303.14"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge50" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0098" stroke-dasharray="5,2" d="M726.5,-438.41C684.02,-447.03 685.3,-477.26 644,-490.41 456.97,-549.99 380.55,-598.11 203,-514.41"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge52" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0098" stroke-dasharray="5,2" d="M855.16,-306.3C814.56,-285.06 725.33,-241.86 644,-226.41 561.47,-210.74 538.9,-222.41 455,-226.41 408.4,-228.64 397.08,-239.15 350.5,-236.41"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge51" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#ff0098" stroke-dasharray="5,2" d="M868.89,-330.83C848.48,-358.77 793.95,-425.23 728.5,-438.41"/>
+<path fill="none" stroke="#ff0098" stroke-dasharray="5,2" d="M726.5,-438.41C658.68,-452.08 699.42,-347.82 644,-306.41 638.86,-302.58 633.19,-299.3 627.24,-296.52"/>
+<polygon fill="#ff0098" stroke="#ff0098" points="628.3,-293.16 617.73,-292.52 625.59,-299.62 628.3,-293.16"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_node20" class="node">
+<title>sourcefile~dtfft_serializer.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~EfferentGraph_node20"><a xlink:href="../sourcefile/dtfft_serializer.f90.html" xlink:title="dtfft_serializer.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="404,-410.41 295,-410.41 295,-386.41 404,-386.41 404,-410.41"/>
+<text text-anchor="middle" x="349.5" y="-396.01" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_serializer.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge53" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_serializer.f90</title>
+<path fill="none" stroke="#ff0098" stroke-dasharray="5,2" d="M726.5,-438.41C610.8,-461.73 472.15,-432.56 399.86,-413.14"/>
+<polygon fill="#ff0098" stroke="#ff0098" points="400.68,-409.73 390.11,-410.47 398.83,-416.48 400.68,-409.73"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge59" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M504.22,-348.4C450.52,-334.17 365.3,-312.81 350.5,-316.41"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge55" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M488.97,-372.43C477.31,-376.03 465.46,-380.61 455,-386.41 436.02,-396.95 437.18,-407.55 419,-419.41 397.04,-433.74 226.64,-525.75 203,-514.41"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge56" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M463.38,-358.69C451.91,-358.46 440.18,-358.23 428.83,-358"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="428.6,-354.49 418.53,-357.79 428.46,-361.49 428.6,-354.49"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge57" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M524.67,-348.37C504.79,-337.66 476.36,-320.72 455,-301.41 435.74,-284.01 440.59,-269.83 419,-255.41 392.72,-237.87 382.04,-238.27 350.5,-236.41"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge58" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_serializer.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M485.85,-372.44C462.96,-376.83 437.05,-381.8 414.07,-386.21"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="413.24,-382.81 404.08,-388.13 414.56,-389.68 413.24,-382.81"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge61" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M470.47,-292.42C433.84,-298.61 389.71,-306.87 350.5,-316.41"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge60" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M502.22,-268.33C453.37,-255.9 379.5,-238.12 350.5,-236.41"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge63" class="edge">
+<title>sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M306.81,-386.38C290.38,-381.64 271.35,-376.15 254.11,-371.17"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="254.78,-367.72 244.2,-368.31 252.83,-374.44 254.78,-367.72"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~EfferentGraph_edge62" class="edge">
+<title>sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M306.61,-410.51C297.4,-414.18 288.01,-418.78 280,-424.41 236.94,-454.7 250.46,-537.18 203,-514.41"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M201,-514.41C139.17,-484.76 93.64,-413.25 73.88,-377.5"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="76.82,-375.58 68.99,-368.43 70.65,-378.89 76.82,-375.58"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var pansourcefiledtfft_executorf90EfferentGraph = svgPanZoom('#sourcefiledtfft_executorf90EfferentGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#EfferentGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="EfferentGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="202pt" height="32pt"
+ viewBox="0.00 0.00 201.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 197.5,-28 197.5,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="193.5,-24 88.5,-24 88.5,0 193.5,0 193.5,-24"/>
+<text text-anchor="middle" x="141" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a file to a file which it depends on. A file
+is dependent upon another if the latter must be compiled before the former
+can be.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Files dependent on this one</h3>
+          </div>
+          <div class="card-body">
+            <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: sourcefile~~dtfft_executor.f90~~AfferentGraph Pages: 1 -->
+<svg id="sourcefiledtfft_executorf90AfferentGraph" width="529pt" height="196pt"
+ viewBox="0.00 0.00 529.00 196.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 192)">
+<title>sourcefile~~dtfft_executor.f90~~AfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-192 525,-192 525,4 -4,4"/>
+<!-- sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node1" class="node">
+<title>sourcefile~dtfft_executor.f90</title>
+<polygon fill="none" stroke="black" points="107,-128 0,-128 0,-104 107,-104 107,-128"/>
+<text text-anchor="middle" x="53.5" y="-113.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_executor.F90</text>
+</g>
+<!-- sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node2" class="node">
+<title>sourcefile~dtfft.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~AfferentGraph_node2"><a xlink:href="../sourcefile/dtfft.f90.html" xlink:title="dtfft.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="332,-108 275,-108 275,-84 332,-84 332,-108"/>
+<text text-anchor="middle" x="303.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge1" class="edge">
+<title>sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M274.53,-98.26C236.61,-101.31 167.81,-106.86 117.2,-110.94"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="116.7,-107.47 107.02,-111.76 117.27,-114.45 116.7,-107.47"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node4" class="node">
+<title>sourcefile~dtfft_plan.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~AfferentGraph_node4"><a xlink:href="../sourcefile/dtfft_plan.f90.html" xlink:title="dtfft_plan.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="228,-148 143,-148 143,-124 228,-124 228,-148"/>
+<text text-anchor="middle" x="185.5" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge9" class="edge">
+<title>sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_plan.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M274.72,-105.58C261.75,-110.05 246,-115.48 231.41,-120.51"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="229.86,-117.35 221.55,-123.92 232.14,-123.96 229.86,-117.35"/>
+</g>
+<!-- sourcefile~dtfft_api.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node3" class="node">
+<title>sourcefile~dtfft_api.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~AfferentGraph_node3"><a xlink:href="../sourcefile/dtfft_api.f90.html" xlink:title="dtfft_api.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="343,-188 264,-188 264,-164 343,-164 343,-188"/>
+<text text-anchor="middle" x="303.5" y="-173.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge2" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M263.81,-174.79C231.09,-172.97 183.24,-168.41 143,-157 122.84,-151.29 101.5,-141.52 84.82,-132.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="86.07,-129.65 75.59,-128.09 82.8,-135.84 86.07,-129.65"/>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge10" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_plan.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M267.7,-164C256.22,-160.04 243.29,-155.58 231.17,-151.4"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="232.27,-148.08 221.68,-148.13 229.99,-154.7 232.27,-148.08"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge3" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M142.65,-129.56C134.54,-128.31 125.88,-126.98 117.27,-125.66"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="117.64,-122.17 107.22,-124.11 116.58,-129.09 117.64,-122.17"/>
+</g>
+<!-- sourcefile~test_ffts.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node5" class="node">
+<title>sourcefile~test_ffts.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~AfferentGraph_node5"><a xlink:href="../sourcefile/test_ffts.f90.html" xlink:title="test_ffts.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="223.5,-68 147.5,-68 147.5,-44 223.5,-44 223.5,-68"/>
+<text text-anchor="middle" x="185.5" y="-53.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_ffts.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_ffts.f90&#45;&gt;sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge4" class="edge">
+<title>sourcefile~test_ffts.f90&#45;&gt;sourcefile~dtfft_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M158.19,-68.14C138.55,-77.21 111.48,-89.7 89.93,-99.65"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="88.38,-96.51 80.77,-103.88 91.31,-102.86 88.38,-96.51"/>
+</g>
+<!-- sourcefile~main.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node6" class="node">
+<title>sourcefile~main.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~AfferentGraph_node6"><a xlink:href="../sourcefile/main.f90.html" xlink:title="main.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="481,-108 419,-108 419,-84 481,-84 481,-108"/>
+<text text-anchor="middle" x="450" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">main.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~main.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge5" class="edge">
+<title>sourcefile~main.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M418.71,-96C396.5,-96 366.21,-96 342.4,-96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="342.3,-92.5 332.3,-96 342.3,-99.5 342.3,-92.5"/>
+</g>
+<!-- sourcefile~test_mem_alloc.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node7" class="node">
+<title>sourcefile~test_mem_alloc.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~AfferentGraph_node7"><a xlink:href="../sourcefile/test_mem_alloc.f90.html" xlink:title="test_mem_alloc.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="509,-66 391,-66 391,-42 509,-42 509,-66"/>
+<text text-anchor="middle" x="450" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_mem_alloc.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_mem_alloc.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge6" class="edge">
+<title>sourcefile~test_mem_alloc.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M407.59,-66.04C386.9,-72.05 362.06,-79.27 341.94,-85.12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="340.82,-81.8 332.2,-87.95 342.78,-88.52 340.82,-81.8"/>
+</g>
+<!-- sourcefile~test_pencils_f.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node8" class="node">
+<title>sourcefile~test_pencils_f.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~AfferentGraph_node8"><a xlink:href="../sourcefile/test_pencils_f.f90.html" xlink:title="test_pencils_f.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="503,-24 397,-24 397,0 503,0 503,-24"/>
+<text text-anchor="middle" x="450" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_pencils_f.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_pencils_f.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge7" class="edge">
+<title>sourcefile~test_pencils_f.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M399.39,-24.09C392.36,-26.6 385.36,-29.55 379,-33 357.89,-44.44 337.32,-62.53 323.16,-76.39"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="320.56,-74.04 315.99,-83.59 325.53,-78.98 320.56,-74.04"/>
+</g>
+<!-- sourcefile~test_plan_save_load.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_node9" class="node">
+<title>sourcefile~test_plan_save_load.f90</title>
+<g id="a_sourcefile~~dtfft_executor.f90~~AfferentGraph_node9"><a xlink:href="../sourcefile/test_plan_save_load.f90.html" xlink:title="test_plan_save_load.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="521,-150 379,-150 379,-126 521,-126 521,-150"/>
+<text text-anchor="middle" x="450" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_plan_save_load.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_plan_save_load.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge8" class="edge">
+<title>sourcefile~test_plan_save_load.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M407.59,-125.96C386.9,-119.95 362.06,-112.73 341.94,-106.88"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="342.78,-103.48 332.2,-104.05 340.82,-110.2 342.78,-103.48"/>
+</g>
+<!-- sourcefile~test_plan_save_load.f90&#45;&gt;sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_executor.f90~~AfferentGraph_edge11" class="edge">
+<title>sourcefile~test_plan_save_load.f90&#45;&gt;sourcefile~dtfft_plan.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M379,-137.47C334.71,-137.13 278.42,-136.7 238.18,-136.39"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="238.07,-132.89 228.05,-136.32 238.02,-139.89 238.07,-132.89"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#AfferentGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="AfferentGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="202pt" height="32pt"
+ viewBox="0.00 0.00 201.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 197.5,-28 197.5,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="193.5,-24 88.5,-24 88.5,0 193.5,0 193.5,-24"/>
+<text text-anchor="middle" x="141" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a file to a file which it depends on. A file
+is dependent upon another if the latter must be compiled before the former
+can be.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+<br>
+      <section>
+        <h2><span class="anchor" id="src"></span>Source Code</h2>
+        <div class="hl codehilite"><pre><span></span><a id="ln-1" name="ln-1" href="#ln-1"></a><span class="c">!------------------------------------------------------------------------------------------------</span>
+<a id="ln-2" name="ln-2" href="#ln-2"></a><span class="c">! Copyright (c) 2021 - 2025, Oleg Shatrov</span>
+<a id="ln-3" name="ln-3" href="#ln-3"></a><span class="c">! All rights reserved.</span>
+<a id="ln-4" name="ln-4" href="#ln-4"></a><span class="c">! This file is part of dtFFT library.</span>
+<a id="ln-5" name="ln-5" href="#ln-5"></a>
+<a id="ln-6" name="ln-6" href="#ln-6"></a><span class="c">! dtFFT is free software: you can redistribute it and/or modify</span>
+<a id="ln-7" name="ln-7" href="#ln-7"></a><span class="c">! it under the terms of the GNU General Public License as published by</span>
+<a id="ln-8" name="ln-8" href="#ln-8"></a><span class="c">! the Free Software Foundation, either version 3 of the License, or</span>
+<a id="ln-9" name="ln-9" href="#ln-9"></a><span class="c">! (at your option) any later version.</span>
+<a id="ln-10" name="ln-10" href="#ln-10"></a>
+<a id="ln-11" name="ln-11" href="#ln-11"></a><span class="c">! dtFFT is distributed in the hope that it will be useful,</span>
+<a id="ln-12" name="ln-12" href="#ln-12"></a><span class="c">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<a id="ln-13" name="ln-13" href="#ln-13"></a><span class="c">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<a id="ln-14" name="ln-14" href="#ln-14"></a><span class="c">! GNU General Public License for more details.</span>
+<a id="ln-15" name="ln-15" href="#ln-15"></a>
+<a id="ln-16" name="ln-16" href="#ln-16"></a><span class="c">! You should have received a copy of the GNU General Public License</span>
+<a id="ln-17" name="ln-17" href="#ln-17"></a><span class="c">! along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.</span>
+<a id="ln-18" name="ln-18" href="#ln-18"></a><span class="c">!------------------------------------------------------------------------------------------------</span>
+<a id="ln-19" name="ln-19" href="#ln-19"></a><span class="cp">#include "dtfft_config.h"</span>
+<a id="ln-20" name="ln-20" href="#ln-20"></a><span class="k">module </span><span class="n">dtfft_executor</span>
+<a id="ln-21" name="ln-21" href="#ln-21"></a><span class="k">use </span><span class="nb">iso_c_binding</span>
+<a id="ln-22" name="ln-22" href="#ln-22"></a><span class="k">use </span><span class="n">dtfft_abstract_executor</span>
+<a id="ln-23" name="ln-23" href="#ln-23"></a><span class="cp">#ifdef DTFFT_WITH_FFTW</span>
+<a id="ln-24" name="ln-24" href="#ln-24"></a><span class="k">use </span><span class="n">dtfft_executor_fftw_m</span>
+<a id="ln-25" name="ln-25" href="#ln-25"></a><span class="cp">#endif</span>
+<a id="ln-26" name="ln-26" href="#ln-26"></a><span class="cp">#ifdef DTFFT_WITH_MKL</span>
+<a id="ln-27" name="ln-27" href="#ln-27"></a><span class="k">use </span><span class="n">dtfft_executor_mkl_m</span>
+<a id="ln-28" name="ln-28" href="#ln-28"></a><span class="cp">#endif</span>
+<a id="ln-29" name="ln-29" href="#ln-29"></a><span class="cp">#ifdef DTFFT_WITH_CUFFT</span>
+<a id="ln-30" name="ln-30" href="#ln-30"></a><span class="k">use </span><span class="n">dtfft_executor_cufft_m</span>
+<a id="ln-31" name="ln-31" href="#ln-31"></a><span class="cp">#endif</span>
+<a id="ln-32" name="ln-32" href="#ln-32"></a><span class="cp">#ifdef DTFFT_WITH_VKFFT</span>
+<a id="ln-33" name="ln-33" href="#ln-33"></a><span class="k">use </span><span class="n">dtfft_executor_vkfft_m</span>
+<a id="ln-34" name="ln-34" href="#ln-34"></a><span class="cp">#endif</span>
+<a id="ln-35" name="ln-35" href="#ln-35"></a><span class="k">use </span><span class="n">dtfft_utils</span>
+<a id="ln-36" name="ln-36" href="#ln-36"></a><span class="cp">#include "_dtfft_private.h"</span>
+<a id="ln-37" name="ln-37" href="#ln-37"></a><span class="cp">#include "_dtfft_mpi.h"</span>
+<a id="ln-38" name="ln-38" href="#ln-38"></a><span class="k">implicit none</span>
+<a id="ln-39" name="ln-39" href="#ln-39"></a><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_valid_executor</span><span class="p">,</span><span class="w"> </span><span class="n">dtfft_get_executor_string</span>
+<a id="ln-40" name="ln-40" href="#ln-40"></a><span class="cp">#ifdef DTFFT_WITH_CUDA</span>
+<a id="ln-41" name="ln-41" href="#ln-41"></a><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_host_executor</span><span class="p">,</span><span class="w"> </span><span class="n">is_cuda_executor</span>
+<a id="ln-42" name="ln-42" href="#ln-42"></a><span class="cp">#endif</span>
+<a id="ln-43" name="ln-43" href="#ln-43"></a><span class="c">!------------------------------------------------------------------------------------------------</span>
+<a id="ln-44" name="ln-44" href="#ln-44"></a><span class="c">! External FFT executor types</span>
+<a id="ln-45" name="ln-45" href="#ln-45"></a><span class="c">!------------------------------------------------------------------------------------------------</span>
+<a id="ln-46" name="ln-46" href="#ln-46"></a><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dtfft_executor_t</span>
+<a id="ln-47" name="ln-47" href="#ln-47"></a><span class="w">    </span><span class="k">type</span><span class="p">,</span><span class="w"> </span><span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dtfft_executor_t</span>
+<a id="ln-48" name="ln-48" href="#ln-48"></a><span class="w">    </span><span class="c">!! Type that specifies external FFT executor</span>
+<a id="ln-49" name="ln-49" href="#ln-49"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int32_t</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="c">!! Internal value</span>
+<a id="ln-50" name="ln-50" href="#ln-50"></a><span class="w">    </span><span class="k">end type </span><span class="n">dtfft_executor_t</span>
+<a id="ln-51" name="ln-51" href="#ln-51"></a>
+<a id="ln-52" name="ln-52" href="#ln-52"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_NONE</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">dtfft_executor_t</span><span class="p">(</span><span class="n">CONF_DTFFT_EXECUTOR_NONE</span><span class="p">)</span>
+<a id="ln-53" name="ln-53" href="#ln-53"></a><span class="w">        </span><span class="c">!! Do not setup any executor. If this type is provided, then `execute` method should not be called.</span>
+<a id="ln-54" name="ln-54" href="#ln-54"></a><span class="w">        </span><span class="c">!! Use `transpose` method instead</span>
+<a id="ln-55" name="ln-55" href="#ln-55"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_FFTW3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dtfft_executor_t</span><span class="p">(</span><span class="n">CONF_DTFFT_EXECUTOR_FFTW3</span><span class="p">)</span>
+<a id="ln-56" name="ln-56" href="#ln-56"></a><span class="w">        </span><span class="c">!! FFTW3 executor</span>
+<a id="ln-57" name="ln-57" href="#ln-57"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_MKL</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">dtfft_executor_t</span><span class="p">(</span><span class="n">CONF_DTFFT_EXECUTOR_MKL</span><span class="p">)</span>
+<a id="ln-58" name="ln-58" href="#ln-58"></a><span class="w">        </span><span class="c">!! MKL executor</span>
+<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_CUFFT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dtfft_executor_t</span><span class="p">(</span><span class="n">CONF_DTFFT_EXECUTOR_CUFFT</span><span class="p">)</span>
+<a id="ln-60" name="ln-60" href="#ln-60"></a><span class="w">        </span><span class="c">!! cuFFT GPU executor</span>
+<a id="ln-61" name="ln-61" href="#ln-61"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="p">,</span><span class="w">  </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_VKFFT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dtfft_executor_t</span><span class="p">(</span><span class="n">CONF_DTFFT_EXECUTOR_VKFFT</span><span class="p">)</span>
+<a id="ln-62" name="ln-62" href="#ln-62"></a><span class="w">        </span><span class="c">!! VkFFT GPU executor</span>
+<a id="ln-63" name="ln-63" href="#ln-63"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">VALID_EXECUTORS</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">DTFFT_EXECUTOR_NONE</span><span class="w">    </span><span class="p">&amp;</span>
+<a id="ln-64" name="ln-64" href="#ln-64"></a><span class="cp">#ifdef DTFFT_WITH_FFTW</span>
+<a id="ln-65" name="ln-65" href="#ln-65"></a><span class="w">                                                                </span><span class="p">,</span><span class="n">DTFFT_EXECUTOR_FFTW3</span><span class="w">   </span><span class="p">&amp;</span>
+<a id="ln-66" name="ln-66" href="#ln-66"></a><span class="cp">#endif</span>
+<a id="ln-67" name="ln-67" href="#ln-67"></a><span class="cp">#ifdef DTFFT_WITH_MKL</span>
+<a id="ln-68" name="ln-68" href="#ln-68"></a><span class="w">                                                                </span><span class="p">,</span><span class="n">DTFFT_EXECUTOR_MKL</span><span class="w">     </span><span class="p">&amp;</span>
+<a id="ln-69" name="ln-69" href="#ln-69"></a><span class="cp">#endif</span>
+<a id="ln-70" name="ln-70" href="#ln-70"></a><span class="cp">#ifdef DTFFT_WITH_CUFFT</span>
+<a id="ln-71" name="ln-71" href="#ln-71"></a><span class="w">                                                                </span><span class="p">,</span><span class="n">DTFFT_EXECUTOR_CUFFT</span><span class="w">   </span><span class="p">&amp;</span>
+<a id="ln-72" name="ln-72" href="#ln-72"></a><span class="cp">#endif</span>
+<a id="ln-73" name="ln-73" href="#ln-73"></a><span class="cp">#ifdef DTFFT_WITH_VKFFT</span>
+<a id="ln-74" name="ln-74" href="#ln-74"></a><span class="w">                                                                </span><span class="p">,</span><span class="n">DTFFT_EXECUTOR_VKFFT</span><span class="w">   </span><span class="p">&amp;</span>
+<a id="ln-75" name="ln-75" href="#ln-75"></a><span class="cp">#endif</span>
+<a id="ln-76" name="ln-76" href="#ln-76"></a><span class="w">  </span><span class="p">]</span>
+<a id="ln-77" name="ln-77" href="#ln-77"></a><span class="w">  </span><span class="c">!! List of valid executors</span>
+<a id="ln-78" name="ln-78" href="#ln-78"></a><span class="cp">#ifdef DTFFT_WITH_CUDA</span>
+<a id="ln-79" name="ln-79" href="#ln-79"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="w">        </span><span class="kd">::</span><span class="w"> </span><span class="n">HOST_EXECUTORS</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">DTFFT_EXECUTOR_NONE</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_FFTW3</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_MKL</span><span class="p">]</span>
+<a id="ln-80" name="ln-80" href="#ln-80"></a><span class="w">        </span><span class="c">!! List of host executors</span>
+<a id="ln-81" name="ln-81" href="#ln-81"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w">  </span><span class="k">parameter</span><span class="w">        </span><span class="kd">::</span><span class="w"> </span><span class="n">CUDA_EXECUTORS</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="n">DTFFT_EXECUTOR_NONE</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_CUFFT</span><span class="p">,</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_VKFFT</span><span class="p">]</span>
+<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="w">        </span><span class="c">!! List of CUDA executors</span>
+<a id="ln-83" name="ln-83" href="#ln-83"></a><span class="cp">#endif</span>
+<a id="ln-84" name="ln-84" href="#ln-84"></a>
+<a id="ln-85" name="ln-85" href="#ln-85"></a><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">operator</span><span class="p">(</span><span class="o">==</span><span class="p">)</span>
+<a id="ln-86" name="ln-86" href="#ln-86"></a><span class="w">    </span><span class="k">interface </span><span class="n">operator</span><span class="p">(</span><span class="o">==</span><span class="p">)</span>
+<a id="ln-87" name="ln-87" href="#ln-87"></a><span class="w">        </span><span class="k">module procedure </span><span class="n">executor_eq</span><span class="w">        </span><span class="c">!! Check if two `dtfft_executor_t` are equal</span>
+<a id="ln-88" name="ln-88" href="#ln-88"></a><span class="w">    </span><span class="k">end interface</span>
+<a id="ln-89" name="ln-89" href="#ln-89"></a>
+<a id="ln-90" name="ln-90" href="#ln-90"></a>
+<a id="ln-91" name="ln-91" href="#ln-91"></a><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">operator</span><span class="p">(</span><span class="o">/=</span><span class="p">)</span>
+<a id="ln-92" name="ln-92" href="#ln-92"></a><span class="w">    </span><span class="k">interface </span><span class="n">operator</span><span class="p">(</span><span class="o">/=</span><span class="p">)</span>
+<a id="ln-93" name="ln-93" href="#ln-93"></a><span class="w">        </span><span class="k">module procedure </span><span class="n">executor_ne</span><span class="w">        </span><span class="c">!! Check if two `dtfft_executor_t` are not equal</span>
+<a id="ln-94" name="ln-94" href="#ln-94"></a><span class="w">    </span><span class="k">end interface</span>
+<a id="ln-95" name="ln-95" href="#ln-95"></a><span class="k">contains</span>
+<a id="ln-96" name="ln-96" href="#ln-96"></a>
+<a id="ln-97" name="ln-97" href="#ln-97"></a><span class="k">    subroutine </span><span class="n">allocate_executor</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span><span class="w"> </span><span class="n">fft</span><span class="p">)</span>
+<a id="ln-98" name="ln-98" href="#ln-98"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">executor</span>
+<a id="ln-99" name="ln-99" href="#ln-99"></a><span class="w">        </span><span class="k">class</span><span class="p">(</span><span class="n">abstract_executor</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fft</span>
+<a id="ln-100" name="ln-100" href="#ln-100"></a>
+<a id="ln-101" name="ln-101" href="#ln-101"></a><span class="w">        </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">executor</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-102" name="ln-102" href="#ln-102"></a><span class="cp">#ifdef DTFFT_WITH_FFTW</span>
+<a id="ln-103" name="ln-103" href="#ln-103"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_FFTW3</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-104" name="ln-104" href="#ln-104"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="w"> </span><span class="n">fftw_executor</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fft</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-105" name="ln-105" href="#ln-105"></a><span class="cp">#endif</span>
+<a id="ln-106" name="ln-106" href="#ln-106"></a><span class="cp">#ifdef DTFFT_WITH_MKL</span>
+<a id="ln-107" name="ln-107" href="#ln-107"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_MKL</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-108" name="ln-108" href="#ln-108"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="w"> </span><span class="n">mkl_executor</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fft</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-109" name="ln-109" href="#ln-109"></a><span class="cp">#endif</span>
+<a id="ln-110" name="ln-110" href="#ln-110"></a><span class="cp">#ifdef DTFFT_WITH_CUFFT</span>
+<a id="ln-111" name="ln-111" href="#ln-111"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_CUFFT</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-112" name="ln-112" href="#ln-112"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="w"> </span><span class="n">cufft_executor</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fft</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-113" name="ln-113" href="#ln-113"></a><span class="cp">#endif</span>
+<a id="ln-114" name="ln-114" href="#ln-114"></a><span class="cp">#ifdef DTFFT_WITH_VKFFT</span>
+<a id="ln-115" name="ln-115" href="#ln-115"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_VKFFT</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-116" name="ln-116" href="#ln-116"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="w"> </span><span class="n">vkfft_executor</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fft</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-117" name="ln-117" href="#ln-117"></a><span class="cp">#endif</span>
+<a id="ln-118" name="ln-118" href="#ln-118"></a><span class="w">        </span><span class="c">! case default</span>
+<a id="ln-119" name="ln-119" href="#ln-119"></a><span class="w">        </span><span class="c">!     INTERNAL_ERROR("Unknown executor type")</span>
+<a id="ln-120" name="ln-120" href="#ln-120"></a><span class="w">        </span><span class="k">end select</span>
+<a id="ln-121" name="ln-121" href="#ln-121"></a><span class="k">    end subroutine </span><span class="n">allocate_executor</span>
+<a id="ln-122" name="ln-122" href="#ln-122"></a>
+<a id="ln-123" name="ln-123" href="#ln-123"></a><span class="w">    </span><span class="k">function </span><span class="n">dtfft_get_executor_string</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span><span class="w"> </span><span class="k">result</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+<a id="ln-124" name="ln-124" href="#ln-124"></a><span class="w">    </span><span class="c">!! Gets the string description of an executor</span>
+<a id="ln-125" name="ln-125" href="#ln-125"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">executor</span><span class="w"> </span><span class="c">!! Executor type</span>
+<a id="ln-126" name="ln-126" href="#ln-126"></a><span class="w">        </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="p">:),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">string</span><span class="w"> </span><span class="c">!! Executor string</span>
+<a id="ln-127" name="ln-127" href="#ln-127"></a>
+<a id="ln-128" name="ln-128" href="#ln-128"></a><span class="w">        </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">executor</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-129" name="ln-129" href="#ln-129"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_NONE</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-130" name="ln-130" href="#ln-130"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">"None"</span><span class="p">)</span>
+<a id="ln-131" name="ln-131" href="#ln-131"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_FFTW3</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-132" name="ln-132" href="#ln-132"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">"FFTW3"</span><span class="p">)</span>
+<a id="ln-133" name="ln-133" href="#ln-133"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_MKL</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-134" name="ln-134" href="#ln-134"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">"MKL"</span><span class="p">)</span>
+<a id="ln-135" name="ln-135" href="#ln-135"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_CUFFT</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-136" name="ln-136" href="#ln-136"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">"CUFFT"</span><span class="p">)</span>
+<a id="ln-137" name="ln-137" href="#ln-137"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">DTFFT_EXECUTOR_VKFFT</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-138" name="ln-138" href="#ln-138"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">"VKFFT"</span><span class="p">)</span>
+<a id="ln-139" name="ln-139" href="#ln-139"></a><span class="w">        </span><span class="k">case </span><span class="n">default</span>
+<a id="ln-140" name="ln-140" href="#ln-140"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="s2">"Unknown executor"</span><span class="p">)</span>
+<a id="ln-141" name="ln-141" href="#ln-141"></a><span class="w">        </span><span class="k">endselect</span>
+<a id="ln-142" name="ln-142" href="#ln-142"></a><span class="k">    end function </span><span class="n">dtfft_get_executor_string</span>
+<a id="ln-143" name="ln-143" href="#ln-143"></a>
+<a id="ln-144" name="ln-144" href="#ln-144"></a>
+<a id="ln-145" name="ln-145" href="#ln-145"></a><span class="n">MAKE_EQ_FUN</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">,</span><span class="w"> </span><span class="n">executor_eq</span><span class="p">)</span>
+<a id="ln-146" name="ln-146" href="#ln-146"></a><span class="n">MAKE_NE_FUN</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">,</span><span class="w"> </span><span class="n">executor_ne</span><span class="p">)</span>
+<a id="ln-147" name="ln-147" href="#ln-147"></a><span class="n">MAKE_VALID_FUN_DTYPE</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">,</span><span class="w"> </span><span class="n">is_valid_executor</span><span class="p">,</span><span class="w"> </span><span class="n">VALID_EXECUTORS</span><span class="p">)</span>
+<a id="ln-148" name="ln-148" href="#ln-148"></a><span class="cp">#ifdef DTFFT_WITH_CUDA</span>
+<a id="ln-149" name="ln-149" href="#ln-149"></a><span class="n">MAKE_VALID_FUN_DTYPE</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">,</span><span class="w"> </span><span class="n">is_host_executor</span><span class="p">,</span><span class="w"> </span><span class="n">HOST_EXECUTORS</span><span class="p">)</span>
+<a id="ln-150" name="ln-150" href="#ln-150"></a><span class="n">MAKE_VALID_FUN_DTYPE</span><span class="p">(</span><span class="n">dtfft_executor_t</span><span class="p">,</span><span class="w"> </span><span class="n">is_cuda_executor</span><span class="p">,</span><span class="w"> </span><span class="n">CUDA_EXECUTORS</span><span class="p">)</span>
+<a id="ln-151" name="ln-151" href="#ln-151"></a><span class="cp">#endif</span>
+<a id="ln-152" name="ln-152" href="#ln-152"></a><span class="k">end module </span><span class="n">dtfft_executor</span>
+</pre></div>
+
+      </section>
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

@@ -1,0 +1,911 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>test_rtc_module_cache.F90 &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>test_rtc_module_cache.F90
+      <small>Source File</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.2% of total for source files.">72 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/test_rtc_module_cache.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+            <li class="breadcrumb-item active" aria-current="page">test_rtc_module_cache.F90</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#progs-0"
+         aria-expanded="false" aria-controls="progs-0">
+         <h4 class="card-header bg-primary text-white">Programs</h4>
+      </a>
+      <div id="progs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_rtc_module_cache.html">test_rtc_module_cache</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../sourcefile/test_rtc_module_cache.f90.html#src">test_rtc_module_cache.F90</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">This file depends on</h3>
+          </div>
+          <div class="card-body">
+            <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: sourcefile~~test_rtc_module_cache.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefiletest_rtc_module_cachef90EfferentGraph" width="641pt" height="227pt"
+ viewBox="0.00 0.00 641.00 226.91" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph" class="graph" transform="scale(0.36 0.36) rotate(0) translate(4 617.98)">
+<title>sourcefile~~test_rtc_module_cache.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-617.98 1753,-617.98 1753,4 -4,4"/>
+<!-- sourcefile~test_rtc_module_cache.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~test_rtc_module_cache.f90</title>
+<polygon fill="none" stroke="black" points="1749,-339.08 1592,-339.08 1592,-315.08 1749,-315.08 1749,-339.08"/>
+<text text-anchor="middle" x="1670.5" y="-324.68" font-family="Helvetica,sans-Serif" font-size="10.50">test_rtc_module_cache.F90</text>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~dtfft_abstract_kernel.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node2"><a xlink:href="../sourcefile/dtfft_abstract_kernel.f90.html" xlink:title="dtfft_abstract_kernel.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1002,-299.08 857,-299.08 857,-275.08 1002,-275.08 1002,-299.08"/>
+<text text-anchor="middle" x="929.5" y="-284.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_kernel.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1475,-171.08C1303.72,-78.89 1218.54,-122.69 1038,-195.08 1032.87,-197.14 981.77,-241.82 951.91,-268.15"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="949.28,-265.79 944.1,-275.03 953.92,-271.04 949.28,-265.79"/>
+</g>
+<!-- sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~dtfft_config.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node3"><a xlink:href="../sourcefile/dtfft_config.f90.html" xlink:title="dtfft_config.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="797.5,-223.08 702.5,-223.08 702.5,-199.08 797.5,-199.08 797.5,-223.08"/>
+<text text-anchor="middle" x="750" y="-208.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1298,-57.08C1190.7,-12.89 1150.19,-51.4 1038,-81.08 938.69,-107.36 830.62,-165.05 780.1,-193.92"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="778.27,-190.93 771.35,-198.96 781.76,-197 778.27,-190.93"/>
+</g>
+<!-- sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node4" class="node">
+<title>sourcefile~dtfft_errors.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node4"><a xlink:href="../sourcefile/dtfft_errors.f90.html" xlink:title="dtfft_errors.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="109,-183.08 15,-183.08 15,-159.08 109,-159.08 109,-183.08"/>
+<text text-anchor="middle" x="62" y="-168.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1656.84,-314.88C1627.25,-286.83 1550.49,-216.64 1477,-171.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1475,-171.08C1419.84,-136.89 1416.25,-113.46 1360,-81.08 1335.11,-66.75 1326.59,-67.95 1300,-57.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1298,-57.08C1146,5.04 1091.25,14.41 930.5,-19.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M928.5,-19.08C850.31,-29.56 829.78,-23.24 751,-19.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M749,-19.08C660.46,-14.41 637.76,-27.54 549.5,-19.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M547.5,-19.08C460.12,-10.7 437.39,-27.33 350,-19.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M348,-19.08C283.84,-13.03 266.49,-8.05 203,-19.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M201,-19.08C133.48,-30.81 89.54,-110.66 71.85,-149.69"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="68.63,-148.32 67.83,-158.88 75.04,-151.12 68.63,-148.32"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node5" class="node">
+<title>sourcefile~dtfft_interface_cuda.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node5"><a xlink:href="../sourcefile/dtfft_interface_cuda.f90.html" xlink:title="dtfft_interface_cuda.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1000.5,-396.08 858.5,-396.08 858.5,-372.08 1000.5,-372.08 1000.5,-396.08"/>
+<text text-anchor="middle" x="929.5" y="-381.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge4" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1475,-519.08C1400.39,-544.02 1199.05,-530.91 1121,-521.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1119,-521.08C1053.44,-510.4 1055.62,-467.29 1002,-428.08 989.03,-418.6 973.97,-409.12 961.03,-401.41"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="962.43,-398.17 952.04,-396.13 958.89,-404.21 962.43,-398.17"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node6" class="node">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node6"><a xlink:href="../sourcefile/dtfft_interface_cuda_runtime.f90.html" xlink:title="dtfft_interface_cuda_runtime.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="643,-534.08 454,-534.08 454,-510.08 643,-510.08 643,-534.08"/>
+<text text-anchor="middle" x="548.5" y="-519.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge5" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1119,-521.08C1034.9,-507.38 1015.61,-551.96 930.5,-556.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M928.5,-556.08C849.7,-559.9 829.87,-554.45 751,-556.08"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvrtc.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node7" class="node">
+<title>sourcefile~dtfft_interface_nvrtc.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node7"><a xlink:href="../sourcefile/dtfft_interface_nvrtc.f90.html" xlink:title="dtfft_interface_nvrtc.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="821,-109.08 679,-109.08 679,-85.08 821,-85.08 821,-109.08"/>
+<text text-anchor="middle" x="750" y="-94.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvrtc.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_nvrtc.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge6" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_nvrtc.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M928.5,-19.08C873.08,-30.63 813.87,-60.67 779.76,-79.92"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="777.77,-77.03 770.84,-85.04 781.25,-83.1 777.77,-77.03"/>
+</g>
+<!-- sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node8" class="node">
+<title>sourcefile~dtfft_parameters.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node8"><a xlink:href="../sourcefile/dtfft_parameters.f90.html" xlink:title="dtfft_parameters.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="124,-225.08 0,-225.08 0,-201.08 124,-201.08 124,-225.08"/>
+<text text-anchor="middle" x="62" y="-210.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge7" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1475,-519.08C1420.26,-537.82 1415.98,-565.47 1360,-580.08 1098.04,-648.46 1021.73,-591.67 751,-594.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_block_optimizer.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node9" class="node">
+<title>sourcefile~dtfft_rtc_block_optimizer.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node9"><a xlink:href="../sourcefile/dtfft_rtc_block_optimizer.f90.html" xlink:title="dtfft_rtc_block_optimizer.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1202,-417.08 1038,-417.08 1038,-393.08 1202,-393.08 1202,-417.08"/>
+<text text-anchor="middle" x="1120" y="-402.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_rtc_block_optimizer.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_block_optimizer.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge8" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_block_optimizer.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1475,-519.08C1414.23,-538.32 1262.68,-450.6 1202,-431.08 1191.02,-427.55 1179.19,-423.75 1168.07,-420.18"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1169.1,-416.83 1158.51,-417.11 1166.96,-423.5 1169.1,-416.83"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node10" class="node">
+<title>sourcefile~dtfft_rtc_module.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node10"><a xlink:href="../sourcefile/dtfft_rtc_module.f90.html" xlink:title="dtfft_rtc_module.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1360,-339.08 1238,-339.08 1238,-315.08 1360,-315.08 1360,-339.08"/>
+<text text-anchor="middle" x="1299" y="-324.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_rtc_module.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_module.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge9" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_module.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1663,-339.21C1642.14,-376.5 1572.63,-488.81 1477,-519.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1475,-519.08C1389.43,-546.17 1429.4,-410 1360,-353.08 1355.72,-349.57 1350.9,-346.46 1345.89,-343.71"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1347.27,-340.49 1336.75,-339.17 1344.15,-346.76 1347.27,-340.49"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node11" class="node">
+<title>sourcefile~dtfft_rtc_module_cache.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node11"><a xlink:href="../sourcefile/dtfft_rtc_module_cache.f90.html" xlink:title="dtfft_rtc_module_cache.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1556,-339.08 1396,-339.08 1396,-315.08 1556,-315.08 1556,-339.08"/>
+<text text-anchor="middle" x="1476" y="-324.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_rtc_module_cache.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_module_cache.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge10" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_module_cache.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1591.76,-327.08C1583.45,-327.08 1574.95,-327.08 1566.52,-327.08"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1566.29,-323.58 1556.29,-327.08 1566.29,-330.58 1566.29,-323.58"/>
+</g>
+<!-- sourcefile~dtfft_test_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node12" class="node">
+<title>sourcefile~dtfft_test_utils.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node12"><a xlink:href="../sourcefile/dtfft_test_utils.f90.html" xlink:title="dtfft_test_utils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1353.5,-571.08 1244.5,-571.08 1244.5,-547.08 1353.5,-547.08 1353.5,-571.08"/>
+<text text-anchor="middle" x="1299" y="-556.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_test_utils.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_test_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge11" class="edge">
+<title>sourcefile~test_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_test_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1475,-519.08C1438.78,-530.55 1397.38,-540.16 1363.94,-547.09"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1362.93,-543.73 1353.84,-549.15 1364.33,-550.58 1362.93,-543.73"/>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge13" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M903.98,-275C882.36,-264.5 849.87,-249.14 821,-237.08 812.48,-233.52 803.28,-229.93 794.44,-226.6"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="795.63,-223.31 785.04,-223.11 793.19,-229.87 795.63,-223.31"/>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge15" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M888.57,-299.12C878.01,-302.96 866.83,-307.65 857,-313.08 839.26,-322.89 839.84,-333.59 821,-341.08 708.77,-385.7 387.31,-337.66 280,-393.08 233.53,-417.08 250.68,-503.59 203,-482.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M201,-482.08C103.7,-436.28 73.75,-291.49 65.67,-235.5"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="69.09,-234.69 64.3,-225.25 62.16,-235.62 69.09,-234.69"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node13" class="node">
+<title>sourcefile~dtfft_abstract_compressor.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node13"><a xlink:href="../sourcefile/dtfft_abstract_compressor.f90.html" xlink:title="dtfft_abstract_compressor.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="634.5,-223.08 462.5,-223.08 462.5,-199.08 634.5,-199.08 634.5,-223.08"/>
+<text text-anchor="middle" x="548.5" y="-208.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge12" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M749,-251.08C704.07,-243.54 653.77,-233.44 614.92,-225.28"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="615.3,-221.78 604.79,-223.14 613.86,-228.63 615.3,-221.78"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node14" class="node">
+<title>sourcefile~dtfft_interface_nvtx.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node14"><a xlink:href="../sourcefile/dtfft_interface_nvtx.f90.html" xlink:title="dtfft_interface_nvtx.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="418,-303.08 280,-303.08 280,-279.08 418,-279.08 418,-303.08"/>
+<text text-anchor="middle" x="349" y="-288.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge14" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M749,-251.08C659.99,-236.13 639.64,-284.39 549.5,-289.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M547.5,-289.08C508.22,-291.13 464.48,-291.74 428.17,-291.8"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="428.14,-288.3 418.14,-291.8 428.14,-295.3 428.14,-288.3"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node15" class="node">
+<title>sourcefile~dtfft_serializer.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node15"><a xlink:href="../sourcefile/dtfft_serializer.f90.html" xlink:title="dtfft_serializer.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="403.5,-185.08 294.5,-185.08 294.5,-161.08 403.5,-161.08 403.5,-185.08"/>
+<text text-anchor="middle" x="349" y="-170.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_serializer.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge16" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_serializer.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M873.9,-275.02C838.89,-267.53 792.4,-258.03 751,-251.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M749,-251.08C717.21,-245.74 706.25,-249.3 679,-232.08 658.22,-218.95 665.03,-201 643,-190.08 570.67,-154.24 475.65,-156.25 413.72,-162.99"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="413.23,-159.52 403.7,-164.15 414.03,-166.48 413.23,-159.52"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node16" class="node">
+<title>sourcefile~dtfft_utils.f90</title>
+<g id="a_sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_node16"><a xlink:href="../sourcefile/dtfft_utils.f90.html" xlink:title="dtfft_utils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="244,-265.08 160,-265.08 160,-241.08 244,-241.08 244,-265.08"/>
+<text text-anchor="middle" x="202" y="-250.68" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge17" class="edge">
+<title>sourcefile~dtfft_abstract_kernel.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M891.61,-299.11C856.05,-309.82 800.51,-324.21 751,-327.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M749,-327.08C540.8,-339.16 476.41,-382.2 280,-312.08 257.25,-303.96 235.82,-286.42 221.37,-272.56"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="223.66,-269.9 214.1,-265.32 218.72,-274.86 223.66,-269.9"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge19" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff8b00" stroke-dasharray="5,2" d="M733.57,-198.93C701.47,-174.39 624.23,-119.21 549.5,-95.08"/>
+<path fill="none" stroke="#ff8b00" stroke-dasharray="5,2" d="M547.5,-95.08C458,-66.18 443.64,-27.92 350,-19.08"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge20" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#ff8b00" stroke-dasharray="5,2" d="M702.27,-220.48C693.39,-224.27 685.01,-229.6 679,-237.08 606.23,-327.7 719.53,-408.62 643,-496.08 640.13,-499.36 636.88,-502.25 633.37,-504.78"/>
+<polygon fill="#ff8b00" stroke="#ff8b00" points="631.42,-501.87 624.73,-510.07 635.08,-507.83 631.42,-501.87"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge21" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff8b00" stroke-dasharray="5,2" d="M547.5,-95.08C506.29,-79.79 225.57,-163.02 111.27,-198.08"/>
+<polygon fill="#ff8b00" stroke="#ff8b00" points="110.24,-194.73 101.71,-201.02 112.29,-201.43 110.24,-194.73"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge18" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90</title>
+<path fill="none" stroke="#ff8b00" stroke-dasharray="5,2" d="M702.48,-211.08C685.24,-211.08 665.01,-211.08 645,-211.08"/>
+<polygon fill="#ff8b00" stroke="#ff8b00" points="644.89,-207.58 634.89,-211.08 644.89,-214.58 644.89,-207.58"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge22" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff8b00" stroke-dasharray="5,2" d="M702.28,-221.89C683.9,-225.73 662.55,-229.69 643,-232.08 503.05,-249.19 336.47,-252.55 254.2,-253.09"/>
+<polygon fill="#ff8b00" stroke="#ff8b00" points="254.1,-249.59 244.12,-253.14 254.14,-256.59 254.1,-249.59"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge23" class="edge">
+<title>sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#5cff00" stroke-dasharray="5,2" d="M348,-407.08C249.96,-377.7 224.71,-353.38 160,-274.08 134.84,-243.24 153.28,-219.05 124,-192.08 122.09,-190.32 120.03,-188.71 117.85,-187.23"/>
+<polygon fill="#5cff00" stroke="#5cff00" points="119.42,-184.1 109,-182.17 115.94,-190.17 119.42,-184.1"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge24" class="edge">
+<title>sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#5cff00" stroke-dasharray="5,2" d="M903.84,-396.11C882.38,-406.15 850.23,-420.21 821,-429.08 703.35,-464.78 672.25,-475.1 549.5,-482.08"/>
+<path fill="none" stroke="#5cff00" stroke-dasharray="5,2" d="M547.5,-482.08C546.8,-482.15 350.69,-522.17 350,-522.08"/>
+<path fill="none" stroke="#5cff00" stroke-dasharray="5,2" d="M348,-522.08C281.74,-513.23 263.49,-510.55 203,-482.08"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge25" class="edge">
+<title>sourcefile~dtfft_interface_cuda.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#5cff00" stroke-dasharray="5,2" d="M873.67,-396.15C769.77,-416.87 537.76,-452.78 350,-407.08"/>
+<path fill="none" stroke="#5cff00" stroke-dasharray="5,2" d="M348,-407.08C281.16,-387.05 233.66,-311.91 213.61,-274.51"/>
+<polygon fill="#5cff00" stroke="#5cff00" points="216.62,-272.71 208.9,-265.45 210.41,-275.94 216.62,-272.71"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge26" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#00ff2e" stroke-dasharray="5,2" d="M453.73,-527.16C420.81,-527.6 383.65,-526.58 350,-522.08"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge27" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ff2e" stroke-dasharray="5,2" d="M503.8,-510.05C462.32,-497.51 399.17,-475.42 350,-445.08"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge28" class="edge">
+<title>sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#00ffb9" stroke-dasharray="5,2" d="M729.26,-85.07C694.46,-64.9 619.28,-25.77 549.5,-19.08"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge29" class="edge">
+<title>sourcefile~dtfft_interface_nvrtc.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ffb9" stroke-dasharray="5,2" d="M678.89,-105.09C548.59,-120 282.02,-150.64 280,-152.08 249.91,-173.57 268.56,-199.45 244,-227.08 241.37,-230.05 238.32,-232.8 235.09,-235.32"/>
+<polygon fill="#00ffb9" stroke="#00ffb9" points="233.04,-232.48 226.86,-241.08 237.06,-238.21 233.04,-232.48"/>
+</g>
+<!-- sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge30" class="edge">
+<title>sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90</title>
+<path fill="none" stroke="#002eff" stroke-dasharray="5,2" d="M1103.44,-392.8C1071.93,-367.92 1003.39,-313.86 1002,-313.08 995.1,-309.25 987.53,-305.78 979.97,-302.73"/>
+<polygon fill="#002eff" stroke="#002eff" points="981.04,-299.39 970.45,-299.08 978.54,-305.93 981.04,-299.39"/>
+</g>
+<!-- sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge31" class="edge">
+<title>sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#002eff" stroke-dasharray="5,2" d="M1098.88,-392.96C1081.05,-381.42 1055.24,-362.63 1038,-341.08 1014.9,-312.21 1025.04,-295 1002,-266.08 976.68,-234.29 971.05,-211.75 930.5,-209.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge32" class="edge">
+<title>sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#002eff" stroke-dasharray="5,2" d="M749,-518.08C718.2,-523.07 684.38,-525.05 653.47,-525.51"/>
+<polygon fill="#002eff" stroke="#002eff" points="653.08,-522.01 643.11,-525.61 653.15,-529.01 653.08,-522.01"/>
+</g>
+<!-- sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge33" class="edge">
+<title>sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#002eff" stroke-dasharray="5,2" d="M928.5,-442.08C895.78,-449.36 888,-453.34 857,-466.08 808.46,-486.03 802.8,-509.69 751,-518.08"/>
+<path fill="none" stroke="#002eff" stroke-dasharray="5,2" d="M749,-518.08C660.06,-532.49 639.18,-473.4 549.5,-482.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge34" class="edge">
+<title>sourcefile~dtfft_rtc_block_optimizer.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#002eff" stroke-dasharray="5,2" d="M1056.56,-417.13C1019.83,-424.27 972.5,-433.56 930.5,-442.08"/>
+<path fill="none" stroke="#002eff" stroke-dasharray="5,2" d="M928.5,-442.08C865.51,-454.87 404.7,-478.83 350,-445.08"/>
+<path fill="none" stroke="#002eff" stroke-dasharray="5,2" d="M348,-445.08C321.07,-427.7 303.66,-442.7 280,-421.08 235.99,-380.88 215.3,-310.55 207.27,-274.99"/>
+<polygon fill="#002eff" stroke="#002eff" points="210.68,-274.2 205.17,-265.15 203.83,-275.66 210.68,-274.2"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge35" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1237.78,-326.64C1203.54,-326.5 1159.87,-326.5 1121,-327.08"/>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1119,-327.08C1068.64,-327.83 1012.32,-313.87 974.47,-302.23"/>
+<polygon fill="#5c00ff" stroke="#5c00ff" points="975.37,-298.85 964.78,-299.18 973.27,-305.52 975.37,-298.85"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge36" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1119,-209.08C1040.05,-181.05 1014.1,-214.58 930.5,-209.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge37" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1291.82,-315.05C1278.43,-289.95 1244.47,-231.3 1202,-195.08 1195.56,-189.59 938.86,-58.38 930.5,-57.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge38" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1119,-327.08C1062.83,-327.92 1001.11,-351.16 964.1,-367.71"/>
+<polygon fill="#5c00ff" stroke="#5c00ff" points="962.43,-364.62 954.79,-371.96 965.34,-370.99 962.43,-364.62"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge39" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1259.06,-339.19C1251.46,-342.8 1244,-347.37 1238,-353.08 1211.8,-378.02 1230.32,-403.57 1202,-426.08 1173.05,-449.09 1154.62,-429.68 1121,-445.08"/>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1119,-445.08C1041.53,-480.57 1013.22,-459.65 930.5,-480.08"/>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M928.5,-480.08C895.96,-488.12 886.54,-488.23 857,-504.08 839.14,-513.67 838.83,-522.44 821,-532.08 792.07,-547.72 783.88,-555.4 751,-556.08"/>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M749,-556.08C698.48,-557.13 641.76,-546.27 601.75,-536.55"/>
+<polygon fill="#5c00ff" stroke="#5c00ff" points="602.51,-533.13 591.96,-534.11 600.82,-539.92 602.51,-533.13"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_interface_nvrtc.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge40" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_interface_nvrtc.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1285.05,-315.05C1257.42,-290.18 1189.56,-233.42 1121,-209.08"/>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1119,-209.08C1008.85,-169.98 877.31,-132 805.11,-111.88"/>
+<polygon fill="#5c00ff" stroke="#5c00ff" points="805.9,-108.46 795.33,-109.16 804.02,-115.21 805.9,-108.46"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge42" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1119,-445.08C1038.79,-481.82 839.2,-591.83 751,-594.08"/>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M749,-594.08C615.95,-594.62 584.78,-567.59 454,-543.08 407.65,-534.4 396.74,-528.33 350,-522.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_rtc_block_optimizer.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge43" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_rtc_block_optimizer.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1269.89,-339.2C1259.82,-343.55 1248.4,-348.52 1238,-353.08 1210.93,-364.96 1180.41,-378.53 1157.33,-388.83"/>
+<polygon fill="#5c00ff" stroke="#5c00ff" points="1155.63,-385.76 1147.92,-393.03 1158.48,-392.15 1155.63,-385.76"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge41" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M1119,-327.08C1035.23,-328.33 1014.16,-331.5 930.5,-327.08"/>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M928.5,-327.08C880.39,-324.54 868.9,-318.32 821,-313.08 700.58,-299.92 670.47,-282.78 549.5,-289.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge44" class="edge">
+<title>sourcefile~dtfft_rtc_module.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#5c00ff" stroke-dasharray="5,2" d="M928.5,-327.08C849.66,-324.45 829.53,-319.59 751,-327.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge45" class="edge">
+<title>sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_abstract_kernel.f90</title>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1417.9,-315.07C1399.5,-311.62 1378.96,-308.22 1360,-306.08 1239.43,-292.47 1098.79,-288.48 1012.2,-287.39"/>
+<polygon fill="#e700ff" stroke="#e700ff" points="1012.21,-283.89 1002.17,-287.27 1012.13,-290.89 1012.21,-283.89"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge46" class="edge">
+<title>sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1119,-95.08C1080.2,-100.76 1072.02,-110.57 1038,-130.08 986.57,-159.58 989.66,-212.97 930.5,-209.08"/>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M928.5,-209.08C888.2,-206.43 842.64,-207.02 807.77,-208.22"/>
+<polygon fill="#e700ff" stroke="#e700ff" points="807.63,-204.73 797.77,-208.6 807.89,-211.72 807.63,-204.73"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge47" class="edge">
+<title>sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1469.78,-315.06C1452.23,-276.14 1391.24,-152.81 1300,-95.08"/>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1298,-95.08C1261.56,-72.03 1244.83,-86.09 1202,-81.08 1081.68,-67 1049.68,-78.75 930.5,-57.08"/>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M928.5,-57.08C850.33,-37.15 831.56,-23.33 751,-19.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge48" class="edge">
+<title>sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_cuda.f90</title>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1429.62,-339.12C1394.48,-348.04 1344.45,-359.85 1300,-367.08"/>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1298,-367.08C1244.76,-375.74 1101.77,-380.38 1010.66,-382.53"/>
+<polygon fill="#e700ff" stroke="#e700ff" points="1010.55,-379.03 1000.64,-382.76 1010.72,-386.02 1010.55,-379.03"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge49" class="edge">
+<title>sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1456.44,-339.12C1413.64,-366.18 1303.9,-431.56 1202,-459.08 1085.16,-490.64 1048,-451.06 930.5,-480.08"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_block_optimizer.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge50" class="edge">
+<title>sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_block_optimizer.f90</title>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1298,-367.08C1258.61,-373.49 1214.76,-382.89 1180.55,-390.73"/>
+<polygon fill="#e700ff" stroke="#e700ff" points="1179.67,-387.35 1170.72,-393.01 1181.25,-394.17 1179.67,-387.35"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_module.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge51" class="edge">
+<title>sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_rtc_module.f90</title>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1395.95,-327.08C1387.38,-327.08 1378.71,-327.08 1370.26,-327.08"/>
+<polygon fill="#e700ff" stroke="#e700ff" points="1370.08,-323.58 1360.08,-327.08 1370.08,-330.58 1370.08,-323.58"/>
+</g>
+<!-- sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge52" class="edge">
+<title>sourcefile~dtfft_rtc_module_cache.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1298,-95.08C1231.52,-53.02 1198.84,-83.69 1121,-95.08"/>
+<path fill="none" stroke="#e700ff" stroke-dasharray="5,2" d="M1119,-95.08C987.69,-114.31 953.65,-80.31 821,-76.08 757.92,-74.07 742.11,-75.38 679,-76.08 578.98,-77.19 552.89,-66.03 454,-81.08 374.45,-93.19 339.1,-76.48 280,-131.08 246.53,-162.01 272.73,-191.71 244,-227.08 241.75,-229.85 239.13,-232.41 236.32,-234.76"/>
+<polygon fill="#e700ff" stroke="#e700ff" points="234.04,-232.08 228.04,-240.81 238.17,-237.74 234.04,-232.08"/>
+</g>
+<!-- sourcefile~dtfft_test_utils.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge53" class="edge">
+<title>sourcefile~dtfft_test_utils.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#ff008b" stroke-dasharray="5,2" d="M1244.41,-556.97C1172.83,-554.52 1042.06,-551.41 930.5,-556.08"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge54" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M462.34,-209.62C427.48,-209.63 386.76,-210.41 350,-213.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M348,-213.08C283.73,-217.76 267.27,-217.88 203,-213.08"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M201,-213.08C191.64,-212.38 145.92,-198.1 109.64,-186.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="110.28,-182.91 99.69,-183.16 108.12,-189.57 110.28,-182.91"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge56" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M201,-213.08C179.34,-211.47 155.72,-211 134.24,-211.06"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="134.19,-207.56 124.21,-211.13 134.24,-214.56 134.19,-207.56"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge55" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M517.5,-223.23C483.23,-237.12 427.02,-259.88 389.28,-275.17"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="387.59,-272.08 379.63,-279.08 390.21,-278.57 387.59,-272.08"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge57" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_serializer.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M485.01,-199.06C462.27,-194.68 436.55,-189.73 413.71,-185.34"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="414.25,-181.88 403.77,-183.43 412.93,-188.75 414.25,-181.88"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge58" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M348,-213.08C311.54,-215.73 271.59,-227.45 242.88,-237.52"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="241.44,-234.32 233.21,-241 243.81,-240.9 241.44,-234.32"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge59" class="edge">
+<title>sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M302.12,-279.06C286.88,-275.06 269.81,-270.59 254.19,-266.5"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="254.72,-263.02 244.16,-263.87 252.95,-269.79 254.72,-263.02"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge60" class="edge">
+<title>sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M343.82,-160.92C329.73,-122.28 280.43,-5.63 203,-19.08"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge61" class="edge">
+<title>sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M310.39,-185.19C300.25,-189.06 289.47,-193.75 280,-199.08 262.34,-209.03 260.58,-215.42 244,-227.08 239.99,-229.9 235.68,-232.79 231.42,-235.56"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="229.4,-232.7 222.85,-241.03 233.17,-238.6 229.4,-232.7"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge62" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M180,-240.92C173.4,-236.8 166.22,-231.99 160,-227.08 142.48,-213.26 143.01,-203.77 124,-192.08 121.19,-190.35 118.21,-188.74 115.15,-187.24"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="116.33,-183.94 105.77,-183.1 113.5,-190.34 116.33,-183.94"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~test_rtc_module_cache.f90~~EfferentGraph_edge63" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#7f00ff" stroke-dasharray="5,2" d="M159.97,-241.19C145.63,-237.03 129.35,-232.31 114.28,-227.95"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="115.17,-224.56 104.59,-225.14 113.22,-231.28 115.17,-224.56"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var pansourcefiletest_rtc_module_cachef90EfferentGraph = svgPanZoom('#sourcefiletest_rtc_module_cachef90EfferentGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#EfferentGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="EfferentGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="202pt" height="32pt"
+ viewBox="0.00 0.00 201.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 197.5,-28 197.5,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="193.5,-24 88.5,-24 88.5,0 193.5,0 193.5,-24"/>
+<text text-anchor="middle" x="141" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a file to a file which it depends on. A file
+is dependent upon another if the latter must be compiled before the former
+can be.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+<br>
+      <section>
+        <h2><span class="anchor" id="src"></span>Source Code</h2>
+        <div class="hl codehilite"><pre><span></span><a id="ln-1" name="ln-1" href="#ln-1"></a><span class="cp">#include "dtfft_config.h"</span>
+<a id="ln-2" name="ln-2" href="#ln-2"></a><span class="k">program </span><span class="n">test_rtc_module_cache</span>
+<a id="ln-3" name="ln-3" href="#ln-3"></a><span class="k">use </span><span class="nb">iso_c_binding</span>
+<a id="ln-4" name="ln-4" href="#ln-4"></a><span class="k">use </span><span class="n">iso_fortran_env</span>
+<a id="ln-5" name="ln-5" href="#ln-5"></a><span class="k">use </span><span class="n">dtfft_abstract_kernel</span>
+<a id="ln-6" name="ln-6" href="#ln-6"></a><span class="k">use </span><span class="n">dtfft_config</span>
+<a id="ln-7" name="ln-7" href="#ln-7"></a><span class="k">use </span><span class="n">dtfft_errors</span>
+<a id="ln-8" name="ln-8" href="#ln-8"></a><span class="k">use </span><span class="n">dtfft_interface_cuda</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">CUfunction</span><span class="p">,</span><span class="w"> </span><span class="n">load_cuda</span>
+<a id="ln-9" name="ln-9" href="#ln-9"></a><span class="k">use </span><span class="n">dtfft_interface_nvrtc</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">load_nvrtc</span>
+<a id="ln-10" name="ln-10" href="#ln-10"></a><span class="k">use </span><span class="n">dtfft_interface_cuda_runtime</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">device_props</span>
+<a id="ln-11" name="ln-11" href="#ln-11"></a><span class="k">use </span><span class="n">dtfft_parameters</span>
+<a id="ln-12" name="ln-12" href="#ln-12"></a><span class="k">use </span><span class="n">dtfft_rtc_block_optimizer</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">kernel_config</span><span class="p">,</span><span class="w"> </span><span class="n">get_ampere_architecture</span>
+<a id="ln-13" name="ln-13" href="#ln-13"></a><span class="k">use </span><span class="n">dtfft_rtc_module</span>
+<a id="ln-14" name="ln-14" href="#ln-14"></a><span class="k">use </span><span class="n">dtfft_rtc_module_cache</span>
+<a id="ln-15" name="ln-15" href="#ln-15"></a><span class="k">use </span><span class="n">dtfft_test_utils</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">test_context</span>
+<a id="ln-16" name="ln-16" href="#ln-16"></a><span class="cp">#include "_dtfft_mpi.h"</span>
+<a id="ln-17" name="ln-17" href="#ln-17"></a><span class="k">implicit none</span>
+<a id="ln-18" name="ln-18" href="#ln-18"></a><span class="k">    type</span><span class="p">(</span><span class="n">device_props</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">props</span>
+<a id="ln-19" name="ln-19" href="#ln-19"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">kernel_config</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">configs</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<a id="ln-20" name="ln-20" href="#ln-20"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">kernel_config</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">extra_configs</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<a id="ln-21" name="ln-21" href="#ln-21"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">nvrtc_module</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="nb">mod</span>
+<a id="ln-22" name="ln-22" href="#ln-22"></a><span class="nb">    </span><span class="k">type</span><span class="p">(</span><span class="n">CUfunction</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fun</span>
+<a id="ln-23" name="ln-23" href="#ln-23"></a><span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ierr</span>
+<a id="ln-24" name="ln-24" href="#ln-24"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">test_context</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">test</span>
+<a id="ln-25" name="ln-25" href="#ln-25"></a>
+<a id="ln-26" name="ln-26" href="#ln-26"></a><span class="w">    </span><span class="k">call </span><span class="n">MPI_Init</span><span class="p">(</span><span class="n">ierr</span><span class="p">)</span>
+<a id="ln-27" name="ln-27" href="#ln-27"></a>
+<a id="ln-28" name="ln-28" href="#ln-28"></a><span class="w">    </span><span class="n">ierr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">init_internal</span><span class="p">()</span>
+<a id="ln-29" name="ln-29" href="#ln-29"></a><span class="w">    </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="n">ierr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="p">,</span><span class="w"> </span><span class="s2">"init_internal failed"</span><span class="p">)</span>
+<a id="ln-30" name="ln-30" href="#ln-30"></a>
+<a id="ln-31" name="ln-31" href="#ln-31"></a><span class="w">    </span><span class="n">ierr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_cuda</span><span class="p">()</span>
+<a id="ln-32" name="ln-32" href="#ln-32"></a><span class="w">    </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="n">ierr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="p">,</span><span class="w"> </span><span class="s2">"load_cuda failed"</span><span class="p">)</span>
+<a id="ln-33" name="ln-33" href="#ln-33"></a>
+<a id="ln-34" name="ln-34" href="#ln-34"></a><span class="w">    </span><span class="n">ierr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">load_nvrtc</span><span class="p">()</span>
+<a id="ln-35" name="ln-35" href="#ln-35"></a><span class="w">    </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="n">ierr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="p">,</span><span class="w"> </span><span class="s2">"load_nvrtc failed"</span><span class="p">)</span>
+<a id="ln-36" name="ln-36" href="#ln-36"></a>
+<a id="ln-37" name="ln-37" href="#ln-37"></a><span class="w">    </span><span class="n">props</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_ampere_architecture</span><span class="p">()</span>
+<a id="ln-38" name="ln-38" href="#ln-38"></a>
+<a id="ln-39" name="ln-39" href="#ln-39"></a><span class="w">    </span><span class="n">configs</span><span class="p">(</span><span class="mi">1</span><span class="p">)%</span><span class="n">tile_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">32</span>
+<a id="ln-40" name="ln-40" href="#ln-40"></a><span class="w">    </span><span class="n">configs</span><span class="p">(</span><span class="mi">1</span><span class="p">)%</span><span class="n">block_rows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span>
+<a id="ln-41" name="ln-41" href="#ln-41"></a><span class="w">    </span><span class="n">configs</span><span class="p">(</span><span class="mi">1</span><span class="p">)%</span><span class="n">padding</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<a id="ln-42" name="ln-42" href="#ln-42"></a><span class="w">    </span><span class="n">configs</span><span class="p">(</span><span class="mi">2</span><span class="p">)%</span><span class="n">tile_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span>
+<a id="ln-43" name="ln-43" href="#ln-43"></a><span class="w">    </span><span class="n">configs</span><span class="p">(</span><span class="mi">2</span><span class="p">)%</span><span class="n">block_rows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span>
+<a id="ln-44" name="ln-44" href="#ln-44"></a><span class="w">    </span><span class="n">configs</span><span class="p">(</span><span class="mi">2</span><span class="p">)%</span><span class="n">padding</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<a id="ln-45" name="ln-45" href="#ln-45"></a>
+<a id="ln-46" name="ln-46" href="#ln-46"></a><span class="w">    </span><span class="k">call </span><span class="nb">mod</span><span class="p">%</span><span class="n">create</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">configs</span><span class="p">,</span><span class="w"> </span><span class="n">props</span><span class="p">)</span>
+<a id="ln-47" name="ln-47" href="#ln-47"></a>
+<a id="ln-48" name="ln-48" href="#ln-48"></a><span class="w">    </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="nb">mod</span><span class="p">%</span><span class="n">check</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
+<a id="ln-49" name="ln-49" href="#ln-49"></a><span class="w">                          </span><span class="s2">"check_module failed after create"</span><span class="p">)</span>
+<a id="ln-50" name="ln-50" href="#ln-50"></a><span class="w">    </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="nb">mod</span><span class="p">%</span><span class="n">check</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
+<a id="ln-51" name="ln-51" href="#ln-51"></a><span class="w">                          </span><span class="s2">"check_instance failed for 32x8"</span><span class="p">)</span>
+<a id="ln-52" name="ln-52" href="#ln-52"></a>
+<a id="ln-53" name="ln-53" href="#ln-53"></a><span class="w">    </span><span class="n">ierr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">mod</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">fun</span><span class="p">)</span>
+<a id="ln-54" name="ln-54" href="#ln-54"></a><span class="w">    </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="n">ierr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="p">,</span><span class="w"> </span><span class="s2">"module get failed for 32x8"</span><span class="p">)</span>
+<a id="ln-55" name="ln-55" href="#ln-55"></a><span class="w">    </span><span class="k">call </span><span class="n">verify_function</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">)</span>
+<a id="ln-56" name="ln-56" href="#ln-56"></a>
+<a id="ln-57" name="ln-57" href="#ln-57"></a><span class="w">    </span><span class="n">ierr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">mod</span><span class="p">%</span><span class="n">get</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">64</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="n">fun</span><span class="p">)</span>
+<a id="ln-58" name="ln-58" href="#ln-58"></a><span class="w">    </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="n">ierr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="p">,</span><span class="w"> </span><span class="s2">"module get failed for 64x8"</span><span class="p">)</span>
+<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="w">    </span><span class="k">call </span><span class="n">verify_function</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">)</span>
+<a id="ln-60" name="ln-60" href="#ln-60"></a>
+<a id="ln-61" name="ln-61" href="#ln-61"></a><span class="w">    </span><span class="k">call </span><span class="nb">mod</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
+<a id="ln-62" name="ln-62" href="#ln-62"></a>
+<a id="ln-63" name="ln-63" href="#ln-63"></a><span class="w">    </span><span class="k">call </span><span class="n">create_nvrtc_module</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">configs</span><span class="p">,</span><span class="w"> </span><span class="n">props</span><span class="p">)</span>
+<a id="ln-64" name="ln-64" href="#ln-64"></a>
+<a id="ln-65" name="ln-65" href="#ln-65"></a><span class="w">    </span><span class="n">fun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_kernel_instance</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">)</span>
+<a id="ln-66" name="ln-66" href="#ln-66"></a><span class="w">    </span><span class="k">call </span><span class="n">verify_function</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">)</span>
+<a id="ln-67" name="ln-67" href="#ln-67"></a>
+<a id="ln-68" name="ln-68" href="#ln-68"></a><span class="w">    </span><span class="n">extra_configs</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">configs</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="ln-69" name="ln-69" href="#ln-69"></a><span class="w">    </span><span class="n">extra_configs</span><span class="p">(</span><span class="mi">2</span><span class="p">)%</span><span class="n">tile_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16</span>
+<a id="ln-70" name="ln-70" href="#ln-70"></a><span class="w">    </span><span class="n">extra_configs</span><span class="p">(</span><span class="mi">2</span><span class="p">)%</span><span class="n">block_rows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16</span>
+<a id="ln-71" name="ln-71" href="#ln-71"></a><span class="w">    </span><span class="n">extra_configs</span><span class="p">(</span><span class="mi">2</span><span class="p">)%</span><span class="n">padding</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<a id="ln-72" name="ln-72" href="#ln-72"></a>
+<a id="ln-73" name="ln-73" href="#ln-73"></a><span class="w">    </span><span class="k">call </span><span class="n">create_nvrtc_module</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="n">extra_configs</span><span class="p">,</span><span class="w"> </span><span class="n">props</span><span class="p">)</span>
+<a id="ln-74" name="ln-74" href="#ln-74"></a>
+<a id="ln-75" name="ln-75" href="#ln-75"></a><span class="w">    </span><span class="n">fun</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_kernel_instance</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span><span class="w"> </span><span class="mi">16</span><span class="p">)</span>
+<a id="ln-76" name="ln-76" href="#ln-76"></a><span class="w">    </span><span class="k">call </span><span class="n">verify_function</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">KERNEL_PERMUTE_FORWARD</span><span class="p">,</span><span class="w"> </span><span class="n">FLOAT_STORAGE_SIZE</span><span class="p">)</span>
+<a id="ln-77" name="ln-77" href="#ln-77"></a>
+<a id="ln-78" name="ln-78" href="#ln-78"></a><span class="w">    </span><span class="k">call </span><span class="n">MPI_Finalize</span><span class="p">(</span><span class="n">ierr</span><span class="p">)</span>
+<a id="ln-79" name="ln-79" href="#ln-79"></a>
+<a id="ln-80" name="ln-80" href="#ln-80"></a><span class="k">contains</span>
+<a id="ln-81" name="ln-81" href="#ln-81"></a>
+<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="k">    subroutine </span><span class="n">verify_function</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span><span class="w"> </span><span class="n">ndims</span><span class="p">,</span><span class="w"> </span><span class="n">kernel_type</span><span class="p">,</span><span class="w"> </span><span class="n">base_storage</span><span class="p">)</span>
+<a id="ln-83" name="ln-83" href="#ln-83"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">CUfunction</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fun</span>
+<a id="ln-84" name="ln-84" href="#ln-84"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ndims</span>
+<a id="ln-85" name="ln-85" href="#ln-85"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">kernel_type_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">kernel_type</span>
+<a id="ln-86" name="ln-86" href="#ln-86"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int64</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">base_storage</span>
+<a id="ln-87" name="ln-87" href="#ln-87"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">consume_args</span>
+<a id="ln-88" name="ln-88" href="#ln-88"></a>
+<a id="ln-89" name="ln-89" href="#ln-89"></a><span class="w">        </span><span class="n">consume_args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ndims</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">kernel_type</span><span class="p">%</span><span class="n">val</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">int</span><span class="p">(</span><span class="n">base_storage</span><span class="p">,</span><span class="w"> </span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">storage_size</span><span class="p">(</span><span class="n">fun</span><span class="p">)</span>
+<a id="ln-90" name="ln-90" href="#ln-90"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">consume_args</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-91" name="ln-91" href="#ln-91"></a><span class="k">            call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(.</span><span class="n">false</span><span class="p">.,</span><span class="w"> </span><span class="s2">"unexpected consumed argument marker"</span><span class="p">)</span>
+<a id="ln-92" name="ln-92" href="#ln-92"></a><span class="w">        </span><span class="k">end if</span>
+<a id="ln-93" name="ln-93" href="#ln-93"></a>
+<a id="ln-94" name="ln-94" href="#ln-94"></a><span class="cp">#ifdef DTFFT_WITH_MOCK_ENABLED</span>
+<a id="ln-95" name="ln-95" href="#ln-95"></a><span class="w">        </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="n">fun</span><span class="p">%</span><span class="n">ndims</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ndims</span><span class="p">,</span><span class="w"> </span><span class="s2">"mock function ndims mismatch"</span><span class="p">)</span>
+<a id="ln-96" name="ln-96" href="#ln-96"></a><span class="w">        </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="n">fun</span><span class="p">%</span><span class="n">kernel_type</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">kernel_type</span><span class="p">,</span><span class="w"> </span><span class="s2">"mock function kernel_type mismatch"</span><span class="p">)</span>
+<a id="ln-97" name="ln-97" href="#ln-97"></a><span class="w">        </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(</span><span class="n">fun</span><span class="p">%</span><span class="n">base_storage</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">base_storage</span><span class="p">,</span><span class="w"> </span><span class="s2">"mock function base_storage mismatch"</span><span class="p">)</span>
+<a id="ln-98" name="ln-98" href="#ln-98"></a><span class="cp">#else</span>
+<a id="ln-99" name="ln-99" href="#ln-99"></a><span class="w">        </span><span class="k">call </span><span class="n">test</span><span class="p">%</span><span class="n">assert_true</span><span class="p">(.</span><span class="n">true</span><span class="p">.,</span><span class="w"> </span><span class="s2">"kernel handle retrieved"</span><span class="p">)</span>
+<a id="ln-100" name="ln-100" href="#ln-100"></a><span class="cp">#endif</span>
+<a id="ln-101" name="ln-101" href="#ln-101"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">verify_function</span>
+<a id="ln-102" name="ln-102" href="#ln-102"></a>
+<a id="ln-103" name="ln-103" href="#ln-103"></a><span class="k">end program </span><span class="n">test_rtc_module_cache</span>
+</pre></div>
+
+      </section>
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

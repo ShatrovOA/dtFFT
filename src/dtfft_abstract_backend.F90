@@ -22,7 +22,6 @@ module dtfft_abstract_backend
 use iso_c_binding
 use iso_fortran_env
 use dtfft_abstract_kernel, only: abstract_kernel
-use dtfft_errors
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
 #endif
@@ -31,11 +30,12 @@ use dtfft_interface_nccl
 #endif
 use dtfft_parameters
 use dtfft_pencil, only: pencil
+use dtfft_errors
 use dtfft_utils
-#include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
 #include "_dtfft_private.h"
 #include "_dtfft_profile.h"
+#include "_dtfft_mpi.h"
 implicit none
 private
 public :: abstract_backend, backend_helper
@@ -189,6 +189,10 @@ contains
         self%is_pipelined = is_backend_pipelined(backend) .or. self%is_fused
         self%is_selfcopy = (self%is_pipelined .or. is_backend_mpi(backend)) .and. backend /= DTFFT_BACKEND_CUFFTMP_PIPELINED .and. backend /= DTFFT_BACKEND_NCCL_COMPRESSED .and. .not.self%is_fused
         self%is_even = all(send_counts(1) == send_counts(:)) .and. all(recv_counts(1) == recv_counts(:))
+        ! Ensure is_even is consistent across all ranks: a rank with all-zero counts
+        ! is trivially "even", but other ranks may not be. Using different MPI collectives
+        ! (MPI_Alltoall vs MPI_Alltoallv) on different ranks causes a deadlock.
+        call MPI_Allreduce(MPI_IN_PLACE, self%is_even, 1, MPI_LOGICAL, MPI_LAND, self%comm, ierr)
         if (self%is_selfcopy .and. self%is_even .and. backend == DTFFT_BACKEND_MPI_A2A .and. platform == DTFFT_PLATFORM_HOST) then
             self%is_selfcopy = .false.
         endif
@@ -333,7 +337,6 @@ contains
     subroutine wait(self, stream)
         class(abstract_backend),    intent(inout)   :: self       !! Abstract backend
         type(dtfft_stream_t),       intent(in)      :: stream     !! CUDA stream
-
         if ( self%platform == DTFFT_PLATFORM_HOST ) return
 #ifdef DTFFT_WITH_CUDA
         ! Making future events, like FFT, on `stream` to wait for `copy_event`
@@ -351,7 +354,6 @@ contains
     subroutine destroy(self)
     !! Destroys Abstract Backend
         class(abstract_backend),    intent(inout)   :: self       !! Abstract backend
-
         if (allocated(self%send_displs))    deallocate (self%send_displs)
         if (allocated(self%send_floats))    deallocate (self%send_floats)
         if (allocated(self%recv_displs))    deallocate (self%recv_displs)
@@ -359,7 +361,8 @@ contains
         if (allocated(self%comm_mapping))   deallocate (self%comm_mapping)
         self%comm = MPI_COMM_NULL
 #ifdef DTFFT_WITH_CUDA
-        if ((self%is_selfcopy .or. self%backend == DTFFT_BACKEND_NCCL_COMPRESSED) .and. self%platform == DTFFT_PLATFORM_CUDA) then
+        ! Condition must match the one that creates events and stream in `create`
+        if ((self%is_selfcopy .or. self%backend == DTFFT_BACKEND_NCCL_COMPRESSED .or. self%is_fused) .and. self%platform == DTFFT_PLATFORM_CUDA) then
             CUDA_CALL( cudaEventDestroy(self%execution_event) )
             CUDA_CALL( cudaEventDestroy(self%copy_event) )
             CUDA_CALL( cudaStreamDestroy(self%copy_stream) )
@@ -459,7 +462,6 @@ contains
     subroutine destroy_helper(self)
     !! Destroys helper
         class(backend_helper),  intent(inout)   :: self         !! Backend helper
-
         if (allocated(self%comms)) deallocate (self%comms)
         if (allocated(self%comm_mappings)) deallocate (self%comm_mappings)
         nullify (self%pencils)
@@ -479,5 +481,4 @@ contains
         self%nccl_register_size = 0
 #endif
     end subroutine destroy_helper
-
 end module dtfft_abstract_backend

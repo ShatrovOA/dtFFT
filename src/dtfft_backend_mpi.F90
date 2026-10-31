@@ -21,17 +21,17 @@ module dtfft_backend_mpi
 !! MPI Based Backends [[backend_mpi]]
 use iso_fortran_env
 use iso_c_binding
-use dtfft_abstract_backend
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
 #endif
-use dtfft_errors
+use dtfft_abstract_backend, only: abstract_backend, backend_helper
+use dtfft_abstract_kernel
 use dtfft_parameters
+use dtfft_errors
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
 #include "_dtfft_private.h"
-#include "_dtfft_profile.h"
 implicit none
 private
 public :: backend_mpi
@@ -71,18 +71,17 @@ public :: backend_mpi
         procedure :: execute_fused
 #ifdef DTFFT_WITH_RMA
         procedure :: execute_rma
-        ! procedure :: execute_fused_rma
 #endif
     end type backend_mpi
 
 contains
 
     subroutine create_helper(self, counts, displs, max_requests)
-    !! Creates MPI helper
-        class(mpi_backend_helper), intent(inout) :: self         !! MPI Helper
-        integer(int64), intent(in) :: counts(:)    !! Counts of data to send or recv
-        integer(int64), intent(in) :: displs(:)    !! Displacements of data to send or recv
-        integer(int32), intent(in) :: max_requests !! Maximum number of requests required
+        !! Creates MPI helper
+            class(mpi_backend_helper), intent(inout) :: self         !! MPI Helper
+            integer(int64), intent(in) :: counts(:)    !! Counts of data to send or recv
+            integer(int64), intent(in) :: displs(:)    !! Displacements of data to send or recv
+            integer(int32), intent(in) :: max_requests !! Maximum number of requests required
         integer(int32) :: i, n_counts
 
         n_counts = size(counts)
@@ -102,7 +101,6 @@ contains
     !! Destroys MPI helper
         class(mpi_backend_helper), intent(inout) :: self !! MPI Helper
         logical, intent(in) :: is_request_created
-
         if (allocated(self%counts)) deallocate (self%counts)
         if (allocated(self%displs)) deallocate (self%displs)
 #if defined(ENABLE_PERSISTENT_COMM) || defined(DTFFT_WITH_RMA)
@@ -186,8 +184,8 @@ contains
     end subroutine destroy_mpi
 
     elemental logical function get_async_active(self)
-    !! Returns if async transpose is active
-        class(backend_mpi), intent(in) :: self              !!  MPI Backend
+        !! Returns if async transpose is active
+            class(backend_mpi), intent(in) :: self              !!  MPI Backend
         get_async_active = self%is_active
     end function get_async_active
 
@@ -211,20 +209,7 @@ contains
             return
         end if
         if ( self%is_fused ) then
-            ! if ( self%is_rma ) then
-            !     call self%execute_fused_rma(in, out, stream, aux)
-            !     return
-            ! endif
             call self%execute_fused(in, out, stream, aux)
-!             if ( is_backend_rma(self%backend) ) then
-! #ifdef DTFFT_WITH_RMA
-!                 call self%execute_fused_rma(in, out, stream, aux)
-! #else
-!                 INTERNAL_ERROR("Fused RMA backend requested but DTFFT_WITH_RMA is not defined")
-! #endif
-!             else
-!                 call self%execute_fused_p2p(in, out, stream, aux)
-!             endif
             return
         endif
 #ifdef DTFFT_WITH_CUDA
@@ -299,7 +284,6 @@ contains
     !! Finalizes async backend execution
         class(backend_mpi), intent(inout)   :: self       !! MPI Backend
         integer(int32),     intent(out)     :: error_code !! Error code
-
         error_code = DTFFT_SUCCESS
         if (self%is_pipelined .or. self%is_fused) return
         if (.not. self%is_active) then
@@ -387,15 +371,23 @@ contains
         real(real32),       intent(in)    :: in(:)  !! Data to be sent
         real(real32),       intent(inout) :: out(:) !! Data to be received
         integer(int32) :: i, tgt, mpi_ierr
-
         associate( recv => self%recv, send => self%send )
         do i = 0, self%comm_size - 1
             tgt = self%schedule(i)
             if ( tgt == self%comm_rank .and. self%platform == DTFFT_PLATFORM_HOST) then
                 call self%execute_self_copy(in, out, NULL_STREAM)
-            else
-                call MPI_Sendrecv(in(send%displs(tgt)), send%counts(tgt), MPI_REAL, tgt, 0, out(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, MPI_STATUS_IGNORE, mpi_ierr)
-            endif
+            else if ( send%counts(tgt) > 0 .and. recv%counts(tgt) > 0 ) then
+                call MPI_Sendrecv(in(send%displs(tgt)), send%counts(tgt), MPI_REAL, tgt, 0,                             &
+                    out(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, MPI_STATUS_IGNORE, mpi_ierr)
+            else if ( send%counts(tgt) > 0 ) then
+                call MPI_Send(in(send%displs(tgt)), send%counts(tgt), MPI_REAL, tgt, 0, self%comm, mpi_ierr)
+            else if ( recv%counts(tgt) > 0 ) then
+                call MPI_Recv(out(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, MPI_STATUS_IGNORE, mpi_ierr)
+            end if
+            ! else
+            !     call MPI_Sendrecv(in(send%displs(tgt)), send%counts(tgt), MPI_REAL, tgt, 0,                             &
+            !         out(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, MPI_STATUS_IGNORE, mpi_ierr)
+            ! endif
         enddo
 
         endassociate
@@ -478,19 +470,23 @@ contains
         real(real32), target,   contiguous, intent(inout)   :: out(:)     !! Recv pointer
         type(dtfft_stream_t),               intent(in)      :: stream     !! Main execution CUDA stream
         real(real32), target,   contiguous, intent(inout)   :: aux(:)     !! Aux pointer
-        integer(int64) :: aux_size
+        integer(int64) :: aux_size, send_comp_bytes, recv_comp_bytes
         real(real32), pointer, contiguous :: aux2(:)
         integer(int32) :: i, k, tgt, mpi_ierr, comm_rank
         integer(int32) :: send_request_counter, recv_request_counter
         integer(int32), allocatable :: indices(:)
         integer(int32)              :: total_completed, n_completed      !! Request counter
         real(real32), pointer, contiguous :: send_buffer(:), recv_buffer(:)
+        integer(int64), allocatable :: comp_sizes(:)
         integer(int32) :: source_rank, send_count, recv_count
         integer(int32) :: active_recvs
+
         call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, mpi_ierr)
 
         aux_size = size(aux, kind=int64) / 2
         call c_f_pointer(ptr_offset(c_loc(aux), aux_size * FLOAT_STORAGE_SIZE), aux2, [aux_size])
+
+        allocate( comp_sizes(0:self%comm_size - 1) )
 
         if ( self%pack_kernel%is_dummy_kernel ) then
             send_buffer => in
@@ -547,16 +543,20 @@ contains
                     call self%pack_kernel%execute(c_loc(in), c_loc(send_buffer), stream, tgt + 1, skip_compression=.true.)
                     cycle
                 endif
-                call self%pack_kernel%execute(c_loc(in), c_loc(send_buffer), stream, tgt + 1, aux=c_loc(out), csize=send_count, sync=.true.)
-                if ( self%pack_kernel%is_dummy .or. self%pack_kernel%is_dummy_kernel ) send_count = send%counts(tgt)
+                call self%pack_kernel%execute(c_loc(in), c_loc(send_buffer), stream, tgt + 1, aux=c_loc(out), csize=send_comp_bytes, sync=.true.)
+                if ( self%pack_kernel%is_dummy .or. self%pack_kernel%is_dummy_kernel ) send_comp_bytes = send%counts(tgt) * FLOAT_STORAGE_SIZE
+
+                ! This is synchronization point between two processes
+                ! `recv_comp_bytes` might be known if compression is not used, however
+                ! we still use Sendrecv to be sure both sides are synchronized
+                call MPI_Sendrecv(send_comp_bytes, 1, MPI_INTEGER8, tgt, 0, recv_comp_bytes, 1, MPI_INTEGER8, tgt, 0, self%comm, MPI_STATUS_IGNORE, mpi_ierr)
+
+                comp_sizes(tgt) = recv_comp_bytes
+                send_count = bytes_to_floats(send_comp_bytes)
+                recv_count = bytes_to_floats(recv_comp_bytes)
 
                 if ( self%is_rma ) then
 #ifdef DTFFT_WITH_RMA
-                    ! This is synchronization point between two processes
-                    ! `recv_count` might be known if compression is not used, however
-                    ! we still use Sendrecv to be sure both sides are synchronized
-                    call MPI_Sendrecv(send_count, 1, MPI_INTEGER, tgt, 0, recv_count, 1, MPI_INTEGER, tgt, 0, self%comm, MPI_STATUS_IGNORE, mpi_ierr)
-
                     if (recv_count > 0) then
                         active_recvs = active_recvs + 1
                         recv_request_counter = recv_request_counter + 1
@@ -604,7 +604,7 @@ contains
 #else
                         source_rank = recv%process_map(indices(k))
 #endif
-                        call self%unpack_kernel%execute(c_loc(recv_buffer), c_loc(out), stream, source_rank + 1, aux=c_loc(in))
+                        call self%unpack_kernel%execute(c_loc(recv_buffer), c_loc(out), stream, source_rank + 1, aux=c_loc(in), csize=comp_sizes(source_rank))
                         active_recvs = active_recvs - 1
                     end do
                 end if
@@ -621,6 +621,8 @@ contains
             call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, mpi_ierr)
         endif
 #endif
+
+    deallocate( comp_sizes )
     end subroutine execute_fused
 
     subroutine compute_alltoall_schedule(self)
@@ -668,5 +670,4 @@ contains
             end if
         end do
     end subroutine compute_alltoall_schedule
-
 end module dtfft_backend_mpi

@@ -26,15 +26,18 @@ use iso_fortran_env,  only: int8, int32, int64, real32, real64
 implicit none
 private
 public :: dtfft_execute_t, dtfft_transpose_t, dtfft_reshape_t
-public :: dtfft_executor_t, dtfft_effort_t, dtfft_layout_t
+! public :: dtfft_executor_t, dtfft_effort_t, dtfft_layout_t
+public :: dtfft_effort_t, dtfft_layout_t
 public :: dtfft_precision_t, dtfft_r2r_kind_t
 public :: is_valid_execute_type, is_valid_transpose_type, is_valid_reshape_type
-public :: is_valid_executor, is_valid_effort, is_valid_layout
+! public :: is_valid_executor
+public :: is_valid_effort, is_valid_layout
 public :: is_valid_precision, is_valid_r2r_kind
 public :: is_valid_dimension, is_valid_comm_type
 public :: is_valid_transpose_mode, is_valid_access_mode
+public :: is_valid_plan_kind
 public :: dtfft_get_version
-public :: dtfft_get_precision_string, dtfft_get_executor_string
+public :: dtfft_get_precision_string!, dtfft_get_executor_string
 public :: dtfft_backend_t, dtfft_stream_t
 public :: dtfft_get_backend_string
 public :: is_backend_pipelined, is_backend_mpi, is_backend_fused, is_backend_rma
@@ -43,9 +46,10 @@ public :: is_backend_compressed
 public :: dtfft_get_backend_pipelined
 #ifdef DTFFT_WITH_CUDA
 public :: is_valid_platform
-public :: is_host_executor, is_cuda_executor
+! public :: is_host_executor, is_cuda_executor
 public :: dtfft_get_cuda_stream
 #endif
+public :: get_platform_string
 
   integer(int32), parameter, public :: DTFFT_VERSION_MAJOR = CONF_DTFFT_VERSION_MAJOR
     !! dtFFT Major Version
@@ -150,47 +154,6 @@ public :: dtfft_get_cuda_stream
     !! Z-pencil layout: data is distributed along X and Y dimensions
   type(dtfft_layout_t),  parameter :: VALID_LAYOUTS(*) = [DTFFT_LAYOUT_X_BRICKS, DTFFT_LAYOUT_Z_BRICKS, DTFFT_LAYOUT_X_PENCILS, DTFFT_LAYOUT_X_PENCILS_FOURIER, DTFFT_LAYOUT_Y_PENCILS, DTFFT_LAYOUT_Z_PENCILS]
     !! Valid layouts
-
-!------------------------------------------------------------------------------------------------
-! External FFT executor types
-!------------------------------------------------------------------------------------------------
-  type, bind(C) :: dtfft_executor_t
-  !! Type that specifies external FFT executor
-    integer(c_int32_t) :: val !! Internal value
-  end type dtfft_executor_t
-
-  type(dtfft_executor_t),  parameter,  public :: DTFFT_EXECUTOR_NONE   = dtfft_executor_t(CONF_DTFFT_EXECUTOR_NONE)
-    !! Do not setup any executor. If this type is provided, then `execute` method should not be called.
-    !! Use `transpose` method instead
-  type(dtfft_executor_t),  parameter,  public :: DTFFT_EXECUTOR_FFTW3 = dtfft_executor_t(CONF_DTFFT_EXECUTOR_FFTW3)
-    !! FFTW3 executor
-  type(dtfft_executor_t),  parameter,  public :: DTFFT_EXECUTOR_MKL   = dtfft_executor_t(CONF_DTFFT_EXECUTOR_MKL)
-    !! MKL executor
-  type(dtfft_executor_t),  parameter,  public :: DTFFT_EXECUTOR_CUFFT = dtfft_executor_t(CONF_DTFFT_EXECUTOR_CUFFT)
-    !! cuFFT GPU executor
-  type(dtfft_executor_t),  parameter,  public :: DTFFT_EXECUTOR_VKFFT = dtfft_executor_t(CONF_DTFFT_EXECUTOR_VKFFT)
-    !! VkFFT GPU executor
-  type(dtfft_executor_t),  parameter  :: VALID_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE    &
-#ifdef DTFFT_WITH_FFTW
-    ,DTFFT_EXECUTOR_FFTW3                                                             &
-#endif
-#ifdef DTFFT_WITH_MKL
-    ,DTFFT_EXECUTOR_MKL                                                               &
-#endif
-#ifdef DTFFT_WITH_CUFFT
-    ,DTFFT_EXECUTOR_CUFFT                                                             &
-#endif
-#ifdef DTFFT_WITH_VKFFT
-    ,DTFFT_EXECUTOR_VKFFT                                                             &
-#endif
-  ]
-  !! List of valid executors
-#ifdef DTFFT_WITH_CUDA
-  type(dtfft_executor_t),  parameter        :: HOST_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE, DTFFT_EXECUTOR_FFTW3, DTFFT_EXECUTOR_MKL]
-    !! List of host executors
-  type(dtfft_executor_t),  parameter        :: CUDA_EXECUTORS(*) = [DTFFT_EXECUTOR_NONE, DTFFT_EXECUTOR_CUFFT, DTFFT_EXECUTOR_VKFFT]
-    !! List of CUDA executors
-#endif
 !------------------------------------------------------------------------------------------------
 ! FFT Execution directions
 !------------------------------------------------------------------------------------------------
@@ -267,7 +230,7 @@ public :: operator(==)
     module procedure execute_type_eq    !! Check if two `dtfft_execute_t` are equal
     module procedure transpose_type_eq  !! Check if two `dtfft_transpose_t` are equal
     module procedure reshape_type_eq    !! Check if two `dtfft_reshape_t` are equal
-    module procedure executor_eq        !! Check if two `dtfft_executor_t` are equal
+    ! module procedure executor_eq        !! Check if two `dtfft_executor_t` are equal
     module procedure effort_eq          !! Check if two `dtfft_effort_t` are equal
     module procedure precision_eq       !! Check if two `dtfft_precision_t` are equal
     module procedure r2r_kind_eq        !! Check if two `dtfft_r2r_kind_t` are equal
@@ -277,6 +240,7 @@ public :: operator(==)
     module procedure layout_eq          !! Check if two `dtfft_layout_t` are equal
     module procedure transpose_mode_eq  !! Check if two `dtfft_transpose_mode_t` are equal
     module procedure access_mode_eq     !! Check if two `dtfft_access_mode_t` are equal
+    module procedure plan_kind_eq       !! Check if two `plan_kind_t` are equal
   end interface
 
 public :: operator(/=)
@@ -284,7 +248,7 @@ public :: operator(/=)
     module procedure execute_type_ne    !! Check if two `dtfft_execute_t` are not equal
     module procedure transpose_type_ne  !! Check if two `dtfft_transpose_t` are not equal
     module procedure reshape_type_ne    !! Check if two `dtfft_reshape_t` are not equal
-    module procedure executor_ne        !! Check if two `dtfft_executor_t` are not equal
+    ! module procedure executor_ne        !! Check if two `dtfft_executor_t` are not equal
     module procedure effort_ne          !! Check if two `dtfft_effort_t` are not equal
     module procedure precision_ne       !! Check if two `dtfft_precision_t` are not equal
     module procedure r2r_kind_ne        !! Check if two `dtfft_r2r_kind_t` are not equal
@@ -293,6 +257,7 @@ public :: operator(/=)
     module procedure layout_ne          !! Check if two `dtfft_layout_t` are not equal
     module procedure transpose_mode_ne  !! Check if two `dtfft_transpose_mode_t` are not equal
     module procedure access_mode_ne     !! Check if two `dtfft_access_mode_t` are not equal
+    module procedure plan_kind_ne       !! Check if two `plan_kind_t` are not equal
   end interface
 
 !------------------------------------------------------------------------------------------------
@@ -537,6 +502,31 @@ public :: dtfft_platform_t
 
   type(dtfft_platform_t), public, parameter :: PLATFORM_NOT_SET = dtfft_platform_t(VARIABLE_NOT_SET)
 
+public :: plan_kind_t
+  type :: plan_kind_t
+  !! Type that specifies kind of dtFFT plan: C2C, R2C or R2R
+  !!
+  !! Internal, and deliberately so: a plan does not carry its kind, and users never need to
+  !! ask for it. It exists only because a plan file has to say which concrete plan class it
+  !! describes, so that `load` can build the right one. Hence no `dtfft_` prefix and no
+  !! `bind(C)` -- nothing here crosses the public API or the C boundary.
+    character(len=3) :: val !! Internal value
+  end type plan_kind_t
+
+  ! These values end up inside plan files, so they are part of the on-disk format and must
+  ! stay put. Adding a kind means taking the next free number, never reusing one.
+  type(plan_kind_t),  parameter,  public :: PLAN_C2C = plan_kind_t("C2C")
+    !! Complex-to-Complex plan
+  type(plan_kind_t),  parameter,  public :: PLAN_R2C = plan_kind_t("R2C")
+    !! Real-to-Complex plan
+  type(plan_kind_t),  parameter,  public :: PLAN_R2R = plan_kind_t("R2R")
+    !! Real-to-Real plan
+  type(plan_kind_t),  parameter :: VALID_PLAN_KINDS(*) = [PLAN_C2C, PLAN_R2C, PLAN_R2R]
+    !! Valid plan kinds
+
+  type(plan_kind_t),  parameter,  public :: PLAN_KIND_NOT_SET = plan_kind_t("NUL")
+    !! Plan kind not set
+
 public :: dtfft_request_t
   type, bind(C) :: dtfft_request_t
     type(c_ptr) :: val = c_null_ptr
@@ -583,7 +573,9 @@ public :: dtfft_access_mode_t
     !! Optimize for write access (Aligned writing)
   type(dtfft_access_mode_t), parameter, public :: DTFFT_ACCESS_MODE_READ = dtfft_access_mode_t(CONF_DTFFT_ACCESS_MODE_READ)
     !! Optimize for read access (Aligned reading)
-  type(dtfft_access_mode_t), parameter :: VALID_ACCESS_MODES(*) = [DTFFT_ACCESS_MODE_WRITE, DTFFT_ACCESS_MODE_READ]
+  type(dtfft_access_mode_t), parameter, public :: DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS = dtfft_access_mode_t(CONF_DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS)
+    !! Cache oblivious approach
+  type(dtfft_access_mode_t), parameter :: VALID_ACCESS_MODES(*) = [DTFFT_ACCESS_MODE_WRITE, DTFFT_ACCESS_MODE_READ, DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS]
     !! Valid access modes
 
   type(dtfft_access_mode_t), parameter, public :: ACCESS_MODE_NOT_SET = dtfft_access_mode_t(VARIABLE_NOT_SET)
@@ -602,7 +594,7 @@ contains
 MAKE_EQ_FUN(dtfft_execute_t, execute_type_eq)
 MAKE_EQ_FUN(dtfft_transpose_t, transpose_type_eq)
 MAKE_EQ_FUN(dtfft_reshape_t, reshape_type_eq)
-MAKE_EQ_FUN(dtfft_executor_t, executor_eq)
+! MAKE_EQ_FUN(dtfft_executor_t, executor_eq)
 MAKE_EQ_FUN(dtfft_effort_t, effort_eq)
 MAKE_EQ_FUN(dtfft_precision_t, precision_eq)
 MAKE_EQ_FUN(dtfft_r2r_kind_t, r2r_kind_eq)
@@ -611,11 +603,12 @@ MAKE_EQ_FUN(async_exec_t, exec_eq)
 MAKE_EQ_FUN(dtfft_layout_t, layout_eq)
 MAKE_EQ_FUN(dtfft_transpose_mode_t, transpose_mode_eq)
 MAKE_EQ_FUN(dtfft_access_mode_t, access_mode_eq)
+MAKE_EQ_FUN(plan_kind_t, plan_kind_eq)
 
 MAKE_NE_FUN(dtfft_execute_t, execute_type_ne)
 MAKE_NE_FUN(dtfft_transpose_t, transpose_type_ne)
 MAKE_NE_FUN(dtfft_reshape_t, reshape_type_ne)
-MAKE_NE_FUN(dtfft_executor_t, executor_ne)
+! MAKE_NE_FUN(dtfft_executor_t, executor_ne)
 MAKE_NE_FUN(dtfft_effort_t, effort_ne)
 MAKE_NE_FUN(dtfft_precision_t, precision_ne)
 MAKE_NE_FUN(dtfft_r2r_kind_t, r2r_kind_ne)
@@ -623,17 +616,19 @@ MAKE_NE_FUN(dtfft_platform_t, platform_ne)
 MAKE_NE_FUN(dtfft_layout_t, layout_ne)
 MAKE_NE_FUN(dtfft_transpose_mode_t, transpose_mode_ne)
 MAKE_NE_FUN(dtfft_access_mode_t, access_mode_ne)
+MAKE_NE_FUN(plan_kind_t, plan_kind_ne)
 
 MAKE_VALID_FUN_DTYPE(dtfft_execute_t, is_valid_execute_type, VALID_EXECUTE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_transpose_t, is_valid_transpose_type, VALID_TRANSPOSE_TYPES)
 MAKE_VALID_FUN_DTYPE(dtfft_reshape_t, is_valid_reshape_type, VALID_RESHAPE_TYPES)
-MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_valid_executor, VALID_EXECUTORS)
+! MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_valid_executor, VALID_EXECUTORS)
 MAKE_VALID_FUN_DTYPE(dtfft_effort_t, is_valid_effort, VALID_EFFORTS)
 MAKE_VALID_FUN_DTYPE(dtfft_precision_t, is_valid_precision, VALID_PRECISIONS)
 MAKE_VALID_FUN_DTYPE(dtfft_r2r_kind_t, is_valid_r2r_kind, VALID_R2R_KINDS)
 MAKE_VALID_FUN_DTYPE(dtfft_layout_t, is_valid_layout, VALID_LAYOUTS)
 MAKE_VALID_FUN_DTYPE(dtfft_transpose_mode_t, is_valid_transpose_mode, VALID_TRANSPOSE_MODES)
 MAKE_VALID_FUN_DTYPE(dtfft_access_mode_t, is_valid_access_mode, VALID_ACCESS_MODES)
+MAKE_VALID_FUN_DTYPE(plan_kind_t, is_valid_plan_kind, VALID_PLAN_KINDS)
 
 MAKE_VALID_FUN(integer(int8), is_valid_dimension, VALID_DIMENSIONS)
 MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
@@ -667,26 +662,26 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     endselect
   end function dtfft_get_precision_string
 
-  function dtfft_get_executor_string(executor) result(string)
-  !! Gets the string description of an executor
-    type(dtfft_executor_t), intent(in) :: executor !! Executor type
-    character(len=:), allocatable :: string !! Executor string
+  ! function dtfft_get_executor_string(executor) result(string)
+  ! !! Gets the string description of an executor
+  !   type(dtfft_executor_t), intent(in) :: executor !! Executor type
+  !   character(len=:), allocatable :: string !! Executor string
 
-    select case ( executor%val )
-    case ( DTFFT_EXECUTOR_NONE%val )
-      allocate(string, source="None")
-    case ( DTFFT_EXECUTOR_FFTW3%val )
-      allocate(string, source="FFTW3")
-    case ( DTFFT_EXECUTOR_MKL%val )
-      allocate(string, source="MKL")
-    case ( DTFFT_EXECUTOR_CUFFT%val )
-      allocate(string, source="CUFFT")
-    case ( DTFFT_EXECUTOR_VKFFT%val )
-      allocate(string, source="VKFFT")
-    case default
-      allocate(string, source="Unknown executor")
-    endselect
-  end function dtfft_get_executor_string
+  !   select case ( executor%val )
+  !   case ( DTFFT_EXECUTOR_NONE%val )
+  !     allocate(string, source="None")
+  !   case ( DTFFT_EXECUTOR_FFTW3%val )
+  !     allocate(string, source="FFTW3")
+  !   case ( DTFFT_EXECUTOR_MKL%val )
+  !     allocate(string, source="MKL")
+  !   case ( DTFFT_EXECUTOR_CUFFT%val )
+  !     allocate(string, source="CUFFT")
+  !   case ( DTFFT_EXECUTOR_VKFFT%val )
+  !     allocate(string, source="VKFFT")
+  !   case default
+  !     allocate(string, source="Unknown executor")
+  !   endselect
+  ! end function dtfft_get_executor_string
 
   function dtfft_get_backend_string(backend) result(string)
   !! Gets the string description of a backend
@@ -735,6 +730,23 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
     endselect
   end function dtfft_get_backend_string
 
+  function get_platform_string(platform) result(string)
+  !! Gets the string description of a platform
+    type(dtfft_platform_t), intent(in) :: platform !! Platform ID
+    character(len=:), allocatable :: string !! Platform string
+
+    select case ( platform%val )
+    case ( DTFFT_PLATFORM_HOST%val )
+      allocate(string, source="HOST")
+    case ( DTFFT_PLATFORM_CUDA%val )
+      allocate(string, source="CUDA")
+    ! case ( DTFFT_PLATFORM_HIP%val )
+    !   allocate(string, source="HIP")
+    case default
+      allocate(string, source="Unknown platform")
+    endselect
+  end function get_platform_string
+
   MAKE_EQ_FUN(dtfft_backend_t, backend_eq)
   MAKE_NE_FUN(dtfft_backend_t, backend_ne)
 
@@ -752,8 +764,8 @@ MAKE_VALID_FUN(integer(int32), is_valid_comm_type, VALID_COMM_TYPES)
   MAKE_VALID_FUN_DTYPE(dtfft_backend_t, is_backend_nvshmem, NVSHMEM_BACKENDS)
 
 #ifdef DTFFT_WITH_CUDA
-  MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_host_executor, HOST_EXECUTORS)
-  MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_cuda_executor, CUDA_EXECUTORS)
+  ! MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_host_executor, HOST_EXECUTORS)
+  ! MAKE_VALID_FUN_DTYPE(dtfft_executor_t, is_cuda_executor, CUDA_EXECUTORS)
   MAKE_VALID_FUN_DTYPE(dtfft_platform_t, is_valid_platform, VALID_PLATFORMS)
 
   function stream_from_int64(cuda_stream) result(stream)

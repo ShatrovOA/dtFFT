@@ -1,0 +1,576 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>unpack_forward_pipelined_co_f64 &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>unpack_forward_pipelined_co_f64
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.0% of total for procedures.">15 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_kernel_host_co_sm.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_kernel_host_co_sm.f90.html'>dtfft_kernel_host_co_sm.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_kernel_host_co_sm.html'>dtfft_kernel_host_co_sm</a></li>
+            <li class="breadcrumb-item active" aria-current="page">unpack_forward_pipelined_co_f64</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2> subroutine unpack_forward_pipelined_co_f64(in, out, dims, locals, threshold)  
+</h2>
+    
+
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~257"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong>(:)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~257"></span>
+              real(kind=real64),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong>(:)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~238"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-locals~138"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>locals</strong>(:)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-threshold~35"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>threshold</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~unpack_forward_pipelined_co_f64~~CallsGraph Pages: 1 -->
+<svg id="procunpack_forward_pipelined_co_f64CallsGraph" width="449pt" height="110pt"
+ viewBox="0.00 0.00 449.00 110.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~unpack_forward_pipelined_co_f64~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 106)">
+<title>proc~~unpack_forward_pipelined_co_f64~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-106 445,-106 445,4 -4,4"/>
+<!-- proc~unpack_forward_pipelined_co_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CallsGraph_node1" class="node">
+<title>proc~unpack_forward_pipelined_co_f64</title>
+<polygon fill="none" stroke="black" points="193,-54 0,-54 0,-30 193,-30 193,-54"/>
+<text text-anchor="middle" x="96.5" y="-39.6" font-family="Helvetica,sans-Serif" font-size="10.50">unpack_forward_pipelined_co_f64</text>
+</g>
+<!-- proc~co_unpack_forward_pipelined_2d_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CallsGraph_node2" class="node">
+<title>proc~co_unpack_forward_pipelined_2d_f64</title>
+<g id="a_proc~~unpack_forward_pipelined_co_f64~~CallsGraph_node2"><a xlink:href="../proc/co_unpack_forward_pipelined_2d_f64.html" xlink:title="co_unpack_forward_pipelined_2d_f64">
+<polygon fill="#d9534f" stroke="#d9534f" points="441,-84 229,-84 229,-60 441,-60 441,-84"/>
+<text text-anchor="middle" x="335" y="-69.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_unpack_forward_pipelined_2d_f64</text>
+</a>
+</g>
+</g>
+<!-- proc~unpack_forward_pipelined_co_f64&#45;&gt;proc~co_unpack_forward_pipelined_2d_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CallsGraph_edge1" class="edge">
+<title>proc~unpack_forward_pipelined_co_f64&#45;&gt;proc~co_unpack_forward_pipelined_2d_f64</title>
+<path fill="none" stroke="#ff0000" d="M192.33,-54.03C204.38,-55.56 216.76,-57.13 228.96,-58.68"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="228.79,-62.18 239.15,-59.97 229.67,-55.24 228.79,-62.18"/>
+</g>
+<!-- proc~co_unpack_forward_pipelined_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CallsGraph_node3" class="node">
+<title>proc~co_unpack_forward_pipelined_f64</title>
+<g id="a_proc~~unpack_forward_pipelined_co_f64~~CallsGraph_node3"><a xlink:href="../proc/co_unpack_forward_pipelined_f64.html" xlink:title="co_unpack_forward_pipelined_f64">
+<polygon fill="#d9534f" stroke="#d9534f" points="431.5,-24 238.5,-24 238.5,0 431.5,0 431.5,-24"/>
+<text text-anchor="middle" x="335" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_unpack_forward_pipelined_f64</text>
+</a>
+</g>
+</g>
+<!-- proc~unpack_forward_pipelined_co_f64&#45;&gt;proc~co_unpack_forward_pipelined_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CallsGraph_edge2" class="edge">
+<title>proc~unpack_forward_pipelined_co_f64&#45;&gt;proc~co_unpack_forward_pipelined_f64</title>
+<path fill="none" stroke="#ff0000" d="M192.33,-29.97C204.38,-28.44 216.76,-26.87 228.96,-25.32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="229.67,-28.76 239.15,-24.03 228.79,-21.82 229.67,-28.76"/>
+</g>
+<!-- proc~co_unpack_forward_pipelined_2d_f64&#45;&gt;proc~co_unpack_forward_pipelined_2d_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CallsGraph_edge3" class="edge">
+<title>proc~co_unpack_forward_pipelined_2d_f64&#45;&gt;proc~co_unpack_forward_pipelined_2d_f64</title>
+<path fill="none" stroke="#ff0000" d="M295.65,-84.01C281.91,-92.97 295.02,-102 335,-102 361.23,-102 375.9,-98.11 379,-92.91"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="382.09,-91.25 374.35,-84.01 375.88,-94.5 382.09,-91.25"/>
+</g>
+<!-- proc~co_unpack_forward_pipelined_f64&#45;&gt;proc~co_unpack_forward_pipelined_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CallsGraph_edge4" class="edge">
+<title>proc~co_unpack_forward_pipelined_f64&#45;&gt;proc~co_unpack_forward_pipelined_f64</title>
+<path fill="none" stroke="#00ffff" d="M295.65,-24.01C281.91,-32.97 295.02,-42 335,-42 361.23,-42 375.9,-38.11 379,-32.91"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="382.09,-31.25 374.35,-24.01 375.88,-34.5 382.09,-31.25"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~unpack_forward_pipelined_co_f64~~CalledByGraph Pages: 1 -->
+<svg id="procunpack_forward_pipelined_co_f64CalledByGraph" width="507pt" height="52pt"
+ viewBox="0.00 0.00 507.00 52.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~unpack_forward_pipelined_co_f64~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 48)">
+<title>proc~~unpack_forward_pipelined_co_f64~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-48 503,-48 503,4 -4,4"/>
+<!-- proc~unpack_forward_pipelined_co_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CalledByGraph_node1" class="node">
+<title>proc~unpack_forward_pipelined_co_f64</title>
+<polygon fill="none" stroke="black" points="499,-44 306,-44 306,-20 499,-20 499,-44"/>
+<text text-anchor="middle" x="402.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50">unpack_forward_pipelined_co_f64</text>
+</g>
+<!-- proc~execute_f64_co -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CalledByGraph_node2" class="node">
+<title>proc~execute_f64_co</title>
+<g id="a_proc~~unpack_forward_pipelined_co_f64~~CalledByGraph_node2"><a xlink:href="../proc/execute_f64_co.html" xlink:title="execute_f64_co">
+<polygon fill="#d9534f" stroke="#d9534f" points="95,-44 0,-44 0,-20 95,-20 95,-44"/>
+<text text-anchor="middle" x="47.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">execute_f64_co</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f64_co&#45;&gt;proc~unpack_forward_pipelined_co_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CalledByGraph_edge1" class="edge">
+<title>proc~execute_f64_co&#45;&gt;proc~unpack_forward_pipelined_co_f64</title>
+<path fill="none" stroke="#ff0000" d="M95.18,-32.66C106.88,-32.8 119.4,-32.93 131,-33 185.26,-33.33 245.64,-33.16 295.57,-32.87"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="295.75,-36.37 305.73,-32.81 295.71,-29.37 295.75,-36.37"/>
+</g>
+<!-- proc~unpack_forward_co_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CalledByGraph_node3" class="node">
+<title>proc~unpack_forward_co_f64</title>
+<g id="a_proc~~unpack_forward_pipelined_co_f64~~CalledByGraph_node3"><a xlink:href="../proc/unpack_forward_co_f64.html" xlink:title="unpack_forward_co_f64">
+<polygon fill="#d9534f" stroke="#d9534f" points="270,-24 131,-24 131,0 270,0 270,-24"/>
+<text text-anchor="middle" x="200.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_forward_co_f64</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f64_co&#45;&gt;proc~unpack_forward_co_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CalledByGraph_edge3" class="edge">
+<title>proc~execute_f64_co&#45;&gt;proc~unpack_forward_co_f64</title>
+<path fill="none" stroke="#00ffff" d="M95.04,-25.84C103.28,-24.74 112.08,-23.58 120.92,-22.41"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="121.46,-25.87 130.91,-21.08 120.54,-18.93 121.46,-25.87"/>
+</g>
+<!-- proc~unpack_forward_co_f64&#45;&gt;proc~unpack_forward_pipelined_co_f64 -->
+<g id="proc~~unpack_forward_pipelined_co_f64~~CalledByGraph_edge2" class="edge">
+<title>proc~unpack_forward_co_f64&#45;&gt;proc~unpack_forward_pipelined_co_f64</title>
+<path fill="none" stroke="#ff0000" d="M270.05,-18.85C278.34,-19.68 286.95,-20.54 295.62,-21.41"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="295.51,-24.92 305.81,-22.43 296.21,-17.95 295.51,-24.92"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

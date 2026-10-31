@@ -27,9 +27,10 @@ use iso_c_binding,                  only: c_ptr, c_f_pointer
 use dtfft_abstract_reshape_handle,  only: abstract_reshape_handle, create_args, execute_args
 use dtfft_errors
 use dtfft_parameters
-use dtfft_pencil,     only: pencil, get_float_buffer_size
+use dtfft_pencil,                   only: pencil, get_float_buffer_size
+use dtfft_serializer,               only: serializer
 #include "_dtfft_mpi.h"
-#include "_dtfft_private.h"
+! #include "_dtfft_private.h"
 #include "_dtfft_profile.h"
 #include "_dtfft_cuda.h"
 implicit none
@@ -90,7 +91,9 @@ public :: reshape_handle_datatype
         procedure, pass(self),  public  :: execute_end            !! Waits for MPI_Ialltoall(w) to complete
         procedure, pass(self),  public  :: destroy                !! Destroys class
         procedure, pass(self),  public  :: get_async_active       !! Returns .true. if async transposition is active
-        procedure, pass(self),  public  :: get_backend
+        procedure, pass(self),  public  :: get_backend_private => get_backend
+        procedure, pass(self),  public  :: save_private
+        procedure, pass(self),  public  :: load_private
     end type reshape_handle_datatype
 
 contains
@@ -159,9 +162,6 @@ contains
         self%is_request_created = .false.
 #endif
 
-        call self%send%create(n_neighbors)
-        call self%recv%create(n_neighbors)
-
         allocate(recv_counts(recv%rank, comm_size), source = 0_int32)
         allocate(send_counts, source = recv_counts)
         allocate(recv_starts, source = recv_counts)
@@ -173,7 +173,7 @@ contains
 
         transpose_type = kwargs%helper%transpose_type
         reshape_type = kwargs%helper%reshape_type
-        tmode = kwargs%transpose_mode
+        tmode = self%transpose_mode
         base_type = kwargs%base_type
         base_storage = kwargs%base_storage
 
@@ -198,8 +198,14 @@ contains
             else
                 reshape_strat = 3
             endif
+            if ( reshape_strat == 3 .and. self%is_even ) then
+                self%is_even = .false.
+                n_neighbors = comm_size
+            endif
         endif
 
+        call self%send%create(n_neighbors)
+        call self%recv%create(n_neighbors)
         self%min_buffer_size = get_float_buffer_size(send, recv, base_storage)
 
         recv_displ = 0
@@ -274,6 +280,20 @@ contains
         class(reshape_handle_datatype),   intent(in)    :: self       !! Abstract reshape Handle
         get_backend = DTFFT_BACKEND_MPI_DATATYPE
     end function get_backend
+
+    subroutine save_private(self, fh)
+    !! Nothing to do here
+        class(reshape_handle_datatype), intent(in)    :: self         !! Abstract reshape Handle
+        type(serializer),               intent(inout) :: fh
+    end subroutine save_private
+
+    integer(int32) function load_private(self, fh) result(ierr)
+    !! Nothing to do here
+        class(reshape_handle_datatype), intent(inout) :: self         !! Abstract reshape Handle
+        type(serializer),               intent(inout) :: fh
+
+        ierr = DTFFT_SUCCESS
+    end function load_private
 
     subroutine execute(self, in, out, kwargs, error_code)
     !! Executes transposition/reshaping
@@ -431,6 +451,7 @@ contains
         if( allocated(self%requests) ) deallocate( self%requests )
         self%is_active = .false.
         self%is_even = .false.
+        self%is_created = .false.
     end subroutine destroy
 
     subroutine create_transpose_2d(send, send_counts, recv, recv_counts, transpose_mode, base_type, base_storage, send_dtype, send_displ, recv_dtype, recv_displ)

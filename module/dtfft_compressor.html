@@ -1,0 +1,1088 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dtfft_compressor &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>dtfft_compressor
+      <small>Module</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for modules and submodules.">36 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_compressor.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_compressor.f90.html'>dtfft_compressor.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">dtfft_compressor</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_compressor.html#proc-get_compressor_string">get_compressor_string</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_compressor.html#proc-allocate_compressor">allocate_compressor</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+
+    <div class="col-md-9" id='text'>
+      
+<br>          <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='dtfft_abstract_compressor.html'>dtfft_abstract_compressor</a></li>
+                  <li class="list-inline-item"><a href='dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='dtfft_errors.html'>dtfft_errors</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_compressor~~UsesGraph Pages: 1 -->
+<svg id="moduledtfft_compressorUsesGraph" width="641pt" height="286pt"
+ viewBox="0.00 0.00 641.00 285.66" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_compressor~~UsesGraph" class="graph" transform="scale(0.79 0.79) rotate(0) translate(4 358.31)">
+<title>module~~dtfft_compressor~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-358.31 809,-358.31 809,4 -4,4"/>
+<!-- module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsesGraph_node1" class="node">
+<title>module~dtfft_compressor</title>
+<polygon fill="none" stroke="black" points="805,-153.72 703,-153.72 703,-129.72 805,-129.72 805,-153.72"/>
+<text text-anchor="middle" x="754" y="-139.32" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_compressor</text>
+</g>
+<!-- iso_c_binding -->
+<g id="module~~dtfft_compressor~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-211.72 5,-211.72 5,-187.72 89,-187.72 89,-211.72"/>
+<text text-anchor="middle" x="47" y="-197.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge1" class="edge">
+<title>module~dtfft_compressor&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M421.5,-351.72C367.53,-356.91 353.72,-351.5 299.5,-351.72"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~dtfft_compressor~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-73.72 0,-73.72 0,-49.72 94,-49.72 94,-73.72"/>
+<text text-anchor="middle" x="47" y="-59.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge2" class="edge">
+<title>module~dtfft_compressor&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M705.66,-129.65C673.73,-121.58 630.63,-110.81 592.5,-101.72"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M590.5,-101.72C506.79,-81.76 508.06,-19.69 423.5,-3.72"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M421.5,-3.72C368.22,6.35 353.53,-8.3 299.5,-3.72"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-3.72C222.94,2.6 201.86,0.13 130,-20.72 111.14,-26.19 91.41,-35.91 76.03,-44.52"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="73.98,-41.66 67.06,-49.68 77.48,-47.72 73.98,-41.66"/>
+</g>
+<!-- module~dtfft_abstract_compressor -->
+<g id="module~~dtfft_compressor~~UsesGraph_node4" class="node">
+<title>module~dtfft_abstract_compressor</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node4"><a xlink:href="../module/dtfft_abstract_compressor.html" xlink:title="dtfft_abstract_compressor">
+<polygon fill="#337ab7" stroke="#337ab7" points="667,-153.72 516,-153.72 516,-129.72 667,-129.72 667,-153.72"/>
+<text text-anchor="middle" x="591.5" y="-139.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge3" class="edge">
+<title>module~dtfft_compressor&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M702.66,-141.72C694.53,-141.72 685.92,-141.72 677.25,-141.72"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="677.06,-138.22 667.06,-141.72 677.06,-145.22 677.06,-138.22"/>
+</g>
+<!-- module~dtfft_errors -->
+<g id="module~~dtfft_compressor~~UsesGraph_node5" class="node">
+<title>module~dtfft_errors</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node5"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
+<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-53.72 145.5,-53.72 145.5,-29.72 216.5,-29.72 216.5,-53.72"/>
+<text text-anchor="middle" x="181" y="-39.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge4" class="edge">
+<title>module~dtfft_compressor&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M421.5,-3.72C365.7,6.83 356.13,-37.4 299.5,-41.72"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-41.72C274.22,-43.49 248.22,-43.65 226.79,-43.3"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="226.74,-39.8 216.67,-43.09 226.6,-46.79 226.74,-39.8"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="module~~dtfft_compressor~~UsesGraph_node6" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node6"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-209.72 130,-209.72 130,-185.72 232,-185.72 232,-209.72"/>
+<text text-anchor="middle" x="181" y="-195.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge5" class="edge">
+<title>module~dtfft_compressor&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M743.87,-154C708.08,-200.56 571.97,-363.03 423.5,-351.72"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M421.5,-351.72C323.05,-361.57 232.14,-261.88 197.16,-217.91"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="199.84,-215.65 190.93,-209.91 194.31,-219.95 199.84,-215.65"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="module~~dtfft_compressor~~UsesGraph_node7" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node7"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-133.72 268,-133.72 268,-109.72 329,-109.72 329,-133.72"/>
+<text text-anchor="middle" x="298.5" y="-119.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge6" class="edge">
+<title>module~dtfft_compressor&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M590.5,-101.72C517.79,-84.38 498.25,-121.72 423.5,-121.72"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M421.5,-121.72C394.01,-121.72 363.03,-121.72 339.17,-121.72"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="339.08,-118.22 329.08,-121.72 339.08,-125.22 339.08,-118.22"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge7" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M421.5,-275.72C363.35,-302.17 362.68,-342.25 299.5,-351.72"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-351.72C196.65,-366.82 100.33,-264.46 63.62,-219.81"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="66.28,-217.54 57.28,-211.95 60.83,-221.93 66.28,-217.54"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge8" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M541.24,-129.68C532.29,-126.11 523.45,-121.54 516,-115.72 492.98,-97.72 503.12,-78.58 480,-60.72 459.04,-44.52 448.45,-50.63 423.5,-41.72"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M421.5,-41.72C368.02,-22.61 356.09,-8.51 299.5,-3.72"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge9" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M421.5,-41.72C370.44,-23.47 353.57,-37.6 299.5,-41.72"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M580.81,-153.79C557.39,-181.87 494.41,-251.02 423.5,-275.72"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M421.5,-275.72C382.66,-289.25 271.58,-240.77 215.4,-214.12"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="216.75,-210.89 206.22,-209.72 213.73,-217.2 216.75,-210.89"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M521.25,-129.68C491.29,-125.44 455.77,-121.72 423.5,-121.72"/>
+</g>
+<!-- module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_compressor~~UsesGraph_node8" class="node">
+<title>module~dtfft_interface_nvtx</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node8"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
+<polygon fill="#337ab7" stroke="#337ab7" points="480,-173.72 365,-173.72 365,-149.72 480,-149.72 480,-173.72"/>
+<text text-anchor="middle" x="422.5" y="-159.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M515.79,-150.66C507.27,-151.68 498.63,-152.72 490.22,-153.73"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="489.62,-150.27 480.11,-154.94 490.45,-157.22 489.62,-150.27"/>
+</g>
+<!-- module~dtfft_serializer -->
+<g id="module~~dtfft_compressor~~UsesGraph_node9" class="node">
+<title>module~dtfft_serializer</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node9"><a xlink:href="../module/dtfft_serializer.html" xlink:title="dtfft_serializer">
+<polygon fill="#337ab7" stroke="#337ab7" points="466.5,-93.72 378.5,-93.72 378.5,-69.72 466.5,-69.72 466.5,-93.72"/>
+<text text-anchor="middle" x="422.5" y="-79.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_serializer</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_serializer -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge12" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_serializer</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M555.59,-129.67C543.09,-125.32 528.9,-120.34 516,-115.72 499.46,-109.79 481.31,-103.15 465.49,-97.32"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="466.58,-93.99 455.99,-93.81 464.15,-100.55 466.58,-93.99"/>
+</g>
+<!-- mpi_f08 -->
+<g id="module~~dtfft_compressor~~UsesGraph_node10" class="node">
+<title>mpi_f08</title>
+<g id="a_module~~dtfft_compressor~~UsesGraph_node10"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-169.72 19.5,-169.72 19.5,-145.72 74.5,-145.72 74.5,-169.72"/>
+<text text-anchor="middle" x="47" y="-155.32" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M421.5,-275.72C299.95,-327.21 241.14,-289.96 130,-218.72 109.86,-205.81 113.28,-192.87 94,-178.72 90.83,-176.39 87.35,-174.23 83.78,-172.26"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="85.33,-169.11 74.82,-167.73 82.17,-175.36 85.33,-169.11"/>
+</g>
+<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M145.32,-46.97C132.78,-48.87 118.28,-51.07 104.36,-53.18"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="103.73,-49.73 94.36,-54.69 104.78,-56.65 103.73,-49.73"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge16" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M129.72,-198.48C119.77,-198.63 109.31,-198.79 99.33,-198.94"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="99.08,-195.44 89.14,-199.09 99.19,-202.44 99.08,-195.44"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M151.36,-185.63C143.97,-181.78 136.33,-177.11 130,-171.72 99.57,-145.83 73.81,-106.64 59.67,-82.7"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="62.7,-80.94 54.67,-74.03 56.64,-84.44 62.7,-80.94"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M140.4,-185.72C122.62,-180.33 101.79,-174.02 84.41,-168.75"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="85.21,-165.34 74.62,-165.78 83.18,-172.03 85.21,-165.34"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M180,-157.72C149.59,-164.72 116.09,-175.42 90.45,-184.26"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="88.96,-181.07 80.68,-187.67 91.27,-187.68 88.96,-181.07"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M271.12,-109.6C248.14,-99.78 213.64,-86.77 182,-81.72"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge21" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M283.55,-109.63C267.6,-95.92 242.39,-74.59 232,-67.72 227.26,-64.58 222.09,-61.53 216.94,-58.68"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="218.24,-55.41 207.77,-53.81 214.96,-61.59 218.24,-55.41"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M283.2,-133.79C270.26,-144.42 250.48,-159.98 232,-171.72 226.97,-174.91 221.51,-178.05 216.1,-180.99"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="214.36,-177.95 207.14,-185.71 217.62,-184.15 214.36,-177.95"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M267.93,-132.3C244.79,-140.24 211.68,-150.88 182,-157.72"/>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M180,-157.72C148.46,-164.98 111.54,-164.23 84.78,-162.1"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="84.97,-158.6 74.69,-161.19 84.34,-165.57 84.97,-158.6"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M391.27,-173.81C354.39,-187.87 289.78,-210.21 232,-218.72 187.15,-225.32 175.04,-223.87 130,-218.72 119.98,-217.57 109.41,-215.66 99.3,-213.49"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="99.92,-210.04 89.4,-211.24 98.37,-216.86 99.92,-210.04"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge25" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M384.9,-149.72C370.41,-144.97 353.73,-139.5 338.97,-134.66"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="339.71,-131.22 329.12,-131.43 337.53,-137.87 339.71,-131.22"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;iso_fortran_env -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_serializer&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-81.72C246.17,-81.57 232.69,-89.81 182,-81.72"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M180,-81.72C155.18,-77.75 127.7,-73.56 104.26,-70.04"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="104.56,-66.54 94.15,-68.52 103.52,-73.47 104.56,-66.54"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;module~dtfft_errors -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge27" class="edge">
+<title>module~dtfft_serializer&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M378.31,-81.78C354.97,-81.79 325.66,-81.79 299.5,-81.72"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-81.72C267.42,-81.63 235.24,-69.38 212.51,-58.46"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="213.89,-55.23 203.38,-53.9 210.76,-61.5 213.89,-55.23"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;module~dtfft_utils -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge28" class="edge">
+<title>module~dtfft_serializer&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M384.9,-93.72C370.41,-98.47 353.73,-103.94 338.97,-108.77"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="337.53,-105.56 329.12,-112.01 339.71,-112.22 337.53,-105.56"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;mpi_f08 -->
+<g id="module~~dtfft_compressor~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_serializer&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-81.72C275.96,-81.66 148.55,-123.69 84.59,-145.26"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="83.25,-142.02 74.9,-148.54 85.49,-148.65 83.25,-142.02"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_compressorUsesGraph = svgPanZoom('#moduledtfft_compressorUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+          <div class="card">
+      <h3 class="card-header card-title bg-light">Used by</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: module~~dtfft_compressor~~UsedByGraph Pages: 1 -->
+<svg id="moduledtfft_compressorUsedByGraph" width="641pt" height="159pt"
+ viewBox="0.00 0.00 641.00 158.75" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~dtfft_compressor~~UsedByGraph" class="graph" transform="scale(0.6 0.6) rotate(0) translate(4 260)">
+<title>module~~dtfft_compressor~~UsedByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-260 1062,-260 1062,4 -4,4"/>
+<!-- module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node1" class="node">
+<title>module~dtfft_compressor</title>
+<polygon fill="none" stroke="black" points="102,-129 0,-129 0,-105 102,-105 102,-129"/>
+<text text-anchor="middle" x="51" y="-114.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_compressor</text>
+</g>
+<!-- module~dtfft -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node2" class="node">
+<title>module~dtfft</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node2"><a xlink:href="../module/dtfft.html" xlink:title="dtfft">
+<polygon fill="#337ab7" stroke="#337ab7" points="902,-213 848,-213 848,-189 902,-189 902,-213"/>
+<text text-anchor="middle" x="875" y="-198.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft&#45;&gt;module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge1" class="edge">
+<title>module~dtfft&#45;&gt;module~dtfft_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M847.86,-206.33C759.03,-223.47 461.14,-273.08 224,-220"/>
+</g>
+<!-- module~dtfft_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node16" class="node">
+<title>module~dtfft_plan</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node16"><a xlink:href="../module/dtfft_plan.html" xlink:title="dtfft_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="785.5,-150 722.5,-150 722.5,-126 785.5,-126 785.5,-150"/>
+<text text-anchor="middle" x="754" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge20" class="edge">
+<title>module~dtfft&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M858.05,-188.87C845.68,-179.84 827.85,-167.63 811,-159 806.03,-156.46 800.68,-154.05 795.33,-151.85"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="796.36,-148.49 785.77,-148.1 793.8,-155.01 796.36,-148.49"/>
+</g>
+<!-- module~dtfft_abstract_reshape_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node3" class="node">
+<title>module~dtfft_abstract_reshape_plan</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node3"><a xlink:href="../module/dtfft_abstract_reshape_plan.html" xlink:title="dtfft_abstract_reshape_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="504,-192 344,-192 344,-168 504,-168 504,-192"/>
+<text text-anchor="middle" x="424" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_reshape_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_reshape_plan&#45;&gt;module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge2" class="edge">
+<title>module~dtfft_abstract_reshape_plan&#45;&gt;module~dtfft_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M382.76,-192.11C333.7,-206.17 253.66,-226.64 224,-220"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M222,-220C184.65,-211.64 171.63,-219.28 138,-201 108.77,-185.11 82.6,-156.44 67.01,-137.06"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="69.73,-134.86 60.81,-129.14 64.22,-139.18 69.73,-134.86"/>
+</g>
+<!-- module~dtfft_reshape_handle_generic -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node4" class="node">
+<title>module~dtfft_reshape_handle_generic</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node4"><a xlink:href="../module/dtfft_reshape_handle_generic.html" xlink:title="dtfft_reshape_handle_generic">
+<polygon fill="#337ab7" stroke="#337ab7" points="308,-192 138,-192 138,-168 308,-168 308,-192"/>
+<text text-anchor="middle" x="223" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_reshape_handle_generic</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_reshape_plan&#45;&gt;module~dtfft_reshape_handle_generic -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge14" class="edge">
+<title>module~dtfft_abstract_reshape_plan&#45;&gt;module~dtfft_reshape_handle_generic</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M343.78,-180C335.36,-180 326.75,-180 318.19,-180"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="318.17,-176.5 308.17,-180 318.17,-183.5 318.17,-176.5"/>
+</g>
+<!-- module~dtfft_reshape_handle_generic&#45;&gt;module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge3" class="edge">
+<title>module~dtfft_reshape_handle_generic&#45;&gt;module~dtfft_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M166.83,-167.96C157.11,-165.35 147.18,-162.35 138,-159 119.08,-152.1 98.79,-142.32 82.68,-133.93"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="84.19,-130.77 73.72,-129.19 80.92,-136.96 84.19,-130.77"/>
+</g>
+<!-- program~test_backend_compressed -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node5" class="node">
+<title>program~test_backend_compressed</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node5"><a xlink:href="../program/test_backend_compressed.html" xlink:title="test_backend_compressed">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="299.5,-150 146.5,-150 146.5,-126 299.5,-126 299.5,-150"/>
+<text text-anchor="middle" x="223" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_backend_compressed</text>
+</a>
+</g>
+</g>
+<!-- program~test_backend_compressed&#45;&gt;module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge4" class="edge">
+<title>program~test_backend_compressed&#45;&gt;module~dtfft_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M146.45,-128.67C135.04,-127.26 123.4,-125.82 112.37,-124.46"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="112.79,-120.98 102.44,-123.23 111.93,-127.93 112.79,-120.98"/>
+</g>
+<!-- program~test_compression -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node6" class="node">
+<title>program~test_compression</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node6"><a xlink:href="../program/test_compression.html" xlink:title="test_compression">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="275.5,-108 170.5,-108 170.5,-84 275.5,-84 275.5,-108"/>
+<text text-anchor="middle" x="223" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_compression</text>
+</a>
+</g>
+</g>
+<!-- program~test_compression&#45;&gt;module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge5" class="edge">
+<title>program~test_compression&#45;&gt;module~dtfft_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M170.07,-102.41C151.78,-104.67 131.07,-107.23 112.15,-109.57"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="111.65,-106.1 102.15,-110.8 112.51,-113.05 111.65,-106.1"/>
+</g>
+<!-- program~test_compressors_device -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node7" class="node">
+<title>program~test_compressors_device</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node7"><a xlink:href="../program/test_compressors_device.html" xlink:title="test_compressors_device">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="295.5,-66 150.5,-66 150.5,-42 295.5,-42 295.5,-66"/>
+<text text-anchor="middle" x="223" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_compressors_device</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge6" class="edge">
+<title>program~test_compressors_device&#45;&gt;module~dtfft_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M166.83,-66.04C157.11,-68.65 147.18,-71.65 138,-75 119.08,-81.9 98.79,-91.68 82.68,-100.07"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="80.92,-97.04 73.72,-104.81 84.19,-103.23 80.92,-97.04"/>
+</g>
+<!-- program~test_compressors_host -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node8" class="node">
+<title>program~test_compressors_host</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node8"><a xlink:href="../program/test_compressors_host.html" xlink:title="test_compressors_host">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="289.5,-24 156.5,-24 156.5,0 289.5,0 289.5,-24"/>
+<text text-anchor="middle" x="223" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_compressors_host</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_host&#45;&gt;module~dtfft_compressor -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge7" class="edge">
+<title>program~test_compressors_host&#45;&gt;module~dtfft_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M158.23,-24.09C151.19,-26.54 144.3,-29.48 138,-33 108.95,-49.22 82.73,-77.81 67.08,-97.08"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="64.32,-94.93 60.86,-104.95 69.81,-99.28 64.32,-94.93"/>
+</g>
+<!-- module~dtfft_reshape_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node9" class="node">
+<title>module~dtfft_reshape_plan</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node9"><a xlink:href="../module/dtfft_reshape_plan.html" xlink:title="dtfft_reshape_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="656,-192 545,-192 545,-168 656,-168 656,-192"/>
+<text text-anchor="middle" x="600.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_reshape_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_reshape_plan&#45;&gt;module~dtfft_abstract_reshape_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge12" class="edge">
+<title>module~dtfft_reshape_plan&#45;&gt;module~dtfft_abstract_reshape_plan</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M544.77,-180C534.99,-180 524.59,-180 514.15,-180"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="514.14,-176.5 504.14,-180 514.14,-183.5 514.14,-176.5"/>
+</g>
+<!-- module~dtfft_transpose_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node10" class="node">
+<title>module~dtfft_transpose_plan</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node10"><a xlink:href="../module/dtfft_transpose_plan.html" xlink:title="dtfft_transpose_plan">
+<polygon fill="#337ab7" stroke="#337ab7" points="661,-150 540,-150 540,-126 661,-126 661,-150"/>
+<text text-anchor="middle" x="600.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_transpose_plan</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_transpose_plan&#45;&gt;module~dtfft_abstract_reshape_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge13" class="edge">
+<title>module~dtfft_transpose_plan&#45;&gt;module~dtfft_abstract_reshape_plan</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M549.5,-150.04C529.32,-154.89 505.88,-160.53 484.82,-165.6"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="483.92,-162.22 475.01,-167.96 485.55,-169.03 483.92,-162.22"/>
+</g>
+<!-- program~main -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node11" class="node">
+<title>program~main</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node11"><a xlink:href="../program/main.html" xlink:title="main">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1025.5,-256 971.5,-256 971.5,-232 1025.5,-232 1025.5,-256"/>
+<text text-anchor="middle" x="998.5" y="-241.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">main</text>
+</a>
+</g>
+</g>
+<!-- program~main&#45;&gt;module~dtfft -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge8" class="edge">
+<title>program~main&#45;&gt;module~dtfft</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M971.44,-234.78C953.98,-228.6 930.77,-220.39 911.62,-213.61"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="912.62,-210.25 902.02,-210.21 910.28,-216.85 912.62,-210.25"/>
+</g>
+<!-- program~test_mem_alloc -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node12" class="node">
+<title>program~test_mem_alloc</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node12"><a xlink:href="../program/test_mem_alloc.html" xlink:title="test_mem_alloc">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1046.5,-214 950.5,-214 950.5,-190 1046.5,-190 1046.5,-214"/>
+<text text-anchor="middle" x="998.5" y="-199.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_mem_alloc</text>
+</a>
+</g>
+</g>
+<!-- program~test_mem_alloc&#45;&gt;module~dtfft -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge9" class="edge">
+<title>program~test_mem_alloc&#45;&gt;module~dtfft</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M950.18,-201.61C937.6,-201.51 924.22,-201.4 912.33,-201.3"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="912.36,-197.8 902.33,-201.22 912.3,-204.8 912.36,-197.8"/>
+</g>
+<!-- program~test_plan_save_load -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node13" class="node">
+<title>program~test_plan_save_load</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node13"><a xlink:href="../program/test_plan_save_load.html" xlink:title="test_plan_save_load">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1058,-130 939,-130 939,-106 1058,-106 1058,-130"/>
+<text text-anchor="middle" x="998.5" y="-115.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_plan_save_load</text>
+</a>
+</g>
+</g>
+<!-- program~test_plan_save_load&#45;&gt;module~dtfft -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge10" class="edge">
+<title>program~test_plan_save_load&#45;&gt;module~dtfft</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M955.67,-130.12C949.84,-132.63 944.11,-135.57 939,-139 919.14,-152.33 920.32,-162.51 903,-179 901.91,-180.04 900.77,-181.09 899.6,-182.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="897.1,-179.67 891.77,-188.83 901.65,-184.99 897.1,-179.67"/>
+</g>
+<!-- program~test_plan_save_load&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge22" class="edge">
+<title>program~test_plan_save_load&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M938.8,-122.84C894.53,-126.49 834.95,-131.41 795.79,-134.64"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="795.48,-131.15 785.81,-135.46 796.06,-138.13 795.48,-131.15"/>
+</g>
+<!-- program~test_r2r_2d -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node14" class="node">
+<title>program~test_r2r_2d</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node14"><a xlink:href="../program/test_r2r_2d.html" xlink:title="test_r2r_2d">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1034.5,-172 962.5,-172 962.5,-148 1034.5,-148 1034.5,-172"/>
+<text text-anchor="middle" x="998.5" y="-157.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_r2r_2d</text>
+</a>
+</g>
+</g>
+<!-- program~test_r2r_2d&#45;&gt;module~dtfft -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge11" class="edge">
+<title>program~test_r2r_2d&#45;&gt;module~dtfft</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M962.36,-171.86C946.45,-177.23 927.69,-183.56 911.72,-188.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="910.54,-185.65 902.18,-192.16 912.78,-192.28 910.54,-185.65"/>
+</g>
+<!-- program~test_reshape_handles -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node15" class="node">
+<title>program~test_reshape_handles</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node15"><a xlink:href="../program/test_reshape_handles.html" xlink:title="test_reshape_handles">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="487.5,-150 360.5,-150 360.5,-126 487.5,-126 487.5,-150"/>
+<text text-anchor="middle" x="424" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_reshape_handles</text>
+</a>
+</g>
+</g>
+<!-- program~test_reshape_handles&#45;&gt;module~dtfft_reshape_handle_generic -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge15" class="edge">
+<title>program~test_reshape_handles&#45;&gt;module~dtfft_reshape_handle_generic</title>
+<path fill="none" stroke="#48ff00" stroke-dasharray="5,2" d="M365.97,-150.04C342.56,-154.98 315.27,-160.74 290.92,-165.88"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="290.1,-162.47 281.03,-167.96 291.54,-169.32 290.1,-162.47"/>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_reshape_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge16" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_reshape_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M722.34,-146.5C702.99,-151.87 677.45,-158.94 654.85,-165.21"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="653.73,-161.89 645.03,-167.93 655.6,-168.63 653.73,-161.89"/>
+</g>
+<!-- module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge18" class="edge">
+<title>module~dtfft_plan&#45;&gt;module~dtfft_transpose_plan</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M722.34,-138C707.67,-138 689.45,-138 671.64,-138"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="671.24,-134.5 661.24,-138 671.24,-141.5 671.24,-134.5"/>
+</g>
+<!-- program~test_reshape_plans -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node17" class="node">
+<title>program~test_reshape_plans</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node17"><a xlink:href="../program/test_reshape_plans.html" xlink:title="test_reshape_plans">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="811,-192 697,-192 697,-168 811,-168 811,-192"/>
+<text text-anchor="middle" x="754" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_reshape_plans</text>
+</a>
+</g>
+</g>
+<!-- program~test_reshape_plans&#45;&gt;module~dtfft_reshape_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge17" class="edge">
+<title>program~test_reshape_plans&#45;&gt;module~dtfft_reshape_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M696.59,-180C686.78,-180 676.52,-180 666.51,-180"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="666.2,-176.5 656.2,-180 666.2,-183.5 666.2,-176.5"/>
+</g>
+<!-- program~test_reshape_plans&#45;&gt;module~dtfft_transpose_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge19" class="edge">
+<title>program~test_reshape_plans&#45;&gt;module~dtfft_transpose_plan</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M709.59,-167.96C692.47,-163.22 672.64,-157.72 654.68,-152.74"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="655.49,-149.34 644.92,-150.04 653.62,-156.08 655.49,-149.34"/>
+</g>
+<!-- module~dtfft_api -->
+<g id="module~~dtfft_compressor~~UsedByGraph_node18" class="node">
+<title>module~dtfft_api</title>
+<g id="a_module~~dtfft_compressor~~UsedByGraph_node18"><a xlink:href="../module/dtfft_api.html" xlink:title="dtfft_api">
+<polygon fill="#337ab7" stroke="#337ab7" points="903,-170 847,-170 847,-146 903,-146 903,-170"/>
+<text text-anchor="middle" x="875" y="-155.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_api&#45;&gt;module~dtfft_plan -->
+<g id="module~~dtfft_compressor~~UsedByGraph_edge21" class="edge">
+<title>module~dtfft_api&#45;&gt;module~dtfft_plan</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M847,-153.46C831.89,-150.92 812.75,-147.71 795.85,-144.87"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="796.11,-141.36 785.67,-143.15 794.95,-148.26 796.11,-141.36"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmoduledtfft_compressorUsedByGraph = svgPanZoom('#moduledtfft_compressorUsedByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsedByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsedByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+      <br>
+
+
+
+
+
+
+
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_compressor_string"></span> <h3>public  function <a href='../proc/get_compressor_string.html'>get_compressor_string</a>(compressor)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compressor"></span>
+              type(<a href='../type/dtfft_compression_lib_t.html'>dtfft_compression_lib_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>compressor</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/string.html'>string</a>)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-allocate_compressor"></span> <h3>public  subroutine <a href='../proc/allocate_compressor.html'>allocate_compressor</a>(lib, compressor)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Allocates compressor of a dynamic type that corresponds to <code>lib</code></p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lib"></span>
+              type(<a href='../type/dtfft_compression_lib_t.html'>dtfft_compression_lib_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lib</strong></td>
+            <td>
+<p>Compression library</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compressor~2"></span>
+              class(<a href='../type/abstract_compressor.html'>abstract_compressor</a>),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>compressor</strong></td>
+            <td>
+<p>Compressor to allocate</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

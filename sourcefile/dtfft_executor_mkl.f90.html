@@ -1,0 +1,1032 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dtfft_executor_mkl.F90 &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>dtfft_executor_mkl.F90
+      <small>Source File</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.7% of total for source files.">299 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_executor_mkl.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+            <li class="breadcrumb-item active" aria-current="page">dtfft_executor_mkl.F90</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#mods-0"
+         aria-expanded="false" aria-controls="mods-0">
+         <h4 class="card-header bg-primary text-white">Modules</h4>
+      </a>
+      <div id="mods-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/dtfft_executor_mkl_m.html">dtfft_executor_mkl_m</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../sourcefile/dtfft_executor_mkl.f90.html#src">dtfft_executor_mkl.F90</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">This file depends on</h3>
+          </div>
+          <div class="card-body">
+            <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefiledtfft_executor_mklf90EfferentGraph" width="641pt" height="246pt"
+ viewBox="0.00 0.00 641.00 245.63" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph" class="graph" transform="scale(0.48 0.48) rotate(0) translate(4 506.04)">
+<title>sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-506.04 1327,-506.04 1327,4 -4,4"/>
+<!-- sourcefile~dtfft_executor_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~dtfft_executor_mkl.f90</title>
+<polygon fill="none" stroke="black" points="1323,-178.84 1190,-178.84 1190,-154.84 1323,-154.84 1323,-178.84"/>
+<text text-anchor="middle" x="1256.5" y="-164.44" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_executor_mkl.F90</text>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~dtfft_abstract_executor.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node2"><a xlink:href="../sourcefile/dtfft_abstract_executor.f90.html" xlink:title="dtfft_abstract_executor.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1145.5,-198.84 989.5,-198.84 989.5,-174.84 1145.5,-174.84 1145.5,-198.84"/>
+<text text-anchor="middle" x="1067.5" y="-184.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_executor.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_abstract_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1189.83,-173.86C1178.76,-175.05 1167.12,-176.29 1155.61,-177.52"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1155.11,-174.06 1145.54,-178.6 1155.86,-181.02 1155.11,-174.06"/>
+</g>
+<!-- sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~dtfft_errors.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node3"><a xlink:href="../sourcefile/dtfft_errors.f90.html" xlink:title="dtfft_errors.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="109,-392.84 15,-392.84 15,-368.84 109,-368.84 109,-392.84"/>
+<text text-anchor="middle" x="62" y="-378.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1244.03,-179.1C1205.59,-219.47 1076.4,-349.77 945,-420.84 787.41,-506.07 728.51,-506.17 549.5,-498.84"/>
+</g>
+<!-- sourcefile~dtfft_interface_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node4" class="node">
+<title>sourcefile~dtfft_interface_mkl.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node4"><a xlink:href="../sourcefile/dtfft_interface_mkl.f90.html" xlink:title="dtfft_interface_mkl.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="945,-48.84 810,-48.84 810,-24.84 945,-24.84 945,-48.84"/>
+<text text-anchor="middle" x="877.5" y="-34.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_mkl.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_interface_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_interface_mkl.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1066.5,-130.84C1029.14,-119.92 1013.61,-133.1 981,-111.84 958.37,-97.08 966.43,-79.3 945,-62.84 940.28,-59.21 934.98,-56.03 929.5,-53.25"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="930.71,-49.96 920.16,-48.96 927.79,-56.32 930.71,-49.96"/>
+</g>
+<!-- sourcefile~dtfft_interface_mkl_native.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node5" class="node">
+<title>sourcefile~dtfft_interface_mkl_native.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node5"><a xlink:href="../sourcefile/dtfft_interface_mkl_native.f90.html" xlink:title="dtfft_interface_mkl_native.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1154,-102.84 981,-102.84 981,-78.84 1154,-78.84 1154,-102.84"/>
+<text text-anchor="middle" x="1067.5" y="-88.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_mkl_native.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_interface_mkl_native.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge4" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_interface_mkl_native.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1233.4,-154.65C1213.15,-143.79 1182.13,-127.96 1154,-116.84 1143.95,-112.86 1133.03,-109.13 1122.47,-105.79"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1123.49,-102.45 1112.91,-102.85 1121.43,-109.14 1123.49,-102.45"/>
+</g>
+<!-- sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node6" class="node">
+<title>sourcefile~dtfft_parameters.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node6"><a xlink:href="../sourcefile/dtfft_parameters.f90.html" xlink:title="dtfft_parameters.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="124,-350.84 0,-350.84 0,-326.84 124,-326.84 124,-350.84"/>
+<text text-anchor="middle" x="62" y="-336.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge5" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1189.78,-157.62C1153.56,-151.68 1108.05,-142.82 1068.5,-130.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1066.5,-130.84C1029.24,-119.55 1010.38,-137.37 981,-111.84 946.6,-81.95 982.45,-41.79 945,-15.84 895.68,18.34 869.96,-13.65 810,-15.84 693.99,-20.06 665.56,-32.39 549.5,-34.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M547.5,-34.84C390.72,-32.86 340.44,-35.38 203,-110.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M201,-110.84C118.99,-153.6 80.92,-268.58 68.16,-316.94"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="64.75,-316.15 65.7,-326.71 71.54,-317.87 64.75,-316.15"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node7" class="node">
+<title>sourcefile~dtfft_utils.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node7"><a xlink:href="../sourcefile/dtfft_utils.f90.html" xlink:title="dtfft_utils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="244,-351.84 160,-351.84 160,-327.84 244,-327.84 244,-351.84"/>
+<text text-anchor="middle" x="202" y="-337.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge6" class="edge">
+<title>sourcefile~dtfft_executor_mkl.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1066.5,-130.84C935.55,-92.56 586.2,-139.12 454,-172.84 371.52,-193.87 348.34,-202.1 280,-252.84 254.55,-271.73 231.34,-300.2 217.2,-319.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="214.2,-317.56 211.19,-327.72 219.88,-321.65 214.2,-317.56"/>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge7" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M725.5,-460.84C645.64,-465.95 629.46,-502.11 549.5,-498.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M547.5,-498.84C458.19,-495.18 439.39,-460.84 350,-460.84"/>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge9" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1043.26,-174.78C971.7,-138.83 747.6,-34.84 549.5,-34.84"/>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge11" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M989.44,-182.14C846.81,-174.61 547.7,-164.55 454,-205.84 433,-215.09 437.33,-230.47 418,-242.84 391,-260.11 380.79,-257.93 350,-266.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M348,-266.84C304.24,-279.38 257.98,-305.16 229.79,-322.47"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="227.93,-319.51 221.3,-327.77 231.64,-325.45 227.93,-319.51"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node8" class="node">
+<title>sourcefile~dtfft_interface_nvtx.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node8"><a xlink:href="../sourcefile/dtfft_interface_nvtx.f90.html" xlink:title="dtfft_interface_nvtx.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="418,-352.84 280,-352.84 280,-328.84 418,-328.84 418,-352.84"/>
+<text text-anchor="middle" x="349" y="-338.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge8" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1060.03,-199.11C1029.76,-254.73 896.35,-479.58 727.5,-460.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M725.5,-460.84C668.33,-464.34 693.97,-387.97 643,-361.84 576.48,-327.73 490.07,-325.8 428.36,-330.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="427.97,-326.9 418.29,-331.2 428.54,-333.87 427.97,-326.9"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node9" class="node">
+<title>sourcefile~dtfft_pencil.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node9"><a xlink:href="../sourcefile/dtfft_pencil.f90.html" xlink:title="dtfft_pencil.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="924.5,-238.84 830.5,-238.84 830.5,-214.84 924.5,-214.84 924.5,-238.84"/>
+<text text-anchor="middle" x="877.5" y="-224.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_pencil.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_pencil.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge10" class="edge">
+<title>sourcefile~dtfft_abstract_executor.f90&#45;&gt;sourcefile~dtfft_pencil.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1010.09,-198.84C986.25,-203.91 958.53,-209.81 934.7,-214.88"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="933.81,-211.49 924.75,-217 935.26,-218.34 933.81,-211.49"/>
+</g>
+<!-- sourcefile~dtfft_interface_mkl.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge12" class="edge">
+<title>sourcefile~dtfft_interface_mkl.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M809.84,-39.55C671.64,-46.46 360.12,-69.1 280,-134.84 223.07,-181.55 208.21,-274.93 204.35,-317.62"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="200.84,-317.54 203.55,-327.78 207.82,-318.08 200.84,-317.54"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge13" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M160.34,-351.92C145.73,-356.26 129.07,-361.21 113.71,-365.77"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="112.43,-362.5 103.84,-368.7 114.43,-369.21 112.43,-362.5"/>
+</g>
+<!-- sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge14" class="edge">
+<title>sourcefile~dtfft_utils.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff00ff" stroke-dasharray="5,2" d="M159.97,-339.54C151.77,-339.48 142.94,-339.42 134.06,-339.35"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="134.08,-335.85 124.05,-339.28 134.03,-342.85 134.08,-335.85"/>
+</g>
+<!-- sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge15" class="edge">
+<title>sourcefile~dtfft_interface_nvtx.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M279.75,-340.37C271.17,-340.31 262.52,-340.25 254.27,-340.19"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="254.09,-336.69 244.07,-340.12 254.05,-343.69 254.09,-336.69"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge17" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M547.5,-460.84C461.43,-478.05 437.78,-460.84 350,-460.84"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge19" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M855.92,-214.7C770.59,-166.07 438.19,6.44 203,-110.84"/>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge21" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M867.78,-239.2C847.15,-267.33 792.19,-335.9 727.5,-364.84"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M725.5,-364.84C688.98,-381.17 681.1,-341.04 643,-328.84 611.31,-318.69 381.97,-257.59 350,-266.84"/>
+</g>
+<!-- sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node10" class="node">
+<title>sourcefile~dtfft_config.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node10"><a xlink:href="../sourcefile/dtfft_config.f90.html" xlink:title="dtfft_config.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="774,-278.84 679,-278.84 679,-254.84 774,-254.84 774,-278.84"/>
+<text text-anchor="middle" x="726.5" y="-264.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_config.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_config.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge16" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_config.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M831.8,-238.84C816.25,-243.01 798.63,-247.74 782.36,-252.11"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="781.18,-248.8 772.43,-254.78 783,-255.56 781.18,-248.8"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node11" class="node">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node11"><a xlink:href="../sourcefile/dtfft_interface_cuda_runtime.f90.html" xlink:title="dtfft_interface_cuda_runtime.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="643,-238.84 454,-238.84 454,-214.84 643,-214.84 643,-238.84"/>
+<text text-anchor="middle" x="548.5" y="-224.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge18" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M830.34,-226.84C784.58,-226.84 712.88,-226.84 653.39,-226.84"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="653.2,-223.34 643.2,-226.84 653.2,-230.34 653.2,-223.34"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node12" class="node">
+<title>sourcefile~dtfft_serializer.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node12"><a xlink:href="../sourcefile/dtfft_serializer.f90.html" xlink:title="dtfft_serializer.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="403.5,-432.84 294.5,-432.84 294.5,-408.84 403.5,-408.84 403.5,-432.84"/>
+<text text-anchor="middle" x="349" y="-418.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_serializer.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge20" class="edge">
+<title>sourcefile~dtfft_pencil.f90&#45;&gt;sourcefile~dtfft_serializer.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M725.5,-364.84C681.08,-384.71 686.07,-414.18 643,-436.84 605.03,-456.82 591.57,-452.43 549.5,-460.84"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M547.5,-460.84C519.98,-466.34 449.38,-449.23 400.5,-435.7"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="401.31,-432.29 390.73,-432.96 399.42,-439.03 401.31,-432.29"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge23" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M718.88,-279.07C701.45,-311.11 654.77,-395.6 643,-403.84 629.41,-413.34 366.58,-460.84 350,-460.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M348,-460.84C283.56,-460.84 266.26,-473.13 203,-460.84"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge25" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M678.78,-268.04C643.3,-268.67 593.3,-268.92 549.5,-266.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M547.5,-266.84C458.21,-262.6 432.91,-262.26 350,-228.84"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge26" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M547.5,-266.84C459.82,-262.67 434.32,-242.44 350,-266.84"/>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge24" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_interface_cuda_runtime.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M678.8,-256.22C658.4,-251.59 634.17,-246.08 612.23,-241.09"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="612.86,-237.65 602.33,-238.85 611.31,-244.47 612.86,-237.65"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node13" class="node">
+<title>sourcefile~dtfft_abstract_compressor.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_node13"><a xlink:href="../sourcefile/dtfft_abstract_compressor.f90.html" xlink:title="dtfft_abstract_compressor.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="634.5,-394.84 462.5,-394.84 462.5,-370.84 634.5,-370.84 634.5,-394.84"/>
+<text text-anchor="middle" x="548.5" y="-380.44" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge22" class="edge">
+<title>sourcefile~dtfft_config.f90&#45;&gt;sourcefile~dtfft_abstract_compressor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M707,-279.03C675.75,-299.63 612.42,-341.37 576.31,-365.17"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="574.18,-362.38 567.75,-370.81 578.03,-368.23 574.18,-362.38"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge27" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M489.15,-238.88C448.63,-244.54 394.21,-246.66 350,-228.84"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M348,-228.84C270.94,-197.77 277.36,-73.76 203,-110.84"/>
+</g>
+<!-- sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge28" class="edge">
+<title>sourcefile~dtfft_interface_cuda_runtime.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M473.18,-238.92C435.86,-245.73 390.16,-255.22 350,-266.84"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge29" class="edge">
+<title>sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M316.96,-432.9C281.25,-446.16 224.73,-465.06 203,-460.84"/>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M201,-460.84C155.33,-451.96 110.17,-420.28 84.52,-399.55"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="86.53,-396.67 76.59,-392.99 82.06,-402.06 86.53,-396.67"/>
+</g>
+<!-- sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge30" class="edge">
+<title>sourcefile~dtfft_serializer.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M310.39,-408.73C300.25,-404.86 289.47,-400.17 280,-394.84 262.34,-384.89 260.48,-378.64 244,-366.84 239.69,-363.75 235.06,-360.57 230.52,-357.53"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="232.26,-354.49 221.99,-351.9 228.4,-360.33 232.26,-354.49"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_errors.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge31" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_errors.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M201,-380.84C174.12,-378.83 144.22,-378.59 119.14,-378.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="119,-375.45 109.06,-379.13 119.12,-382.45 119,-375.45"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_parameters.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge33" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_parameters.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M348,-380.84C283.73,-376.06 267.27,-385.63 203,-380.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M201,-380.84C191.64,-380.14 145.92,-365.86 109.64,-354.14"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="110.28,-350.67 99.69,-350.92 108.12,-357.33 110.28,-350.67"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_utils.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge35" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_utils.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M462.34,-384.36C427.47,-384.37 386.76,-383.57 350,-380.84"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M348,-380.84C311.13,-378.09 270.77,-365.88 242.02,-355.49"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="242.95,-352.11 232.36,-351.91 240.52,-358.67 242.95,-352.11"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge32" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_interface_nvtx.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M490.9,-370.8C467.66,-365.86 440.58,-360.1 416.41,-354.96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="417.11,-351.53 406.6,-352.88 415.66,-358.38 417.11,-351.53"/>
+</g>
+<!-- sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_serializer.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~EfferentGraph_edge34" class="edge">
+<title>sourcefile~dtfft_abstract_compressor.f90&#45;&gt;sourcefile~dtfft_serializer.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M485.01,-394.86C462.27,-399.24 436.55,-404.19 413.71,-408.58"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="412.93,-405.17 403.77,-410.49 414.25,-412.04 412.93,-405.17"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var pansourcefiledtfft_executor_mklf90EfferentGraph = svgPanZoom('#sourcefiledtfft_executor_mklf90EfferentGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#EfferentGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="EfferentGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="202pt" height="32pt"
+ viewBox="0.00 0.00 201.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 197.5,-28 197.5,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="193.5,-24 88.5,-24 88.5,0 193.5,0 193.5,-24"/>
+<text text-anchor="middle" x="141" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a file to a file which it depends on. A file
+is dependent upon another if the latter must be compiled before the former
+can be.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Files dependent on this one</h3>
+          </div>
+          <div class="card-body">
+            <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph Pages: 1 -->
+<svg id="sourcefiledtfft_executor_mklf90AfferentGraph" width="641pt" height="180pt"
+ viewBox="0.00 0.00 641.00 179.99" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph" class="graph" transform="scale(0.92 0.92) rotate(0) translate(4 192)">
+<title>sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-192 694,-192 694,4 -4,4"/>
+<!-- sourcefile~dtfft_executor_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node1" class="node">
+<title>sourcefile~dtfft_executor_mkl.f90</title>
+<polygon fill="none" stroke="black" points="133,-128 0,-128 0,-104 133,-104 133,-128"/>
+<text text-anchor="middle" x="66.5" y="-113.6" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_executor_mkl.F90</text>
+</g>
+<!-- sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node2" class="node">
+<title>sourcefile~dtfft_executor.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node2"><a xlink:href="../sourcefile/dtfft_executor.f90.html" xlink:title="dtfft_executor.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="276,-128 169,-128 169,-104 276,-104 276,-128"/>
+<text text-anchor="middle" x="222.5" y="-113.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_executor.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_mkl.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge1" class="edge">
+<title>sourcefile~dtfft_executor.f90&#45;&gt;sourcefile~dtfft_executor_mkl.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M168.93,-116C160.67,-116 151.98,-116 143.31,-116"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="143.18,-112.5 133.18,-116 143.18,-119.5 143.18,-112.5"/>
+</g>
+<!-- sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node3" class="node">
+<title>sourcefile~dtfft.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node3"><a xlink:href="../sourcefile/dtfft.f90.html" xlink:title="dtfft.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="501,-108 444,-108 444,-84 501,-84 501,-108"/>
+<text text-anchor="middle" x="472.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge2" class="edge">
+<title>sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M443.53,-98.26C405.61,-101.31 336.81,-106.86 286.2,-110.94"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="285.7,-107.47 276.02,-111.76 286.27,-114.45 285.7,-107.47"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node5" class="node">
+<title>sourcefile~dtfft_plan.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node5"><a xlink:href="../sourcefile/dtfft_plan.f90.html" xlink:title="dtfft_plan.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="397,-148 312,-148 312,-124 397,-124 397,-148"/>
+<text text-anchor="middle" x="354.5" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge10" class="edge">
+<title>sourcefile~dtfft.f90&#45;&gt;sourcefile~dtfft_plan.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M443.72,-105.58C430.75,-110.05 415,-115.48 400.41,-120.51"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="398.86,-117.35 390.55,-123.92 401.14,-123.96 398.86,-117.35"/>
+</g>
+<!-- sourcefile~dtfft_api.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node4" class="node">
+<title>sourcefile~dtfft_api.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node4"><a xlink:href="../sourcefile/dtfft_api.f90.html" xlink:title="dtfft_api.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="512,-188 433,-188 433,-164 512,-164 512,-188"/>
+<text text-anchor="middle" x="472.5" y="-173.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_api.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge3" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M432.81,-174.79C400.09,-172.97 352.24,-168.41 312,-157 291.84,-151.29 270.5,-141.52 253.82,-132.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="255.07,-129.65 244.59,-128.09 251.8,-135.84 255.07,-129.65"/>
+</g>
+<!-- sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge11" class="edge">
+<title>sourcefile~dtfft_api.f90&#45;&gt;sourcefile~dtfft_plan.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M436.7,-164C425.22,-160.04 412.29,-155.58 400.17,-151.4"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="401.27,-148.08 390.68,-148.13 398.99,-154.7 401.27,-148.08"/>
+</g>
+<!-- sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge4" class="edge">
+<title>sourcefile~dtfft_plan.f90&#45;&gt;sourcefile~dtfft_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M311.65,-129.56C303.54,-128.31 294.88,-126.98 286.27,-125.66"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="286.64,-122.17 276.22,-124.11 285.58,-129.09 286.64,-122.17"/>
+</g>
+<!-- sourcefile~test_ffts.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node6" class="node">
+<title>sourcefile~test_ffts.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node6"><a xlink:href="../sourcefile/test_ffts.f90.html" xlink:title="test_ffts.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="392.5,-68 316.5,-68 316.5,-44 392.5,-44 392.5,-68"/>
+<text text-anchor="middle" x="354.5" y="-53.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_ffts.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_ffts.f90&#45;&gt;sourcefile~dtfft_executor.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge5" class="edge">
+<title>sourcefile~test_ffts.f90&#45;&gt;sourcefile~dtfft_executor.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M327.19,-68.14C307.55,-77.21 280.48,-89.7 258.93,-99.65"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="257.38,-96.51 249.77,-103.88 260.31,-102.86 257.38,-96.51"/>
+</g>
+<!-- sourcefile~main.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node7" class="node">
+<title>sourcefile~main.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node7"><a xlink:href="../sourcefile/main.f90.html" xlink:title="main.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="650,-108 588,-108 588,-84 650,-84 650,-108"/>
+<text text-anchor="middle" x="619" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">main.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~main.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge6" class="edge">
+<title>sourcefile~main.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M587.71,-96C565.5,-96 535.21,-96 511.4,-96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="511.3,-92.5 501.3,-96 511.3,-99.5 511.3,-92.5"/>
+</g>
+<!-- sourcefile~test_mem_alloc.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node8" class="node">
+<title>sourcefile~test_mem_alloc.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node8"><a xlink:href="../sourcefile/test_mem_alloc.f90.html" xlink:title="test_mem_alloc.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="678,-66 560,-66 560,-42 678,-42 678,-66"/>
+<text text-anchor="middle" x="619" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_mem_alloc.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_mem_alloc.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge7" class="edge">
+<title>sourcefile~test_mem_alloc.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M576.59,-66.04C555.9,-72.05 531.06,-79.27 510.94,-85.12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="509.82,-81.8 501.2,-87.95 511.78,-88.52 509.82,-81.8"/>
+</g>
+<!-- sourcefile~test_pencils_f.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node9" class="node">
+<title>sourcefile~test_pencils_f.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node9"><a xlink:href="../sourcefile/test_pencils_f.f90.html" xlink:title="test_pencils_f.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="672,-24 566,-24 566,0 672,0 672,-24"/>
+<text text-anchor="middle" x="619" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_pencils_f.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_pencils_f.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge8" class="edge">
+<title>sourcefile~test_pencils_f.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M568.39,-24.09C561.36,-26.6 554.36,-29.55 548,-33 526.89,-44.44 506.32,-62.53 492.16,-76.39"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="489.56,-74.04 484.99,-83.59 494.53,-78.98 489.56,-74.04"/>
+</g>
+<!-- sourcefile~test_plan_save_load.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node10" class="node">
+<title>sourcefile~test_plan_save_load.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node10"><a xlink:href="../sourcefile/test_plan_save_load.f90.html" xlink:title="test_plan_save_load.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="690,-150 548,-150 548,-126 690,-126 690,-150"/>
+<text text-anchor="middle" x="619" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_plan_save_load.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_plan_save_load.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge9" class="edge">
+<title>sourcefile~test_plan_save_load.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M576.59,-125.96C555.9,-119.95 531.06,-112.73 510.94,-106.88"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="511.78,-103.48 501.2,-104.05 509.82,-110.2 511.78,-103.48"/>
+</g>
+<!-- sourcefile~test_plan_save_load.f90&#45;&gt;sourcefile~dtfft_plan.f90 -->
+<g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge12" class="edge">
+<title>sourcefile~test_plan_save_load.f90&#45;&gt;sourcefile~dtfft_plan.f90</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M548,-137.47C503.71,-137.13 447.42,-136.7 407.18,-136.39"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="407.07,-132.89 397.05,-136.32 407.02,-139.89 407.07,-132.89"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var pansourcefiledtfft_executor_mklf90AfferentGraph = svgPanZoom('#sourcefiledtfft_executor_mklf90AfferentGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#AfferentGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="AfferentGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="202pt" height="32pt"
+ viewBox="0.00 0.00 201.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 197.5,-28 197.5,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="193.5,-24 88.5,-24 88.5,0 193.5,0 193.5,-24"/>
+<text text-anchor="middle" x="141" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a file to a file which it depends on. A file
+is dependent upon another if the latter must be compiled before the former
+can be.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+<br>
+      <section>
+        <h2><span class="anchor" id="src"></span>Source Code</h2>
+        <div class="hl codehilite"><pre><span></span><a id="ln-1" name="ln-1" href="#ln-1"></a><span class="c">!------------------------------------------------------------------------------------------------</span>
+<a id="ln-2" name="ln-2" href="#ln-2"></a><span class="c">! Copyright (c) 2021 - 2025, Oleg Shatrov</span>
+<a id="ln-3" name="ln-3" href="#ln-3"></a><span class="c">! All rights reserved.</span>
+<a id="ln-4" name="ln-4" href="#ln-4"></a><span class="c">! This file is part of dtFFT library.</span>
+<a id="ln-5" name="ln-5" href="#ln-5"></a>
+<a id="ln-6" name="ln-6" href="#ln-6"></a><span class="c">! dtFFT is free software: you can redistribute it and/or modify</span>
+<a id="ln-7" name="ln-7" href="#ln-7"></a><span class="c">! it under the terms of the GNU General Public License as published by</span>
+<a id="ln-8" name="ln-8" href="#ln-8"></a><span class="c">! the Free Software Foundation, either version 3 of the License, or</span>
+<a id="ln-9" name="ln-9" href="#ln-9"></a><span class="c">! (at your option) any later version.</span>
+<a id="ln-10" name="ln-10" href="#ln-10"></a>
+<a id="ln-11" name="ln-11" href="#ln-11"></a><span class="c">! dtFFT is distributed in the hope that it will be useful,</span>
+<a id="ln-12" name="ln-12" href="#ln-12"></a><span class="c">! but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<a id="ln-13" name="ln-13" href="#ln-13"></a><span class="c">! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<a id="ln-14" name="ln-14" href="#ln-14"></a><span class="c">! GNU General Public License for more details.</span>
+<a id="ln-15" name="ln-15" href="#ln-15"></a>
+<a id="ln-16" name="ln-16" href="#ln-16"></a><span class="c">! You should have received a copy of the GNU General Public License</span>
+<a id="ln-17" name="ln-17" href="#ln-17"></a><span class="c">! along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.</span>
+<a id="ln-18" name="ln-18" href="#ln-18"></a><span class="c">!------------------------------------------------------------------------------------------------</span>
+<a id="ln-19" name="ln-19" href="#ln-19"></a><span class="k">module </span><span class="n">dtfft_executor_mkl_m</span>
+<a id="ln-20" name="ln-20" href="#ln-20"></a><span class="c">!! This module describes MKL based FFT Executor: [[mkl_executor]]</span>
+<a id="ln-21" name="ln-21" href="#ln-21"></a><span class="c">!!</span>
+<a id="ln-22" name="ln-22" href="#ln-22"></a><span class="c">!! https://software.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-fortran/top/fourier-transform-functions/fft-functions.html</span>
+<a id="ln-23" name="ln-23" href="#ln-23"></a><span class="k">use </span><span class="n">iso_fortran_env</span><span class="p">,</span><span class="w">              </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">int8</span><span class="p">,</span><span class="w"> </span><span class="n">int32</span><span class="p">,</span><span class="w"> </span><span class="n">int64</span><span class="p">,</span><span class="w"> </span><span class="n">error_unit</span>
+<a id="ln-24" name="ln-24" href="#ln-24"></a><span class="k">use </span><span class="nb">iso_c_binding</span><span class="p">,</span><span class="w">                </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="kt">c_int</span><span class="p">,</span><span class="w"> </span><span class="kt">c_long</span><span class="p">,</span><span class="w"> </span><span class="kt">c_ptr</span>
+<a id="ln-25" name="ln-25" href="#ln-25"></a><span class="cp">#ifdef DTFFT_WITH_OPENMP</span>
+<a id="ln-26" name="ln-26" href="#ln-26"></a><span class="k">use </span><span class="n">omp_lib</span>
+<a id="ln-27" name="ln-27" href="#ln-27"></a><span class="cp">#endif</span>
+<a id="ln-28" name="ln-28" href="#ln-28"></a><span class="k">use </span><span class="n">dtfft_abstract_executor</span>
+<a id="ln-29" name="ln-29" href="#ln-29"></a><span class="k">use </span><span class="n">dtfft_errors</span>
+<a id="ln-30" name="ln-30" href="#ln-30"></a><span class="k">use </span><span class="n">dtfft_interface_mkl</span>
+<a id="ln-31" name="ln-31" href="#ln-31"></a><span class="k">use </span><span class="n">dtfft_interface_mkl_native</span>
+<a id="ln-32" name="ln-32" href="#ln-32"></a><span class="k">use </span><span class="n">dtfft_parameters</span>
+<a id="ln-33" name="ln-33" href="#ln-33"></a><span class="k">use </span><span class="n">dtfft_utils</span><span class="p">,</span><span class="w">                  </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">to_str</span>
+<a id="ln-34" name="ln-34" href="#ln-34"></a><span class="cp">#include "_dtfft_mpi.h"</span>
+<a id="ln-35" name="ln-35" href="#ln-35"></a><span class="k">implicit none</span>
+<a id="ln-36" name="ln-36" href="#ln-36"></a><span class="k">private</span>
+<a id="ln-37" name="ln-37" href="#ln-37"></a><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mkl_executor</span>
+<a id="ln-38" name="ln-38" href="#ln-38"></a>
+<a id="ln-39" name="ln-39" href="#ln-39"></a><span class="w">    </span><span class="k">type</span><span class="p">,</span><span class="w"> </span><span class="k">extends</span><span class="p">(</span><span class="n">abstract_executor</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">mkl_executor</span>
+<a id="ln-40" name="ln-40" href="#ln-40"></a><span class="w">    </span><span class="c">!! MKL FFT Executor</span>
+<a id="ln-41" name="ln-41" href="#ln-41"></a><span class="w">    </span><span class="k">private</span>
+<a id="ln-42" name="ln-42" href="#ln-42"></a><span class="k">        </span><span class="kt">logical</span><span class="w">                       </span><span class="kd">::</span><span class="w"> </span><span class="n">need_reconfigure</span><span class="w">     </span><span class="c">!! Needed for R2C plans</span>
+<a id="ln-43" name="ln-43" href="#ln-43"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">istrides</span><span class="p">(:)</span><span class="w">          </span><span class="c">!! Input strides. Needed for R2C plans to reconfigure plan</span>
+<a id="ln-44" name="ln-44" href="#ln-44"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ostrides</span><span class="p">(:)</span><span class="w">          </span><span class="c">!! Output strides. Needed for R2C plans to reconfigure plan</span>
+<a id="ln-45" name="ln-45" href="#ln-45"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w">                </span><span class="kd">::</span><span class="w"> </span><span class="n">idist</span><span class="w">                </span><span class="c">!! Input distance between the first data elements of consecutive data sets</span>
+<a id="ln-46" name="ln-46" href="#ln-46"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w">                </span><span class="kd">::</span><span class="w"> </span><span class="n">odist</span><span class="w">                </span><span class="c">!! Output distance between the first data elements of consecutive data sets</span>
+<a id="ln-47" name="ln-47" href="#ln-47"></a><span class="w">    </span><span class="k">contains</span>
+<a id="ln-48" name="ln-48" href="#ln-48"></a><span class="k">        procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">create_private</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">create</span><span class="w">     </span><span class="c">!! Creates FFT plan via MKL DFTI Interface</span>
+<a id="ln-49" name="ln-49" href="#ln-49"></a><span class="w">        </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">execute_private</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">execute</span><span class="w">   </span><span class="c">!! Executes MKL plan</span>
+<a id="ln-50" name="ln-50" href="#ln-50"></a><span class="w">        </span><span class="k">procedure</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">destroy_private</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">destroy</span><span class="w">   </span><span class="c">!! Destroys MKL plan</span>
+<a id="ln-51" name="ln-51" href="#ln-51"></a><span class="w">        </span><span class="k">procedure</span><span class="p">,</span><span class="w"> </span><span class="k">nopass</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mem_alloc</span><span class="w">            </span><span class="c">!! Allocates MKL memory</span>
+<a id="ln-52" name="ln-52" href="#ln-52"></a><span class="w">        </span><span class="k">procedure</span><span class="p">,</span><span class="w"> </span><span class="k">nopass</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mem_free</span><span class="w">             </span><span class="c">!! Frees MKL aligned memory</span>
+<a id="ln-53" name="ln-53" href="#ln-53"></a><span class="w">    </span><span class="k">endtype </span><span class="n">mkl_executor</span>
+<a id="ln-54" name="ln-54" href="#ln-54"></a>
+<a id="ln-55" name="ln-55" href="#ln-55"></a><span class="cp">#define MKL_DFTI_CALL(name, func)                                                                                                                                     \</span>
+<a id="ln-56" name="ln-56" href="#ln-56"></a><span class="w">  </span><span class="k">block</span><span class="p">;</span><span class="w">                                                                                                                                                              </span><span class="err">\</span>
+<a id="ln-57" name="ln-57" href="#ln-57"></a><span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ierr</span><span class="p">;</span><span class="w">                                                                                                                                          </span><span class="err">\</span>
+<a id="ln-58" name="ln-58" href="#ln-58"></a><span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">mpi_err</span><span class="p">;</span><span class="w">                                                                                                                                       </span><span class="err">\</span>
+<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="w">    </span><span class="n">ierr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">func</span><span class="p">;</span><span class="w">                                                                                                                                                      </span><span class="err">\</span>
+<a id="ln-60" name="ln-60" href="#ln-60"></a><span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">ierr</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">DFTI_NO_ERROR</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span><span class="p">;</span><span class="w">                                                                                                                                 </span><span class="err">\</span>
+<a id="ln-61" name="ln-61" href="#ln-61"></a><span class="w">      </span><span class="k">write</span><span class="p">(</span><span class="n">error_unit</span><span class="p">,</span><span class="w"> </span><span class="s1">'(a)'</span><span class="p">)</span><span class="w"> </span><span class="s2">"Error occured during call to MKL DFTI function '"</span><span class="o">//</span><span class="n">name</span><span class="o">//</span><span class="s2">"': "</span><span class="o">//</span><span class="n">DftiErrorMessage</span><span class="p">(</span><span class="n">ierr</span><span class="p">)</span><span class="o">//</span><span class="s2">" at "</span><span class="o">//</span><span class="err">__</span><span class="n">FILE__</span><span class="o">//</span><span class="s2">":"</span><span class="o">//</span><span class="n">to_str</span><span class="p">(</span><span class="err">__</span><span class="n">LINE__</span><span class="p">);</span><span class="w">  </span><span class="err">\</span>
+<a id="ln-62" name="ln-62" href="#ln-62"></a><span class="w">      </span><span class="k">call </span><span class="n">MPI_Abort</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="nb">int</span><span class="p">(</span><span class="n">ierr</span><span class="p">,</span><span class="w"> </span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="n">mpi_err</span><span class="p">);</span><span class="w">                                                                                                      </span><span class="err">\</span>
+<a id="ln-63" name="ln-63" href="#ln-63"></a><span class="w">    </span><span class="k">endif</span><span class="p">;</span><span class="w">                                                                                                                                                            </span><span class="err">\</span>
+<a id="ln-64" name="ln-64" href="#ln-64"></a><span class="w">  </span><span class="k">endblock</span>
+<a id="ln-65" name="ln-65" href="#ln-65"></a>
+<a id="ln-66" name="ln-66" href="#ln-66"></a><span class="k">contains</span>
+<a id="ln-67" name="ln-67" href="#ln-67"></a>
+<a id="ln-68" name="ln-68" href="#ln-68"></a><span class="k">    subroutine </span><span class="n">make_plan</span><span class="p">(</span><span class="n">fft_rank</span><span class="p">,</span><span class="w"> </span><span class="n">fft_sizes</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_precision</span><span class="p">,</span><span class="w"> </span><span class="n">forward_domain</span><span class="p">,</span><span class="w"> </span><span class="n">how_many</span><span class="p">,</span><span class="w"> </span><span class="n">idist</span><span class="p">,</span><span class="w"> </span><span class="n">odist</span><span class="p">,</span><span class="w"> </span><span class="n">plan</span><span class="p">)</span>
+<a id="ln-69" name="ln-69" href="#ln-69"></a><span class="w">    </span><span class="c">!! Creates general MKL plan</span>
+<a id="ln-70" name="ln-70" href="#ln-70"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int8</span><span class="p">),</span><span class="w">              </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">fft_rank</span><span class="w">           </span><span class="c">!! Rank of fft: 1 or 2</span>
+<a id="ln-71" name="ln-71" href="#ln-71"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">),</span><span class="w">            </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">fft_sizes</span><span class="p">(:)</span><span class="w">       </span><span class="c">!! Dimensions of transform</span>
+<a id="ln-72" name="ln-72" href="#ln-72"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">             </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">mkl_precision</span><span class="w">      </span><span class="c">!! MKL Precision</span>
+<a id="ln-73" name="ln-73" href="#ln-73"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">             </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">forward_domain</span><span class="w">     </span><span class="c">!! C2C or R2C flag</span>
+<a id="ln-74" name="ln-74" href="#ln-74"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">             </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">how_many</span><span class="w">           </span><span class="c">!! Sets DFTI_NUMBER_OF_TRANSFORMS</span>
+<a id="ln-75" name="ln-75" href="#ln-75"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">             </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">idist</span><span class="w">              </span><span class="c">!! Sets DFTI_INPUT_DISTANCE</span>
+<a id="ln-76" name="ln-76" href="#ln-76"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">             </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">odist</span><span class="w">              </span><span class="c">!! Sets DFTI_OUTPUT_DISTANCE</span>
+<a id="ln-77" name="ln-77" href="#ln-77"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">                </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">plan</span><span class="w">               </span><span class="c">!! Resulting plan</span>
+<a id="ln-78" name="ln-78" href="#ln-78"></a>
+<a id="ln-79" name="ln-79" href="#ln-79"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiCreateDescriptor"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_create_desc</span><span class="p">(</span><span class="n">mkl_precision</span><span class="p">,</span><span class="w"> </span><span class="n">forward_domain</span><span class="p">,</span><span class="w"> </span><span class="nb">int</span><span class="p">(</span><span class="n">fft_rank</span><span class="p">,</span><span class="w"> </span><span class="kt">c_long</span><span class="p">),</span><span class="w"> </span><span class="n">fft_sizes</span><span class="p">,</span><span class="w"> </span><span class="n">plan</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-80" name="ln-80" href="#ln-80"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_NUMBER_OF_TRANSFORMS</span><span class="p">,</span><span class="w"> </span><span class="n">how_many</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-81" name="ln-81" href="#ln-81"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_PLACEMENT</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_NOT_INPLACE</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_INPUT_DISTANCE</span><span class="p">,</span><span class="w"> </span><span class="n">idist</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-83" name="ln-83" href="#ln-83"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_OUTPUT_DISTANCE</span><span class="p">,</span><span class="w"> </span><span class="n">odist</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-84" name="ln-84" href="#ln-84"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_CONJUGATE_EVEN_STORAGE</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_COMPLEX_COMPLEX</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-85" name="ln-85" href="#ln-85"></a><span class="cp">#ifdef DTFFT_WITH_OPENMP</span>
+<a id="ln-86" name="ln-86" href="#ln-86"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_THREAD_LIMIT</span><span class="p">,</span><span class="w"> </span><span class="n">omp_get_max_threads</span><span class="p">())</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-87" name="ln-87" href="#ln-87"></a><span class="cp">#endif</span>
+<a id="ln-88" name="ln-88" href="#ln-88"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiCommitDescriptor"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_commit_desc</span><span class="p">(</span><span class="n">plan</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-89" name="ln-89" href="#ln-89"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">make_plan</span>
+<a id="ln-90" name="ln-90" href="#ln-90"></a>
+<a id="ln-91" name="ln-91" href="#ln-91"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">create</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="n">fft_rank</span><span class="p">,</span><span class="w"> </span><span class="n">fft_type</span><span class="p">,</span><span class="w"> </span><span class="nb">precision</span><span class="p">,</span><span class="w"> </span><span class="n">idist</span><span class="p">,</span><span class="w"> </span><span class="n">odist</span><span class="p">,</span><span class="w"> </span><span class="n">how_many</span><span class="p">,</span><span class="w"> </span><span class="n">fft_sizes</span><span class="p">,</span><span class="w"> </span><span class="n">inembed</span><span class="p">,</span><span class="w"> </span><span class="n">onembed</span><span class="p">,</span><span class="w"> </span><span class="n">error_code</span><span class="p">,</span><span class="w"> </span><span class="n">r2r_kinds</span><span class="p">)</span>
+<a id="ln-92" name="ln-92" href="#ln-92"></a><span class="w">    </span><span class="c">!! Creates FFT plan via MKL DFTI Interface</span>
+<a id="ln-93" name="ln-93" href="#ln-93"></a><span class="w">        </span><span class="k">class</span><span class="p">(</span><span class="n">mkl_executor</span><span class="p">),</span><span class="w">              </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">self</span><span class="w">           </span><span class="c">!! MKL FFT Executor</span>
+<a id="ln-94" name="ln-94" href="#ln-94"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">fft_rank_t</span><span class="p">),</span><span class="w">                 </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">fft_rank</span><span class="w">       </span><span class="c">!! Rank of fft: 1 or 2</span>
+<a id="ln-95" name="ln-95" href="#ln-95"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">fft_type_t</span><span class="p">),</span><span class="w">                 </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">fft_type</span><span class="w">       </span><span class="c">!! Type of fft: r2r, r2c, c2c</span>
+<a id="ln-96" name="ln-96" href="#ln-96"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_precision_t</span><span class="p">),</span><span class="w">          </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="nb">precision</span><span class="w">      </span><span class="c">!! Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</span>
+<a id="ln-97" name="ln-97" href="#ln-97"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">                   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">idist</span><span class="w">          </span><span class="c">!! Distance between the first element of two consecutive signals in a batch of the input data.</span>
+<a id="ln-98" name="ln-98" href="#ln-98"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">                   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">odist</span><span class="w">          </span><span class="c">!! Distance between the first element of two consecutive signals in a batch of the output data.</span>
+<a id="ln-99" name="ln-99" href="#ln-99"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">                   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">how_many</span><span class="w">       </span><span class="c">!! Number of transforms to create</span>
+<a id="ln-100" name="ln-100" href="#ln-100"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">                   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">fft_sizes</span><span class="p">(:)</span><span class="w">   </span><span class="c">!! Dimensions of transform</span>
+<a id="ln-101" name="ln-101" href="#ln-101"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">                   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">inembed</span><span class="p">(:)</span><span class="w">     </span><span class="c">!! Storage dimensions of the input data in memory.</span>
+<a id="ln-102" name="ln-102" href="#ln-102"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">                   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">onembed</span><span class="p">(:)</span><span class="w">     </span><span class="c">!! Storage dimensions of the output data in memory.</span>
+<a id="ln-103" name="ln-103" href="#ln-103"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w">                   </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">error_code</span><span class="w">     </span><span class="c">!! Error code to be returned to user</span>
+<a id="ln-104" name="ln-104" href="#ln-104"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">dtfft_r2r_kind_t</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">r2r_kinds</span><span class="p">(:)</span><span class="w">   </span><span class="c">!! Kinds of r2r transform</span>
+<a id="ln-105" name="ln-105" href="#ln-105"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">forward_domain</span><span class="w">   </span><span class="c">!! Forward domain</span>
+<a id="ln-106" name="ln-106" href="#ln-106"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">mkl_precision</span><span class="w">    </span><span class="c">!! MKL Precision</span>
+<a id="ln-107" name="ln-107" href="#ln-107"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span><span class="w">                </span><span class="c">!! Loop counter</span>
+<a id="ln-108" name="ln-108" href="#ln-108"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">idx</span><span class="w">              </span><span class="c">!! Index</span>
+<a id="ln-109" name="ln-109" href="#ln-109"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iprod</span><span class="w">            </span><span class="c">!! Input product</span>
+<a id="ln-110" name="ln-110" href="#ln-110"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">oprod</span><span class="w">            </span><span class="c">!! Output product</span>
+<a id="ln-111" name="ln-111" href="#ln-111"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_long</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">sizes</span><span class="p">(</span><span class="n">fft_rank</span><span class="p">%</span><span class="n">val</span><span class="p">)</span><span class="w">  </span><span class="c">!! Sizes of FFT</span>
+<a id="ln-112" name="ln-112" href="#ln-112"></a>
+<a id="ln-113" name="ln-113" href="#ln-113"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="nb">present</span><span class="p">(</span><span class="n">r2r_kinds</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-114" name="ln-114" href="#ln-114"></a><span class="k">        endif</span>
+<a id="ln-115" name="ln-115" href="#ln-115"></a>
+<a id="ln-116" name="ln-116" href="#ln-116"></a><span class="k">        </span><span class="n">error_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span>
+<a id="ln-117" name="ln-117" href="#ln-117"></a>
+<a id="ln-118" name="ln-118" href="#ln-118"></a><span class="w">        </span><span class="n">self</span><span class="p">%</span><span class="n">is_inverse_copied</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<a id="ln-119" name="ln-119" href="#ln-119"></a><span class="w">        </span><span class="n">self</span><span class="p">%</span><span class="n">need_reconfigure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a id="ln-120" name="ln-120" href="#ln-120"></a>
+<a id="ln-121" name="ln-121" href="#ln-121"></a><span class="w">        </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="n">fft_type</span><span class="p">%</span><span class="n">val</span><span class="p">)</span>
+<a id="ln-122" name="ln-122" href="#ln-122"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="n">FFT_C2C</span><span class="p">%</span><span class="n">val</span><span class="p">)</span>
+<a id="ln-123" name="ln-123" href="#ln-123"></a><span class="w">            </span><span class="n">forward_domain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DFTI_COMPLEX</span>
+<a id="ln-124" name="ln-124" href="#ln-124"></a><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="n">FFT_R2C</span><span class="p">%</span><span class="n">val</span><span class="p">)</span>
+<a id="ln-125" name="ln-125" href="#ln-125"></a><span class="w">            </span><span class="n">forward_domain</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DFTI_REAL</span>
+<a id="ln-126" name="ln-126" href="#ln-126"></a><span class="w">            </span><span class="n">self</span><span class="p">%</span><span class="n">need_reconfigure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<a id="ln-127" name="ln-127" href="#ln-127"></a><span class="w">            </span><span class="n">self</span><span class="p">%</span><span class="n">idist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">idist</span>
+<a id="ln-128" name="ln-128" href="#ln-128"></a><span class="w">            </span><span class="n">self</span><span class="p">%</span><span class="n">odist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">odist</span>
+<a id="ln-129" name="ln-129" href="#ln-129"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">istrides</span><span class="p">(</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">inembed</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="mi">0_c_long</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-130" name="ln-130" href="#ln-130"></a><span class="w">            </span><span class="k">allocate</span><span class="p">(</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">ostrides</span><span class="p">(</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">onembed</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">source</span><span class="o">=</span><span class="mi">0_c_long</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-131" name="ln-131" href="#ln-131"></a><span class="w">            </span><span class="n">iprod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">oprod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<a id="ln-132" name="ln-132" href="#ln-132"></a><span class="w">            </span><span class="n">self</span><span class="p">%</span><span class="n">istrides</span><span class="p">(</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">inembed</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iprod</span>
+<a id="ln-133" name="ln-133" href="#ln-133"></a><span class="w">            </span><span class="n">self</span><span class="p">%</span><span class="n">ostrides</span><span class="p">(</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">onembed</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oprod</span>
+<a id="ln-134" name="ln-134" href="#ln-134"></a><span class="w">            </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">inembed</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<a id="ln-135" name="ln-135" href="#ln-135"></a><span class="w">                </span><span class="n">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">inembed</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span>
+<a id="ln-136" name="ln-136" href="#ln-136"></a><span class="w">                </span><span class="n">iprod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iprod</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inembed</span><span class="p">(</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-137" name="ln-137" href="#ln-137"></a><span class="w">                </span><span class="n">oprod</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oprod</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">onembed</span><span class="p">(</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-138" name="ln-138" href="#ln-138"></a><span class="w">                </span><span class="n">self</span><span class="p">%</span><span class="n">istrides</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iprod</span>
+<a id="ln-139" name="ln-139" href="#ln-139"></a><span class="w">                </span><span class="n">self</span><span class="p">%</span><span class="n">ostrides</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oprod</span>
+<a id="ln-140" name="ln-140" href="#ln-140"></a><span class="w">            </span><span class="k">enddo</span>
+<a id="ln-141" name="ln-141" href="#ln-141"></a><span class="k">        case</span><span class="w"> </span><span class="p">(</span><span class="n">FFT_R2R</span><span class="p">%</span><span class="n">val</span><span class="p">)</span>
+<a id="ln-142" name="ln-142" href="#ln-142"></a><span class="w">            </span><span class="n">error_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DTFFT_ERROR_R2R_FFT_NOT_SUPPORTED</span>
+<a id="ln-143" name="ln-143" href="#ln-143"></a><span class="w">            </span><span class="k">return</span>
+<a id="ln-144" name="ln-144" href="#ln-144"></a><span class="k">        endselect</span>
+<a id="ln-145" name="ln-145" href="#ln-145"></a><span class="k">        if</span><span class="p">(</span><span class="nb">precision</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DTFFT_DOUBLE</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-146" name="ln-146" href="#ln-146"></a><span class="k">            </span><span class="n">mkl_precision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DFTI_DOUBLE</span>
+<a id="ln-147" name="ln-147" href="#ln-147"></a><span class="w">        </span><span class="k">else</span>
+<a id="ln-148" name="ln-148" href="#ln-148"></a><span class="k">            </span><span class="n">mkl_precision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DFTI_SINGLE</span>
+<a id="ln-149" name="ln-149" href="#ln-149"></a><span class="w">        </span><span class="k">endif</span>
+<a id="ln-150" name="ln-150" href="#ln-150"></a>
+<a id="ln-151" name="ln-151" href="#ln-151"></a><span class="k">        </span><span class="n">sizes</span><span class="p">(:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fft_sizes</span><span class="p">(:)</span>
+<a id="ln-152" name="ln-152" href="#ln-152"></a><span class="w">        </span><span class="k">call </span><span class="n">make_plan</span><span class="p">(</span><span class="n">fft_rank</span><span class="p">%</span><span class="n">val</span><span class="p">,</span><span class="w"> </span><span class="n">sizes</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_precision</span><span class="p">,</span><span class="w"> </span><span class="n">forward_domain</span><span class="p">,</span><span class="w"> </span><span class="n">how_many</span><span class="p">,</span><span class="w"> </span><span class="n">idist</span><span class="p">,</span><span class="w"> </span><span class="n">odist</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">)</span>
+<a id="ln-153" name="ln-153" href="#ln-153"></a><span class="w">        </span><span class="n">self</span><span class="p">%</span><span class="n">plan_backward</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span>
+<a id="ln-154" name="ln-154" href="#ln-154"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">create</span>
+<a id="ln-155" name="ln-155" href="#ln-155"></a>
+<a id="ln-156" name="ln-156" href="#ln-156"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">execute</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="nb">sign</span><span class="p">)</span>
+<a id="ln-157" name="ln-157" href="#ln-157"></a><span class="w">    </span><span class="c">!! Executes MKL plan</span>
+<a id="ln-158" name="ln-158" href="#ln-158"></a><span class="w">        </span><span class="k">class</span><span class="p">(</span><span class="n">mkl_executor</span><span class="p">),</span><span class="w">  </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">self</span><span class="w">                 </span><span class="c">!! MKL FFT Executor</span>
+<a id="ln-159" name="ln-159" href="#ln-159"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">          </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">a</span><span class="w">                    </span><span class="c">!! Source pointer</span>
+<a id="ln-160" name="ln-160" href="#ln-160"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">          </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">b</span><span class="w">                    </span><span class="c">!! Target pointer</span>
+<a id="ln-161" name="ln-161" href="#ln-161"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int8</span><span class="p">),</span><span class="w">        </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="nb">sign</span><span class="w">                 </span><span class="c">!! Sign of transform</span>
+<a id="ln-162" name="ln-162" href="#ln-162"></a>
+<a id="ln-163" name="ln-163" href="#ln-163"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">need_reconfigure</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-164" name="ln-164" href="#ln-164"></a><span class="k">            if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="nb">sign</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">FFT_FORWARD</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-165" name="ln-165" href="#ln-165"></a><span class="k">                </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_INPUT_DISTANCE</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">idist</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-166" name="ln-166" href="#ln-166"></a><span class="w">                </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_OUTPUT_DISTANCE</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">odist</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-167" name="ln-167" href="#ln-167"></a><span class="w">                </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_INPUT_STRIDES</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">istrides</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-168" name="ln-168" href="#ln-168"></a><span class="w">                </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_OUTPUT_STRIDES</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">ostrides</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-169" name="ln-169" href="#ln-169"></a><span class="w">            </span><span class="k">else</span>
+<a id="ln-170" name="ln-170" href="#ln-170"></a><span class="k">                </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_INPUT_DISTANCE</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">odist</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-171" name="ln-171" href="#ln-171"></a><span class="w">                </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_OUTPUT_DISTANCE</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">idist</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-172" name="ln-172" href="#ln-172"></a><span class="w">                </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_INPUT_STRIDES</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">ostrides</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-173" name="ln-173" href="#ln-173"></a><span class="w">                </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiSetValue"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_set_value</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">DFTI_OUTPUT_STRIDES</span><span class="p">,</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">istrides</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-174" name="ln-174" href="#ln-174"></a><span class="w">            </span><span class="k">endif</span>
+<a id="ln-175" name="ln-175" href="#ln-175"></a><span class="k">            </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiCommitDescriptor"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_commit_desc</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-176" name="ln-176" href="#ln-176"></a><span class="w">        </span><span class="k">endif</span>
+<a id="ln-177" name="ln-177" href="#ln-177"></a>
+<a id="ln-178" name="ln-178" href="#ln-178"></a><span class="k">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiCompute"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_execute</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="nb">int</span><span class="p">(</span><span class="nb">sign</span><span class="p">,</span><span class="w"> </span><span class="kt">c_int</span><span class="p">))</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-179" name="ln-179" href="#ln-179"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">execute</span>
+<a id="ln-180" name="ln-180" href="#ln-180"></a>
+<a id="ln-181" name="ln-181" href="#ln-181"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">destroy</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+<a id="ln-182" name="ln-182" href="#ln-182"></a><span class="w">    </span><span class="c">!! Destroys MKL plan</span>
+<a id="ln-183" name="ln-183" href="#ln-183"></a><span class="w">        </span><span class="k">class</span><span class="p">(</span><span class="n">mkl_executor</span><span class="p">),</span><span class="w">  </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">self</span><span class="w">              </span><span class="c">!! MKL FFT Executor</span>
+<a id="ln-184" name="ln-184" href="#ln-184"></a>
+<a id="ln-185" name="ln-185" href="#ln-185"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiFreeDescriptor"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_free_desc</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-186" name="ln-186" href="#ln-186"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">destroy</span>
+<a id="ln-187" name="ln-187" href="#ln-187"></a>
+<a id="ln-188" name="ln-188" href="#ln-188"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">mem_alloc</span><span class="p">(</span><span class="n">alloc_bytes</span><span class="p">,</span><span class="w"> </span><span class="n">ptr</span><span class="p">)</span>
+<a id="ln-189" name="ln-189" href="#ln-189"></a><span class="w">    </span><span class="c">!! Allocates MKL memory</span>
+<a id="ln-190" name="ln-190" href="#ln-190"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int64</span><span class="p">),</span><span class="w">           </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">alloc_bytes</span><span class="w">      </span><span class="c">!! Number of bytes to allocate</span>
+<a id="ln-191" name="ln-191" href="#ln-191"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">              </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="w">              </span><span class="c">!! Allocated pointer</span>
+<a id="ln-192" name="ln-192" href="#ln-192"></a>
+<a id="ln-193" name="ln-193" href="#ln-193"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"mkl_malloc"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_mem_alloc</span><span class="p">(</span><span class="n">alloc_bytes</span><span class="p">,</span><span class="w"> </span><span class="n">ptr</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-194" name="ln-194" href="#ln-194"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">mem_alloc</span>
+<a id="ln-195" name="ln-195" href="#ln-195"></a>
+<a id="ln-196" name="ln-196" href="#ln-196"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">mem_free</span><span class="p">(</span><span class="n">ptr</span><span class="p">)</span>
+<a id="ln-197" name="ln-197" href="#ln-197"></a><span class="w">    </span><span class="c">!! Frees MKL aligned memory</span>
+<a id="ln-198" name="ln-198" href="#ln-198"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">               </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="w">            </span><span class="c">!! Pointer to free</span>
+<a id="ln-199" name="ln-199" href="#ln-199"></a>
+<a id="ln-200" name="ln-200" href="#ln-200"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"mkl_free"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_mem_free</span><span class="p">(</span><span class="n">ptr</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-201" name="ln-201" href="#ln-201"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">mem_free</span>
+<a id="ln-202" name="ln-202" href="#ln-202"></a><span class="k">end module </span><span class="n">dtfft_executor_mkl_m</span>
+</pre></div>
+
+      </section>
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

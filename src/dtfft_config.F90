@@ -23,7 +23,8 @@ module dtfft_config
 use iso_c_binding, only: c_bool, c_int32_t
 use iso_fortran_env
 #ifdef DTFFT_WITH_COMPRESSION
-use dtfft_abstract_compressor
+use dtfft_abstract_compressor,  only: DEFAULT_COMPRESSION_CONFIG, dtfft_compression_config_t, check_compression_config
+! use dtfft_compressor,           only: DEFAULT_COMPRESSION_CONFIG, check_compression_config
 #endif
 use dtfft_errors
 use dtfft_parameters
@@ -54,6 +55,7 @@ public :: get_conf_kernel_autotune_enabled
 public :: get_conf_fourier_reshape_enabled
 public :: get_conf_rma_enabled, get_conf_fused_enabled
 public :: get_conf_transpose_mode, get_conf_access_mode
+public :: get_conf_block_size, get_conf_co_threshold
 public :: get_conf_compression_enabled
 public :: get_correct_backend
 #ifdef DTFFT_WITH_COMPRESSION
@@ -111,6 +113,9 @@ public :: get_conf_transpose, get_conf_reshape
         !! Transpose mode obtained from environ
     type(dtfft_access_mode_t),    protected :: access_mode_from_env = ACCESS_MODE_NOT_SET
         !! Access mode obtained from environ
+    integer(int32),             protected :: block_size_from_env = VARIABLE_NOT_SET
+        !!
+    integer(int32),             protected :: co_threshold_from_env = VARIABLE_NOT_SET
 
 #ifdef DTFFT_WITH_COMPRESSION
     integer(int32),               protected :: compression_enabled_from_env = VARIABLE_NOT_SET
@@ -118,19 +123,19 @@ public :: get_conf_transpose, get_conf_reshape
 #endif
 
 #ifdef DTFFT_WITH_CUDA
-    integer(int32),             protected  :: nccl_enabled_from_env = VARIABLE_NOT_SET
+    integer(int32),             protected   :: nccl_enabled_from_env = VARIABLE_NOT_SET
         !! Should we use NCCL backends during autotune or not
-    integer(int32),             protected  :: nvshmem_enabled_from_env = VARIABLE_NOT_SET
+    integer(int32),             protected   :: nvshmem_enabled_from_env = VARIABLE_NOT_SET
         !! Should we use NVSHMEM backends during autotune or not
-    type(dtfft_backend_t),  parameter :: DEFAULT_BACKEND = DTFFT_BACKEND_NONE
+    type(dtfft_backend_t),      parameter   :: DEFAULT_BACKEND = DTFFT_BACKEND_NONE
         !! Default backend when cuda is enabled
-    type(dtfft_stream_t),       protected  :: main_stream = NULL_STREAM
+    type(dtfft_stream_t),       protected   :: main_stream = NULL_STREAM
         !! Default dtFFT CUDA stream
-    type(dtfft_stream_t),       protected  :: custom_stream = NULL_STREAM
+    type(dtfft_stream_t),       protected   :: custom_stream = NULL_STREAM
         !! CUDA stream set by the user
-    logical,                    protected  :: is_stream_created = .false.
+    logical,                    protected   :: is_stream_created = .false.
         !! Is the default stream created?
-    logical,                    protected  :: is_custom_stream = .false.
+    logical,                    protected   :: is_custom_stream = .false.
         !! Is the custom stream provided by the user?
 #else
     type(dtfft_backend_t),  parameter :: DEFAULT_BACKEND = DTFFT_BACKEND_MPI_DATATYPE
@@ -156,14 +161,17 @@ public :: get_conf_transpose, get_conf_reshape
         !! Should we use RMA backends or not
     logical,                    protected  :: is_fused_enabled = .true.
         !! Should we use fused backends or not
-    type(dtfft_backend_t),      protected  :: backend = DEFAULT_BACKEND
+    type(dtfft_backend_t),      protected  :: backend_ = DEFAULT_BACKEND
         !! Default backend
-    type(dtfft_backend_t),      protected  :: reshape_backend = DEFAULT_BACKEND
+    type(dtfft_backend_t),      protected  :: reshape_backend_ = DEFAULT_BACKEND
         !! Default reshape backend
-    type(dtfft_transpose_mode_t), protected :: transpose_mode = DTFFT_TRANSPOSE_MODE_PACK
+    type(dtfft_transpose_mode_t), protected :: transpose_mode_ = DTFFT_TRANSPOSE_MODE_PACK
         !! Default transpose mode
-    type(dtfft_access_mode_t),    protected :: access_mode = DTFFT_ACCESS_MODE_WRITE
+    type(dtfft_access_mode_t),    protected :: access_mode_ = DTFFT_ACCESS_MODE_WRITE
         !! Default access mode
+    integer(int32),             protected   :: block_size_ = 0
+        !! Block size for host kernel
+    integer(int32),             protected   :: co_threshold_ = 1024
 
 #ifdef DTFFT_WITH_COMPRESSION
     logical,                          protected :: is_compression_enabled = .false.
@@ -329,6 +337,9 @@ public :: get_conf_transpose, get_conf_reshape
         !!
         !! This option allows user to force specific access mode (`DTFFT_ACCESS_MODE_WRITE` or `DTFFT_ACCESS_MODE_READ`) when autotuning is disabled.
         !! When autotuning is enabled (e.g. `effort` is `DTFFT_EXHAUSTIVE`), this option is ignored and best access mode is selected automatically.
+        integer(c_int32_t)          :: block_size
+
+        integer(c_int32_t)          :: co_threshold
 #ifdef DTFFT_WITH_COMPRESSION
         logical(c_bool)           :: enable_compressed_backends
         !! Should compressed backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
@@ -351,642 +362,609 @@ public :: get_conf_transpose, get_conf_reshape
         module procedure config_constructor !! Default constructor
     end interface dtfft_config_t
 
-
-    interface get_conf_internal
-    !! Returns value from configuration unless environment variable is set
-        module procedure get_conf_internal_logical  !! For logical values
-        module procedure get_conf_internal_int32    !! For integer(int32) values
-    end interface get_conf_internal
-
 contains
 
-  integer(int32) function init_internal()
-  !! Checks if MPI is initialized and loads environment variables
-    integer(int32)    :: ierr             !! Error code
-    logical           :: is_mpi_init      !! Is MPI initialized?
+    integer(int32) function init_internal()
+    !! Checks if MPI is initialized and loads environment variables
+        integer(int32)    :: ierr             !! Error code
+        logical           :: is_mpi_init      !! Is MPI initialized?
 
-    init_internal = DTFFT_SUCCESS
+        init_internal = DTFFT_SUCCESS
 
-    call MPI_Initialized(is_mpi_init, ierr)
-    if( .not. is_mpi_init ) then
-      init_internal = DTFFT_ERROR_MPI_FINALIZED
-      return
-    endif
-    ! Processing environment variables once
-    if ( is_init_called ) return
+        call MPI_Initialized(is_mpi_init, ierr)
+        if( .not. is_mpi_init ) then
+            init_internal = DTFFT_ERROR_MPI_FINALIZED
+            return
+        endif
+        ! Processing environment variables once
+        if ( is_init_called ) return
 
-    call init_environment()
+        call init_environment()
 
 #if defined(DTFFT_WITH_CUDA) && defined(DTFFT_WITH_MOCK_ENABLED)
-    if ( get_conf_platform() == DTFFT_PLATFORM_CUDA ) then
-      WRITE_WARN("This is mock version of CUDA platform")
-    endif
+        if ( get_conf_platform() == DTFFT_PLATFORM_CUDA ) then
+            WRITE_WARN("This is mock version of CUDA platform")
+        endif
 #endif
-    is_init_called = .true.
-  end function init_internal
+        is_init_called = .true.
+    end function init_internal
 
-  subroutine init_environment()
+    subroutine init_environment()
 
-    log_enabled_from_env = get_env("ENABLE_LOG", VARIABLE_NOT_SET, valid_values=[0, 1])
-    z_slab_from_env = get_env("ENABLE_Z_SLAB", VARIABLE_NOT_SET, valid_values=[0, 1])
-    y_slab_from_env = get_env("ENABLE_Y_SLAB", VARIABLE_NOT_SET, valid_values=[0, 1])
+        log_enabled_from_env = get_env("ENABLE_LOG", VARIABLE_NOT_SET, valid_values=[0, 1])
+        z_slab_from_env = get_env("ENABLE_Z_SLAB", VARIABLE_NOT_SET, valid_values=[0, 1])
+        y_slab_from_env = get_env("ENABLE_Y_SLAB", VARIABLE_NOT_SET, valid_values=[0, 1])
 
-    n_measure_warmup_iters_from_env = get_env("MEASURE_WARMUP_ITERS", VARIABLE_NOT_SET, min_valid_value=0)
-    n_measure_iters_from_env = get_env("MEASURE_ITERS", VARIABLE_NOT_SET, min_valid_value=1)
+        n_measure_warmup_iters_from_env = get_env("MEASURE_WARMUP_ITERS", VARIABLE_NOT_SET, min_valid_value=0)
+        n_measure_iters_from_env = get_env("MEASURE_ITERS", VARIABLE_NOT_SET, min_valid_value=1)
 
 #ifdef DTFFT_WITH_CUDA
     block
-      type(string), allocatable :: platforms(:)
-      type(string) :: pltfrm_env
+        type(string), allocatable :: platforms(:)
+        type(string) :: pltfrm_env
 
-      allocate( platforms(2) )
-      platforms(1) = string("host")
-      platforms(2) = string("cuda")
+        allocate( platforms(2) )
+        platforms(1) = string("host")
+        platforms(2) = string("cuda")
 
-      pltfrm_env = get_env("PLATFORM", "undefined", platforms)
-      if ( pltfrm_env%raw == "undefined") then
-        platform_from_env = PLATFORM_NOT_SET
-      else if ( pltfrm_env%raw == "host" ) then
-        platform_from_env = DTFFT_PLATFORM_HOST
-      else if ( pltfrm_env%raw == "cuda") then
-        platform_from_env = DTFFT_PLATFORM_CUDA
-      endif
+        pltfrm_env = get_env("PLATFORM", "undefined", platforms)
+        if ( pltfrm_env%raw == "undefined") then
+            platform_from_env = PLATFORM_NOT_SET
+        else if ( pltfrm_env%raw == "host" ) then
+            platform_from_env = DTFFT_PLATFORM_HOST
+        else if ( pltfrm_env%raw == "cuda") then
+            platform_from_env = DTFFT_PLATFORM_CUDA
+        endif
 
-      call pltfrm_env%destroy()
-      call destroy_strings(platforms)
+        call pltfrm_env%destroy()
+        call destroy_strings(platforms)
     endblock
 #endif
 
-    backend_from_env = get_backend_from_env("BACKEND")
-    reshape_backend_from_env = get_backend_from_env("RESHAPE_BACKEND")
+        backend_from_env = get_backend_from_env("BACKEND")
+        reshape_backend_from_env = get_backend_from_env("RESHAPE_BACKEND")
 
-    datatype_enabled_from_env = get_env("ENABLE_MPI_DT", VARIABLE_NOT_SET, valid_values=[0, 1])
-    mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
-    pipelined_enabled_from_env = get_env("ENABLE_PIPE", VARIABLE_NOT_SET, valid_values=[0, 1])
+        datatype_enabled_from_env = get_env("ENABLE_MPI_DT", VARIABLE_NOT_SET, valid_values=[0, 1])
+        mpi_enabled_from_env = get_env("ENABLE_MPI", VARIABLE_NOT_SET, valid_values=[0, 1])
+        pipelined_enabled_from_env = get_env("ENABLE_PIPE", VARIABLE_NOT_SET, valid_values=[0, 1])
 #ifdef DTFFT_WITH_RMA
-    rma_enabled_from_env = get_env("ENABLE_RMA", VARIABLE_NOT_SET, valid_values=[0, 1])
+        rma_enabled_from_env = get_env("ENABLE_RMA", VARIABLE_NOT_SET, valid_values=[0, 1])
 #endif
-    fused_enabled_from_env = get_env("ENABLE_FUSED", VARIABLE_NOT_SET, valid_values=[0, 1])
+        fused_enabled_from_env = get_env("ENABLE_FUSED", VARIABLE_NOT_SET, valid_values=[0, 1])
 #ifdef DTFFT_WITH_CUDA
-    nccl_enabled_from_env = get_env("ENABLE_NCCL", VARIABLE_NOT_SET, valid_values=[0, 1])
-    nvshmem_enabled_from_env = get_env("ENABLE_NVSHMEM", VARIABLE_NOT_SET, valid_values=[0, 1])
+        nccl_enabled_from_env = get_env("ENABLE_NCCL", VARIABLE_NOT_SET, valid_values=[0, 1])
+        nvshmem_enabled_from_env = get_env("ENABLE_NVSHMEM", VARIABLE_NOT_SET, valid_values=[0, 1])
 #endif
-    kernel_autotune_enabled_from_env = get_env("ENABLE_KERNEL_AUTOTUNE", VARIABLE_NOT_SET, valid_values=[0, 1])
-    fourier_reshape_enabled_from_env = get_env("ENABLE_FOURIER_RESHAPE", VARIABLE_NOT_SET, valid_values=[0, 1])
+        kernel_autotune_enabled_from_env = get_env("ENABLE_KERNEL_AUTOTUNE", VARIABLE_NOT_SET, valid_values=[0, 1])
+        fourier_reshape_enabled_from_env = get_env("ENABLE_FOURIER_RESHAPE", VARIABLE_NOT_SET, valid_values=[0, 1])
 #ifdef DTFFT_WITH_COMPRESSION
-    compression_enabled_from_env = get_env("ENABLE_COMPRESSED", VARIABLE_NOT_SET, valid_values=[0, 1])
+        compression_enabled_from_env = get_env("ENABLE_COMPRESSED", VARIABLE_NOT_SET, valid_values=[0, 1])
 #endif
+        block_size_from_env = get_env("BLOCK_SIZE", VARIABLE_NOT_SET, min_valid_value=0)
+        co_threshold_from_env = get_env("CO_THRESHOLD", VARIABLE_NOT_SET, min_valid_value=16)
 
     block
-      type(string), allocatable :: transpose_modes(:)
-      type(string) :: t_mode_env
+        type(string), allocatable :: transpose_modes(:)
+        type(string) :: t_mode_env
 
-      allocate( transpose_modes(2) )
-      transpose_modes(1) = string("pack")
-      transpose_modes(2) = string("unpack")
+        allocate( transpose_modes(2) )
+        transpose_modes(1) = string("pack")
+        transpose_modes(2) = string("unpack")
 
-      t_mode_env = get_env("TRANSPOSE_MODE", "undefined", transpose_modes)
-      select case ( t_mode_env%raw )
-      case ( "undefined" )
-        transpose_mode_from_env = TRANSPOSE_MODE_NOT_SET
-      case ( "pack" )
-        transpose_mode_from_env = DTFFT_TRANSPOSE_MODE_PACK
-      case ( "unpack" )
-        transpose_mode_from_env = DTFFT_TRANSPOSE_MODE_UNPACK
-      endselect
+        t_mode_env = get_env("TRANSPOSE_MODE", "undefined", transpose_modes)
+        select case ( t_mode_env%raw )
+        case ( "undefined" )
+            transpose_mode_from_env = TRANSPOSE_MODE_NOT_SET
+        case ( "pack" )
+            transpose_mode_from_env = DTFFT_TRANSPOSE_MODE_PACK
+        case ( "unpack" )
+            transpose_mode_from_env = DTFFT_TRANSPOSE_MODE_UNPACK
+        endselect
 
-      call t_mode_env%destroy()
-      call destroy_strings(transpose_modes)
+        call t_mode_env%destroy()
+        call destroy_strings(transpose_modes)
     endblock
 
     block
-      type(string), allocatable :: access_modes(:)
-      type(string) :: access_mode_env
+        type(string), allocatable :: access_modes(:)
+        type(string) :: access_mode_env
 
-      allocate( access_modes(2) )
-      access_modes(1) = string("write")
-      access_modes(2) = string("read")
+        allocate( access_modes(3) )
+        access_modes(1) = string("write")
+        access_modes(2) = string("read")
+        access_modes(3) = string("co")
 
-      access_mode_env = get_env("ACCESS_MODE", "undefined", access_modes)
-      select case ( access_mode_env%raw )
-      case ( "undefined" )
-        access_mode_from_env = ACCESS_MODE_NOT_SET
-      case ( "write" )
-        access_mode_from_env = DTFFT_ACCESS_MODE_WRITE
-      case ( "read" )
-        access_mode_from_env = DTFFT_ACCESS_MODE_READ
-      endselect
+        access_mode_env = get_env("ACCESS_MODE", "undefined", access_modes)
+        select case ( access_mode_env%raw )
+        case ( "undefined" )
+            access_mode_from_env = ACCESS_MODE_NOT_SET
+        case ( "write" )
+            access_mode_from_env = DTFFT_ACCESS_MODE_WRITE
+        case ( "read" )
+            access_mode_from_env = DTFFT_ACCESS_MODE_READ
+        case ( "co" )
+            access_mode_from_env = DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS
+        endselect
 
-      call access_mode_env%destroy()
-      call destroy_strings(access_modes)
+        call access_mode_env%destroy()
+        call destroy_strings(access_modes)
     endblock
-  end subroutine init_environment
+    end subroutine init_environment
 
-  type(dtfft_backend_t) function get_backend_from_env(name)
-  !! Returns backend or reshape backend obtained from environment variable
-    character(len=*), intent(in) :: name !! Name of the environment variable
-    type(string), allocatable :: backends(:)
-    type(string) :: bcknd_env
+    type(dtfft_backend_t) function get_backend_from_env(name)
+    !! Returns backend or reshape backend obtained from environment variable
+        character(len=*), intent(in) :: name !! Name of the environment variable
+        type(string), allocatable :: backends(:)
+        type(string) :: bcknd_env
 
-      allocate( backends(17) )
-      backends(1) = string("mpi_dt")
-      backends(2) = string("mpi_p2p")
-      backends(3) = string("mpi_a2a")
-      backends(4) = string("mpi_p2p_pipe")
-      backends(5) = string("nccl")
-      backends(6) = string("nccl_pipe")
-      backends(7) = string("cufftmp")
-      backends(8) = string("cufftmp_pipe")
-      backends(9) = string("mpi_rma")
-      backends(10) = string("mpi_rma_pipe")
-      backends(11) = string("mpi_p2p_sched")
-      backends(12) = string("mpi_p2p_fused")
-      backends(13) = string("mpi_p2p_compressed")
-      backends(14) = string("mpi_rma_fused")
-      backends(15) = string("mpi_rma_compressed")
-      backends(16) = string("nccl_compressed")
-      backends(17) = string("adaptive")
+        allocate( backends(17) )
+        backends(1) = string("mpi_dt")
+        backends(2) = string("mpi_p2p")
+        backends(3) = string("mpi_a2a")
+        backends(4) = string("mpi_p2p_pipe")
+        backends(5) = string("nccl")
+        backends(6) = string("nccl_pipe")
+        backends(7) = string("cufftmp")
+        backends(8) = string("cufftmp_pipe")
+        backends(9) = string("mpi_rma")
+        backends(10) = string("mpi_rma_pipe")
+        backends(11) = string("mpi_p2p_sched")
+        backends(12) = string("mpi_p2p_fused")
+        backends(13) = string("mpi_p2p_compressed")
+        backends(14) = string("mpi_rma_fused")
+        backends(15) = string("mpi_rma_compressed")
+        backends(16) = string("nccl_compressed")
+        backends(17) = string("adaptive")
 
-      bcknd_env = get_env(name, "undefined", backends)
+        bcknd_env = get_env(name, "undefined", backends)
 
-      select case ( bcknd_env%raw )
-      case ( "undefined" )
-        get_backend_from_env = DTFFT_BACKEND_NONE
-      case ( "mpi_dt" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_DATATYPE
-      case ( "mpi_p2p" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_P2P
-      case ( "mpi_a2a" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_A2A
-      case ( "mpi_p2p_pipe" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_P2P_PIPELINED
-      case ( "nccl" )
-        get_backend_from_env = DTFFT_BACKEND_NCCL
-      case ( "nccl_pipe" )
-        get_backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
-      case ( "cufftmp" )
-        get_backend_from_env = DTFFT_BACKEND_CUFFTMP
-      case ( "cufftmp_pipe")
-        get_backend_from_env = DTFFT_BACKEND_CUFFTMP_PIPELINED
-      case ( "mpi_rma" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_RMA
-      case ( "mpi_rma_pipe" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_RMA_PIPELINED
-      case ( "mpi_p2p_sched" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_P2P_SCHEDULED
-      case ( "mpi_p2p_fused" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_P2P_FUSED
-      case ( "mpi_p2p_compressed" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_P2P_COMPRESSED
-      case ( "mpi_rma_fused" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_RMA_FUSED
-      case ( "mpi_rma_compressed" )
-        get_backend_from_env = DTFFT_BACKEND_MPI_RMA_COMPRESSED
-      case ( "nccl_compressed" )
-        get_backend_from_env = DTFFT_BACKEND_NCCL_COMPRESSED
-      case ( "adaptive" )
-        get_backend_from_env = DTFFT_BACKEND_ADAPTIVE
-      endselect
+        select case ( bcknd_env%raw )
+        case ( "undefined" )
+            get_backend_from_env = DTFFT_BACKEND_NONE
+        case ( "mpi_dt" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_DATATYPE
+        case ( "mpi_p2p" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_P2P
+        case ( "mpi_a2a" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_A2A
+        case ( "mpi_p2p_pipe" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_P2P_PIPELINED
+        case ( "nccl" )
+            get_backend_from_env = DTFFT_BACKEND_NCCL
+        case ( "nccl_pipe" )
+            get_backend_from_env = DTFFT_BACKEND_NCCL_PIPELINED
+        case ( "cufftmp" )
+            get_backend_from_env = DTFFT_BACKEND_CUFFTMP
+        case ( "cufftmp_pipe")
+            get_backend_from_env = DTFFT_BACKEND_CUFFTMP_PIPELINED
+        case ( "mpi_rma" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_RMA
+        case ( "mpi_rma_pipe" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_RMA_PIPELINED
+        case ( "mpi_p2p_sched" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_P2P_SCHEDULED
+        case ( "mpi_p2p_fused" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_P2P_FUSED
+        case ( "mpi_p2p_compressed" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_P2P_COMPRESSED
+        case ( "mpi_rma_fused" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_RMA_FUSED
+        case ( "mpi_rma_compressed" )
+            get_backend_from_env = DTFFT_BACKEND_MPI_RMA_COMPRESSED
+        case ( "nccl_compressed" )
+            get_backend_from_env = DTFFT_BACKEND_NCCL_COMPRESSED
+        case ( "adaptive" )
+            get_backend_from_env = DTFFT_BACKEND_ADAPTIVE
+        endselect
 
-      if ( get_backend_from_env /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(get_backend_from_env) ) then
-        WRITE_ERROR("Backend '"//bcknd_env%raw//"' is not available in this build.")
-        WRITE_ERROR("Environment variable 'DTFFT_"//name//"' has been ignored")
-        get_backend_from_env = DTFFT_BACKEND_NONE
-      endif
+        if ( get_backend_from_env /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(get_backend_from_env) ) then
+            WRITE_ERROR("Backend '"//bcknd_env%raw//"' is not available in this build.")
+            WRITE_ERROR("Environment variable 'DTFFT_"//name//"' has been ignored")
+            get_backend_from_env = DTFFT_BACKEND_NONE
+        endif
 
-      call bcknd_env%destroy()
-      call destroy_strings(backends)
-  end function get_backend_from_env
+        call bcknd_env%destroy()
+        call destroy_strings(backends)
+    end function get_backend_from_env
 
-  pure subroutine dtfft_create_config(config) bind(C, name="dtfft_create_config_c")
-  !! Creates a new configuration and sets default values.
-  !!
-  !! C interface
-    type(dtfft_config_t), intent(out) :: config !! Configuration to create
-    config = dtfft_config_t()
-  end subroutine dtfft_create_config
+    pure subroutine dtfft_create_config(config) bind(C, name="dtfft_create_config_c")
+    !! Creates a new configuration and sets default values.
+    !!
+    !! C interface
+        type(dtfft_config_t), intent(out) :: config !! Configuration to create
+        config = dtfft_config_t()
+    end subroutine dtfft_create_config
 
-  pure function config_constructor(                                       &
-    enable_log, enable_z_slab, enable_y_slab,                             &
-    n_measure_warmup_iters, n_measure_iters,                              &
+    pure function config_constructor(                                       &
+        enable_log, enable_z_slab, enable_y_slab,                             &
+        n_measure_warmup_iters, n_measure_iters,                              &
 #ifdef DTFFT_WITH_CUDA
-    platform, stream,                                                     &
+        platform, stream,                                                     &
 #endif
-    backend, reshape_backend, enable_datatype_backend,                    &
-    enable_mpi_backends, enable_pipelined_backends,                       &
-    enable_rma_backends, enable_fused_backends,                           &
+        backend, reshape_backend, enable_datatype_backend,                    &
+        enable_mpi_backends, enable_pipelined_backends,                       &
+        enable_rma_backends, enable_fused_backends,                           &
 #ifdef DTFFT_WITH_CUDA
-    enable_nccl_backends, enable_nvshmem_backends,                        &
+        enable_nccl_backends, enable_nvshmem_backends,                        &
 #endif
-    enable_kernel_autotune, enable_fourier_reshape,                       &
-    transpose_mode, access_mode                                           &
+        enable_kernel_autotune, enable_fourier_reshape,                       &
+        transpose_mode, access_mode,                                          &
+        block_size, co_threshold                                              &
 #ifdef DTFFT_WITH_COMPRESSION
-    ,enable_compressed_backends                                           &
-    ,compression_config_transpose, compression_config_reshape             &
+        ,enable_compressed_backends                                           &
+        ,compression_config_transpose, compression_config_reshape             &
 #endif
-  ) result(config)
-  !! Creates a new configuration
-    logical,                optional, intent(in)  :: enable_log
-      !! Should dtFFT print additional information during plan creation or not.
-    logical,                optional, intent(in)  :: enable_z_slab
-      !! Should dtFFT use Z-slab optimization or not.
-    logical,                optional, intent(in)  :: enable_y_slab
-      !! Should dtFFT use Y-slab optimization or not.
-    integer(int32),         optional, intent(in)  :: n_measure_warmup_iters
-      !! Number of warmup iterations for measurements
-    integer(int32),         optional, intent(in)  :: n_measure_iters
-      !! Number of measurement iterations
+    ) result(config)
+    !! Creates a new configuration
+        logical,                            optional, intent(in)  :: enable_log
+        !! Should dtFFT print additional information during plan creation or not.
+        logical,                            optional, intent(in)  :: enable_z_slab
+        !! Should dtFFT use Z-slab optimization or not.
+        logical,                            optional, intent(in)  :: enable_y_slab
+        !! Should dtFFT use Y-slab optimization or not.
+        integer(int32),                     optional, intent(in)  :: n_measure_warmup_iters
+        !! Number of warmup iterations for measurements
+        integer(int32),                     optional, intent(in)  :: n_measure_iters
+        !! Number of measurement iterations
 #ifdef DTFFT_WITH_CUDA
-    type(dtfft_platform_t), optional, intent(in)  :: platform
-      !! Selects platform to execute plan.
-    type(dtfft_stream_t),   optional, intent(in)  :: stream
-      !! Main CUDA stream that will be used in dtFFT.
+        type(dtfft_platform_t),             optional, intent(in)  :: platform
+        !! Selects platform to execute plan.
+        type(dtfft_stream_t),               optional, intent(in)  :: stream
+        !! Main CUDA stream that will be used in dtFFT.
 #endif
-    type(dtfft_backend_t),  optional, intent(in)  :: backend
-      !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
-    type(dtfft_backend_t),  optional, intent(in)  :: reshape_backend
-      !! Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
-    logical,                optional, intent(in)  :: enable_datatype_backend
-      !! Should `DTFFT_BACKEND_MPI_DATATYPE` be enabled when `effort` is `DTFFT_PATIENT` or not.
-    logical,                optional, intent(in)  :: enable_mpi_backends
-      !! Should MPI Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
-    logical,                optional, intent(in)  :: enable_pipelined_backends
-      !! Should pipelined backends be enabled when `effort` is `DTFFT_PATIENT` or not.
-    logical,                optional, intent(in)  :: enable_rma_backends
-      !! Should RMA backends be enabled when `effort` is `DTFFT_PATIENT` or not.
-    logical,                optional, intent(in)  :: enable_fused_backends
-      !! Should fused backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+        type(dtfft_backend_t),              optional, intent(in)  :: backend
+        !! Backend that will be used by dtFFT when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+        type(dtfft_backend_t),              optional, intent(in)  :: reshape_backend
+        !! Backend that will be used by dtFFT for data reshaping from bricks to pencils and vice versa when `effort` is `DTFFT_ESTIMATE` or `DTFFT_MEASURE`.
+        logical,                            optional, intent(in)  :: enable_datatype_backend
+        !! Should `DTFFT_BACKEND_MPI_DATATYPE` be enabled when `effort` is `DTFFT_PATIENT` or not.
+        logical,                            optional, intent(in)  :: enable_mpi_backends
+        !! Should MPI Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+        logical,                            optional, intent(in)  :: enable_pipelined_backends
+        !! Should pipelined backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+        logical,                            optional, intent(in)  :: enable_rma_backends
+        !! Should RMA backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+        logical,                            optional, intent(in)  :: enable_fused_backends
+        !! Should fused backends be enabled when `effort` is `DTFFT_PATIENT` or not.
 #ifdef DTFFT_WITH_CUDA
-    logical,                optional, intent(in)  :: enable_nccl_backends
-      !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
-    logical,                optional, intent(in)  :: enable_nvshmem_backends
-      !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+        logical,                            optional, intent(in)  :: enable_nccl_backends
+        !! Should NCCL Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
+        logical,                            optional, intent(in)  :: enable_nvshmem_backends
+        !! Should NVSHMEM Backends be enabled when `effort` is `DTFFT_PATIENT` or not.
 #endif
-    logical,                optional, intent(in)  :: enable_kernel_autotune
-      !! Should dtFFT try to autotune transpose/packing/unpacking kernels size during autotune process or not.
-    logical,                optional, intent(in)  :: enable_fourier_reshape
-      !! Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to `execute` or not.
-    type(dtfft_transpose_mode_t), optional, intent(in) :: transpose_mode
-      !! Specifies at which stage the local transposition is performed during global exchange.
-    type(dtfft_access_mode_t),    optional, intent(in) :: access_mode
-      !! Specifies the memory access pattern (optimization target) for local transposition in Generic backends.
+        logical,                            optional, intent(in)  :: enable_kernel_autotune
+        !! Should dtFFT try to autotune transpose/packing/unpacking kernels size during autotune process or not.
+        logical,                            optional, intent(in)  :: enable_fourier_reshape
+        !! Should dtFFT execute reshapes from pencils to bricks and vice versa in Fourier space during calls to `execute` or not.
+        type(dtfft_transpose_mode_t),       optional, intent(in) :: transpose_mode
+        !! Specifies at which stage the local transposition is performed during global exchange.
+        type(dtfft_access_mode_t),          optional, intent(in) :: access_mode
+        !! Specifies the memory access pattern (optimization target) for local transposition in Generic backends.
+        integer(int32),                     optional, intent(in) :: block_size
+        !!
+        integer(int32),                     optional, intent(in) :: co_threshold
+        !!
 #ifdef DTFFT_WITH_COMPRESSION
-    logical,                          optional, intent(in)  :: enable_compressed_backends
-      !! Should compressed backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
-    type(dtfft_compression_config_t), optional, intent(in)  :: compression_config_transpose
-      !! Options for compression approach during transpositions
-    type(dtfft_compression_config_t), optional, intent(in)  :: compression_config_reshape
-      !! Options for compression approach during transpositions
+        logical,                            optional, intent(in)  :: enable_compressed_backends
+        !! Should compressed backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
+        type(dtfft_compression_config_t),   optional, intent(in)  :: compression_config_transpose
+        !! Options for compression approach during transpositions
+        type(dtfft_compression_config_t),   optional, intent(in)  :: compression_config_reshape
+        !! Options for compression approach during reshapes
 #endif
+        type(dtfft_config_t) :: config
+        !! Constructed `dtFFT` config ready to be set by call to [[dtfft_set_config]]
 
-    type(dtfft_config_t) :: config
-      !! Constructed `dtFFT` config ready to be set by call to [[dtfft_set_config]]
-    config%enable_log = .false.;                if ( present(enable_log) ) config%enable_log = enable_log
-    config%enable_z_slab = .true.;              if ( present(enable_z_slab) ) config%enable_z_slab = enable_z_slab
-    config%enable_y_slab = .false.;             if ( present(enable_y_slab) ) config%enable_y_slab = enable_y_slab
-    config%n_measure_warmup_iters = CONF_DTFFT_MEASURE_WARMUP_ITERS
-      if ( present(n_measure_warmup_iters) ) config%n_measure_warmup_iters = n_measure_warmup_iters
-    config%n_measure_iters = CONF_DTFFT_MEASURE_ITERS
-      if ( present(n_measure_iters) ) config%n_measure_iters = n_measure_iters
+        OPTVAL(config%enable_log, .false., enable_log)
+        OPTVAL(config%enable_z_slab, .true., enable_z_slab)
+        OPTVAL(config%enable_y_slab, .false., enable_y_slab)
+        OPTVAL(config%n_measure_warmup_iters, CONF_DTFFT_MEASURE_WARMUP_ITERS, n_measure_warmup_iters)
+        OPTVAL(config%n_measure_iters, CONF_DTFFT_MEASURE_ITERS, n_measure_iters)
 #ifdef DTFFT_WITH_CUDA
-    config%platform = DTFFT_PLATFORM_HOST;      if ( present(platform) ) config%platform = platform
-    config%stream = NULL_STREAM;                if ( present(stream) ) config%stream = stream
+        OPTVAL(config%platform, DTFFT_PLATFORM_HOST, platform)
+        OPTVAL(config%stream, NULL_STREAM, stream)
 #endif
-    config%backend = DEFAULT_BACKEND;           if ( present(backend) ) config%backend = backend
-    config%reshape_backend = DEFAULT_BACKEND;   if ( present(reshape_backend) ) config%reshape_backend = reshape_backend
-    config%enable_datatype_backend = .true.;    if ( present(enable_datatype_backend) ) config%enable_datatype_backend = enable_datatype_backend
-    config%enable_mpi_backends = .false.;       if ( present(enable_mpi_backends) ) config%enable_mpi_backends = enable_mpi_backends
-    config%enable_pipelined_backends = .true.;  if ( present(enable_pipelined_backends) ) config%enable_pipelined_backends = enable_pipelined_backends
-    config%enable_rma_backends = .true.;        if ( present(enable_rma_backends) ) config%enable_rma_backends = enable_rma_backends
-    config%enable_fused_backends = .true.;      if ( present(enable_fused_backends) ) config%enable_fused_backends = enable_fused_backends
+        OPTVAL(config%backend, DEFAULT_BACKEND, backend)
+        OPTVAL(config%reshape_backend, DEFAULT_BACKEND, reshape_backend)
+        OPTVAL(config%enable_datatype_backend, .true., enable_datatype_backend)
+        OPTVAL(config%enable_mpi_backends, .false., enable_mpi_backends)
+        OPTVAL(config%enable_pipelined_backends, .true., enable_pipelined_backends)
+        OPTVAL(config%enable_rma_backends, .true., enable_rma_backends)
+        OPTVAL(config%enable_fused_backends, .true., enable_fused_backends)
 #ifdef DTFFT_WITH_CUDA
-    config%enable_nccl_backends = .true.;       if ( present(enable_nccl_backends) ) config%enable_nccl_backends = enable_nccl_backends
-    config%enable_nvshmem_backends = .true.;    if ( present(enable_nvshmem_backends) ) config%enable_nvshmem_backends = enable_nvshmem_backends
+        OPTVAL(config%enable_nccl_backends, .true., enable_nccl_backends)
+        OPTVAL(config%enable_nvshmem_backends, .true., enable_nvshmem_backends)
 #endif
-    config%enable_kernel_autotune = .false.;    if ( present(enable_kernel_autotune) ) config%enable_kernel_autotune = enable_kernel_autotune
-    config%enable_fourier_reshape = .false.;    if ( present(enable_fourier_reshape) ) config%enable_fourier_reshape = enable_fourier_reshape
-    config%transpose_mode = DTFFT_TRANSPOSE_MODE_PACK; if ( present(transpose_mode) ) config%transpose_mode = transpose_mode
-    config%access_mode = DTFFT_ACCESS_MODE_WRITE; if ( present(access_mode) ) config%access_mode = access_mode
+        OPTVAL(config%enable_kernel_autotune, .false., enable_kernel_autotune)
+        OPTVAL(config%enable_fourier_reshape, .false., enable_fourier_reshape)
+        OPTVAL(config%transpose_mode, DTFFT_TRANSPOSE_MODE_PACK, transpose_mode)
+        OPTVAL(config%access_mode, DTFFT_ACCESS_MODE_WRITE, access_mode)
+        OPTVAL(config%block_size, 0, block_size)
+        OPTVAL(config%co_threshold, 1024, co_threshold)
 #ifdef DTFFT_WITH_COMPRESSION
-    config%enable_compressed_backends = .false.;                      if ( present(enable_compressed_backends) ) config%enable_compressed_backends = enable_compressed_backends
-    config%compression_config_transpose = DEFAULT_COMPRESSION_CONFIG; if ( present(compression_config_transpose) ) config%compression_config_transpose = compression_config_transpose
-    config%compression_config_reshape = DEFAULT_COMPRESSION_CONFIG;   if ( present(compression_config_reshape) ) config%compression_config_reshape = compression_config_reshape
+        OPTVAL(config%enable_compressed_backends, .false., enable_compressed_backends)
+        OPTVAL(config%compression_config_transpose, DEFAULT_COMPRESSION_CONFIG, compression_config_transpose)
+        OPTVAL(config%compression_config_reshape, DEFAULT_COMPRESSION_CONFIG, compression_config_reshape)
 #endif
-  end function config_constructor
+    end function config_constructor
 
-  subroutine dtfft_set_config(config, error_code)
-  !! Sets configuration parameters
-    type(dtfft_config_t),     intent(in)  :: config     !! Configuration to set
-    integer(int32), optional, intent(out) :: error_code !! Error code
-    integer(int32) :: ierr
-
-    ierr = init_internal()
-    if ( ierr /=DTFFT_SUCCESS ) then
-      if ( present( error_code ) ) error_code = ierr
-      return
-    endif
-    is_log_enabled = config%enable_log
-    is_z_slab_enabled = config%enable_z_slab
-    is_y_slab_enabled = config%enable_y_slab
-
-    if ( config%n_measure_warmup_iters < 0 ) then
-      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS
-      return
-    endif
-    n_measure_warmup_iters = config%n_measure_warmup_iters
-    if ( config%n_measure_iters < 1 ) then
-      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_MEASURE_ITERS
-      return
-    endif
-    n_measure_iters = config%n_measure_iters
-
-    is_datatype_enabled = config%enable_datatype_backend
-    is_mpi_enabled = config%enable_mpi_backends
-    is_pipelined_enabled = config%enable_pipelined_backends
-    is_rma_enabled = config%enable_rma_backends
-    is_fused_enabled = config%enable_fused_backends
-
-#ifdef DTFFT_WITH_CUDA
-    if ( .not.is_null_ptr(config%stream%stream) ) then
-      block
+    subroutine dtfft_set_config(config, error_code)
+    !! Sets configuration parameters
+        type(dtfft_config_t),     intent(in)  :: config     !! Configuration to set
+        integer(int32), optional, intent(out) :: error_code !! Error code
         integer(int32) :: ierr
 
-        ierr = cudaStreamQuery(config%stream)
-        if ( .not.any(ierr == [cudaSuccess, cudaErrorNotReady]) ) then
-          if ( present( error_code ) ) error_code = DTFFT_ERROR_GPU_INVALID_STREAM
-          return
+        ierr = init_internal()
+        CHECK_ERROR
+
+        is_log_enabled = config%enable_log
+        is_z_slab_enabled = config%enable_z_slab
+        is_y_slab_enabled = config%enable_y_slab
+
+        RETURN_IF_TRUE(config%n_measure_warmup_iters < 0, DTFFT_ERROR_INVALID_MEASURE_WARMUP_ITERS)
+        n_measure_warmup_iters = config%n_measure_warmup_iters
+
+        RETURN_IF_TRUE( config%n_measure_iters < 1, DTFFT_ERROR_INVALID_MEASURE_ITERS )
+        n_measure_iters = config%n_measure_iters
+
+        is_datatype_enabled = config%enable_datatype_backend
+        is_mpi_enabled = config%enable_mpi_backends
+        is_pipelined_enabled = config%enable_pipelined_backends
+        is_rma_enabled = config%enable_rma_backends
+        is_fused_enabled = config%enable_fused_backends
+
+#ifdef DTFFT_WITH_CUDA
+        if ( .not.is_null_ptr(config%stream%stream) ) then
+        block
+            integer(int32) :: ierr
+
+            ierr = cudaStreamQuery(config%stream)
+            RETURN_IF_TRUE( .not.any(ierr == [cudaSuccess, cudaErrorNotReady]), DTFFT_ERROR_GPU_INVALID_STREAM )
+            custom_stream = config%stream
+            is_custom_stream = .true.
+        endblock
         endif
-        custom_stream = config%stream
-        is_custom_stream = .true.
-      endblock
-    endif
 
-    if ( .not.is_valid_platform(config%platform) ) then
-      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_PLATFORM
-      return
-    endif
-    platform = config%platform
+        RETURN_IF_TRUE( .not. is_valid_platform(config%platform), DTFFT_ERROR_INVALID_PLATFORM )
+        platform = config%platform
 
-    is_nccl_enabled = config%enable_nccl_backends
-    is_nvshmem_enabled = config%enable_nvshmem_backends
+        is_nccl_enabled = config%enable_nccl_backends
+        is_nvshmem_enabled = config%enable_nvshmem_backends
 #endif
 
-    is_kernel_autotune_enabled = config%enable_kernel_autotune
-    is_fourier_reshape_enabled = config%enable_fourier_reshape
-    if ( .not. is_valid_transpose_mode(config%transpose_mode) ) then
-      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_TRANSPOSE_MODE
-      return
-    endif
-    transpose_mode = config%transpose_mode
+        is_kernel_autotune_enabled = config%enable_kernel_autotune
+        is_fourier_reshape_enabled = config%enable_fourier_reshape
+        RETURN_IF_TRUE( .not. is_valid_transpose_mode(config%transpose_mode), DTFFT_ERROR_INVALID_TRANSPOSE_MODE )
+        transpose_mode_ = config%transpose_mode
 
-    if ( .not. is_valid_access_mode(config%access_mode) ) then
-      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_ACCESS_MODE
-      return
-    endif
-    access_mode = config%access_mode
+        RETURN_IF_TRUE( .not. is_valid_access_mode(config%access_mode), DTFFT_ERROR_INVALID_ACCESS_MODE )
+        access_mode_ = config%access_mode
 
-    if ( config%backend /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(config%backend)) then
-      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_BACKEND
-      return
-    endif
-    if ( config%reshape_backend /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(config%reshape_backend)) then
-      if ( present( error_code ) ) error_code = DTFFT_ERROR_INVALID_BACKEND
-      return
-    endif
-    backend = get_correct_backend(config%backend)
-    reshape_backend = get_correct_backend(config%reshape_backend)
+        RETURN_IF_TRUE( config%backend /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(config%backend), DTFFT_ERROR_INVALID_BACKEND )
+        RETURN_IF_TRUE( config%reshape_backend /= DTFFT_BACKEND_NONE .and. .not.is_valid_backend(config%reshape_backend), DTFFT_ERROR_INVALID_BACKEND )
+
+        backend_ = get_correct_backend(config%backend)
+        reshape_backend_ = get_correct_backend(config%reshape_backend)
+
+        ! TODO FIX ERROR CODES
+        RETURN_IF_TRUE( .not.any(config%block_size == [0, 4, 8, 16, 32, 64]), DTFFT_ERROR_INVALID_BACKEND )
+        block_size_ = config%block_size
+        RETURN_IF_TRUE( config%co_threshold < 0, DTFFT_ERROR_INVALID_BACKEND )
+        co_threshold_ = config%co_threshold
+
 #ifdef DTFFT_WITH_COMPRESSION
-    is_compression_enabled = config%enable_compressed_backends
-    config_transpose = config%compression_config_transpose
-    config_reshape = config%compression_config_reshape
+        is_compression_enabled = config%enable_compressed_backends
+        ierr = check_compression_config(config%compression_config_transpose)
+        CHECK_ERROR_AND_RETURN
+        config_transpose = config%compression_config_transpose
+
+        ierr = check_compression_config(config%compression_config_reshape)
+        CHECK_ERROR_AND_RETURN
+        config_reshape = config%compression_config_reshape
 #endif
-    if ( present( error_code ) ) error_code = DTFFT_SUCCESS
-  end subroutine dtfft_set_config
+        if ( present( error_code ) ) error_code = DTFFT_SUCCESS
+    end subroutine dtfft_set_config
 
-  elemental type(dtfft_backend_t) function get_correct_backend(back)
-    type(dtfft_backend_t), intent(in) :: back
+    elemental type(dtfft_backend_t) function get_correct_backend(back)
+        type(dtfft_backend_t), intent(in) :: back
 
-    if ( back == DTFFT_BACKEND_NONE ) then
+        if ( back == DTFFT_BACKEND_NONE ) then
 #ifdef DTFFT_WITH_CUDA
-      if ( get_conf_platform() == DTFFT_PLATFORM_CUDA ) then
+            if ( get_conf_platform() == DTFFT_PLATFORM_CUDA ) then
 # ifdef DTFFT_WITH_NCCL
-        get_correct_backend = DTFFT_BACKEND_NCCL
+                get_correct_backend = DTFFT_BACKEND_NCCL
 # else
-        get_correct_backend = DTFFT_BACKEND_MPI_P2P
+                get_correct_backend = DTFFT_BACKEND_MPI_P2P
 # endif
-      else
-        get_correct_backend = DTFFT_BACKEND_MPI_DATATYPE
-      endif
+            else
+                get_correct_backend = DTFFT_BACKEND_MPI_DATATYPE
+            endif
 #else
-      get_correct_backend = DTFFT_BACKEND_MPI_DATATYPE
+            get_correct_backend = DTFFT_BACKEND_MPI_DATATYPE
 #endif
-    else
-      get_correct_backend = back
-    endif
-  end function get_correct_backend
+        else
+            get_correct_backend = back
+        endif
+    end function get_correct_backend
 
-  elemental logical function get_conf_internal_logical(from_conf, from_env)
-  !! Returns value from configuration unless environment variable is set
-    logical,        intent(in) :: from_conf   !! Value from configuration
-    integer(int32), intent(in) :: from_env    !! Value from environment variable
-    get_conf_internal_logical = from_conf
-    if ( from_env /= VARIABLE_NOT_SET ) get_conf_internal_logical = from_env == 1
-  end function get_conf_internal_logical
 
-  elemental integer(int32) function get_conf_internal_int32(from_conf, from_env)
-  !! Returns value from configuration unless environment variable is set
-    integer(int32), intent(in) :: from_conf   !! Value from configuration
-    integer(int32), intent(in) :: from_env    !! Value from environment variable
-    get_conf_internal_int32 = from_conf
-    if ( from_env /= VARIABLE_NOT_SET ) get_conf_internal_int32 = from_env
-  end function get_conf_internal_int32
+#define GET_CONF_PRIVATE(value, from_conf, from_env, env_default, result) \
+    value = from_conf; if ( from_env /= env_default ) value = result
 
-  elemental function get_conf_log_enabled() result(bool)
-  !! Whether logging is enabled or not
-    logical :: bool   !! Result flag
-    bool = get_conf_internal(is_log_enabled, log_enabled_from_env)
-  end function get_conf_log_enabled
+#define GET_CONF_LOGICAL(value, from_conf, from_env) GET_CONF_PRIVATE(value, from_conf, from_env, VARIABLE_NOT_SET, from_env == 1)
+#define GET_CONF_INT32(value, from_conf, from_env) GET_CONF_PRIVATE(value, from_conf, from_env, VARIABLE_NOT_SET, from_env)
+#define GET_CONF_DEFAULT(value, from_conf, from_env, default) GET_CONF_PRIVATE(value, from_conf, from_env, default, from_env)
 
-  elemental function get_conf_z_slab_enabled() result(bool)
-  !! Whether Z-slab optimization is enabled or not
-    logical :: bool   !! Result flag
-    bool = get_conf_internal(is_z_slab_enabled, z_slab_from_env)
-  end function get_conf_z_slab_enabled
+    pure elemental logical function get_conf_log_enabled()
+    !! Whether logging is enabled or not
+        GET_CONF_LOGICAL(get_conf_log_enabled, is_log_enabled, log_enabled_from_env)
+    end function get_conf_log_enabled
 
-  elemental function get_conf_y_slab_enabled() result(bool)
-  !! Whether Y-slab optimization is enabled or not
-    logical :: bool   !! Result flag
-    bool = get_conf_internal(is_y_slab_enabled, y_slab_from_env)
-  end function get_conf_y_slab_enabled
+    pure elemental logical function get_conf_z_slab_enabled()
+    !! Whether Z-slab optimization is enabled or not
+        GET_CONF_LOGICAL(get_conf_z_slab_enabled, is_z_slab_enabled, z_slab_from_env)
+    end function get_conf_z_slab_enabled
 
-  elemental function get_conf_measure_warmup_iters() result(iters)
-  !! Returns the number of warmup iterations
-    integer(int32) :: iters  !! Result
-    iters = get_conf_internal(n_measure_warmup_iters, n_measure_warmup_iters_from_env)
-  end function get_conf_measure_warmup_iters
+    pure elemental logical function get_conf_y_slab_enabled()
+    !! Whether Y-slab optimization is enabled or not
+        GET_CONF_LOGICAL(get_conf_y_slab_enabled, is_y_slab_enabled, y_slab_from_env)
+    end function get_conf_y_slab_enabled
 
-  elemental function get_conf_measure_iters() result(iters)
-  !! Returns the number of measurement iterations
-    integer(int32) :: iters  !! Result
-    iters = get_conf_internal(n_measure_iters, n_measure_iters_from_env)
-  end function get_conf_measure_iters
+    pure elemental integer(int32) function get_conf_measure_warmup_iters()
+    !! Returns the number of warmup iterations
+        GET_CONF_INT32(get_conf_measure_warmup_iters, n_measure_warmup_iters, n_measure_warmup_iters_from_env)
+    end function get_conf_measure_warmup_iters
 
-  elemental type(dtfft_platform_t) function get_conf_platform()
-  !! Returns platform set by the user or default one
-    get_conf_platform = platform
-    if ( platform_from_env /= PLATFORM_NOT_SET ) get_conf_platform = platform_from_env
-  end function get_conf_platform
+    pure elemental integer(int32) function get_conf_measure_iters()
+    !! Returns the number of measurement iterations
+        GET_CONF_INT32(get_conf_measure_iters, n_measure_iters, n_measure_iters_from_env)
+    end function get_conf_measure_iters
+
+    pure elemental type(dtfft_platform_t) function get_conf_platform()
+    !! Returns platform set by the user or default one
+        GET_CONF_DEFAULT(get_conf_platform, platform, platform_from_env, PLATFORM_NOT_SET)
+    end function get_conf_platform
 
 #ifdef DTFFT_WITH_CUDA
-  type(dtfft_stream_t) function get_conf_stream() result(stream)
-  !! Returns either the custom provided by user or creates a new one
-    if ( is_custom_stream ) then
-      stream = custom_stream
-      return
-    endif
-    if (.not.is_stream_created) then
-      CUDA_CALL( cudaStreamCreate(main_stream) )
-      is_stream_created = .true.
-    endif
-    stream = main_stream
-  end function get_conf_stream
+    type(dtfft_stream_t) function get_conf_stream() result(stream)
+    !! Returns either the custom provided by user or creates a new one
+        if ( is_custom_stream ) then
+            stream = custom_stream
+            return
+        endif
+        if (.not.is_stream_created) then
+            CUDA_CALL( cudaStreamCreate(main_stream) )
+            is_stream_created = .true.
+        endif
+        stream = main_stream
+    end function get_conf_stream
 
-  subroutine destroy_stream
-  !! Destroy the default stream if it was created
-    if ( is_stream_created ) then
-      CUDA_CALL( cudaStreamDestroy(main_stream) )
-      is_stream_created = .false.
-    endif
-  end subroutine destroy_stream
+    subroutine destroy_stream
+    !! Destroy the default stream if it was created
+        if ( is_stream_created ) then
+            CUDA_CALL( cudaStreamDestroy(main_stream) )
+            is_stream_created = .false.
+        endif
+    end subroutine destroy_stream
 #endif
 
-  elemental type(dtfft_backend_t) function get_conf_backend()
-  !! Returns backend set by the user or default one
-    get_conf_backend = get_correct_backend(backend)
-    if ( backend_from_env /= DTFFT_BACKEND_NONE) get_conf_backend = backend_from_env
-  end function get_conf_backend
+    pure elemental type(dtfft_backend_t) function get_conf_backend()
+    !! Returns backend set by the user or default one
+        GET_CONF_DEFAULT(get_conf_backend, get_correct_backend(backend_), backend_from_env, DTFFT_BACKEND_NONE)
+    end function get_conf_backend
 
-  elemental type(dtfft_backend_t) function get_conf_reshape_backend()
-  !! Returns reshape backend set by the user or default one
-    get_conf_reshape_backend = get_correct_backend(reshape_backend)
-    if ( reshape_backend_from_env /= DTFFT_BACKEND_NONE) get_conf_reshape_backend = reshape_backend_from_env
-  end function get_conf_reshape_backend
+    pure elemental type(dtfft_backend_t) function get_conf_reshape_backend()
+    !! Returns reshape backend set by the user or default one
+        GET_CONF_DEFAULT(get_conf_reshape_backend, get_correct_backend(reshape_backend_), reshape_backend_from_env, DTFFT_BACKEND_NONE)
+    end function get_conf_reshape_backend
 
-  elemental function get_conf_datatype_enabled() result(bool)
-  !! Whether MPI Datatype backend is enabled or not
-    logical :: bool   !! Result flag
-    bool = get_conf_internal(is_datatype_enabled, datatype_enabled_from_env)
-  end function get_conf_datatype_enabled
+    pure elemental logical function get_conf_datatype_enabled()
+    !! Whether MPI Datatype backend is enabled or not
+        GET_CONF_LOGICAL(get_conf_datatype_enabled, is_datatype_enabled, datatype_enabled_from_env)
+    end function get_conf_datatype_enabled
 
-  elemental function get_conf_pipelined_enabled() result(bool)
-  !! Whether pipelined backends are enabled or not
-    logical :: bool   !! Result flag
-    bool = get_conf_internal(is_pipelined_enabled, pipelined_enabled_from_env)
-  end function get_conf_pipelined_enabled
+    pure elemental logical function get_conf_pipelined_enabled()
+    !! Whether pipelined backends are enabled or not
+        GET_CONF_LOGICAL(get_conf_pipelined_enabled, is_pipelined_enabled, pipelined_enabled_from_env)
+    end function get_conf_pipelined_enabled
 
-  elemental function get_conf_rma_enabled() result(bool)
-  !! Whether RMA backends are enabled or not
-    logical :: bool   !! Result flag
+    pure elemental logical function get_conf_rma_enabled()
+    !! Whether RMA backends are enabled or not
 #ifdef DTFFT_WITH_RMA
-    bool = get_conf_internal(is_rma_enabled, rma_enabled_from_env)
+        GET_CONF_LOGICAL(get_conf_rma_enabled, is_rma_enabled, rma_enabled_from_env)
 #else
-    bool = .false.
+        get_conf_rma_enabled = .false.
 #endif
-  end function get_conf_rma_enabled
+    end function get_conf_rma_enabled
 
-  elemental function get_conf_fused_enabled() result(bool)
-  !! Whether fused backends are enabled or not
-    logical :: bool   !! Result flag
-    bool = get_conf_internal(is_fused_enabled, fused_enabled_from_env)
-  end function get_conf_fused_enabled
+    pure elemental logical function get_conf_fused_enabled()
+    !! Whether fused backends are enabled or not
+        GET_CONF_LOGICAL(get_conf_fused_enabled, is_fused_enabled, fused_enabled_from_env)
+    end function get_conf_fused_enabled
 
-  elemental function get_conf_mpi_enabled() result(bool)
-  !! Whether MPI backends are enabled or not
-    logical :: bool  !! Result flag
+    pure elemental logical function get_conf_mpi_enabled()
+    !! Whether MPI backends are enabled or not
 #if !defined(DTFFT_WITH_NCCL) && !defined(DTFFT_WITH_NVSHMEM)
-    if ( get_conf_platform() == DTFFT_PLATFORM_HOST) then
-      bool = get_conf_internal(is_mpi_enabled, mpi_enabled_from_env)
-    else
-      bool = .true.
-    endif
-    ! Should not be .false. if only MPI backends are possible
+        if ( get_conf_platform() == DTFFT_PLATFORM_HOST) then
+            GET_CONF_LOGICAL(get_conf_mpi_enabled, is_mpi_enabled, mpi_enabled_from_env)
+        else
+            get_conf_mpi_enabled = .true.
+        endif
+        ! Should not be .false. if only MPI backends are possible
 #else
-    bool = get_conf_internal(is_mpi_enabled, mpi_enabled_from_env)
+        GET_CONF_LOGICAL(get_conf_mpi_enabled, is_mpi_enabled, mpi_enabled_from_env)
 #endif
-  end function get_conf_mpi_enabled
+    end function get_conf_mpi_enabled
 
 #ifdef DTFFT_WITH_CUDA
-  elemental function get_conf_nccl_enabled() result(bool)
-  !! Whether NCCL backends are enabled or not
-    logical :: bool  !! Result flag
+    pure elemental logical function get_conf_nccl_enabled()
+    !! Whether NCCL backends are enabled or not
 # ifdef DTFFT_WITH_NCCL
-    bool = get_conf_internal(is_nccl_enabled, nccl_enabled_from_env)
+        GET_CONF_LOGICAL(get_conf_nccl_enabled, is_nccl_enabled, nccl_enabled_from_env)
 # else
-    bool = .false.
+        get_conf_nccl_enabled = .false.
 # endif
-  end function get_conf_nccl_enabled
+    end function get_conf_nccl_enabled
 
-  elemental function get_conf_nvshmem_enabled() result(bool)
-  !! Whether nvshmem backends are enabled or not
-    logical :: bool  !! Result flag
+    pure elemental logical function get_conf_nvshmem_enabled()
+    !! Whether nvshmem backends are enabled or not
 # ifdef DTFFT_WITH_NVSHMEM
-    bool = get_conf_internal(is_nvshmem_enabled, nvshmem_enabled_from_env)
+        GET_CONF_LOGICAL(get_conf_nvshmem_enabled, is_nvshmem_enabled, nvshmem_enabled_from_env)
 # else
-    bool = .false.
+        get_conf_nvshmem_enabled = .false.
 # endif
-  end function get_conf_nvshmem_enabled
+    end function get_conf_nvshmem_enabled
 #endif
 
-  elemental function get_conf_kernel_autotune_enabled() result(bool)
-  !! Whether kernel optimization is enabled or not
-    logical :: bool  !! Result flag
-    bool = get_conf_internal(is_kernel_autotune_enabled, kernel_autotune_enabled_from_env)
-  end function get_conf_kernel_autotune_enabled
+    pure elemental logical function get_conf_kernel_autotune_enabled()
+    !! Whether kernel optimization is enabled or not
+        GET_CONF_LOGICAL(get_conf_kernel_autotune_enabled, is_kernel_autotune_enabled, kernel_autotune_enabled_from_env)
+    end function get_conf_kernel_autotune_enabled
 
-  elemental function get_conf_fourier_reshape_enabled() result(bool)
-  !! Whether reshape in Fourier space is enabled or not
-    logical :: bool  !! Result flag
-    bool = get_conf_internal(is_fourier_reshape_enabled, fourier_reshape_enabled_from_env)
-  end function get_conf_fourier_reshape_enabled
+    pure elemental logical function get_conf_fourier_reshape_enabled()
+    !! Whether reshape in Fourier space is enabled or not
+        GET_CONF_LOGICAL(get_conf_fourier_reshape_enabled, is_fourier_reshape_enabled, fourier_reshape_enabled_from_env)
+    end function get_conf_fourier_reshape_enabled
 
-  elemental function get_conf_transpose_mode() result(mode)
-  !! Returns transpose mode set by the user or default one
-    type(dtfft_transpose_mode_t) :: mode  !! Result
-    mode = transpose_mode
-    if ( transpose_mode_from_env /= TRANSPOSE_MODE_NOT_SET ) mode = transpose_mode_from_env
-  end function get_conf_transpose_mode
+    pure elemental type(dtfft_transpose_mode_t) function get_conf_transpose_mode()
+    !! Returns transpose mode set by the user or default one
+        GET_CONF_DEFAULT(get_conf_transpose_mode, transpose_mode_, transpose_mode_from_env, TRANSPOSE_MODE_NOT_SET)
+    end function get_conf_transpose_mode
 
-  elemental function get_conf_access_mode() result(mode)
-  !! Returns access mode set by the user or default one
-    type(dtfft_access_mode_t) :: mode  !! Result
-    mode = access_mode
-    if ( access_mode_from_env /= ACCESS_MODE_NOT_SET ) mode = access_mode_from_env
-  end function get_conf_access_mode
+    pure elemental type(dtfft_access_mode_t) function get_conf_access_mode()
+    !! Returns access mode set by the user or default one
+        GET_CONF_DEFAULT(get_conf_access_mode, access_mode_, access_mode_from_env, ACCESS_MODE_NOT_SET)
+    end function get_conf_access_mode
 
-  elemental function get_conf_compression_enabled() result(bool)
-  !! Whether compression is enabled or not
-    logical :: bool  !! Result flag
+    pure elemental integer(int32) function get_conf_block_size()
+    !! Returns the number of warmup iterations
+        GET_CONF_INT32(get_conf_block_size, block_size_, block_size_from_env)
+    end function get_conf_block_size
+
+    pure elemental integer(int32) function get_conf_co_threshold()
+    !! Returns the number of measurement iterations
+        GET_CONF_INT32(get_conf_co_threshold, co_threshold_, co_threshold_from_env)
+    end function get_conf_co_threshold
+
+    pure elemental logical function get_conf_compression_enabled()
+    !! Whether compression is enabled or not
 #ifdef DTFFT_WITH_COMPRESSION
-    bool = get_conf_internal(is_compression_enabled, compression_enabled_from_env)
+        GET_CONF_LOGICAL(get_conf_compression_enabled, is_compression_enabled, compression_enabled_from_env)
 #else
-    bool = .false.
+        get_conf_compression_enabled = .false.
 #endif
-  end function get_conf_compression_enabled
+    end function get_conf_compression_enabled
 
 #ifdef DTFFT_WITH_COMPRESSION
-  elemental function get_conf_transpose() result(config)
-  !! Returns compression config for transposes
-    type(dtfft_compression_config_t) :: config  !! Result
-    config = config_transpose
-  end function get_conf_transpose
+    pure elemental type(dtfft_compression_config_t) function get_conf_transpose()
+    !! Returns compression config for transposes
+        get_conf_transpose = config_transpose
+    end function get_conf_transpose
 
-
-  elemental function get_conf_reshape() result(config)
-  !! Returns compression config for reshapes
-    type(dtfft_compression_config_t) :: config  !! Result
-
-    config = config_reshape
-  end function get_conf_reshape
+    pure elemental type(dtfft_compression_config_t) function get_conf_reshape()
+    !! Returns compression config for reshapes
+        get_conf_reshape = config_reshape
+    end function get_conf_reshape
 #endif
 
 end module dtfft_config

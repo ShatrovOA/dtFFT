@@ -22,17 +22,18 @@ module dtfft_compressor_zfp
 use iso_c_binding
 use iso_fortran_env
 use dtfft_abstract_compressor
-use dtfft_errors
-use dtfft_config
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
 #endif
 use dtfft_interface_zfp
 use dtfft_parameters
+use dtfft_errors
+use dtfft_config
 use dtfft_utils
 #include "_dtfft_cuda.h"
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
+#include "_dtfft_mpi.h"
 implicit none
 private
 public :: compressor_zfp
@@ -40,7 +41,6 @@ public :: compressor_zfp
     type, extends(abstract_compressor) :: compressor_zfp
     !! ZFP-based compressor implementation
     private
-        logical                         :: is_complex   !! Indicates if the data type is complex
         logical                         :: is_fixed_rate
         integer(int64)                  :: imag_offset  !! Byte offset for imaginary part in complex data
         type(dtfft_compression_config_t):: config       !! Compression configuration parameters
@@ -50,42 +50,43 @@ public :: compressor_zfp
         type(cudaEvent)                 :: event
 #endif
     contains
-        procedure   :: create_private => create         !! Initializes the ZFP compressor with given configuration
-        procedure   :: compress_private => compress     !! Compresses the input data using ZFP
-        procedure   :: decompress_private => decompress !! Decompresses the input data using ZFP
-        procedure   :: destroy                          !! Cleans up the compressor resources
-        procedure   :: sync
-        procedure   :: pre_sync
-        procedure   :: post_sync
-        procedure   :: init                             !! Initializes ZFP stream and field for compression/decompression
+        procedure           :: create_private => create         !! Initializes the ZFP compressor with given configuration
+        procedure           :: compress_private => compress     !! Compresses the input data using ZFP
+        procedure           :: decompress_private => decompress !! Decompresses the input data using ZFP
+        procedure           :: destroy                          !! Cleans up the compressor resources
+        procedure           :: sync
+        procedure           :: pre_sync
+        procedure           :: post_sync
+        procedure           :: init                             !! Initializes ZFP stream and field for compression/decompression
+        procedure, nopass   :: get_supported_modes
     end type compressor_zfp
 
-    logical, save :: WARNING_ISSUED = .false.
+#ifdef DTFFT_WITH_OPENMP
+    logical, save :: OMP_WARNING_ISSUED = .false.
+#endif
 
 contains
 
-    integer(int32) function create(self, config, platform, base_type)
+    integer(int32) function create(self, config, platform)
     !! Initializes the ZFP compressor with given configuration
         class(compressor_zfp),              intent(inout)   :: self         !! Compressor instance
         type(dtfft_compression_config_t),   intent(in)      :: config       !! Compression settings
         type(dtfft_platform_t),             intent(in)      :: platform     !! Target platform (CPU or CUDA)
-        TYPE_MPI_DATATYPE,                  intent(in)      :: base_type    !! MPI data type
 
         create = DTFFT_SUCCESS
-        self%imag_offset = 0
-        self%is_complex = GET_MPI_VALUE(base_type) == GET_MPI_VALUE(MPI_COMPLEX) .or. GET_MPI_VALUE(base_type) == GET_MPI_VALUE(MPI_DOUBLE_COMPLEX)
         self%config = config
 #ifdef DTFFT_WITH_OPENMP
 # ifdef ZFP_WITH_OPENMP
         self%policy = zfp_exec_omp
-        if ( .not. WARNING_ISSUED ) then
+        ! self%policy = zfp_exec_serial
+        if ( .not. OMP_WARNING_ISSUED ) then
             WRITE_WARN("ZFP Does not support OpenMP decompression. All decompressions will be performed in a serial manner.")
-            WARNING_ISSUED = .true.
+            OMP_WARNING_ISSUED = .true.
         endif
 # else
-        if ( .not. WARNING_ISSUED ) then
+        if ( .not. OMP_WARNING_ISSUED ) then
             WRITE_WARN("ZFP Does not support OpenMP execution policy. All compressions and decompressions will be performed in a serial manner.")
-            WARNING_ISSUED = .true.
+            OMP_WARNING_ISSUED = .true.
         endif
         self%policy = zfp_exec_serial
 # endif
@@ -97,60 +98,26 @@ contains
             create = DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED
             return
 #endif
+            ! ZFP CUDA execution policy supports fixed rate mode only, both for compression
+            ! and decompression. `zfp_compress` and `zfp_decompress` simply return zero for
+            ! any other mode, so such configuration is rejected here instead of failing later
+            ! if ( config%compression_mode /= DTFFT_COMPRESSION_MODE_FIXED_RATE ) then
+            !     create = DTFFT_ERROR_COMPRESSION_INVALID_MODE
+            !     return
+            ! endif
             self%policy = zfp_exec_cuda
         endif
-        select case ( GET_MPI_VALUE(base_type) )
-        case ( GET_MPI_VALUE(MPI_COMPLEX), GET_MPI_VALUE(MPI_REAL) )
-            self%scalar_type = zfp_type_float
-            if ( self%is_complex ) self%imag_offset = 4_int64
-        case default
-            self%scalar_type = zfp_type_double
-            if ( self%is_complex ) self%imag_offset = 8_int64
-        endselect
 
-        if ( self%scalar_type%val == zfp_type_float%val ) then
-            if ( config%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_RATE .and. config%rate >= 32.0_real64 ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_RATE
-                return
-            elseif ( config%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. config%precision >= 32 ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
-                return
-            elseif ( config%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_ACCURACY .and. config%tolerance < nearest(1._real32, 1._real32) - nearest(1._real32,-1._real32) ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE
-                return
-            endif
+        self%imag_offset = 0
+        if ( self%is_complex ) self%imag_offset = self%storage_size
+        if ( self%storage_size == FLOAT_STORAGE_SIZE ) then
+            self%scalar_type = zfp_type_float
         else
-            if ( config%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_RATE .and. config%rate >= 64.0_real64 ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_RATE
-                return
-            elseif ( config%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. config%precision >= 64 ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
-                return
-            elseif ( config%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_ACCURACY .and. config%tolerance < nearest(1._real64, 1._real64) - nearest(1._real64,-1._real64) ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE
-                return
-            endif
+            self%scalar_type = zfp_type_double
         endif
 
         self%is_fixed_rate = .false.
-        select case ( config%compression_mode%val )
-        case ( DTFFT_COMPRESSION_MODE_FIXED_RATE%val )
-            if ( config%rate <= 1.0_real64 ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_RATE
-                return
-            endif
-            self%is_fixed_rate = .true.
-        case ( DTFFT_COMPRESSION_MODE_FIXED_PRECISION%val )
-            if ( config%precision <= 1 ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
-                return
-            endif
-        case ( DTFFT_COMPRESSION_MODE_FIXED_ACCURACY%val )
-            if ( config%tolerance <= 0.0_real64 ) then
-                create = DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE
-                return
-            endif
-        endselect
+        if ( config%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_RATE ) self%is_fixed_rate = .true.
 #ifdef DTFFT_WITH_CUDA
         if ( platform == DTFFT_PLATFORM_CUDA ) then
             CUDA_CALL( cudaEventCreateWithFlags(self%event, cudaEventDisableTiming) )
@@ -174,7 +141,9 @@ contains
             work_dims(1) = 2 * work_dims(1)
         endif
 
-        field = zfp_create_field(uncompressed_ptr, self%scalar_type, dims)
+        field = zfp_create_field(uncompressed_ptr, self%scalar_type, work_dims)
+
+        deallocate(work_dims)
         if ( self%is_complex .and. .not. self%is_fixed_rate) then
             allocate( strides(self%ndims) )
 
@@ -232,26 +201,26 @@ contains
             call zfp_field_set_pointer(field, ptr_offset(in, self%imag_offset))
             compress = zfp_compress(zfp, field)
         endif
-
         call zfp_field_free(field)
         call zfp_stream_close(zfp)
         call stream_close(bs)
     end function compress
 
-    subroutine decompress(self, dims, in, out, stream)
+    subroutine decompress(self, dims, in, out, stream, compressed_size)
     !! Decompresses the input data using ZFP
         class(compressor_zfp),      intent(inout)   :: self             !! Compressor instance
         integer(int32),             intent(in)      :: dims(:)          !! Array dimensions
         type(c_ptr),                intent(in)      :: in               !! Pointer to compressed data
         type(c_ptr),                intent(in)      :: out              !! Pointer to output buffer
         type(dtfft_stream_t),       intent(in)      :: stream           !! Stream handle
+        integer(int64),             intent(in)      :: compressed_size
         type(zfp_field) :: field
         type(zfp_stream) :: zfp
         type(bitstream) :: bs
         integer(int64) :: decompressed_size
 
         call self%init(out, dims, .true., zfp, field)
-        bs = stream_open(in, product(dims) * self%storage_size)
+        bs = stream_open(in, compressed_size)
         call zfp_stream_set_bit_stream(zfp, bs)
         call zfp_stream_rewind(zfp)
 
@@ -284,9 +253,8 @@ contains
     end subroutine destroy
 
     subroutine pre_sync(self, stream)
-        class(compressor_zfp),      intent(inout)  :: self                 !! Abstract kernel
+        class(compressor_zfp),      intent(inout)  :: self                 !! Compressor instance
         type(dtfft_stream_t),       intent(in)     :: stream
-
         if ( self%policy%val /= zfp_exec_cuda%val ) return
 #ifdef DTFFT_WITH_CUDA
         CUDA_CALL( cudaEventRecord(self%event, stream) )
@@ -296,7 +264,7 @@ contains
     end subroutine pre_sync
 
     subroutine post_sync(self, stream)
-        class(compressor_zfp),      intent(inout)  :: self                 !! Abstract kernel
+        class(compressor_zfp),      intent(inout)  :: self                 !! Compressor instance
         type(dtfft_stream_t),       intent(in)  :: stream
 
         if ( self%policy%val /= zfp_exec_cuda%val ) return
@@ -308,12 +276,27 @@ contains
     end subroutine post_sync
 
     subroutine sync(self, stream)
-        class(compressor_zfp),      intent(inout)  :: self                 !! Abstract kernel
+        class(compressor_zfp),      intent(inout)  :: self                 !! Compressor instance
         type(dtfft_stream_t),       intent(in)  :: stream
-
         if ( self%policy%val /= zfp_exec_cuda%val ) return
 #ifdef DTFFT_WITH_CUDA
         CUDA_CALL( cudaStreamSynchronize(NULL_STREAM) )
 #endif
     end subroutine sync
+
+    pure subroutine get_supported_modes(host_modes, cuda_modes, use_tolerance)
+    !! Returns supported compression modes
+    !! Arrays are of size 4, corresponding to the order of `VALID_COMPRESSION_MODES`:
+    !! 1. DTFFT_COMPRESSION_MODE_LOSSLESS
+    !! 2. DTFFT_COMPRESSION_MODE_FIXED_RATE
+    !! 3. DTFFT_COMPRESSION_MODE_FIXED_PRECISION
+    !! 4. DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
+        logical,    intent(out) :: host_modes(4)        !! Supported host compression modes
+        logical,    intent(out) :: cuda_modes(4)        !! Supported cuda compression modes
+        logical,    intent(out) :: use_tolerance        !! .false.
+
+        host_modes = [.true., .true., .true., .true.]
+        cuda_modes = [.false., .true., .false., .false.]
+        use_tolerance = .false.
+    end subroutine get_supported_modes
 end module dtfft_compressor_zfp

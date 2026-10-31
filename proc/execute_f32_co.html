@@ -1,0 +1,968 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>execute_f32_co &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>execute_f32_co
+      <small>Module Procedure</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for procedures.">37 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dtfft_kernel_host_co_sm.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_kernel_host_co_sm.f90.html'>dtfft_kernel_host_co_sm.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_kernel_host_co_sm.html'>dtfft_kernel_host_co_sm</a></li>
+            <li class="breadcrumb-item active" aria-current="page">execute_f32_co</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>module procedure execute_f32_co <small>module subroutine execute_f32_co(self, in, out, neighbor)</small>  
+    <a href="../interface/execute_f32_co.html"><button type="button" class="btn btn-info depwarn">Interface &rarr;</button></a>
+</h2>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_f32_co~~UsesGraph Pages: 1 -->
+<svg id="procexecute_f32_coUsesGraph" width="233pt" height="32pt"
+ viewBox="0.00 0.00 233.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_f32_co~~UsesGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>proc~~execute_f32_co~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 229,-28 229,4 -4,4"/>
+<!-- proc~execute_f32_co -->
+<g id="proc~~execute_f32_co~~UsesGraph_node1" class="node">
+<title>proc~execute_f32_co</title>
+<polygon fill="none" stroke="black" points="225,-24 130,-24 130,0 225,0 225,-24"/>
+<text text-anchor="middle" x="177.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">execute_f32_co</text>
+</g>
+<!-- iso_fortran_env -->
+<g id="proc~~execute_f32_co~~UsesGraph_node2" class="node">
+<title>iso_fortran_env</title>
+<g id="a_proc~~execute_f32_co~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-24 0,-24 0,0 94,0 94,-24"/>
+<text text-anchor="middle" x="47" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;iso_fortran_env -->
+<g id="proc~~execute_f32_co~~UsesGraph_edge1" class="edge">
+<title>proc~execute_f32_co&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M129.75,-12C121.48,-12 112.8,-12 104.3,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="104.08,-8.5 94.08,-12 104.08,-15.5 104.08,-8.5"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-self~278"></span>
+              class(<a href='../type/kernel_host.html'>kernel_host</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+                <p>Host kernel class</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-in~553"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>in</strong></td>
+            <td>
+                <p>Source host-allocated buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-out~553"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>out</strong></td>
+            <td>
+                <p>Target host-allocated buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-neighbor~137"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>neighbor</strong></td>
+            <td>
+                <p>Source rank for pipelined unpacking</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~execute_f32_co~~CallsGraph Pages: 1 -->
+<svg id="procexecute_f32_coCallsGraph" width="641pt" height="470pt"
+ viewBox="0.00 0.00 641.00 470.41" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute_f32_co~~CallsGraph" class="graph" transform="scale(0.74 0.74) rotate(0) translate(4 633)">
+<title>proc~~execute_f32_co~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-633 864,-633 864,4 -4,4"/>
+<!-- proc~execute_f32_co -->
+<g id="proc~~execute_f32_co~~CallsGraph_node1" class="node">
+<title>proc~execute_f32_co</title>
+<polygon fill="none" stroke="black" points="95,-311 0,-311 0,-287 95,-287 95,-311"/>
+<text text-anchor="middle" x="47.5" y="-296.6" font-family="Helvetica,sans-Serif" font-size="10.50">execute_f32_co</text>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~execute_f32_co~~CallsGraph_node2" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="257,-567 190,-567 190,-543 257,-543 257,-567"/>
+<text text-anchor="middle" x="223.5" y="-552.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;mpi_abort -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge1" class="edge">
+<title>proc~execute_f32_co&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ff0000" d="M48.88,-311.19C50.77,-350.12 62.17,-472.48 131,-534 144.18,-545.78 162.62,-551.35 179.5,-553.85"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="179.41,-557.37 189.74,-555.05 180.22,-550.41 179.41,-557.37"/>
+</g>
+<!-- proc~pack_backward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node3" class="node">
+<title>proc~pack_backward_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node3"><a xlink:href="../proc/pack_backward_co_f32.html" xlink:title="pack_backward_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="291.5,-525 155.5,-525 155.5,-501 291.5,-501 291.5,-525"/>
+<text text-anchor="middle" x="223.5" y="-510.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pack_backward_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~pack_backward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge2" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~pack_backward_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M49.91,-311.19C54.56,-345.43 72.57,-443.16 131,-492 135.38,-495.66 140.27,-498.71 145.45,-501.25"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="144.47,-504.63 155.04,-505.29 147.19,-498.18 144.47,-504.63"/>
+</g>
+<!-- proc~pack_forward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node4" class="node">
+<title>proc~pack_forward_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node4"><a xlink:href="../proc/pack_forward_co_f32.html" xlink:title="pack_forward_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="286,-483 161,-483 161,-459 286,-459 286,-483"/>
+<text text-anchor="middle" x="223.5" y="-468.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pack_forward_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~pack_forward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge3" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~pack_forward_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M52.2,-311.38C61.1,-339 86.33,-406.08 131,-442 137.53,-447.25 145.03,-451.56 152.87,-455.09"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="151.6,-458.36 162.18,-458.9 154.24,-451.88 151.6,-458.36"/>
+</g>
+<!-- proc~permute_backward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node5" class="node">
+<title>proc~permute_backward_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node5"><a xlink:href="../proc/permute_backward_co_f32.html" xlink:title="permute_backward_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="301.5,-433 145.5,-433 145.5,-409 301.5,-409 301.5,-433"/>
+<text text-anchor="middle" x="223.5" y="-418.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~permute_backward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge4" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~permute_backward_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M54.84,-311.15C66.71,-332.66 94.46,-377.31 131,-400 133.84,-401.76 136.81,-403.38 139.87,-404.86"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="138.73,-408.18 149.3,-408.9 141.49,-401.74 138.73,-408.18"/>
+</g>
+<!-- proc~permute_backward_end_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node6" class="node">
+<title>proc~permute_backward_end_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node6"><a xlink:href="../proc/permute_backward_end_co_f32.html" xlink:title="permute_backward_end_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="314,-391 133,-391 133,-367 314,-367 314,-391"/>
+<text text-anchor="middle" x="223.5" y="-376.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~permute_backward_end_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge5" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~permute_backward_end_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M63.79,-311.06C79.76,-323.15 105.93,-341.56 131,-353 140.13,-357.17 150.07,-360.82 159.94,-363.97"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="159.16,-367.39 169.74,-366.95 161.19,-360.69 159.16,-367.39"/>
+</g>
+<!-- proc~permute_backward_end_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node7" class="node">
+<title>proc~permute_backward_end_pipelined_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node7"><a xlink:href="../proc/permute_backward_end_pipelined_co_f32.html" xlink:title="permute_backward_end_pipelined_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="588,-389 352,-389 352,-365 588,-365 588,-389"/>
+<text text-anchor="middle" x="470" y="-374.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_end_pipelined_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~permute_backward_end_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge6" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~permute_backward_end_pipelined_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M92.87,-311.01C105.17,-314.14 118.56,-317.37 131,-320 213.24,-337.37 307.63,-352.93 375.72,-363.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="375.58,-366.9 385.99,-364.95 376.64,-359.98 375.58,-366.9"/>
+</g>
+<!-- proc~permute_backward_start_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node8" class="node">
+<title>proc~permute_backward_start_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node8"><a xlink:href="../proc/permute_backward_start_co_f32.html" xlink:title="permute_backward_start_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="316,-311 131,-311 131,-287 316,-287 316,-311"/>
+<text text-anchor="middle" x="223.5" y="-296.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_backward_start_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~permute_backward_start_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge7" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~permute_backward_start_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M95.13,-299C103.17,-299 111.81,-299 120.66,-299"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="120.72,-302.5 130.72,-299 120.72,-295.5 120.72,-302.5"/>
+</g>
+<!-- proc~permute_forward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node9" class="node">
+<title>proc~permute_forward_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node9"><a xlink:href="../proc/permute_forward_co_f32.html" xlink:title="permute_forward_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="296,-269 151,-269 151,-245 296,-245 296,-269"/>
+<text text-anchor="middle" x="223.5" y="-254.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_forward_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~permute_forward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge8" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~permute_forward_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M95.14,-286.92C106.83,-283.95 119.36,-280.82 131,-278 140.17,-275.78 149.87,-273.49 159.4,-271.28"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="160.27,-274.67 169.23,-269 158.7,-267.85 160.27,-274.67"/>
+</g>
+<!-- proc~unpack_backward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node10" class="node">
+<title>proc~unpack_backward_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node10"><a xlink:href="../proc/unpack_backward_co_f32.html" xlink:title="unpack_backward_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="298,-227 149,-227 149,-203 298,-203 298,-227"/>
+<text text-anchor="middle" x="223.5" y="-212.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_backward_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~unpack_backward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge9" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~unpack_backward_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M60.79,-286.86C75.99,-272.53 103.27,-249.02 131,-236 135.59,-233.85 140.41,-231.91 145.34,-230.16"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="146.5,-233.46 154.92,-227.04 144.33,-226.81 146.5,-233.46"/>
+</g>
+<!-- proc~unpack_backward_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node11" class="node">
+<title>proc~unpack_backward_pipelined_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node11"><a xlink:href="../proc/unpack_backward_pipelined_co_f32.html" xlink:title="unpack_backward_pipelined_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="572,-167 368,-167 368,-143 572,-143 572,-167"/>
+<text text-anchor="middle" x="470" y="-152.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_backward_pipelined_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~unpack_backward_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge10" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~unpack_backward_pipelined_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M54.11,-286.67C65.17,-263.92 92.15,-215.72 131,-194 168.84,-172.84 274.41,-163.13 357.59,-158.69"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="357.81,-162.18 367.62,-158.17 357.46,-155.19 357.81,-162.18"/>
+</g>
+<!-- proc~unpack_forward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node12" class="node">
+<title>proc~unpack_forward_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node12"><a xlink:href="../proc/unpack_forward_co_f32.html" xlink:title="unpack_forward_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="293,-147 154,-147 154,-123 293,-123 293,-147"/>
+<text text-anchor="middle" x="223.5" y="-132.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_forward_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~unpack_forward_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge11" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~unpack_forward_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M52.26,-286.96C61.27,-260.1 86.71,-194.98 131,-161 135.99,-157.17 141.51,-153.91 147.31,-151.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="148.79,-154.3 156.6,-147.14 146.03,-147.87 148.79,-154.3"/>
+</g>
+<!-- proc~unpack_forward_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node13" class="node">
+<title>proc~unpack_forward_pipelined_co_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node13"><a xlink:href="../proc/unpack_forward_pipelined_co_f32.html" xlink:title="unpack_forward_pipelined_co_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="566.5,-108 373.5,-108 373.5,-84 566.5,-84 566.5,-108"/>
+<text text-anchor="middle" x="470" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">unpack_forward_pipelined_co_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~unpack_forward_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge12" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~unpack_forward_pipelined_co_f32</title>
+<path fill="none" stroke="#ff0000" d="M49.7,-286.79C53.77,-252.59 70.43,-155.64 131,-114 167.47,-88.93 278.04,-87.13 362.88,-89.89"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="362.98,-93.4 373.09,-90.25 363.22,-86.4 362.98,-93.4"/>
+</g>
+<!-- proc~write_message -->
+<g id="proc~~execute_f32_co~~CallsGraph_node14" class="node">
+<title>proc~write_message</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node14"><a xlink:href="../proc/write_message.html" xlink:title="write_message">
+<polygon fill="#d9534f" stroke="#d9534f" points="269.5,-66 177.5,-66 177.5,-42 269.5,-42 269.5,-66"/>
+<text text-anchor="middle" x="223.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">write_message</text>
+</a>
+</g>
+</g>
+<!-- proc~execute_f32_co&#45;&gt;proc~write_message -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge13" class="edge">
+<title>proc~execute_f32_co&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#ff0000" d="M49.42,-286.81C52.88,-250.04 68.26,-139.21 131,-81 141.06,-71.66 154.2,-65.54 167.36,-61.53"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="168.63,-64.82 177.39,-58.86 166.82,-58.06 168.63,-64.82"/>
+</g>
+<!-- proc~co_pack_backward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node17" class="node">
+<title>proc~co_pack_backward_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node17"><a xlink:href="../proc/co_pack_backward_f32.html" xlink:title="co_pack_backward_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="538,-611 402,-611 402,-587 538,-587 538,-611"/>
+<text text-anchor="middle" x="470" y="-596.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_pack_backward_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~pack_backward_co_f32&#45;&gt;proc~co_pack_backward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge14" class="edge">
+<title>proc~pack_backward_co_f32&#45;&gt;proc~co_pack_backward_f32</title>
+<path fill="none" stroke="#ff7500" d="M291.53,-522.92C300.13,-525.74 308.52,-529.36 316,-534 337.47,-547.32 330.22,-565.2 352,-578 364.03,-585.07 377.86,-589.87 391.7,-593.1"/>
+<polygon fill="#ff7500" stroke="#ff7500" points="391.26,-596.59 401.76,-595.19 392.68,-589.73 391.26,-596.59"/>
+</g>
+<!-- proc~co_pack_forward_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node18" class="node">
+<title>proc~co_pack_forward_2d_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node18"><a xlink:href="../proc/co_pack_forward_2d_f32.html" xlink:title="co_pack_forward_2d_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="542,-551 398,-551 398,-527 542,-527 542,-551"/>
+<text text-anchor="middle" x="470" y="-536.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_pack_forward_2d_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~pack_forward_co_f32&#45;&gt;proc~co_pack_forward_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge15" class="edge">
+<title>proc~pack_forward_co_f32&#45;&gt;proc~co_pack_forward_2d_f32</title>
+<path fill="none" stroke="#ffeb00" d="M286.16,-481.58C296.36,-484.34 306.65,-487.76 316,-492 333.98,-500.15 333.83,-510.29 352,-518 363.32,-522.81 375.7,-526.51 388.05,-529.37"/>
+<polygon fill="#ffeb00" stroke="#ffeb00" points="387.4,-532.81 397.92,-531.48 388.87,-525.97 387.4,-532.81"/>
+</g>
+<!-- proc~co_pack_forward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node19" class="node">
+<title>proc~co_pack_forward_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node19"><a xlink:href="../proc/co_pack_forward_f32.html" xlink:title="co_pack_forward_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="532.5,-491 407.5,-491 407.5,-467 532.5,-467 532.5,-491"/>
+<text text-anchor="middle" x="470" y="-476.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_pack_forward_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~pack_forward_co_f32&#45;&gt;proc~co_pack_forward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge16" class="edge">
+<title>proc~pack_forward_co_f32&#45;&gt;proc~co_pack_forward_f32</title>
+<path fill="none" stroke="#ffeb00" d="M286.2,-473.02C319.93,-474.12 361.9,-475.5 397.11,-476.65"/>
+<polygon fill="#ffeb00" stroke="#ffeb00" points="397.21,-480.15 407.32,-476.98 397.44,-473.16 397.21,-480.15"/>
+</g>
+<!-- proc~co_permute_backward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node21" class="node">
+<title>proc~co_permute_backward_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node21"><a xlink:href="../proc/co_permute_backward_f32.html" xlink:title="co_permute_backward_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="548,-431 392,-431 392,-407 548,-407 548,-431"/>
+<text text-anchor="middle" x="470" y="-416.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_permute_backward_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~permute_backward_co_f32&#45;&gt;proc~co_permute_backward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge17" class="edge">
+<title>proc~permute_backward_co_f32&#45;&gt;proc~co_permute_backward_f32</title>
+<path fill="none" stroke="#9cff00" d="M301.53,-420.37C326.98,-420.16 355.48,-419.93 381.65,-419.71"/>
+<polygon fill="#9cff00" stroke="#9cff00" points="381.97,-423.21 391.94,-419.63 381.91,-416.21 381.97,-423.21"/>
+</g>
+<!-- proc~permute_backward_end_co_f32&#45;&gt;proc~permute_backward_end_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge18" class="edge">
+<title>proc~permute_backward_end_co_f32&#45;&gt;proc~permute_backward_end_pipelined_co_f32</title>
+<path fill="none" stroke="#27ff00" d="M314.15,-378.27C323.16,-378.19 332.42,-378.12 341.73,-378.04"/>
+<polygon fill="#27ff00" stroke="#27ff00" points="341.85,-381.54 351.82,-377.96 341.8,-374.54 341.85,-381.54"/>
+</g>
+<!-- proc~co_permute_backward_end_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node20" class="node">
+<title>proc~co_permute_backward_end_pipelined_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node20"><a xlink:href="../proc/co_permute_backward_end_pipelined_f32.html" xlink:title="co_permute_backward_end_pipelined_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="860,-389 624,-389 624,-365 860,-365 860,-389"/>
+<text text-anchor="middle" x="742" y="-374.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_permute_backward_end_pipelined_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~permute_backward_end_pipelined_co_f32&#45;&gt;proc~co_permute_backward_end_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge19" class="edge">
+<title>proc~permute_backward_end_pipelined_co_f32&#45;&gt;proc~co_permute_backward_end_pipelined_f32</title>
+<path fill="none" stroke="#00ff4e" d="M588.25,-377C596.74,-377 605.32,-377 613.87,-377"/>
+<polygon fill="#00ff4e" stroke="#00ff4e" points="613.87,-380.5 623.87,-377 613.87,-373.5 613.87,-380.5"/>
+</g>
+<!-- proc~co_permute_backward_start_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node22" class="node">
+<title>proc~co_permute_backward_start_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node22"><a xlink:href="../proc/co_permute_backward_start_f32.html" xlink:title="co_permute_backward_start_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="562.5,-329 377.5,-329 377.5,-305 562.5,-305 562.5,-329"/>
+<text text-anchor="middle" x="470" y="-314.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_permute_backward_start_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~permute_backward_start_co_f32&#45;&gt;proc~co_permute_backward_start_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge20" class="edge">
+<title>proc~permute_backward_start_co_f32&#45;&gt;proc~co_permute_backward_start_f32</title>
+<path fill="none" stroke="#00ffc4" d="M316.24,-305.75C332.73,-306.97 350.02,-308.24 366.79,-309.48"/>
+<polygon fill="#00ffc4" stroke="#00ffc4" points="366.92,-312.99 377.15,-310.24 367.44,-306.01 366.92,-312.99"/>
+</g>
+<!-- proc~co_permute_forward_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node23" class="node">
+<title>proc~co_permute_forward_2d_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node23"><a xlink:href="../proc/co_permute_forward_2d_f32.html" xlink:title="co_permute_forward_2d_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="552,-269 388,-269 388,-245 552,-245 552,-269"/>
+<text text-anchor="middle" x="470" y="-254.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_permute_forward_2d_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~permute_forward_co_f32&#45;&gt;proc~co_permute_forward_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge21" class="edge">
+<title>proc~permute_forward_co_f32&#45;&gt;proc~co_permute_forward_2d_f32</title>
+<path fill="none" stroke="#00c4ff" d="M296.21,-257C321.69,-257 350.74,-257 377.65,-257"/>
+<polygon fill="#00c4ff" stroke="#00c4ff" points="377.85,-260.5 387.85,-257 377.85,-253.5 377.85,-260.5"/>
+</g>
+<!-- proc~co_permute_forward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node24" class="node">
+<title>proc~co_permute_forward_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node24"><a xlink:href="../proc/co_permute_forward_f32.html" xlink:title="co_permute_forward_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="542.5,-209 397.5,-209 397.5,-185 542.5,-185 542.5,-209"/>
+<text text-anchor="middle" x="470" y="-194.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_permute_forward_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~permute_forward_co_f32&#45;&gt;proc~co_permute_forward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge22" class="edge">
+<title>proc~permute_forward_co_f32&#45;&gt;proc~co_permute_forward_f32</title>
+<path fill="none" stroke="#00c4ff" d="M278.26,-244.89C290.66,-242.03 303.8,-238.95 316,-236 348.17,-228.21 384.04,-219.09 412.95,-211.63"/>
+<polygon fill="#00c4ff" stroke="#00c4ff" points="414.07,-214.96 422.87,-209.06 412.32,-208.18 414.07,-214.96"/>
+</g>
+<!-- proc~unpack_backward_co_f32&#45;&gt;proc~unpack_backward_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge23" class="edge">
+<title>proc~unpack_backward_co_f32&#45;&gt;proc~unpack_backward_pipelined_co_f32</title>
+<path fill="none" stroke="#004eff" d="M269.37,-202.92C284.27,-198.73 300.91,-193.86 316,-189 332.19,-183.78 335.57,-180.41 352,-176 361.49,-173.45 371.5,-171.13 381.51,-169.03"/>
+<polygon fill="#004eff" stroke="#004eff" points="382.39,-172.42 391.5,-167.01 381,-165.56 382.39,-172.42"/>
+</g>
+<!-- proc~co_unpack_backward_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node25" class="node">
+<title>proc~co_unpack_backward_pipelined_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node25"><a xlink:href="../proc/co_unpack_backward_pipelined_f32.html" xlink:title="co_unpack_backward_pipelined_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="844,-168 640,-168 640,-144 844,-144 844,-168"/>
+<text text-anchor="middle" x="742" y="-153.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_unpack_backward_pipelined_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~unpack_backward_pipelined_co_f32&#45;&gt;proc~co_unpack_backward_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge24" class="edge">
+<title>proc~unpack_backward_pipelined_co_f32&#45;&gt;proc~co_unpack_backward_pipelined_f32</title>
+<path fill="none" stroke="#2700ff" d="M572.31,-155.38C590.95,-155.44 610.51,-155.52 629.44,-155.59"/>
+<polygon fill="#2700ff" stroke="#2700ff" points="629.56,-159.09 639.58,-155.62 629.59,-152.09 629.56,-159.09"/>
+</g>
+<!-- proc~unpack_forward_co_f32&#45;&gt;proc~unpack_forward_pipelined_co_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge25" class="edge">
+<title>proc~unpack_forward_co_f32&#45;&gt;proc~unpack_forward_pipelined_co_f32</title>
+<path fill="none" stroke="#9c00ff" d="M293.26,-124.03C321.3,-119.56 354.03,-114.34 383.58,-109.63"/>
+<polygon fill="#9c00ff" stroke="#9c00ff" points="384.15,-113.08 393.47,-108.05 383.04,-106.17 384.15,-113.08"/>
+</g>
+<!-- proc~co_unpack_forward_pipelined_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node26" class="node">
+<title>proc~co_unpack_forward_pipelined_2d_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node26"><a xlink:href="../proc/co_unpack_forward_pipelined_2d_f32.html" xlink:title="co_unpack_forward_pipelined_2d_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="848,-108 636,-108 636,-84 848,-84 848,-108"/>
+<text text-anchor="middle" x="742" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_unpack_forward_pipelined_2d_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~unpack_forward_pipelined_co_f32&#45;&gt;proc~co_unpack_forward_pipelined_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge26" class="edge">
+<title>proc~unpack_forward_pipelined_co_f32&#45;&gt;proc~co_unpack_forward_pipelined_2d_f32</title>
+<path fill="none" stroke="#ff00eb" d="M566.57,-96C585.69,-96 605.97,-96 625.67,-96"/>
+<polygon fill="#ff00eb" stroke="#ff00eb" points="625.91,-99.5 635.91,-96 625.91,-92.5 625.91,-99.5"/>
+</g>
+<!-- proc~co_unpack_forward_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_node27" class="node">
+<title>proc~co_unpack_forward_pipelined_f32</title>
+<g id="a_proc~~execute_f32_co~~CallsGraph_node27"><a xlink:href="../proc/co_unpack_forward_pipelined_f32.html" xlink:title="co_unpack_forward_pipelined_f32">
+<polygon fill="#d9534f" stroke="#d9534f" points="838.5,-48 645.5,-48 645.5,-24 838.5,-24 838.5,-48"/>
+<text text-anchor="middle" x="742" y="-33.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">co_unpack_forward_pipelined_f32</text>
+</a>
+</g>
+</g>
+<!-- proc~unpack_forward_pipelined_co_f32&#45;&gt;proc~co_unpack_forward_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge27" class="edge">
+<title>proc~unpack_forward_pipelined_co_f32&#45;&gt;proc~co_unpack_forward_pipelined_f32</title>
+<path fill="none" stroke="#ff00eb" d="M542.63,-83.99C557.65,-81.23 573.38,-78.17 588,-75 621.19,-67.8 658.09,-58.44 687.33,-50.69"/>
+<polygon fill="#ff00eb" stroke="#ff00eb" points="688.58,-53.98 697.34,-48.02 686.78,-47.21 688.58,-53.98"/>
+</g>
+<!-- mpi_comm_rank -->
+<g id="proc~~execute_f32_co~~CallsGraph_node15" class="node">
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="520.5,-66 419.5,-66 419.5,-42 520.5,-42 520.5,-66"/>
+<text text-anchor="middle" x="470" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_comm_rank -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge28" class="edge">
+<title>proc~write_message&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#ff0075" d="M269.63,-54C308.85,-54 365.96,-54 409.01,-54"/>
+<polygon fill="#ff0075" stroke="#ff0075" points="409.08,-57.5 419.08,-54 409.08,-50.5 409.08,-57.5"/>
+</g>
+<!-- mpi_finalized -->
+<g id="proc~~execute_f32_co~~CallsGraph_node16" class="node">
+<title>mpi_finalized</title>
+<polygon fill="#777777" stroke="#777777" points="511.5,-24 428.5,-24 428.5,0 511.5,0 511.5,-24"/>
+<text text-anchor="middle" x="470" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalized</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_finalized -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge29" class="edge">
+<title>proc~write_message&#45;&gt;mpi_finalized</title>
+<path fill="none" stroke="#ff0075" d="M269.63,-46.25C311.75,-39.01 374.5,-28.23 418.32,-20.71"/>
+<polygon fill="#ff0075" stroke="#ff0075" points="418.93,-24.15 428.2,-19.01 417.75,-17.25 418.93,-24.15"/>
+</g>
+<!-- proc~co_pack_backward_f32&#45;&gt;proc~co_pack_backward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge30" class="edge">
+<title>proc~co_pack_backward_f32&#45;&gt;proc~co_pack_backward_f32</title>
+<path fill="none" stroke="#ffeb00" d="M429.33,-611.01C415.12,-619.97 428.68,-629 470,-629 497.12,-629 512.28,-625.11 515.48,-619.91"/>
+<polygon fill="#ffeb00" stroke="#ffeb00" points="518.51,-618.15 510.67,-611.01 512.35,-621.48 518.51,-618.15"/>
+</g>
+<!-- proc~co_pack_forward_2d_f32&#45;&gt;proc~co_pack_forward_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge31" class="edge">
+<title>proc~co_pack_forward_2d_f32&#45;&gt;proc~co_pack_forward_2d_f32</title>
+<path fill="none" stroke="#9cff00" d="M429.33,-551.01C415.12,-559.97 428.68,-569 470,-569 497.12,-569 512.28,-565.11 515.48,-559.91"/>
+<polygon fill="#9cff00" stroke="#9cff00" points="518.51,-558.15 510.67,-551.01 512.35,-561.48 518.51,-558.15"/>
+</g>
+<!-- proc~co_pack_forward_f32&#45;&gt;proc~co_pack_forward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge32" class="edge">
+<title>proc~co_pack_forward_f32&#45;&gt;proc~co_pack_forward_f32</title>
+<path fill="none" stroke="#27ff00" d="M429.33,-491.01C415.12,-499.97 428.68,-509 470,-509 497.12,-509 512.28,-505.11 515.48,-499.91"/>
+<polygon fill="#27ff00" stroke="#27ff00" points="518.51,-498.15 510.67,-491.01 512.35,-501.48 518.51,-498.15"/>
+</g>
+<!-- proc~co_permute_backward_end_pipelined_f32&#45;&gt;proc~co_permute_backward_end_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge33" class="edge">
+<title>proc~co_permute_backward_end_pipelined_f32&#45;&gt;proc~co_permute_backward_end_pipelined_f32</title>
+<path fill="none" stroke="#00ff4e" d="M697.03,-389.01C681.32,-397.97 696.31,-407 742,-407 772.7,-407 789.54,-402.92 792.52,-397.53"/>
+<polygon fill="#00ff4e" stroke="#00ff4e" points="795.36,-395.49 786.97,-389.01 789.5,-399.3 795.36,-395.49"/>
+</g>
+<!-- proc~co_permute_backward_f32&#45;&gt;proc~co_permute_backward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge34" class="edge">
+<title>proc~co_permute_backward_f32&#45;&gt;proc~co_permute_backward_f32</title>
+<path fill="none" stroke="#00ffc4" d="M429.33,-431.01C415.12,-439.97 428.68,-449 470,-449 497.12,-449 512.28,-445.11 515.48,-439.91"/>
+<polygon fill="#00ffc4" stroke="#00ffc4" points="518.51,-438.15 510.67,-431.01 512.35,-441.48 518.51,-438.15"/>
+</g>
+<!-- proc~co_permute_backward_start_f32&#45;&gt;proc~co_permute_backward_start_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge35" class="edge">
+<title>proc~co_permute_backward_start_f32&#45;&gt;proc~co_permute_backward_start_f32</title>
+<path fill="none" stroke="#00c4ff" d="M429.33,-329.01C415.12,-337.97 428.68,-347 470,-347 497.12,-347 512.28,-343.11 515.48,-337.91"/>
+<polygon fill="#00c4ff" stroke="#00c4ff" points="518.51,-336.15 510.67,-329.01 512.35,-339.48 518.51,-336.15"/>
+</g>
+<!-- proc~co_permute_forward_2d_f32&#45;&gt;proc~co_permute_forward_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge36" class="edge">
+<title>proc~co_permute_forward_2d_f32&#45;&gt;proc~co_permute_forward_2d_f32</title>
+<path fill="none" stroke="#004eff" d="M429.33,-269.01C415.12,-277.97 428.68,-287 470,-287 497.12,-287 512.28,-283.11 515.48,-277.91"/>
+<polygon fill="#004eff" stroke="#004eff" points="518.51,-276.15 510.67,-269.01 512.35,-279.48 518.51,-276.15"/>
+</g>
+<!-- proc~co_permute_forward_f32&#45;&gt;proc~co_permute_forward_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge37" class="edge">
+<title>proc~co_permute_forward_f32&#45;&gt;proc~co_permute_forward_f32</title>
+<path fill="none" stroke="#2700ff" d="M429.33,-209.01C415.12,-217.97 428.68,-227 470,-227 497.12,-227 512.28,-223.11 515.48,-217.91"/>
+<polygon fill="#2700ff" stroke="#2700ff" points="518.51,-216.15 510.67,-209.01 512.35,-219.48 518.51,-216.15"/>
+</g>
+<!-- proc~co_unpack_backward_pipelined_f32&#45;&gt;proc~co_unpack_backward_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge38" class="edge">
+<title>proc~co_unpack_backward_pipelined_f32&#45;&gt;proc~co_unpack_backward_pipelined_f32</title>
+<path fill="none" stroke="#9c00ff" d="M697.03,-168.01C681.32,-176.97 696.31,-186 742,-186 772.7,-186 789.54,-181.92 792.52,-176.53"/>
+<polygon fill="#9c00ff" stroke="#9c00ff" points="795.36,-174.49 786.97,-168.01 789.5,-178.3 795.36,-174.49"/>
+</g>
+<!-- proc~co_unpack_forward_pipelined_2d_f32&#45;&gt;proc~co_unpack_forward_pipelined_2d_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge39" class="edge">
+<title>proc~co_unpack_forward_pipelined_2d_f32&#45;&gt;proc~co_unpack_forward_pipelined_2d_f32</title>
+<path fill="none" stroke="#ff00eb" d="M697.03,-108.01C681.32,-116.97 696.31,-126 742,-126 772.7,-126 789.54,-121.92 792.52,-116.53"/>
+<polygon fill="#ff00eb" stroke="#ff00eb" points="795.36,-114.49 786.97,-108.01 789.5,-118.3 795.36,-114.49"/>
+</g>
+<!-- proc~co_unpack_forward_pipelined_f32&#45;&gt;proc~co_unpack_forward_pipelined_f32 -->
+<g id="proc~~execute_f32_co~~CallsGraph_edge40" class="edge">
+<title>proc~co_unpack_forward_pipelined_f32&#45;&gt;proc~co_unpack_forward_pipelined_f32</title>
+<path fill="none" stroke="#ff0075" d="M697.03,-48.01C681.32,-56.97 696.31,-66 742,-66 772.7,-66 789.54,-61.92 792.52,-56.53"/>
+<polygon fill="#ff0075" stroke="#ff0075" points="795.36,-54.49 786.97,-48.01 789.5,-58.3 795.36,-54.49"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute_f32_coCallsGraph = svgPanZoom('#procexecute_f32_coCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

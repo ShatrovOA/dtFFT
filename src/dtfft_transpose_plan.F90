@@ -30,7 +30,8 @@ use dtfft_config
 use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil,                         only: pencil, pencil_init, get_local_sizes
-use dtfft_reshape_plan_base,              only: allocate_plans, reshape_plan_base, execute_autotune, destroy_plans
+use dtfft_abstract_reshape_plan,          only: allocate_plans, abstract_reshape_plan, execute_autotune, destroy_plans
+use dtfft_serializer,                     only: serializer
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_profile.h"
@@ -40,20 +41,30 @@ implicit none
 private
 public :: transpose_plan
 
+    character(len=*), parameter :: TRANSPOSE_PLAN_TYPE = "__transpose_plan"
 
-  type, extends(reshape_plan_base) :: transpose_plan
-  !! Transpose Plan class
-  !! This class is a container for transposition plans
-  private
-    logical                   :: is_z_slab        !! Is Z-slab optimization enabled
-    logical                   :: is_y_slab        !! Is Y-slab optimization enabled
-  contains
-    procedure,  non_overridable,  pass(self), public :: create            !! Creates transpose plan
-    procedure,  non_overridable,  pass(self), public :: get_z_slab        !! Returns .true. if Z-slab optimization is enabled
-    procedure,  non_overridable,  pass(self), public :: get_y_slab        !! Returns .true. if Y-slab optimization is enabled
-  end type transpose_plan
+
+    type, extends(abstract_reshape_plan) :: transpose_plan
+    !! Transpose Plan class
+    !! This class is a container for transposition plans
+    private
+        logical                     :: is_z_slab        !! Is Z-slab optimization enabled
+        logical                     :: is_y_slab        !! Is Y-slab optimization enabled
+        integer(int32)              :: grid_dims(3) = 0 !! Selected MPI processor grid
+    contains
+        procedure,  non_overridable,  pass(self), public :: create            !! Creates transpose plan
+        procedure,  non_overridable,  pass(self), public :: get_z_slab        !! Returns .true. if Z-slab optimization is enabled
+        procedure,  non_overridable,  pass(self), public :: get_y_slab        !! Returns .true. if Y-slab optimization is enabled
+        procedure :: destroy_private => destroy
+        procedure :: load_private => load
+        procedure :: save_private => save
+    end type transpose_plan
 
 contains
+
+    subroutine destroy(self)
+        class(transpose_plan),   intent(inout) :: self
+    end subroutine destroy
 
     function create(self, platform, dims, base_comm, effort, base_dtype, base_storage, cart_comm, comms, pencils, ipencil) result(error_code)
     !! Creates transposition plan
@@ -88,15 +99,20 @@ contains
         logical :: invalid_grid_selected
         logical :: z_slab_from_conf, y_slab_from_conf
         logical :: exec_autotune
+        type(dtfft_backend_t) :: backend_to_use   !! Backend `init` is initialized with
         type(dtfft_transpose_mode_t) :: transpose_mode, best_transpose_mode
         type(dtfft_transpose_mode_t) :: fmodes(3), bmodes(3)
         type(dtfft_backend_t)        :: fbacks(3), bbacks(3)
+        logical :: is_z_slab, is_y_slab
 
         error_code = DTFFT_SUCCESS
+
+        backend_to_use = get_conf_backend()
+
 #ifdef DTFFT_WITH_COMPRESSION
-        CHECK_CALL( self%init(platform, effort, get_conf_backend(), DTFFT_PATIENT, get_conf_transpose(), base_dtype, base_storage), error_code )
+        CHECK_CALL( self%init(TRANSPOSE_PLAN_TYPE, platform, effort, backend_to_use, DTFFT_PATIENT, get_conf_transpose(), base_dtype), error_code )
 #else
-        CHECK_CALL( self%init(platform, effort, get_conf_backend(), DTFFT_PATIENT), error_code )
+        CHECK_CALL( self%init(TRANSPOSE_PLAN_TYPE, platform, effort, backend_to_use, DTFFT_PATIENT), error_code )
 #endif
 
         call MPI_Comm_size(base_comm, comm_size, ierr)
@@ -108,8 +124,8 @@ contains
         comm_dims(:) = 0
 
         is_custom_cart_comm = .false.
-        self%is_z_slab = .false.; z_slab_from_conf = get_conf_z_slab_enabled()
-        self%is_y_slab = .false.; y_slab_from_conf = get_conf_y_slab_enabled()
+        is_z_slab = .false.; z_slab_from_conf = get_conf_z_slab_enabled()
+        is_y_slab = .false.; y_slab_from_conf = get_conf_y_slab_enabled()
 
         invalid_grid_selected = .false.
         if ( present(ipencil) ) then
@@ -123,10 +139,10 @@ contains
             endif
             if ( ndims == 3 ) then
                 if (comm_dims(2) == 1 .and. z_slab_from_conf ) then
-                    self%is_z_slab = .true.
+                    is_z_slab = .true.
                     base_comm_ = ipencil%comms(3)
                 else if ( comm_dims(3) == 1 .and. y_slab_from_conf ) then
-                    self%is_y_slab = .true.
+                    is_y_slab = .true.
                     base_comm_ = ipencil%comms(2)
                 endif
             endif
@@ -161,15 +177,15 @@ contains
                     deallocate(temp_dims, temp_periods, temp_coords)
 
                     do d = 2, ndims
-                        if ( comm_dims(d) > dims(d) ) then
+                        if ( comm_dims(d) > dims(d) .and. .not. self%is_loaded ) then
                             WRITE_WARN("Number of MPI processes in direction "//to_str(d)//" greater then number of physical points: "//to_str(comm_dims(d))//" > "//to_str(dims(d)))
                         endif
                     enddo
                     if ( ndims == 3 ) then
                         if (comm_dims(2) == 1 .and. z_slab_from_conf ) then
-                            self%is_z_slab = .true.
+                            is_z_slab = .true.
                         else if ( comm_dims(3) == 1 .and. y_slab_from_conf ) then
-                            self%is_y_slab = .true.
+                            is_y_slab = .true.
                         endif
                     endif
                 endblock
@@ -188,11 +204,11 @@ contains
                     if ( cond1 .and. z_slab_from_conf ) then
                         comm_dims(2) = 1
                         comm_dims(3) = comm_size
-                        self%is_z_slab = .true.
+                        is_z_slab = .true.
                     else if ( cond2 .and. y_slab_from_conf ) then
                         comm_dims(2) = comm_size
                         comm_dims(3) = 1
-                        self%is_y_slab = .true.
+                        is_y_slab = .true.
                     else if ( cond1 ) then
                         comm_dims(2) = 1
                         comm_dims(3) = comm_size
@@ -209,10 +225,20 @@ contains
             endif
         endif
 
+        if ( self%is_loaded ) then
+            comm_dims(:) = self%grid_dims(:ndims)
+        else
+            self%is_y_slab = is_y_slab
+            self%is_z_slab = is_z_slab
+        endif
+
         transpose_mode = get_conf_transpose_mode()
         best_transpose_mode = transpose_mode
         fmodes(:) = transpose_mode
         bmodes(:) = transpose_mode
+        fbacks(:) = DTFFT_BACKEND_NONE
+        bbacks(:) = DTFFT_BACKEND_NONE
+
 
         allocate( best_decomposition(ndims) )
         best_decomposition(:) = comm_dims(:)
@@ -228,12 +254,14 @@ contains
         ts = MPI_Wtime()
 
         exec_autotune = (effort%val >= DTFFT_MEASURE%val .and. .not.pencils_created ) .or. (effort%val >= DTFFT_PATIENT%val) .and. comm_size > 1
-        if ( exec_autotune ) then
+        if ( exec_autotune .and. .not.self%is_loaded ) then
             PHASE_BEGIN("Autotune transpose plan", COLOR_AUTOTUNE)
             WRITE_INFO("Starting autotune of transpose plans...")
         endif
 
-        if ( effort%val >= DTFFT_PATIENT%val .and. comm_size > 1 .and. .not.invalid_grid_selected) then
+        if ( self%is_loaded ) then
+            WRITE_INFO("Loaded transpose plan from file, autotune skipped")
+        else if ( effort%val >= DTFFT_PATIENT%val .and. comm_size > 1 .and. .not.invalid_grid_selected) then
             if ( self%backend == DTFFT_BACKEND_ADAPTIVE ) then
                 if ( pencils_created ) then
                     call run_autotune_backend(                                                                                                                  &
@@ -267,12 +295,12 @@ contains
                 self%stream, fmodes, bmodes, best_decomposition, backend=self%backend)
         endif
 
-        if ( exec_autotune ) then
+        if ( exec_autotune .and. .not.self%is_loaded ) then
             PHASE_END("Autotune transpose plan")
         endif
         te = MPI_Wtime()
 
-        if ( effort%val >= DTFFT_MEASURE%val .and. ndims > 2 .and. comm_size > 1 ) then
+        if ( effort%val >= DTFFT_MEASURE%val .and. ndims > 2 .and. comm_size > 1 .and. .not.self%is_loaded ) then
             if ( self%is_z_slab ) then
                 WRITE_INFO("Skipped search of MPI processor grid due to Z-slab optimization enabled")
             else if ( self%is_y_slab ) then
@@ -285,45 +313,52 @@ contains
                 WRITE_INFO("DTFFT_MEASURE: Selected MPI processor grid 1x"//to_str(best_decomposition(2))//"x"//to_str(best_decomposition(3)))
             endif
         endif
-        if ( effort%val >= DTFFT_PATIENT%val .and. comm_size > 1 ) then
+        if ( effort%val >= DTFFT_PATIENT%val .and. comm_size > 1 .and. .not.self%is_loaded ) then
             WRITE_INFO("DTFFT_PATIENT: Selected backend is "//dtfft_get_backend_string(self%backend))
         endif
 
         n_transpose_plans = ndims - 1_int8; if( self%is_z_slab ) n_transpose_plans = n_transpose_plans + 1_int8
 
-        if ( effort%val >= DTFFT_PATIENT%val .and. self%backend == DTFFT_BACKEND_MPI_DATATYPE .and. comm_size > 1 ) then
+        if ( effort%val >= DTFFT_PATIENT%val .and. self%backend == DTFFT_BACKEND_MPI_DATATYPE .and. comm_size > 1 .and. .not.self%is_loaded ) then
             WRITE_INFO("DTFFT_PATIENT: Selected transpose modes:")
             do d = 1, n_transpose_plans
                 WRITE_INFO("    "//TRANSPOSE_NAMES( d)//": "//trim(TRANSPOSE_MODE_NAMES(fmodes(d)%val)))
                 WRITE_INFO("    "//TRANSPOSE_NAMES(-d)//": "//trim(TRANSPOSE_MODE_NAMES(bmodes(d)%val)))
             enddo
         endif
-        if ( exec_autotune ) then
+        if ( exec_autotune .and. .not.self%is_loaded ) then
             WRITE_INFO("Time spent on autotune: "//to_str(te - ts)//" [s]")
         endif
 
         if ( .not.pencils_created ) then
             call create_pencils_and_comm(dims, base_comm_, best_decomposition, cart_comm, comms, pencils)
         endif
+
+
+        self%grid_dims(:) = 0
+        self%grid_dims(:ndims) = best_decomposition(:ndims)
+
         ts = MPI_Wtime()
-        allocate( self%plans(-1 * n_transpose_plans:n_transpose_plans) )
-        if ( self%backend == DTFFT_BACKEND_ADAPTIVE ) then
-            block
-                type(dtfft_backend_t), allocatable :: backs(:)
+        if ( .not. self%is_loaded ) then
+            allocate( self%plans(-1 * n_transpose_plans:n_transpose_plans) )
+            if ( self%backend == DTFFT_BACKEND_ADAPTIVE ) then
+                block
+                    type(dtfft_backend_t), allocatable :: backs(:)
 
-                allocate( backs(-1 * n_transpose_plans:n_transpose_plans) )
-                do d = 1, n_transpose_plans
-                    backs(-1 * n_transpose_plans + d - 1) = bbacks(n_transpose_plans - d + 1)
-                    backs(d) = fbacks(d)
-                enddo
-                backs(0) = DTFFT_BACKEND_NONE
+                    allocate( backs(-1 * n_transpose_plans:n_transpose_plans) )
+                    do d = 1, n_transpose_plans
+                        backs(-1 * n_transpose_plans + d - 1) = bbacks(n_transpose_plans - d + 1)
+                        backs(d) = fbacks(d)
+                    enddo
+                    backs(0) = DTFFT_BACKEND_NONE
 
-                call allocate_plans(self%plans, backends=backs)
+                    call allocate_plans(self%plans, backends=backs)
 
-                deallocate(backs)
-            endblock
-        else
-            call allocate_plans(self%plans, self%backend)
+                    deallocate(backs)
+                endblock
+            else
+                call allocate_plans(self%plans, self%backend)
+            endif
         endif
         call self%helper%create(platform, cart_comm, comms, is_backend_nccl(self%backend), pencils)
 
@@ -340,7 +375,7 @@ contains
             args%base_storage = base_storage
             args%transpose_mode = best_transpose_mode
 #ifdef DTFFT_WITH_COMPRESSION
-            args%compression_config = get_conf_transpose()
+            args%compression_config = self%compression_config
 #endif
             is_adaptive = self%backend == DTFFT_BACKEND_ADAPTIVE
             is_diff_transpose_mode = is_adaptive .or. self%backend == DTFFT_BACKEND_MPI_DATATYPE
@@ -375,6 +410,32 @@ contains
         deallocate( best_decomposition, comm_dims )
         error_code = DTFFT_SUCCESS
     end function create
+
+    subroutine save(self, fh)
+        class(transpose_plan),   intent(in)    :: self
+        type(serializer),        intent(inout) :: fh
+
+        call fh%save(TRANSPOSE_PLAN_TYPE)
+        call fh%save(self%is_y_slab)
+        call fh%save(self%is_z_slab)
+        call fh%save(self%grid_dims)
+    end subroutine save
+
+    integer(int32) function load(self, fh) result(ierr)
+        class(transpose_plan),   intent(inout) :: self
+        type(serializer),        intent(inout) :: fh
+        character(len=len(TRANSPOSE_PLAN_TYPE)) :: plan_type
+
+        ierr = DTFFT_SUCCESS
+        call fh%load(plan_type)
+        if ( plan_type /= TRANSPOSE_PLAN_TYPE ) then
+            ierr = DTFFT_ERROR_FILE_INVALID
+            return
+        endif
+        call fh%load(self%is_y_slab)
+        call fh%load(self%is_z_slab)
+        call fh%load(self%grid_dims)
+    end function load
 
     pure logical function get_z_slab(self)
     !! Returns .true. if Z-slab optimization is enabled
@@ -948,7 +1009,7 @@ contains
         ftimes(:) = 0._real32
         btimes(:) = 0._real32
 
-        phase_created_ = .false.; if ( present(phase_created) ) phase_created_ = phase_created
+        OPTVAL(phase_created_, .false., phase_created)
         if ( .not.phase_created_ ) then
             allocate( testing_phase, source="Testing backend "//dtfft_get_backend_string(create_kwargs%backend) )
             REGION_BEGIN(testing_phase, COLOR_AUTOTUNE2)
@@ -1115,7 +1176,7 @@ contains
             allocate(lstarts, source=ipencil%starts)
             allocate(lcounts, source=ipencil%counts)
             do d = 1, ndims
-                call pencils(d)%create(ndims, d, transposed_dims(:, d), transposed_comms(:, d), lstarts=lstarts, lcounts=lcounts)
+                pencils(d) = pencil(ndims, d, transposed_dims(:, d), transposed_comms(:, d), lstarts=lstarts, lcounts=lcounts)
                 lcounts(:) = pencils(d)%counts(:)
                 lstarts(:) = pencils(d)%starts(:)
             enddo
@@ -1123,7 +1184,7 @@ contains
             deallocate(lstarts, lcounts)
         else
             do d = 1, ndims
-                call pencils(d)%create(ndims, d, transposed_dims(:,d), transposed_comms(:, d))
+                pencils(d) = pencil(ndims, d, transposed_dims(:,d), transposed_comms(:, d))
             enddo
         endif
 

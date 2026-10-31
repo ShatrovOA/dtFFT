@@ -160,6 +160,20 @@ public :: dtfft_get_error_string
     !! Invalid compression library
   integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_NOT_USED = CONF_DTFFT_ERROR_COMPRESSION_NOT_USED
     !! Compressed backends are not used for this plan
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED = CONF_DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED
+    !! Host support is not available for selected compressor
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_FILE_NOT_FOUND = CONF_DTFFT_ERROR_FILE_NOT_FOUND
+    !! Plan file cannot be opened
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_FILE_INVALID = CONF_DTFFT_ERROR_FILE_INVALID
+    !! Plan file is not a valid dtFFT plan file or is corrupted
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_FILE_VERSION_MISMATCH = CONF_DTFFT_ERROR_FILE_VERSION_MISMATCH
+    !! Plan file layout is not one this version of dtFFT can read
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_FILE_PLAN_MISMATCH = CONF_DTFFT_ERROR_FILE_PLAN_MISMATCH
+    !! Plan stored in file does not match current run
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_FILE_WRITE_FAILED = CONF_DTFFT_ERROR_FILE_WRITE_FAILED
+    !! Failed to write plan to file
+  integer(int32),  parameter,  public  :: DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED = CONF_DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED
+    !! Plan file contains a backend that is not supported by this build
 
 contains
 
@@ -305,6 +319,20 @@ contains
       allocate(error_string, source="Invalid compression library")
     case ( DTFFT_ERROR_COMPRESSION_NOT_USED )
       allocate(error_string, source="Compressed backends are not used for this plan")
+    case ( DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED )
+      allocate(error_string, source="Host support is not available for selected compressor")
+    case ( DTFFT_ERROR_FILE_NOT_FOUND )
+      allocate(error_string, source="Plan file cannot be opened")
+    case ( DTFFT_ERROR_FILE_INVALID )
+      allocate(error_string, source="Plan file is not a valid dtFFT plan file or is corrupted")
+    case ( DTFFT_ERROR_FILE_VERSION_MISMATCH )
+      allocate(error_string, source="Plan file layout is not one this version of dtFFT can read")
+    case ( DTFFT_ERROR_FILE_PLAN_MISMATCH )
+      allocate(error_string, source="Plan stored in file does not match current run: number of MPI processes, plan kind, platform or a backend that is not available in this build")
+    case ( DTFFT_ERROR_FILE_WRITE_FAILED )
+      allocate(error_string, source="Failed to write plan to file")
+    case ( DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED )
+      allocate(error_string, source="Plan file contains a backend that is not supported by this build")
     case default
       allocate(error_string, source="Unknown error")
     endselect

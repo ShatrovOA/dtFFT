@@ -20,12 +20,13 @@
 module dtfft_backend_nccl_m
 !! NCCL Based GPU Backends [[backend_nccl]]
 use iso_fortran_env
-use iso_c_binding, only: c_ptr, c_f_pointer, c_loc
+use iso_c_binding,          only: c_loc
 use dtfft_abstract_backend, only: abstract_backend, backend_helper
-use dtfft_interface_cuda_runtime
+use dtfft_abstract_kernel,  only: bytes_to_floats
 use dtfft_interface_nccl
-use dtfft_errors
 use dtfft_parameters
+use dtfft_interface_cuda_runtime
+use dtfft_errors
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_cuda.h"
@@ -74,6 +75,8 @@ contains
         integer(int32) :: rnk      !! Rank to send-recv
         integer(int32) :: ierr
         real(real32), pointer :: pin(:), pout(:)
+        integer(int64), allocatable :: comp_sizes(:)
+        logical :: skip_decompression
 
         if (self%is_pipelined) then
             pin => in(:)
@@ -82,6 +85,8 @@ contains
             pin => in(:)
             pout => out(:)
         end if
+
+        allocate( comp_sizes(0:self%comm_size - 1), source=0_int64 )
 
 #ifdef DTFFT_WITH_COMPRESSION
         if ( self%backend == DTFFT_BACKEND_NCCL_COMPRESSED ) then
@@ -94,8 +99,10 @@ contains
             integer(int32), allocatable :: csends(:), crecvs(:)
 
             allocate(csends(self%comm_size), crecvs(self%comm_size), source=0_int32)
-            call self%pack_kernel%execute(c_loc(in), c_loc(pin), stream, aux=c_loc(out), csizes=csends, skip_rank=self%comm_rank + 1)
+            
+            call self%pack_kernel%execute(c_loc(in), c_loc(pin), stream, aux=c_loc(out), csizes=comp_sizes, skip_rank=self%comm_rank + 1)
             call self%execute_self_copy(out, pout, stream)
+            csends = bytes_to_floats(comp_sizes)
             call self%unpack_kernel%execute(c_loc(pout), c_loc(out), self%copy_stream, self%comm_rank + 1, aux=c_loc(in), skip_compression=.true.)
             call MPI_Alltoall(csends, 1, MPI_INTEGER, crecvs, 1, MPI_INTEGER, self%comm, ierr)
             self%send_floats(:) = int(csends, int64)
@@ -126,16 +133,18 @@ contains
         if (self%is_pipelined) then
             do i = 0, self%comm_size - 1
                 if (self%recv_floats(i) > 0) then
-                    call self%unpack_kernel%execute(c_loc(pout), c_loc(out), stream, i + 1, aux=c_loc(in))
+                    skip_decompression = .false.
+                    if ( i == self%comm_rank ) skip_decompression = .true.
+                    call self%unpack_kernel%execute(c_loc(pout), c_loc(out), stream, i + 1, aux=c_loc(in), csize=comp_sizes(i), skip_compression=skip_decompression)
                 end if
             end do
         end if
+        deallocate(comp_sizes)
         error_code = DTFFT_SUCCESS
     end subroutine execute_nccl
 
     subroutine destroy_nccl(self)
     !! Destroys NCCL backend
         class(backend_nccl), intent(inout) :: self       !! NCCL backend
-
     end subroutine destroy_nccl
 end module dtfft_backend_nccl_m

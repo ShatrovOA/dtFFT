@@ -22,15 +22,14 @@ module dtfft_reshape_plan
 !! This module describes [[reshape_plan]] class
 use iso_fortran_env
 use dtfft_abstract_backend,               only: backend_helper
-#ifdef DTFFT_WITH_COMPRESSION
-use dtfft_abstract_compressor
-#endif
+use dtfft_abstract_compressor,            only: dtfft_compression_config_t, DTFFT_COMPRESSION_MODE_FIXED_RATE, operator(==)
 use dtfft_abstract_reshape_handle,        only: abstract_reshape_handle, reshape_container, create_args
 use dtfft_config
 use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil,                         only: dtfft_pencil_t, pencil, pencil_init, get_local_sizes
-use dtfft_reshape_plan_base,              only: reshape_plan_base, allocate_plans, destroy_plans, execute_autotune
+use dtfft_abstract_reshape_plan,          only: abstract_reshape_plan, allocate_plans, destroy_plans, execute_autotune
+use dtfft_serializer
 use dtfft_utils
 #include "_dtfft_mpi.h"
 #include "_dtfft_profile.h"
@@ -44,22 +43,26 @@ public :: reshape_plan
 #define EIDX CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS
 
 
-  integer(int32), parameter :: NEIGHBOR_GROUP = 1
-  integer(int32), parameter :: STRIDED_GROUP = 2
+    integer(int32), parameter :: NEIGHBOR_GROUP = 1
+    integer(int32), parameter :: STRIDED_GROUP = 2
+
+    character(len=*), parameter :: RESHAPE_PLAN_TYPE = "__reshape_plan"
 
 
-    type, extends(reshape_plan_base) :: reshape_plan
+    type, extends(abstract_reshape_plan) :: reshape_plan
     !! Reshape Plan class
     !! This class is a container for transposition plans
     private
-        integer(int32), allocatable :: init_grid(:)
-        integer(int32), allocatable :: final_grid(:)
+        integer(int32) :: init_grid(3) = 0
+        integer(int32) :: final_grid(3) = 0
         TYPE_MPI_COMM,  allocatable :: comms(:)
+        logical :: is_final_enabled
     contains
-    private
         procedure,  non_overridable,  pass(self), public :: create            !! Creates transpose plan
         procedure,  non_overridable,  pass(self), public :: get_grid          !! Returns grid for specified reshape
-        procedure,  non_overridable,  pass(self), public :: destroy
+        procedure   :: destroy_private => destroy
+        procedure :: load_private => load
+        procedure :: save_private => save
     end type reshape_plan
 
 contains
@@ -68,9 +71,9 @@ contains
         class(reshape_plan),            intent(inout) :: self
         integer(int32) :: d, ierr
 
-        if ( allocated(self%init_grid) ) deallocate(self%init_grid)
-        if ( allocated(self%final_grid) ) deallocate(self%final_grid)
-        call self%reshape_plan_base%destroy()
+        ! if ( allocated(self%init_grid) ) deallocate(self%init_grid)
+        ! if ( allocated(self%final_grid) ) deallocate(self%final_grid)
+        ! call self%reshape_plan_base%destroy()
         if ( allocated(self%comms) ) then
             do d = 2, 3
                 call MPI_Comm_free(self%comms(d), ierr)
@@ -78,6 +81,32 @@ contains
             deallocate(self%comms)
         endif
     end subroutine destroy
+
+    subroutine save(self, fh)
+        class(reshape_plan),   intent(in)    :: self
+        type(serializer),        intent(inout) :: fh
+
+        call fh%save(RESHAPE_PLAN_TYPE)
+        call fh%save(self%is_final_enabled)
+        call fh%save(self%init_grid)
+        call fh%save(self%final_grid)
+    end subroutine save
+
+    integer(int32) function load(self, fh) result(ierr)
+        class(reshape_plan),   intent(inout) :: self
+        type(serializer),        intent(inout) :: fh
+        character(len=len(RESHAPE_PLAN_TYPE)) :: plan_type
+
+        ierr = DTFFT_SUCCESS
+        call fh%load(plan_type)
+        if ( plan_type /= RESHAPE_PLAN_TYPE ) then
+            ierr = DTFFT_ERROR_FILE_INVALID
+            return
+        endif
+        call fh%load(self%is_final_enabled)
+        call fh%load(self%init_grid)
+        call fh%load(self%final_grid)
+    end function load
 
     subroutine get_grid(self, dim, grid)
     !! Returns grid decomposition for specified dimension
@@ -137,13 +166,17 @@ contains
         TYPE_MPI_COMM, allocatable     :: temp_comms(:)
         integer(int64) :: min_buffer_size_real, min_buffer_size_complex
         real(real64) :: ts, te
-        type(dtfft_backend_t) :: backends(4)
+        type(dtfft_backend_t) :: backends(SIDX:EIDX)
+        type(dtfft_backend_t) :: backend_to_use   !! Backend `init` is initialized with
 
         error_code = DTFFT_SUCCESS
+
+        backend_to_use = get_conf_reshape_backend()
+
 #ifdef DTFFT_WITH_COMPRESSION
-        CHECK_CALL( self%init(platform, effort, get_conf_reshape_backend(), DTFFT_EXHAUSTIVE, get_conf_reshape(), base_dtype, base_storage), error_code )
+        CHECK_CALL( self%init(RESHAPE_PLAN_TYPE, platform, effort, backend_to_use, DTFFT_EXHAUSTIVE, get_conf_reshape(), base_dtype), error_code )
 #else
-        CHECK_CALL( self%init(platform, effort, get_conf_reshape_backend(), DTFFT_EXHAUSTIVE ), error_code )
+        CHECK_CALL( self%init(RESHAPE_PLAN_TYPE, platform, effort, backend_to_use, DTFFT_EXHAUSTIVE), error_code )
 #endif
 
         if ( .not. is_backend_compatible(backend, self%backend) .and. effort%val < DTFFT_EXHAUSTIVE%val .and. backend /= DTFFT_BACKEND_ADAPTIVE ) then
@@ -152,11 +185,11 @@ contains
         endif
 
         ndims = size(ipencil%dims, kind=int8)
-        call bricks(1)%create(ndims, 1_int8, ipencil%dims, ipencil%comms, lstarts=ipencil%starts, lcounts=ipencil%counts)
+        bricks(1) = pencil(ndims, 1_int8, ipencil%dims, ipencil%comms, lstarts=ipencil%starts, lcounts=ipencil%counts)
 
         call MPI_Comm_size(ipencil%comms(ndims), c_size, ierr)
 
-        allocate( self%init_grid(ndims), self%final_grid(ndims) )
+        ! allocate( self%init_grid(ndims), self%final_grid(ndims) )
         do d = 1, ndims
             call MPI_Comm_size(ipencil%comms(d), self%init_grid(d), ierr)
         enddo
@@ -200,7 +233,7 @@ contains
                 final_sizes(3) = slow_count
             endif
 
-            call bricks(2)%create(ndims, ndims, final_sizes, final_comms, pencils(ndims)%starts, pencils(ndims)%counts, .true.)
+            bricks(2) = pencil(ndims, ndims, final_sizes, final_comms, lstarts=pencils(ndims)%starts, lcounts=pencils(ndims)%counts, is_distributed=.true.)
 
             call MPI_Allreduce(pencils(ndims)%starts(ndims), min_start, 1, MPI_INTEGER, MPI_MIN, self%comms(3), ierr)
             bricks(2)%starts(ndims) = bricks(2)%starts(ndims) + min_start
@@ -217,8 +250,11 @@ contains
         if ( ndims == 3 ) then
             call MPI_Comm_size(temp_comms(3), self%final_grid(2), ierr)
         endif
-        is_final_enabled = .false.
-        if ( self%final_grid(ndims) > 1 .and. get_conf_fourier_reshape_enabled() ) is_final_enabled = .true.
+        if ( .not. self%is_loaded ) then
+            is_final_enabled = .false.
+            if ( self%final_grid(ndims) > 1 .and. get_conf_fourier_reshape_enabled() ) is_final_enabled = .true.
+            self%is_final_enabled = is_final_enabled
+        endif
 
         call MPI_Comm_free(temp_comms(ndims), ierr)
         deallocate( temp_comms )
@@ -230,24 +266,27 @@ contains
         min_buffer_size_complex = min_buffer_size_complex * (base_storage / FLOAT_STORAGE_SIZE)
         self%min_buffer_size = max(min_buffer_size_real, min_buffer_size_complex)
 
-        if ( effort == DTFFT_EXHAUSTIVE ) then
+        if ( self%is_loaded ) then
+            WRITE_INFO("Loaded reshape plan from file, autotune skipped")
+        else if ( effort == DTFFT_EXHAUSTIVE ) then
             ts = MPI_Wtime()
 
             PHASE_BEGIN("Autotune reshape plan", COLOR_AUTOTUNE)
             WRITE_INFO("Starting autotune of reshape plans...")
             call autotune_reshape_plan(platform, comm, self%comms, base_init_dtype, base_init_storage, base_dtype, base_init_storage, &
-                bricks, pencils, self%stream, self%min_buffer_size * FLOAT_STORAGE_SIZE, backend, self%backend, backends)
+                bricks, pencils, self%stream, self%min_buffer_size * FLOAT_STORAGE_SIZE, self%compression_config, backend, self%backend, backends)
             PHASE_END("Autotune reshape plan")
             WRITE_INFO("DTFFT_EXHAUSTIVE: Selected reshape backend is "//dtfft_get_backend_string(self%backend))
 
             te = MPI_Wtime()
             WRITE_INFO("Time spent on autotune: "//to_str(te - ts)//" [s]")
         endif
+        ! self%backends(:) = backends(:)
 
         ts = MPI_Wtime()
         call self%helper%create(platform, comm, self%comms, is_backend_nccl(self%backend), [bricks(1), bricks(2), pencils(1), pencils(ndims)])
         call create_reshape_plans(self%plans, self%backend, platform, self%helper, effort, .false., &
-            base_init_dtype, base_init_storage, base_dtype, base_storage, bricks, pencils, backends)
+            base_init_dtype, base_init_storage, base_dtype, base_storage, bricks, pencils, self%compression_config, backends)
 
         te = MPI_Wtime()
         WRITE_INFO("Time spent on creating final reshape plans: "//to_str(te - ts)//" [s]")
@@ -334,7 +373,7 @@ contains
     end function get_compatible
 
     subroutine create_reshape_plans(plans, backend, platform, helper, effort, force_effort, base_init_dtype, base_init_storage, &
-        base_dtype, base_storage, bricks, pencils, backends, plan_id)
+        base_dtype, base_storage, bricks, pencils, compression_config, backends, plan_id)
     !! Creates and allocates all reshape operation plans
     !!
     !! This subroutine allocates and initializes plans for all four reshape operations:
@@ -366,6 +405,8 @@ contains
             !! Pencils describing brick data distribution
         type(pencil),          target,          intent(in)    :: pencils(:)
             !! Array of pencil decompositions
+        type(dtfft_compression_config_t),       intent(in)    :: compression_config
+            !! Compression configuration for reshape plan
         type(dtfft_backend_t),  optional,       intent(in)    :: backends(SIDX:EIDX)
             !! Adaptive backends
         integer(int8),          optional,       intent(in)    :: plan_id
@@ -374,10 +415,12 @@ contains
         logical :: is_adaptive
         type(pencil), pointer :: p1, p2
 
-        if ( present(plan_id) ) then
-            allocate( plans(plan_id:plan_id) )
-        else
-            allocate( plans(SIDX:EIDX) )
+        if ( .not. allocated(plans) ) then
+            if ( present(plan_id) ) then
+                allocate( plans(plan_id:plan_id) )
+            else
+                allocate( plans(SIDX:EIDX) )
+            endif
         endif
 
         is_adaptive = backend == DTFFT_BACKEND_ADAPTIVE
@@ -387,11 +430,13 @@ contains
             INTERNAL_ERROR("is_adaptive .and. .not. present(backends)")
         endif
 #endif
-        if ( is_adaptive ) then
-            call allocate_plans(plans, backends=backends)
-        else
-            call allocate_plans(plans, backend)
-        endif
+        ! if ( .not. allocated(plans) ) then
+            if ( is_adaptive ) then
+                call allocate_plans(plans, backends=backends)
+            else
+                call allocate_plans(plans, backend)
+            endif
+        ! endif
 
         args%platform = platform
         args%helper = helper
@@ -399,9 +444,7 @@ contains
         args%backend = backend
         args%force_effort = force_effort
         args%transpose_mode = TRANSPOSE_MODE_NOT_SET
-#ifdef DTFFT_WITH_COMPRESSION
-        args%compression_config = get_conf_reshape()
-#endif
+        args%compression_config = compression_config
         args%base_type = base_init_dtype
         args%base_storage = base_init_storage
         if ( present(plan_id) ) then
@@ -434,14 +477,14 @@ contains
             args%base_storage = base_storage
             if ( is_adaptive ) args%backend = backends(CONF_DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS)
             call plans(CONF_DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS)%p%create(pencils(size(pencils)), bricks(2), args)
-            if ( is_adaptive ) args%backend = backends(CONF_DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS)
+            if ( is_adaptive ) args%backend = backends(CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS)
             call plans(CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS)%p%create(bricks(2), pencils(size(pencils)), args)
         endif
     end subroutine create_reshape_plans
 
     subroutine autotune_reshape_plan(                                                                &
         platform, base_comm, comms, base_init_dtype, base_init_storage, base_dtype, base_storage, bricks, pencils, stream,     &
-        buffer_size, transpose_backend, best_backend, backends)
+        buffer_size, compression_config, transpose_backend, best_backend, backends)
     !! Runs autotune for all backends
         type(dtfft_platform_t), intent(in)      :: platform         !! Platform to create plan for
         TYPE_MPI_COMM,          intent(in)      :: base_comm        !! 3D Cartesian comm
@@ -454,6 +497,7 @@ contains
         type(pencil),           intent(in)      :: pencils(:)       !! Array of pencil decompositions
         type(dtfft_stream_t),   intent(in)      :: stream           !! Stream to use
         integer(int64),         intent(in)      :: buffer_size      !! Size of the buffer to use during autotune (in bytes)
+        type(dtfft_compression_config_t),   intent(in) :: compression_config
         type(dtfft_backend_t),  intent(in)      :: transpose_backend!! Backend used in transpose plans
         type(dtfft_backend_t),  intent(inout)   :: best_backend     !! Best backend selected
         type(dtfft_backend_t),  intent(out)     :: backends(SIDX:EIDX)        !! Forward backends
@@ -533,15 +577,16 @@ contains
 
             if ( is_adaptive ) then
                 do r = SIDX, EIDX
-                    execution_time = autotune_adaptive(platform, current_backend_id, base_comm, comms, base_init_dtype, base_init_storage, base_dtype,  &
-                        base_storage, bricks, pencils, stream, buffer_size, helper, r)
+                    execution_time = autotune_adaptive(platform, current_backend_id, base_comm, base_init_dtype, base_init_storage, base_dtype,  &
+                        base_storage, bricks, pencils, stream, buffer_size, compression_config, helper, r)
                     if ( execution_time < timers(r) ) then
                         timers(r) = execution_time
                         backends(r) = current_backend_id
                     endif
                 enddo
             else
-                call create_reshape_plans(plans, current_backend_id, platform, helper, DTFFT_ESTIMATE, .true., base_init_dtype, base_init_storage, base_dtype, base_storage, bricks, pencils)
+                call create_reshape_plans(plans, current_backend_id, platform, helper, DTFFT_ESTIMATE, .true., base_init_dtype, base_init_storage, &
+                    base_dtype, base_storage, bricks, pencils, compression_config)
 
                 execution_time = execute_autotune(plans, base_comm, current_backend_id, platform, helper, stream, buffer_size, 4)
                 if ( execution_time < best_time_ ) then
@@ -560,13 +605,12 @@ contains
 
     end subroutine autotune_reshape_plan
 
-    real(real32) function autotune_adaptive(platform, backend, base_comm, comms, base_init_dtype, base_init_storage, base_dtype, base_storage, bricks, pencils, stream,     &
-        buffer_size, helper, plan_id) result(execution_time)
+    real(real32) function autotune_adaptive(platform, backend, base_comm, base_init_dtype, base_init_storage, base_dtype, base_storage, bricks, pencils, stream,     &
+        buffer_size, compression_config, helper, plan_id) result(execution_time)
 
         type(dtfft_platform_t), intent(in)      :: platform         !! Platform to create plan for
         type(dtfft_backend_t),  intent(in)      :: backend
         TYPE_MPI_COMM,          intent(in)      :: base_comm        !! 3D Cartesian comm
-        TYPE_MPI_COMM,          intent(in)      :: comms(:)         !! 1D comms
         TYPE_MPI_DATATYPE,      intent(in)      :: base_init_dtype  !! Base MPI datatype for real space data
         integer(int64),         intent(in)      :: base_init_storage!! Number of bytes needed to store single real element
         TYPE_MPI_DATATYPE,      intent(in)      :: base_dtype       !! Base MPI datatype for Fourier space data
@@ -575,6 +619,7 @@ contains
         type(pencil),           intent(in)      :: pencils(:)       !! Array of pencil decompositions
         type(dtfft_stream_t),   intent(in)      :: stream           !! Stream to use
         integer(int64),         intent(in)      :: buffer_size      !! Size of the buffer to use during autotune (in bytes)
+        type(dtfft_compression_config_t),   intent(in) :: compression_config
         type(backend_helper),   intent(inout)   :: helper
         integer(int8),          intent(in)      :: plan_id
         type(string) :: reshape
@@ -584,7 +629,7 @@ contains
         REGION_BEGIN(reshape%raw, COLOR_AUTOTUNE)
         WRITE_INFO("  "//reshape%raw)
         call create_reshape_plans(plans, backend, platform, helper, DTFFT_ESTIMATE, .true., base_init_dtype, base_init_storage, &
-            base_dtype, base_storage, bricks, pencils, plan_id=plan_id)
+            base_dtype, base_storage, bricks, pencils, compression_config, plan_id=plan_id)
 
         execution_time = execute_autotune(plans, base_comm, backend, platform, helper, stream, buffer_size, 4)
         call destroy_plans(plans)

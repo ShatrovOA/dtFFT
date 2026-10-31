@@ -1,0 +1,2951 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>test_compressors_device &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>test_compressors_device      <small>Program</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 6.5% of total for programs.">324 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/test_compressors_device.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/test_compressors_device.f90.html'>test_compressors_device.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">test_compressors_device</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-n_modes~3">N_MODES</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-test_rate~3">TEST_RATE</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-test_precision~3">TEST_PRECISION</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-test_tolerance~3">TEST_TOLERANCE</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-n_compressors~4">n_compressors</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-i~85">i</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-compressors~4">compressors</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-current_lib~2">current_lib</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-n">N</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-dims~3">DIMS</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-ierr~137">ierr</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#variable-device_count">device_count</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#types-0"
+         aria-expanded="false" aria-controls="types-0">
+         <h4 class="card-header bg-primary text-white">Derived Types</h4>
+      </a>
+      <div id="types-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_compressors_device.html#type-compressor_info~3">compressor_info</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-dims_to_str~2">dims_to_str</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-permute_dims~2">permute_dims</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-max_error~2">max_error</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-reference~3">reference</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-config_for_mode~3">config_for_mode</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-error_threshold~3">error_threshold</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-report_compressor~2">report_compressor</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-test_round_trips~2">test_round_trips</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-test_round_trip~2">test_round_trip</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-fill_reference~2">fill_reference</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-free_device_buffers">free_device_buffers</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-check_cuda">check_cuda</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-check_error~2">check_error</a>
+            <a class="list-group-item" href="../program/test_compressors_device.html#proc-wipe~3">wipe</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='../module/dtfft_compressor.html'>dtfft_compressor</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_interface_cuda_runtime.html'>dtfft_interface_cuda_runtime</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_utils.html'>dtfft_utils</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_c_binding'>iso_c_binding</a></li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_abstract_compressor.html'>dtfft_abstract_compressor</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_parameters.html'>dtfft_parameters</a></li>
+                  <li class="list-inline-item"><a href='../module/dtfft_errors.html'>dtfft_errors</a></li>
+                  <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: program~~test_compressors_device~~UsesGraph Pages: 1 -->
+<svg id="programtest_compressors_deviceUsesGraph" width="641pt" height="327pt"
+ viewBox="0.00 0.00 641.00 327.08" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="program~~test_compressors_device~~UsesGraph" class="graph" transform="scale(0.61 0.61) rotate(0) translate(4 529.23)">
+<title>program~~test_compressors_device~~UsesGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-529.23 1041,-529.23 1041,4 -4,4"/>
+<!-- program~test_compressors_device -->
+<g id="program~~test_compressors_device~~UsesGraph_node1" class="node">
+<title>program~test_compressors_device</title>
+<polygon fill="none" stroke="black" points="1037,-138.95 892,-138.95 892,-114.95 1037,-114.95 1037,-138.95"/>
+<text text-anchor="middle" x="964.5" y="-124.55" font-family="Helvetica,sans-Serif" font-size="10.50">test_compressors_device</text>
+</g>
+<!-- iso_c_binding -->
+<g id="program~~test_compressors_device~~UsesGraph_node2" class="node">
+<title>iso_c_binding</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_c_binding" xlink:title="iso_c_binding">
+<polygon fill="#337ab7" stroke="#337ab7" points="89,-61.95 5,-61.95 5,-37.95 89,-37.95 89,-61.95"/>
+<text text-anchor="middle" x="47" y="-47.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_c_binding</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;iso_c_binding -->
+<g id="program~~test_compressors_device~~UsesGraph_edge1" class="edge">
+<title>program~test_compressors_device&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M933.65,-114.81C877.74,-93.17 753,-50.08 643.5,-48.95"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M641.5,-48.95C597.98,-45.04 491.89,-17.3 449,-8.95"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-8.95C323.2,15.13 174.86,-15.38 98.67,-35.3"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="97.61,-31.96 88.85,-37.91 99.41,-38.72 97.61,-31.96"/>
+</g>
+<!-- iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_node3" class="node">
+<title>iso_fortran_env</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node3"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="94,-103.95 0,-103.95 0,-79.95 94,-79.95 94,-103.95"/>
+<text text-anchor="middle" x="47" y="-89.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_edge2" class="edge">
+<title>program~test_compressors_device&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-475.95C249.99,-456.52 226.1,-502.23 182,-475.95"/>
+</g>
+<!-- module~dtfft_abstract_compressor -->
+<g id="program~~test_compressors_device~~UsesGraph_node4" class="node">
+<title>module~dtfft_abstract_compressor</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node4"><a xlink:href="../module/dtfft_abstract_compressor.html" xlink:title="dtfft_abstract_compressor">
+<polygon fill="#337ab7" stroke="#337ab7" points="718,-138.95 567,-138.95 567,-114.95 718,-114.95 718,-138.95"/>
+<text text-anchor="middle" x="642.5" y="-124.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_abstract_compressor</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="program~~test_compressors_device~~UsesGraph_edge3" class="edge">
+<title>program~test_compressors_device&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M961.28,-138.98C949.11,-203.11 888.08,-502.24 806,-514.95"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M804,-514.95C724.89,-527.2 663.38,-232.83 647.51,-148.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="650.92,-148.17 645.65,-138.98 644.04,-149.45 650.92,-148.17"/>
+</g>
+<!-- module~dtfft_compressor -->
+<g id="program~~test_compressors_device~~UsesGraph_node5" class="node">
+<title>module~dtfft_compressor</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node5"><a xlink:href="../module/dtfft_compressor.html" xlink:title="dtfft_compressor">
+<polygon fill="#337ab7" stroke="#337ab7" points="856,-138.95 754,-138.95 754,-114.95 856,-114.95 856,-138.95"/>
+<text text-anchor="middle" x="805" y="-124.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_compressor</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;module~dtfft_compressor -->
+<g id="program~~test_compressors_device~~UsesGraph_edge4" class="edge">
+<title>program~test_compressors_device&#45;&gt;module~dtfft_compressor</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M891.66,-126.95C883.13,-126.95 874.48,-126.95 866.13,-126.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="866.12,-123.45 856.12,-126.95 866.12,-130.45 866.12,-123.45"/>
+</g>
+<!-- module~dtfft_errors -->
+<g id="program~~test_compressors_device~~UsesGraph_node6" class="node">
+<title>module~dtfft_errors</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node6"><a xlink:href="../module/dtfft_errors.html" xlink:title="dtfft_errors">
+<polygon fill="#337ab7" stroke="#337ab7" points="216.5,-352.95 145.5,-352.95 145.5,-328.95 216.5,-328.95 216.5,-352.95"/>
+<text text-anchor="middle" x="181" y="-338.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_errors</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_compressors_device~~UsesGraph_edge5" class="edge">
+<title>program~test_compressors_device&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M641.5,-514.95C557.2,-500.35 534.38,-520.5 449,-514.95"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-514.95C379.33,-510.56 362.26,-501.63 299.5,-475.95"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M297.5,-475.95C245.24,-454.57 208.66,-394.74 192.06,-362.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="195.13,-360.7 187.55,-353.29 188.86,-363.81 195.13,-360.7"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_compressors_device~~UsesGraph_node7" class="node">
+<title>module~dtfft_interface_cuda_runtime</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node7"><a xlink:href="../module/dtfft_interface_cuda_runtime.html" xlink:title="dtfft_interface_cuda_runtime">
+<polygon fill="#337ab7" stroke="#337ab7" points="531,-60.95 365,-60.95 365,-36.95 531,-36.95 531,-60.95"/>
+<text text-anchor="middle" x="448" y="-46.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_cuda_runtime</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;module~dtfft_interface_cuda_runtime -->
+<g id="program~~test_compressors_device~~UsesGraph_edge6" class="edge">
+<title>program~test_compressors_device&#45;&gt;module~dtfft_interface_cuda_runtime</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M641.5,-48.95C608.93,-48.95 573.26,-48.95 541.57,-48.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="541.43,-45.45 531.43,-48.95 541.43,-52.45 541.43,-45.45"/>
+</g>
+<!-- module~dtfft_parameters -->
+<g id="program~~test_compressors_device~~UsesGraph_node8" class="node">
+<title>module~dtfft_parameters</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node8"><a xlink:href="../module/dtfft_parameters.html" xlink:title="dtfft_parameters">
+<polygon fill="#337ab7" stroke="#337ab7" points="232,-101.95 130,-101.95 130,-77.95 232,-77.95 232,-101.95"/>
+<text text-anchor="middle" x="181" y="-87.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_parameters</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_compressors_device~~UsesGraph_edge7" class="edge">
+<title>program~test_compressors_device&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M641.5,-48.95C591.51,-48.95 580.62,-63.84 531,-69.95 430.31,-82.35 312.3,-87.09 242.53,-88.88"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="242.09,-85.39 232.18,-89.13 242.26,-92.39 242.09,-85.39"/>
+</g>
+<!-- module~dtfft_utils -->
+<g id="program~~test_compressors_device~~UsesGraph_node9" class="node">
+<title>module~dtfft_utils</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node9"><a xlink:href="../module/dtfft_utils.html" xlink:title="dtfft_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="329,-294.95 268,-294.95 268,-270.95 329,-270.95 329,-294.95"/>
+<text text-anchor="middle" x="298.5" y="-280.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_utils</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_compressors_device~~UsesGraph_edge8" class="edge">
+<title>program~test_compressors_device&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M804,-514.95C733.51,-525.87 714.06,-525.42 643.5,-514.95"/>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M641.5,-514.95C576.28,-505.28 585.71,-452.76 531,-415.95 462.89,-370.13 434.44,-378.73 365,-334.95 349.43,-325.14 333.22,-312.3 320.82,-301.83"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="322.77,-298.89 312.9,-295.03 318.21,-304.2 322.77,-298.89"/>
+</g>
+<!-- mpi_f08 -->
+<g id="program~~test_compressors_device~~UsesGraph_node10" class="node">
+<title>mpi_f08</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node10"><a xlink:href="http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm" xlink:title="mpi_f08">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.5,-217.95 19.5,-217.95 19.5,-193.95 74.5,-193.95 74.5,-217.95"/>
+<text text-anchor="middle" x="47" y="-203.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_f08</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;mpi_f08 -->
+<g id="program~~test_compressors_device~~UsesGraph_edge9" class="edge">
+<title>program~test_compressors_device&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M447,-514.95C381.58,-510.71 364.78,-508.96 299.5,-514.95"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_c_binding -->
+<g id="program~~test_compressors_device~~UsesGraph_edge10" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M589.72,-114.82C581.51,-111.29 573.57,-106.76 567,-100.95 539.9,-76.99 559.35,-50.42 531,-27.95 501.68,-4.72 485.72,-16.1 449,-8.95"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_edge11" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M632.9,-139.11C616.25,-161.43 577.19,-208.29 531,-225.95 384.14,-282.12 330.98,-218.26 182,-167.95"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_compressors_device~~UsesGraph_edge12" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M447,-320.95C385.13,-344.38 365.66,-340.73 299.5,-340.95"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M297.5,-340.95C274.15,-341.03 248.15,-341.04 226.73,-341.02"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="226.62,-337.52 216.62,-341.01 226.62,-344.52 226.62,-337.52"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_compressors_device~~UsesGraph_edge14" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M592.67,-138.96C520,-154.58 379.93,-176.01 268,-140.95 249.41,-135.13 248.68,-126.02 232,-115.95 226.85,-112.84 221.29,-109.73 215.81,-106.79"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="217.24,-103.58 206.76,-102.04 213.99,-109.78 217.24,-103.58"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_compressors_device~~UsesGraph_edge16" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M636.98,-139.38C624.93,-170.78 588.9,-253.88 531,-296.95 500.53,-319.62 484.51,-307.51 449,-320.95"/>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M447,-320.95C406.61,-336.25 357.72,-316.56 327.62,-300.3"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="328.97,-297.05 318.54,-295.19 325.53,-303.15 328.97,-297.05"/>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;mpi_f08 -->
+<g id="program~~test_compressors_device~~UsesGraph_edge17" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M641.38,-139.06C640.21,-187.27 629.2,-367.39 531,-457.95 526.13,-462.44 306.09,-514.34 299.5,-514.95"/>
+</g>
+<!-- module~dtfft_interface_nvtx -->
+<g id="program~~test_compressors_device~~UsesGraph_node11" class="node">
+<title>module~dtfft_interface_nvtx</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node11"><a xlink:href="../module/dtfft_interface_nvtx.html" xlink:title="dtfft_interface_nvtx">
+<polygon fill="#337ab7" stroke="#337ab7" points="505.5,-216.95 390.5,-216.95 390.5,-192.95 505.5,-192.95 505.5,-216.95"/>
+<text text-anchor="middle" x="448" y="-202.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_interface_nvtx</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx -->
+<g id="program~~test_compressors_device~~UsesGraph_edge13" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_interface_nvtx</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M618.19,-139.03C596.09,-150.22 561.8,-166.89 531,-178.95 521.2,-182.79 510.58,-186.49 500.34,-189.83"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="499.13,-186.54 490.67,-192.92 501.26,-193.21 499.13,-186.54"/>
+</g>
+<!-- module~dtfft_serializer -->
+<g id="program~~test_compressors_device~~UsesGraph_node12" class="node">
+<title>module~dtfft_serializer</title>
+<g id="a_program~~test_compressors_device~~UsesGraph_node12"><a xlink:href="../module/dtfft_serializer.html" xlink:title="dtfft_serializer">
+<polygon fill="#337ab7" stroke="#337ab7" points="492,-448.95 404,-448.95 404,-424.95 492,-424.95 492,-448.95"/>
+<text text-anchor="middle" x="448" y="-434.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_serializer</text>
+</a>
+</g>
+</g>
+<!-- module~dtfft_abstract_compressor&#45;&gt;module~dtfft_serializer -->
+<g id="program~~test_compressors_device~~UsesGraph_edge15" class="edge">
+<title>module~dtfft_abstract_compressor&#45;&gt;module~dtfft_serializer</title>
+<path fill="none" stroke="#aaff00" stroke-dasharray="5,2" d="M636.02,-139.13C621.08,-171.9 577.58,-264.28 531,-334.95 511.11,-365.13 484.27,-397.19 466.81,-417.14"/>
+<polygon fill="#aaff00" stroke="#aaff00" points="464.16,-414.85 460.16,-424.66 469.41,-419.48 464.16,-414.85"/>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;iso_c_binding -->
+<g id="program~~test_compressors_device~~UsesGraph_edge18" class="edge">
+<title>module~dtfft_compressor&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M773.19,-114.93C741.29,-103.52 689.72,-87.96 643.5,-86.95"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M641.5,-86.95C606.72,-86.2 596.81,-80.88 567,-62.95 547.88,-51.45 550.59,-38.64 531,-27.95 498.16,-10.03 485.72,-16.1 449,-8.95"/>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_edge19" class="edge">
+<title>module~dtfft_compressor&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-126.95C243.1,-129.78 234.49,-182.52 182,-167.95"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M180,-167.95C138.52,-156.44 96.41,-128.83 71.25,-110.26"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="73.18,-107.33 63.09,-104.11 68.97,-112.92 73.18,-107.33"/>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;module~dtfft_abstract_compressor -->
+<g id="program~~test_compressors_device~~UsesGraph_edge20" class="edge">
+<title>module~dtfft_compressor&#45;&gt;module~dtfft_abstract_compressor</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M753.66,-126.95C745.53,-126.95 736.92,-126.95 728.25,-126.95"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="728.06,-123.45 718.06,-126.95 728.06,-130.45 728.06,-123.45"/>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_compressors_device~~UsesGraph_edge21" class="edge">
+<title>module~dtfft_compressor&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M793.61,-139.02C760.21,-176.8 650.71,-292.81 531,-334.95 433.92,-369.13 402.42,-340.61 299.5,-340.95"/>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_compressors_device~~UsesGraph_edge22" class="edge">
+<title>module~dtfft_compressor&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M641.5,-86.95C591.88,-86.4 580.25,-96.84 531,-102.95 428.35,-115.7 402.94,-126.07 299.5,-126.95"/>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M297.5,-126.95C293.73,-127.15 257.91,-115.5 227.14,-105.23"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="227.97,-101.82 217.38,-101.96 225.75,-108.45 227.97,-101.82"/>
+</g>
+<!-- module~dtfft_compressor&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_compressors_device~~UsesGraph_edge23" class="edge">
+<title>module~dtfft_compressor&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ff00" stroke-dasharray="5,2" d="M641.5,-86.95C607.33,-87.35 591.66,-82.3 567,-105.95 526.81,-144.5 571.35,-187.58 531,-225.95 478.78,-275.62 390.51,-284.1 339.38,-284.43"/>
+<polygon fill="#00ff00" stroke="#00ff00" points="339.07,-280.93 329.06,-284.4 339.04,-287.93 339.07,-280.93"/>
+</g>
+<!-- module~dtfft_errors&#45;&gt;iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_edge24" class="edge">
+<title>module~dtfft_errors&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffa9" stroke-dasharray="5,2" d="M173.63,-328.94C152.73,-289.51 86,-163.63 59.25,-113.17"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="62.23,-111.33 54.46,-104.13 56.05,-114.61 62.23,-111.33"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding -->
+<g id="program~~test_compressors_device~~UsesGraph_edge25" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M364.97,-47.16C343.62,-47.33 320.67,-48.09 299.5,-49.95"/>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M297.5,-49.95C246.36,-54.45 233.18,-45.97 182,-49.95"/>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M180,-49.95C153.41,-52.02 123.72,-52.21 99.24,-51.8"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="99.16,-48.3 89.09,-51.59 99.02,-55.3 99.16,-48.3"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_edge26" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M180,-49.95C145.98,-52.6 109.13,-65.22 83.03,-75.93"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="81.43,-72.81 73.58,-79.93 84.16,-79.26 81.43,-72.81"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_compressors_device~~UsesGraph_edge27" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M297.5,-49.95C268.46,-52.51 237.33,-63.84 214.71,-73.79"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="213.23,-70.62 205.57,-77.94 216.12,-76.99 213.23,-70.62"/>
+</g>
+<!-- module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_compressors_device~~UsesGraph_edge28" class="edge">
+<title>module~dtfft_interface_cuda_runtime&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00a9ff" stroke-dasharray="5,2" d="M439.28,-61.21C415.38,-99.11 342.46,-214.8 312.53,-262.28"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="309.52,-260.5 307.15,-270.82 315.44,-264.23 309.52,-260.5"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_c_binding -->
+<g id="program~~test_compressors_device~~UsesGraph_edge29" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M140.4,-77.95C126.94,-73.88 111.74,-69.27 97.61,-64.99"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="98.62,-61.64 88.03,-62.08 96.59,-68.33 98.62,-61.64"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_edge30" class="edge">
+<title>module~dtfft_parameters&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M129.72,-90.72C121.43,-90.84 112.79,-90.97 104.37,-91.1"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="104.18,-87.6 94.24,-91.25 104.29,-94.6 104.18,-87.6"/>
+</g>
+<!-- module~dtfft_parameters&#45;&gt;mpi_f08 -->
+<g id="program~~test_compressors_device~~UsesGraph_edge31" class="edge">
+<title>module~dtfft_parameters&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#0000ff" stroke-dasharray="5,2" d="M165.87,-102.37C142.85,-122.6 97.07,-162.83 69.84,-186.76"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="67.23,-184.4 62.02,-193.63 71.85,-189.66 67.23,-184.4"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_c_binding -->
+<g id="program~~test_compressors_device~~UsesGraph_edge32" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M279.51,-270.93C256.81,-255.75 216.54,-228.87 182,-205.95"/>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M180,-205.95C150.5,-186.38 149.06,-173.79 130,-143.95 110.53,-113.47 119.96,-96.15 94,-70.95 92.9,-69.88 91.73,-68.86 90.51,-67.89"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="92.15,-64.77 81.9,-62.11 88.26,-70.59 92.15,-64.77"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_edge33" class="edge">
+<title>module~dtfft_utils&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M180,-205.95C159.46,-192.33 149.78,-196.67 130,-181.95 102.97,-161.84 77.8,-131.88 62.67,-112.13"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="65.44,-109.99 56.63,-104.1 59.84,-114.2 65.44,-109.99"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_compressors_device~~UsesGraph_edge34" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M273.57,-294.97C256.61,-303.49 233.65,-315.02 214.96,-324.4"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="213.27,-321.34 205.9,-328.95 216.41,-327.59 213.27,-321.34"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;module~dtfft_parameters -->
+<g id="program~~test_compressors_device~~UsesGraph_edge35" class="edge">
+<title>module~dtfft_utils&#45;&gt;module~dtfft_parameters</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M292.28,-270.79C282.03,-247.41 258.02,-194.86 232,-153.95 222.16,-138.49 209.42,-122.23 199.26,-109.96"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="201.83,-107.57 192.71,-102.17 196.47,-112.08 201.83,-107.57"/>
+</g>
+<!-- module~dtfft_utils&#45;&gt;mpi_f08 -->
+<g id="program~~test_compressors_device~~UsesGraph_edge36" class="edge">
+<title>module~dtfft_utils&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#aa00ff" stroke-dasharray="5,2" d="M180,-205.95C152.11,-187.45 113.07,-190.06 84.69,-195.72"/>
+<polygon fill="#aa00ff" stroke="#aa00ff" points="83.77,-192.33 74.76,-197.9 85.28,-199.17 83.77,-192.33"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;iso_c_binding -->
+<g id="program~~test_compressors_device~~UsesGraph_edge37" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;iso_c_binding</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M390.11,-193.09C354.7,-185.26 308.37,-174.21 268,-161.95 205.43,-142.95 184.11,-147.66 130,-110.95 110.21,-97.53 113.28,-85.11 94,-70.95 92.16,-69.6 90.22,-68.31 88.22,-67.08"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="89.61,-63.85 79.17,-62.06 86.22,-69.97 89.61,-63.85"/>
+</g>
+<!-- module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_compressors_device~~UsesGraph_edge38" class="edge">
+<title>module~dtfft_interface_nvtx&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M424.28,-216.97C399.45,-230.1 359.48,-251.24 331.49,-266.04"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="329.7,-263.03 322.49,-270.8 332.97,-269.21 329.7,-263.03"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;iso_fortran_env -->
+<g id="program~~test_compressors_device~~UsesGraph_edge39" class="edge">
+<title>module~dtfft_serializer&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-437.95C243.85,-431.5 228.42,-503.62 182,-475.95"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M180,-475.95C64.14,-406.92 137.7,-312.54 94,-184.95 85.15,-159.12 70.66,-131.28 60.3,-112.86"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="63.32,-111.09 55.32,-104.15 57.24,-114.56 63.32,-111.09"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;module~dtfft_errors -->
+<g id="program~~test_compressors_device~~UsesGraph_edge40" class="edge">
+<title>module~dtfft_serializer&#45;&gt;module~dtfft_errors</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M403.92,-440.1C374.42,-441.56 334.46,-442.16 299.5,-437.95"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-437.95C251.49,-432.42 213.89,-388.17 195.06,-361.39"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="197.92,-359.37 189.42,-353.05 192.13,-363.3 197.92,-359.37"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;module~dtfft_utils -->
+<g id="program~~test_compressors_device~~UsesGraph_edge41" class="edge">
+<title>module~dtfft_serializer&#45;&gt;module~dtfft_utils</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M403.82,-430.58C390.1,-426.77 375.73,-420.68 365,-410.95 334.91,-383.67 348.39,-362.64 329,-326.95 324.74,-319.11 319.47,-310.89 314.57,-303.71"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="317.26,-301.46 308.66,-295.27 311.53,-305.47 317.26,-301.46"/>
+</g>
+<!-- module~dtfft_serializer&#45;&gt;mpi_f08 -->
+<g id="program~~test_compressors_device~~UsesGraph_edge42" class="edge">
+<title>module~dtfft_serializer&#45;&gt;mpi_f08</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M403.67,-447.48C390.83,-451.44 377,-456.57 365,-462.95 332.19,-480.41 336.37,-510.26 299.5,-514.95"/>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M297.5,-514.95C222.83,-524.45 186.64,-539.52 130,-489.95 89.74,-454.72 60.66,-288.46 51.26,-228"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="54.7,-227.36 49.74,-218 47.78,-228.41 54.7,-227.36"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprogramtest_compressors_deviceUsesGraph = svgPanZoom('#programtest_compressors_deviceUsesGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="518pt" height="32pt"
+ viewBox="0.00 0.00 517.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 513.5,-28 513.5,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="145.5,-24 72.5,-24 72.5,0 145.5,0 145.5,-24"/>
+<text text-anchor="middle" x="109" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="234,-24 164,-24 164,0 234,0 234,-24"/>
+<text text-anchor="middle" x="199" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="310,-24 252,-24 252,0 310,0 310,-24"/>
+<text text-anchor="middle" x="281" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="386,-24 328,-24 328,0 386,0 386,-24"/>
+<text text-anchor="middle" x="357" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="509.5,-24 404.5,-24 404.5,0 509.5,0 509.5,-24"/>
+<text text-anchor="middle" x="457" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+    
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: program~~test_compressors_device~~CallsGraph Pages: 1 -->
+<svg id="programtest_compressors_deviceCallsGraph" width="641pt" height="499pt"
+ viewBox="0.00 0.00 641.00 498.90" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="program~~test_compressors_device~~CallsGraph" class="graph" transform="scale(0.45 0.45) rotate(0) translate(4 1116)">
+<title>program~~test_compressors_device~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1116 1435,-1116 1435,4 -4,4"/>
+<!-- program~test_compressors_device -->
+<g id="program~~test_compressors_device~~CallsGraph_node1" class="node">
+<title>program~test_compressors_device</title>
+<polygon fill="none" stroke="black" points="145,-1004 0,-1004 0,-980 145,-980 145,-1004"/>
+<text text-anchor="middle" x="72.5" y="-989.6" font-family="Helvetica,sans-Serif" font-size="10.50">test_compressors_device</text>
+</g>
+<!-- interface~cudagetdevicecount -->
+<g id="program~~test_compressors_device~~CallsGraph_node2" class="node">
+<title>interface~cudagetdevicecount</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node2"><a xlink:href="../interface/cudagetdevicecount.html" xlink:title="cudaGetDeviceCount">
+<polygon fill="#a7506f" stroke="#a7506f" points="307,-1088 181,-1088 181,-1064 307,-1064 307,-1088"/>
+<text text-anchor="middle" x="244" y="-1073.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetDeviceCount</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;interface~cudagetdevicecount -->
+<g id="program~~test_compressors_device~~CallsGraph_edge1" class="edge">
+<title>program~test_compressors_device&#45;&gt;interface~cudagetdevicecount</title>
+<path fill="none" stroke="#ff0000" d="M91.53,-1004.11C112.4,-1017.76 148.14,-1039.99 181,-1055 185.12,-1056.88 189.47,-1058.69 193.86,-1060.4"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="192.91,-1063.78 203.5,-1063.97 195.34,-1057.21 192.91,-1063.78"/>
+</g>
+<!-- mpi_finalize -->
+<g id="program~~test_compressors_device~~CallsGraph_node3" class="node">
+<title>mpi_finalize</title>
+<polygon fill="#777777" stroke="#777777" points="282,-1046 206,-1046 206,-1022 282,-1022 282,-1046"/>
+<text text-anchor="middle" x="244" y="-1031.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalize</text>
+</g>
+<!-- program~test_compressors_device&#45;&gt;mpi_finalize -->
+<g id="program~~test_compressors_device~~CallsGraph_edge2" class="edge">
+<title>program~test_compressors_device&#45;&gt;mpi_finalize</title>
+<path fill="none" stroke="#ff0000" d="M122.07,-1004.04C145.25,-1009.78 172.87,-1016.62 195.86,-1022.32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="195.19,-1025.76 205.74,-1024.77 196.87,-1018.96 195.19,-1025.76"/>
+</g>
+<!-- mpi_init -->
+<g id="program~~test_compressors_device~~CallsGraph_node4" class="node">
+<title>mpi_init</title>
+<polygon fill="#777777" stroke="#777777" points="271.5,-1004 216.5,-1004 216.5,-980 271.5,-980 271.5,-1004"/>
+<text text-anchor="middle" x="244" y="-989.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_init</text>
+</g>
+<!-- program~test_compressors_device&#45;&gt;mpi_init -->
+<g id="program~~test_compressors_device~~CallsGraph_edge3" class="edge">
+<title>program~test_compressors_device&#45;&gt;mpi_init</title>
+<path fill="none" stroke="#ff0000" d="M145.38,-992C166.25,-992 188.19,-992 205.97,-992"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="206.19,-995.5 216.19,-992 206.19,-988.5 206.19,-995.5"/>
+</g>
+<!-- proc~report_compressor~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node5" class="node">
+<title>proc~report_compressor~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node5"><a xlink:href="../proc/report_compressor~2.html" xlink:title="report_compressor">
+<polygon fill="#d9534f" stroke="#d9534f" points="455,-1070 343,-1070 343,-1046 455,-1046 455,-1070"/>
+<text text-anchor="middle" x="399" y="-1055.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">report_compressor</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;proc~report_compressor~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge4" class="edge">
+<title>program~test_compressors_device&#45;&gt;proc~report_compressor~2</title>
+<path fill="none" stroke="#ff0000" d="M106.2,-979.95C152.65,-964.83 239.57,-943.95 307,-971 340.19,-984.31 368.13,-1016.15 383.97,-1037.39"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="381.31,-1039.69 390,-1045.76 386.99,-1035.6 381.31,-1039.69"/>
+</g>
+<!-- proc~test_round_trips~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node6" class="node">
+<title>proc~test_round_trips~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node6"><a xlink:href="../proc/test_round_trips~2.html" xlink:title="test_round_trips">
+<polygon fill="#d9534f" stroke="#d9534f" points="292.5,-819 195.5,-819 195.5,-795 292.5,-795 292.5,-819"/>
+<text text-anchor="middle" x="244" y="-804.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_round_trips</text>
+</a>
+</g>
+</g>
+<!-- program~test_compressors_device&#45;&gt;proc~test_round_trips~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge5" class="edge">
+<title>program~test_compressors_device&#45;&gt;proc~test_round_trips~2</title>
+<path fill="none" stroke="#ff0000" d="M84.62,-979.86C113.23,-948.64 189.56,-865.32 224.76,-826.91"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="227.44,-829.16 231.62,-819.43 222.28,-824.43 227.44,-829.16"/>
+</g>
+<!-- proc~destroy_string -->
+<g id="program~~test_compressors_device~~CallsGraph_node7" class="node">
+<title>proc~destroy_string</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node7"><a xlink:href="../proc/destroy_string.html" xlink:title="string%destroy_string">
+<polygon fill="#d9534f" stroke="#d9534f" points="668,-1112 541,-1112 541,-1088 668,-1088 668,-1112"/>
+<text text-anchor="middle" x="604.5" y="-1097.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string%destroy_string</text>
+</a>
+</g>
+</g>
+<!-- proc~report_compressor~2&#45;&gt;proc~destroy_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge6" class="edge">
+<title>proc~report_compressor~2&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#0066ff" d="M450.46,-1070.04C463.63,-1073.08 477.83,-1076.25 491,-1079 503.86,-1081.68 517.59,-1084.38 530.88,-1086.91"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="530.45,-1090.39 540.93,-1088.81 531.75,-1083.51 530.45,-1090.39"/>
+</g>
+<!-- proc~get_compressor_string -->
+<g id="program~~test_compressors_device~~CallsGraph_node8" class="node">
+<title>proc~get_compressor_string</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node8"><a xlink:href="../proc/get_compressor_string.html" xlink:title="get_compressor_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="671,-1070 538,-1070 538,-1046 671,-1046 671,-1070"/>
+<text text-anchor="middle" x="604.5" y="-1055.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_compressor_string</text>
+</a>
+</g>
+</g>
+<!-- proc~report_compressor~2&#45;&gt;proc~get_compressor_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge7" class="edge">
+<title>proc~report_compressor~2&#45;&gt;proc~get_compressor_string</title>
+<path fill="none" stroke="#0066ff" d="M455.07,-1058C477.42,-1058 503.61,-1058 527.71,-1058"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="527.9,-1061.5 537.9,-1058 527.9,-1054.5 527.9,-1061.5"/>
+</g>
+<!-- proc~test_round_trip~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node9" class="node">
+<title>proc~test_round_trip~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node9"><a xlink:href="../proc/test_round_trip~2.html" xlink:title="test_round_trip">
+<polygon fill="#d9534f" stroke="#d9534f" points="444.5,-608 353.5,-608 353.5,-584 444.5,-584 444.5,-608"/>
+<text text-anchor="middle" x="399" y="-593.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_round_trip</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trips~2&#45;&gt;proc~test_round_trip~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge8" class="edge">
+<title>proc~test_round_trips~2&#45;&gt;proc~test_round_trip~2</title>
+<path fill="none" stroke="#cc00ff" d="M253.89,-794.74C279.19,-759.85 351.82,-659.68 383.23,-616.36"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="386.24,-618.18 389.28,-608.03 380.58,-614.07 386.24,-618.18"/>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~destroy_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge24" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#0000ff" d="M400.5,-608.23C403.52,-676.5 421.71,-1009.82 491,-1079 501.78,-1089.77 516.21,-1095.97 531.12,-1099.37"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="530.48,-1102.81 540.95,-1101.22 531.77,-1095.93 530.48,-1102.81"/>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~get_compressor_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge29" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~get_compressor_string</title>
+<path fill="none" stroke="#0000ff" d="M400.72,-608.01C404.8,-672.22 427.25,-974.45 491,-1037 501.04,-1046.85 514.14,-1052.86 527.83,-1056.4"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="527.35,-1059.88 537.87,-1058.56 528.82,-1053.04 527.35,-1059.88"/>
+</g>
+<!-- interface~cudafree -->
+<g id="program~~test_compressors_device~~CallsGraph_node10" class="node">
+<title>interface~cudafree</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node10"><a xlink:href="../interface/cudafree.html" xlink:title="cudaFree">
+<polygon fill="#a7506f" stroke="#a7506f" points="635,-776 574,-776 574,-752 635,-752 635,-776"/>
+<text text-anchor="middle" x="604.5" y="-761.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaFree</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;interface~cudafree -->
+<g id="program~~test_compressors_device~~CallsGraph_edge9" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;interface~cudafree</title>
+<path fill="none" stroke="#0000ff" d="M403.76,-608.29C413.24,-637.02 440.98,-708.74 491,-743 512.18,-757.51 540.64,-762.72 563.63,-764.32"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="563.61,-767.83 573.77,-764.83 563.96,-760.84 563.61,-767.83"/>
+</g>
+<!-- interface~cudamalloc -->
+<g id="program~~test_compressors_device~~CallsGraph_node11" class="node">
+<title>interface~cudamalloc</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node11"><a xlink:href="../interface/cudamalloc.html" xlink:title="cudaMalloc">
+<polygon fill="#a7506f" stroke="#a7506f" points="641,-734 568,-734 568,-710 641,-710 641,-734"/>
+<text text-anchor="middle" x="604.5" y="-719.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMalloc</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;interface~cudamalloc -->
+<g id="program~~test_compressors_device~~CallsGraph_edge10" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;interface~cudamalloc</title>
+<path fill="none" stroke="#0000ff" d="M406.69,-608.09C419.72,-630.42 450.82,-677.96 491,-701 511.14,-712.55 536.34,-717.93 557.78,-720.37"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="557.68,-723.88 567.97,-721.34 558.35,-716.91 557.68,-723.88"/>
+</g>
+<!-- interface~cudamemcpy -->
+<g id="program~~test_compressors_device~~CallsGraph_node12" class="node">
+<title>interface~cudamemcpy</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node12"><a xlink:href="../interface/cudamemcpy.html" xlink:title="cudaMemcpy">
+<polygon fill="#a7506f" stroke="#a7506f" points="646.5,-692 562.5,-692 562.5,-668 646.5,-668 646.5,-692"/>
+<text text-anchor="middle" x="604.5" y="-677.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMemcpy</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;interface~cudamemcpy -->
+<g id="program~~test_compressors_device~~CallsGraph_edge11" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;interface~cudamemcpy</title>
+<path fill="none" stroke="#0000ff" d="M413.4,-608.04C430.26,-622.49 460.67,-646.35 491,-659 510.29,-667.04 532.71,-672.02 552.44,-675.1"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="552.09,-678.58 562.49,-676.54 553.08,-671.65 552.09,-678.58"/>
+</g>
+<!-- interface~cudastreamcreate -->
+<g id="program~~test_compressors_device~~CallsGraph_node13" class="node">
+<title>interface~cudastreamcreate</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node13"><a xlink:href="../interface/cudastreamcreate.html" xlink:title="cudaStreamCreate">
+<polygon fill="#a7506f" stroke="#a7506f" points="660.5,-650 548.5,-650 548.5,-626 660.5,-626 660.5,-650"/>
+<text text-anchor="middle" x="604.5" y="-635.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamCreate</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;interface~cudastreamcreate -->
+<g id="program~~test_compressors_device~~CallsGraph_edge12" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;interface~cudastreamcreate</title>
+<path fill="none" stroke="#0000ff" d="M444.81,-606.74C459.5,-610.15 475.92,-613.85 491,-617 506.32,-620.2 522.86,-623.41 538.42,-626.33"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="538,-629.82 548.48,-628.21 539.29,-622.94 538,-629.82"/>
+</g>
+<!-- interface~cudastreamdestroy -->
+<g id="program~~test_compressors_device~~CallsGraph_node14" class="node">
+<title>interface~cudastreamdestroy</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node14"><a xlink:href="../interface/cudastreamdestroy.html" xlink:title="cudaStreamDestroy">
+<polygon fill="#a7506f" stroke="#a7506f" points="663.5,-608 545.5,-608 545.5,-584 663.5,-584 663.5,-608"/>
+<text text-anchor="middle" x="604.5" y="-593.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamDestroy</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;interface~cudastreamdestroy -->
+<g id="program~~test_compressors_device~~CallsGraph_edge13" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;interface~cudastreamdestroy</title>
+<path fill="none" stroke="#0000ff" d="M444.66,-596C471.14,-596 505.24,-596 535.06,-596"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="535.41,-599.5 545.41,-596 535.41,-592.5 535.41,-599.5"/>
+</g>
+<!-- interface~mem_free_host -->
+<g id="program~~test_compressors_device~~CallsGraph_node15" class="node">
+<title>interface~mem_free_host</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node15"><a xlink:href="../interface/mem_free_host.html" xlink:title="mem_free_host">
+<polygon fill="#a7506f" stroke="#a7506f" points="651.5,-566 557.5,-566 557.5,-542 651.5,-542 651.5,-566"/>
+<text text-anchor="middle" x="604.5" y="-551.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mem_free_host</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;interface~mem_free_host -->
+<g id="program~~test_compressors_device~~CallsGraph_edge14" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;interface~mem_free_host</title>
+<path fill="none" stroke="#0000ff" d="M444.81,-585.26C459.5,-581.85 475.92,-578.15 491,-575 509.3,-571.18 529.33,-567.34 547.37,-564"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="548.23,-567.4 557.44,-562.14 546.97,-560.51 548.23,-567.4"/>
+</g>
+<!-- interface~to_str -->
+<g id="program~~test_compressors_device~~CallsGraph_node16" class="node">
+<title>interface~to_str</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node16"><a xlink:href="../interface/to_str.html" xlink:title="to_str">
+<polygon fill="#a7506f" stroke="#a7506f" points="891.5,-528 837.5,-528 837.5,-504 891.5,-504 891.5,-528"/>
+<text text-anchor="middle" x="864.5" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">to_str</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;interface~to_str -->
+<g id="program~~test_compressors_device~~CallsGraph_edge15" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#0000ff" d="M412.56,-583.78C429.02,-568.67 459.5,-543.63 491,-533 608.61,-493.3 759.01,-503.53 827.1,-511.17"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="826.97,-514.68 837.31,-512.37 827.78,-507.73 826.97,-514.68"/>
+</g>
+<!-- mpi_abort -->
+<g id="program~~test_compressors_device~~CallsGraph_node17" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="898,-444 831,-444 831,-420 898,-420 898,-444"/>
+<text text-anchor="middle" x="864.5" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;mpi_abort -->
+<g id="program~~test_compressors_device~~CallsGraph_edge16" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#0000ff" d="M403.59,-583.61C412.71,-554.72 439.72,-483.06 491,-453 545.78,-420.89 735.16,-425.65 820.82,-429.63"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="820.83,-433.14 830.98,-430.13 821.17,-426.15 820.83,-433.14"/>
+</g>
+<!-- proc~allocate_compressor -->
+<g id="program~~test_compressors_device~~CallsGraph_node18" class="node">
+<title>proc~allocate_compressor</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node18"><a xlink:href="../proc/allocate_compressor.html" xlink:title="allocate_compressor">
+<polygon fill="#d9534f" stroke="#d9534f" points="666,-242 543,-242 543,-218 666,-218 666,-242"/>
+<text text-anchor="middle" x="604.5" y="-227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">allocate_compressor</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~allocate_compressor -->
+<g id="program~~test_compressors_device~~CallsGraph_edge17" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~allocate_compressor</title>
+<path fill="none" stroke="#0000ff" d="M401.48,-583.76C408.48,-527.97 440.06,-298.33 491,-251 502.46,-240.35 517.52,-234.26 532.87,-230.94"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="533.74,-234.34 542.97,-229.14 532.51,-227.45 533.74,-234.34"/>
+</g>
+<!-- proc~check_cuda -->
+<g id="program~~test_compressors_device~~CallsGraph_node19" class="node">
+<title>proc~check_cuda</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node19"><a xlink:href="../proc/check_cuda.html" xlink:title="check_cuda">
+<polygon fill="#d9534f" stroke="#d9534f" points="642.5,-200 566.5,-200 566.5,-176 642.5,-176 642.5,-200"/>
+<text text-anchor="middle" x="604.5" y="-185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">check_cuda</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~check_cuda -->
+<g id="program~~test_compressors_device~~CallsGraph_edge18" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~check_cuda</title>
+<path fill="none" stroke="#0000ff" d="M401.09,-583.92C406.73,-524.39 434.46,-262.97 491,-209 508.2,-192.58 533.9,-186.92 556.4,-185.56"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="556.6,-189.05 566.47,-185.2 556.35,-182.05 556.6,-189.05"/>
+</g>
+<!-- proc~check_error~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node20" class="node">
+<title>proc~check_error~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node20"><a xlink:href="../proc/check_error~2.html" xlink:title="check_error">
+<polygon fill="#d9534f" stroke="#d9534f" points="642.5,-406 566.5,-406 566.5,-382 642.5,-382 642.5,-406"/>
+<text text-anchor="middle" x="604.5" y="-391.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">check_error</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~check_error~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge19" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~check_error~2</title>
+<path fill="none" stroke="#0000ff" d="M402.54,-583.92C409.97,-551.79 434.77,-463.68 491,-420 509.52,-405.62 534.6,-398.95 556.39,-395.95"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="556.92,-399.41 566.45,-394.78 556.11,-392.46 556.92,-399.41"/>
+</g>
+<!-- proc~compress~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node21" class="node">
+<title>proc~compress~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node21"><a xlink:href="../proc/compress~2.html" xlink:title="abstract_compressor%compress">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="696.5,-326 512.5,-326 512.5,-302 696.5,-302 696.5,-326"/>
+<text text-anchor="middle" x="604.5" y="-311.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor%compress</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~compress~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge20" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~compress~2</title>
+<path fill="none" stroke="#0000ff" d="M400.42,-583.89C402.51,-542.81 415.13,-407.65 491,-340 494.97,-336.46 499.32,-333.38 503.93,-330.7"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="505.79,-333.68 513.09,-326.01 502.6,-327.45 505.79,-333.68"/>
+</g>
+<!-- proc~config_for_mode~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_node22" class="node">
+<title>proc~config_for_mode~3</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node22"><a xlink:href="../proc/config_for_mode~3.html" xlink:title="config_for_mode">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="655.5,-158 553.5,-158 553.5,-134 655.5,-134 655.5,-158"/>
+<text text-anchor="middle" x="604.5" y="-143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">config_for_mode</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~config_for_mode~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge21" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~config_for_mode~3</title>
+<path fill="none" stroke="#0000ff" d="M400.8,-583.9C405.23,-520.55 428.88,-227.62 491,-167 504.8,-153.53 524.31,-147.26 543.21,-144.66"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="543.73,-148.12 553.31,-143.59 543,-141.16 543.73,-148.12"/>
+</g>
+<!-- proc~create~6 -->
+<g id="program~~test_compressors_device~~CallsGraph_node23" class="node">
+<title>proc~create~6</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node23"><a xlink:href="../proc/create~6.html" xlink:title="abstract_compressor%create">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="688,-108 521,-108 521,-84 688,-84 688,-108"/>
+<text text-anchor="middle" x="604.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor%create</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~create~6 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge22" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~create~6</title>
+<path fill="none" stroke="#0000ff" d="M400.64,-583.71C404.4,-516.54 425.67,-194.47 491,-125 496.91,-118.72 503.98,-113.72 511.67,-109.76"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="513.27,-112.88 520.94,-105.58 510.38,-106.5 513.27,-112.88"/>
+</g>
+<!-- proc~decompress~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node24" class="node">
+<title>proc~decompress~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node24"><a xlink:href="../proc/decompress~2.html" xlink:title="abstract_compressor%decompress">
+<polygon fill="#d9534f" stroke="#d9534f" points="703.5,-284 505.5,-284 505.5,-260 703.5,-260 703.5,-284"/>
+<text text-anchor="middle" x="604.5" y="-269.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor%decompress</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~decompress~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge23" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~decompress~2</title>
+<path fill="none" stroke="#0000ff" d="M399.55,-583.88C398.54,-537.98 401.51,-373.38 491,-293 492.77,-291.41 494.62,-289.92 496.55,-288.53"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="498.74,-291.29 505.38,-283.03 495.04,-285.34 498.74,-291.29"/>
+</g>
+<!-- proc~dims_to_str~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node25" class="node">
+<title>proc~dims_to_str~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node25"><a xlink:href="../proc/dims_to_str~2.html" xlink:title="dims_to_str">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="641,-486 568,-486 568,-462 641,-462 641,-486"/>
+<text text-anchor="middle" x="604.5" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dims_to_str</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~dims_to_str~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge25" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~dims_to_str~2</title>
+<path fill="none" stroke="#0000ff" d="M407.92,-583.82C422.01,-563.16 453.53,-521.44 491,-500 511.26,-488.41 536.37,-481.98 557.72,-478.42"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="558.49,-481.84 567.86,-476.89 557.45,-474.92 558.49,-481.84"/>
+</g>
+<!-- proc~error_threshold~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_node26" class="node">
+<title>proc~error_threshold~3</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node26"><a xlink:href="../proc/error_threshold~3.html" xlink:title="error_threshold">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="651.5,-66 557.5,-66 557.5,-42 651.5,-42 651.5,-66"/>
+<text text-anchor="middle" x="604.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">error_threshold</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~error_threshold~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge26" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~error_threshold~3</title>
+<path fill="none" stroke="#0000ff" d="M400.31,-583.76C402.41,-512.37 416.61,-150.26 491,-75 505.58,-60.25 526.97,-54.04 547.19,-51.85"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="547.61,-55.33 557.3,-51.07 547.06,-48.35 547.61,-55.33"/>
+</g>
+<!-- proc~fill_reference~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node27" class="node">
+<title>proc~fill_reference~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node27"><a xlink:href="../proc/fill_reference~2.html" xlink:title="fill_reference">
+<polygon fill="#d9534f" stroke="#d9534f" points="645.5,-1028 563.5,-1028 563.5,-1004 645.5,-1004 645.5,-1028"/>
+<text text-anchor="middle" x="604.5" y="-1013.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fill_reference</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~fill_reference~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge27" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~fill_reference~2</title>
+<path fill="none" stroke="#0000ff" d="M401,-608.05C406.28,-668.62 432.86,-939.12 491,-995 507.39,-1010.75 531.59,-1016.62 553.35,-1018.29"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="553.31,-1021.79 563.47,-1018.79 553.65,-1014.8 553.31,-1021.79"/>
+</g>
+<!-- proc~get_average_rate -->
+<g id="program~~test_compressors_device~~CallsGraph_node28" class="node">
+<title>proc~get_average_rate</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node28"><a xlink:href="../proc/get_average_rate.html" xlink:title="abstract_compressor%get_average_rate">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="718,-944 491,-944 491,-920 718,-920 718,-944"/>
+<text text-anchor="middle" x="604.5" y="-929.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor%get_average_rate</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~get_average_rate -->
+<g id="program~~test_compressors_device~~CallsGraph_edge28" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~get_average_rate</title>
+<path fill="none" stroke="#0000ff" d="M399.38,-608.26C397.72,-655.47 398.48,-827.02 491,-911 492.17,-912.06 493.38,-913.08 494.62,-914.06"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="493,-917.18 503.25,-919.87 496.91,-911.38 493,-917.18"/>
+</g>
+<!-- proc~max_error~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node29" class="node">
+<title>proc~max_error~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node29"><a xlink:href="../proc/max_error~2.html" xlink:title="max_error">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="638,-986 571,-986 571,-962 638,-962 638,-986"/>
+<text text-anchor="middle" x="604.5" y="-971.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">max_error</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~max_error~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge30" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~max_error~2</title>
+<path fill="none" stroke="#0000ff" d="M401.37,-608.27C407.99,-665.31 438.49,-903.8 491,-953 509.44,-970.28 537.32,-975.57 560.72,-976.52"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="560.71,-980.02 570.76,-976.69 560.82,-973.02 560.71,-980.02"/>
+</g>
+<!-- proc~mem_alloc_host -->
+<g id="program~~test_compressors_device~~CallsGraph_node30" class="node">
+<title>proc~mem_alloc_host</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node30"><a xlink:href="../proc/mem_alloc_host.html" xlink:title="mem_alloc_host">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="654,-902 555,-902 555,-878 654,-878 654,-902"/>
+<text text-anchor="middle" x="604.5" y="-887.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mem_alloc_host</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~mem_alloc_host -->
+<g id="program~~test_compressors_device~~CallsGraph_edge31" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~mem_alloc_host</title>
+<path fill="none" stroke="#0000ff" d="M400,-608.12C400.71,-651.14 409.27,-797.78 491,-869 505.73,-881.83 525.74,-887.91 544.8,-890.52"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="544.64,-894.02 554.95,-891.61 545.38,-887.06 544.64,-894.02"/>
+</g>
+<!-- proc~permute_dims~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_node31" class="node">
+<title>proc~permute_dims~2</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node31"><a xlink:href="../proc/permute_dims~2.html" xlink:title="permute_dims">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="649,-860 560,-860 560,-836 649,-836 649,-860"/>
+<text text-anchor="middle" x="604.5" y="-845.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">permute_dims</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~permute_dims~2 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge32" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~permute_dims~2</title>
+<path fill="none" stroke="#0000ff" d="M400.82,-608.14C404.14,-646.88 420.03,-768.42 491,-827 507.25,-840.42 529.35,-846.32 549.67,-848.63"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="549.5,-852.13 559.77,-849.52 550.11,-845.16 549.5,-852.13"/>
+</g>
+<!-- proc~wipe~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_node32" class="node">
+<title>proc~wipe~3</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node32"><a xlink:href="../proc/wipe~3.html" xlink:title="wipe">
+<polygon fill="#d9534f" stroke="#d9534f" points="631.5,-818 577.5,-818 577.5,-794 631.5,-794 631.5,-818"/>
+<text text-anchor="middle" x="604.5" y="-803.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">wipe</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~wipe~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge33" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~wipe~3</title>
+<path fill="none" stroke="#0000ff" d="M401.96,-608.09C408.15,-642.04 430.56,-738.74 491,-785 512.58,-801.52 543.21,-806.38 567.06,-807.33"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="567.09,-810.83 577.15,-807.51 567.22,-803.83 567.09,-810.83"/>
+</g>
+<!-- proc~write_message -->
+<g id="program~~test_compressors_device~~CallsGraph_node33" class="node">
+<title>proc~write_message</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node33"><a xlink:href="../proc/write_message.html" xlink:title="write_message">
+<polygon fill="#d9534f" stroke="#d9534f" points="910.5,-402 818.5,-402 818.5,-378 910.5,-378 910.5,-402"/>
+<text text-anchor="middle" x="864.5" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">write_message</text>
+</a>
+</g>
+</g>
+<!-- proc~test_round_trip~2&#45;&gt;proc~write_message -->
+<g id="program~~test_compressors_device~~CallsGraph_edge34" class="edge">
+<title>proc~test_round_trip~2&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#0000ff" d="M400.55,-583.99C403.04,-545.21 416.73,-422.91 491,-373 541.32,-339.19 717.37,-363.95 808.27,-379.67"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="807.93,-383.17 818.38,-381.45 809.14,-376.27 807.93,-383.17"/>
+</g>
+<!-- proc~double_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_node43" class="node">
+<title>proc~double_to_string</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node43"><a xlink:href="../proc/double_to_string.html" xlink:title="double_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1141,-525 1041,-525 1041,-501 1141,-501 1141,-525"/>
+<text text-anchor="middle" x="1091" y="-510.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">double_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~double_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge35" class="edge">
+<title>interface~to_str&#45;&gt;proc~double_to_string</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M891.69,-515.65C925.49,-515.2 985.31,-514.4 1030.44,-513.8"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="1030.75,-517.29 1040.7,-513.66 1030.65,-510.29 1030.75,-517.29"/>
+</g>
+<!-- proc~float_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_node45" class="node">
+<title>proc~float_to_string</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node45"><a xlink:href="../proc/float_to_string.html" xlink:title="float_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1135,-483 1047,-483 1047,-459 1135,-459 1135,-483"/>
+<text text-anchor="middle" x="1091" y="-468.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">float_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~float_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge36" class="edge">
+<title>interface~to_str&#45;&gt;proc~float_to_string</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M891.63,-511.11C913.83,-506.93 946.53,-500.7 975,-495 995.27,-490.94 1017.51,-486.34 1036.98,-482.25"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="1037.83,-485.65 1046.89,-480.17 1036.39,-478.8 1037.83,-485.65"/>
+</g>
+<!-- proc~int32_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_node46" class="node">
+<title>proc~int32_to_string</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node46"><a xlink:href="../proc/int32_to_string.html" xlink:title="int32_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1136.5,-651 1045.5,-651 1045.5,-627 1136.5,-627 1136.5,-651"/>
+<text text-anchor="middle" x="1091" y="-636.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int32_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int32_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge37" class="edge">
+<title>interface~to_str&#45;&gt;proc~int32_to_string</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M879.32,-528.25C904.03,-549.53 958.14,-593.4 1011,-618 1018.68,-621.57 1027.06,-624.62 1035.42,-627.19"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="1034.58,-630.6 1045.16,-630 1036.52,-623.87 1034.58,-630.6"/>
+</g>
+<!-- proc~int64_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_node47" class="node">
+<title>proc~int64_to_string</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node47"><a xlink:href="../proc/int64_to_string.html" xlink:title="int64_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1136.5,-609 1045.5,-609 1045.5,-585 1136.5,-585 1136.5,-609"/>
+<text text-anchor="middle" x="1091" y="-594.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int64_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int64_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge38" class="edge">
+<title>interface~to_str&#45;&gt;proc~int64_to_string</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M891.65,-528.01C920.48,-540.95 968.41,-561.63 1011,-576 1018.93,-578.67 1027.39,-581.23 1035.72,-583.58"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="1034.84,-586.97 1045.41,-586.24 1036.69,-580.22 1034.84,-586.97"/>
+</g>
+<!-- proc~int8_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_node48" class="node">
+<title>proc~int8_to_string</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node48"><a xlink:href="../proc/int8_to_string.html" xlink:title="int8_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1133,-567 1049,-567 1049,-543 1133,-543 1133,-567"/>
+<text text-anchor="middle" x="1091" y="-552.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int8_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int8_to_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge39" class="edge">
+<title>interface~to_str&#45;&gt;proc~int8_to_string</title>
+<path fill="none" stroke="#7fff00" stroke-dasharray="5,2" d="M891.69,-520.55C927.61,-526.79 992.9,-538.13 1038.73,-546.09"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="1038.32,-549.57 1048.77,-547.84 1039.51,-542.68 1038.32,-549.57"/>
+</g>
+<!-- proc~check_error~2&#45;&gt;mpi_abort -->
+<g id="program~~test_compressors_device~~CallsGraph_edge40" class="edge">
+<title>proc~check_error~2&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#00ff7f" d="M642.74,-399.48C689.9,-406.43 770.99,-418.37 820.67,-425.69"/>
+<polygon fill="#00ff7f" stroke="#00ff7f" points="820.36,-429.18 830.77,-427.18 821.38,-422.26 820.36,-429.18"/>
+</g>
+<!-- proc~check_error~2&#45;&gt;proc~write_message -->
+<g id="program~~test_compressors_device~~CallsGraph_edge42" class="edge">
+<title>proc~check_error~2&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00ff7f" d="M642.74,-393.42C686.12,-392.75 758.21,-391.63 808.16,-390.86"/>
+<polygon fill="#00ff7f" stroke="#00ff7f" points="808.51,-394.35 818.46,-390.7 808.4,-387.35 808.51,-394.35"/>
+</g>
+<!-- proc~dtfft_get_error_string -->
+<g id="program~~test_compressors_device~~CallsGraph_node44" class="node">
+<title>proc~dtfft_get_error_string</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node44"><a xlink:href="../proc/dtfft_get_error_string.html" xlink:title="dtfft_get_error_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="926.5,-486 802.5,-486 802.5,-462 926.5,-462 926.5,-486"/>
+<text text-anchor="middle" x="864.5" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_error_string</text>
+</a>
+</g>
+</g>
+<!-- proc~check_error~2&#45;&gt;proc~dtfft_get_error_string -->
+<g id="program~~test_compressors_device~~CallsGraph_edge41" class="edge">
+<title>proc~check_error~2&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#00ff7f" d="M631.53,-406.09C660.77,-419.25 709.92,-440.14 754,-453 766.36,-456.61 779.7,-459.76 792.66,-462.45"/>
+<polygon fill="#00ff7f" stroke="#00ff7f" points="791.99,-465.88 802.48,-464.41 793.37,-459.02 791.99,-465.88"/>
+</g>
+<!-- proc~compress~2&#45;&gt;interface~to_str -->
+<g id="program~~test_compressors_device~~CallsGraph_edge44" class="edge">
+<title>proc~compress~2&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#00ffbf" d="M645.57,-326.07C669.75,-335.29 699.39,-350.33 718,-373 753.87,-416.7 712.12,-457.02 754,-495 773.61,-512.79 803.52,-517.56 827.12,-518.15"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="827.13,-521.65 837.14,-518.17 827.14,-514.65 827.13,-521.65"/>
+</g>
+<!-- proc~compress~2&#45;&gt;mpi_abort -->
+<g id="program~~test_compressors_device~~CallsGraph_edge45" class="edge">
+<title>proc~compress~2&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#00ffbf" d="M634.78,-326.13C658.44,-336.66 691.97,-353.31 718,-373 736.55,-387.04 733.59,-399.83 754,-411 774.28,-422.1 799.48,-427.42 820.58,-429.93"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="820.28,-433.41 830.58,-430.95 820.99,-426.45 820.28,-433.41"/>
+</g>
+<!-- proc~compress~2&#45;&gt;proc~write_message -->
+<g id="program~~test_compressors_device~~CallsGraph_edge50" class="edge">
+<title>proc~compress~2&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00ffbf" d="M679.46,-326.06C692.66,-329.61 706.01,-334.17 718,-340 736.48,-348.99 735.36,-360.36 754,-369 770.82,-376.79 790.37,-381.69 808.26,-384.77"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="807.86,-388.25 818.29,-386.35 808.95,-381.34 807.86,-388.25"/>
+</g>
+<!-- compress_private -->
+<g id="program~~test_compressors_device~~CallsGraph_node34" class="node">
+<title>compress_private</title>
+<polygon fill="#777777" stroke="#777777" points="917.5,-360 811.5,-360 811.5,-336 917.5,-336 917.5,-360"/>
+<text text-anchor="middle" x="864.5" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compress_private</text>
+</g>
+<!-- proc~compress~2&#45;&gt;compress_private -->
+<g id="program~~test_compressors_device~~CallsGraph_edge43" class="edge">
+<title>proc~compress~2&#45;&gt;compress_private</title>
+<path fill="none" stroke="#00ffbf" d="M696.82,-326.03C731.34,-330.58 769.79,-335.65 801.06,-339.77"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="801,-343.29 811.38,-341.13 801.92,-336.35 801,-343.29"/>
+</g>
+<!-- proc~is_same_ptr -->
+<g id="program~~test_compressors_device~~CallsGraph_node49" class="node">
+<title>proc~is_same_ptr</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node49"><a xlink:href="../proc/is_same_ptr.html" xlink:title="is_same_ptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="902.5,-192 826.5,-192 826.5,-168 902.5,-168 902.5,-192"/>
+<text text-anchor="middle" x="864.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_same_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~compress~2&#45;&gt;proc~is_same_ptr -->
+<g id="program~~test_compressors_device~~CallsGraph_edge46" class="edge">
+<title>proc~compress~2&#45;&gt;proc~is_same_ptr</title>
+<path fill="none" stroke="#00ffbf" d="M696.71,-305.55C704.4,-302.36 711.65,-298.26 718,-293 751.83,-265.01 720.24,-229.07 754,-201 771.2,-186.7 795.19,-181.03 816.34,-179.11"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="816.69,-182.6 826.44,-178.45 816.24,-175.61 816.69,-182.6"/>
+</g>
+<!-- proc~pop_nvtx_domain_range -->
+<g id="program~~test_compressors_device~~CallsGraph_node50" class="node">
+<title>proc~pop_nvtx_domain_range</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node50"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="936,-234 793,-234 793,-210 936,-210 936,-234"/>
+<text text-anchor="middle" x="864.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~compress~2&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="program~~test_compressors_device~~CallsGraph_edge47" class="edge">
+<title>proc~compress~2&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#00ffbf" d="M696.58,-303.37C704.11,-300.61 711.37,-297.21 718,-293 741.12,-278.32 730.92,-257.73 754,-243 762.78,-237.4 772.7,-233.22 782.91,-230.12"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="784,-233.45 792.75,-227.46 782.18,-226.69 784,-233.45"/>
+</g>
+<!-- proc~ptr_offset -->
+<g id="program~~test_compressors_device~~CallsGraph_node51" class="node">
+<title>proc~ptr_offset</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node51"><a xlink:href="../proc/ptr_offset.html" xlink:title="ptr_offset">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="896,-276 833,-276 833,-252 896,-252 896,-276"/>
+<text text-anchor="middle" x="864.5" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ptr_offset</text>
+</a>
+</g>
+</g>
+<!-- proc~compress~2&#45;&gt;proc~ptr_offset -->
+<g id="program~~test_compressors_device~~CallsGraph_edge48" class="edge">
+<title>proc~compress~2&#45;&gt;proc~ptr_offset</title>
+<path fill="none" stroke="#00ffbf" d="M671.9,-301.99C687.07,-299.14 703.11,-296.04 718,-293 734.06,-289.72 737.95,-288.32 754,-285 776.7,-280.3 802.13,-275.4 822.76,-271.52"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="823.59,-274.93 832.77,-269.64 822.3,-268.05 823.59,-274.93"/>
+</g>
+<!-- proc~push_nvtx_domain_range -->
+<g id="program~~test_compressors_device~~CallsGraph_node52" class="node">
+<title>proc~push_nvtx_domain_range</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node52"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="938.5,-318 790.5,-318 790.5,-294 938.5,-294 938.5,-318"/>
+<text text-anchor="middle" x="864.5" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~compress~2&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="program~~test_compressors_device~~CallsGraph_edge49" class="edge">
+<title>proc~compress~2&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#00ffbf" d="M696.82,-311.17C723.95,-310.33 753.5,-309.41 780.09,-308.59"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="780.24,-312.08 790.13,-308.28 780.02,-305.09 780.24,-312.08"/>
+</g>
+<!-- create_private -->
+<g id="program~~test_compressors_device~~CallsGraph_node35" class="node">
+<title>create_private</title>
+<polygon fill="#777777" stroke="#777777" points="909,-108 820,-108 820,-84 909,-84 909,-108"/>
+<text text-anchor="middle" x="864.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_private</text>
+</g>
+<!-- proc~create~6&#45;&gt;create_private -->
+<g id="program~~test_compressors_device~~CallsGraph_edge51" class="edge">
+<title>proc~create~6&#45;&gt;create_private</title>
+<path fill="none" stroke="#00bfff" d="M688.2,-96C728.04,-96 774.68,-96 809.83,-96"/>
+<polygon fill="#00bfff" stroke="#00bfff" points="809.88,-99.5 819.88,-96 809.88,-92.5 809.88,-99.5"/>
+</g>
+<!-- get_supported_modes -->
+<g id="program~~test_compressors_device~~CallsGraph_node37" class="node">
+<title>get_supported_modes</title>
+<polygon fill="#777777" stroke="#777777" points="929.5,-66 799.5,-66 799.5,-42 929.5,-42 929.5,-66"/>
+<text text-anchor="middle" x="864.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_supported_modes</text>
+</g>
+<!-- proc~create~6&#45;&gt;get_supported_modes -->
+<g id="program~~test_compressors_device~~CallsGraph_edge52" class="edge">
+<title>proc~create~6&#45;&gt;get_supported_modes</title>
+<path fill="none" stroke="#00bfff" d="M679.43,-83.96C713.86,-78.36 754.72,-71.71 789.19,-66.1"/>
+<polygon fill="#00bfff" stroke="#00bfff" points="789.89,-69.53 799.2,-64.47 788.77,-62.62 789.89,-69.53"/>
+</g>
+<!-- proc~check_tolerance -->
+<g id="program~~test_compressors_device~~CallsGraph_node42" class="node">
+<title>proc~check_tolerance</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node42"><a xlink:href="../proc/check_tolerance.html" xlink:title="abstract_compressor%check_tolerance">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="975,-24 754,-24 754,0 975,0 975,-24"/>
+<text text-anchor="middle" x="864.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_compressor%check_tolerance</text>
+</a>
+</g>
+</g>
+<!-- proc~create~6&#45;&gt;proc~check_tolerance -->
+<g id="program~~test_compressors_device~~CallsGraph_edge53" class="edge">
+<title>proc~create~6&#45;&gt;proc~check_tolerance</title>
+<path fill="none" stroke="#00bfff" d="M688.03,-87.34C698.52,-84.32 708.79,-80.31 718,-75 739.29,-62.71 732.74,-45.34 754,-33 757.25,-31.12 760.63,-29.4 764.11,-27.83"/>
+<polygon fill="#00bfff" stroke="#00bfff" points="765.56,-31.02 773.52,-24.02 762.94,-24.53 765.56,-31.02"/>
+</g>
+<!-- proc~decompress~2&#45;&gt;mpi_abort -->
+<g id="program~~test_compressors_device~~CallsGraph_edge55" class="edge">
+<title>proc~decompress~2&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#007fff" d="M703.6,-283.05C708.77,-285.81 713.63,-289.09 718,-293 758.87,-329.55 713.22,-374.35 754,-411 771.9,-427.08 798.23,-432.5 820.59,-433.81"/>
+<polygon fill="#007fff" stroke="#007fff" points="820.76,-437.32 830.87,-434.16 820.99,-430.33 820.76,-437.32"/>
+</g>
+<!-- proc~decompress~2&#45;&gt;proc~write_message -->
+<g id="program~~test_compressors_device~~CallsGraph_edge60" class="edge">
+<title>proc~decompress~2&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#007fff" d="M703.5,-284.09C708.63,-286.6 713.51,-289.54 718,-293 747.61,-315.81 724.45,-346.12 754,-369 769.37,-380.9 789.54,-386.7 808.37,-389.35"/>
+<polygon fill="#007fff" stroke="#007fff" points="808.03,-392.83 818.36,-390.49 808.82,-385.88 808.03,-392.83"/>
+</g>
+<!-- decompress_private -->
+<g id="program~~test_compressors_device~~CallsGraph_node36" class="node">
+<title>decompress_private</title>
+<polygon fill="#777777" stroke="#777777" points="924.5,-150 804.5,-150 804.5,-126 924.5,-126 924.5,-150"/>
+<text text-anchor="middle" x="864.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">decompress_private</text>
+</g>
+<!-- proc~decompress~2&#45;&gt;decompress_private -->
+<g id="program~~test_compressors_device~~CallsGraph_edge54" class="edge">
+<title>proc~decompress~2&#45;&gt;decompress_private</title>
+<path fill="none" stroke="#007fff" d="M703.52,-260.41C708.68,-257.78 713.56,-254.67 718,-251 751.83,-223.01 720.24,-187.07 754,-159 765.37,-149.55 779.7,-143.87 794.21,-140.55"/>
+<polygon fill="#007fff" stroke="#007fff" points="795.1,-143.94 804.26,-138.61 793.77,-137.07 795.1,-143.94"/>
+</g>
+<!-- proc~decompress~2&#45;&gt;proc~is_same_ptr -->
+<g id="program~~test_compressors_device~~CallsGraph_edge56" class="edge">
+<title>proc~decompress~2&#45;&gt;proc~is_same_ptr</title>
+<path fill="none" stroke="#007fff" d="M700.27,-259.96C706.49,-257.47 712.46,-254.51 718,-251 741.12,-236.32 730.92,-215.73 754,-201 772.42,-189.24 795.9,-183.77 816.39,-181.33"/>
+<polygon fill="#007fff" stroke="#007fff" points="816.87,-184.8 826.47,-180.33 816.18,-177.83 816.87,-184.8"/>
+</g>
+<!-- proc~decompress~2&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="program~~test_compressors_device~~CallsGraph_edge57" class="edge">
+<title>proc~decompress~2&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#007fff" d="M671.9,-259.99C687.07,-257.14 703.11,-254.04 718,-251 734.06,-247.72 737.95,-246.32 754,-243 765.4,-240.64 777.49,-238.23 789.32,-235.92"/>
+<polygon fill="#007fff" stroke="#007fff" points="790.02,-239.35 799.17,-234.01 788.68,-232.48 790.02,-239.35"/>
+</g>
+<!-- proc~decompress~2&#45;&gt;proc~ptr_offset -->
+<g id="program~~test_compressors_device~~CallsGraph_edge58" class="edge">
+<title>proc~decompress~2&#45;&gt;proc~ptr_offset</title>
+<path fill="none" stroke="#007fff" d="M703.77,-268.95C744.97,-267.68 790.61,-266.26 822.51,-265.27"/>
+<polygon fill="#007fff" stroke="#007fff" points="822.89,-268.76 832.78,-264.95 822.68,-261.76 822.89,-268.76"/>
+</g>
+<!-- proc~decompress~2&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="program~~test_compressors_device~~CallsGraph_edge59" class="edge">
+<title>proc~decompress~2&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#007fff" d="M696.82,-284.03C723.95,-287.61 753.5,-291.5 780.09,-295.01"/>
+<polygon fill="#007fff" stroke="#007fff" points="779.76,-298.49 790.13,-296.33 780.67,-291.55 779.76,-298.49"/>
+</g>
+<!-- proc~dims_to_str~2&#45;&gt;interface~to_str -->
+<g id="program~~test_compressors_device~~CallsGraph_edge61" class="edge">
+<title>proc~dims_to_str~2&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#003fff" d="M641.1,-479.8C690.14,-487.78 778,-502.08 827.33,-510.11"/>
+<polygon fill="#003fff" stroke="#003fff" points="826.82,-513.57 837.25,-511.73 827.94,-506.67 826.82,-513.57"/>
+</g>
+<!-- proc~reference~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_node53" class="node">
+<title>proc~reference~3</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node53"><a xlink:href="../proc/reference~3.html" xlink:title="reference">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="896.5,-996 832.5,-996 832.5,-972 896.5,-972 896.5,-996"/>
+<text text-anchor="middle" x="864.5" y="-981.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reference</text>
+</a>
+</g>
+</g>
+<!-- proc~fill_reference~2&#45;&gt;proc~reference~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge62" class="edge">
+<title>proc~fill_reference~2&#45;&gt;proc~reference~3</title>
+<path fill="none" stroke="#3f00ff" d="M645.53,-1011.04C693.53,-1005.08 773.57,-995.15 822.14,-989.13"/>
+<polygon fill="#3f00ff" stroke="#3f00ff" points="822.81,-992.57 832.3,-987.87 821.95,-985.63 822.81,-992.57"/>
+</g>
+<!-- proc~max_error~2&#45;&gt;proc~reference~3 -->
+<g id="program~~test_compressors_device~~CallsGraph_edge63" class="edge">
+<title>proc~max_error~2&#45;&gt;proc~reference~3</title>
+<path fill="none" stroke="#bf00ff" d="M638.18,-975.27C684.99,-977.08 771.11,-980.42 822.25,-982.4"/>
+<polygon fill="#bf00ff" stroke="#bf00ff" points="822.17,-985.9 832.3,-982.79 822.44,-978.91 822.17,-985.9"/>
+</g>
+<!-- interface~aligned_alloc -->
+<g id="program~~test_compressors_device~~CallsGraph_node38" class="node">
+<title>interface~aligned_alloc</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node38"><a xlink:href="../interface/aligned_alloc.html" xlink:title="aligned_alloc">
+<polygon fill="#a7506f" stroke="#a7506f" points="906,-891 823,-891 823,-867 906,-867 906,-891"/>
+<text text-anchor="middle" x="864.5" y="-876.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">aligned_alloc</text>
+</a>
+</g>
+</g>
+<!-- proc~mem_alloc_host&#45;&gt;interface~aligned_alloc -->
+<g id="program~~test_compressors_device~~CallsGraph_edge64" class="edge">
+<title>proc~mem_alloc_host&#45;&gt;interface~aligned_alloc</title>
+<path fill="none" stroke="#ff00ff" d="M654.03,-887.93C699.35,-886 766.75,-883.13 812.77,-881.16"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="812.99,-884.66 822.83,-880.73 812.69,-877.66 812.99,-884.66"/>
+</g>
+<!-- interface~memset -->
+<g id="program~~test_compressors_device~~CallsGraph_node39" class="node">
+<title>interface~memset</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node39"><a xlink:href="../interface/memset.html" xlink:title="memset">
+<polygon fill="#a7506f" stroke="#a7506f" points="892.5,-933 836.5,-933 836.5,-909 892.5,-909 892.5,-933"/>
+<text text-anchor="middle" x="864.5" y="-918.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">memset</text>
+</a>
+</g>
+</g>
+<!-- proc~mem_alloc_host&#45;&gt;interface~memset -->
+<g id="program~~test_compressors_device~~CallsGraph_edge65" class="edge">
+<title>proc~mem_alloc_host&#45;&gt;interface~memset</title>
+<path fill="none" stroke="#ff00ff" d="M654.03,-895.83C704,-901.84 780.79,-911.06 826.2,-916.52"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="825.87,-920 836.21,-917.72 826.7,-913.05 825.87,-920"/>
+</g>
+<!-- mpi_comm_rank -->
+<g id="program~~test_compressors_device~~CallsGraph_node40" class="node">
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="1141.5,-399 1040.5,-399 1040.5,-375 1141.5,-375 1141.5,-399"/>
+<text text-anchor="middle" x="1091" y="-384.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_comm_rank -->
+<g id="program~~test_compressors_device~~CallsGraph_edge66" class="edge">
+<title>proc~write_message&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#ff003f" d="M910.66,-389.4C944.95,-388.94 992.44,-388.3 1029.94,-387.8"/>
+<polygon fill="#ff003f" stroke="#ff003f" points="1030.27,-391.3 1040.23,-387.67 1030.18,-384.3 1030.27,-391.3"/>
+</g>
+<!-- mpi_finalized -->
+<g id="program~~test_compressors_device~~CallsGraph_node41" class="node">
+<title>mpi_finalized</title>
+<polygon fill="#777777" stroke="#777777" points="1132.5,-441 1049.5,-441 1049.5,-417 1132.5,-417 1132.5,-441"/>
+<text text-anchor="middle" x="1091" y="-426.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalized</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_finalized -->
+<g id="program~~test_compressors_device~~CallsGraph_edge67" class="edge">
+<title>proc~write_message&#45;&gt;mpi_finalized</title>
+<path fill="none" stroke="#ff003f" d="M910.66,-397.85C947.92,-404.32 1000.76,-413.5 1039.43,-420.21"/>
+<polygon fill="#ff003f" stroke="#ff003f" points="1038.99,-423.69 1049.44,-421.95 1040.18,-416.79 1038.99,-423.69"/>
+</g>
+<!-- interface~nvtxdomainrangepop_c -->
+<g id="program~~test_compressors_device~~CallsGraph_node54" class="node">
+<title>interface~nvtxdomainrangepop_c</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node54"><a xlink:href="../interface/nvtxdomainrangepop_c.html" xlink:title="nvtxDomainRangePop_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1162,-234 1020,-234 1020,-210 1162,-210 1162,-234"/>
+<text text-anchor="middle" x="1091" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePop_c</text>
+</a>
+</g>
+</g>
+<!-- proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c -->
+<g id="program~~test_compressors_device~~CallsGraph_edge68" class="edge">
+<title>proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c</title>
+<path fill="none" stroke="#cc00ff" d="M936.23,-222C959.5,-222 985.56,-222 1009.51,-222"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1009.63,-225.5 1019.63,-222 1009.63,-218.5 1009.63,-225.5"/>
+</g>
+<!-- interface~nvtxdomainrangepushex_c -->
+<g id="program~~test_compressors_device~~CallsGraph_node55" class="node">
+<title>interface~nvtxdomainrangepushex_c</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node55"><a xlink:href="../interface/nvtxdomainrangepushex_c.html" xlink:title="nvtxDomainRangePushEx_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1171,-357 1011,-357 1011,-333 1171,-333 1171,-357"/>
+<text text-anchor="middle" x="1091" y="-342.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePushEx_c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c -->
+<g id="program~~test_compressors_device~~CallsGraph_edge69" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c</title>
+<path fill="none" stroke="#ff0098" d="M934.69,-318.02C958.69,-322.19 985.8,-326.9 1010.56,-331.2"/>
+<polygon fill="#ff0098" stroke="#ff0098" points="1010.2,-334.69 1020.65,-332.95 1011.4,-327.79 1010.2,-334.69"/>
+</g>
+<!-- proc~astring_f2c -->
+<g id="program~~test_compressors_device~~CallsGraph_node56" class="node">
+<title>proc~astring_f2c</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node56"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="1304.5,-317 1233.5,-317 1233.5,-293 1304.5,-293 1304.5,-317"/>
+<text text-anchor="middle" x="1269" y="-302.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
+<g id="program~~test_compressors_device~~CallsGraph_edge70" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#ff0098" d="M938.86,-305.82C1021.89,-305.61 1154.53,-305.28 1223.33,-305.11"/>
+<polygon fill="#ff0098" stroke="#ff0098" points="1223.42,-308.61 1233.41,-305.09 1223.4,-301.61 1223.42,-308.61"/>
+</g>
+<!-- proc~create_nvtx_domain -->
+<g id="program~~test_compressors_device~~CallsGraph_node57" class="node">
+<title>proc~create_nvtx_domain</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node57"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
+<polygon fill="#d9534f" stroke="#d9534f" points="1151,-277 1031,-277 1031,-253 1151,-253 1151,-277"/>
+<text text-anchor="middle" x="1091" y="-262.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
+<g id="program~~test_compressors_device~~CallsGraph_edge71" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
+<path fill="none" stroke="#ff0098" d="M931.34,-293.98C959.46,-288.84 992.31,-282.84 1020.79,-277.64"/>
+<polygon fill="#ff0098" stroke="#ff0098" points="1021.46,-281.08 1030.67,-275.84 1020.2,-274.19 1021.46,-281.08"/>
+</g>
+<!-- proc~string_f2c -->
+<g id="program~~test_compressors_device~~CallsGraph_node59" class="node">
+<title>proc~string_f2c</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node59"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="1431,-317 1367,-317 1367,-293 1431,-293 1431,-317"/>
+<text text-anchor="middle" x="1399" y="-302.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
+<g id="program~~test_compressors_device~~CallsGraph_edge72" class="edge">
+<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
+<path fill="none" stroke="#00ffff" d="M1304.64,-305C1320.7,-305 1339.92,-305 1356.73,-305"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1356.83,-308.5 1366.83,-305 1356.83,-301.5 1356.83,-308.5"/>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
+<g id="program~~test_compressors_device~~CallsGraph_edge74" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#7f00ff" d="M1144.81,-277C1169.88,-282.7 1199.52,-289.44 1223.44,-294.87"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1222.78,-298.31 1233.31,-297.12 1224.33,-291.49 1222.78,-298.31"/>
+</g>
+<!-- interface~nvtxdomaincreate_c -->
+<g id="program~~test_compressors_device~~CallsGraph_node58" class="node">
+<title>interface~nvtxdomaincreate_c</title>
+<g id="a_program~~test_compressors_device~~CallsGraph_node58"><a xlink:href="../interface/nvtxdomaincreate_c.html" xlink:title="nvtxDomainCreate_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1331,-275 1207,-275 1207,-251 1331,-251 1331,-275"/>
+<text text-anchor="middle" x="1269" y="-260.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainCreate_c</text>
+</a>
+</g>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c -->
+<g id="program~~test_compressors_device~~CallsGraph_edge73" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c</title>
+<path fill="none" stroke="#7f00ff" d="M1151.1,-264.33C1165.7,-264.16 1181.5,-263.98 1196.62,-263.81"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1197,-267.31 1206.96,-263.69 1196.92,-260.31 1197,-267.31"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprogramtest_compressors_deviceCallsGraph = svgPanZoom('#programtest_compressors_deviceCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<br>
+
+    <section>
+    <h2>Variables</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_modes~3"></span>
+              integer(kind=int32),
+            </td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>N_MODES</strong></td>
+<td> =</td>
+                <td>size(VALID_COMPRESSION_MODES)</td>
+            <td>
+                <p>Number of compression modes defined by dtFFT</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-test_rate~3"></span>
+              real(kind=real64),
+            </td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>TEST_RATE</strong></td>
+<td> =</td>
+                <td>32._real64</td>
+            <td>
+                <p>Rate used by <code>DTFFT_COMPRESSION_MODE_FIXED_RATE</code>. Halved for single precision</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-test_precision~3"></span>
+              integer(kind=int32),
+            </td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>TEST_PRECISION</strong></td>
+<td> =</td>
+                <td>32</td>
+            <td>
+                <p>Precision used by <code>DTFFT_COMPRESSION_MODE_FIXED_PRECISION</code>. Halved for single precision</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-test_tolerance~3"></span>
+              real(kind=real64),
+            </td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>TEST_TOLERANCE</strong></td>
+<td> =</td>
+                <td>1.e-5_real64</td>
+            <td>
+                <p>Tolerance used by both <code>DTFFT_COMPRESSION_MODE_FIXED_PRECISION</code> and
+<code>DTFFT_COMPRESSION_MODE_FIXED_ACCURACY</code></p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_compressors~4"></span>
+              integer(kind=int32)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_compressors</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-i~85"></span>
+              integer(kind=int32)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compressors~4"></span>
+              type(<a href='../type/compressor_info~3.html'>compressor_info</a>)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>compressors</strong>(size(VALID_COMPRESSION_LIBS))</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-current_lib~2"></span>
+              type(<a href='../type/dtfft_compression_lib_t.html'>dtfft_compression_lib_t</a>)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>current_lib</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n"></span>
+              integer(kind=int32),
+            </td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>N</strong></td>
+<td> =</td>
+                <td>64</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~3"></span>
+              integer(kind=int32),
+            </td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>DIMS</strong>(3)</td>
+<td> =</td>
+                <td>[N, N, N]</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ierr~137"></span>
+              integer(kind=int32)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ierr</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-device_count"></span>
+              integer(kind=c_int)
+            </td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>device_count</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </section>
+    <br>
+    
+    
+    
+
+    <section>
+   <h2>Derived Types</h2>
+       <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-compressor_info~3"></span>
+      <h3>
+        type&nbsp;::&nbsp;
+        <a href='../type/compressor_info~3.html'>compressor_info</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      <p>Description of a single compressor available in current build</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lib~12"></span>
+              type(<a href='../type/dtfft_compression_lib_t.html'>dtfft_compression_lib_t</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lib</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Compression library</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-supported~2"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>supported</strong>(N_MODES)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Modes supported by library</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+    </section>
+   <br>
+    
+ 
+    <section>
+    <h2>Functions</h2>
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-dims_to_str~2"></span> <h3> function <a href='../proc/dims_to_str~2.html'>dims_to_str</a>(dims) result(str)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Returns dimensions as a <code>d1 x d2 [x d3]</code> string</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~511"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+<p>Dimensions to convert</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>character(len=:), allocatable</small>
+    </h4>
+    <p>Resulting string</p>
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-permute_dims~2"></span> <h3> function <a href='../proc/permute_dims~2.html'>permute_dims</a>(dims, permutation) result(permuted)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Recovers dimensions that were used during compression.
+Mirrors permutation performed by <code>abstract_compressor%decompress</code></p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~512"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+<p>Dimensions known to decompressor</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-permutation~4"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>permutation</strong></td>
+            <td>
+<p>Dimension permutation flag</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int32), (size(dims))</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-max_error~2"></span> <h3> function <a href='../proc/max_error~2.html'>max_error</a>(ptr, n_scalars, is_float)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Returns maximum absolute difference between buffer and reference data</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ptr~73"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ptr</strong></td>
+            <td>
+<p>Buffer to check</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_scalars~6"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_scalars</strong></td>
+            <td>
+<p>Number of scalars in buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_float~14"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_float</strong></td>
+            <td>
+<p>Single precision data flag</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-reference~3"></span> <h3>pure function <a href='../proc/reference~3.html'>reference</a>(i)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Smooth reference data. Any lossy compressor should be able to
+reach requested accuracy on such data</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-i~88"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong></td>
+            <td>
+<p>Scalar index</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-config_for_mode~3"></span> <h3> function <a href='../proc/config_for_mode~3.html'>config_for_mode</a>(mode, is_float) result(config)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Creates a valid config for given <code>mode</code></p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mode~23"></span>
+              type(<a href='../type/dtfft_compression_mode_t.html'>dtfft_compression_mode_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mode</strong></td>
+            <td>
+<p>Compression mode</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_float~15"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_float</strong></td>
+            <td>
+<p>Single precision data flag</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/dtfft_compression_config_t.html'>dtfft_compression_config_t</a>)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-error_threshold~3"></span> <h3> function <a href='../proc/error_threshold~3.html'>error_threshold</a>(mode, is_float)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Maximum error allowed for given compression mode</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mode~24"></span>
+              type(<a href='../type/dtfft_compression_mode_t.html'>dtfft_compression_mode_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mode</strong></td>
+            <td>
+<p>Compression mode</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_float~16"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_float</strong></td>
+            <td>
+<p>Single precision data flag</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+    </section>
+    <br>
+
+
+    <section>
+    <h2>Subroutines</h2>
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-report_compressor~2"></span> <h3> subroutine <a href='../proc/report_compressor~2.html'>report_compressor</a>(info)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Prints name of compressor that is about to be tested</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-info~11"></span>
+              type(<a href='../type/compressor_info~3.html'>compressor_info</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+<p>Compressor description</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-test_round_trips~2"></span> <h3> subroutine <a href='../proc/test_round_trips~2.html'>test_round_trips</a>(info)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Runs compress + decompress for all supported modes, data types,
+number of dimensions and dimension permutations</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-info~12"></span>
+              type(<a href='../type/compressor_info~3.html'>compressor_info</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+<p>Compressor description</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-test_round_trip~2"></span> <h3> subroutine <a href='../proc/test_round_trip~2.html'>test_round_trip</a>(info, mode, unpack_dims, base_type, permutation)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Compresses reference data and decompresses it back, checking obtained accuracy</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-info~13"></span>
+              type(<a href='../type/compressor_info~3.html'>compressor_info</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+<p>Compressor description</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mode~22"></span>
+              type(<a href='../type/dtfft_compression_mode_t.html'>dtfft_compression_mode_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mode</strong></td>
+            <td>
+<p>Compression mode</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-unpack_dims~4"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>unpack_dims</strong>(:)</td>
+            <td>
+<p>Dimensions known to decompressor</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-base_type~17"></span>
+              type(MPI_Datatype),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>base_type</strong></td>
+            <td>
+<p>MPI data type</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-permutation~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>permutation</strong></td>
+            <td>
+<p>Dimension permutation flag</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-fill_reference~2"></span> <h3> subroutine <a href='../proc/fill_reference~2.html'>fill_reference</a>(ptr, n_scalars, is_float)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Fills buffer with reference data</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ptr~74"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ptr</strong></td>
+            <td>
+<p>Buffer to fill</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_scalars~7"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_scalars</strong></td>
+            <td>
+<p>Number of scalars in buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_float~17"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_float</strong></td>
+            <td>
+<p>Single precision data flag</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-free_device_buffers"></span> <h3> subroutine <a href='../proc/free_device_buffers.html'>free_device_buffers</a>(input, compressed, output, stream)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input~6"></span>
+              type(c_ptr),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-compressed"></span>
+              type(c_ptr),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>compressed</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-output~5"></span>
+              type(c_ptr),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>output</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stream~100"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stream</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-check_cuda"></span> <h3> subroutine <a href='../proc/check_cuda.html'>check_cuda</a>(error_code, operation)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~163"></span>
+              integer(kind=c_int),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-operation"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>operation</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-check_error~2"></span> <h3> subroutine <a href='../proc/check_error~2.html'>check_error</a>(actual, expected, message)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Aborts execution in case <code>actual</code> error code differs from <code>expected</code> one</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-actual~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>actual</strong></td>
+            <td>
+<p>Obtained error code</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-expected~11"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>expected</strong></td>
+            <td>
+<p>Expected error code</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-message~11"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>message</strong></td>
+            <td>
+<p>Test description</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-wipe~3"></span> <h3> subroutine <a href='../proc/wipe~3.html'>wipe</a>(ptr, n_scalars, is_float)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Overwrites buffer with zeros</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ptr~75"></span>
+              type(c_ptr),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ptr</strong></td>
+            <td>
+<p>Buffer to wipe</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_scalars~8"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_scalars</strong></td>
+            <td>
+<p>Number of scalars in buffer</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_float~18"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_float</strong></td>
+            <td>
+<p>Single precision data flag</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+    </section>    
+    
+
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

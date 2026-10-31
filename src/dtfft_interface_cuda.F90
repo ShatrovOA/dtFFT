@@ -25,6 +25,11 @@ use iso_c_binding
 use iso_fortran_env
 use dtfft_errors,                 only: DTFFT_SUCCESS
 use dtfft_parameters,             only: dtfft_stream_t
+#ifdef DTFFT_WITH_MOCK_ENABLED
+use dtfft_abstract_kernel,        only: kernel_type_t, is_pack_kernel, is_unpack_kernel
+use dtfft_kernel_host,            only: kernel_host
+use dtfft_parameters,             only: DTFFT_ESTIMATE
+#endif
 use dtfft_utils
 #include "_dtfft_mpi.h"
 implicit none
@@ -49,79 +54,11 @@ public :: CUmodule
 
 public :: CUfunction
 #ifdef DTFFT_WITH_MOCK_ENABLED
-  abstract interface
-#ifndef DTFFT_WITH_OPENMP
-    pure &
-#endif
-    subroutine simple_interface_r32(in, out, dims)
-    import
-      real(real32),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
-      real(real32),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
-      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
-    end subroutine simple_interface_r32
-
-#ifndef DTFFT_WITH_OPENMP
-    pure &
-#endif
-    subroutine simple_interface_r64(in, out, dims)
-    import
-      real(real64),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
-      real(real64),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
-      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
-    end subroutine simple_interface_r64
-
-#ifndef DTFFT_WITH_OPENMP
-    pure &
-#endif
-    subroutine simple_interface_r128(in, out, dims)
-    import
-      complex(real64),  intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
-      complex(real64),  intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
-      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
-    end subroutine simple_interface_r128
-
-#ifndef DTFFT_WITH_OPENMP
-    pure &
-#endif
-    subroutine pipe_interface_r32(in, out, dims, locals)
-    import
-      real(real32),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
-      real(real32),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
-      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
-      integer(int32),   intent(in)    :: locals(:)                  !! Local memory size specification
-    end subroutine pipe_interface_r32
-
-#ifndef DTFFT_WITH_OPENMP
-    pure &
-#endif
-    subroutine pipe_interface_r64(in, out, dims, locals)
-    import
-      real(real64),     intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
-      real(real64),     intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
-      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
-      integer(int32),   intent(in)    :: locals(:)                  !! Local memory size specification
-    end subroutine pipe_interface_r64
-
-#ifndef DTFFT_WITH_OPENMP
-    pure &
-#endif
-    subroutine pipe_interface_r128(in, out, dims, locals)
-    import
-      complex(real64),  intent(in)    :: in(BUFFER_SPEC)            !! Source host-allocated buffer
-      complex(real64),  intent(inout) :: out(BUFFER_SPEC)           !! Target host-allocated buffer
-      integer(int32),   intent(in)    :: dims(:)                    !! Dimensions of the array
-      integer(int32),   intent(in)    :: locals(:)                  !! Local memory size specification
-    end subroutine pipe_interface_r128
-  end interface
-
   type :: CUfunction
   !! CUDA function (mock)
-    procedure(simple_interface_r32), pointer,  nopass :: sfun_r32 => null()  !! Pointer to the Fortran subroutine implementing the kernel
-    procedure(simple_interface_r64), pointer,  nopass :: sfun_r64 => null()  !! Pointer to the Fortran subroutine implementing the kernel
-    procedure(simple_interface_r128), pointer, nopass :: sfun_r128 => null()  !! Pointer to the Fortran subroutine implementing the kernel
-    procedure(pipe_interface_r32), pointer,  nopass :: pfun_r32 => null()  !! Pointer to the Fortran subroutine implementing the pipelined kernel
-    procedure(pipe_interface_r64), pointer,  nopass :: pfun_r64 => null()  !! Pointer to the Fortran subroutine implementing the pipelined kernel
-    procedure(pipe_interface_r128), pointer, nopass :: pfun_r128 => null()  !! Pointer to the Fortran subroutine implementing the pipelined kernel
+    integer(int32)      :: ndims              !! Number of dimensions the kernel operates on
+    type(kernel_type_t) :: kernel_type        !! Type of kernel to build
+    integer(int64)      :: base_storage       !! Number of bytes needed to store single element
   end type CUfunction
 #else
   type, bind(C) :: CUfunction
@@ -308,11 +245,11 @@ contains
     integer(int32),           intent(in)  :: nargs
     integer(int32),   target, intent(in)  :: args(MAX_KERNEL_ARGS)     !! Input parameters of kernel `func`
     integer(c_int)                        :: cuResult         !! Driver result code
-    type(c_ptr)                           :: params(15)
-    integer(int32) :: i, temp
-    integer(int32) :: dims(3), locals(5)
-
+    integer(int32) :: i
 #ifndef DTFFT_WITH_MOCK_ENABLED
+    type(c_ptr)                           :: params(15)
+    integer(int32) :: temp
+
     params(:) = c_null_ptr
     ! Addresses of pointers are required, not the pointers themselves
     params(1) = c_loc(out)
@@ -324,76 +261,24 @@ contains
     enddo
     cuResult = cuLaunchKernel_(func, blocks%x, blocks%y, blocks%z, threads%x, threads%y, threads%z, 0, stream, params, c_null_ptr)
 #else
-    dims(:) = 1
-    locals(:) = 0
+    block
+      type(kernel_host) :: kernel
+      integer(int32) :: locals(5, 1)
+      integer(int32), allocatable :: dims(:)
 
-    if ( associated(func%sfun_r32) .or. associated(func%sfun_r64) .or. associated(func%sfun_r128)) then
-      do i = 1, nargs
+      allocate(dims(func%ndims))
+      do i = 1, func%ndims
         dims(i) = args(i)
       enddo
 
-      if ( associated(func%sfun_r32) ) then
-        block
-          real(real32), pointer, contiguous :: in_ptr(:), out_ptr(:)
-
-          call c_f_pointer(in, in_ptr, [product(dims)])
-          call c_f_pointer(out, out_ptr, [product(dims)])
-          call func%sfun_r32(in_ptr, out_ptr, dims)
-        endblock
-      else if ( associated(func%sfun_r64) ) then
-        block
-          real(real64), pointer, contiguous :: in_ptr(:), out_ptr(:)
-
-          call c_f_pointer(in, in_ptr, [product(dims)])
-          call c_f_pointer(out, out_ptr, [product(dims)])
-          call func%sfun_r64(in_ptr, out_ptr, dims)
-        endblock
-      else if ( associated(func%sfun_r128) ) then
-        block
-          complex(real64), pointer, contiguous :: in_ptr(:), out_ptr(:)
-
-          call c_f_pointer(in, in_ptr, [product(dims)])
-          call c_f_pointer(out, out_ptr, [product(dims)])
-          call func%sfun_r128(in_ptr, out_ptr, dims)
-        endblock
+      if( is_pack_kernel(func%kernel_type) .or. is_unpack_kernel(func%kernel_type) ) then
+        locals(1:5, 1) = args(4:8)
       endif
-    else if ( associated(func%pfun_r32) .or. associated(func%pfun_r64) .or. associated(func%pfun_r128)) then
-      if ( args(3) == -1 )then
-        dims(1:2) = args(1:2)
-        locals(1:5) = args(3:7)
-      else
-        dims(1:3) = args(1:3)
-        locals(1:5) = args(4:8)
-      endif
-      if ( associated(func%pfun_r32) ) then
-        block
-          real(real32), pointer, contiguous :: in_ptr(:), out_ptr(:)
-
-          call c_f_pointer(in, in_ptr, [product(dims)])
-          call c_f_pointer(out, out_ptr, [product(dims)])
-          
-          call func%pfun_r32(in_ptr, out_ptr, dims, locals)
-        endblock
-      else if ( associated(func%pfun_r64) ) then
-        block
-          real(real64), pointer, contiguous :: in_ptr(:), out_ptr(:)
-
-          call c_f_pointer(in, in_ptr, [product(dims)])
-          call c_f_pointer(out, out_ptr, [product(dims)])
-          call func%pfun_r64(in_ptr, out_ptr, dims, locals)
-        endblock
-      else if ( associated(func%pfun_r128) ) then
-        block
-          complex(real64), pointer, contiguous :: in_ptr(:), out_ptr(:)
-
-          call c_f_pointer(in, in_ptr, [product(dims)])
-          call c_f_pointer(out, out_ptr, [product(dims)])
-          call func%pfun_r128(in_ptr, out_ptr, dims, locals)
-        endblock
-      endif
-    else
-      INTERNAL_ERROR("cuLaunchKernel: invalid function handle")
-    endif
+      call kernel%create(dims, DTFFT_ESTIMATE, func%base_storage, func%kernel_type, locals, force_effort=.true.)
+      call kernel%execute(in, out, stream, 1)
+      call kernel%destroy()
+      deallocate(dims)
+    end block
 
     cuResult = DTFFT_SUCCESS
 #endif
