@@ -38,9 +38,9 @@ implicit none
     end type executor_t
     type(executor_t) :: executors(4)
     integer(int32) :: n_executors
-    integer(int32) :: exec, ierr
+    integer(int32) :: exec, error_code
 
-    call MPI_Init(ierr)
+    call MPI_Init(error_code)
 
     n_executors = 0
 #ifdef DTFFT_WITH_FFTW
@@ -61,7 +61,7 @@ implicit none
 #endif
 
     if( n_executors == 0 ) then
-        call MPI_Finalize(ierr)
+        call MPI_Finalize(error_code)
         stop
     endif
 
@@ -72,7 +72,7 @@ implicit none
         call test_executor(executors(exec), [16, 32, 64])
     end do
 
-    call MPI_Finalize(ierr)
+    call MPI_Finalize(error_code)
 contains
 
 #define PI 3.14159265358979323846264_real64
@@ -192,7 +192,7 @@ contains
         real(real64), pointer, contiguous :: expected_(:)
         type(c_ptr) :: expected
         real(real64), pointer, contiguous :: result_(:)
-        integer(int32) :: i, ierr
+        integer(int32) :: i, error_code
 
         expected = mem_alloc_host(DOUBLE_STORAGE_SIZE * product(dims))
         call compute_dct(source, expected, fft_rank, dims, sign, DTFFT_PLATFORM_HOST)
@@ -203,7 +203,7 @@ contains
         do i = 1, product(dims)
             if ( abs(result_(i) - expected_(i)) > 1.0e-5_real64 ) then
                 print *, "DCT test failed at index ", i, " : expected ", expected_(i), " but got ", result_(i)
-                call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
+                call MPI_Abort(MPI_COMM_WORLD, -1, error_code)
             endif
         enddo
         call mem_free_host(expected)
@@ -307,7 +307,7 @@ contains
         real(real64), pointer, contiguous :: expected_(:)
         type(c_ptr) :: expected
         real(real64), pointer, contiguous :: result_(:)
-        integer(int32) :: i, ierr
+        integer(int32) :: i, error_code
 
         expected = mem_alloc_host(DOUBLE_STORAGE_SIZE * product(dims))
         call compute_dst(source, expected, fft_rank, dims, sign, DTFFT_PLATFORM_HOST)
@@ -317,7 +317,7 @@ contains
         do i = 1, product(dims)
             if ( abs(result_(i) - expected_(i)) > 1.0e-5_real64 ) then
                 print *, "DST test failed at index ", i, " : expected ", expected_(i), " but got ", result_(i)
-                call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
+                call MPI_Abort(MPI_COMM_WORLD, -1, error_code)
             endif
         enddo
         call mem_free_host(expected)
@@ -413,7 +413,7 @@ contains
         complex(real64), pointer, contiguous :: expected_(:)
         type(c_ptr) :: expected
         complex(real64), pointer, contiguous :: result_(:)
-        integer(int32) :: i, ierr
+        integer(int32) :: i, error_code
 
         expected = mem_alloc_host(DOUBLE_COMPLEX_STORAGE_SIZE * product(dims))
         call compute_c2c(source, expected, fft_rank, dims, sign, DTFFT_PLATFORM_HOST)
@@ -423,7 +423,7 @@ contains
         do i = 1, product(dims)
             if ( abs(result_(i) - expected_(i)) > 1.0e-5_real64 ) then
                 print *, "C2C test failed at index ", i, " : expected ", expected_(i), " but got ", result_(i)
-                call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
+                call MPI_Abort(MPI_COMM_WORLD, -1, error_code)
             endif
         enddo
         call mem_free_host(expected)
@@ -433,7 +433,7 @@ contains
         type(executor_t), intent(in) :: executor
         integer(int32), intent(in) :: dims(:)
         complex(real64), allocatable, target :: source(:), result(:)
-        integer(int32) :: i, ierr
+        integer(int32) :: i, error_code
         type(c_ptr) :: source_ptr, result_ptr
         type(c_ptr) :: source_fft_ptr, result_fft_ptr
         integer(c_size_t) :: buffer_bytes
@@ -458,8 +458,8 @@ contains
 
         print*,'    Testing C2C FFT 1D'
         call allocate_executor(executor%executor, fft)
-        ierr = fft%create(FFT_1D, FFT_C2C, DTFFT_DOUBLE, complex_pencil=p)
-        if ( ierr /= 0 ) then
+        error_code = fft%create(FFT_1D, FFT_C2C, DTFFT_DOUBLE, complex_pencil=p)
+        if ( error_code /= 0 ) then
             INTERNAL_ERROR("Failed to create C2C 1D executor")
         endif
         call allocate_fft_buffer(executor, buffer_bytes, source_ptr, source_fft_ptr)
@@ -475,8 +475,8 @@ contains
 
         if ( size(dims) == 3 ) then
             print*,'    Testing C2C FFT 2D'
-            ierr = fft%create(FFT_2D, FFT_C2C, DTFFT_DOUBLE, complex_pencil=p)
-            if ( ierr /= 0 ) then
+            error_code = fft%create(FFT_2D, FFT_C2C, DTFFT_DOUBLE, complex_pencil=p)
+            if ( error_code /= 0 ) then
                 INTERNAL_ERROR("Failed to create C2C 2D executor")
             endif
             do i = 1, product(dims)
@@ -630,7 +630,7 @@ contains
             do i = 1, size(expected_complex)
                 if ( abs(result_complex(i) - expected_complex(i)) > 1.0e-5_real64 ) then
                     print *, "R2C forward test failed at index ", i, " : expected ", expected_complex(i), " but got ", result_complex(i)
-                    call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
+                    call MPI_Abort(MPI_COMM_WORLD, -1, error_code)
                 endif
             enddo
         else
@@ -641,7 +641,7 @@ contains
             do i = 1, size(expected_real)
                 if ( abs(result_real(i) - expected_real(i)) > 1.0e-5_real64 ) then
                     print *, "R2C backward test failed at index ", i, " : expected ", expected_real(i), " but got ", result_real(i)
-                    call MPI_Abort(MPI_COMM_WORLD, -1, ierr)
+                    call MPI_Abort(MPI_COMM_WORLD, -1, error_code)
                 endif
             enddo
         endif
@@ -702,7 +702,7 @@ contains
         integer(int32), intent(in) :: dims(:)
         real(real64), allocatable, target :: source(:)
         complex(real64), allocatable, target :: result(:), result2(:)
-        integer(int32) :: i, ierr, out_dim
+        integer(int32) :: i, error_code, out_dim
         type(c_ptr) :: source_ptr, result_ptr, result2_ptr
         type(c_ptr) :: source_fft_ptr, result_fft_ptr
         integer(c_size_t) :: source_bytes, result_bytes
@@ -730,8 +730,8 @@ contains
 
         print*,'    Testing R2C FFT 1D'
         call allocate_executor(executor%executor, fft)
-        ierr = fft%create(FFT_1D, FFT_R2C, DTFFT_DOUBLE, real_pencil=real_p, complex_pencil=complex_p)
-        if ( ierr /= 0 ) then
+        error_code = fft%create(FFT_1D, FFT_R2C, DTFFT_DOUBLE, real_pencil=real_p, complex_pencil=complex_p)
+        if ( error_code /= 0 ) then
             INTERNAL_ERROR("Failed to create R2C 1D executor")
         endif
         call allocate_fft_buffer(executor, source_bytes, source_ptr, source_fft_ptr)
@@ -750,8 +750,8 @@ contains
 
         if ( size(dims) == 3 ) then
             print*,'    Testing R2C FFT 2D'
-            ierr = fft%create(FFT_2D, FFT_R2C, DTFFT_DOUBLE, real_pencil=real_p, complex_pencil=complex_p)
-            if ( ierr /= 0 ) then
+            error_code = fft%create(FFT_2D, FFT_R2C, DTFFT_DOUBLE, real_pencil=real_p, complex_pencil=complex_p)
+            if ( error_code /= 0 ) then
                 INTERNAL_ERROR("Failed to create R2C 2D executor")
             endif
             do i = 1, product(dims)
@@ -782,7 +782,7 @@ contains
         type(executor_t), intent(in) :: executor
         integer(int32), intent(in) :: dims(:)
         real(real64), allocatable, target :: source(:), result(:)
-        integer(int32) :: i, ierr
+        integer(int32) :: i, error_code
         type(c_ptr) :: source_ptr, result_ptr
         type(c_ptr) :: source_fft_ptr, result_fft_ptr
         integer(c_size_t) :: buffer_bytes
@@ -811,8 +811,8 @@ contains
         print*,'    Testing DCT FFT 1D'
         r2rs(:) = DTFFT_DCT_2
         call allocate_executor(executor%executor, fft)
-        ierr = fft%create(FFT_1D, FFT_R2R, DTFFT_DOUBLE, real_pencil=p, r2r_kinds=r2rs)
-        if ( ierr /= 0 ) then
+        error_code = fft%create(FFT_1D, FFT_R2R, DTFFT_DOUBLE, real_pencil=p, r2r_kinds=r2rs)
+        if ( error_code /= 0 ) then
             INTERNAL_ERROR("Failed to create R2R 1D DCT2 executor")
         endif
         call allocate_fft_buffer(executor, buffer_bytes, source_ptr, source_fft_ptr)
@@ -831,8 +831,8 @@ contains
 
         if ( size(dims) == 3 ) then
             print*,'    Testing DCT FFT 2D'
-            ierr = fft%create(FFT_2D, FFT_R2R, DTFFT_DOUBLE, real_pencil=p, r2r_kinds=r2rs)
-            if ( ierr /= 0 ) then
+            error_code = fft%create(FFT_2D, FFT_R2R, DTFFT_DOUBLE, real_pencil=p, r2r_kinds=r2rs)
+            if ( error_code /= 0 ) then
                 INTERNAL_ERROR("Failed to create R2R 2D DCT2 executor")
             endif
             do i = 1, product(dims)
@@ -853,8 +853,8 @@ contains
         print*,'    Testing DST FFT 1D'
         r2rs(:) = DTFFT_DST_2
         call allocate_executor(executor%executor, fft)
-        ierr = fft%create(FFT_1D, FFT_R2R, DTFFT_DOUBLE, real_pencil=p, r2r_kinds=r2rs)
-        if ( ierr /= 0 ) then
+        error_code = fft%create(FFT_1D, FFT_R2R, DTFFT_DOUBLE, real_pencil=p, r2r_kinds=r2rs)
+        if ( error_code /= 0 ) then
             INTERNAL_ERROR("Failed to create R2R 1D DST2 executor")
         endif
         print*,'      Forward'
@@ -871,8 +871,8 @@ contains
 
         if ( size(dims) == 3 ) then
             print*,'    Testing DST FFT 2D'
-            ierr = fft%create(FFT_2D, FFT_R2R, DTFFT_DOUBLE, real_pencil=p, r2r_kinds=r2rs)
-            if ( ierr /= 0 ) then
+            error_code = fft%create(FFT_2D, FFT_R2R, DTFFT_DOUBLE, real_pencil=p, r2r_kinds=r2rs)
+            if ( error_code /= 0 ) then
                 INTERNAL_ERROR("Failed to create R2R 2D DST2 executor")
             endif
             do i = 1, product(dims)
