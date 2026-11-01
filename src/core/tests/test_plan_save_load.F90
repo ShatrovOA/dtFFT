@@ -184,10 +184,13 @@ contains
         type(dtfft_config_t)    :: conf, default_conf
         character(len=:), allocatable :: tag
         character(len=*), parameter :: filename = "test_save_load_adaptive.dtfft"
-        character(len=3) :: is_zlab
 
-        is_zlab = merge("on ", "off", use_z_slab)
-        allocate( tag, source="adaptive(z_slab="//is_zlab//")" )
+        ! Strange gfortran bug workaround
+        if(use_z_slab) then
+            allocate( tag, source="adaptive(z_slab=ON)" )
+        else
+            allocate( tag, source="adaptive(z_slab=OFF)" )
+        endif
 
         call dtfft_create_config(default_conf)
         conf = default_conf
