@@ -183,6 +183,8 @@ contains
         class(mkl_executor),  intent(inout)  :: self              !! MKL FFT Executor
 
         MKL_DFTI_CALL( "DftiFreeDescriptor", mkl_dfti_free_desc(self%plan_forward) )
+        if ( allocated(self%istrides) ) deallocate(self%istrides)
+        if ( allocated(self%ostrides) ) deallocate(self%ostrides)
     end subroutine destroy
 
     subroutine mem_alloc(alloc_bytes, ptr)

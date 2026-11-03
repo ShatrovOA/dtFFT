@@ -216,14 +216,19 @@ public :: cufftMpMakeReshape
     interface
     !! Creates a reshape intended to re-distribute a global array of 3D data.
         function cufftMpMakeReshape(reshapeHandle, elementSize, rank, lower_input, upper_input,                     &
-                                                                    lower_output, upper_output,                     &
-                                                                    strides_input, strides_output)                  &
+#ifdef DTFFT_CUFFTMP_API_HAS_RESHAPE_COMM
+                                                                    strides_input, lower_output, upper_output,      &
+                                                                    strides_output, comm_handle, comm_type)         &
+#else
+                                                                    lower_output, upper_output, strides_input,      &
+                                                                    strides_output)                                 &
+#endif
             result(cufftResult)                                                                                     &
             bind(C, name="cufftMpMakeReshape")
         import
             type(cufftReshapeHandle), value :: reshapeHandle
                 !! The reshape handle.
-            integer(c_long_long),     value :: elementSize
+            integer(c_size_t),        value :: elementSize
                 !! The size of the individual elements, in bytes. Allowed values are 4, 8, and 16.
             integer(c_int),           value :: rank
                 !! The length of the lower_input, upper_input, lower_output, upper_output, strides_input, and strides_output arrays. rank should be 3.
@@ -239,6 +244,12 @@ public :: cufftMpMakeReshape
                 !! An array of length rank, representing the local data layout of the input descriptor in memory. All entries must be decreasing and positive.
             integer(c_long_long)            :: strides_output(*)
                 !! An array of length rank, representing the local data layout of the output descriptor in memory. All entries must be decreasing and positive.
+#ifdef DTFFT_CUFFTMP_API_HAS_RESHAPE_COMM
+            type(c_ptr),              value :: comm_handle
+                !! Pointer to the MPI communicator used for the reshape.
+            integer(c_int),           value :: comm_type
+                !! The communication type of the communicator handle.
+#endif
             integer(c_int)                  :: cufftResult
                 !! The enumerated type cufftResult defines API call result codes.
         end function cufftMpMakeReshape

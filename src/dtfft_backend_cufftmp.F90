@@ -148,8 +148,12 @@ contains
 
         CUFFT_CALL( cufftMpCreateReshape(self%plan) )
         c_comm = Comm_f2c(GET_MPI_VALUE(helper%comms(1)))
+#ifdef DTFFT_CUFFTMP_API_HAS_RESHAPE_COMM
+        CUFFT_CALL( cufftMpMakeReshape(self%plan, int(base_storage, c_size_t), 3, inbox%lower, inbox%upper, inbox%strides, outbox%lower, outbox%upper, outbox%strides, c_comm, CUFFT_COMM_MPI) )
+#else
         CUFFT_CALL( cufftMpAttachReshapeComm(self%plan, CUFFT_COMM_MPI, c_comm) )
-        CUFFT_CALL( cufftMpMakeReshape(self%plan, base_storage, 3, inbox%lower, inbox%upper, outbox%lower, outbox%upper, inbox%strides, outbox%strides) )
+        CUFFT_CALL( cufftMpMakeReshape(self%plan, int(base_storage, c_size_t), 3, inbox%lower, inbox%upper, outbox%lower, outbox%upper, inbox%strides, outbox%strides) )
+#endif
         CUFFT_CALL( cufftMpGetReshapeSize(self%plan, aux_size) )
         self%aux_bytes = max(aux_size, self%aux_bytes)
     end subroutine create

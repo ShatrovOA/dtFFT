@@ -12,7 +12,7 @@ use dtfft_parameters
 use dtfft_rtc_block_optimizer, only: kernel_config, get_ampere_architecture
 use dtfft_rtc_module
 use dtfft_rtc_module_cache
-use dtfft_test_utils, only: test_context
+use test_suite, only: test_suite_t
 #include "_dtfft_mpi.h"
 implicit none
     type(device_props) :: props
@@ -21,18 +21,13 @@ implicit none
     type(nvrtc_module) :: mod
     type(CUfunction) :: fun
     integer(int32) :: ierr
-    type(test_context) :: test
+    type(test_suite_t) :: test
 
     call MPI_Init(ierr)
 
-    ierr = init_internal()
-    call test%assert_true(ierr == DTFFT_SUCCESS, "init_internal failed")
-
-    ierr = load_cuda()
-    call test%assert_true(ierr == DTFFT_SUCCESS, "load_cuda failed")
-
-    ierr = load_nvrtc()
-    call test%assert_true(ierr == DTFFT_SUCCESS, "load_nvrtc failed")
+    call test%check("init_internal failed", init_internal(), DTFFT_SUCCESS)
+    call test%check("load_cuda failed", load_cuda(), DTFFT_SUCCESS)
+    call test%check("load_nvrtc failed", load_nvrtc(), DTFFT_SUCCESS)
 
     props = get_ampere_architecture()
 
@@ -45,17 +40,15 @@ implicit none
 
     call mod%create(3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE, configs, props)
 
-    call test%assert_true(mod%check(3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE), &
-                          "check_module failed after create")
-    call test%assert_true(mod%check(3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE, 32, 8), &
-                          "check_instance failed for 32x8")
+    call test%assert_true("check_module failed after create", mod%check(3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE))
+    call test%assert_true("check_instance failed for 32x8", mod%check(3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE, 32, 8))
 
     ierr = mod%get(3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE, 32, 8, fun)
-    call test%assert_true(ierr == DTFFT_SUCCESS, "module get failed for 32x8")
+    call test%assert_true("module get failed for 32x8", ierr == DTFFT_SUCCESS)
     call verify_function(fun, 3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE)
 
     ierr = mod%get(3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE, 64, 8, fun)
-    call test%assert_true(ierr == DTFFT_SUCCESS, "module get failed for 64x8")
+    call test%assert_true("module get failed for 64x8", ierr == DTFFT_SUCCESS)
     call verify_function(fun, 3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE)
 
     call mod%destroy()
@@ -88,15 +81,15 @@ contains
 
         consume_args = ndims + kernel_type%val + int(base_storage, int32) + storage_size(fun)
         if (consume_args == -1) then
-            call test%assert_true(.false., "unexpected consumed argument marker")
+            call test%assert_true("unexpected consumed argument marker", .false.)
         end if
 
 #ifdef DTFFT_WITH_MOCK_ENABLED
-        call test%assert_true(fun%ndims == ndims, "mock function ndims mismatch")
-        call test%assert_true(fun%kernel_type == kernel_type, "mock function kernel_type mismatch")
-        call test%assert_true(fun%base_storage == base_storage, "mock function base_storage mismatch")
+        call test%assert_true("mock function ndims mismatch", fun%ndims == ndims)
+        call test%assert_true("mock function kernel_type mismatch", fun%kernel_type == kernel_type)
+        call test%assert_true("mock function base_storage mismatch", fun%base_storage == base_storage)
 #else
-        call test%assert_true(.true., "kernel handle retrieved")
+        call test%assert_true("kernel handle retrieved", c_associated(fun%ptr))
 #endif
     end subroutine verify_function
 

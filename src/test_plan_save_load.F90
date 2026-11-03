@@ -30,21 +30,20 @@ use dtfft_pencil,      only: dtfft_pencil_t
 use dtfft_parameters,  only: plan_kind_t, PLAN_C2C, PLAN_R2C, PLAN_R2R, DTFFT_PLATFORM_CUDA
 use dtfft_plan,        only: get_plan_kind_from_file
 use dtfft_config,      only: get_conf_platform
-use dtfft_test_utils,  only: test_context
+use dtfft_utils
+use test_suite,  only: test_suite_t
 #include "_dtfft_mpi.h"
 implicit none
-    integer(int32), parameter :: DIMS_3D(3) = [32, 24, 16]
+    integer(int32), parameter :: DIMS_3D(3) = [16, 12, 10]
     integer(int32), parameter :: DIMS_2D(2) = [32, 24]
 
     integer(int32) :: comm_rank, comm_size, ierr
-    type(test_context) :: test
+    type(test_suite_t) :: test
 
-    call MPI_Init(ierr)
+    call test%create("Plan save/load")
 
     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
-
-    call report("test_plan_save_load: "//to_string(comm_size)//" ranks")
 
     call test_c2c_roundtrip()
     call test_patient_roundtrip()
@@ -64,20 +63,11 @@ implicit none
     call test_missing_file()
     call test_corrupted_file()
     call test_format_version_gate()
-    ! call test_self_describing_sizes()
-    ! call test_unavailable_backend()
     call test_kind_mismatch()
     call test_comm_size_mismatch()
     call test_save_before_create()
 
-    if ( test%failure_count() == 0 ) then
-        call report("All tests PASSED")
-    else
-        call report(to_string(test%failure_count())//" test(s) FAILED")
-    endif
-
-    call MPI_Finalize(ierr)
-    if ( test%failure_count() /= 0 ) error stop 1
+    call test%finalize()
 
 contains
 
@@ -91,15 +81,15 @@ contains
 
         call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_MEASURE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check("c2c: create tuned plan", ierr, DTFFT_SUCCESS)
+        call test%check("c2c: create tuned plan", ierr, DTFFT_SUCCESS)
         if ( .not. all_ok(ierr) ) return
 
         call tuned%save(filename, ierr)
-        call check("c2c: save", ierr, DTFFT_SUCCESS)
+        call test%check("c2c: save", ierr, DTFFT_SUCCESS)
 
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
 
-        call check("c2c: load", ierr, DTFFT_SUCCESS)
+        call test%check("c2c: load", ierr, DTFFT_SUCCESS)
         if ( .not. all_ok(ierr) ) return
 
         call compare_plans("c2c", size(DIMS_3D), tuned, loaded)
@@ -120,14 +110,14 @@ contains
 
         call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_PATIENT, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check("patient: create tuned plan", ierr, DTFFT_SUCCESS)
+        call test%check("patient: create tuned plan", ierr, DTFFT_SUCCESS)
         if ( .not. all_ok(ierr) ) return
 
         call tuned%save(filename, ierr)
-        call check("patient: save", ierr, DTFFT_SUCCESS)
+        call test%check("patient: save", ierr, DTFFT_SUCCESS)
 
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("patient: load", ierr, DTFFT_SUCCESS)
+        call test%check("patient: load", ierr, DTFFT_SUCCESS)
         if ( .not. all_ok(ierr) ) return
 
         call compare_plans("patient", size(DIMS_3D), tuned, loaded)
@@ -148,14 +138,14 @@ contains
 
         call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_EXHAUSTIVE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check("exhaustive: create tuned plan", ierr, DTFFT_SUCCESS)
+        call test%check("exhaustive: create tuned plan", ierr, DTFFT_SUCCESS)
         if ( .not. all_ok(ierr) ) return
 
         call tuned%save(filename, ierr)
-        call check("exhaustive: save", ierr, DTFFT_SUCCESS)
+        call test%check("exhaustive: save", ierr, DTFFT_SUCCESS)
 
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("exhaustive: load", ierr, DTFFT_SUCCESS)
+        call test%check("exhaustive: load", ierr, DTFFT_SUCCESS)
         if ( .not. all_ok(ierr) ) return
 
         call compare_plans("exhaustive", size(DIMS_3D), tuned, loaded)
@@ -207,20 +197,20 @@ contains
         endif
 
         call dtfft_set_config(conf, ierr)
-        call check(tag//": set config", ierr, DTFFT_SUCCESS)
+        call test%check(tag//": set config", ierr, DTFFT_SUCCESS)
 
         call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_EXHAUSTIVE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check(tag//": create tuned plan", ierr, DTFFT_SUCCESS)
+        call test%check(tag//": create tuned plan", ierr, DTFFT_SUCCESS)
 
         ! No early returns past this point: the configuration is global state and has to be
         ! handed back whatever happens.
         if ( all_ok(ierr) ) then
             call tuned%save(filename, ierr)
-            call check(tag//": save", ierr, DTFFT_SUCCESS)
+            call test%check(tag//": save", ierr, DTFFT_SUCCESS)
 
             call loaded%load(filename, MPI_COMM_WORLD, ierr)
-            call check(tag//": load", ierr, DTFFT_SUCCESS)
+            call test%check(tag//": load", ierr, DTFFT_SUCCESS)
 
             if ( all_ok(ierr) ) then
                 call compare_plans(tag, size(DIMS_3D), tuned, loaded)
@@ -235,7 +225,7 @@ contains
         endif
 
         call dtfft_set_config(default_conf, ierr)
-        call check(tag//": restore config", ierr, DTFFT_SUCCESS)
+        call test%check(tag//": restore config", ierr, DTFFT_SUCCESS)
         deallocate( tag )
     end subroutine test_adaptive_roundtrip
 
@@ -249,15 +239,13 @@ contains
 
         call tuned%create(DIMS_3D, kinds=kinds, precision=DTFFT_SINGLE, effort=DTFFT_MEASURE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check("r2r: create tuned plan", ierr, DTFFT_SUCCESS)
-        if ( .not. all_ok(ierr) ) return
+        call test%check("r2r: create tuned plan", ierr, DTFFT_SUCCESS)
 
         call tuned%save(filename, ierr)
-        call check("r2r: save", ierr, DTFFT_SUCCESS)
+        call test%check("r2r: save", ierr, DTFFT_SUCCESS)
 
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("r2r: load", ierr, DTFFT_SUCCESS)
-        if ( .not. all_ok(ierr) ) return
+        call test%check("r2r: load", ierr, DTFFT_SUCCESS)
 
         call compare_plans("r2r", size(DIMS_3D), tuned, loaded)
         call check_transpose_roundtrip("r2r-tuned", size(DIMS_3D), tuned)
@@ -276,15 +264,13 @@ contains
 
         call tuned%create(DIMS_2D, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check("2d: create tuned plan", ierr, DTFFT_SUCCESS)
-        if ( .not. all_ok(ierr) ) return
+        call test%check("2d: create tuned plan", ierr, DTFFT_SUCCESS)
 
         call tuned%save(filename, ierr)
-        call check("2d: save", ierr, DTFFT_SUCCESS)
+        call test%check("2d: save", ierr, DTFFT_SUCCESS)
 
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("2d: load", ierr, DTFFT_SUCCESS)
-        if ( .not. all_ok(ierr) ) return
+        call test%check("2d: load", ierr, DTFFT_SUCCESS)
 
         call compare_plans("2d", size(DIMS_2D), tuned, loaded)
         call check_transpose_roundtrip("2d-tuned", size(DIMS_2D), tuned)
@@ -303,15 +289,13 @@ contains
 
         call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check("r2c: create", ierr, DTFFT_SUCCESS)
-        if ( .not. all_ok(ierr) ) return
+        call test%check("r2c: create", ierr, DTFFT_SUCCESS)
 
         call tuned%save(filename, ierr)
-        call check("r2c: save", ierr, DTFFT_SUCCESS)
+        call test%check("r2c: save", ierr, DTFFT_SUCCESS)
 
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("r2c: load", ierr, DTFFT_SUCCESS)
-        if ( .not. all_ok(ierr) ) return
+        call test%check("r2c: load", ierr, DTFFT_SUCCESS)
 
         call compare_plans("r2c", size(DIMS_3D), tuned, loaded)
         call check_resave_identical("r2c", filename, loaded)
@@ -332,16 +316,12 @@ contains
 
         call tuned%create(user_pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, &
                           DTFFT_EXECUTOR_NONE, ierr)
-        call check("pencil: create", ierr, DTFFT_SUCCESS)
-        if ( .not. all_ok(ierr) ) then
-            call user_pencil%destroy()
-            return
-        endif
+        call test%check("pencil: create", ierr, DTFFT_SUCCESS)
 
         call tuned%save(filename, ierr)
-        call check("pencil: save", ierr, DTFFT_SUCCESS)
+        call test%check("pencil: save", ierr, DTFFT_SUCCESS)
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("pencil: load", ierr, DTFFT_SUCCESS)
+        call test%check("pencil: load", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
             call compare_plans("pencil", size(DIMS_3D), tuned, loaded)
             call check_transpose_roundtrip("pencil-tuned", size(DIMS_3D), tuned)
@@ -367,22 +347,18 @@ contains
 
         call tuned%create(user_pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, &
                           DTFFT_EXECUTOR_NONE, ierr)
-        call check("pencil reshape: create", ierr, DTFFT_SUCCESS)
-        if ( .not. all_ok(ierr) ) then
-            call user_pencil%destroy()
-            return
-        endif
+        call test%check("pencil reshape: create", ierr, DTFFT_SUCCESS)
         block
         type(dtfft_backend_t) :: tuned_reshape_backend
 
         tuned_reshape_backend = tuned%get_reshape_backend(ierr)
-        call check("pencil reshape: backend available", ierr, DTFFT_SUCCESS)
+        call test%check("pencil reshape: backend available", ierr, DTFFT_SUCCESS)
         end block
 
         call tuned%save(filename, ierr)
-        call check("pencil reshape: save", ierr, DTFFT_SUCCESS)
+        call test%check("pencil reshape: save", ierr, DTFFT_SUCCESS)
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("pencil reshape: load", ierr, DTFFT_SUCCESS)
+        call test%check("pencil reshape: load", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
             block
             type(dtfft_backend_t) :: tuned_reshape_backend, loaded_reshape_backend
@@ -390,7 +366,7 @@ contains
             tuned_reshape_backend = tuned%get_reshape_backend(ierr)
             loaded_reshape_backend = loaded%get_reshape_backend(ierr)
             call compare_plans("pencil reshape", size(DIMS_3D), tuned, loaded)
-            call check("pencil reshape: backend", loaded_reshape_backend%val, tuned_reshape_backend%val)
+            call test%check("pencil reshape: backend", loaded_reshape_backend%val, tuned_reshape_backend%val)
             call check_transpose_roundtrip("pencil reshape-tuned", size(DIMS_3D), tuned)
             call check_transpose_roundtrip("pencil reshape", size(DIMS_3D), loaded)
             call check_resave_identical("pencil reshape", filename, loaded)
@@ -418,16 +394,16 @@ contains
         file_conf%reshape_backend = DTFFT_BACKEND_MPI_DATATYPE
         file_conf%enable_mpi_backends = .true.
         call dtfft_set_config(file_conf, ierr)
-        call check("config ignored: set file config", ierr, DTFFT_SUCCESS)
+        call test%check("config ignored: set file config", ierr, DTFFT_SUCCESS)
 
         call tuned%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check("config ignored: create", ierr, DTFFT_SUCCESS)
+        call test%check("config ignored: create", ierr, DTFFT_SUCCESS)
         if ( .not. all_ok(ierr) ) then
             call dtfft_set_config(saved_conf, ierr)
             return
         endif
         call tuned%save(filename, ierr)
-        call check("config ignored: save", ierr, DTFFT_SUCCESS)
+        call test%check("config ignored: save", ierr, DTFFT_SUCCESS)
 
         other_conf = file_conf
         other_conf%enable_z_slab = .true.
@@ -435,22 +411,22 @@ contains
         other_conf%backend = DTFFT_BACKEND_MPI_P2P
         other_conf%reshape_backend = DTFFT_BACKEND_MPI_P2P
         call dtfft_set_config(other_conf, ierr)
-        call check("config ignored: set other config", ierr, DTFFT_SUCCESS)
+        call test%check("config ignored: set other config", ierr, DTFFT_SUCCESS)
 
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("config ignored: load", ierr, DTFFT_SUCCESS)
+        call test%check("config ignored: load", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
             call compare_plans("config ignored", size(DIMS_3D), tuned, loaded)
-            call check("config ignored: z-slab", merge(1, 0, loaded%get_z_slab_enabled(ierr)), &
+            call test%check("config ignored: z-slab", merge(1, 0, loaded%get_z_slab_enabled(ierr)), &
                        merge(1, 0, tuned%get_z_slab_enabled(ierr)))
-            call check("config ignored: y-slab", merge(1, 0, loaded%get_y_slab_enabled(ierr)), &
+            call test%check("config ignored: y-slab", merge(1, 0, loaded%get_y_slab_enabled(ierr)), &
                        merge(1, 0, tuned%get_y_slab_enabled(ierr)))
             block
             type(dtfft_backend_t) :: tuned_backend, loaded_backend
 
             tuned_backend = tuned%get_backend(ierr)
             loaded_backend = loaded%get_backend(ierr)
-            call check("config ignored: backend", loaded_backend%val, tuned_backend%val)
+            call test%check("config ignored: backend", loaded_backend%val, tuned_backend%val)
             call check_resave_identical("config ignored", filename, loaded)
             call loaded%destroy(ierr)
             end block
@@ -458,7 +434,7 @@ contains
 
         call tuned%destroy(ierr)
         call dtfft_set_config(saved_conf, ierr)
-        call check("config ignored: restore config", ierr, DTFFT_SUCCESS)
+        call test%check("config ignored: restore config", ierr, DTFFT_SUCCESS)
         call delete_file(filename)
     end subroutine test_config_ignored_on_load
 
@@ -480,21 +456,21 @@ contains
         conf%compression_config_transpose = dtfft_compression_config_t( &
             DTFFT_COMPRESSION_LIB_ZFP, DTFFT_COMPRESSION_MODE_FIXED_RATE, rate=32.0_real64)
         call dtfft_set_config(conf, ierr)
-        call check("compressed: set config", ierr, DTFFT_SUCCESS)
+        call test%check("compressed: set config", ierr, DTFFT_SUCCESS)
 
         call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-        call check("compressed: create", ierr, DTFFT_SUCCESS)
+        call test%check("compressed: create", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
             call tuned%save(filename, ierr)
-            call check("compressed: save", ierr, DTFFT_SUCCESS)
+            call test%check("compressed: save", ierr, DTFFT_SUCCESS)
 
             conf%compression_config_transpose = dtfft_compression_config_t( &
                 DTFFT_COMPRESSION_LIB_ZFP, DTFFT_COMPRESSION_MODE_FIXED_RATE, rate=16.0_real64)
             call dtfft_set_config(conf, ierr)
 
             call loaded%load(filename, MPI_COMM_WORLD, ierr)
-            call check("compressed: load", ierr, DTFFT_SUCCESS)
+            call test%check("compressed: load", ierr, DTFFT_SUCCESS)
             if ( all_ok(ierr) ) then
                 call compare_plans("compressed", size(DIMS_3D), tuned, loaded)
                 block
@@ -502,7 +478,7 @@ contains
 
                 tuned_backend = tuned%get_backend(ierr)
                 loaded_backend = loaded%get_backend(ierr)
-                call check("compressed: backend", loaded_backend%val, tuned_backend%val)
+                call test%check("compressed: backend", loaded_backend%val, tuned_backend%val)
                 call check_resave_identical("compressed", filename, loaded)
                 call loaded%destroy(ierr)
                 end block
@@ -511,7 +487,7 @@ contains
         endif
 
         call dtfft_set_config(saved_conf, ierr)
-        call check("compressed: restore config", ierr, DTFFT_SUCCESS)
+        call test%check("compressed: restore config", ierr, DTFFT_SUCCESS)
         call delete_file(filename)
     end subroutine test_compressed_roundtrip
 #endif
@@ -565,12 +541,10 @@ contains
         call r2r%destroy(ierr)
 
         ierr = get_plan_kind_from_file("test_save_load_kind_c2c.dtfft", MPI_COMM_WORLD, plan_kind)
-        call check("probe: c2c error code", ierr, DTFFT_SUCCESS)
-        ! call check("probe: c2c kind", plan_kind%val, PLAN_C2C%val)
+        call test%check("probe: c2c error code", ierr, DTFFT_SUCCESS)
 
         ierr = get_plan_kind_from_file("test_save_load_kind_r2r.dtfft", MPI_COMM_WORLD, plan_kind)
-        call check("probe: r2r error code", ierr, DTFFT_SUCCESS)
-        ! call check("probe: r2r kind", plan_kind%val, PLAN_R2R%val)
+        call test%check("probe: r2r error code", ierr, DTFFT_SUCCESS)
 
         ! The whole point of the probe: allocate the matching class, then load into it
         select case ( plan_kind%val )
@@ -579,7 +553,7 @@ contains
         case ( PLAN_R2R%val ); allocate( dtfft_plan_r2r_t :: plan )
         endselect
         call plan%load("test_save_load_kind_r2r.dtfft", MPI_COMM_WORLD, ierr)
-        call check("probe: load into probed class", ierr, DTFFT_SUCCESS)
+        call test%check("probe: load into probed class", ierr, DTFFT_SUCCESS)
         call plan%destroy(ierr)
         deallocate( plan )
 
@@ -596,10 +570,10 @@ contains
         type(plan_kind_t) :: plan_kind
 
         call plan%load("test_save_load_does_not_exist.dtfft", MPI_COMM_WORLD, ierr)
-        call check("missing file: load", ierr, DTFFT_ERROR_FILE_NOT_FOUND)
+        call test%check("missing file: load", ierr, DTFFT_ERROR_FILE_NOT_FOUND)
 
         ierr = get_plan_kind_from_file("test_save_load_does_not_exist.dtfft", MPI_COMM_WORLD, plan_kind)
-        call check("missing file: probe", ierr, DTFFT_ERROR_FILE_NOT_FOUND)
+        call test%check("missing file: probe", ierr, DTFFT_ERROR_FILE_NOT_FOUND)
     end subroutine test_missing_file
 
     subroutine test_corrupted_file()
@@ -616,7 +590,7 @@ contains
         call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
         call plan%load(filename, MPI_COMM_WORLD, ierr)
-        call check("corrupted file: load", ierr, DTFFT_ERROR_FILE_INVALID)
+        call test%check("corrupted file: load", ierr, DTFFT_ERROR_FILE_INVALID)
 
         call delete_file(filename)
     end subroutine test_corrupted_file
@@ -633,78 +607,21 @@ contains
 
         call plan%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call plan%save(filename, ierr)
-        call check("version gate: save", ierr, DTFFT_SUCCESS)
+        call test%check("version gate: save", ierr, DTFFT_SUCCESS)
         call plan%destroy(ierr)
 
         ! Claim a layout from the future
         call patch_byte(filename, VERSION_OFFSET, 99_int8)
         call reloaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("version gate: newer layout refused", ierr, DTFFT_ERROR_FILE_VERSION_MISMATCH)
+        call test%check("version gate: newer layout refused", ierr, DTFFT_ERROR_FILE_VERSION_MISMATCH)
 
         ! Claim a layout older than anything this library ever wrote
         call patch_byte(filename, VERSION_OFFSET, 0_int8)
         call reloaded%load(filename, MPI_COMM_WORLD, ierr)
-        call check("version gate: retired layout refused", ierr, DTFFT_ERROR_FILE_VERSION_MISMATCH)
+        call test%check("version gate: retired layout refused", ierr, DTFFT_ERROR_FILE_VERSION_MISMATCH)
 
         call delete_file(filename)
     end subroutine test_format_version_gate
-
-    ! subroutine test_self_describing_sizes()
-    ! !! The fixed prefix states how large the global section and each per-rank record are, and
-    ! !! the reader takes record offsets from those numbers rather than from its own constants.
-    ! !!
-    ! !! That is what allows a section to grow in a later version without stranding older files,
-    ! !! so it is worth checking that the numbers actually describe the file rather than merely
-    ! !! being present in it.
-    !     type(dtfft_plan_c2c_t)  :: plan
-    !     character(len=*), parameter :: filename = "test_save_load_sizes.dtfft"
-    !     integer(int32) :: unit, global_bytes, record_bytes, file_bytes, expected
-
-    !     call plan%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-    !     call plan%save(filename, ierr)
-    !     call check("self-describing: save", ierr, DTFFT_SUCCESS)
-    !     call plan%destroy(ierr)
-
-    !     global_bytes = 0
-    !     record_bytes = 0
-    !     file_bytes = 0
-    !     expected = 0
-    !     if ( comm_rank == 0 ) then
-    !         ! 8 bytes of magic, 2 of endian marker, version, reserved, then the two sizes
-    !         open(newunit=unit, file=filename, access="stream", form="unformatted", status="old")
-    !         read(unit, pos=13) global_bytes
-    !         read(unit, pos=17) record_bytes
-    !         close(unit)
-    !         inquire(file=filename, size=file_bytes)
-    !         expected = global_bytes + comm_size * record_bytes
-    !     endif
-
-    !     call check("self-describing: file size matches prefix", file_bytes, expected)
-
-    !     call delete_file(filename)
-    ! end subroutine test_self_describing_sizes
-
-    ! subroutine test_unavailable_backend()
-    ! !! Which backends exist is a property of the build, not of the format, so a file may name
-    ! !! one this library was not compiled with. Replaying it would fail later and far less
-    ! !! clearly, so the load has to turn it down up front.
-    !     type(dtfft_plan_c2c_t)  :: plan, reloaded
-    !     character(len=*), parameter :: filename = "test_save_load_backend.dtfft"
-    !     ! 20 bytes of fixed prefix, then plan_kind, ndims, precision, effort and flags
-    !     integer(int8), parameter :: BACKEND_OFFSET = 26_int8
-    !     integer(int8), parameter :: NO_SUCH_BACKEND = 99_int8
-
-    !     call plan%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
-    !     call plan%save(filename, ierr)
-    !     call check("unavailable backend: save", ierr, DTFFT_SUCCESS)
-    !     call plan%destroy(ierr)
-
-    !     call patch_byte(filename, BACKEND_OFFSET, NO_SUCH_BACKEND)
-    !     call reloaded%load(filename, MPI_COMM_WORLD, ierr)
-    !     call check("unavailable backend: refused", ierr, DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED)
-
-    !     call delete_file(filename)
-    ! end subroutine test_unavailable_backend
 
     subroutine patch_byte(filename, offset, value)
     !! Overwrites a single byte of a file, from rank 0
@@ -736,7 +653,7 @@ contains
         call c2c%destroy(ierr)
 
         call r2r%load(filename, MPI_COMM_WORLD, ierr)
-        call check("kind mismatch: load", ierr, DTFFT_ERROR_FILE_PLAN_MISMATCH)
+        call test%check("kind mismatch: load", ierr, DTFFT_ERROR_FILE_PLAN_MISMATCH)
 
         call delete_file(filename)
     end subroutine test_kind_mismatch
@@ -761,7 +678,7 @@ contains
             type(dtfft_plan_c2c_t) :: narrow
 
             call narrow%load(filename, single_comm, ierr)
-            call check("comm size mismatch: load", ierr, DTFFT_ERROR_FILE_PLAN_MISMATCH)
+            call test%check("comm size mismatch: load", ierr, DTFFT_ERROR_FILE_PLAN_MISMATCH)
         endblock
         call MPI_Comm_free(single_comm, ierr)
 
@@ -773,7 +690,7 @@ contains
         type(dtfft_plan_c2c_t)  :: plan
 
         call plan%save("test_save_load_never_written.dtfft", ierr)
-        call check("save before create", ierr, DTFFT_ERROR_PLAN_NOT_CREATED)
+        call test%check("save before create", ierr, DTFFT_ERROR_PLAN_NOT_CREATED)
     end subroutine test_save_before_create
 
 !------------------------------------------------------------------------------------------------
@@ -798,33 +715,33 @@ contains
         call tuned%get_grid_dims(grid_a, ierr)
         call loaded%get_grid_dims(grid_b, ierr)
         if ( .not. associated(grid_a) .or. .not. associated(grid_b) ) then
-            call check(tag//": both plans available for comparison", 1, 0)
+            call test%check(tag//": both plans available for comparison", 1, 0)
             return
         endif
 
-        call check(tag//": grid size", size(grid_b), size(grid_a))
+        call test%check(tag//": grid size", size(grid_b), size(grid_a))
         if ( size(grid_a) == size(grid_b) ) then
-            call check(tag//": grid dims", maxval(abs(grid_b - grid_a)), 0)
+            call test%check(tag//": grid dims", maxval(abs(grid_b - grid_a)), 0)
         endif
 
-        call check(tag//": z-slab", merge(1, 0, loaded%get_z_slab_enabled(ierr)),  &
+        call test%check(tag//": z-slab", merge(1, 0, loaded%get_z_slab_enabled(ierr)),  &
                                     merge(1, 0, tuned%get_z_slab_enabled(ierr)))
-        call check(tag//": y-slab", merge(1, 0, loaded%get_y_slab_enabled(ierr)),  &
+        call test%check(tag//": y-slab", merge(1, 0, loaded%get_y_slab_enabled(ierr)),  &
                                     merge(1, 0, tuned%get_y_slab_enabled(ierr)))
 
         backend_a = tuned%get_backend(ierr)
         backend_b = loaded%get_backend(ierr)
-        call check(tag//": backend", backend_b%val, backend_a%val)
-        call check(tag//": element size", int(loaded%get_element_size(ierr)), int(tuned%get_element_size(ierr)))
-        call check(tag//": alloc bytes", int(loaded%get_alloc_bytes(ierr)), int(tuned%get_alloc_bytes(ierr)))
-        call check(tag//": aux bytes", int(loaded%get_aux_bytes(ierr)), int(tuned%get_aux_bytes(ierr)))
+        call test%check(tag//": backend", backend_b%val, backend_a%val)
+        call test%check(tag//": element size", int(loaded%get_element_size(ierr)), int(tuned%get_element_size(ierr)))
+        call test%check(tag//": alloc bytes", int(loaded%get_alloc_bytes(ierr)), int(tuned%get_alloc_bytes(ierr)))
+        call test%check(tag//": aux bytes", int(loaded%get_aux_bytes(ierr)), int(tuned%get_aux_bytes(ierr)))
 
         starts_a = 0; counts_a = 0; starts_b = 0; counts_b = 0
         call tuned%get_local_sizes(starts_a(:ndims), counts_a(:ndims), alloc_size=alloc_a, error_code=ierr)
         call loaded%get_local_sizes(starts_b(:ndims), counts_b(:ndims), alloc_size=alloc_b, error_code=ierr)
-        call check(tag//": local starts", maxval(abs(starts_b(:ndims) - starts_a(:ndims))), 0)
-        call check(tag//": local counts", maxval(abs(counts_b(:ndims) - counts_a(:ndims))), 0)
-        call check(tag//": alloc size", int(alloc_b), int(alloc_a))
+        call test%check(tag//": local starts", maxval(abs(starts_b(:ndims) - starts_a(:ndims))), 0)
+        call test%check(tag//": local counts", maxval(abs(counts_b(:ndims) - counts_a(:ndims))), 0)
+        call test%check(tag//": alloc size", int(alloc_b), int(alloc_a))
     end subroutine compare_plans
 
     subroutine check_transpose_roundtrip(tag, ndims, plan)
@@ -850,7 +767,7 @@ contains
         in_counts = 1
         call plan%get_local_sizes(in_counts=in_counts(:ndims), error_code=ierr)
         n_data_floats = product(int(in_counts(:ndims), int64)) * plan%get_element_size(ierr) / 4_int64
-call plan%report()
+
         in_ptr  = plan%mem_alloc_ptr(n_bytes, ierr)
         out_ptr = plan%mem_alloc_ptr(n_bytes, ierr)
         aux_ptr = c_null_ptr
@@ -867,9 +784,9 @@ call plan%report()
         ! With DTFFT_EXECUTOR_NONE this is pure data movement, so forward followed by
         ! backward has to reproduce the input bit for bit
         call plan%execute_ptr(in_ptr, out_ptr, DTFFT_EXECUTE_FORWARD, aux_ptr, ierr)
-        call check(tag//": forward execute", ierr, DTFFT_SUCCESS)
+        call test%check(tag//": forward execute", ierr, DTFFT_SUCCESS)
         call plan%execute_ptr(out_ptr, in_ptr, DTFFT_EXECUTE_BACKWARD, aux_ptr, ierr)
-        call check(tag//": backward execute", ierr, DTFFT_SUCCESS)
+        call test%check(tag//": backward execute", ierr, DTFFT_SUCCESS)
 
         ! With DTFFT_EXECUTOR_NONE nothing but data movement happens, so the comparison is
         ! bit-exact by design. Comparing the bit patterns says that outright and keeps the
@@ -881,7 +798,7 @@ call plan%report()
             ! endif
             if ( transfer(in(i), 0_int32) /= transfer(reference_value(i), 0_int32) ) n_bad = n_bad + 1
         enddo
-        call check(tag//": roundtrip mismatches", n_bad, 0)
+        call test%check(tag//": roundtrip mismatches", n_bad, 0)
         if ( n_bad > 0 ) then
             call MPI_Finalize(ierr)
             stop
@@ -904,7 +821,7 @@ call plan%report()
 
         allocate( resaved, source=filename//".again" )
         call loaded%save(resaved, ierr)
-        call check(tag//": re-save", ierr, DTFFT_SUCCESS)
+        call test%check(tag//": re-save", ierr, DTFFT_SUCCESS)
 
         call read_whole_file(filename, bytes_a, size_a)
         call read_whole_file(resaved, bytes_b, size_b)
@@ -919,12 +836,12 @@ call plan%report()
         if ( n_diff /= 0 ) then
             do i = 1, size_a
                 if ( bytes_a(i) == bytes_b(i) ) cycle
-                call report("  note "//tag//": offset "//to_string(i - 1)//": saved "        &
-                            //to_string(int(bytes_a(i), int32))//" -> re-saved "            &
-                            //to_string(int(bytes_b(i), int32)))
+                call report("  note "//tag//": offset "//to_str(i - 1)//": saved "        &
+                            //to_str(int(bytes_a(i), int32))//" -> re-saved "            &
+                            //to_str(int(bytes_b(i), int32)))
             enddo
         endif
-        call check(tag//": re-saved file identical", n_diff, 0)
+        call test%check(tag//": re-saved file identical", n_diff, 0)
 
         if ( allocated(bytes_a) ) deallocate( bytes_a )
         if ( allocated(bytes_b) ) deallocate( bytes_b )
@@ -980,15 +897,6 @@ call plan%report()
         all_ok = worst == 0
     end function all_ok
 
-    subroutine check(name, actual, expected)
-    !! Keeps existing call sites while sharing MPI-aware assertion handling.
-        character(len=*), intent(in) :: name      !! Test name
-        integer(int32),   intent(in) :: actual    !! Value produced
-        integer(int32),   intent(in) :: expected  !! Value required
-
-        call test%check(name, actual, expected)
-    end subroutine check
-
     subroutine report(message)
     !! Prints a single line from rank 0
         character(len=*), intent(in) :: message   !! Message
@@ -996,16 +904,6 @@ call plan%report()
         if ( comm_rank == 0 ) write(output_unit, "(a)") message
         flush(output_unit)
     end subroutine report
-
-    function to_string(val) result(str)
-    !! Left-trimmed decimal representation of `val`
-        integer(int32), intent(in)    :: val   !! Value
-        character(len=:), allocatable :: str   !! Result
-        character(len=32) :: buf
-
-        write(buf, "(i0)") val
-        allocate( str, source=trim(buf) )
-    end function to_string
 
     subroutine delete_file(filename)
     !! Removes a plan file, from a single rank

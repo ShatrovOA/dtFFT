@@ -8,7 +8,7 @@ use dtfft_parameters
 use dtfft_pencil, only: dtfft_pencil_t, pencil, pencil_init
 use dtfft_reshape_plan, only: reshape_plan
 use dtfft_transpose_plan, only: transpose_plan
-use dtfft_test_utils, only: test_context
+use test_suite, only: test_suite_t
 #include "_dtfft_mpi.h"
 implicit none
     integer(int32), parameter :: DIMS(3) = [64, 32, 16]
@@ -20,7 +20,7 @@ implicit none
     type(pencil) :: pencils(3), bricks(2)
     TYPE_MPI_COMM :: cart_comm, comms(3)
     integer(int32) :: comm_rank, comm_size, ierr
-    type(test_context) :: test
+    type(test_suite_t) :: test
     integer(int32), pointer :: init_grid(:), final_grid(:)
     logical :: final_enabled
 

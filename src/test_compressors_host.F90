@@ -28,6 +28,7 @@ use dtfft_compressor
 use dtfft_errors
 use dtfft_parameters
 use dtfft_utils
+use test_suite
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
 implicit none
@@ -55,8 +56,9 @@ implicit none
     type(compressor_info)   :: compressors(size(VALID_COMPRESSION_LIBS))
     type(dtfft_compression_lib_t) :: current_lib
     !! Library that is currently under test
+    type(test_suite_t) :: test
 
-    call MPI_Init(ierror)
+    call test%create("Compressors host")
 
     n_compressors = 0
 #ifdef DTFFT_WITH_ZFP
@@ -91,9 +93,7 @@ implicit none
         call test_round_trips(compressors(i))
     enddo
 
-    print*,'test_compressors: ALL TESTS PASSED'
-
-    call MPI_Finalize(ierror)
+    call test%finalize()
 
 contains
 
@@ -114,23 +114,15 @@ contains
         type(string) :: name
         integer(int32) :: lib
 
-        print*,'Testing get_compressor_string'
         do lib = 2, size(VALID_COMPRESSION_LIBS)
             name = get_compressor_string(VALID_COMPRESSION_LIBS(lib))
-            print*,VALID_COMPRESSION_LIBS(lib)
-            if ( name%raw == "Unknown" ) then
-                INTERNAL_ERROR("get_compressor_string returned `Unknown` for valid library")
-            endif
-            print*,'    '//name%raw
+            call test%assert_false("get_compressor_string returned `Unknown` for valid library", name%raw == "Unknown")
             call name%destroy()
         enddo
 
         name = get_compressor_string(dtfft_compression_lib_t(1))
-        if ( name%raw /= "Unknown" ) then
-            INTERNAL_ERROR("get_compressor_string returned `"//name%raw//"` for invalid library")
-        endif
+        call test%assert_false("get_compressor_string returned `"//name%raw//"` for invalid library", name%raw /= "Unknown")
         call name%destroy()
-        print*,'SUCCESS'
     end subroutine test_compressor_strings
 
     subroutine test_config_checks()
@@ -138,25 +130,22 @@ contains
         type(dtfft_compression_config_t) :: config
         integer(int32) :: lib, mode
 
-        print*,'Testing check_compression_config'
-
         ! Any combination of valid library and valid mode must pass basic validation
         do lib = 2, size(VALID_COMPRESSION_LIBS)
             do mode = 1, N_MODES
                 config = dtfft_compression_config_t(VALID_COMPRESSION_LIBS(lib), VALID_COMPRESSION_MODES(mode))
-                call check_error(check_compression_config(config), DTFFT_SUCCESS, "check_compression_config(valid)")
+                call test%check("check_compression_config(valid)", check_compression_config(config), DTFFT_SUCCESS)
             enddo
         enddo
 
         config = dtfft_compression_config_t(dtfft_compression_lib_t(-1), DTFFT_COMPRESSION_MODE_LOSSLESS)
-        call check_error(check_compression_config(config), DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY, "invalid library")
+        call test%check("invalid library", check_compression_config(config), DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY)
 
         config = dtfft_compression_config_t(VALID_COMPRESSION_LIBS(1), dtfft_compression_mode_t(-1))
-        call check_error(check_compression_config(config), DTFFT_ERROR_COMPRESSION_INVALID_MODE, "invalid mode")
+        call test%check("invalid mode", check_compression_config(config), DTFFT_ERROR_COMPRESSION_INVALID_MODE)
 
         ! Default config must be a valid one
-        call check_error(check_compression_config(DEFAULT_COMPRESSION_CONFIG), DTFFT_SUCCESS, "default config")
-        print*,'SUCCESS'
+        call test%check("default config", check_compression_config(DEFAULT_COMPRESSION_CONFIG), DTFFT_SUCCESS)
     end subroutine test_config_checks
 
     subroutine test_invalid_create(info)
@@ -166,7 +155,6 @@ contains
         integer(int32) :: imode
 
         current_lib = info%lib
-        print*,'  Testing invalid compressor configurations'
 
         do imode = 1, N_MODES
             mode = VALID_COMPRESSION_MODES(imode)
@@ -218,21 +206,10 @@ contains
         integer(int32) :: error_code, i
 
         call allocate_compressor(info%lib, compressor)
-        if ( .not. allocated(compressor) ) then
-            INTERNAL_ERROR("check_create_fails: Unknown compression lib")
-        endif
-        error_code = compressor%create(3_int8, config, platform, base_type, DIMS_PERMUTE_NONE)
-        if ( error_code == DTFFT_SUCCESS ) then
-            call compressor%destroy()
-            INTERNAL_ERROR(message//": compressor accepted unsupported configuration, mode = "//to_str(config%compression_mode%val))
-        endif
-        if ( .not. any(error_code == expected) ) then
-            print*,'Obtained: '//dtfft_get_error_string(error_code)
-            do i = 1, size(expected)
-                print*,'Expected: '//dtfft_get_error_string(expected(i))
-            enddo
-            INTERNAL_ERROR(message//", mode = "//to_str(config%compression_mode%val))
-        endif
+        call test%assert_true("Allocated compressor", allocated(compressor))
+        error_code = compressor%create(3_int8, config, platform, base_type, DIMS_PERMUTE_NONE) 
+        call test%assert_false(message//": compressor accepted unsupported configuration, mode = "//to_str(config%compression_mode%val), error_code == DTFFT_SUCCESS)
+        call test%assert_true("any(error_code == expected)", any(error_code == expected))
         deallocate( compressor )
     end subroutine check_create_fails
 
@@ -304,11 +281,10 @@ contains
         integer(int32) :: error_code
 
         call allocate_compressor(info%lib, compressor)
-        if ( .not. allocated(compressor) ) then
-            INTERNAL_ERROR("check_create: Unknown compression lib")
-        endif
+        call test%assert_true("Allocated compressor", allocated(compressor))
+
         error_code = compressor%create(3_int8, config, platform, base_type, DIMS_PERMUTE_NONE)
-        call check_error(error_code, expected, message//", mode = "//to_str(config%compression_mode%val))
+        call test%check(message//", mode = "//to_str(config%compression_mode%val), error_code, expected)
         if ( error_code == DTFFT_SUCCESS ) call compressor%destroy()
         deallocate( compressor )
     end subroutine check_create
@@ -385,9 +361,8 @@ contains
         call name%destroy()
 
         call allocate_compressor(info%lib, compressor)
-        call check_error( compressor%create(ndims, config_for_mode(mode, is_float), DTFFT_PLATFORM_HOST,   &
-                                            base_type, permutation),                        &
-                          DTFFT_SUCCESS, "create for round trip" )
+        call test%check("create for round trip" , compressor%create(ndims, config_for_mode(mode, is_float), DTFFT_PLATFORM_HOST,   &
+                                            base_type, permutation), DTFFT_SUCCESS)
 
         uncompressed_bytes = storage_size * product(int(pack_dims, int64))
         ! Buffers are always able to hold uncompressed data
@@ -414,16 +389,9 @@ contains
         error = max_error(in, n_scalars, is_float)
         threshold = error_threshold(mode, is_float)
         if ( n_scalars > 0 ) then
-            print '(a,ES16.8,a,ES16.8)', '        error = ', error, ', threshold = ', threshold
-            if ( .not. (error <= threshold) ) then
-                INTERNAL_ERROR("Round trip error is too big")
-            endif
-
-            rate = compressor%get_average_rate()
-            print '(a,F12.4)', '        rate  = ', rate
-            if ( .not. (rate > 1._real64) ) then
-                INTERNAL_ERROR("Average compression rate is not greater then 1")
-            endif
+            print '(a,ES16.8,a,ES16.8)', '          error = ', error, ', threshold = ', threshold
+            call test%assert_true("Round trip error is too big", error <= threshold)
+            call test%assert_true("Average compression rate is not greater then 1", compressor%get_average_rate() > 1._real64)
         endif
 
         call compressor%destroy()
@@ -567,44 +535,4 @@ contains
         endselect
         if ( is_float ) error_threshold = max(error_threshold, real(epsilon(1._real32), real64))
     end function error_threshold
-
-!     subroutine allocate_compressor(lib, compressor)
-!     !! Allocates compressor of a dynamic type that corresponds to `lib`
-!         type(dtfft_compression_lib_t),              intent(in)  :: lib          !! Compression library
-!         class(abstract_compressor), allocatable,    intent(out) :: compressor   !! Compressor to allocate
-
-!         select case ( lib%val )
-! #ifdef DTFFT_WITH_ZFP
-!         case ( DTFFT_COMPRESSION_LIB_ZFP%val )
-!             allocate( compressor_zfp :: compressor )
-! #endif
-! #ifdef DTFFT_WITH_SZ3
-!         case ( DTFFT_COMPRESSION_LIB_SZ3%val )
-!             allocate( compressor_sz3 :: compressor )
-! #endif
-! #ifdef DTFFT_WITH_SZP
-!         case ( DTFFT_COMPRESSION_LIB_SZP%val )
-!             allocate( compressor_szp :: compressor )
-! #endif
-! #ifdef DTFFT_WITH_BITCOMP
-!         case ( DTFFT_COMPRESSION_LIB_BITCOMP%val )
-!             allocate( compressor_bitcomp :: compressor )
-! #endif
-!         case default
-!             INTERNAL_ERROR("Unknown compression lib")
-!         endselect
-!     end subroutine allocate_compressor
-
-    subroutine check_error(actual, expected, message)
-    !! Aborts execution in case `actual` error code differs from `expected` one
-        integer(int32),     intent(in)  :: actual   !! Obtained error code
-        integer(int32),     intent(in)  :: expected !! Expected error code
-        character(len=*),   intent(in)  :: message  !! Test description
-
-        if ( actual == expected ) return
-        print*,'Expected: '//dtfft_get_error_string(expected)
-        print*,'Obtained: '//dtfft_get_error_string(actual)
-        print*,'actual = ',actual,'expected = ',expected
-        INTERNAL_ERROR(message)
-    end subroutine check_error
 end program test_compressors_host

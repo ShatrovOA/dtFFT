@@ -685,18 +685,18 @@ large graphs.</div>
 <path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1672.64,-243.19C1656.38,-242.97 1639.14,-242.73 1624.4,-242.52"/>
 <polygon fill="#ff0000" stroke="#ff0000" points="1624.19,-239.02 1614.15,-242.38 1624.1,-246.02 1624.19,-239.02"/>
 </g>
-<!-- sourcefile~test_pencils_f.f90 -->
+<!-- sourcefile~test_pencils.f90 -->
 <g id="sourcefile~~dtfft_interface_cuda.f90~~AfferentGraph_node24" class="node">
-<title>sourcefile~test_pencils_f.f90</title>
-<g id="a_sourcefile~~dtfft_interface_cuda.f90~~AfferentGraph_node24"><a xlink:href="../sourcefile/test_pencils_f.f90.html" xlink:title="test_pencils_f.F90">
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1785,-214 1679,-214 1679,-190 1785,-190 1785,-214"/>
-<text text-anchor="middle" x="1732" y="-199.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_pencils_f.F90</text>
+<title>sourcefile~test_pencils.f90</title>
+<g id="a_sourcefile~~dtfft_interface_cuda.f90~~AfferentGraph_node24"><a xlink:href="../sourcefile/test_pencils.f90.html" xlink:title="test_pencils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1780.5,-214 1683.5,-214 1683.5,-190 1780.5,-190 1780.5,-214"/>
+<text text-anchor="middle" x="1732" y="-199.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_pencils.F90</text>
 </a>
 </g>
 </g>
-<!-- sourcefile~test_pencils_f.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<!-- sourcefile~test_pencils.f90&#45;&gt;sourcefile~dtfft.f90 -->
 <g id="sourcefile~~dtfft_interface_cuda.f90~~AfferentGraph_edge31" class="edge">
-<title>sourcefile~test_pencils_f.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<title>sourcefile~test_pencils.f90&#45;&gt;sourcefile~dtfft.f90</title>
 <path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M1687.65,-214C1667.4,-219.61 1643.53,-226.21 1624.06,-231.6"/>
 <polygon fill="#ff0000" stroke="#ff0000" points="1623.03,-228.26 1614.33,-234.3 1624.9,-235 1623.03,-228.26"/>
 </g>
@@ -952,13 +952,13 @@ large graphs.</div>
 <a id="ln-191" name="ln-191" href="#ln-191"></a><span class="w">    </span><span class="n">func_names</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">string</span><span class="p">(</span><span class="s2">"dtfft_execute"</span><span class="p">)</span>
 <a id="ln-192" name="ln-192" href="#ln-192"></a>
 <a id="ln-193" name="ln-193" href="#ln-193"></a><span class="w">    </span><span class="c">! Just try loading both libs</span>
-<a id="ln-194" name="ln-194" href="#ln-194"></a><span class="w">    </span><span class="n">ierr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dynamic_load</span><span class="p">(</span><span class="s2">"libdtfft.so"</span><span class="p">,</span><span class="w"> </span><span class="n">func_names</span><span class="p">,</span><span class="w"> </span><span class="n">libcuda</span><span class="p">,</span><span class="w"> </span><span class="n">cuFunctions</span><span class="p">)</span>
-<a id="ln-195" name="ln-195" href="#ln-195"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">ierr</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
-<a id="ln-196" name="ln-196" href="#ln-196"></a><span class="k">      </span><span class="n">ierr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dynamic_load</span><span class="p">(</span><span class="s2">"libdtfft.dylib"</span><span class="p">,</span><span class="w"> </span><span class="n">func_names</span><span class="p">,</span><span class="w"> </span><span class="n">libcuda</span><span class="p">,</span><span class="w"> </span><span class="n">cuFunctions</span><span class="p">)</span>
+<a id="ln-194" name="ln-194" href="#ln-194"></a><span class="w">    </span><span class="n">error_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dynamic_load</span><span class="p">(</span><span class="s2">"libdtfft.so"</span><span class="p">,</span><span class="w"> </span><span class="n">func_names</span><span class="p">,</span><span class="w"> </span><span class="n">libcuda</span><span class="p">,</span><span class="w"> </span><span class="n">cuFunctions</span><span class="p">)</span>
+<a id="ln-195" name="ln-195" href="#ln-195"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">error_code</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-196" name="ln-196" href="#ln-196"></a><span class="k">      </span><span class="n">error_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dynamic_load</span><span class="p">(</span><span class="s2">"libdtfft.dylib"</span><span class="p">,</span><span class="w"> </span><span class="n">func_names</span><span class="p">,</span><span class="w"> </span><span class="n">libcuda</span><span class="p">,</span><span class="w"> </span><span class="n">cuFunctions</span><span class="p">)</span>
 <a id="ln-197" name="ln-197" href="#ln-197"></a><span class="w">    </span><span class="k">endif</span>
 <a id="ln-198" name="ln-198" href="#ln-198"></a>
 <a id="ln-199" name="ln-199" href="#ln-199"></a><span class="k">    call </span><span class="n">destroy_strings</span><span class="p">(</span><span class="n">func_names</span><span class="p">)</span>
-<a id="ln-200" name="ln-200" href="#ln-200"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">ierr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-200" name="ln-200" href="#ln-200"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">error_code</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">DTFFT_SUCCESS</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-201" name="ln-201" href="#ln-201"></a><span class="k">      call </span><span class="n">unload_library</span><span class="p">(</span><span class="n">libcuda</span><span class="p">)</span>
 <a id="ln-202" name="ln-202" href="#ln-202"></a><span class="w">    </span><span class="k">endif</span>
 <a id="ln-203" name="ln-203" href="#ln-203"></a><span class="k">    </span><span class="n">is_loaded</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>

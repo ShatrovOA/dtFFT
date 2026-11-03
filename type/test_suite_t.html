@@ -10,7 +10,7 @@
     <meta name="author" content="Oleg Shatrov" >
     <link rel="icon" href="../favicon.png">
 
-    <title>test_context &ndash; dtFFT </title>
+    <title>test_suite_t &ndash; dtFFT </title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
@@ -62,7 +62,7 @@
 
     <div class="container">
   <div class="row">
-    <h1>test_context
+    <h1>test_suite_t
       <small>Derived Type</small>
       
     </h1>
@@ -73,21 +73,21 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 1.0% of total for derived types.</p>Including implementation: 52 statements,  0.3% of total for derived types.">10 statements</a>
+                 title="<p> 1.3% of total for derived types.</p>Including implementation: 99 statements,  0.6% of total for derived types.">13 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_test_utils.F90"> Source File</a>
+              <a href="../src/test_suite.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_test_utils.f90.html'>dtfft_test_utils.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_test_utils.html'>dtfft_test_utils</a></li>
-            <li class="breadcrumb-item active" aria-current="page">test_context</li>
+                <li class="breadcrumb-item"><a href='../sourcefile/test_suite.f90.html'>test_suite.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/test_suite.html'>test_suite</a></li>
+            <li class="breadcrumb-item active" aria-current="page">test_suite_t</li>
           </ol>
         </nav>
       </div>
@@ -113,7 +113,8 @@
       </a>
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/test_context.html#variable-failures">failures</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#variable-comm_rank~16">comm_rank</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#variable-failures">failures</a>
         </div>
       </div>
     </div>
@@ -140,11 +141,14 @@
       </a>
       <div id="boundprocs-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/test_context.html#boundprocedure-check~2">check</a>
-            <a class="list-group-item" href="../type/test_context.html#boundprocedure-assert_true">assert_true</a>
-            <a class="list-group-item" href="../type/test_context.html#boundprocedure-failure_count">failure_count</a>
-            <a class="list-group-item" href="../type/test_context.html#boundprocedure-check_integer">check_integer</a>
-            <a class="list-group-item" href="../type/test_context.html#boundprocedure-check_logical">check_logical</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#boundprocedure-create~28">create</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#boundprocedure-finalize">finalize</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#boundprocedure-check~2">check</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#boundprocedure-assert_false">assert_false</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#boundprocedure-assert_true">assert_true</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#boundprocedure-failure_count">failure_count</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#boundprocedure-check_integer">check_integer</a>
+            <a class="list-group-item" href="../type/test_suite_t.html#boundprocedure-check_logical">check_logical</a>
         </div>
       </div>
     </div>
@@ -159,7 +163,7 @@
     
     <div class="col-md-9" id='text'>
       <h2 id="type-def-statement">
-        type, public :: test_context</h2>
+        type, public :: test_suite_t</h2>
     
     <br>
 
@@ -175,6 +179,23 @@
 <th></th><th scope="col">Initial</th>        <th scope="col"></th>
     </thead>
     <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-comm_rank~16"></span>
+              integer(kind=int32),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>comm_rank</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
         <tr>
             <td>
               <span class="anchor" id="variable-failures"></span>
@@ -205,10 +226,133 @@
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-create~28"></span>
+      <h3>
+          procedure, public ::
+  <strong>create</strong>
+        
+      </h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/create~23.html'>create</a>(self, name)  
+</h3>
+    
+
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>name</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-finalize"></span>
+      <h3>
+          procedure, public ::
+  <strong>finalize</strong>
+        
+      </h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/finalize.html'>finalize</a>(self)  
+</h3>
+    
+
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
       <span class="anchor" id="boundprocedure-check~2"></span>
       <h3>
           generic, public ::
-  <strong>check</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/test_context.html#boundprocedure-check_integer'>check_integer</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/test_context.html#boundprocedure-check_logical'>check_logical</a>
+  <strong>check</strong> => <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/test_suite_t.html#boundprocedure-check_integer'>check_integer</a>, <a href='/home/runner/work/dtFFT/dtFFT/docs/html/type/test_suite_t.html#boundprocedure-check_logical'>check_logical</a>
         
       </h3>
     </div>
@@ -235,7 +379,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='test_context.html'>test_context</a>),
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -319,7 +463,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='test_context.html'>test_context</a>),
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -373,17 +517,17 @@
           <div class="row">
               <div class="card mt-3">
     <div class="card-header codesum">
-      <span class="anchor" id="boundprocedure-assert_true"></span>
+      <span class="anchor" id="boundprocedure-assert_false"></span>
       <h3>
           procedure, public ::
-  <strong>assert_true</strong>
+  <strong>assert_false</strong>
         
       </h3>
     </div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine <a href='../proc/assert_true.html'>assert_true</a>(self, condition, message)  
+    private  subroutine <a href='../proc/assert_false.html'>assert_false</a>(self, message, condition)  
 </h3>
     
 
@@ -403,7 +547,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='test_context.html'>test_context</a>),
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -411,6 +555,21 @@
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>message</strong></td>
             <td>
 
             </td>
@@ -430,6 +589,60 @@
 
             </td>
         </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+    </ul>
+  </div>
+
+          </div>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-assert_true"></span>
+      <h3>
+          procedure, public ::
+  <strong>assert_true</strong>
+        
+      </h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  subroutine <a href='../proc/assert_true.html'>assert_true</a>(self, message, condition)  
+</h3>
+    
+
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>self</strong></td>
+            <td>
+
+            </td>
+        </tr>
         <tr>
             <td>
               <span class="anchor" ></span>
@@ -441,6 +654,21 @@
             </td>
             <td>::</td>
             <td><strong>message</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>condition</strong></td>
             <td>
 
             </td>
@@ -487,7 +715,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='test_context.html'>test_context</a>),
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -546,7 +774,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='test_context.html'>test_context</a>),
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -645,7 +873,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='test_context.html'>test_context</a>),
+              class(<a href='test_suite_t.html'>test_suite_t</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>

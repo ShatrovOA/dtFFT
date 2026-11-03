@@ -73,7 +73,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.7% of total for source files.">299 statements</a>
+                 title=" 0.8% of total for source files.">301 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -685,19 +685,19 @@ large graphs.</div>
 <path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M576.59,-66.04C555.9,-72.05 531.06,-79.27 510.94,-85.12"/>
 <polygon fill="#ff0000" stroke="#ff0000" points="509.82,-81.8 501.2,-87.95 511.78,-88.52 509.82,-81.8"/>
 </g>
-<!-- sourcefile~test_pencils_f.f90 -->
+<!-- sourcefile~test_pencils.f90 -->
 <g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node9" class="node">
-<title>sourcefile~test_pencils_f.f90</title>
-<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node9"><a xlink:href="../sourcefile/test_pencils_f.f90.html" xlink:title="test_pencils_f.F90">
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="672,-24 566,-24 566,0 672,0 672,-24"/>
-<text text-anchor="middle" x="619" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_pencils_f.F90</text>
+<title>sourcefile~test_pencils.f90</title>
+<g id="a_sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_node9"><a xlink:href="../sourcefile/test_pencils.f90.html" xlink:title="test_pencils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="667.5,-24 570.5,-24 570.5,0 667.5,0 667.5,-24"/>
+<text text-anchor="middle" x="619" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_pencils.F90</text>
 </a>
 </g>
 </g>
-<!-- sourcefile~test_pencils_f.f90&#45;&gt;sourcefile~dtfft.f90 -->
+<!-- sourcefile~test_pencils.f90&#45;&gt;sourcefile~dtfft.f90 -->
 <g id="sourcefile~~dtfft_executor_mkl.f90~~AfferentGraph_edge8" class="edge">
-<title>sourcefile~test_pencils_f.f90&#45;&gt;sourcefile~dtfft.f90</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M568.39,-24.09C561.36,-26.6 554.36,-29.55 548,-33 526.89,-44.44 506.32,-62.53 492.16,-76.39"/>
+<title>sourcefile~test_pencils.f90&#45;&gt;sourcefile~dtfft.f90</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M570.24,-23.44C562.59,-26.09 554.92,-29.25 548,-33 526.89,-44.44 506.32,-62.53 492.16,-76.39"/>
 <polygon fill="#ff0000" stroke="#ff0000" points="489.56,-74.04 484.99,-83.59 494.53,-78.98 489.56,-74.04"/>
 </g>
 <!-- sourcefile~test_plan_save_load.f90 -->
@@ -965,23 +965,25 @@ large graphs.</div>
 <a id="ln-183" name="ln-183" href="#ln-183"></a><span class="w">        </span><span class="k">class</span><span class="p">(</span><span class="n">mkl_executor</span><span class="p">),</span><span class="w">  </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">self</span><span class="w">              </span><span class="c">!! MKL FFT Executor</span>
 <a id="ln-184" name="ln-184" href="#ln-184"></a>
 <a id="ln-185" name="ln-185" href="#ln-185"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"DftiFreeDescriptor"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_free_desc</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">plan_forward</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
-<a id="ln-186" name="ln-186" href="#ln-186"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">destroy</span>
-<a id="ln-187" name="ln-187" href="#ln-187"></a>
-<a id="ln-188" name="ln-188" href="#ln-188"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">mem_alloc</span><span class="p">(</span><span class="n">alloc_bytes</span><span class="p">,</span><span class="w"> </span><span class="n">ptr</span><span class="p">)</span>
-<a id="ln-189" name="ln-189" href="#ln-189"></a><span class="w">    </span><span class="c">!! Allocates MKL memory</span>
-<a id="ln-190" name="ln-190" href="#ln-190"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int64</span><span class="p">),</span><span class="w">           </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">alloc_bytes</span><span class="w">      </span><span class="c">!! Number of bytes to allocate</span>
-<a id="ln-191" name="ln-191" href="#ln-191"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">              </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="w">              </span><span class="c">!! Allocated pointer</span>
-<a id="ln-192" name="ln-192" href="#ln-192"></a>
-<a id="ln-193" name="ln-193" href="#ln-193"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"mkl_malloc"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_mem_alloc</span><span class="p">(</span><span class="n">alloc_bytes</span><span class="p">,</span><span class="w"> </span><span class="n">ptr</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
-<a id="ln-194" name="ln-194" href="#ln-194"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">mem_alloc</span>
-<a id="ln-195" name="ln-195" href="#ln-195"></a>
-<a id="ln-196" name="ln-196" href="#ln-196"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">mem_free</span><span class="p">(</span><span class="n">ptr</span><span class="p">)</span>
-<a id="ln-197" name="ln-197" href="#ln-197"></a><span class="w">    </span><span class="c">!! Frees MKL aligned memory</span>
-<a id="ln-198" name="ln-198" href="#ln-198"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">               </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="w">            </span><span class="c">!! Pointer to free</span>
-<a id="ln-199" name="ln-199" href="#ln-199"></a>
-<a id="ln-200" name="ln-200" href="#ln-200"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"mkl_free"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_mem_free</span><span class="p">(</span><span class="n">ptr</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
-<a id="ln-201" name="ln-201" href="#ln-201"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">mem_free</span>
-<a id="ln-202" name="ln-202" href="#ln-202"></a><span class="k">end module </span><span class="n">dtfft_executor_mkl_m</span>
+<a id="ln-186" name="ln-186" href="#ln-186"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="nb">allocated</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">istrides</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">deallocate</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">istrides</span><span class="p">)</span>
+<a id="ln-187" name="ln-187" href="#ln-187"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="nb">allocated</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">ostrides</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">deallocate</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">ostrides</span><span class="p">)</span>
+<a id="ln-188" name="ln-188" href="#ln-188"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">destroy</span>
+<a id="ln-189" name="ln-189" href="#ln-189"></a>
+<a id="ln-190" name="ln-190" href="#ln-190"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">mem_alloc</span><span class="p">(</span><span class="n">alloc_bytes</span><span class="p">,</span><span class="w"> </span><span class="n">ptr</span><span class="p">)</span>
+<a id="ln-191" name="ln-191" href="#ln-191"></a><span class="w">    </span><span class="c">!! Allocates MKL memory</span>
+<a id="ln-192" name="ln-192" href="#ln-192"></a><span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="n">int64</span><span class="p">),</span><span class="w">           </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">alloc_bytes</span><span class="w">      </span><span class="c">!! Number of bytes to allocate</span>
+<a id="ln-193" name="ln-193" href="#ln-193"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">              </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="w">              </span><span class="c">!! Allocated pointer</span>
+<a id="ln-194" name="ln-194" href="#ln-194"></a>
+<a id="ln-195" name="ln-195" href="#ln-195"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"mkl_malloc"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_mem_alloc</span><span class="p">(</span><span class="n">alloc_bytes</span><span class="p">,</span><span class="w"> </span><span class="n">ptr</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-196" name="ln-196" href="#ln-196"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">mem_alloc</span>
+<a id="ln-197" name="ln-197" href="#ln-197"></a>
+<a id="ln-198" name="ln-198" href="#ln-198"></a><span class="w">    </span><span class="k">subroutine </span><span class="n">mem_free</span><span class="p">(</span><span class="n">ptr</span><span class="p">)</span>
+<a id="ln-199" name="ln-199" href="#ln-199"></a><span class="w">    </span><span class="c">!! Frees MKL aligned memory</span>
+<a id="ln-200" name="ln-200" href="#ln-200"></a><span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="kt">c_ptr</span><span class="p">),</span><span class="w">               </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">ptr</span><span class="w">            </span><span class="c">!! Pointer to free</span>
+<a id="ln-201" name="ln-201" href="#ln-201"></a>
+<a id="ln-202" name="ln-202" href="#ln-202"></a><span class="w">        </span><span class="n">MKL_DFTI_CALL</span><span class="p">(</span><span class="w"> </span><span class="s2">"mkl_free"</span><span class="p">,</span><span class="w"> </span><span class="n">mkl_dfti_mem_free</span><span class="p">(</span><span class="n">ptr</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<a id="ln-203" name="ln-203" href="#ln-203"></a><span class="w">    </span><span class="k">end subroutine </span><span class="n">mem_free</span>
+<a id="ln-204" name="ln-204" href="#ln-204"></a><span class="k">end module </span><span class="n">dtfft_executor_mkl_m</span>
 </pre></div>
 
       </section>

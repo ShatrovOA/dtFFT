@@ -338,8 +338,16 @@ public :: get_conf_transpose, get_conf_reshape
         !! This option allows user to force specific access mode (`DTFFT_ACCESS_MODE_WRITE` or `DTFFT_ACCESS_MODE_READ`) when autotuning is disabled.
         !! When autotuning is enabled (e.g. `effort` is `DTFFT_EXHAUSTIVE`), this option is ignored and best access mode is selected automatically.
         integer(c_int32_t)          :: block_size
-
+        !! Tile edge length, in array elements, for blocked host kernels when autotuning
+        !! is disabled. This is the number of elements along each dimension, not the
+        !! total number of elements in a tile.
+        !!
+        !! Default is 0, which disables blocking. Valid values are 0, 4, 8, 16, 32, and 64.
         integer(c_int32_t)          :: co_threshold
+        !! Recursion threshold for cache-oblivious host kernels: stop subdividing a block
+        !! and process it directly when it contains no more than this many elements.
+        !!
+        !! Default is 1024. The value must be non-negative.
 #ifdef DTFFT_WITH_COMPRESSION
         logical(c_bool)           :: enable_compressed_backends
         !! Should compressed backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.
@@ -641,9 +649,11 @@ contains
         type(dtfft_access_mode_t),          optional, intent(in) :: access_mode
         !! Specifies the memory access pattern (optimization target) for local transposition in Generic backends.
         integer(int32),                     optional, intent(in) :: block_size
-        !!
+        !! Tile edge length, in array elements, for blocked host kernels when autotuning is disabled. 
+        !! This is the number of elements along each dimension, not the total number of elements in a tile.
         integer(int32),                     optional, intent(in) :: co_threshold
-        !!
+        !! Recursion threshold for cache-oblivious host kernels: stop subdividing a block
+        !! and process it directly when it contains no more than this many elements.
 #ifdef DTFFT_WITH_COMPRESSION
         logical,                            optional, intent(in)  :: enable_compressed_backends
         !! Should compressed backends be enabled when `effort` is `DTFFT_PATIENT` or `DTFFT_EXHAUSTIVE`.

@@ -62,6 +62,7 @@ use dtfft_errors
 use dtfft_interface_cuda_runtime
 use dtfft_kernel_device,    only: kernel_device
 #endif
+use test_suite
 use dtfft_kernel_host,      only: kernel_host
 use dtfft_parameters
 use dtfft_pencil,           only: pencil
@@ -106,10 +107,18 @@ implicit none
     type(pencil), target    :: pencils(1)
     TYPE_MPI_COMM           :: comms(1)
     integer(int32)          :: n_passed, n_skipped
+    type(test_suite_t)      :: test
 
-    call MPI_Init(ierr)
+    call test%create("Compressed backends")
+
+    ! call MPI_Init(ierr)
     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
+
+    if ( comm_size == 1 ) then
+        call MPI_Finalize(ierr)
+        stop 77
+    endif
 
     platforms(1) = DTFFT_PLATFORM_HOST
     n_platforms = 1
@@ -158,20 +167,6 @@ implicit none
     storages(1) = FLOAT_STORAGE_SIZE
     storages(2) = DOUBLE_STORAGE_SIZE
 
-    if ( comm_rank == 0 ) then
-        write(output_unit, '(a)')    "=========================================="
-        write(output_unit, '(a)')    "  test_backend_compressed"
-        write(output_unit, '(a)')    "=========================================="
-        if ( comm_size == 1 ) then
-            write(error_unit, '(a)') "  WARNING: a single rank has nothing but self communication to do,"
-            write(error_unit, '(a)') "           which bypasses compression. Run with 2 ranks or more."
-        endif
-        write(output_unit, '(a,i0)') "  Ranks: ", comm_size
-        write(output_unit, '(a,i0)') "  Platforms: ", n_platforms
-        write(output_unit, '(a,i0)') "  Compressors: ", n_compressors
-        write(output_unit, '(a)')    ""
-    endif
-
     n_passed = 0
     n_skipped = 0
     block
@@ -208,12 +203,7 @@ implicit none
         enddo
     endblock
 
-    if ( comm_rank == 0 ) then
-        write(output_unit, '(a)')           ""
-        write(output_unit, '(a,i0,a,i0,a)') "  ALL ", n_passed, " CASES PASSED, ", n_skipped, " SKIPPED"
-    endif
-
-    call MPI_Finalize(ierr)
+    call test%finalize()
 
 contains
 
@@ -301,32 +291,34 @@ contains
         endif
         ! ---- compressor is shared by pack and unpack kernels, exactly as reshape handle does ----
         call allocate_compressor(info%lib, compressor)
-        if ( .not. allocated(compressor) ) then
-            INTERNAL_ERROR("run_case: Unknown compression lib")
-        endif
+        call test%assert_true("allocated(compressor)", allocated(compressor))
+
         err_local = compressor%create(2_int8, config_for_mode(info%lib, mode, is_float), platform, &
                                       base_type, DIMS_PERMUTE_NONE)
         if ( .not. is_supported ) then
             ! Unsupported combination must be rejected right here instead of failing
             ! somewhere inside compression of the very first block
-            if ( err_local == DTFFT_SUCCESS ) then
-                INTERNAL_ERROR("Compressor accepted a mode it does not support")
-            endif
-            if (       err_local /= DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED      &
+            call test%assert_false("err_local == DTFFT_SUCCESS", err_local == DTFFT_SUCCESS)
+            call test%assert_false("err_local: "//dtfft_get_error_string(err_local), err_local /= DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED      &
                 .and.  err_local /= DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED      &
-                .and.  err_local /= DTFFT_ERROR_COMPRESSION_INVALID_MODE ) then
-                print*,'Unexpected error: '//dtfft_get_error_string(err_local)
-                INTERNAL_ERROR("Unexpected error for an unsupported mode")
-            endif
+                .and.  err_local /= DTFFT_ERROR_COMPRESSION_INVALID_MODE)
+
+            ! if (       err_local /= DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED      &
+            !     .and.  err_local /= DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED      &
+            !     .and.  err_local /= DTFFT_ERROR_COMPRESSION_INVALID_MODE ) then
+            !     print*,'Unexpected error: '//dtfft_get_error_string(err_local)
+            !     INTERNAL_ERROR("Unexpected error for an unsupported mode")
+            ! endif
             deallocate( compressor )
             n_skipped = n_skipped + 1
             if ( comm_rank == 0 ) call report(b, platform, info, mode, ny_global, base_storage, "SKIPPED", 0._real64, 1._real64)
             return
         endif
-        if ( err_local /= DTFFT_SUCCESS ) then
-            print*,'Failed to create compressor: '//dtfft_get_error_string(err_local)
-            INTERNAL_ERROR("compressor%create failed")
-        endif
+        call test%assert_true("Failed to create compressor", err_local == DTFFT_SUCCESS)
+        ! if ( err_local /= DTFFT_SUCCESS ) then
+        !     print*,'Failed to create compressor: '//dtfft_get_error_string(err_local)
+        !     INTERNAL_ERROR("compressor%create failed")
+        ! endif
 
         ! ---- data distribution: `ny_local` columns of `NX` scalars each ----
         call local_size(ny_global, comm_size, comm_rank, ny_start, ny_local)
@@ -411,10 +403,7 @@ contains
 #endif
 
         call backend%execute(in, out, stream, aux, EXEC_BLOCKING, err_local)
-        if ( err_local /= DTFFT_SUCCESS ) then
-            print*,'execute failed: '//dtfft_get_error_string(err_local)
-            INTERNAL_ERROR("backend%execute failed")
-        endif
+        call test%check("backend execute", err_local, DTFFT_SUCCESS)
 
 #ifdef DTFFT_WITH_CUDA
         if ( platform == DTFFT_PLATFORM_CUDA ) then
@@ -431,19 +420,21 @@ contains
             if ( recv_counts(r + 1) == 0 ) cycle
             call local_size(ny_global, comm_size, r, ny_start, src_ny_local)
             call local_size(src_ny_local, comm_size, comm_rank, cy_start, cy_count)
-            if ( NX * cy_count /= recv_counts(r + 1) ) then
-                INTERNAL_ERROR("Test is broken: expected block size differs from received one")
-            endif
+            call test%assert_false("expected block size differs from received one", NX * cy_count /= recv_counts(r + 1))
+            ! if ( NX * cy_count /= recv_counts(r + 1) ) then
+            !     INTERNAL_ERROR("Test is broken: expected block size differs from received one")
+            ! endif
             error = block_error(host, recv_displs(r + 1), recv_counts(r + 1), r, NX * cy_start, is_float)
             max_error = max(max_error, error)
         enddo
 
         threshold = error_threshold(mode, is_float)
-        if ( .not. (max_error <= threshold) ) then
-            print '(a,i0,a,ES16.8,a,ES16.8)', 'FAIL on rank ', comm_rank, ': error = ', max_error, &
-                                              ', threshold = ', threshold
-            INTERNAL_ERROR("Exchanged data is too far from expected one")
-        endif
+        call test%assert_true('FAIL on rank '//to_str(comm_rank)//': error = '//to_str(max_error)//', threshold = '//to_str(threshold), max_error <= threshold)
+        ! if ( .not. (max_error <= threshold) ) then
+        !     print '(a,i0,a,ES16.8,a,ES16.8)', 'FAIL on rank ', comm_rank, ': error = ', max_error, &
+        !                                       ', threshold = ', threshold
+        !     INTERNAL_ERROR("Exchanged data is too far from expected one")
+        ! endif
         rate = compressor%get_average_rate()
 
         ! Every rank checks its own data, so only rank local error is reported here
@@ -729,27 +720,4 @@ contains
             allocate( backend_mpi :: backend )
         endif
     end subroutine allocate_backend
-
-!     subroutine allocate_compressor(lib, compressor)
-!     !! Allocates compressor of a dynamic type that corresponds to `lib`
-!         type(dtfft_compression_lib_t),              intent(in)  :: lib          !! Compression library
-!         class(abstract_compressor), allocatable,    intent(out) :: compressor   !! Compressor to allocate
-
-!         select case ( lib%val )
-! #ifdef DTFFT_WITH_ZFP
-!         case ( DTFFT_COMPRESSION_LIB_ZFP%val )
-!             allocate( compressor_zfp :: compressor )
-! #endif
-! #ifdef DTFFT_WITH_SZ3
-!         case ( DTFFT_COMPRESSION_LIB_SZ3%val )
-!             allocate( compressor_sz3 :: compressor )
-! #endif
-! #ifdef DTFFT_WITH_SZP
-!         case ( DTFFT_COMPRESSION_LIB_SZP%val )
-!             allocate( compressor_szp :: compressor )
-! #endif
-!         case default
-!             INTERNAL_ERROR("Unknown compression lib")
-!         endselect
-!     end subroutine allocate_compressor
 end program test_backend_compressed

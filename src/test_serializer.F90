@@ -8,30 +8,19 @@ program test_serializer
 use iso_fortran_env
 use dtfft_errors
 use dtfft_serializer, only: serializer
-use dtfft_test_utils, only: test_context
+use test_suite, only: test_suite_t
 #include "_dtfft_mpi.h"
 implicit none
 
     character(len=*), parameter :: filename = "test_serializer.dat"
-    integer(int32) :: comm_rank, ierr
-    type(test_context) :: test
+    integer(int32) :: ierr
+    type(test_suite_t) :: test
 
-    call MPI_Init(ierr)
-    call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
+    call test%create("Serializer")
 
     call test_mixed_roundtrip()
 
-    if ( comm_rank == 0 ) then
-        if ( test%failure_count() == 0 ) then
-            write(output_unit, "(a)") "test_serializer: all tests PASSED"
-        else
-            write(output_unit, "(a,i0,a)") "test_serializer: ", test%failure_count(), " test(s) FAILED"
-        endif
-        flush(output_unit)
-    endif
-
-    call MPI_Finalize(ierr)
-    if ( test%failure_count() /= 0 ) error stop 1
+    call test%finalize()
 
 contains
 
@@ -49,6 +38,7 @@ contains
         character(len=8) :: collective_text, loaded_collective_text
         logical :: collective_flag, loaded_collective_flag
         integer(int8) :: tail_i8, loaded_tail_i8
+        integer(int32) :: unit, io_stat
 
         i8 = -101_int8
         i16 = -12345_int16
@@ -111,11 +101,6 @@ contains
         call test%check("collective character", loaded_collective_text == collective_text)
         call test%check("collective logical", loaded_collective_flag .eqv. collective_flag)
         call test%check("local value after collective", loaded_tail_i8 == tail_i8)
-        call delete_file()
-    end subroutine test_mixed_roundtrip
-
-    subroutine delete_file()
-        integer(int32) :: unit, io_stat
 
         call MPI_Barrier(MPI_COMM_WORLD, ierr)
         if ( comm_rank == 0 ) then
@@ -123,6 +108,6 @@ contains
             if ( io_stat == 0 ) close(unit, status="delete")
         endif
         call MPI_Barrier(MPI_COMM_WORLD, ierr)
-    end subroutine delete_file
+    end subroutine test_mixed_roundtrip
 
 end program test_serializer

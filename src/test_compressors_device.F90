@@ -8,6 +8,8 @@ use dtfft_errors
 use dtfft_interface_cuda_runtime
 use dtfft_parameters
 use dtfft_utils
+use test_suite
+#include "_dtfft_cuda.h"
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
 implicit none
@@ -37,8 +39,9 @@ implicit none
     integer(int32), parameter :: DIMS(3) = [N, N, N]
     integer(int32) :: ierr
     integer(c_int) :: device_count
+    type(test_suite_t) :: test
 
-    call MPI_Init(ierr)
+    call test%create("Compressors device")
     ierr = cudaGetDeviceCount(device_count)
 #ifdef DTFFT_WITH_MOCK_ENABLED
     device_count = 0_c_int
@@ -67,8 +70,7 @@ implicit none
         call test_round_trips(compressors(i))
     enddo
 
-    print *, 'ALL TESTS PASSED'
-    call MPI_Finalize(ierr)
+    call test%finalize()
 
 contains
 
@@ -157,12 +159,10 @@ contains
         call name%destroy()
 
         call allocate_compressor(info%lib, compressor)
-        if ( .not. allocated(compressor) ) then
-            INTERNAL_ERROR("test_round_trip: Unknown compression lib")
-        endif
-        call check_error( compressor%create(ndims, config_for_mode(mode, is_float), DTFFT_PLATFORM_CUDA,   &
-                                            base_type, permutation),                        &
-                          DTFFT_SUCCESS, "create for round trip" )
+        call test%assert_true("Allocated compressor", allocated(compressor))
+
+        call test%check("compressor%create", compressor%create(ndims, config_for_mode(mode, is_float), DTFFT_PLATFORM_CUDA,   &
+                                            base_type, permutation), DTFFT_SUCCESS)
 
         uncompressed_bytes = storage_size * product(int(pack_dims, int64))
         ! Buffers are always able to hold uncompressed data
@@ -171,11 +171,10 @@ contains
 
         call fill_reference(in, n_scalars, is_float)
 
-        ! call check_cuda(cudaStreamCreate(stream), 'create stream')
-        call check_cuda(cudaMalloc(d_in, uncompressed_bytes), 'allocate input')
-        call check_cuda(cudaMalloc(d_out, uncompressed_bytes), 'allocate compressed buffer')
-        call check_cuda(cudaMemcpy(d_in, in, uncompressed_bytes, cudaMemcpyHostToDevice), 'copy input')
-        call check_cuda(cudaStreamCreate(stream), "cudaStreamCreate")
+        CUDA_CALL(cudaMalloc(d_in, uncompressed_bytes))
+        CUDA_CALL(cudaMalloc(d_out, uncompressed_bytes))
+        CUDA_CALL(cudaMemcpy(d_in, in, uncompressed_bytes, cudaMemcpyHostToDevice))
+        CUDA_CALL(cudaStreamCreate(stream))
 
         compressed_bytes = compressor%compress(pack_dims, 0, d_in, d_out, stream)
         if ( n_scalars == 0 ) then
@@ -190,10 +189,9 @@ contains
         ! Wipe destination buffer to make sure data is actually restored by decompressor
         call wipe(in, n_scalars, is_float)
 
-        
         call compressor%decompress(unpack_dims, 0, d_out, d_in, stream, compressed_bytes)
 
-        call check_cuda(cudaMemcpy(in, d_in, uncompressed_bytes, cudaMemcpyDeviceToHost), 'copy double output')
+        CUDA_CALL(cudaMemcpy(in, d_in, uncompressed_bytes, cudaMemcpyDeviceToHost))
 
         error = max_error(in, n_scalars, is_float)
         threshold = error_threshold(mode, is_float)
@@ -210,9 +208,9 @@ contains
             endif
         endif
 
-        call check_cuda(cudaFree(d_in), "free in")
-        call check_cuda(cudaFree(d_out), "free out")
-        call check_cuda(cudaStreamDestroy(stream), "free stream")
+        CUDA_CALL(cudaFree(d_in))
+        CUDA_CALL(cudaFree(d_out))
+        CUDA_CALL(cudaStreamDestroy(stream))
 
         call compressor%destroy()
         deallocate( compressor )
@@ -354,76 +352,6 @@ contains
             enddo
         endif
     end subroutine fill_reference
-
-
-    subroutine free_device_buffers(input, compressed, output, stream)
-        type(c_ptr), intent(inout) :: input, compressed, output
-        type(dtfft_stream_t), intent(inout) :: stream
-
-        call check_cuda(cudaFree(input), 'free input')
-        call check_cuda(cudaFree(compressed), 'free compressed buffer')
-        call check_cuda(cudaFree(output), 'free output')
-        call check_cuda(cudaStreamDestroy(stream), 'destroy stream')
-    end subroutine free_device_buffers
-
-    subroutine check_cuda(error_code, operation)
-        integer(c_int), intent(in) :: error_code
-        character(len=*), intent(in) :: operation
-
-        if ( error_code /= cudaSuccess ) then
-            print *, 'CUDA failure during '//operation
-            error stop 1
-        endif
-    end subroutine check_cuda
-
-    ! subroutine check_dtfft(error_code, operation)
-    !     integer(int32), intent(in) :: error_code
-    !     character(len=*), intent(in) :: operation
-
-    !     if ( error_code /= DTFFT_SUCCESS ) then
-    !         print *, 'dtFFT failure during '//operation//': '//dtfft_get_error_string(error_code)
-    !         error stop 1
-    !     endif
-    ! end subroutine check_dtfft
-
-!     subroutine allocate_compressor(lib, compressor)
-!     !! Allocates compressor of a dynamic type that corresponds to `lib`
-!         type(dtfft_compression_lib_t),              intent(in)  :: lib          !! Compression library
-!         class(abstract_compressor), allocatable,    intent(out) :: compressor   !! Compressor to allocate
-
-!         select case ( lib%val )
-! #ifdef DTFFT_WITH_ZFP
-!         case ( DTFFT_COMPRESSION_LIB_ZFP%val )
-!             allocate( compressor_zfp :: compressor )
-! #endif
-! ! #ifdef DTFFT_WITH_CUSZ
-! !         case ( DTFFT_COMPRESSION_LIB_CUSZ%val )
-! !             allocate( compressor_cusz :: compressor )
-! ! #endif
-! #ifdef DTFFT_WITH_CUSZP
-!         case ( DTFFT_COMPRESSION_LIB_CUSZP%val )
-!             allocate( compressor_cuszp :: compressor )
-! #endif
-! #ifdef DTFFT_WITH_BITCOMP
-!         case ( DTFFT_COMPRESSION_LIB_BITCOMP%val )
-!             allocate( compressor_bitcomp :: compressor )
-! #endif
-!         case default
-!             INTERNAL_ERROR("Unknown compression lib")
-!         endselect
-!     end subroutine allocate_compressor
-
-    subroutine check_error(actual, expected, message)
-    !! Aborts execution in case `actual` error code differs from `expected` one
-        integer(int32),     intent(in)  :: actual   !! Obtained error code
-        integer(int32),     intent(in)  :: expected !! Expected error code
-        character(len=*),   intent(in)  :: message  !! Test description
-
-        if ( actual == expected ) return
-        print*,'Expected: '//dtfft_get_error_string(expected)
-        print*,'Obtained: '//dtfft_get_error_string(actual)
-        INTERNAL_ERROR(message)
-    end subroutine check_error
 
     subroutine wipe(ptr, n_scalars, is_float)
     !! Overwrites buffer with zeros

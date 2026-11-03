@@ -93,6 +93,8 @@ public :: get_plan_kind_from_file
         !! Plan is transpose only
         logical                                       :: is_aux_alloc = .false.
         !! Auxiliary buffer is allocated internally
+        logical                                       :: is_global_reshape_aux_required = .false.
+        !! At least one rank requires reshape/transpose workspace
         logical                                       :: is_z_slab = .false.
         !! Using Z-slab optimization
         !!
@@ -1445,7 +1447,7 @@ contains
         if ( .not. self%is_created ) ierr = DTFFT_ERROR_PLAN_NOT_CREATED
         CHECK_ERROR_AND_RETURN
         if ( self%is_reshape_enabled ) then
-        get_aux_bytes = self%rplan%get_aux_bytes()
+            get_aux_bytes = self%rplan%get_aux_bytes()
         endif
 
         get_aux_bytes = max( get_aux_bytes, self%plan%get_aux_bytes() )
@@ -2297,6 +2299,7 @@ contains
 
         self%is_reshape_enabled = .false.
         self%is_final_reshape_enabled = .false.
+        self%is_global_reshape_aux_required = .false.
         self%is_custom_pencil = present(pencil)
         call self%user_pencil%destroy()
         if ( present(pencil) ) then
@@ -2389,6 +2392,15 @@ contains
         else
             CHECK_INTERNAL_CALL( self%plan%create(self%platform, dims, comm_, self%effort, base_dtype, base_storage, self%comm, self%comms, self%pencils) )
         endif
+
+        block
+            integer(int32) :: local_aux_required, global_aux_required
+
+            local_aux_required = merge(1_int32, 0_int32, &
+                self%plan%is_aux_needed() .or. self%rplan%is_aux_needed())
+            call MPI_Allreduce(local_aux_required, global_aux_required, 1, MPI_INTEGER4, MPI_MAX, self%comm, ierr)
+            self%is_global_reshape_aux_required = global_aux_required /= 0
+        endblock
 
         self%is_z_slab = self%plan%get_z_slab()
         self%is_y_slab = self%plan%get_y_slab()
@@ -2587,8 +2599,12 @@ contains
         integer(int32) :: ierr
         logical :: is_reshape_aux_required
 
-        shift_size = self%get_alloc_bytes()
-        is_reshape_aux_required = self%plan%is_aux_needed() .or. self%rplan%is_aux_needed()
+        shift_size = max(self%get_alloc_bytes(), FLOAT_STORAGE_SIZE)
+        if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE ) then
+            is_reshape_aux_required = self%is_global_reshape_aux_required
+        else
+            is_reshape_aux_required = self%plan%is_aux_needed() .or. self%rplan%is_aux_needed()
+        endif
         aux2_ptr = c_null_ptr
         if ( self%is_aux_alloc .or. .not.is_null_ptr(aux) ) then
             if ( self%is_aux_alloc ) then
@@ -2596,16 +2612,11 @@ contains
             else
                 aux_ptr = aux
             endif
-            if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_reshape_aux_required) then
+            if ( called_by == CHECK_AUX_CALLED_BY_EXECUTE .and. is_reshape_aux_required ) then
                 aux2_ptr = ptr_offset(aux_ptr, shift_size)
             endif
             return
         endif
-
-        ! if ( called_by == CHECK_AUX_CALLED_BY_RESHAPE .and. .not. is_reshape_aux_required) then
-        !   aux_ptr = c_null_ptr
-        !   return
-        ! endif
 
         alloc_size = self%get_aux_bytes()
         WRITE_DEBUG("Allocating auxiliary buffer of "//to_str(alloc_size)//" bytes")

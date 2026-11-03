@@ -5,7 +5,7 @@ use dtfft_interface_cuda_runtime, only: device_props
 use dtfft_parameters
 use dtfft_rtc_block_optimizer
 use dtfft_utils, only: string
-use dtfft_test_utils, only: test_context
+use test_suite, only: test_suite_t
 #include "_dtfft_mpi.h"
 implicit none
     !! Kernel cases: each row encodes (kernel_type_val, tile_dim, other_dim, needs_neighbor)
@@ -48,7 +48,7 @@ implicit none
     integer(int32) :: invalid_conflicts
     real(real32) :: scores(MAX_CANDIDATES)
     integer(int32) :: ierr
-    type(test_context) :: test
+    type(test_suite_t) :: test
 
     call MPI_Init(ierr)
 
@@ -65,8 +65,7 @@ implicit none
 
     ! --- bank conflicts: invalid config (block_rows > tile_size) must return MAX_INT32 ---
     invalid_conflicts = count_bank_conflicts(16, 32, FLOAT_STORAGE_SIZE, 1)
-    call test%assert_true(invalid_conflicts == MAX_INT32, &
-        "count_bank_conflicts must reject invalid configuration (block_rows > tile_size)")
+    call test%assert_true("count_bank_conflicts must reject invalid configuration (block_rows > tile_size)", invalid_conflicts == MAX_INT32)
 
     ! --- run all combinations of dims x kernel_type x architecture ---
     do d = 1, N_DIMS_CASES
@@ -119,21 +118,16 @@ contains
         end if
 
         call generate_candidates(work_dims, tile_dim, other_dim, FLOAT_STORAGE_SIZE, props, candidates, num_candidates)
-        call test%assert_true(num_candidates >= 0,         prefix//": num_candidates negative")
-        call test%assert_true(num_candidates <= MAX_CANDIDATES, prefix//": num_candidates > MAX_CANDIDATES")
-        call test%assert_true(num_candidates > 0,         prefix//": num_candidates positive")
+        call test%assert_true(prefix//": num_candidates negative", num_candidates >= 0)
+        call test%assert_true(prefix//": num_candidates > MAX_CANDIDATES", num_candidates <= MAX_CANDIDATES)
+        call test%assert_true(prefix//": num_candidates positive", num_candidates > 0)
 
         do i = 1, num_candidates
-            call test%assert_true(candidates(i)%tile_size >= candidates(i)%block_rows, &
-                prefix//": tile_size < block_rows")
-            call test%assert_true(candidates(i)%tile_size * candidates(i)%block_rows <= props%max_threads_per_block, &
-                prefix//": candidate exceeds max_threads_per_block")
-            call test%assert_true(is_power_of_two(candidates(i)%tile_size), &
-                prefix//": tile_size not power of two")
-            call test%assert_true(is_power_of_two(candidates(i)%block_rows), &
-                prefix//": block_rows not power of two")
-            call test%assert_true(mod(candidates(i)%tile_size * candidates(i)%block_rows, 32) == 0, &
-                prefix//": threads not multiple of warp size")
+            call test%assert_true(prefix//": tile_size < block_rows", candidates(i)%tile_size >= candidates(i)%block_rows)
+            call test%assert_true(prefix//": candidate exceeds max_threads_per_block", candidates(i)%tile_size * candidates(i)%block_rows <= props%max_threads_per_block)
+            call test%assert_true(prefix//": tile_size not power of two", is_power_of_two(candidates(i)%tile_size))
+            call test%assert_true(prefix//": block_rows not power of two", is_power_of_two(candidates(i)%block_rows))
+            call test%assert_true(prefix//": threads not multiple of warp size", mod(candidates(i)%tile_size * candidates(i)%block_rows, 32) == 0)
 
             if (needs_neighbor) then
                 score = evaluate_analytical_performance(work_dims, tile_dim, other_dim, &
@@ -142,8 +136,7 @@ contains
                 score = evaluate_analytical_performance(work_dims, tile_dim, other_dim, &
                     kernel_type, candidates(i), props, FLOAT_STORAGE_SIZE)
             end if
-            call test%assert_true(score >= 0.0_real32 .and. score <= 1.0_real32, &
-                prefix//": float score out of [0,1]")
+            call test%assert_true(prefix//": float score out of [0,1]", score >= 0.0_real32 .and. score <= 1.0_real32)
 
             if (needs_neighbor) then
                 score = evaluate_analytical_performance(work_dims, tile_dim, other_dim, &
@@ -152,8 +145,7 @@ contains
                 score = evaluate_analytical_performance(work_dims, tile_dim, other_dim, &
                     kernel_type, candidates(i), props, DOUBLE_STORAGE_SIZE)
             end if
-            call test%assert_true(score >= 0.0_real32 .and. score <= 1.0_real32, &
-                prefix//": double score out of [0,1]")
+            call test%assert_true(prefix//": double score out of [0,1]", score >= 0.0_real32 .and. score <= 1.0_real32)
 
             scores(i) = score
         end do
@@ -161,12 +153,11 @@ contains
         call sort_candidates_by_score(scores(1:num_candidates), num_candidates, sorted_indices(1:num_candidates))
 
         do i = 2, num_candidates
-            call test%assert_true(scores(sorted_indices(i - 1)) >= scores(sorted_indices(i)), &
-                prefix//": sort ordering violated")
+            call test%assert_true(prefix//": sort ordering violated", scores(sorted_indices(i - 1)) >= scores(sorted_indices(i)))
         end do
 
         cfg = candidates(sorted_indices(1))
-        call test%assert_true(cfg%padding >= 1, prefix//": best candidate has zero padding")
+        call test%assert_true(prefix//": best candidate has zero padding", cfg%padding >= 1)
 
         write(output_unit,'(2a,a,i0,a,i0,a,i0)') &
             "  OK ", trim(prefix), " best=", cfg%tile_size, "x", cfg%block_rows, "+", cfg%padding
