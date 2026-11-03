@@ -15,19 +15,3 @@ foreach(test ${TEST_SOURCES})
         SKIP_RETURN_CODE 77
     )
 endforeach()
-
-# if ( DTFFT_WITH_CUSZ )
-#   dtfft_add_test(test_compressor_cusz test_compressor_cusz.F90
-#     MIN_PROCS 1
-#     MAX_PROCS 1
-#     SKIP_RETURN_CODE 77
-#   )
-# endif()
-
-# if ( DTFFT_WITH_CUSZP )
-#   dtfft_add_test(test_compressor_cuszp test_compressor_cuszp.F90
-#     MIN_PROCS 1
-#     MAX_PROCS 1
-#     SKIP_RETURN_CODE 77
-#   )
-# endif()

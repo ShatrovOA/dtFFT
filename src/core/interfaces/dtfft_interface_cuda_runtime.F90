@@ -614,9 +614,9 @@ contains
 
         ptr = mem_alloc_host(count)
         if( is_null_ptr(ptr) ) then
-        cudaError_t = cudaErrorMemoryAllocation
+            cudaError_t = cudaErrorMemoryAllocation
         else
-        cudaError_t = cudaSuccess
+            cudaError_t = cudaSuccess
         end if
     end function cudaMalloc
 

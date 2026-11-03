@@ -27,21 +27,6 @@ use dtfft_abstract_backend,             only: backend_helper
 use dtfft_abstract_compressor
 use dtfft_compressor
 use dtfft_config
-! #ifdef DTFFT_WITH_ZFP
-! use dtfft_compressor_zfp,               only: compressor_zfp
-! #endif
-! #ifdef DTFFT_WITH_SZ3
-! use dtfft_compressor_sz3,               only: compressor_sz3
-! #endif
-! #ifdef DTFFT_WITH_SZP
-! use dtfft_compressor_szp,               only: compressor_szp
-! #endif
-! ! #ifdef DTFFT_WITH_CUSZ
-! ! use dtfft_compressor_cusz,              only: compressor_cusz
-! ! #endif
-! #ifdef DTFFT_WITH_CUSZP
-! use dtfft_compressor_cuszp,             only: compressor_cuszp
-! #endif
 use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil,                       only: pencil_init, pencil
@@ -583,13 +568,15 @@ contains
         integer(int64),         intent(in)    :: alloc_bytes        !! Number of bytes to allocate
         type(c_ptr),            intent(out)   :: ptr                !! Pointer to the allocated memory
         integer(int32),         intent(out)   :: error_code         !! Error code
+        integer(int64)                        :: alloc_bytes_
 #ifdef DTFFT_WITH_CUDA
         integer(int64)  :: free_mem_avail, total_mem_avail
 #endif
 
+        alloc_bytes_ = max(alloc_bytes, DOUBLE_STORAGE_SIZE)
         error_code = DTFFT_SUCCESS
         if ( platform == DTFFT_PLATFORM_HOST ) then
-            ptr = mem_alloc_host(alloc_bytes)
+            ptr = mem_alloc_host(alloc_bytes_)
 #ifdef DTFFT_WITH_CUDA
         else
             CUDA_CALL( cudaMemGetInfo(free_mem_avail, total_mem_avail) )
@@ -598,24 +585,24 @@ contains
             integer(int64) :: min_mem, max_mem, min_free_mem, max_free_mem
             integer(int32) :: mpi_err
 
-                call MPI_Allreduce(alloc_bytes, max_mem, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
-                call MPI_Allreduce(alloc_bytes, min_mem, 1, MPI_INTEGER8, MPI_MIN, comm, mpi_err)
+                call MPI_Allreduce(alloc_bytes_, max_mem, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
+                call MPI_Allreduce(alloc_bytes_, min_mem, 1, MPI_INTEGER8, MPI_MIN, comm, mpi_err)
                 call MPI_Allreduce(free_mem_avail, max_free_mem, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
                 call MPI_Allreduce(free_mem_avail, min_free_mem, 1, MPI_INTEGER8, MPI_MIN, comm, mpi_err)
                 WRITE_DEBUG("Trying to allocate "//to_str(min_mem)//"/"//to_str(max_mem)//" (min/max) bytes for backend: '"//dtfft_get_backend_string(backend)//"'")
                 WRITE_DEBUG("Free memory available: "//to_str(min_free_mem)//"/"//to_str(max_free_mem)//" (min/max) bytes")
             endblock
 # endif
-            if ( alloc_bytes > free_mem_avail ) then
+            if ( alloc_bytes_ > free_mem_avail ) then
                 error_code = DTFFT_ERROR_ALLOC_FAILED
                 return
             endif
             if ( is_backend_nccl(backend) ) then
 # ifdef DTFFT_WITH_NCCL
 #   ifdef NCCL_HAVE_MEMALLOC
-                error_code = ncclMemAlloc(ptr, alloc_bytes)
+                error_code = ncclMemAlloc(ptr, alloc_bytes_)
 #   else
-                error_code = cudaMalloc(ptr, alloc_bytes)
+                error_code = cudaMalloc(ptr, alloc_bytes_)
 #   endif
 #   ifdef NCCL_HAVE_COMMREGISTER
                 if ( error_code == cudaSuccess .and. helper%should_register ) then
@@ -631,7 +618,7 @@ contains
                         endif
                         helper%nccl_register_size = helper%nccl_register_size + 1
 
-                        NCCL_CALL( ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes, handle) )
+                        NCCL_CALL( ncclCommRegister(helper%nccl_comm, ptr, alloc_bytes_, handle) )
                         helper%nccl_register(1, helper%nccl_register_size) = ptr
                         helper%nccl_register(2, helper%nccl_register_size) = handle
                         WRITE_DEBUG("Registered pointer "//to_str(transfer(ptr, int64)))
@@ -647,7 +634,7 @@ contains
                 integer(int64)  :: max_alloc_bytes
                 integer(int32)  :: mpi_err
 
-                    call MPI_Allreduce(alloc_bytes, max_alloc_bytes, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
+                    call MPI_Allreduce(alloc_bytes_, max_alloc_bytes, 1, MPI_INTEGER8, MPI_MAX, comm, mpi_err)
                     ptr = nvshmem_malloc(max_alloc_bytes)
                     if ( is_null_ptr(ptr) ) error_code = DTFFT_ERROR_ALLOC_FAILED
                 endblock
@@ -655,7 +642,7 @@ contains
         INTERNAL_ERROR("not DTFFT_WITH_NVSHMEM")
 # endif
             else
-                error_code = cudaMalloc(ptr, alloc_bytes)
+                error_code = cudaMalloc(ptr, alloc_bytes_)
             endif
 #endif
         endif

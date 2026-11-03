@@ -9,7 +9,7 @@ use dtfft_parameters
 use dtfft_pencil, only: pencil
 use dtfft_reshape_handle_datatype, only: reshape_handle_datatype
 use dtfft_reshape_handle_generic, only: reshape_handle_generic
-use dtfft_test_utils, only: test_context
+use test_suite, only: test_suite_t
 ! #ifdef DTFFT_WITH_COMPRESSION
 ! use dtfft_config, only: get_conf_reshape
 ! #endif
@@ -17,7 +17,7 @@ use dtfft_test_utils, only: test_context
 implicit none
     integer(int32) :: DIMS(3) = [32, 24, 40]
     integer(int32) :: comm_rank, comm_size, ierr
-    type(test_context) :: test
+    type(test_suite_t) :: test
 #ifdef DTFFT_WITH_RMA
     type(dtfft_backend_t) :: backends(5)
 #else

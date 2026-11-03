@@ -236,6 +236,7 @@ public :: ncclDataType
     ! Storage for MPI requests in mock mode
     TYPE_MPI_REQUEST, allocatable  :: requests(:)
     integer(int32)    :: num_requests
+    logical           :: did_work
 #endif
 
 contains
@@ -313,6 +314,7 @@ contains
         else
             ncclResult_t = 1  ! ncclError
         end if
+        did_work = .true.
     end function ncclSend
 
     function ncclRecv(recvbuff, count, datatype, peer, comm, stream) result(ncclResult_t)
@@ -339,6 +341,7 @@ contains
         else
             ncclResult_t = 1  ! ncclError
         end if
+        did_work = .true.
     end function ncclRecv
 
     function ncclGroupStart() result(ncclResult_t)
@@ -353,6 +356,7 @@ contains
         allocate(requests(comm_size * 2))  ! Allocate enough space for all sends and receives
         num_requests = 0
         ncclResult_t = 0  ! ncclSuccess
+        did_work = .false.
     end function ncclGroupStart
 
     function ncclGroupEnd() result(ncclResult_t)
@@ -363,7 +367,7 @@ contains
         if ( .not. allocated(requests) ) then
             INTERNAL_ERROR("ncclGroupEnd: mpi_requests should be allocated at this point")
         end if
-        if ( num_requests == 0 ) then
+        if ( num_requests == 0 .and. did_work ) then
             INTERNAL_ERROR("ncclGroupEnd: num_requests should be greater than 0 at this point")
         end if
 

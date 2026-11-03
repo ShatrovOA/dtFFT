@@ -1,7 +1,7 @@
 set(TEST_SOURCES
   "test_plan_save_load.F90"
   "test_serializer.F90"
-  "test_pencils_f.F90"
+  "test_pencils.F90"
   "test_mem_alloc.F90"
 )
 

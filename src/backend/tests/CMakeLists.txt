@@ -18,5 +18,6 @@ foreach(test ${TEST_SOURCES})
 		LINKER_LANGUAGE Fortran
 		MIN_PROCS 2
 		NAME_NPROCS
+		SKIP_RETURN_CODE 77
 	)
 endforeach()

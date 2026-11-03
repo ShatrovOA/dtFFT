@@ -1146,34 +1146,64 @@ typedef enum {
     /** Lossless compression mode */
     DTFFT_COMPRESSION_MODE_LOSSLESS = CONF_DTFFT_COMPRESSION_MODE_LOSSLESS,
 
-    /** Fixed rate compression mode */
+    /** Fixed rate compression mode. This mode is unique for ZFP compression library. */
     DTFFT_COMPRESSION_MODE_FIXED_RATE = CONF_DTFFT_COMPRESSION_MODE_FIXED_RATE,
 
-    /** Fixed precision compression mode */
+    /** Fixed precision compression mode. This mode targets relative error. */
     DTFFT_COMPRESSION_MODE_FIXED_PRECISION = CONF_DTFFT_COMPRESSION_MODE_FIXED_PRECISION,
 
-    /** Fixed accuracy compression mode */
+    /** Fixed accuracy compression mode. This mode targets absolute error. */
     DTFFT_COMPRESSION_MODE_FIXED_ACCURACY = CONF_DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
 } dtfft_compression_mode_t;
 
 /** This enum lists valid compression library parameters. */
 typedef enum {
-    /** ZFP compression library */
+    /** ZFP compression library.
+     * Supported modes:
+     *  Host: all modes
+     *  CUDA: only: `::DTFFT_COMPRESSION_MODE_FIXED_RATE`
+    */
     DTFFT_COMPRESSION_LIB_ZFP = CONF_DTFFT_COMPRESSION_LIB_ZFP,
 
-    /** SZ3 host compression library */
+    /** SZ3 host compression library. 
+     * Supported modes:
+     *  Host:
+     *      - `::DTFFT_COMPRESSION_MODE_LOSSLESS`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     * CUDA: not supported
+    */
     DTFFT_COMPRESSION_LIB_SZ3 = CONF_DTFFT_COMPRESSION_LIB_SZ3,
 
-    /** SZp host compression library */
+    /** SZp host compression library.
+     * Supported modes:
+     *  Host:
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     * CUDA: not supported
+     */
     DTFFT_COMPRESSION_LIB_SZP = CONF_DTFFT_COMPRESSION_LIB_SZP,
 
     /** cuSZ GPU compression library */
     // DTFFT_COMPRESSION_LIB_CUSZ = CONF_DTFFT_COMPRESSION_LIB_CUSZ,
 
-    /** cuSZp GPU compression library */
+    /** cuSZp GPU compression library.
+     * Supported modes:
+     *  CUDA: only `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     *  Host: not supported
+     */
     DTFFT_COMPRESSION_LIB_CUSZP = CONF_DTFFT_COMPRESSION_LIB_CUSZP,
 
-    /** bitcomp compression library */
+    /** bitcomp compression library.
+     * Supported modes:
+     *  Host:
+     *      - `::DTFFT_COMPRESSION_MODE_LOSSLESS`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     *  CUDA:
+     *      - `::DTFFT_COMPRESSION_MODE_LOSSLESS`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     */
     DTFFT_COMPRESSION_LIB_BITCOMP = CONF_DTFFT_COMPRESSION_LIB_BITCOMP
 } dtfft_compression_lib_t;
 
@@ -1188,10 +1218,17 @@ typedef struct {
     /** Rate for `::DTFFT_COMPRESSION_MODE_FIXED_RATE` */
     double rate;
 
-    /** Precision for `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION` */
+    /** Precision for `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION`.
+     * This option should be used with `::DTFFT_COMPRESSION_LIB_ZFP`.
+     */
     int32_t precision;
 
-    /** Tolerance for `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY` */
+    /** Tolerance for `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`.
+     * This option is also tolerance for `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION` when using 
+     *  - `::DTFFT_COMPRESSION_LIB_SZ3`
+     *  - `::DTFFT_COMPRESSION_LIB_SZP`
+     *  - `::DTFFT_COMPRESSION_LIB_BITCOMP`
+     */
     double tolerance;
 } dtfft_compression_config_t;
 #endif
@@ -1497,24 +1534,30 @@ typedef struct
      *
      * @details Default is `::DTFFT_ACCESS_MODE_WRITE`.
      *
-     * This option allows user to force specific access mode (`::DTFFT_ACCESS_MODE_WRITE` or `::DTFFT_ACCESS_MODE_READ`) when autotuning is disabled.
+     * This option allows user to force specific access mode (`::DTFFT_ACCESS_MODE_WRITE`, `::DTFFT_ACCESS_MODE_READ` or `::DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS`) when autotuning is disabled.
      * When autotuning is enabled (e.g. `effort` is `::DTFFT_EXHAUSTIVE`), this option is ignored and best access mode is selected automatically.
      */
     dtfft_access_mode_t access_mode;
 
     /**
-     * @brief Specifies block size to use for host kernels when autotuning is disabled.
+     * @brief Specifies the tile edge length, in array elements, for blocked host kernels when autotuning is disabled.
      *
-     * @details Default is 0 -- no block used
+     * @details This is the number of elements along each dimension of a tile, not the
+     * total number of elements in the tile. For example, a value of 16 gives tiles
+     * of up to 16x16 elements for a 2D array or 16x16x16 for a 3D array.
+     * Default is 0, which disables blocking.
      *
      * Possible values are: 0, 4, 8, 16, 32 or 64
      */
-
     int32_t block_size;
 
     /**
-     * @brief
+     * @brief Recursion threshold for cache-oblivious host kernels.
      *
+     * @details The kernel stops subdividing a block when it contains no more than
+     * this many elements and processes it directly. Default is 1024.
+     *
+     * The value must be non-negative.
      */
     int32_t co_threshold;
 

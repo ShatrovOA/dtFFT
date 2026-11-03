@@ -78,6 +78,10 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Builds the library’s test suite.
+   * - ``DTFFT_BUILD_EXAMPLES``
+     - ``ON`` / ``OFF``
+     - ``ON``
+     - Builds the library’s examples.
    * - ``DTFFT_ENABLE_COVERAGE``
      - ``ON`` / ``OFF``
      - ``OFF``

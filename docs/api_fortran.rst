@@ -669,15 +669,15 @@ _______________
 
 .. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_RATE
 
-  Fixed rate compression mode.
+  Fixed rate compression mode. This mode is unique for ZFP compression library.
 
 .. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_PRECISION
 
-  Fixed precision compression mode.
+  Fixed precision compression mode. This mode targets relative error.
 
 .. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
 
-  Fixed accuracy compression mode.
+  Fixed accuracy compression mode. This mode targets absolute error.
 
 ------
 
@@ -694,27 +694,53 @@ _______________
 .. f:variable:: DTFFT_COMPRESSION_LIB_ZFP
 
   ZFP compression library.
+  Supported modes:
+    Host: all modes
+    
+    CUDA: only :f:var:`DTFFT_COMPRESSION_MODE_FIXED_RATE`
 
 .. f:variable:: DTFFT_COMPRESSION_LIB_SZ3
 
-  SZ3 compression library.
+  SZ3 host compression library. 
+  Supported modes:
+    Host:
+      - :f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    CUDA: not supported
 
 .. f:variable:: DTFFT_COMPRESSION_LIB_SZP
 
-  SZp compression library.
+  SZp host compression library.
+  Supported modes:
+    Host:
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    CUDA: not supported
 
-.. f:variable:: DTFFT_COMPRESSION_LIB_CUSZ
+.. .. f:variable:: DTFFT_COMPRESSION_LIB_CUSZ
 
-  cuSZ GPU compression library.
+..   cuSZ GPU compression library.
 
 .. f:variable:: DTFFT_COMPRESSION_LIB_CUSZP
 
-  cuSZp GPU compression library.
+  cuSZp GPU compression library. Supported modes:
+
+    CUDA: only :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    
+    Host: not supported
 
 .. f:variable:: DTFFT_COMPRESSION_LIB_BITCOMP
 
-  bitcomp compression library.
+  bitcomp compression library. Supported modes:
 
+    Host:
+      - :f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    CUDA:
+      - :f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
 ------
 
 dtfft_compression_config_t
@@ -915,6 +941,19 @@ dtfft_config_t
 
     This option can also be controlled using the ``DTFFT_ACCESS_MODE`` environment variable.
 
+  :f int32 block_size:
+    Tile edge length, in array elements, for blocked host kernels when autotuning
+    is disabled. This is the number of elements along each dimension, not the
+    total number of elements in a tile.
+
+    Default is 0, which disables blocking. Valid values are 0, 4, 8, 16, 32, and 64.
+
+  :f int32 co_threshold:
+    Recursion threshold for cache-oblivious host kernels: stop subdividing a block
+    and process it directly when it contains no more than this many elements.
+
+    Default is 1024. The value must be non-negative.
+
   :f logical enable_compressed_backends:
     Should compressed backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
 
@@ -988,6 +1027,11 @@ _______________________
     Specifies at which stage the local transposition is performed during global exchange.
   :o dtfft_access_mode_t access_mode [in, optional]:
     Specifies the memory access pattern (write/read) for local transposition in Generic backends.
+  :o integer(int32) block_size [in, optional]:
+    Tile edge length, in array elements, for blocked host kernels when autotuning is disabled. Default is 0, which disables blocking. Valid values are 0, 4, 8, 16, 32, and 64.
+  :o integer(int32) co_threshold [in, optional]:
+    Recursion threshold for cache-oblivious host kernels: stop subdividing a block and process it directly when it contains no more than this many elements.
+    Default is 1024. The value must be non-negative.
   :o logical enable_compressed_backends [in, optional]:
     Should compressed backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o dtfft_compression_config_t compression_config_transpose [in, optional]:

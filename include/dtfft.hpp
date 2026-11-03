@@ -543,27 +543,57 @@ enum class Platform {
 enum class CompressionMode {
     /** Lossless compression mode */
     LOSSLESS = DTFFT_COMPRESSION_MODE_LOSSLESS,
-    /** Fixed rate compression mode */
+    /** Fixed rate compression mode. This mode is unique for ZFP compression library. */
     FIXED_RATE = DTFFT_COMPRESSION_MODE_FIXED_RATE,
-    /** Fixed precision compression mode */
+    /** Fixed precision compression mode. This mode targets relative error. */
     FIXED_PRECISION = DTFFT_COMPRESSION_MODE_FIXED_PRECISION,
-    /** Fixed accuracy compression mode */
+    /** Fixed accuracy compression mode. This mode targets absolute error. */
     FIXED_ACCURACY = DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
 };
 
 /** Enum that specifies compression library */
 enum class CompressionLib {
-    /** ZFP compression library */
+    /** ZFP compression library.
+     * Supported modes:
+     *  Host: all modes
+     *  CUDA: only: CompressionMode::FIXED_RATE
+    */
     ZFP = DTFFT_COMPRESSION_LIB_ZFP,
-    /** SZ3 compression library */
+    /** SZ3 host compression library. 
+     * Supported modes:
+     *  Host:
+     *      - CompressionMode::LOSSLESS
+     *      - CompressionMode::FIXED_PRECISION
+     *      - CompressionMode::FIXED_ACCURACY
+     * CUDA: not supported
+    */
     SZ3 = DTFFT_COMPRESSION_LIB_SZ3,
-    /** SZp compression library */
+    /** SZp host compression library.
+     * Supported modes:
+     *  Host:
+     *      - CompressionMode::FIXED_PRECISION
+     *      - CompressionMode::FIXED_ACCURACY
+     * CUDA: not supported
+     */
     SZP = DTFFT_COMPRESSION_LIB_SZP,
     /** cuSZ GPU compression library */
     // CUSZ = DTFFT_COMPRESSION_LIB_CUSZ,
-    /** cuSZp GPU compression library */
+    /** cuSZp GPU compression library.
+     * Supported modes:
+     *  CUDA: only CompressionMode::FIXED_ACCURACY
+     *  Host: not supported
+     */
     CUSZP = DTFFT_COMPRESSION_LIB_CUSZP,
-    /** bitcomp compression library */
+    /** bitcomp compression library.
+     * Supported modes:
+     *  Host:
+     *      - CompressionMode::LOSSLESS
+     *      - CompressionMode::FIXED_PRECISION
+     *      - CompressionMode::FIXED_ACCURACY
+     *  CUDA:
+     *      - CompressionMode::LOSSLESS
+     *      - CompressionMode::FIXED_ACCURACY
+     */
     BITCOMP = DTFFT_COMPRESSION_LIB_BITCOMP
 };
 
@@ -1055,6 +1085,38 @@ public:
     set_access_mode(AccessMode access_mode) noexcept
     {
         config.access_mode = static_cast<dtfft_access_mode_t>(access_mode);
+        return *this;
+    }
+
+    /**
+     * @brief Specifies the tile edge length, in array elements, for blocked host kernels when autotuning is disabled.
+     *
+     * @details This is the number of elements along each dimension of a tile, not the
+     * total number of elements in the tile. For example, a value of 16 gives tiles
+     * of up to 16x16 elements for a 2D array or 16x16x16 for a 3D array.
+     * Default is 0, which disables blocking.
+     *
+     * Possible values are: 0, 4, 8, 16, 32 or 64
+     */
+    Config&
+    set_block_size(int32_t block_size) noexcept
+    {
+        config.block_size = block_size;
+        return *this;
+    }
+
+    /**
+     * @brief Recursion threshold for cache-oblivious host kernels.
+     *
+     * @details The kernel stops subdividing a block when it contains no more than
+     * this many elements and processes it directly. Default is 1024.
+     *
+     * The value must be non-negative.
+     */
+    Config&
+    set_co_threshold(int32_t co_threshold) noexcept
+    {
+        config.co_threshold = co_threshold;
         return *this;
     }
 

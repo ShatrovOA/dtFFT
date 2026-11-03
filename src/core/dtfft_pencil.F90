@@ -187,6 +187,8 @@ contains
         allocate( starts(fast_comm_size) )
         call MPI_Allgather(self%starts(1), 1, MPI_INTEGER, starts, 1, MPI_INTEGER, comms(1), ierr)
         self%is_distributed = any( starts /= starts(1) )
+        call MPI_Allgather(self%counts(1), 1, MPI_INTEGER, starts, 1, MPI_INTEGER, comms(1), ierr)
+        self%is_distributed = self%is_distributed .or. any( starts /= starts(1) )
         deallocate( starts )
     end function create
 

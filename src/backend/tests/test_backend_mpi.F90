@@ -19,6 +19,7 @@ use dtfft_errors,          only: DTFFT_SUCCESS
 use dtfft_parameters
 use dtfft_pencil,          only: pencil
 use dtfft_utils
+use test_suite
 #include "_dtfft_mpi.h"
 implicit none
     integer(int32) :: ierr, comm_rank, comm_size
@@ -27,8 +28,9 @@ implicit none
     type(dtfft_platform_t) :: platforms(2)
     type(pencil), target :: pencils(1)
     TYPE_MPI_COMM :: comms(1)
+    type(test_suite_t) :: test
 
-    call MPI_Init(ierr)
+    call test%create("MPI Backends")
     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
 
@@ -43,30 +45,13 @@ implicit none
     call add_backend(DTFFT_BACKEND_MPI_RMA_PIPELINED)
     call add_backend(DTFFT_BACKEND_MPI_RMA_FUSED)
 #endif
-! #ifdef DTFFT_WITH_COMPRESSION
-!     call add_backend(DTFFT_BACKEND_MPI_P2P_COMPRESSED)
-! # ifdef DTFFT_WITH_RMA
-!     call add_backend(DTFFT_BACKEND_MPI_RMA_COMPRESSED)
-! # endif
-! #endif
 
     platforms(1) = DTFFT_PLATFORM_HOST
     n_platforms = 1
-#ifdef DTFFT_WITH_CUDA
-    platforms(2) = DTFFT_PLATFORM_CUDA
-    n_platforms = 2
-#endif
-
-
-    if (comm_rank == 0) then
-        write(output_unit, '(a)')        "=========================================="
-        write(output_unit, '(a)')        "  test_backend_mpi"
-        write(output_unit, '(a)')        "=========================================="
-        ! write(output_unit, '(a,i0)')     "  N_GLOBAL: ", N_GLOBAL
-        write(output_unit, '(a,i0)')     "  Ranks: ", comm_size
-        ! write(output_unit, '(a,i0)')     "  Backends: ", n_backends
-        write(output_unit, '(a)')        ""
-    end if
+! #ifdef DTFFT_WITH_CUDA
+!     platforms(2) = DTFFT_PLATFORM_CUDA
+!     n_platforms = 2
+! #endif
 
     global_sizes(1) = 5
     global_sizes(2) = 13
@@ -87,7 +72,7 @@ implicit none
         enddo
     end block
 
-    call MPI_Finalize(ierr)
+    call test%finalize()
 
 contains
 
@@ -147,8 +132,6 @@ contains
     integer(int64) :: aux_bytes
     integer(int32) :: total_recv
     real(real32)   :: expected, got
-    logical :: with_compression
-
 
     allocate(send_counts(comm_size), recv_counts(comm_size))
     allocate(send_displs(comm_size), recv_displs(comm_size))
@@ -218,35 +201,14 @@ contains
                         send_displs, send_counts, recv_displs, recv_counts, &
                         FLOAT_STORAGE_SIZE)
 
-    with_compression = .false.
-    ! if (is_backend_compressed(b)) then
-    !     with_compression = .true.
-    ! endif
 
-    call pack%create([max(my_local_size, 1)], DTFFT_ESTIMATE, FLOAT_STORAGE_SIZE, KERNEL_COPY_PIPELINED, pack_locals, with_compression=with_compression)
-    call unpack%create([max(total_recv, 1)], DTFFT_ESTIMATE, FLOAT_STORAGE_SIZE, KERNEL_COPY_PIPELINED, unpack_locals, with_decompression=with_compression)
+    call pack%create([max(my_local_size, 1)], DTFFT_ESTIMATE, FLOAT_STORAGE_SIZE, KERNEL_COPY_PIPELINED, pack_locals)
+    call unpack%create([max(total_recv, 1)], DTFFT_ESTIMATE, FLOAT_STORAGE_SIZE, KERNEL_COPY_PIPELINED, unpack_locals)
     if (backend%is_pipelined .or. backend%is_fused) then
         call backend%set_pack_kernel(pack)
         call backend%set_unpack_kernel(unpack)
     end if
 
-!     if (with_compression) then
-! #ifdef DTFFT_WITH_COMPRESSION
-! # ifdef DTFFT_WITH_ZFP
-!         allocate( compressor_zfp :: compressor )
-! # elif defined(DTFFT_WITH_SZ3)
-!         allocate( compressor_sz3 :: compressor )
-! # endif
-
-!         ! call compressor%create()
-! #else
-!         INTERNAL_ERROR(".not. DTFFT_WITH_COMPRESSION")
-! #endif
-!     endif
-
-    ! ---- allocate buffers ----
-    ! buf_size = int(backend%buffer_size, int32)
-    ! if (buf_size < 1) buf_size = max(total_send, total_recv, 1)
 
     allocate(in_buf(max(my_local_size, 1)), out_buf(max(total_recv, 1)))
     in_buf  = 0.0_real32
@@ -273,29 +235,22 @@ contains
 
     ! ---- execute ----
     call backend%execute(c_loc(in_buf), c_loc(out_buf), NULL_STREAM, aux_ptr, EXEC_BLOCKING, err_local)
-    if (err_local /= DTFFT_SUCCESS) then
-        write(error_unit, '(a,a,a,i0)') "FAIL [", dtfft_get_backend_string(b), "] execute error=", err_local
-        call MPI_Abort(MPI_COMM_WORLD, err_local, ierr)
-    end if
+    call test%check("FAIL ["//dtfft_get_backend_string(b)//"] execute error = "//to_str(err_local), err_local, DTFFT_SUCCESS)
 
     do r = 1, comm_size
         if (recv_counts(r) > 0) then
             expected = real(r, real32)   ! sender rank+1
             got = out_buf(recv_displs(r) + 1)
-            if (abs(got - expected) > 1.0e-6_real32) then
-                write(error_unit, '(a,a,a,i0,a,f6.1,a,f6.1)') &
-                    "FAIL [", dtfft_get_backend_string(b), "] from rank ", r - 1, &
-                    " expected=", expected, " got=", got
-                call MPI_Abort(MPI_COMM_WORLD, 5, ierr)
-            end if
+            call test%assert_false("FAIL ["//dtfft_get_backend_string(b)//"] from rank "//to_str(r - 1)// &
+                    " expected="//to_str(expected)//" got="//to_str(got), abs(got - expected) > 1.0e-6_real32)
         end if
     end do
 
     call MPI_Barrier(MPI_COMM_WORLD, ierr)
     ! ---- report ----
-    if (comm_rank == 0) then
-        write(output_unit, '(a)') "  PASSED ["//dtfft_get_backend_string(b)//"]"
-    end if
+    ! if (comm_rank == 0) then
+    !     write(output_unit, '(a)') "  PASSED ["//dtfft_get_backend_string(b)//"]"
+    ! end if
 
     call pack%destroy()
     call unpack%destroy()

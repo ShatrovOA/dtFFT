@@ -35,14 +35,14 @@ if ( DTFFT_WITH_CUDA )
 endif()
 
 if(DTFFT_BUILD_TESTS)
-    add_library(dtfft_test_utils tests/dtfft_test_utils.F90)
-    set_target_properties(dtfft_test_utils PROPERTIES
+    add_library(test_suite tests/test_suite.F90)
+    set_target_properties(test_suite PROPERTIES
         Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/dtfft_test_utils_modules"
     )
-    target_include_directories(dtfft_test_utils PUBLIC
+    target_include_directories(test_suite PUBLIC
         "${CMAKE_CURRENT_BINARY_DIR}/dtfft_test_utils_modules"
     )
-    target_link_libraries(dtfft_test_utils PUBLIC dtfft)
+    target_link_libraries(test_suite PUBLIC dtfft)
 
     add_subdirectory(tests)
 endif()

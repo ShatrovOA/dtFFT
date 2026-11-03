@@ -61,7 +61,7 @@ option(DTFFT_BUILD_SHARED           "Build shared library"                      
 option(DTFFT_BUILD_C_CXX_API        "Create C API"                                         ON)
 option(DTFFT_BUILD_PYTHON_API       "Create Python API"                                    OFF)
 option(DTFFT_BUILD_TESTS            "Create dtFFT tests"                                   OFF)
-option(DTFFT_BUILD_EXAMPLES         "Build dtFFT examples"                                 OFF)
+option(DTFFT_BUILD_EXAMPLES         "Build dtFFT examples"                                 ON)
 option(DTFFT_ENABLE_COVERAGE        "Create coverage with gcov utility"                    OFF)
 
 if(DTFFT_BUILD_PYTHON_API)
@@ -305,6 +305,19 @@ if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
   # --- NVSHMEM / cuFFTMp ------------------------------------------------------
   if(WITH_HPC_SDK AND NOT DTFFT_WITHOUT_NVSHMEM)
     find_package(NVHPC REQUIRED COMPONENTS MATH)
+
+    get_target_property(_dtfft_cufftmp_include_dirs NVHPC::CUFFTMP INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT _dtfft_cufftmp_include_dirs OR _dtfft_cufftmp_include_dirs MATCHES "NOTFOUND$")
+      set(_dtfft_cufftmp_include_dirs "")
+    endif()
+    include(CheckCuFFTMpFeatures)
+    check_cufftmp_features("${_dtfft_cufftmp_include_dirs}" "${CUDAToolkit_INCLUDE_DIRS}")
+    if(CUFFTMP_API_HAS_RESHAPE_COMM)
+      target_compile_definitions(dtfft PRIVATE
+        $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_CUFFTMP_API_HAS_RESHAPE_COMM>
+      )
+    endif()
+
     set(USE_NVSHMEM ON)
     target_link_libraries(dtfft PUBLIC NVHPC::CUFFTMP)
     if(CMAKE_Fortran_COMPILER_VERSION LESS "24.7")
@@ -609,7 +622,7 @@ function(dtfft_add_test target source)
 
   dtfft_add_executable(${target} ${source})
   if(TEST_TEST_UTILS)
-    target_link_libraries(${target} PRIVATE dtfft_test_utils)
+    target_link_libraries(${target} PRIVATE test_suite)
   endif()
   if(TEST_LIBRARIES)
     target_link_libraries(${target} PRIVATE ${TEST_LIBRARIES})
