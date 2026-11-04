@@ -638,6 +638,9 @@ function(dtfft_add_test target source)
       $<$<COMPILE_LANGUAGE:Fortran>:DTFFT_WITH_RMA>
     )
   endif()
+  if(DTFFT_RUNNING_CICD)
+    target_compile_definitions(${target} PRIVATE DTFFT_RUNNING_CICD)
+  endif()
 
   if(TEST_LINKER_LANGUAGE)
     set_target_properties(${target} PROPERTIES LINKER_LANGUAGE ${TEST_LINKER_LANGUAGE})

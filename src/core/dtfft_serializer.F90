@@ -61,16 +61,52 @@ public :: serializer
 
 contains
 
+    subroutine report_mpi_io_error(operation, mpi_error, rank, offset)
+        character(len=*), intent(in) :: operation
+        integer(int32), intent(in) :: mpi_error, rank
+        integer(MPI_OFFSET_KIND), intent(in) :: offset
+        character(len=MPI_MAX_ERROR_STRING) :: error_string
+        character(len=MPI_MAX_ERROR_STRING + 256) :: message
+        integer(int32) :: error_length, ierr
+
+        call MPI_Error_string(mpi_error, error_string, error_length, ierr)
+        if ( ierr == MPI_SUCCESS ) then
+            message = "MPI-IO "//operation//" failed on rank "//to_str(rank)// &
+                " at offset "//to_str(int(offset, int64))//": "//error_string(:error_length)
+        else
+            message = "MPI-IO "//operation//" failed on rank "//to_str(rank)// &
+                " at offset "//to_str(int(offset, int64))//" with error code "//to_str(mpi_error)
+        endif
+        WRITE_ERROR(trim(message))
+    end subroutine report_mpi_io_error
+
+    subroutine report_mpi_io_count_error(operation, rank, offset, expected, actual)
+        character(len=*), intent(in) :: operation
+        integer(int32), intent(in) :: rank, expected, actual
+        integer(MPI_OFFSET_KIND), intent(in) :: offset
+        character(len=256) :: message
+
+        message = "MPI-IO "//operation//" transferred "//to_str(actual)//" of "// &
+            to_str(expected)//" bytes on rank "//to_str(rank)//" at offset "// &
+            to_str(int(offset, int64))
+        WRITE_ERROR(trim(message))
+    end subroutine report_mpi_io_count_error
+
     integer(int32) function create(self, comm, filename, mode)
         class(serializer),  intent(inout)   :: self     !! Cursor
         TYPE_MPI_COMM,      intent(in)      :: comm
         character(len=*),   intent(in)      :: filename
         integer(int32),     intent(in)      :: mode
-        integer(int32) :: ierr
+        integer(int32) :: ierr, mpi_error, comm_rank
 
         create = DTFFT_SUCCESS
         call MPI_File_open(comm, filename, mode, MPI_INFO_NULL, self%fh, ierr)
         if ( ierr /= MPI_SUCCESS ) then
+            mpi_error = ierr
+            call MPI_Comm_rank(comm, comm_rank, ierr)
+            if ( mode /= MPI_MODE_RDONLY .or. mpi_error /= MPI_ERR_NO_SUCH_FILE ) then
+                call report_mpi_io_error("MPI_File_open", mpi_error, comm_rank, 0_MPI_OFFSET_KIND)
+            endif
             if ( mode == MPI_MODE_RDONLY ) then
                 create = DTFFT_ERROR_FILE_NOT_FOUND
             else
@@ -78,21 +114,39 @@ contains
             endif
             return
         endif
+        self%comm = comm
+        call MPI_Comm_rank(comm, comm_rank, ierr)
+        call MPI_File_set_errhandler(self%fh, MPI_ERRORS_RETURN, ierr)
+        if ( ierr /= MPI_SUCCESS ) then
+            call report_mpi_io_error("MPI_File_set_errhandler", ierr, comm_rank, 0_MPI_OFFSET_KIND)
+            call MPI_File_close(self%fh, ierr)
+            create = DTFFT_ERROR_FILE_WRITE_FAILED
+            return
+        endif
         if ( mode /= MPI_MODE_RDONLY ) then
             call MPI_File_set_size(self%fh, 0_MPI_OFFSET_KIND, ierr)
+            if ( ierr /= MPI_SUCCESS ) then
+                call report_mpi_io_error("MPI_File_set_size", ierr, comm_rank, 0_MPI_OFFSET_KIND)
+                call MPI_File_close(self%fh, ierr)
+                create = DTFFT_ERROR_FILE_WRITE_FAILED
+                return
+            endif
         endif
         self%pos = 0
         self%is_open = .true.
-        self%comm = comm
     end function create
 
     subroutine destroy(self)
         class(serializer),  intent(inout)   :: self     !! Cursor
-        integer(int32) :: ierr
+        integer(int32) :: ierr, comm_rank
         if ( .not. self%is_open ) then
             INTERNAL_ERROR("serializer: .not. self%is_open")
         endif
+        call MPI_Comm_rank(self%comm, comm_rank, ierr)
         call MPI_File_close(self%fh, ierr)
+        if ( ierr /= MPI_SUCCESS ) then
+            call report_mpi_io_error("MPI_File_close", ierr, comm_rank, self%pos)
+        endif
         self%pos = 0
         self%is_open = .false.
     end subroutine destroy
@@ -113,6 +167,12 @@ contains
         integer(int32) :: ierr, size_buf
         integer(MPI_OFFSET_KIND) :: offset, osize_buf, inc
         integer(int32) :: comm_rank, comm_size
+#ifdef DTFFT_USE_MPI
+        integer(int32) :: status(MPI_STATUS_SIZE)
+#else
+        type(MPI_Status) :: status
+#endif
+        integer(int32) :: transferred
 
         OPTVAL(is_collective_, .false., is_collective)
         size_buf = size(buf)
@@ -121,13 +181,37 @@ contains
         if ( is_collective_ ) then
             osize_buf = size(buf, kind=MPI_OFFSET_KIND)
             offset = self%pos + int(comm_rank, MPI_OFFSET_KIND) * osize_buf
-            call MPI_File_write_at_all(self%fh, offset, buf, size_buf, MPI_INTEGER1, MPI_STATUS_IGNORE, ierr)
+            call MPI_File_write_at_all(self%fh, offset, buf, size_buf, MPI_INTEGER1, status, ierr)
+            if ( ierr /= MPI_SUCCESS ) then
+                call report_mpi_io_error("MPI_File_write_at_all", ierr, comm_rank, offset)
+            else
+                call MPI_Get_count(status, MPI_INTEGER1, transferred, ierr)
+                if ( ierr /= MPI_SUCCESS ) then
+                    call report_mpi_io_error("MPI_Get_count after MPI_File_write_at_all", &
+                        ierr, comm_rank, offset)
+                elseif ( transferred /= size_buf ) then
+                    call report_mpi_io_count_error("MPI_File_write_at_all", comm_rank, &
+                        offset, size_buf, transferred)
+                endif
+            endif
 
             call MPI_Comm_size(self%comm, comm_size, ierr)
             inc = int(comm_size, MPI_OFFSET_KIND) * osize_buf
         else
             if ( comm_rank == 0 ) then
-                call MPI_File_write_at(self%fh, self%pos, buf, size_buf, MPI_INTEGER1, MPI_STATUS_IGNORE, ierr)
+                call MPI_File_write_at(self%fh, self%pos, buf, size_buf, MPI_INTEGER1, status, ierr)
+                if ( ierr /= MPI_SUCCESS ) then
+                    call report_mpi_io_error("MPI_File_write_at", ierr, comm_rank, self%pos)
+                else
+                    call MPI_Get_count(status, MPI_INTEGER1, transferred, ierr)
+                    if ( ierr /= MPI_SUCCESS ) then
+                        call report_mpi_io_error("MPI_Get_count after MPI_File_write_at", &
+                            ierr, comm_rank, self%pos)
+                    elseif ( transferred /= size_buf ) then
+                        call report_mpi_io_count_error("MPI_File_write_at", comm_rank, &
+                            self%pos, size_buf, transferred)
+                    endif
+                endif
             endif
             inc = size_buf
         endif
@@ -234,20 +318,51 @@ contains
         integer(int32) :: ierr, size_buf
         integer(MPI_OFFSET_KIND) :: offset, osize_buf, inc
         integer(int32) :: comm_rank, comm_size
+#ifdef DTFFT_USE_MPI
+        integer(int32) :: status(MPI_STATUS_SIZE)
+#else
+        type(MPI_Status) :: status
+#endif
+        integer(int32) :: transferred
 
         OPTVAL(is_collective_, .false., is_collective)
         size_buf = size(buf)
+        buf = 0_int8
 
         call MPI_Comm_rank(self%comm, comm_rank, ierr)
         if ( is_collective_ ) then
             osize_buf = size(buf, kind=MPI_OFFSET_KIND)
             offset = self%pos + int(comm_rank, MPI_OFFSET_KIND) * osize_buf
-            call MPI_File_read_at_all(self%fh, offset, buf, size_buf, MPI_INTEGER1, MPI_STATUS_IGNORE, ierr)
+            call MPI_File_read_at_all(self%fh, offset, buf, size_buf, MPI_INTEGER1, status, ierr)
+            if ( ierr /= MPI_SUCCESS ) then
+                call report_mpi_io_error("MPI_File_read_at_all", ierr, comm_rank, offset)
+            else
+                call MPI_Get_count(status, MPI_INTEGER1, transferred, ierr)
+                if ( ierr /= MPI_SUCCESS ) then
+                    call report_mpi_io_error("MPI_Get_count after MPI_File_read_at_all", &
+                        ierr, comm_rank, offset)
+                elseif ( transferred /= size_buf ) then
+                    call report_mpi_io_count_error("MPI_File_read_at_all", comm_rank, &
+                        offset, size_buf, transferred)
+                endif
+            endif
 
             call MPI_Comm_size(self%comm, comm_size, ierr)
             inc = int(comm_size, MPI_OFFSET_KIND) * osize_buf
         else
-            call MPI_File_read_at(self%fh, self%pos, buf, size_buf, MPI_INTEGER1, MPI_STATUS_IGNORE, ierr)
+            call MPI_File_read_at(self%fh, self%pos, buf, size_buf, MPI_INTEGER1, status, ierr)
+            if ( ierr /= MPI_SUCCESS ) then
+                call report_mpi_io_error("MPI_File_read_at", ierr, comm_rank, self%pos)
+            else
+                call MPI_Get_count(status, MPI_INTEGER1, transferred, ierr)
+                if ( ierr /= MPI_SUCCESS ) then
+                    call report_mpi_io_error("MPI_Get_count after MPI_File_read_at", &
+                        ierr, comm_rank, self%pos)
+                elseif ( transferred /= size_buf ) then
+                    call report_mpi_io_count_error("MPI_File_read_at", comm_rank, &
+                        self%pos, size_buf, transferred)
+                endif
+            endif
             inc = size_buf
         endif
         self%pos = self%pos + inc

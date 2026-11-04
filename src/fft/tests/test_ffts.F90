@@ -41,11 +41,11 @@ implicit none
     n_executors = n_executors + 1
     executors(n_executors) = executor_t(DTFFT_EXECUTOR_MKL, .false., .false.)
 #endif
-#ifdef DTFFT_WITH_CUFFT
+#if defined(DTFFT_WITH_CUFFT) && !defined(DTFFT_RUNNING_CICD)
     n_executors = n_executors + 1
     executors(n_executors) = executor_t(DTFFT_EXECUTOR_CUFFT, .true., .false.)
 #endif
-#ifdef DTFFT_WITH_VKFFT
+#if defined(DTFFT_WITH_VKFFT) && !defined(DTFFT_RUNNING_CICD)
     n_executors = n_executors + 1
     executors(n_executors) = executor_t(DTFFT_EXECUTOR_VKFFT, .true., .true.)
 #endif

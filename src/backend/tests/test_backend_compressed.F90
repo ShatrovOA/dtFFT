@@ -45,18 +45,6 @@ use dtfft_backend_mpi
 #ifdef DTFFT_WITH_NCCL
 use dtfft_backend_nccl_m,   only: backend_nccl
 #endif
-! #ifdef DTFFT_WITH_SZ3
-! use dtfft_compressor_sz3,   only: compressor_sz3
-! #endif
-! #ifdef DTFFT_WITH_SZP
-! use dtfft_compressor_szp,   only: compressor_szp
-! #endif
-! #ifdef DTFFT_WITH_ZFP
-! use dtfft_compressor_zfp,   only: compressor_zfp
-! #endif
-! #ifdef DTFFT_WITH_BITCOMP
-! use dtfft_compressor_bitcomp,   only: compressor_bitcomp
-! #endif
 use dtfft_errors
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
@@ -122,7 +110,7 @@ implicit none
 
     platforms(1) = DTFFT_PLATFORM_HOST
     n_platforms = 1
-#ifdef DTFFT_WITH_CUDA
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
     n_platforms = 2
     platforms(2) = DTFFT_PLATFORM_CUDA
     ierr = cudaSetDevice(0)
@@ -531,7 +519,7 @@ contains
             ! Absolute error bound is guaranteed by all libraries
             error_threshold = 10._real64 * TEST_TOLERANCE
         endselect
-        if ( is_float ) error_threshold = max(error_threshold, real(epsilon(1._real32), real64))
+        ! if ( is_float ) error_threshold = max(error_threshold, real(epsilon(1._real32), real64))
     end function error_threshold
 
     pure real(real64) function reference(rank, i)

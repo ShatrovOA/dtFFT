@@ -431,6 +431,25 @@ main(int argc, char* argv[])
 
         const std::string plan_file = "test_api_cxx.dtfft";
         check("save C++ plan", (int)plan.save(plan_file), (int)dtfft::Error::SUCCESS);
+        if (comm_rank == 0) {
+            std::FILE* file = std::fopen(plan_file.c_str(), "rb");
+            if (file == nullptr) {
+                std::perror("Failed to inspect saved C++ plan");
+            } else {
+                unsigned char header[16] = {};
+                long file_size = -1;
+                if (std::fseek(file, 0, SEEK_END) == 0)
+                    file_size = std::ftell(file);
+                std::rewind(file);
+                const size_t header_size = std::fread(header, 1, sizeof(header), file);
+                std::printf("C++ plan file diagnostic: size=%ld, header[%zu]=", file_size, header_size);
+                for (size_t i = 0; i < header_size; ++i)
+                    std::printf("%s%02x", i == 0 ? "" : " ", static_cast<unsigned int>(header[i]));
+                std::printf("\n");
+                std::fclose(file);
+            }
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
         {
             dtfft::PlanC2C loaded_plan(plan_file, MPI_COMM_WORLD);
             check("load C++ plan", loaded_plan.get_dims() == dims ? 1 : 0, 1);
