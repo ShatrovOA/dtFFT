@@ -48,10 +48,10 @@ implicit none
 
     platforms(1) = DTFFT_PLATFORM_HOST
     n_platforms = 1
-! #ifdef DTFFT_WITH_CUDA
-!     platforms(2) = DTFFT_PLATFORM_CUDA
-!     n_platforms = 2
-! #endif
+#if defined(DTFFT_WITH_CUDA) && !defined(DTFFT_RUNNING_CICD)
+    platforms(2) = DTFFT_PLATFORM_CUDA
+    n_platforms = 2
+#endif
 
     global_sizes(1) = 5
     global_sizes(2) = 13
