@@ -687,9 +687,11 @@ contains
         plan_ptr = c_null_ptr
         call string_c2f(filename, filename_)
 
+        print*,'dtfft_load_plan_c: filename = '//filename_
         ! The concrete plan class has to be allocated before it can be loaded into, and only
         ! the file knows which one it is. Reading just the header settles that.
         error_code = get_plan_kind_from_file(filename_, get_comm(comm), plan_kind)
+        print*,'get_plan_kind_from_file: error_code = ', error_code, ' plan_kind = '//plan_kind%val
         if ( error_code /= DTFFT_SUCCESS ) then
             deallocate(filename_)
             return
@@ -711,6 +713,7 @@ contains
         endselect
 
         call plan%p%load(filename_, get_comm(comm), error_code)
+        print*,'plan%p%load: error_code = ', error_code
         deallocate(filename_)
         if ( error_code /= DTFFT_SUCCESS ) then
             deallocate(plan%p)

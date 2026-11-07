@@ -23,7 +23,7 @@ implicit none
     integer(int32) :: ierr
     type(test_suite_t) :: test
 
-    call MPI_Init(ierr)
+    call test%create("RTC Module Cache")
 
     call test%check("init_internal failed", init_internal(), DTFFT_SUCCESS)
     call test%check("load_cuda failed", load_cuda(), DTFFT_SUCCESS)
@@ -68,7 +68,7 @@ implicit none
     fun = get_kernel_instance(3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE, 16, 16)
     call verify_function(fun, 3, KERNEL_PERMUTE_FORWARD, FLOAT_STORAGE_SIZE)
 
-    call MPI_Finalize(ierr)
+    call test%finalize()
 
 contains
 

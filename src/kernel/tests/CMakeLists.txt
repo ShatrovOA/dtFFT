@@ -1,8 +1,6 @@
 set(TEST_SOURCES "test_kernel_host.F90")
 if ( DTFFT_WITH_CUDA AND NOT SKIP_CUDA_COVERAGE )
   list(APPEND TEST_SOURCES "test_kernel_device.F90")
-endif()
-if ( DTFFT_WITH_CUDA )
   list(APPEND TEST_SOURCES "test_rtc_block_optimizer.F90")
   list(APPEND TEST_SOURCES "test_rtc_module_cache.F90")
 endif()

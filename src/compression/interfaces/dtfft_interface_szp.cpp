@@ -83,19 +83,19 @@ namespace
 extern "C"
 {
     /**
-     * Compresses `n_elements` scalars of size `dataSize` into `cmpData`.
+     * Compresses `n_elements` scalars of size `storage_size` into `cmpData`.
      *
      * Returns total number of bytes written to `cmpData` or 0 in case of failure.
      */
-    size_t _dtfft_szp_compress(size_t n_elements, void* data, unsigned char* cmpData, size_t dataSize,
+    size_t _dtfft_szp_compress(size_t n_elements, void* data, unsigned char* cmpData, size_t storage_size,
         int32_t mode, double tolerance, int32_t blockSize)
     {
         double errBound;
-        if ( get_error_bound(data, mode, n_elements, tolerance, dataSize, &errBound) != 0 ) {
+        if ( get_error_bound(data, mode, n_elements, tolerance, storage_size, &errBound) != 0 ) {
             return 0;
         }
         size_t compressedSize = 0;
-        switch (dataSize) {
+        switch (storage_size) {
             case sizeof(float):
                 compress_impl(cmpData, reinterpret_cast<float*>(data), static_cast<float>(errBound), n_elements, blockSize, &compressedSize);
                 break;
@@ -107,14 +107,14 @@ extern "C"
     }
 
     /**
-     * Decompresses `n_elements` scalars of size `dataSize` from `cmpData` into `data`.
+     * Decompresses `n_elements` scalars of size `storage_size` from `cmpData` into `data`.
      *
      * Returns number of decompressed bytes or 0 in case of failure.
      */
-    size_t _dtfft_szp_decompress(size_t n_elements, unsigned char* cmpData, void* data, size_t dataSize,
+    size_t _dtfft_szp_decompress(size_t n_elements, unsigned char* cmpData, void* data, size_t storage_size,
         int32_t blockSize)
     {
-        switch (dataSize) {
+        switch (storage_size) {
             case sizeof(float):
                 return decompress_typed<float>(n_elements, cmpData, data, blockSize);
             case sizeof(double):

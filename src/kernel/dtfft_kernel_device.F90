@@ -454,6 +454,7 @@ contains
         n_iters = get_conf_measure_iters()
 
         best_time = MAX_REAL32
+        best_kernel_id = -1
 
         do test_id = 1, num_candidates
             config = candidates(sorted(test_id))

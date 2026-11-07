@@ -43,7 +43,7 @@ public :: compressor_zfp
     private
         logical                         :: is_fixed_rate
         integer(int64)                  :: imag_offset  !! Byte offset for imaginary part in complex data
-        type(dtfft_compression_config_t):: config       !! Compression configuration parameters
+        ! type(dtfft_compression_config_t):: config       !! Compression configuration parameters
         type(zfp_exec_policy)           :: policy       !! ZFP execution policy (serial or CUDA)
         type(zfp_type)                  :: scalar_type  !! ZFP scalar type (float or double)
 #ifdef DTFFT_WITH_CUDA
@@ -67,14 +67,13 @@ public :: compressor_zfp
 
 contains
 
-    integer(int32) function create(self, config, platform)
+    integer(int32) function create(self, platform)
     !! Initializes the ZFP compressor with given configuration
         class(compressor_zfp),              intent(inout)   :: self         !! Compressor instance
-        type(dtfft_compression_config_t),   intent(in)      :: config       !! Compression settings
         type(dtfft_platform_t),             intent(in)      :: platform     !! Target platform (CPU or CUDA)
 
         create = DTFFT_SUCCESS
-        self%config = config
+        ! self%config = config
 #ifdef DTFFT_WITH_OPENMP
 # ifdef ZFP_WITH_OPENMP
         self%policy = zfp_exec_omp
@@ -117,7 +116,7 @@ contains
         endif
 
         self%is_fixed_rate = .false.
-        if ( config%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_RATE ) self%is_fixed_rate = .true.
+        if ( self%compression_mode == DTFFT_COMPRESSION_MODE_FIXED_RATE ) self%is_fixed_rate = .true.
 #ifdef DTFFT_WITH_CUDA
         if ( platform == DTFFT_PLATFORM_CUDA ) then
             CUDA_CALL( cudaEventCreateWithFlags(self%event, cudaEventDisableTiming) )
@@ -163,15 +162,15 @@ contains
         else
             exec = zfp_stream_set_execution(zfp, self%policy)
         endif
-        select case ( self%config%compression_mode%val )
+        select case ( self%compression_mode%val )
         case ( DTFFT_COMPRESSION_MODE_LOSSLESS%val )
             call zfp_stream_set_reversible(zfp)
         case ( DTFFT_COMPRESSION_MODE_FIXED_RATE%val )
-            call zfp_stream_set_rate(zfp, field, self%config%rate)
+            call zfp_stream_set_rate(zfp, field, self%rate_or_tolerance)
         case ( DTFFT_COMPRESSION_MODE_FIXED_PRECISION%val )
-            call zfp_stream_set_precision(zfp, self%config%precision)
+            call zfp_stream_set_precision(zfp, self%precision)
         case ( DTFFT_COMPRESSION_MODE_FIXED_ACCURACY%val )
-            call zfp_stream_set_accuracy(zfp, self%config%tolerance)
+            call zfp_stream_set_accuracy(zfp, self%rate_or_tolerance)
         endselect
     end subroutine init
 

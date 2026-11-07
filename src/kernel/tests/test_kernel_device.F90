@@ -10,14 +10,17 @@ use dtfft_kernel_device
 use dtfft_kernel_host
 use dtfft_parameters
 use dtfft_utils
+use test_suite, only: test_suite_t
 #include "_dtfft_cuda.h"
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
 implicit none
 integer(int32) :: ierror
 type(dtfft_stream_t) :: stream
+type(test_suite_t) :: test
  
-    call MPI_Init(ierror)
+    call test%create("Device Kernels")
+
     ierror = init_internal()
     ierror = load_cuda()
     ierror = load_nvrtc()
@@ -41,7 +44,7 @@ type(dtfft_stream_t) :: stream
 
     CUDA_CALL( cudaStreamDestroy(stream) )
 
-    call MPI_Finalize(ierror)
+    call test%finalize()
 
 contains
 

@@ -35,7 +35,7 @@ public :: compressor_cuszp
     type, extends(abstract_compressor) :: compressor_cuszp
     !! cuSZp-based CUDA compressor implementation
     private
-        real(real32)      :: tolerance  !! Compression tolerance for cuSZp
+        ! real(real32)      :: tolerance  !! Compression tolerance for cuSZp
     contains
         procedure   :: create_private => create
         procedure   :: compress_private => compress
@@ -49,14 +49,13 @@ public :: compressor_cuszp
 
 contains
 
-    integer(int32) function create(self, config, platform)
+    integer(int32) function create(self, platform)
     !! Create a cuSZp compressor instance with the specified configuration and platform
         class(compressor_cuszp),            intent(inout) :: self       !! cuSZp compressor instance
-        type(dtfft_compression_config_t),   intent(in)    :: config     !! Compression configuration parameters
         type(dtfft_platform_t),             intent(in)    :: platform   !! Platform type (should be CUDA for cuSZp)
 
         create = DTFFT_SUCCESS
-        self%tolerance = real(config%tolerance, real32)
+        ! self%tolerance = real(config%tolerance, real32)
     end function create
 
     integer(int64) function compress(self, dims, in, out, stream)
@@ -68,7 +67,7 @@ contains
         type(dtfft_stream_t),    intent(in)    :: stream    !! CUDA stream for asynchronous operations
         integer(c_size_t)   :: compressed_size  !! Size of the compressed data
 
-        compressed_size = cuSZp_compress(in, out, size(dims, kind=int8), dims, self%storage_size, self%tolerance, stream)
+        compressed_size = cuSZp_compress(in, out, size(dims, kind=int8), dims, self%storage_size, real(self%rate_or_tolerance, c_float), stream)
         compress = int(compressed_size, int64)
     end function compress
 

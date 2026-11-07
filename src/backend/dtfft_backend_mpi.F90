@@ -120,6 +120,33 @@ contains
         self%n_requests = 0
     end subroutine destroy_helper
 
+!     ! MPICH 5.0.2 with ASan overruns MPI_STATUSES_IGNORE through the legacy binding.
+!     subroutine waitall_requests(count, requests, mpi_ierr)
+!         integer(int32), intent(in) :: count
+!         TYPE_MPI_REQUEST, intent(inout) :: requests(:)
+!         integer(int32), intent(out) :: mpi_ierr
+! #ifdef DTFFT_USE_MPI
+!         integer :: statuses(MPI_STATUS_SIZE, count)
+!         call MPI_Waitall(count, requests, statuses, mpi_ierr)
+! #else
+!         call MPI_Waitall(count, requests, MPI_STATUSES_IGNORE, mpi_ierr)
+! #endif
+
+!     end subroutine waitall_requests
+
+!     subroutine waitsome_requests(incount, requests, outcount, indices, mpi_ierr)
+!         integer(int32), intent(in) :: incount
+!         TYPE_MPI_REQUEST, intent(inout) :: requests(:)
+!         integer(int32), intent(out) :: outcount, indices(:), mpi_ierr
+! #ifdef DTFFT_USE_MPI
+!         integer :: statuses(MPI_STATUS_SIZE, incount)
+!         call MPI_Waitsome(incount, requests, outcount, indices, statuses, mpi_ierr)
+! #else
+!         call MPI_Waitsome(incount, requests, outcount, indices, MPI_STATUSES_IGNORE, mpi_ierr)
+! #endif
+
+!     end subroutine waitsome_requests
+
     subroutine create_mpi(self, helper, base_storage)
     !! Creates MPI backend
         class(backend_mpi),     intent(inout) :: self           !! MPI Backend
@@ -258,7 +285,7 @@ contains
         total_completed = 0
         do while (.true.)
             ! Testing that all data has been recieved so we can unpack it
-            call MPI_Waitsome(self%recv%n_requests, self%recv%requests, n_completed, indices, MPI_STATUSES_IGNORE, mpi_ierr)
+            call waitsome_requests(self%recv%n_requests, self%recv%requests, n_completed, indices)
             if (n_completed == MPI_UNDEFINED .or. need_completed == 0) exit
 
             do i = 1, n_completed
@@ -273,7 +300,7 @@ contains
         end do
         deallocate (indices)
         if (self%send%n_requests > 0) then
-            call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
+            call waitall_requests(self%send%n_requests, self%send%requests)
         end if
         if (self%is_rma) then
             call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, error_code)
@@ -292,10 +319,10 @@ contains
         end if
 
         if (self%recv%n_requests > 0) then
-            call MPI_Waitall(self%recv%n_requests, self%recv%requests, MPI_STATUSES_IGNORE, error_code)
+            call waitall_requests(self%recv%n_requests, self%recv%requests)
         end if
         if (self%send%n_requests > 0) then
-            call MPI_Waitall(self%send%n_requests, self%send%requests, MPI_STATUSES_IGNORE, error_code)
+            call waitall_requests(self%send%n_requests, self%send%requests)
         end if
         if (self%is_rma) then
             call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, error_code)
@@ -480,6 +507,7 @@ contains
         integer(int64), allocatable :: comp_sizes(:)
         integer(int32) :: source_rank, send_count, recv_count
         integer(int32) :: active_recvs
+        logical :: use_persistent_p2p
 
         call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, mpi_ierr)
 
@@ -521,6 +549,11 @@ contains
         recv_request_counter = 0
         send_request_counter = 0
         active_recvs = 0
+        use_persistent_p2p = .false.
+#ifdef ENABLE_PERSISTENT_COMM
+        use_persistent_p2p = .not. self%is_rma .and. &
+            .not. self%pack_kernel%is_compress .and. .not. self%unpack_kernel%is_decompress
+#endif
         associate( recv => self%recv, send => self%send )
 
             if (.not. allocated(recv%process_map)) then
@@ -571,12 +604,26 @@ contains
                         active_recvs = active_recvs + 1
                         recv_request_counter = recv_request_counter + 1
                         recv%process_map(recv_request_counter) = tgt
-                        ! Do not care if actual message size is less then recv%counts(tgt)
-                        call MPI_Irecv(recv_buffer(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, recv%requests(recv_request_counter), mpi_ierr)
+                        if (use_persistent_p2p) then
+                            if (recv%requests(recv_request_counter) == MPI_REQUEST_NULL) then
+                                call MPI_Recv_init(recv_buffer(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, recv%requests(recv_request_counter), mpi_ierr)
+                            end if
+                            call MPI_Start(recv%requests(recv_request_counter), mpi_ierr)
+                        else
+                            ! Do not care if actual message size is less then recv%counts(tgt)
+                            call MPI_Irecv(recv_buffer(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, recv%requests(recv_request_counter), mpi_ierr)
+                        end if
                     end if
                     if ( send_count > 0 ) then
                         send_request_counter = send_request_counter + 1
-                        call MPI_Isend(send_buffer(send%displs(tgt)), send_count, MPI_REAL, tgt, 0, self%comm, send%requests(send_request_counter), mpi_ierr)
+                        if (use_persistent_p2p) then
+                            if (send%requests(send_request_counter) == MPI_REQUEST_NULL) then
+                                call MPI_Send_init(send_buffer(send%displs(tgt)), send_count, MPI_REAL, tgt, 0, self%comm, send%requests(send_request_counter), mpi_ierr)
+                            end if
+                            call MPI_Start(send%requests(send_request_counter), mpi_ierr)
+                        else
+                            call MPI_Isend(send_buffer(send%displs(tgt)), send_count, MPI_REAL, tgt, 0, self%comm, send%requests(send_request_counter), mpi_ierr)
+                        end if
                     endif
                 endif
             enddo
@@ -596,7 +643,7 @@ contains
             allocate( indices(recv_request_counter) )
 
             do while (active_recvs > 0)
-                call MPI_Waitsome(recv_request_counter, recv%requests, n_completed, indices, MPI_STATUSES_IGNORE, mpi_ierr)
+                call waitsome_requests(recv_request_counter, recv%requests, n_completed, indices)
                 if (n_completed /= MPI_UNDEFINED .and. n_completed > 0) then
                     do k = 1, n_completed
 #ifdef MPICH_FIX_REQUIRED
@@ -612,7 +659,7 @@ contains
             deallocate (indices)
 
             if (send_request_counter > 0) then
-                call MPI_Waitall(send_request_counter, send%requests, MPI_STATUSES_IGNORE, mpi_ierr)
+                call waitall_requests(send_request_counter, send%requests)
             end if
         endassociate
 
@@ -621,6 +668,12 @@ contains
             call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, mpi_ierr)
         endif
 #endif
+
+        if ( use_persistent_p2p .and. .not. self%is_request_created ) then
+            self%is_request_created = .true.
+            self%send%n_requests = send_request_counter
+            self%recv%n_requests = recv_request_counter
+        endif
 
     deallocate( comp_sizes )
     end subroutine execute_fused

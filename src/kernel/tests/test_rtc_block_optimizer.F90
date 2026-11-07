@@ -47,10 +47,9 @@ implicit none
     integer(int32) :: sorted_indices(MAX_CANDIDATES)
     integer(int32) :: invalid_conflicts
     real(real32) :: scores(MAX_CANDIDATES)
-    integer(int32) :: ierr
     type(test_suite_t) :: test
 
-    call MPI_Init(ierr)
+    call test%create("RTC Block Optimizer")
 
     props_ampere = get_ampere_architecture()
     props_volta  = get_volta_architecture()
@@ -79,7 +78,7 @@ implicit none
         end do
     end do
 
-    call MPI_Finalize(ierr)
+    call test%finalize()
 
 contains
 

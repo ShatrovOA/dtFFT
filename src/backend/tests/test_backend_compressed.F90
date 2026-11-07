@@ -278,11 +278,7 @@ contains
             base_type = MPI_REAL8
         endif
         ! ---- compressor is shared by pack and unpack kernels, exactly as reshape handle does ----
-        call allocate_compressor(info%lib, compressor)
-        call test%assert_true("allocated(compressor)", allocated(compressor))
-
-        err_local = compressor%create(2_int8, config_for_mode(info%lib, mode, is_float), platform, &
-                                      base_type, DIMS_PERMUTE_NONE)
+        err_local = create_compressor(config_for_mode(info%lib, mode, is_float), 2_int8, platform, base_type, DIMS_PERMUTE_NONE, compressor)
         if ( .not. is_supported ) then
             ! Unsupported combination must be rejected right here instead of failing
             ! somewhere inside compression of the very first block
@@ -291,13 +287,7 @@ contains
                 .and.  err_local /= DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED      &
                 .and.  err_local /= DTFFT_ERROR_COMPRESSION_INVALID_MODE)
 
-            ! if (       err_local /= DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED      &
-            !     .and.  err_local /= DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED      &
-            !     .and.  err_local /= DTFFT_ERROR_COMPRESSION_INVALID_MODE ) then
-            !     print*,'Unexpected error: '//dtfft_get_error_string(err_local)
-            !     INTERNAL_ERROR("Unexpected error for an unsupported mode")
-            ! endif
-            deallocate( compressor )
+            if ( allocated(compressor) ) deallocate( compressor )
             n_skipped = n_skipped + 1
             if ( comm_rank == 0 ) call report(b, platform, info, mode, ny_global, base_storage, "SKIPPED", 0._real64, 1._real64)
             return
@@ -415,7 +405,7 @@ contains
             error = block_error(host, recv_displs(r + 1), recv_counts(r + 1), r, NX * cy_start, is_float)
             max_error = max(max_error, error)
         enddo
-
+print*,'Max error = ', max_error
         threshold = error_threshold(mode, is_float)
         call test%assert_true('FAIL on rank '//to_str(comm_rank)//': error = '//to_str(max_error)//', threshold = '//to_str(threshold), max_error <= threshold)
         ! if ( .not. (max_error <= threshold) ) then

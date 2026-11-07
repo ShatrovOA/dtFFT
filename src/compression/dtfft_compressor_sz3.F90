@@ -39,9 +39,6 @@ public :: compressor_sz3
     type, extends(abstract_compressor) :: compressor_sz3
     !! SZ3-based compressor implementation
     private
-        ! integer(c_size_t) :: dataSize
-        type(dtfft_compression_mode_t) :: mode
-        real(real64) :: tolerance
     contains
         procedure   :: create_private => create         !! Initializes the SZ3 compressor with given configuration
         procedure   :: compress_private => compress     !! Compresses the input data using SZ3
@@ -56,15 +53,14 @@ public :: compressor_sz3
 
 contains
 
-    integer(int32) function create(self, config, platform)
+    integer(int32) function create(self, platform)
     !! Initializes the SZ3 compressor with given configuration
         class(compressor_sz3),              intent(inout)   :: self         !! Compressor instance
-        type(dtfft_compression_config_t),   intent(in)      :: config       !! Compression settings
         type(dtfft_platform_t),             intent(in)      :: platform     !! Target platform (CPU or CUDA)
 
         create = DTFFT_SUCCESS
-        self%mode = config%compression_mode
-        self%tolerance = config%tolerance
+        ! self%mode = config%compression_mode
+        ! self%tolerance = config%tolerance
     end function create
 
     function get_config(self, dims) result(config)
@@ -80,7 +76,7 @@ contains
             z = dims(3)
         endif
         if ( self%is_complex ) x = x * 2
-        ierr = sz3_create_config(x, y, z, self%mode%val, self%tolerance, config)
+        ierr = sz3_create_config(x, y, z, self%compression_mode%val, self%rate_or_tolerance, config)
 #ifdef DTFFT_DEBUG
         if ( ierr /= 0 ) then
             INTERNAL_ERROR("Failed to create sz3 config")

@@ -37,8 +37,8 @@ public :: compressor_szp
     !! SZp-based compressor implementation
     private
         integer(int32)                  :: block_size
-        type(dtfft_compression_mode_t)  :: mode         !! Compression mode
-        real(real64)                    :: tolerance    !! Absolute or relative error bound, based on `mode`
+        ! type(dtfft_compression_mode_t)  :: mode         !! Compression mode
+        ! real(real64)                    :: tolerance    !! Absolute or relative error bound, based on `mode`
     contains
         procedure   :: create_private => create         !! Initializes the SZp compressor with given configuration
         procedure   :: compress_private => compress     !! Compresses the input data using SZp
@@ -52,10 +52,9 @@ public :: compressor_szp
 
 contains
 
-    integer(int32) function create(self, config, platform)
+    integer(int32) function create(self, platform)
     !! Initializes the SZp compressor with given configuration
         class(compressor_szp),              intent(inout)   :: self         !! Compressor instance
-        type(dtfft_compression_config_t),   intent(in)      :: config       !! Compression settings
         type(dtfft_platform_t),             intent(in)      :: platform     !! Target platform (CPU or CUDA)
 
         create = DTFFT_SUCCESS
@@ -63,8 +62,8 @@ contains
             create = DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED
             return
         endif
-        self%mode = config%compression_mode
-        self%tolerance = config%tolerance
+        ! self%mode = config%compression_mode
+        ! self%tolerance = config%tolerance
         self%block_size = 64
         if ( self%storage_size == FLOAT_STORAGE_SIZE ) self%block_size = 128
     end function create
@@ -78,7 +77,7 @@ contains
         type(dtfft_stream_t),       intent(in)      :: stream       !! Stream handle
         integer(c_size_t) :: compressed_size
 
-        compressed_size = szp_compress(self%get_n_elements(dims), in, out, self%storage_size, self%mode%val, self%tolerance, self%block_size)
+        compressed_size = szp_compress(self%get_n_elements(dims), in, out, self%storage_size, self%compression_mode%val, self%rate_or_tolerance, self%block_size)
         compress = int(compressed_size, int64)
     end function compress
 

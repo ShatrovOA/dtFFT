@@ -423,6 +423,12 @@ if(DTFFT_WITH_BITCOMP)
   endif()
   set(DTFFT_WITH_COMPRESSION ON)
 endif()
+
+if(DTFFT_ENABLE_PERSISTENT_COMM AND DTFFT_WITH_COMPRESSION)
+  message(WARNING
+    "DTFFT_ENABLE_PERSISTENT_COMM does not support compressed fused MPI exchanges; "
+    "compressed fused plans will use non-persistent point-to-point communication.")
+endif()
 #------------------------------------------------------------------------------#
 # 11. Compiler flags & coverage
 #------------------------------------------------------------------------------#

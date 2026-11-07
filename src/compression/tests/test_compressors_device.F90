@@ -158,11 +158,10 @@ contains
                      ', permutation = '//to_str(permutation)//', dims = '//dims_to_str(pack_dims)
         call name%destroy()
 
-        call allocate_compressor(info%lib, compressor)
-        call test%assert_true("Allocated compressor", allocated(compressor))
-
-        call test%check("compressor%create", compressor%create(ndims, config_for_mode(mode, is_float), DTFFT_PLATFORM_CUDA,   &
-                                            base_type, permutation), DTFFT_SUCCESS)
+        call test%check("create compressor", &
+            create_compressor(config_for_mode(mode, is_float), ndims, DTFFT_PLATFORM_CUDA, base_type, permutation, compressor), &
+            DTFFT_SUCCESS &
+        )
 
         uncompressed_bytes = storage_size * product(int(pack_dims, int64))
         ! Buffers are always able to hold uncompressed data

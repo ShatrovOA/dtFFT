@@ -40,6 +40,8 @@ public :: create_subcomm_include_all, create_subcomm
 public :: string
 public :: destroy_strings
 
+public :: waitall_requests, waitsome_requests
+
 #ifdef DTFFT_WITH_CUDA
 public :: astring_f2c
 public :: count_unique
@@ -600,6 +602,38 @@ contains
         buffer = tmp
     end subroutine all_reduce_inplace_i32
 #endif
+
+    subroutine waitall_requests(count, requests)
+    !! Waits for all MPI requests to complete
+    !! This function is a workaround for the bug in mpich for macos, where MPI_Waitall does not work correctly
+        integer(int32),     intent(in)      :: count          !! Number of requests
+        TYPE_MPI_REQUEST,   intent(inout)   :: requests(:)    !! Array of MPI requests
+        integer(int32)      :: mpi_ierr !! MPI error code
+#ifdef DTFFT_USE_MPI
+        integer(int32)      :: statuses(MPI_STATUS_SIZE, count) !! Array of MPI statuses
+#else
+        type(MPI_Status)    :: statuses(count)                  !! Array of MPI statuses
+#endif
+
+        call MPI_Waitall(count, requests, statuses, mpi_ierr)
+    end subroutine waitall_requests
+
+    subroutine waitsome_requests(incount, requests, outcount, indices)
+    !! Waits for some MPI requests to complete
+    !! This function is a workaround for the bug in mpich for macos, where MPI_Waitsome does not work correctly
+        integer(int32),     intent(in)      :: incount      !! Number of requests
+        TYPE_MPI_REQUEST,   intent(inout)   :: requests(:)  !! Array of MPI requests
+        integer(int32),     intent(out)     :: outcount     !! Number of completed requests
+        integer(int32),     intent(out)     :: indices(:)   !! Indices of completed requests
+        integer(int32)      :: mpi_ierr                     !! MPI error code
+#ifdef DTFFT_USE_MPI
+        integer(int32) :: statuses(MPI_STATUS_SIZE, incount)    !! Array of MPI statuses
+#else
+        type(MPI_Status) :: statuses(incount)   !! Array of MPI statuses
+#endif
+
+        call MPI_Waitsome(incount, requests, outcount, indices, statuses, mpi_ierr)
+    end subroutine waitsome_requests
 
 #ifdef DTFFT_WITH_MOCK_ENABLED
     logical function is_device_ptr(ptr) result(bool)

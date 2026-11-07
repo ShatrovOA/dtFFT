@@ -24,14 +24,14 @@ private
 
 public :: szp_compress
     interface
-        integer(c_size_t) function szp_compress(n_elements, data, cmpData, dataSize, mode, tolerance, blockSize) bind(C, name="_dtfft_szp_compress")
+        integer(c_size_t) function szp_compress(n_elements, data, cmpData, storage_size, mode, tolerance, blockSize) bind(C, name="_dtfft_szp_compress")
         !! Compresses `n_elements` scalars into `cmpData`.
         !! Returns total number of bytes written to `cmpData` or 0 in case of failure.
         import
             integer(c_size_t),  value   :: n_elements   !! Number of scalars to compress
             type(c_ptr),        value   :: data         !! Pointer to uncompressed data
             type(c_ptr),        value   :: cmpData      !! Pointer to compressed buffer
-            integer(c_size_t),  value   :: dataSize     !! Size of single scalar in bytes
+            integer(c_size_t),  value   :: storage_size !! Size of single scalar in bytes
             integer(c_int32_t), value   :: mode         !! Compression mode
             real(c_double),     value   :: tolerance    !! Absolute or relative error bound, based on `mode`
             integer(c_int32_t), value   :: blockSize    !! Number of scalars in a single SZp block
@@ -40,14 +40,14 @@ public :: szp_compress
 
 public :: szp_decompress
     interface
-        integer(c_size_t) function szp_decompress(n_elements, cmpData, data, dataSize, blockSize) bind(C, name="_dtfft_szp_decompress")
+        integer(c_size_t) function szp_decompress(n_elements, cmpData, data, storage_size, blockSize) bind(C, name="_dtfft_szp_decompress")
         !! Decompresses `n_elements` scalars from `cmpData` into `data`.
         !! Returns number of decompressed bytes or 0 in case of failure.
         import
             integer(c_size_t),  value   :: n_elements   !! Number of scalars to decompress
             type(c_ptr),        value   :: cmpData      !! Pointer to compressed data
             type(c_ptr),        value   :: data         !! Pointer to uncompressed buffer
-            integer(c_size_t),  value   :: dataSize     !! Size of single scalar in bytes
+            integer(c_size_t),  value   :: storage_size !! Size of single scalar in bytes
             integer(c_int32_t), value   :: blockSize    !! Number of scalars in a single SZp block
         end function szp_decompress
     end interface

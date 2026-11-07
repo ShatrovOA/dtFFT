@@ -436,7 +436,7 @@ main(int argc, char* argv[])
             if (file == nullptr) {
                 std::perror("Failed to inspect saved C++ plan");
             } else {
-                unsigned char header[16] = {};
+                unsigned char header[32] = {};
                 long file_size = -1;
                 if (std::fseek(file, 0, SEEK_END) == 0)
                     file_size = std::ftell(file);

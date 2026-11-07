@@ -104,6 +104,7 @@ public :: dtfft_compression_lib_t
 
 public :: dtfft_compression_config_t
     type, bind(C) :: dtfft_compression_config_t
+    !! Type that specifies compression configuration
         type(dtfft_compression_lib_t)   :: compression_lib
         !! Compression library to use
 
@@ -137,6 +138,9 @@ public :: dtfft_compression_config_t
         real(real64)    :: compressed_rate   !! Accumulated compression rate
         integer(int64)  :: execution_count   !! Number of compression executions
         integer(int32)  :: dims_permutation  !! Dimension permutation flag
+        type(dtfft_compression_mode_t) :: compression_mode !! Compression mode
+        real(real64) :: rate_or_tolerance !! Compression rate (for fixed rate mode) or tolerance (for fixed accuracy mode or fixed precision mode)
+        integer(int32) :: precision !! Precision (for fixed precision mode)
     contains
         procedure,  non_overridable,    public,                 pass(self)  :: create             !! Initializes the compressor with given parameters
         procedure,  non_overridable,    public,                 pass(self)  :: compress           !! Compresses the input data and returns the compressed size
@@ -155,11 +159,10 @@ public :: dtfft_compression_config_t
     end type abstract_compressor
 
     abstract interface
-        integer(int32) function create_private_interface(self, config, platform)
+        integer(int32) function create_private_interface(self, platform)
         !! Creates the compressor implementation
         import
             class(abstract_compressor),         intent(inout)   :: self         !! Compressor instance
-            type(dtfft_compression_config_t),   intent(in)      :: config       !! Compression configuration
             type(dtfft_platform_t),             intent(in)      :: platform     !! Target platform
         end function create_private_interface
 
@@ -240,22 +243,26 @@ contains
         OPTVAL(config%tolerance, -1._c_double, tolerance)
     end function create_compression_config_t
 
-    integer(int32) function create(self, ndims, config, platform, base_type, dims_permutation)
+    integer(int32) function create(self, ndims, compression_mode, rate_or_tolerance, precision,  platform, base_type, dims_permutation)
     !! Initializes the compressor with given parameters
         class(abstract_compressor),         intent(inout)   :: self             !! Compressor instance
         integer(int8),                      intent(in)      :: ndims            !! Number of dimensions
-        type(dtfft_compression_config_t),   intent(in)      :: config           !! Compression configuration
+        type(dtfft_compression_mode_t),     intent(in)      :: compression_mode !! Compression mode
+        real(real64),                       intent(in)      :: rate_or_tolerance!! Compression rate (for fixed rate mode) or tolerance (for fixed accuracy mode or fixed precision mode)
+        integer(int32),                     intent(in)      :: precision        !! Precision (for fixed precision
         type(dtfft_platform_t),             intent(in)      :: platform         !! Target platform
         TYPE_MPI_DATATYPE,                  intent(in)      :: base_type        !! MPI data type
         integer(int32),                     intent(in)      :: dims_permutation !! Dimension permutation flag
         logical :: host_modes(4), cuda_modes(4), use_tolerance
-        type(dtfft_compression_mode_t) :: mode
 
         create = DTFFT_SUCCESS
 
         self%ndims = ndims
         self%compressed_rate = 0._real64
         self%execution_count = 0
+        self%compression_mode = compression_mode
+        self%rate_or_tolerance = rate_or_tolerance
+        self%precision = precision
         self%dims_permutation = dims_permutation
         self%is_complex = any(GET_MPI_VALUE(base_type) == [GET_MPI_VALUE(MPI_COMPLEX), GET_MPI_VALUE(MPI_DOUBLE_COMPLEX)])
         ! self%is_complex = GET_MPI_VALUE(base_type) == GET_MPI_VALUE(MPI_COMPLEX) .or. GET_MPI_VALUE(base_type) == GET_MPI_VALUE(MPI_DOUBLE_COMPLEX)
@@ -270,8 +277,6 @@ contains
 
         call self%get_supported_modes(host_modes, cuda_modes, use_tolerance)
 
-        mode = config%compression_mode
-
         if ( platform == DTFFT_PLATFORM_CUDA .and. .not.any(cuda_modes) ) then
             create = DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED
         endif
@@ -280,40 +285,40 @@ contains
         endif
         if ( create /= DTFFT_SUCCESS ) return
 
-        if ( platform == DTFFT_PLATFORM_HOST .and. .not. host_modes(mode%val)        &
-        .or. platform == DTFFT_PLATFORM_CUDA .and. .not. cuda_modes(mode%val) ) then
+        if ( platform == DTFFT_PLATFORM_HOST .and. .not. host_modes(compression_mode%val)        &
+        .or. platform == DTFFT_PLATFORM_CUDA .and. .not. cuda_modes(compression_mode%val) ) then
             create = DTFFT_ERROR_COMPRESSION_INVALID_MODE
             return
         endif
-        if ( (mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. use_tolerance)    &
-         .or. mode == DTFFT_COMPRESSION_MODE_FIXED_ACCURACY ) then
-            CHECK_CALL( self%check_tolerance(config%tolerance), create )
+        if ( (compression_mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. use_tolerance)    &
+         .or. compression_mode == DTFFT_COMPRESSION_MODE_FIXED_ACCURACY ) then
+            CHECK_CALL( self%check_tolerance(rate_or_tolerance), create )
         endif
         if ( self%storage_size == FLOAT_STORAGE_SIZE ) then
-            if ( mode == DTFFT_COMPRESSION_MODE_FIXED_RATE .and. config%rate >= 32.0_real64 ) then
+            if ( compression_mode == DTFFT_COMPRESSION_MODE_FIXED_RATE .and. rate_or_tolerance >= 32.0_real64 ) then
                 create = DTFFT_ERROR_COMPRESSION_INVALID_RATE
-            elseif ( mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. .not. use_tolerance .and. config%precision >= 32 ) then
+            elseif ( compression_mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. .not. use_tolerance .and. precision >= 32 ) then
                 create = DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
             endif
         else
-            if ( mode == DTFFT_COMPRESSION_MODE_FIXED_RATE .and. config%rate >= 64.0_real64 ) then
+            if ( compression_mode == DTFFT_COMPRESSION_MODE_FIXED_RATE .and. rate_or_tolerance >= 64.0_real64 ) then
                 create = DTFFT_ERROR_COMPRESSION_INVALID_RATE
-            elseif ( mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. .not. use_tolerance .and. config%precision >= 64 ) then
+            elseif ( compression_mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. .not. use_tolerance .and. precision >= 64 ) then
                 create = DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
             endif
         endif
         if ( create /= DTFFT_SUCCESS ) return
 
-        if ( mode == DTFFT_COMPRESSION_MODE_FIXED_RATE .and. config%rate <= 1.0_real64 ) then
+        if ( compression_mode == DTFFT_COMPRESSION_MODE_FIXED_RATE .and. rate_or_tolerance <= 1.0_real64 ) then
             create = DTFFT_ERROR_COMPRESSION_INVALID_RATE
-        else if ( mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. .not. use_tolerance .and. config%precision <= 1 ) then
+        else if ( compression_mode == DTFFT_COMPRESSION_MODE_FIXED_PRECISION .and. .not. use_tolerance .and. precision <= 1 ) then
             create = DTFFT_ERROR_COMPRESSION_INVALID_PRECISION
-        else if ( mode == DTFFT_COMPRESSION_MODE_FIXED_ACCURACY .and. config%tolerance >= 1.0_real64 ) then
+        else if ( compression_mode == DTFFT_COMPRESSION_MODE_FIXED_ACCURACY .and. rate_or_tolerance >= 1.0_real64 ) then
             create = DTFFT_ERROR_COMPRESSION_INVALID_TOLERANCE
         endif
         if ( create /= DTFFT_SUCCESS ) return
 
-        CHECK_CALL( self%create_private(config, platform), create )
+        CHECK_CALL( self%create_private(platform), create )
     end function create
 
     integer(int64) function compress(self, dims, displ, in, out, stream)

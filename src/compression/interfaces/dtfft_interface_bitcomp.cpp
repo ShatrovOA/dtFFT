@@ -32,7 +32,7 @@ size_t _dtfft_compress_bitcomp(void *in, void *out, size_t n, dtfft_compression_
         // cudaStreamSynchronize(stream);
     } else {
         double tol;
-        int ierr = get_error_bound(in, (int32_t)mode, n, delta, (int32_t)storage_size, &tol);
+        int ierr = get_error_bound(in, (int32_t)mode, n, delta, storage_size, &tol);
         if ( ierr != 0 ) return 0;
 
         if ( bmode == BITCOMP_LOSSLESS ) {

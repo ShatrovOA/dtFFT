@@ -44,20 +44,20 @@ extern "C"
         delete config;
     }
 
-    size_t _dtfft_sz3_compress(void *conf, const void* data, char* cmpData, size_t cmpCap, size_t dataSize)
+    size_t _dtfft_sz3_compress(void *conf, const void* data, char* cmpData, size_t cmpCap, size_t storage_size)
     {
         SZ3::Config* config = static_cast<SZ3::Config*>(conf);
         if (config->errorBoundMode == SZ3::EB_REL) {
             // Convert relative error bound to absolute one based on value range of the data.
             double absErrBound;
-            if ( get_error_bound(data, static_cast<int32_t>(dtfft::CompressionMode::FIXED_PRECISION), config->num, config->relErrorBound, dataSize, &absErrBound) != 0 ) {
+            if ( get_error_bound(data, static_cast<int32_t>(dtfft::CompressionMode::FIXED_PRECISION), config->num, config->relErrorBound, storage_size, &absErrBound) != 0 ) {
                 return 0; // Failed to compute absolute error bound
             }
             config->errorBoundMode = SZ3::EB_ABS;
             config->absErrorBound = absErrBound;
         }
 
-        switch (dataSize) {
+        switch (storage_size) {
             case sizeof(float):
                 return SZ_compress(*config, reinterpret_cast<const float*>(data), cmpData, cmpCap);
             case sizeof(double):
@@ -67,10 +67,10 @@ extern "C"
         }
     }
 
-    size_t _dtfft_sz3_decompress(void *conf, const char* cmpData, size_t cmpSize, void* decData, int32_t dataSize)
+    size_t _dtfft_sz3_decompress(void *conf, const char* cmpData, size_t cmpSize, void* decData, size_t storage_size)
     {
         SZ3::Config* config = static_cast<SZ3::Config*>(conf);
-        switch (dataSize) {
+        switch (storage_size) {
             case sizeof(float):
                 SZ_decompress(*config, cmpData, cmpSize, reinterpret_cast<float*&>(decData));
                 return config->num * sizeof(float);

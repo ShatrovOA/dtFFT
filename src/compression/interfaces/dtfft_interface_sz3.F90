@@ -47,27 +47,27 @@ public :: sz3_destroy_config
 
 public :: sz3_compress
     interface
-        integer(c_size_t) function sz3_compress(conf, data, cmpData, cmpCap, dataSize) bind(c, name="_dtfft_sz3_compress")
+        integer(c_size_t) function sz3_compress(conf, data, cmpData, cmpCap, storage_size) bind(c, name="_dtfft_sz3_compress")
         !! Set 2D field strides in number of scalars
         import
             type(c_ptr),        value   :: conf !! Allocated config object
             type(c_ptr),        value   :: data
             type(c_ptr),        value   :: cmpData
             integer(c_size_t),  value   :: cmpCap
-            integer(c_size_t),  value   :: dataSize
+            integer(c_size_t),  value   :: storage_size
         end function sz3_compress
     end interface
 
 public :: sz3_decompress
     interface
-        integer(c_size_t) function sz3_decompress(conf, cmpData, cmpSize, decData, dataSize) bind(c, name="_dtfft_sz3_decompress")
+        integer(c_size_t) function sz3_decompress(conf, cmpData, cmpSize, decData, storage_size) bind(c, name="_dtfft_sz3_decompress")
         !! Set 2D field strides in number of scalars
         import
             type(c_ptr),        value   :: conf !! Allocated config object
             type(c_ptr),        value   :: cmpData
             integer(c_size_t),  value   :: cmpSize
             type(c_ptr),        value   :: decData
-            integer(c_size_t),  value   :: dataSize
+            integer(c_size_t),  value   :: storage_size
         end function sz3_decompress
     end interface
 end module dtfft_interface_sz3
