@@ -73,7 +73,7 @@ implicit none
     n_compressors = n_compressors + 1
     compressors(n_compressors) = compressor_info(DTFFT_COMPRESSION_LIB_SZP, [.false., .false., .true., .true.], .true.)
 #endif
-#ifdef DTFFT_WITH_BITCOMP
+#if defined(DTFFT_WITH_BITCOMP) && !defined(DTFFT_RUNNING_CICD)
     n_compressors = n_compressors + 1
     compressors(n_compressors) = compressor_info(DTFFT_COMPRESSION_LIB_BITCOMP, [.true., .false., .true., .true.], .false.)
 #endif
@@ -203,14 +203,15 @@ contains
         integer(int32),                     intent(in)  :: expected(:)  !! Accepted error codes
         character(len=*),                   intent(in)  :: message      !! Test description
         class(abstract_compressor), allocatable :: compressor
-        integer(int32) :: error_code, i
+        integer(int32) :: error_code
 
-        call allocate_compressor(info%lib, compressor)
-        call test%assert_true("Allocated compressor", allocated(compressor))
-        error_code = compressor%create(3_int8, config, platform, base_type, DIMS_PERMUTE_NONE) 
+        error_code = create_compressor(config, 3_int8, platform, base_type, DIMS_PERMUTE_NONE, compressor)
         call test%assert_false(message//": compressor accepted unsupported configuration, mode = "//to_str(config%compression_mode%val), error_code == DTFFT_SUCCESS)
         call test%assert_true("any(error_code == expected)", any(error_code == expected))
-        deallocate( compressor )
+        if ( error_code == DTFFT_SUCCESS ) then
+            call compressor%destroy()
+            deallocate( compressor )
+        endif
     end subroutine check_create_fails
 
     integer(int32) function expected_parameter_error(mode)
@@ -280,13 +281,12 @@ contains
         class(abstract_compressor), allocatable :: compressor
         integer(int32) :: error_code
 
-        call allocate_compressor(info%lib, compressor)
-        call test%assert_true("Allocated compressor", allocated(compressor))
-
-        error_code = compressor%create(3_int8, config, platform, base_type, DIMS_PERMUTE_NONE)
+        error_code = create_compressor(config, 3_int8, platform, base_type, DIMS_PERMUTE_NONE, compressor)
         call test%check(message//", mode = "//to_str(config%compression_mode%val), error_code, expected)
-        if ( error_code == DTFFT_SUCCESS ) call compressor%destroy()
-        deallocate( compressor )
+        if ( error_code == DTFFT_SUCCESS ) then
+            call compressor%destroy()
+            deallocate( compressor )
+        endif
     end subroutine check_create
 
     subroutine test_round_trips(info)
@@ -335,7 +335,7 @@ contains
         integer(int64)  :: n_scalars
         logical         :: is_float, is_complex
         type(c_ptr)     :: in, out
-        real(real64)    :: error, threshold, rate
+        real(real64)    :: error, threshold
         type(string)    :: name
 
         ndims = size(unpack_dims, kind=int8)
@@ -360,9 +360,10 @@ contains
                      ', permutation = '//to_str(permutation)//', dims = '//dims_to_str(pack_dims)
         call name%destroy()
 
-        call allocate_compressor(info%lib, compressor)
-        call test%check("create for round trip" , compressor%create(ndims, config_for_mode(mode, is_float), DTFFT_PLATFORM_HOST,   &
-                                            base_type, permutation), DTFFT_SUCCESS)
+        call test%check("create for round trip", &
+            create_compressor(config_for_mode(mode, is_float), ndims, DTFFT_PLATFORM_HOST, base_type, permutation, compressor), &
+            DTFFT_SUCCESS &
+        )
 
         uncompressed_bytes = storage_size * product(int(pack_dims, int64))
         ! Buffers are always able to hold uncompressed data

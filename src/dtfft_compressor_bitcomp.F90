@@ -35,8 +35,8 @@ public :: compressor_bitcomp
     type, extends(abstract_compressor) :: compressor_bitcomp
     !! bitcomp-based compressor implementation
     private
-        type(dtfft_compression_mode_t) :: mode
-        real(real64) :: tolerance
+        ! type(dtfft_compression_mode_t) :: mode
+        ! real(real64) :: tolerance
     contains
         procedure   :: create_private => create         !! Initializes the SZ3 compressor with given configuration
         procedure   :: compress_private => compress     !! Compresses the input data using SZ3
@@ -50,15 +50,14 @@ public :: compressor_bitcomp
 
 contains
 
-    integer(int32) function create(self, config, platform)
+    integer(int32) function create(self, platform)
     !! Initializes the bitcomp compressor with given configuration
         class(compressor_bitcomp),          intent(inout)   :: self         !! Compressor instance
-        type(dtfft_compression_config_t),   intent(in)      :: config       !! Compression settings
         type(dtfft_platform_t),             intent(in)      :: platform     !! Target platform (CPU or CUDA)
 
         create = DTFFT_SUCCESS
-        self%mode = config%compression_mode
-        self%tolerance = config%tolerance
+        ! self%mode = config%compression_mode
+        ! self%tolerance = config%tolerance
     end function create
 
     integer(int64) function compress(self, dims, in, out, stream)
@@ -71,7 +70,7 @@ contains
         integer(c_size_t) :: n, compressed_size
 
         n = self%get_n_elements(dims)
-        compressed_size = bitcompCompress(in, out, n, self%mode, self%storage_size, self%tolerance, stream)
+        compressed_size = bitcompCompress(in, out, n, self%compression_mode, self%storage_size, self%rate_or_tolerance, stream)
         compress = int(compressed_size, int64)
     end function compress
 

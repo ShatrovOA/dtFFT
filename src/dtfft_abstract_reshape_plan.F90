@@ -298,47 +298,11 @@ contains
             block
                 class(abstract_compressor), allocatable :: compressor
 
-                call allocate_compressor(self%compression_config%compression_lib, compressor)
-                if ( .not. allocated( compressor ) ) then
-                    error_code = -44 ! TODO Fix me
+                error_code = create_compressor(self%compression_config, 2_int8, self%platform, base_dtype, DIMS_PERMUTE_NONE, compressor)
+                if ( error_code /= DTFFT_SUCCESS ) then
                     return
                 endif
 
-!                 if ( self%compression_config%compression_lib == DTFFT_COMPRESSION_LIB_ZFP ) then
-! # ifdef DTFFT_WITH_ZFP
-!                     allocate( compressor_zfp :: compressor )
-! # else
-!                     error_code = -44 ! TODO Fix me
-! # endif
-!                 else if ( self%compression_config%compression_lib == DTFFT_COMPRESSION_LIB_SZ3 ) then
-! # ifdef DTFFT_WITH_SZ3
-!                     allocate( compressor_sz3 :: compressor )
-! # else
-!                     error_code = -44 ! TODO Fix me
-! # endif
-!                 else if ( self%compression_config%compression_lib == DTFFT_COMPRESSION_LIB_SZP ) then
-! # ifdef DTFFT_WITH_SZP
-!                     allocate( compressor_szp :: compressor )
-! # else
-!                     error_code = -44 ! TODO Fix me
-! # endif
-! !                 else if ( self%compression_config%compression_lib == DTFFT_COMPRESSION_LIB_CUSZ ) then
-! ! # ifdef DTFFT_WITH_CUSZ
-! !                     allocate( compressor_cusz :: compressor )
-! ! # else
-! !                     error_code = -44 ! TODO Fix me
-! ! # endif
-!                 else if ( self%compression_config%compression_lib == DTFFT_COMPRESSION_LIB_CUSZP ) then
-! # ifdef DTFFT_WITH_CUSZP
-!                     allocate( compressor_cuszp :: compressor )
-! # else
-!                     error_code = -44 ! TODO Fix me
-! # endif
-!                 endif
-!                 if ( error_code /= DTFFT_SUCCESS ) return
-
-                ! Checking compression parameters by creating temporary compressor
-                CHECK_CALL( compressor%create(2_int8, self%compression_config, platform, base_dtype, DIMS_PERMUTE_NONE), error_code )
                 call compressor%destroy()
                 deallocate(compressor)
             endblock

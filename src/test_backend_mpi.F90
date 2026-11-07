@@ -196,6 +196,7 @@ contains
     end do
     total_recv = sum(recv_counts)
 
+    print*,'Running backend = '//dtfft_get_backend_string(b)
     ! ---- create backend (base_storage = FLOAT_STORAGE_SIZE, scaler = 1) ----
     call backend%create(b, helper, platform, 1_int8, &
                         send_displs, send_counts, recv_displs, recv_counts, &

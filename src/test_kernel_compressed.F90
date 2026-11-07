@@ -5,27 +5,17 @@ use iso_fortran_env
 use dtfft_abstract_kernel
 use dtfft_abstract_compressor
 use dtfft_compressor
-! #ifdef DTFFT_WITH_ZFP
-! use dtfft_compressor_zfp,                 only: compressor_zfp
-! #endif
-! #ifdef DTFFT_WITH_SZ3
-! use dtfft_compressor_sz3,                 only: compressor_sz3
-! #endif
-! #ifdef DTFFT_WITH_SZP
-! use dtfft_compressor_szp,                 only: compressor_szp
-! #endif
-! #ifdef DTFFT_WITH_BITCOMP
-! use dtfft_compressor_bitcomp,               only: compressor_bitcomp
-! #endif
 use dtfft_config
 use dtfft_kernel_host
 use dtfft_parameters
 use dtfft_utils
+use test_suite, only: test_suite_t
 #include "_dtfft_cuda.h"
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
 implicit none
     integer(int32) :: ierror
+    type(test_suite_t) :: test
     type :: compressor_t
         type(dtfft_compression_lib_t) :: lib
         logical :: has_fixed_rate
@@ -35,7 +25,7 @@ implicit none
     type(compressor_t) :: compressors(10)
 
 
-    call MPI_Init(ierror)
+    call test%create("Compression Kernels")
 
     n_compressors = 0
 #ifdef DTFFT_WITH_ZFP
@@ -46,6 +36,9 @@ implicit none
 #endif
 #ifdef DTFFT_WITH_SZP
     n_compressors = n_compressors + 1; compressors(n_compressors) = compressor_t(DTFFT_COMPRESSION_LIB_SZP, .false., .false.)
+#endif
+#ifdef DTFFT_WITH_BITCOMP
+    n_compressors = n_compressors + 1; compressors(n_compressors) = compressor_t(DTFFT_COMPRESSION_LIB_BITCOMP, .false., .true.)
 #endif
 
     do iter = 1, n_compressors
@@ -60,7 +53,7 @@ implicit none
         call test_transpose([64, 128], KERNEL_PACK_FORWARD, KERNEL_UNPACK, KERNEL_PACK_BACKWARD, KERNEL_UNPACK, compressors(iter))
     enddo
 
-    call MPI_Finalize(ierror)
+    call test%finalize()
 contains
 
     subroutine test_pack_unpack(dims, comp)
@@ -95,31 +88,7 @@ contains
         endif
         ierror = check_compression_config(config)
 
-        call allocate_compressor(lib, compressor)
-
-        if ( .not.allocated(compressor) ) then
-            INTERNAL_ERROR("test_pack_unpack: Unknown compression lib")
-        endif
-
-!         if ( lib == DTFFT_COMPRESSION_LIB_ZFP ) then
-! #ifdef DTFFT_WITH_ZFP
-!             allocate( compressor_zfp :: compressor )
-! #endif
-!         else if ( lib == DTFFT_COMPRESSION_LIB_SZ3 ) then
-! #ifdef DTFFT_WITH_SZ3
-!             allocate( compressor_sz3 :: compressor )
-! #endif
-!         else if ( lib == DTFFT_COMPRESSION_LIB_SZP ) then
-! #ifdef DTFFT_WITH_SZP
-!             allocate( compressor_szp :: compressor )
-! #endif
-!         else if ( lib == DTFFT_COMPRESSION_LIB_BITCOMP ) then
-! #ifdef DTFFT_WITH_BITCOMP
-!             allocate( compressor_bitcomp :: compressor )
-! #endif
-!         endif
-
-        ierror = compressor%create(size(dims, kind=int8), config, DTFFT_PLATFORM_HOST, MPI_COMPLEX, DIMS_PERMUTE_NONE)
+        ierror = create_compressor(config, size(dims, kind=int8), DTFFT_PLATFORM_HOST, MPI_COMPLEX, DIMS_PERMUTE_NONE, compressor)
 
         call packer%create(dims, DTFFT_ESTIMATE, COMPLEX_STORAGE_SIZE, KERNEL_PACK, locals, with_compression=.true.)
         call packer%set_compressor(compressor)
@@ -195,30 +164,6 @@ contains
         end if
         locals(:, 1) = 0
 
-        call allocate_compressor(lib%lib, compressor_forward)
-        call allocate_compressor(lib%lib, compressor_backward)
-
-        if ( .not.allocated(compressor_forward) .or. .not.allocated(compressor_backward) ) then
-            INTERNAL_ERROR("test_transpose: Unknown compression lib")
-        endif
-
-!         if ( lib%lib == DTFFT_COMPRESSION_LIB_ZFP ) then
-! #ifdef DTFFT_WITH_ZFP
-!             allocate( compressor_zfp :: compressor_forward )
-!             allocate( compressor_zfp :: compressor_backward )
-! #endif
-!         else if ( lib%lib == DTFFT_COMPRESSION_LIB_SZ3 ) then
-! #ifdef DTFFT_WITH_SZ3
-!             allocate( compressor_sz3 :: compressor_forward )
-!             allocate( compressor_sz3 :: compressor_backward )
-! #endif
-!         else if ( lib%lib == DTFFT_COMPRESSION_LIB_SZP ) then
-! #ifdef DTFFT_WITH_SZP
-!             allocate( compressor_szp :: compressor_forward )
-!             allocate( compressor_szp :: compressor_backward )
-! #endif
-!         endif
-
         in = mem_alloc_host(DOUBLE_STORAGE_SIZE * product(dims))
         out = mem_alloc_host(DOUBLE_STORAGE_SIZE * product(dims))
         aux = mem_alloc_host(DOUBLE_STORAGE_SIZE * product(dims))
@@ -241,9 +186,11 @@ contains
             print*,'        Compression mode = ',current_mode%val
 
             config = dtfft_compression_config_t(lib%lib, current_mode, 32.0_real64, 32, 1e-7)
+            ierror = create_compressor(config, size(dims, kind=int8), DTFFT_PLATFORM_HOST, MPI_REAL8, DIMS_PERMUTE_BACKWARD, compressor_forward)
+            ierror = create_compressor(config, size(dims, kind=int8), DTFFT_PLATFORM_HOST, MPI_REAL8, DIMS_PERMUTE_FORWARD, compressor_backward)
 
-            ierror = compressor_forward%create(size(dims, kind=int8), config, DTFFT_PLATFORM_HOST, MPI_REAL8, DIMS_PERMUTE_BACKWARD)
-            ierror = compressor_backward%create(size(dims, kind=int8), config, DTFFT_PLATFORM_HOST, MPI_REAL8, DIMS_PERMUTE_FORWARD)
+            ! ierror = compressor_forward%create(size(dims, kind=int8), config, DTFFT_PLATFORM_HOST, MPI_REAL8, DIMS_PERMUTE_BACKWARD)
+            ! ierror = compressor_backward%create(size(dims, kind=int8), config, DTFFT_PLATFORM_HOST, MPI_REAL8, DIMS_PERMUTE_FORWARD)
 
             locals(1:size(dims), 1) = dims
             call forward%create(dims, DTFFT_ESTIMATE, DOUBLE_STORAGE_SIZE, f, locals, with_compression=.true.)
@@ -294,9 +241,9 @@ contains
             call backward%destroy()
             call forward_unpacker%destroy()
             call backward_unpacker%destroy()
-        enddo
 
-        deallocate(compressor_forward, compressor_backward)
+            deallocate(compressor_forward, compressor_backward)
+        enddo
         call mem_free_host(in)
         call mem_free_host(out)
         call mem_free_host(aux)

@@ -29,6 +29,7 @@ use dtfft_errors
 use dtfft_parameters
 use dtfft_pencil,                   only: pencil, get_float_buffer_size
 use dtfft_serializer,               only: serializer
+use dtfft_utils
 #include "_dtfft_mpi.h"
 ! #include "_dtfft_private.h"
 #include "_dtfft_profile.h"
@@ -414,14 +415,22 @@ contains
         class(reshape_handle_datatype),   intent(inout) :: self       !! Datatype handle
         type(execute_args),               intent(inout) :: kwargs     !! Additional arguments
         integer(int32),                   intent(out)   :: error_code !! Error code
-        integer(int32)  :: ierr         !! Error code
+        ! integer(int32)  :: ierr         !! Error code
+! #ifdef DTFFT_USE_MPI
+!         integer :: statuses(MPI_STATUS_SIZE, self%n_requests)
+! #endif
 
         error_code = DTFFT_SUCCESS
         if ( .not. self%is_active ) then
             error_code = DTFFT_ERROR_TRANSPOSE_NOT_ACTIVE
             return
         endif
-        call MPI_Waitall(self%n_requests, self%requests, MPI_STATUSES_IGNORE, ierr)
+        call waitall_requests(self%n_requests, self%requests)
+! #ifdef DTFFT_USE_MPI
+!         call MPI_Waitall(self%n_requests, self%requests, statuses, ierr)
+! #else
+!         call MPI_Waitall(self%n_requests, self%requests, MPI_STATUSES_IGNORE, ierr)
+! #endif
         self%is_active = .false.
     end subroutine execute_end
 

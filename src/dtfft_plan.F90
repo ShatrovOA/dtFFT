@@ -29,19 +29,19 @@ use dtfft_executor,                     only: DTFFT_EXECUTOR_NONE, dtfft_executo
 use dtfft_executor,                     only: is_host_executor, is_cuda_executor
 #endif
 use dtfft_errors
-use dtfft_pencil,                     only: pencil_ => pencil, pencil_init, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
+use dtfft_pencil,                       only: pencil_ => pencil, pencil_init, get_local_sizes_private => get_local_sizes, dtfft_pencil_t
 use dtfft_parameters
-use dtfft_reshape_plan,               only: reshape_plan
-use dtfft_transpose_plan,             only: transpose_plan
-use dtfft_serializer,                 only: serializer
+use dtfft_reshape_plan,                 only: reshape_plan
+use dtfft_transpose_plan,               only: transpose_plan
+use dtfft_serializer,                   only: serializer
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
 #endif
 #ifdef DTFFT_WITH_NVSHMEM
-use dtfft_interface_nvshmem,          only: is_nvshmem_ptr
+use dtfft_interface_nvshmem,            only: is_nvshmem_ptr
 #endif
 #ifdef DTFFT_WITH_OPENMP
-use omp_lib,                          only: omp_get_max_threads
+use omp_lib,                            only: omp_get_max_threads
 #endif
 use dtfft_utils
 #include "_dtfft_profile.h"

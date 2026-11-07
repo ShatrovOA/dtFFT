@@ -604,13 +604,12 @@ contains
 #endif
 #ifdef DTFFT_WITH_COMPRESSION
         if ( with_compression ) then
-            call allocate_compressor(kwargs%compression_config%compression_lib, self%compressor)
+            ierr = create_compressor(kwargs%compression_config, ndims, kwargs%platform, kwargs%base_type, dims_permutations, self%compressor)
 #ifdef DTFFT_DEBUG
             if ( .not. allocated(self%compressor) ) then
-                INTERNAL_ERROR("reshape_handle_generic.create: Unknown compression lib")
+                INTERNAL_ERROR("reshape_handle_generic.create: Failed to create compressor")
             endif
 #endif
-            ierr = self%compressor%create(ndims, kwargs%compression_config, kwargs%platform, kwargs%base_type, dims_permutations)
         endif
 #endif
         if ( self%is_loaded ) then

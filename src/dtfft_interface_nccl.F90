@@ -362,7 +362,7 @@ contains
     function ncclGroupEnd() result(ncclResult_t)
     !! Mock: Completes all pending MPI requests
         integer(c_int32_t)                    :: ncclResult_t
-        integer(int32)                        :: i, mpi_ierr
+        ! integer(int32)                        :: i, mpi_ierr
 
         if ( .not. allocated(requests) ) then
             INTERNAL_ERROR("ncclGroupEnd: mpi_requests should be allocated at this point")
@@ -371,19 +371,20 @@ contains
             INTERNAL_ERROR("ncclGroupEnd: num_requests should be greater than 0 at this point")
         end if
 
-        ! call MPI_Waitall(num_requests, requests, MPI_STATUSES_IGNORE, mpi_ierr)
-        ! MPI_Waitall is somehow messing with internal memory
-        ! `get_conf_fourier_reshape_enabled` returns different value after MPI_Waitall
-        ! Waiting for each request individually
-        do i = 1, num_requests
-            call MPI_Wait(requests(i), MPI_STATUS_IGNORE, mpi_ierr)
-        enddo
+        call waitall_requests(num_requests, requests)
+        ! ! call MPI_Waitall(num_requests, requests, MPI_STATUSES_IGNORE, mpi_ierr)
+        ! ! MPI_Waitall is somehow messing with internal memory
+        ! ! `get_conf_fourier_reshape_enabled` returns different value after MPI_Waitall
+        ! ! Waiting for each request individually
+        ! do i = 1, num_requests
+        !     call MPI_Wait(requests(i), MPI_STATUS_IGNORE, mpi_ierr)
+        ! enddo
 
-        if (mpi_ierr == MPI_SUCCESS) then
+        ! if (mpi_ierr == MPI_SUCCESS) then
             ncclResult_t = 0  ! ncclSuccess
-        else
-            ncclResult_t = 1  ! ncclError
-        end if
+        ! else
+        !     ncclResult_t = 1  ! ncclError
+        ! end if
         deallocate(requests)
         num_requests = 0
     end function ncclGroupEnd
