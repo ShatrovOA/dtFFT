@@ -548,12 +548,12 @@ contains
     end function error_threshold
 
     pure complex(real64) function reference(rank, i)
-    !! Smooth reference value with distinct nonzero real and imaginary parts
+    !! Reproducible reference values with distinct, exactly representable components
         integer(int32), intent(in)  :: rank !! Rank that owns the data
         integer(int32), intent(in)  :: i    !! Scalar index inside rank local slab, 1-based
         reference = cmplx( &
-            1._real64 + sin(0.01_real64 * real(i, real64)) * cos(0.1_real64 * real(rank + 1, real64)), &
-            0.5_real64 + cos(0.013_real64 * real(i + rank, real64)) * sin(0.07_real64 * real(rank + 2, real64)), &
+            1._real64 + real(modulo(i, 128), real64) / 128._real64 + real(rank, real64) / 16._real64, &
+            -0.5_real64 + real(modulo(3 * i + rank, 128), real64) / 256._real64 + real(rank, real64) / 32._real64, &
             kind=real64)
     end function reference
 

@@ -692,23 +692,32 @@ contains
         ! The concrete plan class has to be allocated before it can be loaded into, and only
         ! the file knows which one it is. Reading just the header settles that.
         error_code = get_plan_kind_from_file(filename_, get_comm(comm), plan_kind)
-        print*,'get_plan_kind_from_file: error_code = ', error_code, ' plan_kind = '//plan_kind%val
+        print*,'get_plan_kind_from_file: error_code = ', error_code, ' plan_kind = '//plan_kind%val, plan_kind == PLAN_C2C, plan_kind == PLAN_R2C, plan_kind == PLAN_R2R
         if ( error_code /= DTFFT_SUCCESS ) then
             deallocate(filename_)
             return
         endif
 
         allocate(plan)
-        select case ( plan_kind%val )
-        case ( PLAN_C2C%val )
+        if ( plan_kind == PLAN_C2C ) then
             allocate( dtfft_plan_c2c_t :: plan%p )
-        case ( PLAN_R2C%val )
+        else if ( plan_kind == PLAN_R2C ) then
             allocate( dtfft_plan_r2c_t :: plan%p )
-        case ( PLAN_R2R%val )
+        else if ( plan_kind == PLAN_R2R ) then
             allocate( dtfft_plan_r2r_t :: plan%p )
-        case default
+        else
             INTERNAL_ERROR('dtfft_load_plan_c: Unknown plan kind '//plan_kind%val)
-        endselect
+        endif
+        ! select case ( plan_kind%val )
+        ! case ( PLAN_C2C%val )
+        !     allocate( dtfft_plan_c2c_t :: plan%p )
+        ! case ( PLAN_R2C%val )
+        !     allocate( dtfft_plan_r2c_t :: plan%p )
+        ! case ( PLAN_R2R%val )
+        !     allocate( dtfft_plan_r2r_t :: plan%p )
+        ! case default
+        !     INTERNAL_ERROR('dtfft_load_plan_c: Unknown plan kind '//plan_kind%val)
+        ! endselect
 
         call plan%p%load(filename_, get_comm(comm), error_code)
         print*,'plan%p%load: error_code = ', error_code
