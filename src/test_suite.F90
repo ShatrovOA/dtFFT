@@ -34,6 +34,7 @@ contains
         logical           :: is_mpi_init      !! Is MPI initialized?
         integer(int32) :: comm_size
 
+
         call MPI_Initialized(is_mpi_init, ierr)
         if ( .not. is_mpi_init ) then
             call MPI_Init(ierr)

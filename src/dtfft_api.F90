@@ -19,17 +19,18 @@
 #include "dtfft_config.h"
 module dtfft_api
 !! This module is a Fortran part of C interface
-use iso_c_binding,     only: c_int8_t, c_int32_t, c_size_t,  &
-                             c_bool, c_char, c_ptr, c_f_pointer, c_null_ptr, c_loc
-use iso_fortran_env,   only: int8, int32
-use dtfft_config,      only: dtfft_set_config, dtfft_config_t
+use iso_c_binding,      only: c_int8_t, c_int32_t, c_size_t,  &
+                              c_bool, c_char, c_ptr, c_f_pointer, c_null_ptr, c_loc
+use iso_fortran_env,    only: int8, int32
+use dtfft_config,       only: dtfft_set_config, dtfft_config_t
 use dtfft_errors
-use dtfft_executor, only: dtfft_executor_t, dtfft_get_executor_string
+use dtfft_executor,     only: dtfft_executor_t, dtfft_get_executor_string
 use dtfft_parameters
 use dtfft_pencil
 use dtfft_plan
-use dtfft_utils,       only: is_null_ptr, string_f2c, string_c2f
+use dtfft_utils,        only: is_null_ptr, string_f2c, string_c2f, write_message
 #include "_dtfft_mpi.h"
+#include "_dtfft_private.h"
 implicit none
 private
 
@@ -706,10 +707,7 @@ contains
         case ( PLAN_R2R%val )
             allocate( dtfft_plan_r2r_t :: plan%p )
         case default
-            deallocate(plan)
-            deallocate(filename_)
-            error_code = DTFFT_ERROR_FILE_INVALID
-            return
+            INTERNAL_ERROR('dtfft_load_plan_c: Unknown plan kind '//plan_kind%val)
         endselect
 
         call plan%p%load(filename_, get_comm(comm), error_code)

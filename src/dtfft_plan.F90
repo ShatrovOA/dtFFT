@@ -1776,6 +1776,7 @@ contains
 
         OPTVAL(comm_, MPI_COMM_WORLD, comm)
         ierr = load_file(filename, self%fh, plan_kind, comm_)
+        if ( ierr /= DTFFT_SUCCESS .and. self%fh%get_open() ) call self%fh%destroy()
         CHECK_ERROR_AND_RETURN
 
         select type (self)
@@ -1786,18 +1787,21 @@ contains
         class is ( dtfft_plan_r2r_t )
             if ( plan_kind /= PLAN_R2R ) ierr = DTFFT_ERROR_FILE_PLAN_MISMATCH
         end select
+        if ( ierr /= DTFFT_SUCCESS .and. self%fh%get_open() ) call self%fh%destroy()
         CHECK_ERROR_AND_RETURN
 
         call self%fh%load(marker)
         if ( marker /= ENDIAN_MARKER ) then
             ierr = DTFFT_ERROR_FILE_INVALID
         endif
+        if ( ierr /= DTFFT_SUCCESS .and. self%fh%get_open() ) call self%fh%destroy()
         CHECK_ERROR_AND_RETURN
 
         call self%fh%load(file_version)
         if ( file_version > FILE_FORMAT_VERSION .or. file_version < MIN_READABLE_FORMAT_VERSION ) then
             ierr = DTFFT_ERROR_FILE_VERSION_MISMATCH
         endif
+        if ( ierr /= DTFFT_SUCCESS .and. self%fh%get_open() ) call self%fh%destroy()
         CHECK_ERROR_AND_RETURN
 
         self%is_loading = .true.
@@ -1807,6 +1811,7 @@ contains
         if ( comm_size /= load_comm_size ) then
             ierr = DTFFT_ERROR_FILE_PLAN_MISMATCH
         endif
+        if ( ierr /= DTFFT_SUCCESS .and. self%fh%get_open() ) call self%fh%destroy()
         CHECK_ERROR_AND_RETURN
         call self%fh%load(ndims)
         allocate(dims(ndims))
@@ -1830,11 +1835,13 @@ contains
             enddo
         endif
         ierr = self%plan%load(self%fh)
+        if ( ierr /= DTFFT_SUCCESS .and. self%fh%get_open() ) call self%fh%destroy()
         CHECK_ERROR_AND_RETURN
 
         call self%fh%load(self%is_reshape_enabled)
         if ( self%is_reshape_enabled ) then
             ierr = self%rplan%load(self%fh)
+            if ( ierr /= DTFFT_SUCCESS .and. self%fh%get_open() ) call self%fh%destroy()
             CHECK_ERROR_AND_RETURN
         endif
 

@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 program test_backend_compressed
-!! Tests all compressed backends on all platforms available in current build.
+!! Tests compressed backends with real and complex data on all platforms available in current build.
 !!
 !! Every rank owns a `NX x ny_local` slab and sends `NX x cy` blocks to all other ranks.
 !! Pack kernel compresses each block before it is sent, unpack kernel decompresses received
@@ -91,7 +91,8 @@ implicit none
     type(compressor_info)   :: compressors(size(VALID_COMPRESSION_LIBS))
     type(dtfft_platform_t)  :: platforms(2)
     integer(int32)          :: ny_globals(2)
-    integer(int64)          :: storages(2)
+    integer(int64)          :: storages(4)
+    TYPE_MPI_DATATYPE       :: data_types(4)
     type(pencil), target    :: pencils(1)
     TYPE_MPI_COMM           :: comms(1)
     integer(int32)          :: n_passed, n_skipped
@@ -154,11 +155,14 @@ implicit none
 
     storages(1) = FLOAT_STORAGE_SIZE
     storages(2) = DOUBLE_STORAGE_SIZE
+    storages(3) = 2 * FLOAT_STORAGE_SIZE
+    storages(4) = 2 * DOUBLE_STORAGE_SIZE
+    data_types = [MPI_REAL, MPI_REAL8, MPI_COMPLEX, MPI_DOUBLE_COMPLEX]
 
     n_passed = 0
     n_skipped = 0
     block
-        integer(int32) :: ip, ib, ic, imode, isize, istorage
+        integer(int32) :: ip, ib, ic, imode, isize, itype
 
         do ip = 1, n_platforms
             ! NCCL backends are only available on device, so backend list is per platform
@@ -179,10 +183,11 @@ implicit none
                 do ic = 1, n_compressors
                     do imode = 1, N_MODES
                         do isize = 1, size(ny_globals)
-                            do istorage = 1, size(storages)
+                            do itype = 1, size(storages)
                                 call run_case(backends(ib), platforms(ip), compressors(ic),                      &
                                               VALID_COMPRESSION_MODES(imode), ny_globals(isize),                &
-                                              storages(istorage), is_mode_supported(compressors(ic), imode, platforms(ip)))
+                                              data_types(itype), storages(itype),                                &
+                                              is_mode_supported(compressors(ic), imode, platforms(ip)))
                             enddo
                         enddo
                     enddo
@@ -243,13 +248,14 @@ contains
         end do
     end subroutine local_size
 
-    subroutine run_case(b, platform, info, mode, ny_global, base_storage, is_supported)
+    subroutine run_case(b, platform, info, mode, ny_global, base_type, base_storage, is_supported)
     !! Runs single exchange and checks obtained data
         type(dtfft_backend_t),          intent(in)  :: b            !! Backend to test
         type(dtfft_platform_t),         intent(in)  :: platform     !! Platform to run on
         type(compressor_info),          intent(in)  :: info         !! Compressor to test
         type(dtfft_compression_mode_t), intent(in)  :: mode         !! Compression mode
         integer(int32),                 intent(in)  :: ny_global    !! Global number of columns
+        TYPE_MPI_DATATYPE,              intent(in)  :: base_type    !! MPI data type
         integer(int64),                 intent(in)  :: base_storage !! Size of a single element in bytes
         logical,                        intent(in)  :: is_supported !! Whether combination is expected to work
 
@@ -262,41 +268,33 @@ contains
         type(backend_helper)    :: helper
         type(kernel_type_t)     :: pack_kernel_type
         type(dtfft_stream_t)    :: stream
-        TYPE_MPI_DATATYPE       :: base_type
         type(c_ptr)     :: in, out, aux, host
         integer(int32)  :: r, mpi_ierr, err_local
         integer(int32)  :: ny_local, ny_start, cy_start, cy_count
         integer(int32)  :: src_ny_local, total_send, total_recv, buffer_elems
         integer(int64)  :: aux_bytes, buffer_bytes
-        logical         :: is_float
-        real(real64)    :: error, max_error, threshold, rate
+        logical         :: is_float, is_complex, supported_type
+        real(real64)    :: error, max_error, max_error_global, threshold, rate
 
-        is_float = base_storage == FLOAT_STORAGE_SIZE
-        if ( is_float ) then
-            base_type = MPI_REAL
-        else
-            base_type = MPI_REAL8
-        endif
+        is_float = any(GET_MPI_VALUE(base_type) == [GET_MPI_VALUE(MPI_REAL), GET_MPI_VALUE(MPI_COMPLEX)])
+        is_complex = any(GET_MPI_VALUE(base_type) == [GET_MPI_VALUE(MPI_COMPLEX), GET_MPI_VALUE(MPI_DOUBLE_COMPLEX)])
         ! ---- compressor is shared by pack and unpack kernels, exactly as reshape handle does ----
-        err_local = create_compressor(config_for_mode(info%lib, mode, is_float), 2_int8, platform, base_type, DIMS_PERMUTE_NONE, compressor)
+        err_local = create_compressor(config_for_mode(info%lib, mode, is_float), 2_int8, platform, &
+                                      base_type, DIMS_PERMUTE_NONE, compressor)
         if ( .not. is_supported ) then
             ! Unsupported combination must be rejected right here instead of failing
             ! somewhere inside compression of the very first block
-            call test%assert_false("err_local == DTFFT_SUCCESS", err_local == DTFFT_SUCCESS)
-            call test%assert_false("err_local: "//dtfft_get_error_string(err_local), err_local /= DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED      &
-                .and.  err_local /= DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED      &
-                .and.  err_local /= DTFFT_ERROR_COMPRESSION_INVALID_MODE)
+            supported_type = err_local == DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED .or. &
+                             err_local == DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED .or. &
+                             err_local == DTFFT_ERROR_COMPRESSION_INVALID_MODE
+            call test%check("Unsupported compressor combination was accepted", supported_type)
 
             if ( allocated(compressor) ) deallocate( compressor )
             n_skipped = n_skipped + 1
-            if ( comm_rank == 0 ) call report(b, platform, info, mode, ny_global, base_storage, "SKIPPED", 0._real64, 1._real64)
             return
         endif
-        call test%assert_true("Failed to create compressor", err_local == DTFFT_SUCCESS)
-        ! if ( err_local /= DTFFT_SUCCESS ) then
-        !     print*,'Failed to create compressor: '//dtfft_get_error_string(err_local)
-        !     INTERNAL_ERROR("compressor%create failed")
-        ! endif
+        call test%check("Failed to create compressor: "//dtfft_get_error_string(err_local), &
+                        err_local, DTFFT_SUCCESS)
 
         ! ---- data distribution: `ny_local` columns of `NX` scalars each ----
         call local_size(ny_global, comm_size, comm_rank, ny_start, ny_local)
@@ -368,9 +366,9 @@ contains
         ! Reference data is always built on host and staged to the platform buffers
         host = mem_alloc_host(buffer_bytes)
 
-        call fill(host, buffer_elems, comm_rank, is_float)
+        call fill(host, buffer_elems, comm_rank, is_float, is_complex)
         call copy_to_platform(platform, in, host, buffer_bytes)
-        call wipe(host, buffer_elems, is_float)
+        call wipe(host, buffer_elems, is_float, is_complex)
         call copy_to_platform(platform, out, host, buffer_bytes)
 
         stream = NULL_STREAM
@@ -398,26 +396,28 @@ contains
             if ( recv_counts(r + 1) == 0 ) cycle
             call local_size(ny_global, comm_size, r, ny_start, src_ny_local)
             call local_size(src_ny_local, comm_size, comm_rank, cy_start, cy_count)
-            call test%assert_false("expected block size differs from received one", NX * cy_count /= recv_counts(r + 1))
-            ! if ( NX * cy_count /= recv_counts(r + 1) ) then
-            !     INTERNAL_ERROR("Test is broken: expected block size differs from received one")
-            ! endif
-            error = block_error(host, recv_displs(r + 1), recv_counts(r + 1), r, NX * cy_start, is_float)
+            call test%check("Expected block size differs from received one", &
+                            NX * cy_count == recv_counts(r + 1))
+            error = block_error(host, recv_displs(r + 1), recv_counts(r + 1), r, &
+                                NX * cy_start, is_float, is_complex)
             max_error = max(max_error, error)
         enddo
-print*,'Max error = ', max_error
-        threshold = error_threshold(mode, is_float)
-        call test%assert_true('FAIL on rank '//to_str(comm_rank)//': error = '//to_str(max_error)//', threshold = '//to_str(threshold), max_error <= threshold)
-        ! if ( .not. (max_error <= threshold) ) then
-        !     print '(a,i0,a,ES16.8,a,ES16.8)', 'FAIL on rank ', comm_rank, ': error = ', max_error, &
-        !                                       ', threshold = ', threshold
-        !     INTERNAL_ERROR("Exchanged data is too far from expected one")
-        ! endif
+        call MPI_Allreduce(max_error, max_error_global, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, mpi_ierr)
+        threshold = error_threshold(mode)
+        block
+            type(string) :: rep_string
+            rep_string = get_report_string(b, platform, info, mode, ny_global, base_type, &
+                                           "FAILED", max_error_global, 0.0_real64)
+            call test%check(rep_string%raw, max_error_global <= threshold)
+            call rep_string%destroy()
+        end block
         rate = compressor%get_average_rate()
 
-        ! Every rank checks its own data, so only rank local error is reported here
-        n_passed = n_passed + 1
-        if ( comm_rank == 0 ) call report(b, platform, info, mode, ny_global, base_storage, "PASSED", max_error, rate)
+        if ( max_error_global <= threshold ) then
+            n_passed = n_passed + 1
+            if ( comm_rank == 0 ) call report(b, platform, info, mode, ny_global, base_type, &
+                                              "PASSED", max_error, rate)
+        endif
 
 #ifdef DTFFT_WITH_CUDA
         if ( platform == DTFFT_PLATFORM_CUDA ) then
@@ -440,26 +440,63 @@ print*,'Max error = ', max_error
         deallocate( pack_locals, unpack_locals )
     end subroutine run_case
 
-    subroutine report(b, platform, info, mode, ny_global, base_storage, status, error, rate)
+    function get_report_string(b, platform, info, mode, ny_global, base_type, status, error, rate) &
+        result(report_string)
+        type(dtfft_backend_t),          intent(in)  :: b            !! Tested backend
+        type(dtfft_platform_t),         intent(in)  :: platform     !! Tested platform
+        type(compressor_info),          intent(in)  :: info         !! Tested compressor
+        type(dtfft_compression_mode_t), intent(in)  :: mode         !! Tested compression mode
+        integer(int32),                 intent(in)  :: ny_global    !! Global number of columns
+        TYPE_MPI_DATATYPE,              intent(in)  :: base_type    !! MPI data type
+        character(len=*),               intent(in)  :: status       !! Case status
+        real(real64),                   intent(in)  :: error        !! Obtained error
+        real(real64),                   intent(in)  :: rate         !! Obtained compression rate
+        type(string)                                :: report_string
+        type(string) :: name
+
+        name = get_compressor_string(info%lib)
+        report_string = string("  "//status//" ["//get_platform_string(platform)//"/"//dtfft_get_backend_string(b)//"] "// &
+            name%raw//": type = "//trim(data_type_name(base_type))//", mode = "//to_str(mode%val)//                 &
+            ", n = "//to_str(ny_global)//", error = "//to_str(error, .true.)//", rate = "//to_str(rate, .true.))
+        call name%destroy()
+    end function get_report_string
+
+    subroutine report(b, platform, info, mode, ny_global, base_type, status, error, rate)
     !! Reports result of a single case
         type(dtfft_backend_t),          intent(in)  :: b            !! Tested backend
         type(dtfft_platform_t),         intent(in)  :: platform     !! Tested platform
         type(compressor_info),          intent(in)  :: info         !! Tested compressor
         type(dtfft_compression_mode_t), intent(in)  :: mode         !! Tested compression mode
         integer(int32),                 intent(in)  :: ny_global    !! Global number of columns
-        integer(int64),                 intent(in)  :: base_storage !! Size of a single element in bytes
+        TYPE_MPI_DATATYPE,              intent(in)  :: base_type    !! MPI data type
         character(len=*),               intent(in)  :: status       !! Case status
         real(real64),                   intent(in)  :: error        !! Obtained error
         real(real64),                   intent(in)  :: rate         !! Obtained compression rate
-        type(string) :: name
+        type(string) :: rep_string
 
-        name = get_compressor_string(info%lib)
-        write(output_unit, '(a,i0,a,i0,a,i0,a,ES12.4,a,ES12.4)')                                                  &
-            "  "//status//" ["//get_platform_string(platform)//"/"//dtfft_get_backend_string(b)//"] "// &
-            name%raw//": mode = ", mode%val, ", storage = ", int(base_storage, int32),                  &
-            ", ny = ", ny_global, ", error = ", error, ", rate = ", rate
-        call name%destroy()
+        if ( comm_rank /= 0 ) return
+        rep_string = get_report_string(b, platform, info, mode, ny_global, base_type, status, error, rate)
+        write(output_unit, "(a)") rep_string%raw
+        call rep_string%destroy()
     end subroutine report
+
+    function data_type_name(base_type) result(name)
+        TYPE_MPI_DATATYPE, intent(in) :: base_type
+        character(len=12) :: name
+
+        select case ( GET_MPI_VALUE(base_type) )
+        case ( GET_MPI_VALUE(MPI_REAL) )
+            name = "real32"
+        case ( GET_MPI_VALUE(MPI_REAL8) )
+            name = "real64"
+        case ( GET_MPI_VALUE(MPI_COMPLEX) )
+            name = "complex32"
+        case ( GET_MPI_VALUE(MPI_DOUBLE_COMPLEX) )
+            name = "complex64"
+        case default
+            name = "unknown"
+        endselect
+    end function data_type_name
 
     subroutine check_block(cy_count)
     !! Makes sure block is either empty or big enough to be compressed
@@ -489,10 +526,9 @@ print*,'Max error = ', max_error
         config = dtfft_compression_config_t(lib, mode, rate, precision, TEST_TOLERANCE)
     end function config_for_mode
 
-    real(real64) function error_threshold(mode, is_float)
+    real(real64) function error_threshold(mode)
     !! Maximum error allowed for given compression mode
         type(dtfft_compression_mode_t), intent(in)  :: mode     !! Compression mode
-        logical,                        intent(in)  :: is_float !! Single precision data flag
 
         select case ( mode%val )
         case ( DTFFT_COMPRESSION_MODE_LOSSLESS%val )
@@ -509,28 +545,43 @@ print*,'Max error = ', max_error
             ! Absolute error bound is guaranteed by all libraries
             error_threshold = 10._real64 * TEST_TOLERANCE
         endselect
-        ! if ( is_float ) error_threshold = max(error_threshold, real(epsilon(1._real32), real64))
     end function error_threshold
 
-    pure real(real64) function reference(rank, i)
-    !! Smooth reference data owned by `rank`. Any lossy compressor should be able
-    !! to reach requested accuracy on such data
+    pure complex(real64) function reference(rank, i)
+    !! Smooth reference value with distinct nonzero real and imaginary parts
         integer(int32), intent(in)  :: rank !! Rank that owns the data
         integer(int32), intent(in)  :: i    !! Scalar index inside rank local slab, 1-based
-        reference = 1._real64 + sin(0.01_real64 * real(i, real64)) * cos(0.1_real64 * real(rank + 1, real64))
+        reference = cmplx( &
+            1._real64 + sin(0.01_real64 * real(i, real64)) * cos(0.1_real64 * real(rank + 1, real64)), &
+            0.5_real64 + cos(0.013_real64 * real(i + rank, real64)) * sin(0.07_real64 * real(rank + 2, real64)), &
+            kind=real64)
     end function reference
 
-    subroutine fill(ptr, n_elements, rank, is_float)
-    !! Fills host buffer with reference data
+    subroutine fill(ptr, n_elements, rank, is_float, is_complex)
+    !! Fills host buffer with real or complex reference data
         type(c_ptr),    intent(in)  :: ptr          !! Buffer to fill
         integer(int32), intent(in)  :: n_elements   !! Number of elements in buffer
         integer(int32), intent(in)  :: rank         !! Rank that owns the data
         logical,        intent(in)  :: is_float     !! Single precision data flag
+        logical,        intent(in)  :: is_complex   !! Complex data flag
         real(real32),   pointer :: pf(:)
         real(real64),   pointer :: pd(:)
+        complex(real32), pointer :: pcf(:)
+        complex(real64), pointer :: pcd(:)
         integer(int32) :: i
 
-        if ( is_float ) then
+        if ( is_complex .and. is_float ) then
+            call c_f_pointer(ptr, pcf, [n_elements])
+            do i = 1, n_elements
+                pcf(i) = cmplx(real(reference(rank, i), real32), &
+                                real(aimag(reference(rank, i)), real32), kind=real32)
+            enddo
+        else if ( is_complex ) then
+            call c_f_pointer(ptr, pcd, [n_elements])
+            do i = 1, n_elements
+                pcd(i) = reference(rank, i)
+            enddo
+        else if ( is_float ) then
             call c_f_pointer(ptr, pf, [n_elements])
             do i = 1, n_elements
                 pf(i) = real(reference(rank, i), real32)
@@ -538,20 +589,29 @@ print*,'Max error = ', max_error
         else
             call c_f_pointer(ptr, pd, [n_elements])
             do i = 1, n_elements
-                pd(i) = reference(rank, i)
+                pd(i) = real(reference(rank, i), real64)
             enddo
         endif
     end subroutine fill
 
-    subroutine wipe(ptr, n_elements, is_float)
+    subroutine wipe(ptr, n_elements, is_float, is_complex)
     !! Overwrites host buffer with a value that cannot be produced by `reference`
         type(c_ptr),    intent(in)  :: ptr          !! Buffer to wipe
         integer(int32), intent(in)  :: n_elements   !! Number of elements in buffer
         logical,        intent(in)  :: is_float     !! Single precision data flag
+        logical,        intent(in)  :: is_complex   !! Complex data flag
         real(real32),   pointer :: pf(:)
         real(real64),   pointer :: pd(:)
+        complex(real32), pointer :: pcf(:)
+        complex(real64), pointer :: pcd(:)
 
-        if ( is_float ) then
+        if ( is_complex .and. is_float ) then
+            call c_f_pointer(ptr, pcf, [n_elements])
+            pcf(:) = cmplx(-3._real32, 7._real32, kind=real32)
+        else if ( is_complex ) then
+            call c_f_pointer(ptr, pcd, [n_elements])
+            pcd(:) = cmplx(-3._real64, 7._real64, kind=real64)
+        else if ( is_float ) then
             call c_f_pointer(ptr, pf, [n_elements])
             pf(:) = -3._real32
         else
@@ -560,7 +620,7 @@ print*,'Max error = ', max_error
         endif
     end subroutine wipe
 
-    real(real64) function block_error(ptr, displ, n_elements, src_rank, src_displ, is_float)
+    real(real64) function block_error(ptr, displ, n_elements, src_rank, src_displ, is_float, is_complex)
     !! Returns maximum absolute difference between received block and data owned by sender
         type(c_ptr),    intent(in)  :: ptr          !! Host buffer with received data
         integer(int32), intent(in)  :: displ        !! Displacement of a block, 0-based
@@ -568,23 +628,43 @@ print*,'Max error = ', max_error
         integer(int32), intent(in)  :: src_rank     !! Rank that sent the block
         integer(int32), intent(in)  :: src_displ    !! Displacement of a block inside sender slab
         logical,        intent(in)  :: is_float     !! Single precision data flag
+        logical,        intent(in)  :: is_complex   !! Complex data flag
         real(real32),   pointer :: pf(:)
         real(real64),   pointer :: pd(:)
-        real(real64) :: expected
+        complex(real32), pointer :: pcf(:)
+        complex(real64), pointer :: pcd(:)
+        complex(real64) :: expected
+        complex(real32) :: expected_c32
+        real(real32) :: block_error_r32
         integer(int32) :: i
 
         block_error = 0._real64
-        if ( is_float ) then
+        if ( is_complex .and. is_float ) then
+            call c_f_pointer(ptr, pcf, [displ + n_elements])
+            do i = 1, n_elements
+                expected_c32 = cmplx(real(reference(src_rank, src_displ + i), real32), &
+                                     real(aimag(reference(src_rank, src_displ + i)), real32), kind=real32)
+                block_error = max(block_error, real(abs(pcf(displ + i) - expected_c32), real64))
+            enddo
+        else if ( is_complex ) then
+            call c_f_pointer(ptr, pcd, [displ + n_elements])
+            do i = 1, n_elements
+                expected = reference(src_rank, src_displ + i)
+                block_error = max(block_error, abs(pcd(displ + i) - expected))
+            enddo
+        else if ( is_float ) then
+            block_error_r32 = 0._real32
             call c_f_pointer(ptr, pf, [displ + n_elements])
             do i = 1, n_elements
-                expected = real(real(reference(src_rank, src_displ + i), real32), real64)
-                block_error = max(block_error, abs(real(pf(displ + i), real64) - expected))
+                block_error_r32 = max(block_error_r32, &
+                                       abs(pf(displ + i) - real(reference(src_rank, src_displ + i), real32)))
             enddo
+            block_error = real(block_error_r32, real64)
         else
             call c_f_pointer(ptr, pd, [displ + n_elements])
             do i = 1, n_elements
                 expected = reference(src_rank, src_displ + i)
-                block_error = max(block_error, abs(pd(displ + i) - expected))
+                block_error = max(block_error, abs(pd(displ + i) - real(expected, real64)))
             enddo
         endif
     end function block_error

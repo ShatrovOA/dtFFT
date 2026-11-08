@@ -451,7 +451,7 @@ contains
         integer(int32) :: i, ierr
             if( self%is_request_created ) then
                 do i = 1, self%n_requests
-                call MPI_Request_free(self%requests(i), ierr)
+                    call MPI_Request_free(self%requests(i), ierr)
                 enddo
                 self%is_request_created = .false.
             endif

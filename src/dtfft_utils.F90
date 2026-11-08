@@ -396,13 +396,20 @@ contains
         allocate( str, source=trim(adjustl(temp)) )
     end function int64_to_string
 
-    function double_to_string(n) result(str)
+    function double_to_string(n, fmt) result(str)
     !! Convert double to string
         real(real64),     intent(in)  :: n            !! Double to convert
+        logical, optional,intent(in)  :: fmt
         character(len=:), allocatable :: str          !! Resulting string
         character(len=23)             :: temp         !! Temporary string
+        logical :: fmt_
 
-        write(temp, '(F15.5)') n
+        OPTVAL(fmt_, .false., fmt)
+        if ( fmt_ ) then
+            write(temp, '(ES12.4)') n
+        else
+            write(temp, '(F15.5)') n
+        endif
         allocate( str, source=trim(adjustl(temp)) )
     end function double_to_string
 
