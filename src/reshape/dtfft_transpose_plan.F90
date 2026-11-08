@@ -408,6 +408,7 @@ contains
             self%colors(d) = COLOR_TRANSPOSE_PALLETTE(d)
         end do
         deallocate( best_decomposition, comm_dims )
+        self%is_loaded = .false.
         error_code = DTFFT_SUCCESS
     end function create
 

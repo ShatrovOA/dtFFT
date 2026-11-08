@@ -296,6 +296,7 @@ contains
             self%names(d) = string("Reshape "//RESHAPE_NAMES(d))
             self%colors(d) = COLOR_RESHAPE_PALLETTE(d)
         end do
+        self%is_loaded = .false.
     end function create
 
     subroutine create_custom_comm(old_comm, new_size, group_type, new_comm)
