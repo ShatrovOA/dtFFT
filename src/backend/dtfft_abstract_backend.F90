@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_abstract_backend
 !! This module describes Abstraction for all Backends: [[abstract_backend]]
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_kernel, only: abstract_kernel
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime

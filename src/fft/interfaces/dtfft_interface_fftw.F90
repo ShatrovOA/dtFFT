@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_fftw
 !! This module creates interface with fftw3 library
-use iso_c_binding,                 only: c_ptr, c_int
+use, intrinsic :: iso_c_binding,                 only: c_ptr, c_int
 use dtfft_interface_fftw_native,   only: C_FFTW_R2R_KIND, FFTW_MEASURE, FFTW_DESTROY_INPUT
 use dtfft_interface_fftw_native,   only: fftw_destroy_plan, fftwf_destroy_plan
 use dtfft_interface_fftw_native,   only: fftw_malloc, fftw_free

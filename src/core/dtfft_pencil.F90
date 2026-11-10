@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_pencil
 !! This module describes private [[pencil]] and public [[dtfft_pencil_t]] classes
-use iso_fortran_env
-use iso_c_binding
+use, intrinsic :: iso_fortran_env
+use, intrinsic :: iso_c_binding
 use dtfft_config
 use dtfft_errors
 use dtfft_parameters

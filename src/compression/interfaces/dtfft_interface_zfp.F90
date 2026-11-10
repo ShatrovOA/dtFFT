@@ -18,8 +18,8 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_zfp
 !! Fortran interface to ZFP compression library
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 implicit none
 public :: zfp_create_field, zfp_field_set_stride, zfp_stream_set_rate
 

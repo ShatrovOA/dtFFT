@@ -19,7 +19,7 @@
 #include "dtfft_config.h"
 program test_c2c_3d_float
 use iso_fortran_env
-use iso_c_binding, only: c_null_ptr, c_loc, c_ptr
+use iso_c_binding
 use dtfft
 use example_utils
 #if defined(DTFFT_WITH_CUDA)

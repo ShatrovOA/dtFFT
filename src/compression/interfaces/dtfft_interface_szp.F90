@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_szp
 !! Fortran interface to SZp compression library
-use iso_c_binding
+use, intrinsic :: iso_c_binding
 implicit none
 private
 

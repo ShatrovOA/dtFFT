@@ -22,7 +22,7 @@
 #endif
 program test_r2r_3d_float
 use iso_fortran_env
-use iso_c_binding, only: c_loc, c_ptr, c_f_pointer, c_int
+use iso_c_binding
 use dtfft
 use dtfft_utils
 use example_utils

@@ -17,7 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_cuszp
-use iso_c_binding
+use, intrinsic :: iso_c_binding
 use dtfft_interface_cuda
 use dtfft_parameters
 implicit none
@@ -70,24 +70,24 @@ interface
     import
         type(c_ptr),            value :: in  !! Pointer to the original data on device
         type(c_ptr),            value :: out !! Pointer to the compressed data on device
-        integer(c_int8_t), value :: ndims
-        integer(c_int32_t) :: dims(*)
-        integer(c_size_t), value :: storage_size
+        integer(c_int8_t),      value :: ndims
+        integer(c_int32_t)            :: dims(*)
+        integer(c_size_t),      value :: storage_size
         real(c_float),          value :: errorBound !! Error bound for compression
-        type(dtfft_stream_t), value :: stream
-        integer(c_size_t) :: compressed_size
+        type(dtfft_stream_t),   value :: stream
+        integer(c_size_t)             :: compressed_size
     end function cuSZp_compress
 
     subroutine cuSZp_decompress(in, out, ndims, dims, cmpSize, storage_size, errorBound, stream) bind(C, name="_dtfft_decompress_cuszp")
     import
         type(c_ptr),            value :: in  !! Pointer to the original data on device
         type(c_ptr),            value :: out !! Pointer to the compressed data on device
-        integer(c_int8_t), value :: ndims
-        integer(c_int32_t) :: dims(*)
-        integer(c_size_t), value :: cmpSize
-        integer(c_size_t), value :: storage_size
+        integer(c_int8_t),      value :: ndims
+        integer(c_int32_t)            :: dims(*)
+        integer(c_size_t),      value :: cmpSize
+        integer(c_size_t),      value :: storage_size
         real(c_float),          value :: errorBound !! Error bound for compression
-        type(dtfft_stream_t), value :: stream
+        type(dtfft_stream_t),   value :: stream
     end subroutine cuSZp_decompress
 
     ! subroutine cuSZp_compress(d_oriData, d_cmpBytes, nbEle, cmpSize, errorBound, dim, dims, type, mode, stream) bind(C, name="cuSZp_compress")

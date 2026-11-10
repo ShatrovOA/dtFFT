@@ -21,8 +21,8 @@ module dtfft_kernel_host
 !! This module defines `kernel_host` type and its type bound procedures.
 !! The host kernel is an implementation of the `abstract_kernel` type
 !! that runs on the host CPU.
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_parameters
 use dtfft_abstract_kernel
 use dtfft_config

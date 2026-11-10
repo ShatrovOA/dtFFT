@@ -20,8 +20,8 @@ module dtfft_executor_vkfft_m
 !! This module describes VkFFT based FFT Executor: [[vkfft_executor]]
 !!
 !! https://github.com/DTolm/VkFFT/tree/master
-use iso_c_binding,                  only: c_ptr, c_int, c_int8_t
-use iso_fortran_env,                only: int8, int32, int64
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_executor
 use dtfft_interface_vkfft
 use dtfft_parameters

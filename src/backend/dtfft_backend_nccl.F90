@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_backend_nccl_m
 !! NCCL Based GPU Backends [[backend_nccl]]
-use iso_fortran_env
-use iso_c_binding,          only: c_loc
+use, intrinsic :: iso_fortran_env
+use, intrinsic :: iso_c_binding
 use dtfft_abstract_backend, only: abstract_backend, backend_helper
 use dtfft_abstract_kernel,  only: bytes_to_floats
 use dtfft_interface_nccl

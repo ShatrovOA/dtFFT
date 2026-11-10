@@ -23,10 +23,10 @@ module dtfft_abstract_reshape_handle
 !! This handle is used to perform data transpositions between distributed pencils.
 !! The actual implementation of the handle is deferred to the
 !! `create_private`, `execute`, `execute_end`, `destroy` and `get_async_active` procedures.
-use iso_fortran_env
-use iso_c_binding
+use, intrinsic :: iso_fortran_env
+use, intrinsic :: iso_c_binding
 use dtfft_abstract_backend
-use dtfft_abstract_compressor, only: dtfft_compression_config_t
+use dtfft_compressor, only: dtfft_compression_config_t
 use dtfft_config
 use dtfft_errors
 use dtfft_parameters

@@ -30,7 +30,7 @@ if(DTFFT_BUILD_PYTHON_API OR DTFFT_BUILD_EXAMPLES)
     target_include_directories(dtfft_example_utils PUBLIC
         "$<BUILD_INTERFACE:${DTFFT_EXAMPLE_UTILS_MODULE_DIR}>"
     )
-    target_link_libraries(dtfft_example_utils PUBLIC dtfft)
+    target_link_libraries(dtfft_example_utils PRIVATE dtfft)
 
     if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
         enable_language(CUDA)

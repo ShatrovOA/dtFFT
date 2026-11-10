@@ -19,11 +19,12 @@
 #include "dtfft_config.h"
 module dtfft_transpose_plan
 !! This module describes [[transpose_plan]] class
-use iso_fortran_env
-use iso_c_binding
+use, intrinsic :: iso_fortran_env
+use, intrinsic :: iso_c_binding
 use dtfft_abstract_backend,               only: backend_helper
 #ifdef DTFFT_WITH_COMPRESSION
 use dtfft_abstract_compressor
+use dtfft_compressor,                     only: dtfft_compression_config_t
 #endif
 use dtfft_abstract_reshape_handle,        only: reshape_container, create_args
 use dtfft_config

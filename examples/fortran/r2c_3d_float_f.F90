@@ -19,7 +19,7 @@
 #include "dtfft_config.h"
 program test_r2c_3d_float
 use iso_fortran_env
-use iso_c_binding, only: c_loc, c_ptr
+use iso_c_binding
 use dtfft
 use example_utils
 #include "_dtfft_mpi.h"

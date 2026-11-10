@@ -19,7 +19,7 @@
 #include "dtfft_config.h"
 module dtfft_errors
 !! Module that defines error codes and provides utility to get error string
-use iso_fortran_env, only: int32
+use, intrinsic :: iso_fortran_env, only: int32
 implicit none
 private
 public :: dtfft_get_error_string

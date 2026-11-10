@@ -20,8 +20,8 @@
 module dtfft_rtc_module
 !! Module for managing nvRTC compiled CUDA kernels
 !! Each module has only one templated kernel that can be instantiated with different parameters
-use iso_fortran_env
-use iso_c_binding
+use, intrinsic :: iso_fortran_env
+use, intrinsic :: iso_c_binding
 use dtfft_abstract_kernel
 use dtfft_interface_cuda
 use dtfft_interface_cuda_runtime

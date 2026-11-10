@@ -67,6 +67,11 @@ namespace
 #ifdef DTFFT_WITH_OPENMP
         szp_double_decompress_openmp_threadblock_arg(data, n_elements, absErrBound, blockSize, cmpData);
 #else
+        // szp_double_decompress_single_thread_arg if bugged
+        // TODO: remove when bug is fixed
+        const size_t data_offset = sizeof(size_t);
+        // SZp's single-thread double decoder omits the offset-table size.
+        memcpy(cmpData, &data_offset, sizeof(data_offset));
         szp_double_decompress_single_thread_arg(data, n_elements, absErrBound, blockSize, cmpData);
 #endif
     }

@@ -24,7 +24,7 @@ implicit none
     integer(int32), pointer :: init_grid(:), final_grid(:)
     logical :: final_enabled
 
-    call MPI_Init(ierr)
+    call test%create("Reshape plan")
     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
     cart_comm = MPI_COMM_NULL
@@ -38,7 +38,7 @@ implicit none
     call dtfft_set_config(config, ierr)
     call test%check("set config", ierr, DTFFT_SUCCESS)
 
-    call make_z_pencil(public_pencil)
+    call make_z_pencil(DIMS, public_pencil)
     ierr = ipencil%create(public_pencil, MPI_COMM_WORLD)
     call test%check("create pencil decomposition", ierr, DTFFT_SUCCESS)
     if ( all_ok(ierr) ) then
@@ -72,8 +72,7 @@ implicit none
     call destroy_pencils(pencils)
     call destroy_pencils(bricks)
     call free_communicators()
-    call MPI_Finalize(ierr)
-    if ( test%failure_count() /= 0 ) error stop 1
+    call test%finalize()
 
 contains
     subroutine test_transpose_execute(plan, layouts)
@@ -200,16 +199,22 @@ contains
         reference_value = cmplx(value, -value * 0.5_real64, real64)
     end function reference_value
 
-    subroutine make_z_pencil(pencil_out)
-        type(dtfft_pencil_t), intent(out) :: pencil_out
+    subroutine make_z_pencil(dims_in, pencil_out)
+        integer(int32),         intent(in)  :: dims_in(:)
+        type(dtfft_pencil_t),   intent(out) :: pencil_out
         integer(int32) :: start, count, base, remainder, first_extra_rank
 
-        base = DIMS(3) / comm_size
-        remainder = mod(DIMS(3), comm_size)
+        base = dims_in(3) / comm_size
+        write(output_unit, *)dims_in,size(dims_in)
+        write(output_unit, *)lbound(dims_in),ubound(dims_in)
+        flush(output_unit)
+        write(output_unit, *)dims_in(2), dims_in(1)
+        call MPI_Barrier(MPI_COMM_WORLD, ierr)
+        remainder = mod(dims_in(3), comm_size)
         first_extra_rank = comm_size - remainder
         count = base + merge(1, 0, comm_rank >= first_extra_rank .and. remainder > 0)
         start = comm_rank * base + max(0, comm_rank - first_extra_rank)
-        pencil_out = dtfft_pencil_t([0_int32, 0_int32, start], [DIMS(1), DIMS(2), count])
+        pencil_out = dtfft_pencil_t([0_int32, 0_int32, start], [dims_in(1), dims_in(2), count])
     end subroutine make_z_pencil
 
     subroutine destroy_pencils(items)

@@ -2,6 +2,8 @@
 
 set(DTFFT_WITH_CUDA @DTFFT_WITH_CUDA@)
 set(DTFFT_WITH_SZ3 @DTFFT_WITH_SZ3@)
+set(DTFFT_WITH_SZP @DTFFT_WITH_SZP@)
+set(DTFFT_WITH_ZFP @DTFFT_WITH_ZFP@)
 # set(DTFFT_WITH_CUSZ @DTFFT_WITH_CUSZ@)
 set(DTFFT_WITH_CUSZP @DTFFT_WITH_CUSZP@)
 set(DTFFT_WITH_BITCOMP @DTFFT_WITH_BITCOMP@)
@@ -11,12 +13,28 @@ set(DTFFT_WITH_MPI_MODULE @DTFFT_USE_MPI@)
 set(DTFFT_WITH_NCCL @DTFFT_WITH_NCCL@)
 set(DTFFT_WITH_NVSHMEM @DTFFT_WITH_NVSHMEM@)
 set(DTFFT_WITH_OPENMP @DTFFT_WITH_OPENMP@)
+set(DTFFT_WITH_PROFILER @DTFFT_WITH_PROFILER@)
 
 include(CMakeFindDependencyMacro)
 
 find_dependency(MPI @MPI_Fortran_VERSION@ EXACT REQUIRED)
+
+# All packages below are not part of public API
+# However they are required to be found and linked in case dtfft is built as a static library
 if ( DTFFT_WITH_SZ3 )
-    find_dependency(SZ3 REQUIRED)
+    find_dependency(SZ3 CONFIG REQUIRED)
+endif()
+
+if ( DTFFT_WITH_SZP )
+    find_dependency(SZp CONFIG REQUIRED)
+endif()
+
+if ( DTFFT_WITH_ZFP )
+    find_dependency(zfp CONFIG REQUIRED)
+endif()
+
+if ( DTFFT_WITH_PROFILER AND NOT DTFFT_WITH_CUDA )
+    find_dependency(caliper CONFIG REQUIRED)
 endif()
 
 if ( DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)

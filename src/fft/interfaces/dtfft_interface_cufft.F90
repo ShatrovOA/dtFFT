@@ -18,8 +18,8 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_cufft
 !! cuFFT Interfaces
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_parameters
 ! #ifdef DTFFT_WITH_NVSHMEM
 ! use dtfft_interface_nvshmem,              only: load_nvshmem

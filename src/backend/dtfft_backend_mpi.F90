@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_backend_mpi
 !! MPI Based Backends [[backend_mpi]]
-use iso_fortran_env
-use iso_c_binding
+use, intrinsic :: iso_fortran_env
+use, intrinsic :: iso_c_binding
 #ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
 #endif
@@ -224,7 +224,6 @@ contains
         type(dtfft_stream_t),               intent(in)      :: stream     !! Main execution CUDA stream
         real(real32),   target, contiguous, intent(inout)   :: aux(:)     !! Aux pointer
         integer(int32),                     intent(out)     :: error_code !! Error code
-        integer(int32)              :: mpi_ierr             !! MPI error code
         integer(int32), allocatable :: indices(:)
         integer(int32)              :: total_completed, n_completed      !! Request counter
         integer(int32)              :: need_completed

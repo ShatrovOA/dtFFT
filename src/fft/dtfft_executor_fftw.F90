@@ -20,8 +20,8 @@ module dtfft_executor_fftw_m
 !! This module describes FFTW3 based FFT Executor: [[fftw_executor]]
 !!
 !! http://www.fftw.org
-use iso_c_binding,              only: c_ptr, c_loc, c_null_ptr, c_int
-use iso_fortran_env,            only: int8, int32, int64, real32
+use, intrinsic :: iso_c_binding,              only: c_ptr, c_loc, c_null_ptr, c_int
+use, intrinsic :: iso_fortran_env,            only: int8, int32, int64, real32
 #ifdef DTFFT_WITH_OPENMP
 use omp_lib
 #endif

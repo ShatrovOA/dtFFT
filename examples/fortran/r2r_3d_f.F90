@@ -23,7 +23,7 @@ program test_r2r_3d
 !< It also tests user-defined 1d communicator
 !------------------------------------------------------------------------------------------------
 use iso_fortran_env
-use iso_c_binding, only: c_loc, c_ptr, c_int
+use iso_c_binding
 use dtfft
 use example_utils
 #if defined(DTFFT_WITH_CUDA)

@@ -17,7 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_bitcomp
-use iso_c_binding
+use, intrinsic :: iso_c_binding
 use dtfft_abstract_compressor
 use dtfft_parameters
 implicit none

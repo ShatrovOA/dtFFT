@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_compressor_sz3
 !! SZ3-based compressor implementation
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_compressor
 ! #ifdef DTFFT_WITH_CUDA
 ! use dtfft_interface_cuda_runtime
@@ -95,7 +95,7 @@ contains
         integer(c_size_t) :: cmpCap, compressed_size
 
         config = self%get_config(dims)
-        cmpCap = self%get_n_elements(dims) * self%storage_size * 4
+        cmpCap = self%get_n_elements(dims) * self%true_storage_size * 2
 
         compressed_size = sz3_compress(config, in, out, cmpCap, self%storage_size)
         call sz3_destroy_config(config)

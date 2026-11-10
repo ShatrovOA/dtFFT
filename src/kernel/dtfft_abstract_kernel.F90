@@ -24,8 +24,8 @@ module dtfft_abstract_kernel
 !! is resposible for packing/unpacking/permute operations.
 !! The actual implementation of the kernel is deferred to the
 !! `create_private`, `execute_private` and `destroy_private` procedures.
-use iso_fortran_env
-use iso_c_binding
+use, intrinsic :: iso_fortran_env
+use, intrinsic :: iso_c_binding
 use dtfft_abstract_compressor, only: abstract_compressor
 use dtfft_config
 use dtfft_parameters

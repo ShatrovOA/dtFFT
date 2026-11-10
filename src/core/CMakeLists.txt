@@ -42,7 +42,7 @@ if(DTFFT_BUILD_TESTS)
     target_include_directories(test_suite PUBLIC
         "${CMAKE_CURRENT_BINARY_DIR}/dtfft_test_utils_modules"
     )
-    target_link_libraries(test_suite PUBLIC dtfft)
+    target_link_libraries(test_suite PRIVATE dtfft)
 
     add_subdirectory(tests)
 endif()

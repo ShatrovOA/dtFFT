@@ -17,7 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_serializer
-use iso_fortran_env
+use, intrinsic :: iso_fortran_env
 use dtfft_errors
 use dtfft_utils
 #include "_dtfft_mpi.h"

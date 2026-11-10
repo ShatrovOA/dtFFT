@@ -20,8 +20,8 @@
 module dtfft_kernel_device
 !! This module defines [[kernel_device]] type and its type bound procedures.
 !! It extends [[abstract_kernel]] type and implements its type bound procedures.
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_kernel
 use dtfft_interface_cuda,           only: CUfunction, MAX_KERNEL_ARGS, dim3, cuLaunchKernel
 use dtfft_interface_cuda_runtime

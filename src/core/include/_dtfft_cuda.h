@@ -6,8 +6,6 @@
 
 #define GPU_CALL(func,getErrorString) \
 block; \
-use iso_fortran_env, only: error_unit; \
-use iso_c_binding, only: c_int32_t; \
 integer(c_int32_t) :: ierr, mpi_err, pos; \
 character(len=:), allocatable :: fname; \
     ierr = func; \
@@ -22,7 +20,6 @@ end block
 
 #define GPU_CALL_NOCHECK(func) \
 block; \
-use iso_c_binding, only: c_int32_t; \
     integer(c_int32_t) :: ierr; \
     ierr = func; \
 end block

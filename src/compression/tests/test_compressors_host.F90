@@ -51,7 +51,6 @@ implicit none
         logical                         :: host_only            !! Library has no device implementation
     end type compressor_info
 
-    integer(int32)          :: ierror
     integer(int32)          :: n_compressors, i
     type(compressor_info)   :: compressors(size(VALID_COMPRESSION_LIBS))
     type(dtfft_compression_lib_t) :: current_lib
