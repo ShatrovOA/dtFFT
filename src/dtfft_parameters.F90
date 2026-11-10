@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_parameters
 !! This module defines common ``dtFFT`` parameters
-use, intrinsic :: iso_c_binding,    only: c_int32_t, c_null_ptr, c_ptr
-use, intrinsic :: iso_fortran_env,  only: int8, int32, int64, real32, real64
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
 implicit none
