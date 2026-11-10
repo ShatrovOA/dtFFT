@@ -20,8 +20,8 @@ module dtfft_executor_mkl_m
 !! This module describes MKL based FFT Executor: [[mkl_executor]]
 !!
 !! https://software.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-fortran/top/fourier-transform-functions/fft-functions.html
-use iso_fortran_env,              only: int8, int32, int64, error_unit
-use iso_c_binding,                only: c_int, c_long, c_ptr
+use, intrinsic :: iso_fortran_env,              only: int8, int32, int64, error_unit
+use, intrinsic :: iso_c_binding,                only: c_int, c_long, c_ptr
 #ifdef DTFFT_WITH_OPENMP
 use omp_lib
 #endif

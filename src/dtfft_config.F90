@@ -20,11 +20,10 @@
 module dtfft_config
 !! Configuration module for dtFFT.
 !! It handles both runtime (environment variables) and compile-time ([[dtfft_config_t]]) configurations.
-use iso_c_binding, only: c_bool, c_int32_t
-use iso_fortran_env
+use, intrinsic :: iso_c_binding, only: c_bool, c_int32_t
+use, intrinsic :: iso_fortran_env
 #ifdef DTFFT_WITH_COMPRESSION
-use dtfft_abstract_compressor,  only: DEFAULT_COMPRESSION_CONFIG, dtfft_compression_config_t, check_compression_config
-! use dtfft_compressor,           only: DEFAULT_COMPRESSION_CONFIG, check_compression_config
+use dtfft_compressor,           only: DEFAULT_COMPRESSION_CONFIG, dtfft_compression_config_t, check_compression_config
 #endif
 use dtfft_errors
 use dtfft_parameters

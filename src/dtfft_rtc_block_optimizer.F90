@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_rtc_block_optimizer
 !! Module that provides functionality to analytically optimize CUDA kernel configurations
-use iso_fortran_env
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_kernel
 use dtfft_config,         only: get_conf_log_enabled
 use dtfft_interface_cuda_runtime

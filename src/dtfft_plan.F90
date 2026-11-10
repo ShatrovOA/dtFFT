@@ -20,8 +20,8 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_plan
 !! This module describes [[dtfft_plan_t]], [[dtfft_plan_c2c_t]], [[dtfft_plan_r2c_t]] and [[dtfft_plan_r2r_t]] types
-use iso_c_binding,                      only: c_loc, c_f_pointer, c_ptr, c_bool, c_null_ptr
-use iso_fortran_env,                    only: int8, int16, int32, int64, real32, real64, output_unit, error_unit
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_executor
 use dtfft_config
 use dtfft_executor,                     only: DTFFT_EXECUTOR_NONE, dtfft_executor_t, allocate_executor, is_valid_executor, dtfft_get_executor_string, operator(==), operator(/=)

@@ -20,9 +20,10 @@
 #include "dtfft.f03"
 module dtfft_reshape_plan
 !! This module describes [[reshape_plan]] class
-use iso_fortran_env
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_backend,               only: backend_helper
-use dtfft_abstract_compressor,            only: dtfft_compression_config_t, DTFFT_COMPRESSION_MODE_FIXED_RATE, operator(==)
+use dtfft_abstract_compressor,            only: DTFFT_COMPRESSION_MODE_FIXED_RATE, operator(==)
+use dtfft_compressor,                     only: dtfft_compression_config_t
 use dtfft_abstract_reshape_handle,        only: abstract_reshape_handle, reshape_container, create_args
 use dtfft_config
 use dtfft_errors
@@ -414,7 +415,6 @@ contains
             !! Single plan id to create
         type(create_args) :: args
         logical :: is_adaptive
-        type(pencil), pointer :: p1, p2
 
         if ( .not. allocated(plans) ) then
             if ( present(plan_id) ) then
@@ -453,21 +453,28 @@ contains
                 args%base_type = base_dtype
                 args%base_storage = base_storage
             endif
-            select case ( plan_id )
-            case ( CONF_DTFFT_RESHAPE_X_BRICKS_TO_PENCILS )
-                p1 => bricks(1)
-                p2 => pencils(1)
-            case ( CONF_DTFFT_RESHAPE_X_PENCILS_TO_BRICKS )
-                p1 => pencils(1)
-                p2 => bricks(1)
-            case ( CONF_DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS )
-                p1 => pencils(size(pencils))
-                p2 => bricks(2)
-            case ( CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS )
-                p1 => bricks(2)
-                p2 => pencils(size(pencils))
-            endselect
-            call plans(plan_id)%p%create(p1, p2, args)
+            block
+                type(pencil), pointer :: p1, p2
+
+                select case ( plan_id )
+                case ( CONF_DTFFT_RESHAPE_X_BRICKS_TO_PENCILS )
+                    p1 => bricks(1)
+                    p2 => pencils(1)
+                case ( CONF_DTFFT_RESHAPE_X_PENCILS_TO_BRICKS )
+                    p1 => pencils(1)
+                    p2 => bricks(1)
+                case ( CONF_DTFFT_RESHAPE_Z_PENCILS_TO_BRICKS )
+                    p1 => pencils(size(pencils))
+                    p2 => bricks(2)
+                case ( CONF_DTFFT_RESHAPE_Z_BRICKS_TO_PENCILS )
+                    p1 => bricks(2)
+                    p2 => pencils(size(pencils))
+                case default
+                    INTERNAL_ERROR("create_reshape_plans: unrecognized plan_id")
+                endselect
+
+                call plans(plan_id)%p%create(p1, p2, args)
+            end block
         else
             if ( is_adaptive ) args%backend = backends(CONF_DTFFT_RESHAPE_X_BRICKS_TO_PENCILS)
             call plans(CONF_DTFFT_RESHAPE_X_BRICKS_TO_PENCILS)%p%create(bricks(1), pencils(1), args)

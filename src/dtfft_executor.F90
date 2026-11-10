@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_executor
-use iso_c_binding
+use, intrinsic :: iso_c_binding
 use dtfft_abstract_executor
 #ifdef DTFFT_WITH_FFTW
 use dtfft_executor_fftw_m

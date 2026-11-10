@@ -19,9 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_api
 !! This module is a Fortran part of C interface
-use iso_c_binding,      only: c_int8_t, c_int32_t, c_size_t,  &
-                              c_bool, c_char, c_ptr, c_f_pointer, c_null_ptr, c_loc
-use iso_fortran_env,    only: int8, int32
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_config,       only: dtfft_set_config, dtfft_config_t
 use dtfft_errors
 use dtfft_executor,     only: dtfft_executor_t, dtfft_get_executor_string
@@ -688,11 +687,9 @@ contains
         plan_ptr = c_null_ptr
         call string_c2f(filename, filename_)
 
-        print*,'dtfft_load_plan_c: filename = '//filename_
         ! The concrete plan class has to be allocated before it can be loaded into, and only
         ! the file knows which one it is. Reading just the header settles that.
         error_code = get_plan_kind_from_file(filename_, get_comm(comm), plan_kind)
-        print*,'get_plan_kind_from_file: error_code = ', error_code, ' plan_kind = '//plan_kind%val, plan_kind == PLAN_C2C, plan_kind == PLAN_R2C, plan_kind == PLAN_R2R
         if ( error_code /= DTFFT_SUCCESS ) then
             deallocate(filename_)
             return
@@ -708,19 +705,8 @@ contains
         else
             INTERNAL_ERROR('dtfft_load_plan_c: Unknown plan kind '//plan_kind%val)
         endif
-        ! select case ( plan_kind%val )
-        ! case ( PLAN_C2C%val )
-        !     allocate( dtfft_plan_c2c_t :: plan%p )
-        ! case ( PLAN_R2C%val )
-        !     allocate( dtfft_plan_r2c_t :: plan%p )
-        ! case ( PLAN_R2R%val )
-        !     allocate( dtfft_plan_r2r_t :: plan%p )
-        ! case default
-        !     INTERNAL_ERROR('dtfft_load_plan_c: Unknown plan kind '//plan_kind%val)
-        ! endselect
 
         call plan%p%load(filename_, get_comm(comm), error_code)
-        print*,'plan%p%load: error_code = ', error_code
         deallocate(filename_)
         if ( error_code /= DTFFT_SUCCESS ) then
             deallocate(plan%p)

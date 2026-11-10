@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_abstract_compressor
 !! Abstract base class for compression implementations [[abstract_compressor]]
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_errors
 use dtfft_parameters
 use dtfft_serializer
@@ -31,8 +31,7 @@ use dtfft_utils
 implicit none
 private
 public :: abstract_compressor
-public :: save_compression_config, load_compression_config
-public :: check_compression_config
+public :: is_valid_compression_mode
 
 
 public :: dtfft_compression_mode_t
@@ -101,33 +100,6 @@ public :: dtfft_compression_lib_t
                                                                                             DTFFT_COMPRESSION_MODE_FIXED_ACCURACY ]
     !! List of valid compression modes
 
-
-public :: dtfft_compression_config_t
-    type, bind(C) :: dtfft_compression_config_t
-    !! Type that specifies compression configuration
-        type(dtfft_compression_lib_t)   :: compression_lib
-        !! Compression library to use
-
-        type(dtfft_compression_mode_t)  :: compression_mode
-        !! Compression mode to use
-
-        real(c_double)                  :: rate
-        !! Rate for `DTFFT_COMPRESSION_MODE_FIXED_RATE`
-
-        integer(c_int32_t)              :: precision
-        !! Precision for `DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
-
-        real(c_double)                  :: tolerance
-        !! Tolerance for `DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
-    end type dtfft_compression_config_t
-
-    type(dtfft_compression_config_t), parameter, public :: DEFAULT_COMPRESSION_CONFIG = dtfft_compression_config_t(DTFFT_COMPRESSION_LIB_NONE, DTFFT_COMPRESSION_MODE_LOSSLESS, -1.0, -1, -1.0)
-    !! Default compression configuration
-
-    interface dtfft_compression_config_t
-    !! Type bound constuctor for dtfft_compression_config_t
-        module procedure create_compression_config_t    !! Creates config object
-    end interface dtfft_compression_config_t
 
     type, abstract :: abstract_compressor
     !! Abstract base class for compression implementations
@@ -217,31 +189,14 @@ public :: dtfft_compression_config_t
 public :: operator(==)
     interface operator(==)
         module procedure compression_mode_eq    !! Check if two `dtfft_compression_mode_t` are equal
-        module procedure compression_lib_eq     !! Check if two `dtfft_compression_lib_t` are equal
     end interface
 
 public :: operator(/=)
     interface operator(/=)
         module procedure compression_mode_ne    !! Check if two `dtfft_compression_mode_t` are not equal
-        module procedure compression_lib_ne     !! Check if two `dtfft_compression_lib_t` are not equal
     end interface
 
 contains
-
-    pure type(dtfft_compression_config_t) function create_compression_config_t(lib, mode, rate, precision, tolerance) result(config)
-    !! Creates a compression configuration object
-        type(dtfft_compression_lib_t),  intent(in)  :: lib        !! Compression library to use
-        type(dtfft_compression_mode_t), intent(in)  :: mode       !! Compression mode
-        real(c_double),     optional,   intent(in)  :: rate       !! Compression rate (for fixed rate mode)
-        integer(c_int32_t), optional,   intent(in)  :: precision  !! Precision (for fixed precision mode)
-        real(c_double),     optional,   intent(in)  :: tolerance  !! Tolerance (for fixed accuracy mode)
-
-        config%compression_lib = lib
-        config%compression_mode = mode
-        OPTVAL(config%rate, -1._c_double, rate)
-        OPTVAL(config%precision, -1, precision)
-        OPTVAL(config%tolerance, -1._c_double, tolerance)
-    end function create_compression_config_t
 
     integer(int32) function create(self, ndims, compression_mode, rate_or_tolerance, precision,  platform, base_type, dims_permutation)
     !! Initializes the compressor with given parameters
@@ -264,6 +219,11 @@ contains
         self%rate_or_tolerance = rate_or_tolerance
         self%precision = precision
         self%dims_permutation = dims_permutation
+#ifdef DTFFT_DEBUG
+        if ( .not. any(GET_MPI_VALUE(base_type) == [GET_MPI_VALUE(MPI_COMPLEX), GET_MPI_VALUE(MPI_DOUBLE_COMPLEX), GET_MPI_VALUE(MPI_REAL), GET_MPI_VALUE(MPI_REAL8)]) ) then
+            INTERNAL_ERROR("abstract_compressor.create: invalid base_type")
+        endif
+#endif
         self%is_complex = any(GET_MPI_VALUE(base_type) == [GET_MPI_VALUE(MPI_COMPLEX), GET_MPI_VALUE(MPI_DOUBLE_COMPLEX)])
         ! self%is_complex = GET_MPI_VALUE(base_type) == GET_MPI_VALUE(MPI_COMPLEX) .or. GET_MPI_VALUE(base_type) == GET_MPI_VALUE(MPI_DOUBLE_COMPLEX)
         select case ( GET_MPI_VALUE(base_type) )
@@ -441,51 +401,8 @@ contains
         if ( self%is_complex ) n_elements = n_elements * 2
     end function get_n_elements
 
-    subroutine save_compression_config(config, fh)
-        type(dtfft_compression_config_t),   intent(in)    :: config !! Compression configuration to save
-        type(serializer),                   intent(inout) :: fh
-
-        call fh%save(int(config%compression_lib%val, int16))
-        call fh%save(int(config%compression_mode%val, int8))
-        call fh%save(config%rate)
-        call fh%save(config%precision)
-        call fh%save(config%tolerance)
-    end subroutine save_compression_config
-
-    type(dtfft_compression_config_t) function load_compression_config(fh) result(config)
-        type(serializer),                   intent(inout) :: fh
-        integer(int16) :: t1
-        integer(int8) :: t2
-
-        call fh%load(t1);   config%compression_lib%val = int(t1, int32)
-        call fh%load(t2);   config%compression_mode%val = int(t2, int32)
-        call fh%load(config%rate)
-        call fh%load(config%precision)
-        call fh%load(config%tolerance)
-    end function load_compression_config
-
-    pure function check_compression_config(config) result(error_code)
-    !! Checks if the given compression configuration is valid
-        type(dtfft_compression_config_t), intent(in)    :: config !! Compression configuration to check
-        integer(int32)                                  :: error_code
-
-        error_code = DTFFT_SUCCESS
-        if ( .not. is_valid_compression_lib(config%compression_lib) ) then
-            error_code = DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY
-            return
-        endif
-        if ( .not. is_valid_compression_mode(config%compression_mode) ) then
-            error_code = DTFFT_ERROR_COMPRESSION_INVALID_MODE
-            return
-        endif
-    end function check_compression_config
-
 MAKE_EQ_FUN(dtfft_compression_mode_t, compression_mode_eq)
 MAKE_NE_FUN(dtfft_compression_mode_t, compression_mode_ne)
 
-MAKE_EQ_FUN(dtfft_compression_lib_t, compression_lib_eq)
-MAKE_NE_FUN(dtfft_compression_lib_t, compression_lib_ne)
-
 MAKE_VALID_FUN_DTYPE(dtfft_compression_mode_t, is_valid_compression_mode, VALID_COMPRESSION_MODES)
-MAKE_VALID_FUN_DTYPE(dtfft_compression_lib_t, is_valid_compression_lib, VALID_COMPRESSION_LIBS)
 end module dtfft_abstract_compressor

@@ -19,7 +19,7 @@
 module dtfft_rtc_module_cache
 !! Module that implements a cache for nvrtc modules
 !! Cache is used to avoid recompilation of kernels with the same parameters
-use iso_fortran_env
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_kernel,        only: kernel_type_t, get_kernel_string
 use dtfft_interface_cuda,         only: CUfunction
 use dtfft_interface_cuda_runtime, only: device_props

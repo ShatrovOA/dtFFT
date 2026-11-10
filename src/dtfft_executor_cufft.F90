@@ -20,8 +20,8 @@ module dtfft_executor_cufft_m
 !! This module describes cuFFT based FFT Executor: [[vkfft_executor]]
 !!
 !! https://docs.nvidia.com/cuda/cufft/index.html
-use iso_c_binding,                  only: c_ptr, c_int, c_null_ptr, c_loc
-use iso_fortran_env,                only: int8, int32, int64
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_executor
 use dtfft_parameters
 use dtfft_config,                   only: get_conf_stream

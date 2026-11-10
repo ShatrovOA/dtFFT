@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_utils
 !! All Utilities functions are located here
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_parameters
 use dtfft_errors
 #include "_dtfft_mpi.h"

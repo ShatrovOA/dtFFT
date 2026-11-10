@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_nvtx
 !! nvtx3 Interfaces
-use iso_c_binding
+use, intrinsic :: iso_c_binding
 use dtfft_utils
 implicit none
 private

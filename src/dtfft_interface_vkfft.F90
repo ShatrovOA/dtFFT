@@ -20,8 +20,8 @@ module dtfft_interface_vkfft
 !! This module creates interface with VkFFT library
 !!
 !! VkFFT is loaded at runtime via dynamic loading.
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_errors
 use dtfft_parameters
 use dtfft_utils

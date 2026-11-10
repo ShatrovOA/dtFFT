@@ -20,8 +20,8 @@
 #include "dtfft.f03"
 module dtfft_abstract_reshape_plan
 !! Base class for reshape/transpose plans
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_reshape_handle,      only: reshape_container, execute_args
 use dtfft_abstract_backend,             only: backend_helper
 use dtfft_abstract_compressor

@@ -18,8 +18,8 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_compressor
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_errors
 use dtfft_parameters
 use dtfft_abstract_compressor
@@ -41,6 +41,7 @@ use dtfft_compressor_szp,       only: compressor_szp
 #ifdef DTFFT_WITH_BITCOMP
 use dtfft_compressor_bitcomp,   only: compressor_bitcomp
 #endif
+use dtfft_serializer
 use dtfft_utils
 #include "_dtfft_private.h"
 #include "_dtfft_mpi.h"
@@ -48,8 +49,62 @@ implicit none
 private
 public :: create_compressor
 public :: get_compressor_string
+public :: save_compression_config, load_compression_config
+public :: check_compression_config
+
+public :: dtfft_compression_config_t
+    type, bind(C) :: dtfft_compression_config_t
+    !! Type that specifies compression configuration
+        type(dtfft_compression_lib_t)   :: compression_lib
+        !! Compression library to use
+
+        type(dtfft_compression_mode_t)  :: compression_mode
+        !! Compression mode to use
+
+        real(c_double)                  :: rate
+        !! Rate for `DTFFT_COMPRESSION_MODE_FIXED_RATE`
+
+        integer(c_int32_t)              :: precision
+        !! Precision for `DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+
+        real(c_double)                  :: tolerance
+        !! Tolerance for `DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    end type dtfft_compression_config_t
+
+    type(dtfft_compression_config_t), parameter, public :: DEFAULT_COMPRESSION_CONFIG = dtfft_compression_config_t(DTFFT_COMPRESSION_LIB_NONE, DTFFT_COMPRESSION_MODE_LOSSLESS, -1.0, -1, -1.0)
+    !! Default compression configuration
+
+    interface dtfft_compression_config_t
+    !! Type bound constuctor for dtfft_compression_config_t
+        module procedure create_compression_config_t    !! Creates config object
+    end interface dtfft_compression_config_t
+
+public :: operator(==)
+    interface operator(==)
+        module procedure compression_lib_eq     !! Check if two `dtfft_compression_lib_t` are equal
+    end interface
+
+public :: operator(/=)
+    interface operator(/=)
+        module procedure compression_lib_ne     !! Check if two `dtfft_compression_lib_t` are not equal
+    end interface
 
 contains
+
+    pure type(dtfft_compression_config_t) function create_compression_config_t(lib, mode, rate, precision, tolerance) result(config)
+    !! Creates a compression configuration object
+        type(dtfft_compression_lib_t),  intent(in)  :: lib        !! Compression library to use
+        type(dtfft_compression_mode_t), intent(in)  :: mode       !! Compression mode
+        real(c_double),     optional,   intent(in)  :: rate       !! Compression rate (for fixed rate mode)
+        integer(c_int32_t), optional,   intent(in)  :: precision  !! Precision (for fixed precision mode)
+        real(c_double),     optional,   intent(in)  :: tolerance  !! Tolerance (for fixed accuracy mode)
+
+        config%compression_lib = lib
+        config%compression_mode = mode
+        OPTVAL(config%rate, -1._c_double, rate)
+        OPTVAL(config%precision, -1, precision)
+        OPTVAL(config%tolerance, -1._c_double, tolerance)
+    end function create_compression_config_t
 
     type(string) function get_compressor_string(compressor)
         type(dtfft_compression_lib_t), intent(in) :: compressor
@@ -137,4 +192,48 @@ contains
             deallocate(compressor)
         endif
     end function create_compressor
+
+    subroutine save_compression_config(config, fh)
+        type(dtfft_compression_config_t),   intent(in)    :: config !! Compression configuration to save
+        type(serializer),                   intent(inout) :: fh
+
+        call fh%save(int(config%compression_lib%val, int16))
+        call fh%save(int(config%compression_mode%val, int8))
+        call fh%save(config%rate)
+        call fh%save(config%precision)
+        call fh%save(config%tolerance)
+    end subroutine save_compression_config
+
+    type(dtfft_compression_config_t) function load_compression_config(fh) result(config)
+        type(serializer),                   intent(inout) :: fh
+        integer(int16) :: t1
+        integer(int8) :: t2
+
+        call fh%load(t1);   config%compression_lib%val = int(t1, int32)
+        call fh%load(t2);   config%compression_mode%val = int(t2, int32)
+        call fh%load(config%rate)
+        call fh%load(config%precision)
+        call fh%load(config%tolerance)
+    end function load_compression_config
+
+    pure function check_compression_config(config) result(error_code)
+    !! Checks if the given compression configuration is valid
+        type(dtfft_compression_config_t), intent(in)    :: config !! Compression configuration to check
+        integer(int32)                                  :: error_code
+
+        error_code = DTFFT_SUCCESS
+        if ( .not. is_valid_compression_lib(config%compression_lib) ) then
+            error_code = DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY
+            return
+        endif
+        if ( .not. is_valid_compression_mode(config%compression_mode) ) then
+            error_code = DTFFT_ERROR_COMPRESSION_INVALID_MODE
+            return
+        endif
+    end function check_compression_config
+
+MAKE_EQ_FUN(dtfft_compression_lib_t, compression_lib_eq)
+MAKE_NE_FUN(dtfft_compression_lib_t, compression_lib_ne)
+
+MAKE_VALID_FUN_DTYPE(dtfft_compression_lib_t, is_valid_compression_lib, VALID_COMPRESSION_LIBS)
 end module dtfft_compressor

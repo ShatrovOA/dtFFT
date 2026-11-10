@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_sz3
 !! Fortran interface to SZ3 compression library
-use iso_c_binding
+use, intrinsic :: iso_c_binding
 implicit none
 private
 

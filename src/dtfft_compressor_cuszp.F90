@@ -19,8 +19,8 @@
 #include "dtfft_config.h"
 module dtfft_compressor_cuszp
 !! cuSZp-based CUDA compressor implementation
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_abstract_compressor
 use dtfft_parameters
 use dtfft_errors
@@ -66,8 +66,11 @@ contains
         type(c_ptr),             intent(in)    :: out       !! Pointer to the output buffer for compressed data
         type(dtfft_stream_t),    intent(in)    :: stream    !! CUDA stream for asynchronous operations
         integer(c_size_t)   :: compressed_size  !! Size of the compressed data
+        integer(c_int32_t)  :: dims_(3)
 
-        compressed_size = cuSZp_compress(in, out, size(dims, kind=int8), dims, self%storage_size, real(self%rate_or_tolerance, c_float), stream)
+        dims_(1:size(dims)) = dims
+        if ( self%is_complex ) dims_(1) = dims_(1) * 2
+        compressed_size = cuSZp_compress(in, out, self%ndims, dims_, self%storage_size, real(self%rate_or_tolerance, c_float), stream)
         compress = int(compressed_size, int64)
     end function compress
 
@@ -79,8 +82,11 @@ contains
         type(c_ptr),             intent(in)    :: out               !! Pointer to the output buffer for decompressed data
         type(dtfft_stream_t),    intent(in)    :: stream            !! CUDA stream for asynchronous operations
         integer(int64),          intent(in)    :: compressed_size   !! Size of the compressed data
+        integer(c_int32_t)  :: dims_(3)
 
-        call cuSZp_decompress(in, out, size(dims, kind=int8), dims, compressed_size, self%storage_size, self%tolerance, stream)
+        dims_(1:size(dims)) = dims
+        if ( self%is_complex ) dims_(1) = dims_(1) * 2
+        call cuSZp_decompress(in, out, self%ndims, dims_, compressed_size, self%storage_size, real(self%rate_or_tolerance, c_float), stream)
     end subroutine decompress
 
     subroutine destroy(self)

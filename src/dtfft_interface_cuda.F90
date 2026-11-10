@@ -21,8 +21,8 @@ module dtfft_interface_cuda
 !! CUDA Driver Interfaces
 !!
 !! CUDA Driver is loaded at runtime via dynamic loading.
-use iso_c_binding
-use iso_fortran_env
+use, intrinsic :: iso_c_binding
+use, intrinsic :: iso_fortran_env
 use dtfft_errors,                 only: DTFFT_SUCCESS
 use dtfft_parameters,             only: dtfft_stream_t
 #ifdef DTFFT_WITH_MOCK_ENABLED
@@ -194,6 +194,14 @@ contains
     error_code = dynamic_load("libdtfft.so", func_names, libcuda, cuFunctions)
     if ( error_code /= DTFFT_SUCCESS ) then
       error_code = dynamic_load("libdtfft.dylib", func_names, libcuda, cuFunctions)
+    endif
+    call func_names(1)%destroy()
+    if ( error_code /= DTFFT_SUCCESS ) then
+      func_names(1) = string("dlopen")
+      error_code = dynamic_load("libc.so", func_names, libcuda, cuFunctions)
+    endif
+    if ( error_code /= DTFFT_SUCCESS ) then
+      error_code = dynamic_load("libc.dylib", func_names, libcuda, cuFunctions)
     endif
 
     call destroy_strings(func_names)
