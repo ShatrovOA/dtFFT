@@ -29,6 +29,8 @@ if(DTFFT_BUILD_PYTHON_API)
         ${CMAKE_BINARY_DIR}
     )
     target_link_libraries(py_utils PRIVATE dtfft_example_utils)
+    target_link_libraries(py_utils PRIVATE dtfft)
+
     install(TARGETS py_utils DESTINATION .)
 
     if(APPLE)

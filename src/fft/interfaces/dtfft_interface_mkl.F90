@@ -18,7 +18,7 @@
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_mkl
 !! This module creates C interface with MKL library
-use, intrinsic :: iso_c_binding,  only: c_long, c_int, c_ptr, c_f_pointer, c_null_char, c_size_t
+use, intrinsic :: iso_c_binding
 use dtfft_utils,    only: string_c2f
 implicit none
 private

@@ -122,7 +122,7 @@ jobs:
     name: HPC-SDK 24.7 + CUDA 11.8
     runs-on: ubuntu-24.04
     container:
-      image: nvcr.io/nvidia/nvhpc:24.7-runtime-cuda11.8-ubuntu24.04
+      image: nvcr.io/nvidia/nvhpc:24.7-devel-cuda_multi-ubuntu24.04
     env:
       CC: "nvc"
       CXX: "nvc++"
@@ -132,6 +132,10 @@ jobs:
       DTFFT_PLATFORM: "host"
       # LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/math_libs/11.8/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nvshmem/lib:$LD_LIBRARY_PATH"
     steps:
+      - name: Get Requirements
+        run: |
+          apt update -y
+          apt install -y cmake 
       - name: Checkout
         uses: actions/checkout@v6
       # - name: Update PATH

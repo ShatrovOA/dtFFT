@@ -23,7 +23,7 @@ module dtfft_reshape_handle_datatype
 !! For the end user this is `DTFFT_BACKEND_MPI_DATATYPE` - backend.
 !! But since it does not perform sequence: transpose -> exchange -> unpack, it is internally treated as reshape_handle.
 use, intrinsic :: iso_fortran_env
-use, intrinsic :: iso_c_binding,                  only: c_ptr, c_f_pointer
+use, intrinsic :: iso_c_binding
 use dtfft_abstract_reshape_handle,  only: abstract_reshape_handle, create_args, execute_args
 use dtfft_errors
 use dtfft_parameters

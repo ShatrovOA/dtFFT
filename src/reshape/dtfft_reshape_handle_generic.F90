@@ -21,7 +21,7 @@ module dtfft_reshape_handle_generic
 !! This module describes [[reshape_handle_generic]] class
 !! It is responsible for managing both Host and CUDA-based transposition operations
 !! It executes transpose kernels, memory transfers between GPUs/Hosts, and data unpacking if required
-use, intrinsic :: iso_c_binding,                        only: c_ptr, c_f_pointer, c_loc, c_null_ptr
+use, intrinsic :: iso_c_binding
 use, intrinsic :: iso_fortran_env
 use dtfft_abstract_backend,               only: abstract_backend, backend_helper
 use dtfft_abstract_kernel
