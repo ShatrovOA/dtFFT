@@ -114,13 +114,13 @@ jobs:
       - name: Test install
         working-directory: ./src/core/tests/install
         run: |
-          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
+          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/ -DNVHPC_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/cmake/
           cmake --build build
 
   # Not enough space on the runner for cuda-multi
   hpc_sdk_min_recomended:
     name: HPC-SDK 24.7 + CUDA 11.8
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container:
       image: nvcr.io/nvidia/nvhpc:24.7-devel-cuda_multi-ubuntu24.04
     env:
@@ -130,6 +130,9 @@ jobs:
       DTFFT_ENABLE_LOG: "1"
       CUDACXX: "nvcc"
       DTFFT_PLATFORM: "host"
+      OMPI_ALLOW_RUN_AS_ROOT: "1"
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: "1"
+      NVHPC_DEFAULT_CUDA: "11.8"
       # LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/math_libs/11.8/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nvshmem/lib:$LD_LIBRARY_PATH"
     steps:
       - name: Get Requirements
@@ -164,5 +167,5 @@ jobs:
       - name: Test install
         working-directory: ./src/core/tests/install
         run: |
-          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
+          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/ -DNVHPC_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/cmake/
           cmake --build build

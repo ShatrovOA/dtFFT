@@ -30,7 +30,7 @@ cmake_minimum_required(VERSION 3.25)
 # 1. Project definition
 #------------------------------------------------------------------------------#
 project(dtfft
-  VERSION       3.2.0
+  VERSION       3.3.0
   DESCRIPTION   "Library to perform FFT on a distributed memory cluster."
   HOMEPAGE_URL  "https://github.com/ShatrovOA/dtFFT"
   LANGUAGES     Fortran C CXX
@@ -230,6 +230,10 @@ set(NCCL_FOUND  FALSE)
 set(USE_NCCL    OFF)
 set(USE_NVSHMEM OFF)
 
+if ( NOT DTFFT_WITH_CUDA )
+  set(DTFFT_WITH_MOCK_ENABLED OFF)
+endif()
+
 # Mock mode emulates NCCL on CPU
 if(DTFFT_WITH_MOCK_ENABLED)
   set(NCCL_FOUND TRUE)
@@ -338,7 +342,7 @@ if(DTFFT_WITH_PROFILER)
   else()
     find_package(caliper REQUIRED)
     message(STATUS "Found caliper: ${caliper_DIR}")
-    target_link_libraries(dtfft PUBLIC caliper)
+    target_link_libraries(dtfft PRIVATE caliper)
   endif()
 endif()
 
