@@ -621,7 +621,7 @@ contains
 #else
         type(MPI_Status)    :: statuses(count)                  !! Array of MPI statuses
 #endif
-
+        if ( count == 0 ) return
         call MPI_Waitall(count, requests, statuses, mpi_ierr)
     end subroutine waitall_requests
 
@@ -638,7 +638,7 @@ contains
 #else
         type(MPI_Status) :: statuses(incount)   !! Array of MPI statuses
 #endif
-
+        if ( incount == 0 ) return
         call MPI_Waitsome(incount, requests, outcount, indices, statuses, mpi_ierr)
     end subroutine waitsome_requests
 
