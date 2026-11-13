@@ -73,20 +73,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.0% of total for procedures.">12 statements</a>
+                 title=" 0.1% of total for procedures.">21 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_compressor_cuszp.F90"> Source File</a>
+              <a href="../src/dtfft_compressor_sz3.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_compressor_cuszp.f90.html'>dtfft_compressor_cuszp.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_compressor_cuszp.html'>dtfft_compressor_cuszp</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_compressor_sz3.f90.html'>dtfft_compressor_sz3.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_compressor_sz3.html'>dtfft_compressor_sz3</a></li>
             <li class="breadcrumb-item active" aria-current="page">decompress</li>
           </ol>
         </nav>
@@ -136,10 +136,10 @@
 </h2>
     
 
-    <p>Decompress data using cuSZp</p>
+    <p>Decompresses the input data using SZ3</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/compressor_cuszp.html'>compressor_cuszp</a></p>
+    <p><a href='../type/compressor_sz3.html'>compressor_sz3</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -154,8 +154,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~259"></span>
-              class(<a href='../type/compressor_cuszp.html'>compressor_cuszp</a>),
+              <span class="anchor" id="variable-self~274"></span>
+              class(<a href='../type/compressor_sz3.html'>compressor_sz3</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -164,12 +164,12 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>cuSZp compressor instance</p>
+                <p>Compressor instance</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dims~156"></span>
+              <span class="anchor" id="variable-dims~581"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -179,12 +179,12 @@
             <td>::</td>
             <td><strong>dims</strong>(:)</td>
             <td>
-                <p>Dimensions of the data to decompress</p>
+                <p>Array dimensions</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-in~248"></span>
+              <span class="anchor" id="variable-in~653"></span>
               type(c_ptr),
             </td>
 <td>intent(in)</td>
@@ -194,12 +194,12 @@
             <td>::</td>
             <td><strong>in</strong></td>
             <td>
-                <p>Pointer to the input data to decompress</p>
+                <p>Pointer to compressed data</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-out~248"></span>
+              <span class="anchor" id="variable-out~653"></span>
               type(c_ptr),
             </td>
 <td>intent(in)</td>
@@ -209,12 +209,12 @@
             <td>::</td>
             <td><strong>out</strong></td>
             <td>
-                <p>Pointer to the output buffer for decompressed data</p>
+                <p>Pointer to output buffer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stream~57"></span>
+              <span class="anchor" id="variable-stream~73"></span>
               type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
@@ -224,12 +224,12 @@
             <td>::</td>
             <td><strong>stream</strong></td>
             <td>
-                <p>CUDA stream for asynchronous operations</p>
+                <p>Stream handle</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-compressed_size~9"></span>
+              <span class="anchor" id="variable-compressed_size~10"></span>
               integer(kind=int64),
             </td>
 <td>intent(in)</td>
@@ -239,7 +239,7 @@
             <td>::</td>
             <td><strong>compressed_size</strong></td>
             <td>
-                <p>Size of the compressed data</p>
+                
             </td>
         </tr>
     </tbody>
@@ -257,35 +257,147 @@
 <!-- Generated by graphviz version 2.43.0 (0)
  -->
 <!-- Title: proc~~decompress~5~~CallsGraph Pages: 1 -->
-<svg id="procdecompress5CallsGraph" width="344pt" height="32pt"
- viewBox="0.00 0.00 344.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~decompress~5~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<svg id="procdecompress5CallsGraph" width="641pt" height="211pt"
+ viewBox="0.00 0.00 641.00 211.07" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~decompress~5~~CallsGraph" class="graph" transform="scale(0.97 0.97) rotate(0) translate(4 213)">
 <title>proc~~decompress~5~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 340,-28 340,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-213 655,-213 655,4 -4,4"/>
 <!-- proc~decompress~5 -->
 <g id="proc~~decompress~5~~CallsGraph_node1" class="node">
 <title>proc~decompress~5</title>
-<polygon fill="none" stroke="black" points="184,-24 0,-24 0,0 184,0 184,-24"/>
-<text text-anchor="middle" x="92" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">compressor_cuszp%decompress</text>
+<polygon fill="none" stroke="black" points="172,-127 0,-127 0,-103 172,-103 172,-127"/>
+<text text-anchor="middle" x="86" y="-112.6" font-family="Helvetica,sans-Serif" font-size="10.50">compressor_sz3%decompress</text>
 </g>
-<!-- interface~cuszp_decompress -->
+<!-- interface~sz3_decompress -->
 <g id="proc~~decompress~5~~CallsGraph_node2" class="node">
-<title>interface~cuszp_decompress</title>
-<g id="a_proc~~decompress~5~~CallsGraph_node2"><a xlink:href="../interface/cuszp_decompress.html" xlink:title="cuSZp_decompress">
-<polygon fill="#a7506f" stroke="#a7506f" points="336,-24 220,-24 220,0 336,0 336,-24"/>
-<text text-anchor="middle" x="278" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cuSZp_decompress</text>
+<title>interface~sz3_decompress</title>
+<g id="a_proc~~decompress~5~~CallsGraph_node2"><a xlink:href="../interface/sz3_decompress.html" xlink:title="sz3_decompress">
+<polygon fill="#a7506f" stroke="#a7506f" points="339.5,-209 239.5,-209 239.5,-185 339.5,-185 339.5,-209"/>
+<text text-anchor="middle" x="289.5" y="-194.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">sz3_decompress</text>
 </a>
 </g>
 </g>
-<!-- proc~decompress~5&#45;&gt;interface~cuszp_decompress -->
+<!-- proc~decompress~5&#45;&gt;interface~sz3_decompress -->
 <g id="proc~~decompress~5~~CallsGraph_edge1" class="edge">
-<title>proc~decompress~5&#45;&gt;interface~cuszp_decompress</title>
-<path fill="none" stroke="#ff0000" d="M184.19,-12C192.86,-12 201.55,-12 209.93,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="209.99,-15.5 219.99,-12 209.99,-8.5 209.99,-15.5"/>
+<title>proc~decompress~5&#45;&gt;interface~sz3_decompress</title>
+<path fill="none" stroke="#ff0000" d="M107.8,-127.2C131.43,-140.65 171.47,-162.2 208,-176 214.87,-178.6 222.2,-180.99 229.51,-183.16"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="228.88,-186.62 239.45,-185.97 230.79,-179.88 228.88,-186.62"/>
+</g>
+<!-- interface~sz3_destroy_config -->
+<g id="proc~~decompress~5~~CallsGraph_node3" class="node">
+<title>interface~sz3_destroy_config</title>
+<g id="a_proc~~decompress~5~~CallsGraph_node3"><a xlink:href="../interface/sz3_destroy_config.html" xlink:title="sz3_destroy_config">
+<polygon fill="#a7506f" stroke="#a7506f" points="345.5,-167 233.5,-167 233.5,-143 345.5,-143 345.5,-167"/>
+<text text-anchor="middle" x="289.5" y="-152.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">sz3_destroy_config</text>
+</a>
+</g>
+</g>
+<!-- proc~decompress~5&#45;&gt;interface~sz3_destroy_config -->
+<g id="proc~~decompress~5~~CallsGraph_edge2" class="edge">
+<title>proc~decompress~5&#45;&gt;interface~sz3_destroy_config</title>
+<path fill="none" stroke="#ff0000" d="M147.46,-127C171.4,-131.75 198.98,-137.23 223.36,-142.07"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="222.75,-145.52 233.24,-144.03 224.11,-138.65 222.75,-145.52"/>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~decompress~5~~CallsGraph_node4" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="494,-129 427,-129 427,-105 494,-105 494,-129"/>
+<text text-anchor="middle" x="460.5" y="-114.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~decompress~5&#45;&gt;mpi_abort -->
+<g id="proc~~decompress~5~~CallsGraph_edge3" class="edge">
+<title>proc~decompress~5&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ff0000" d="M172.46,-115.46C248.65,-115.87 357.04,-116.45 416.44,-116.77"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="416.58,-120.27 426.6,-116.82 416.62,-113.27 416.58,-120.27"/>
+</g>
+<!-- proc~get_config -->
+<g id="proc~~decompress~5~~CallsGraph_node5" class="node">
+<title>proc~get_config</title>
+<g id="a_proc~~decompress~5~~CallsGraph_node5"><a xlink:href="../proc/get_config.html" xlink:title="compressor_sz3%get_config">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="371,-87 208,-87 208,-63 371,-63 371,-87"/>
+<text text-anchor="middle" x="289.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compressor_sz3%get_config</text>
+</a>
+</g>
+</g>
+<!-- proc~decompress~5&#45;&gt;proc~get_config -->
+<g id="proc~~decompress~5~~CallsGraph_edge4" class="edge">
+<title>proc~decompress~5&#45;&gt;proc~get_config</title>
+<path fill="none" stroke="#ff0000" d="M147.46,-103C169.57,-98.61 194.79,-93.6 217.72,-89.05"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="218.61,-92.44 227.74,-87.06 217.25,-85.58 218.61,-92.44"/>
+</g>
+<!-- proc~write_message -->
+<g id="proc~~decompress~5~~CallsGraph_node6" class="node">
+<title>proc~write_message</title>
+<g id="a_proc~~decompress~5~~CallsGraph_node6"><a xlink:href="../proc/write_message.html" xlink:title="write_message">
+<polygon fill="#d9534f" stroke="#d9534f" points="506.5,-45 414.5,-45 414.5,-21 506.5,-21 506.5,-45"/>
+<text text-anchor="middle" x="460.5" y="-30.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">write_message</text>
+</a>
+</g>
+</g>
+<!-- proc~decompress~5&#45;&gt;proc~write_message -->
+<g id="proc~~decompress~5~~CallsGraph_edge5" class="edge">
+<title>proc~decompress~5&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#ff0000" d="M105.36,-102.91C128.3,-88.47 169.28,-64.93 208,-54 273.49,-35.51 352.07,-31.73 403.77,-31.61"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="404.05,-35.11 414.06,-31.64 404.07,-28.11 404.05,-35.11"/>
+</g>
+<!-- proc~get_config&#45;&gt;mpi_abort -->
+<g id="proc~~decompress~5~~CallsGraph_edge7" class="edge">
+<title>proc~get_config&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#0066ff" d="M338.93,-87.04C363.59,-93.17 393.31,-100.55 417.06,-106.45"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="416.3,-109.87 426.85,-108.89 417.99,-103.08 416.3,-109.87"/>
+</g>
+<!-- proc~get_config&#45;&gt;proc~write_message -->
+<g id="proc~~decompress~5~~CallsGraph_edge8" class="edge">
+<title>proc~get_config&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#0066ff" d="M338.93,-62.96C359.39,-57.88 383.32,-51.93 404.45,-46.68"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="405.39,-50.05 414.25,-44.24 403.7,-43.26 405.39,-50.05"/>
+</g>
+<!-- interface~sz3_create_config -->
+<g id="proc~~decompress~5~~CallsGraph_node7" class="node">
+<title>interface~sz3_create_config</title>
+<g id="a_proc~~decompress~5~~CallsGraph_node7"><a xlink:href="../interface/sz3_create_config.html" xlink:title="sz3_create_config">
+<polygon fill="#a7506f" stroke="#a7506f" points="514,-87 407,-87 407,-63 514,-63 514,-87"/>
+<text text-anchor="middle" x="460.5" y="-72.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">sz3_create_config</text>
+</a>
+</g>
+</g>
+<!-- proc~get_config&#45;&gt;interface~sz3_create_config -->
+<g id="proc~~decompress~5~~CallsGraph_edge6" class="edge">
+<title>proc~get_config&#45;&gt;interface~sz3_create_config</title>
+<path fill="none" stroke="#0066ff" d="M371.04,-75C379.53,-75 388.07,-75 396.32,-75"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="396.59,-78.5 406.59,-75 396.59,-71.5 396.59,-78.5"/>
+</g>
+<!-- mpi_comm_rank -->
+<g id="proc~~decompress~5~~CallsGraph_node8" class="node">
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="651,-66 550,-66 550,-42 651,-42 651,-66"/>
+<text text-anchor="middle" x="600.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_comm_rank -->
+<g id="proc~~decompress~5~~CallsGraph_edge9" class="edge">
+<title>proc~write_message&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#cc00ff" d="M506.69,-39.88C517.28,-41.49 528.72,-43.23 539.84,-44.92"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="539.51,-48.41 549.92,-46.46 540.56,-41.49 539.51,-48.41"/>
+</g>
+<!-- mpi_finalized -->
+<g id="proc~~decompress~5~~CallsGraph_node9" class="node">
+<title>mpi_finalized</title>
+<polygon fill="#777777" stroke="#777777" points="642,-24 559,-24 559,0 642,0 642,-24"/>
+<text text-anchor="middle" x="600.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalized</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_finalized -->
+<g id="proc~~decompress~5~~CallsGraph_edge10" class="edge">
+<title>proc~write_message&#45;&gt;mpi_finalized</title>
+<path fill="none" stroke="#cc00ff" d="M506.69,-26.12C520.09,-24.08 534.86,-21.84 548.6,-19.75"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="549.51,-23.15 558.87,-18.18 548.46,-16.23 549.51,-23.15"/>
 </g>
 </g>
 </svg>
-</div>          <div>
+</div>                <script>
+                  var panprocdecompress5CallsGraph = svgPanZoom('#procdecompress5CallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
             <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
           </div>
           <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">

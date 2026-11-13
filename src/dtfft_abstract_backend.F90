@@ -183,6 +183,7 @@ contains
         self%recv_floats(:) = int(recv_counts(:), int64) * scaler
 
         self%buffer_size = max(sum(self%send_floats), sum(self%recv_floats))
+        self%buffer_size = max(self%buffer_size, 1_int64)
 
         self%backend = backend
         self%is_fused = is_backend_fused(backend) .or. is_backend_compressed(backend)
