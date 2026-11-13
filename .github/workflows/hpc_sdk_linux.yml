@@ -22,10 +22,14 @@ jobs:
       UCX_TLS: "sm,tcp,self"
       LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/math_libs/12.8/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/12.8/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/25.3/comm_libs/12.8/nvshmem/lib:$LD_LIBRARY_PATH"
     steps:
-      - name: Free space
-        run: |
-          sudo rm -rf /usr/local/lib/android || true
-          sudo rm -rf /usr/share/dotnet || true
+      - name: Free Disk Space
+        uses: endersonmenezes/free-disk-space@v4  # Use @main for latest, @v4 for stable
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+          remove_swap: true
       - name: Get Requirements
         run: |
           echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
@@ -65,8 +69,8 @@ jobs:
           cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
           cmake --build build
 
-  hpc_sdk_251:
-    name: HPC-SDK 25.1 + CUDA 12.6
+  hpc_sdk_261:
+    name: HPC-SDK 26.1 + CUDA 13.0
     runs-on: ubuntu-latest
     env:
       CC: "nvc"
@@ -77,31 +81,40 @@ jobs:
       CUDAHOSTCXX: "nvc++"
       DTFFT_PLATFORM: "host"
       UCX_TLS: "sm,tcp,self"
-      LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/math_libs/12.6/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/comm_libs/12.6/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/comm_libs/12.6/nvshmem/lib:$LD_LIBRARY_PATH"
+      LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/26.1/math_libs/13.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/26.1/comm_libs/13.0/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/26.1/comm_libs/13.0/nvshmem/lib:$LD_LIBRARY_PATH"
     steps:
+      - name: Free Disk Space
+        uses: endersonmenezes/free-disk-space@v4  # Use @main for latest, @v4 for stable
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+          remove_swap: true
       - name: Get Requirements
         run: |
           echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
           sudo apt-get update -y
-          sudo apt-get -y install nvhpc-25-1
+          sudo apt-get -y install nvhpc-26-1
       - name: Checkout
         uses: actions/checkout@v6
       - name: Update PATH
         run: |
-          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/comm_libs/mpi/bin" >> $GITHUB_PATH
-          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/compilers/bin" >> $GITHUB_PATH
-          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/cuda/12.6/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/26.1/comm_libs/mpi/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/26.1/compilers/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/26.1/cuda/13.0/bin" >> $GITHUB_PATH
       - name: Build
         run: |
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDTFFT_BUILD_TESTS=on \
             -DDTFFT_ENABLE_PERSISTENT_COMM=on \
-            -DDTFFT_BUILD_SHARED=off \
+            -DDTFFT_BUILD_SHARED=on \
             -DDTFFT_BUILD_C_CXX_API=on \
             -DDTFFT_WITH_PROFILER=on \
             -DDTFFT_WITH_CUDA=on \
             -DDTFFT_WITH_CUFFT=on \
+            -DDTFFT_WITHOUT_NVSHMEM=on \
             -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda \
             -DSKIP_CUDA_COVERAGE=on \
             -DDTFFT_MPI_VENDOR=openmpi \
@@ -114,15 +127,12 @@ jobs:
       - name: Test install
         working-directory: ./src/core/tests/install
         run: |
-          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/ -DNVHPC_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/25.1/cmake/
+          cmake -B build -S . -Ddtfft_DIR=/opt/dtfft-cuda/lib/cmake/dtfft/
           cmake --build build
 
-  # Not enough space on the runner for cuda-multi
   hpc_sdk_min_recomended:
     name: HPC-SDK 24.7 + CUDA 11.8
-    runs-on: ubuntu-24.04
-    container:
-      image: nvcr.io/nvidia/nvhpc:24.7-devel-cuda_multi-ubuntu22.04
+    runs-on: ubuntu-22.04
     env:
       CC: "nvc"
       CXX: "nvc++"
@@ -130,22 +140,27 @@ jobs:
       DTFFT_ENABLE_LOG: "1"
       CUDACXX: "nvcc"
       DTFFT_PLATFORM: "host"
-      OMPI_ALLOW_RUN_AS_ROOT: "1"
-      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: "1"
       UCX_TLS: "sm,tcp,self"
-      # LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/math_libs/11.8/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nvshmem/lib:$LD_LIBRARY_PATH"
+      LD_LIBRARY_PATH: "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/math_libs/11.8/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/nvshmem/lib:$LD_LIBRARY_PATH"
     steps:
+      - name: Free Disk Space
+        uses: endersonmenezes/free-disk-space@v4  # Use @main for latest, @v4 for stable
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+          remove_swap: true
       - name: Get Requirements
         run: |
-          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
-          apt update -y
-          apt install -y cmake
+          echo 'deb [trusted=yes] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
+          sudo apt-get update -y
+          sudo apt-get -y install nvhpc-24-7-cuda-multi
       - name: Checkout
         uses: actions/checkout@v6
       - name: Update PATH
         run: |
-          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/11.8/openmpi4/latest/bin" >> $GITHUB_PATH
+          echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/comm_libs/mpi/bin" >> $GITHUB_PATH
           echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/compilers/bin" >> $GITHUB_PATH
           echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/cuda/11.8/bin" >> $GITHUB_PATH
       - name: Build
@@ -159,9 +174,9 @@ jobs:
             -DDTFFT_WITH_CUDA=on \
             -DDTFFT_WITH_CUFFT=on \
             -DCMAKE_INSTALL_PREFIX=/opt/dtfft-cuda \
+            -DSKIP_CUDA_COVERAGE=on \
             -DDTFFT_MPI_VENDOR=openmpi \
-            -DDTFFT_RUNNING_CICD=on \
-            -DNVHPC_CUDA_VERSION="11.8"
+            -DDTFFT_RUNNING_CICD=on
           cmake --build build
       - name: Test
         run: ctest --test-dir build --output-on-failure
