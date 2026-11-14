@@ -42,6 +42,9 @@ if(DTFFT_WITH_CUFFT)
 
     if ( NOT USE_NVSHMEM )
         target_link_libraries(dtfft PRIVATE CUDA::cufft)
+        if(DTFFT_BUILD_SHARED)
+            target_link_libraries(dtfft INTERFACE "$<LINK_ONLY:CUDA::cufft>")
+        endif()
     endif()
 endif()
 
