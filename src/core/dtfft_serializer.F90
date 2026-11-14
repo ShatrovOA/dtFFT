@@ -173,7 +173,7 @@ contains
         integer(int8),      intent(in)    :: buf(:)   !! Value
         logical,  optional, intent(in)    :: is_collective
         logical :: is_collective_
-        integer(int32) :: ierr, size_buf
+        integer(int32) :: ierr, size_buf, write_count
         integer(MPI_OFFSET_KIND) :: offset, osize_buf, inc
         integer(int32) :: comm_rank, comm_size
 #ifdef DTFFT_USE_MPI
@@ -207,21 +207,23 @@ contains
             call MPI_Comm_size(self%comm, comm_size, ierr)
             inc = int(comm_size, MPI_OFFSET_KIND) * osize_buf
         else
-            if ( comm_rank == 0 ) then
-                call MPI_File_write_at(self%fh, self%pos, buf, size_buf, MPI_INTEGER1, status, ierr)
-                ! if ( ierr /= MPI_SUCCESS ) then
-                !     call report_mpi_io_error("MPI_File_write_at", ierr, comm_rank, self%pos)
-                ! else
-                !     call MPI_Get_count(status, MPI_INTEGER1, transferred, ierr)
-                !     if ( ierr /= MPI_SUCCESS ) then
-                !         call report_mpi_io_error("MPI_Get_count after MPI_File_write_at", &
-                !             ierr, comm_rank, self%pos)
-                !     elseif ( transferred /= size_buf ) then
-                !         call report_mpi_io_count_error("MPI_File_write_at", comm_rank, &
-                !             self%pos, size_buf, transferred)
-                !     endif
-                ! endif
-            endif
+            ! Keep shared-field writes collective to order them with per-rank writes.
+            write_count = merge(size_buf, 0_int32, comm_rank == 0)
+            call MPI_File_write_at_all(self%fh, self%pos, buf, write_count, MPI_INTEGER1, status, ierr)
+            ! if ( comm_rank == 0 ) then
+            !     if ( ierr /= MPI_SUCCESS ) then
+            !         call report_mpi_io_error("MPI_File_write_at_all", ierr, comm_rank, self%pos)
+            !     else
+            !         call MPI_Get_count(status, MPI_INTEGER1, transferred, ierr)
+            !         if ( ierr /= MPI_SUCCESS ) then
+            !             call report_mpi_io_error("MPI_Get_count after MPI_File_write_at", &
+            !                 ierr, comm_rank, self%pos)
+            !         elseif ( transferred /= size_buf ) then
+            !             call report_mpi_io_count_error("MPI_File_write_at", comm_rank, &
+            !                 self%pos, size_buf, transferred)
+            !         endif
+            !     endif
+            ! endif
             inc = size_buf
         endif
         self%pos = self%pos + inc

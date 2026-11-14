@@ -45,26 +45,29 @@ implicit none
     call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, ierr)
     call MPI_Comm_size(MPI_COMM_WORLD, comm_size, ierr)
 
-    call test_c2c_roundtrip()
-    call test_patient_roundtrip()
-    call test_exhaustive_roundtrip()
-    call test_adaptive_roundtrip(.true.)
-    call test_adaptive_roundtrip(.false.)
-    call test_r2c_roundtrip()
-    call test_pencil_roundtrip()
-    call test_pencil_reshape_roundtrip()
-    call test_config_ignored_on_load()
+    call test_c2c_roundtrip(DIMS_3D)
+    call test_patient_roundtrip(DIMS_3D)
+    call test_exhaustive_roundtrip(DIMS_3D)
+    call test_adaptive_roundtrip(DIMS_3D, .true.)
+    call test_adaptive_roundtrip(DIMS_3D, .false.)
+    call test_r2c_roundtrip(DIMS_3D)
+    call test_pencil_roundtrip(DIMS_3D)
+    call test_pencil_reshape_roundtrip(DIMS_3D)
+    call test_config_ignored_on_load(DIMS_3D)
 #if defined(DTFFT_WITH_COMPRESSION) && defined(DTFFT_WITH_ZFP)
-    call test_compressed_roundtrip()
+    call test_compressed_roundtrip(DIMS_3D)
 #endif
-    call test_r2r_roundtrip()
-    call test_2d_roundtrip()
-    call test_plan_kind_probe()
+    call test_r2r_roundtrip(DIMS_3D)
+#ifdef DTFFT_WITH_FFTW
+    call test_r2r_fft_roundtrip(DIMS_3D)
+#endif
+    call test_2d_roundtrip(DIMS_2D)
+    call test_plan_kind_probe(DIMS_3D)
     call test_missing_file()
     call test_corrupted_file()
-    call test_format_version_gate()
-    call test_kind_mismatch()
-    call test_comm_size_mismatch()
+    call test_format_version_gate(DIMS_3D)
+    call test_kind_mismatch(DIMS_3D)
+    call test_comm_size_mismatch(DIMS_3D)
     call test_save_before_create()
 
     call test%finalize()
@@ -74,12 +77,13 @@ contains
 !------------------------------------------------------------------------------------------------
 ! Round-trip tests
 !------------------------------------------------------------------------------------------------
-    subroutine test_c2c_roundtrip()
+    subroutine test_c2c_roundtrip(dims)
     !! Tunes a 3D C2C plan, saves it, loads it back and compares every observable property
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         character(len=*), parameter :: filename = "test_save_load_c2c.dtfft"
 
-        call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_MEASURE, &
+        call tuned%create(dims, precision=DTFFT_DOUBLE, effort=DTFFT_MEASURE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check("c2c: create tuned plan", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
@@ -89,9 +93,9 @@ contains
             call loaded%load(filename, MPI_COMM_WORLD, ierr)
             call test%check("c2c: load", ierr, DTFFT_SUCCESS)
             if ( all_ok(ierr) ) then
-                call compare_plans("c2c", size(DIMS_3D), tuned, loaded)
-                call check_transpose_roundtrip("c2c-tuned", size(DIMS_3D), tuned)
-                call check_transpose_roundtrip("c2c", size(DIMS_3D), loaded)
+                call compare_plans("c2c", size(dims), tuned, loaded)
+                call check_transpose_roundtrip("c2c-tuned", size(dims), tuned)
+                call check_transpose_roundtrip("c2c", size(dims), loaded)
                 call check_resave_identical("c2c", filename, loaded)
             endif
             call loaded%destroy(ierr)
@@ -100,13 +104,14 @@ contains
         call delete_file(filename)
     end subroutine test_c2c_roundtrip
 
-    subroutine test_patient_roundtrip()
+    subroutine test_patient_roundtrip(dims)
     !! `DTFFT_PATIENT` additionally benchmarks communication backends and, for the
     !! MPI-datatype backend, per-direction transpose modes. All of that has to be replayed.
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         character(len=*), parameter :: filename = "test_save_load_patient.dtfft"
 
-        call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_PATIENT, &
+        call tuned%create(dims, precision=DTFFT_DOUBLE, effort=DTFFT_PATIENT, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check("patient: create tuned plan", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
@@ -116,9 +121,9 @@ contains
             call loaded%load(filename, MPI_COMM_WORLD, ierr)
             call test%check("patient: load", ierr, DTFFT_SUCCESS)
             if ( all_ok(ierr) ) then
-                call compare_plans("patient", size(DIMS_3D), tuned, loaded)
-                call check_transpose_roundtrip("patient-tuned", size(DIMS_3D), tuned)
-                call check_transpose_roundtrip("patient", size(DIMS_3D), loaded)
+                call compare_plans("patient", size(dims), tuned, loaded)
+                call check_transpose_roundtrip("patient-tuned", size(dims), tuned)
+                call check_transpose_roundtrip("patient", size(dims), loaded)
                 call check_resave_identical("patient", filename, loaded)
             endif
             call loaded%destroy(ierr)
@@ -127,13 +132,14 @@ contains
         call delete_file(filename)
     end subroutine test_patient_roundtrip
 
-    subroutine test_exhaustive_roundtrip()
+    subroutine test_exhaustive_roundtrip(dims)
     !! `DTFFT_EXHAUSTIVE` also benchmarks the local pack/unpack kernels. Those results are
     !! per rank, so they live in the per-rank part of the file.
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         character(len=*), parameter :: filename = "test_save_load_exhaustive.dtfft"
 
-        call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_EXHAUSTIVE, &
+        call tuned%create(dims, precision=DTFFT_DOUBLE, effort=DTFFT_EXHAUSTIVE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check("exhaustive: create tuned plan", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
@@ -143,9 +149,9 @@ contains
             call loaded%load(filename, MPI_COMM_WORLD, ierr)
             call test%check("exhaustive: load", ierr, DTFFT_SUCCESS)
             if ( all_ok(ierr) ) then
-                call compare_plans("exhaustive", size(DIMS_3D), tuned, loaded)
-                call check_transpose_roundtrip("exhaustive-tuned", size(DIMS_3D), tuned)
-                call check_transpose_roundtrip("exhaustive", size(DIMS_3D), loaded)
+                call compare_plans("exhaustive", size(dims), tuned, loaded)
+                call check_transpose_roundtrip("exhaustive-tuned", size(dims), tuned)
+                call check_transpose_roundtrip("exhaustive", size(dims), loaded)
                 call check_resave_identical("exhaustive", filename, loaded)
             endif
             call loaded%destroy(ierr)
@@ -154,7 +160,7 @@ contains
         call delete_file(filename)
     end subroutine test_exhaustive_roundtrip
 
-    subroutine test_adaptive_roundtrip(use_z_slab)
+    subroutine test_adaptive_roundtrip(dims, use_z_slab)
     !! `DTFFT_BACKEND_ADAPTIVE` picks a separate backend for every transposition, so the
     !! plan keeps a whole table of them rather than one value.
     !!
@@ -165,6 +171,7 @@ contains
     !! Run both with and without Z-slab: the number of transpositions differs between the two,
     !! and with it how much of the per-direction backend table is actually filled in. Only the
     !! shorter case can expose a tail that was written to file without being set.
+        integer(int32),  intent(in) :: dims(:)
         logical, intent(in)     :: use_z_slab   !! Allow the Z-slab optimization
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         type(dtfft_config_t)    :: conf, default_conf
@@ -195,7 +202,7 @@ contains
         call dtfft_set_config(conf, ierr)
         call test%check(tag//": set config", ierr, DTFFT_SUCCESS)
 
-        call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_EXHAUSTIVE, &
+        call tuned%create(dims, precision=DTFFT_DOUBLE, effort=DTFFT_EXHAUSTIVE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check(tag//": create tuned plan", ierr, DTFFT_SUCCESS)
 
@@ -209,9 +216,9 @@ contains
             call test%check(tag//": load", ierr, DTFFT_SUCCESS)
 
             if ( all_ok(ierr) ) then
-                call compare_plans(tag, size(DIMS_3D), tuned, loaded)
-                call check_transpose_roundtrip(tag//"-tuned", size(DIMS_3D), tuned)
-                call check_transpose_roundtrip(tag, size(DIMS_3D), loaded)
+                call compare_plans(tag, size(dims), tuned, loaded)
+                call check_transpose_roundtrip(tag//"-tuned", size(dims), tuned)
+                call check_transpose_roundtrip(tag, size(dims), loaded)
                 call check_resave_identical(tag, filename, loaded)
             endif
             call loaded%destroy(ierr)
@@ -225,15 +232,16 @@ contains
         deallocate( tag )
     end subroutine test_adaptive_roundtrip
 
-    subroutine test_r2r_roundtrip()
+    subroutine test_r2r_roundtrip(dims)
     !! R2R plans carry `kinds`, which have to survive the round trip as well
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_r2r_t)  :: tuned, loaded
         character(len=*), parameter :: filename = "test_save_load_r2r.dtfft"
         type(dtfft_r2r_kind_t)  :: kinds(3)
 
         kinds = [DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_2]
 
-        call tuned%create(DIMS_3D, kinds=kinds, precision=DTFFT_SINGLE, effort=DTFFT_MEASURE, &
+        call tuned%create(dims, kinds=kinds, precision=DTFFT_SINGLE, effort=DTFFT_MEASURE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check("r2r: create tuned plan", ierr, DTFFT_SUCCESS)
 
@@ -243,9 +251,9 @@ contains
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
         call test%check("r2r: load", ierr, DTFFT_SUCCESS)
 
-        call compare_plans("r2r", size(DIMS_3D), tuned, loaded)
-        call check_transpose_roundtrip("r2r-tuned", size(DIMS_3D), tuned)
-        call check_transpose_roundtrip("r2r", size(DIMS_3D), loaded)
+        call compare_plans("r2r", size(dims), tuned, loaded)
+        call check_transpose_roundtrip("r2r-tuned", size(dims), tuned)
+        call check_transpose_roundtrip("r2r", size(dims), loaded)
         call check_resave_identical("r2r", filename, loaded)
 
         call tuned%destroy(ierr)
@@ -253,12 +261,54 @@ contains
         call delete_file(filename)
     end subroutine test_r2r_roundtrip
 
-    subroutine test_2d_roundtrip()
+#ifdef DTFFT_WITH_FFTW
+    subroutine test_r2r_fft_roundtrip(dims)
+    !! R2R kinds must survive save/load when an FFT executor is active.
+        integer(int32),  intent(in) :: dims(:)
+        type(dtfft_plan_r2r_t)  :: tuned, loaded
+        type(dtfft_executor_t) :: executor
+        character(len=*), parameter :: filename = "test_save_load_r2r_fft.dtfft"
+        type(dtfft_r2r_kind_t)  :: kinds(3)
+
+        if ( get_conf_platform() == DTFFT_PLATFORM_CUDA ) then
+            call report("  skip r2r fft: FFTW executor is not supported on CUDA platform")
+            return
+        endif
+
+        kinds = [DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_2]
+
+        call tuned%create(dims, kinds=kinds, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
+                          executor=DTFFT_EXECUTOR_FFTW3, error_code=ierr)
+        call test%check("r2r fft: create plan", ierr, DTFFT_SUCCESS)
+        if ( all_ok(ierr) ) then
+            executor = tuned%get_executor(ierr)
+            call test%check("r2r fft: executor", executor%val, DTFFT_EXECUTOR_FFTW3%val)
+
+            call tuned%save(filename, ierr)
+            call test%check("r2r fft: save", ierr, DTFFT_SUCCESS)
+
+            call loaded%load(filename, MPI_COMM_WORLD, ierr)
+            call test%check("r2r fft: load", ierr, DTFFT_SUCCESS)
+            if ( all_ok(ierr) ) then
+                executor = loaded%get_executor(ierr)
+                call test%check("r2r fft: loaded executor", executor%val, DTFFT_EXECUTOR_FFTW3%val)
+                call check_resave_identical("r2r fft", filename, loaded)
+            endif
+
+            call loaded%destroy(ierr)
+            call tuned%destroy(ierr)
+        endif
+        call delete_file(filename)
+    end subroutine test_r2r_fft_roundtrip
+#endif
+
+    subroutine test_2d_roundtrip(dims)
     !! 2D plans take a different path through plan creation, so they get their own check
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         character(len=*), parameter :: filename = "test_save_load_2d.dtfft"
 
-        call tuned%create(DIMS_2D, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
+        call tuned%create(dims, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check("2d: create tuned plan", ierr, DTFFT_SUCCESS)
 
@@ -268,9 +318,9 @@ contains
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
         call test%check("2d: load", ierr, DTFFT_SUCCESS)
 
-        call compare_plans("2d", size(DIMS_2D), tuned, loaded)
-        call check_transpose_roundtrip("2d-tuned", size(DIMS_2D), tuned)
-        call check_transpose_roundtrip("2d", size(DIMS_2D), loaded)
+        call compare_plans("2d", size(dims), tuned, loaded)
+        call check_transpose_roundtrip("2d-tuned", size(dims), tuned)
+        call check_transpose_roundtrip("2d", size(dims), loaded)
         call check_resave_identical("2d", filename, loaded)
 
         call tuned%destroy(ierr)
@@ -278,12 +328,13 @@ contains
         call delete_file(filename)
     end subroutine test_2d_roundtrip
 
-    subroutine test_r2c_roundtrip()
+    subroutine test_r2c_roundtrip(dims)
     !! R2C has a separate real-space pencil and a different FFT reconstruction path.
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_r2c_t)  :: tuned, loaded
         character(len=*), parameter :: filename = "test_save_load_r2c.dtfft"
 
-        call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
+        call tuned%create(dims, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check("r2c: create", ierr, DTFFT_SUCCESS)
 
@@ -293,7 +344,7 @@ contains
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
         call test%check("r2c: load", ierr, DTFFT_SUCCESS)
 
-        call compare_plans("r2c", size(DIMS_3D), tuned, loaded)
+        call compare_plans("r2c", size(dims), tuned, loaded)
         call check_resave_identical("r2c", filename, loaded)
 
         call tuned%destroy(ierr)
@@ -301,13 +352,14 @@ contains
         call delete_file(filename)
     end subroutine test_r2c_roundtrip
 
-    subroutine test_pencil_roundtrip()
+    subroutine test_pencil_roundtrip(dims)
     !! A plan created from an explicit pencil must save and restore that user decomposition.
+        integer(int32), intent(in)  :: dims(:)
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         type(dtfft_pencil_t)    :: user_pencil
         character(len=*), parameter :: filename = "test_save_load_pencil.dtfft"
 
-        call make_z_pencil(user_pencil)
+        call make_z_pencil(dims, user_pencil)
         if ( .not. allocated(user_pencil%starts) ) return
 
         call tuned%create(user_pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, &
@@ -319,9 +371,9 @@ contains
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
         call test%check("pencil: load", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
-            call compare_plans("pencil", size(DIMS_3D), tuned, loaded)
-            call check_transpose_roundtrip("pencil-tuned", size(DIMS_3D), tuned)
-            call check_transpose_roundtrip("pencil", size(DIMS_3D), loaded)
+            call compare_plans("pencil", size(dims), tuned, loaded)
+            call check_transpose_roundtrip("pencil-tuned", size(dims), tuned)
+            call check_transpose_roundtrip("pencil", size(dims), loaded)
             call check_resave_identical("pencil", filename, loaded)
         endif
 
@@ -331,14 +383,15 @@ contains
         call delete_file(filename)
     end subroutine test_pencil_roundtrip
 
-    subroutine test_pencil_reshape_roundtrip()
+    subroutine test_pencil_reshape_roundtrip(dims)
     !! Distributing the explicit pencil in one direction must preserve the reshape plan too.
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         type(dtfft_pencil_t)    :: user_pencil
         character(len=*), parameter :: filename = "test_save_load_pencil_reshape.dtfft"
 
-        if ( comm_size == 1 .or. comm_size > DIMS_3D(1) ) return
-        call make_x_pencil(user_pencil)
+        if ( comm_size == 1 .or. comm_size > dims(1) ) return
+        call make_x_pencil(dims, user_pencil)
         if ( .not. allocated(user_pencil%starts) ) return
 
         call tuned%create(user_pencil, MPI_COMM_WORLD, DTFFT_DOUBLE, DTFFT_ESTIMATE, &
@@ -361,10 +414,10 @@ contains
 
             tuned_reshape_backend = tuned%get_reshape_backend(ierr)
             loaded_reshape_backend = loaded%get_reshape_backend(ierr)
-            call compare_plans("pencil reshape", size(DIMS_3D), tuned, loaded)
+            call compare_plans("pencil reshape", size(dims), tuned, loaded)
             call test%check("pencil reshape: backend", loaded_reshape_backend%val, tuned_reshape_backend%val)
-            call check_transpose_roundtrip("pencil reshape-tuned", size(DIMS_3D), tuned)
-            call check_transpose_roundtrip("pencil reshape", size(DIMS_3D), loaded)
+            call check_transpose_roundtrip("pencil reshape-tuned", size(dims), tuned)
+            call check_transpose_roundtrip("pencil reshape", size(dims), loaded)
             call check_resave_identical("pencil reshape", filename, loaded)
             end block
         endif
@@ -375,8 +428,9 @@ contains
         call delete_file(filename)
     end subroutine test_pencil_reshape_roundtrip
 
-    subroutine test_config_ignored_on_load()
+    subroutine test_config_ignored_on_load(dims)
     !! Loading must use decisions stored in the file, not the current global configuration.
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         type(dtfft_config_t)    :: saved_conf, file_conf, other_conf
         character(len=*), parameter :: filename = "test_save_load_config.dtfft"
@@ -392,7 +446,7 @@ contains
         call dtfft_set_config(file_conf, ierr)
         call test%check("config ignored: set file config", ierr, DTFFT_SUCCESS)
 
-        call tuned%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
+        call tuned%create(dims, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check("config ignored: create", ierr, DTFFT_SUCCESS)
         if ( .not. all_ok(ierr) ) then
             call tuned%destroy(ierr)
@@ -413,7 +467,7 @@ contains
         call loaded%load(filename, MPI_COMM_WORLD, ierr)
         call test%check("config ignored: load", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
-            call compare_plans("config ignored", size(DIMS_3D), tuned, loaded)
+            call compare_plans("config ignored", size(dims), tuned, loaded)
             call test%check("config ignored: z-slab", merge(1, 0, loaded%get_z_slab_enabled(ierr)), &
                        merge(1, 0, tuned%get_z_slab_enabled(ierr)))
             call test%check("config ignored: y-slab", merge(1, 0, loaded%get_y_slab_enabled(ierr)), &
@@ -436,8 +490,9 @@ contains
     end subroutine test_config_ignored_on_load
 
 #if defined(DTFFT_WITH_COMPRESSION) && defined(DTFFT_WITH_ZFP)
-    subroutine test_compressed_roundtrip()
+    subroutine test_compressed_roundtrip(dims)
     !! A compressed backend exercises serialization of compression settings and backend choice.
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: tuned, loaded
         type(dtfft_config_t)    :: saved_conf, conf
         character(len=*), parameter :: filename = "test_save_load_compressed.dtfft"
@@ -455,7 +510,7 @@ contains
         call dtfft_set_config(conf, ierr)
         call test%check("compressed: set config", ierr, DTFFT_SUCCESS)
 
-        call tuned%create(DIMS_3D, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
+        call tuned%create(dims, precision=DTFFT_DOUBLE, effort=DTFFT_ESTIMATE, &
                           executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call test%check("compressed: create", ierr, DTFFT_SUCCESS)
         if ( all_ok(ierr) ) then
@@ -469,7 +524,7 @@ contains
             call loaded%load(filename, MPI_COMM_WORLD, ierr)
             call test%check("compressed: load", ierr, DTFFT_SUCCESS)
             if ( all_ok(ierr) ) then
-                call compare_plans("compressed", size(DIMS_3D), tuned, loaded)
+                call compare_plans("compressed", size(dims), tuned, loaded)
                 block
                 type(dtfft_backend_t) :: tuned_backend, loaded_backend
 
@@ -489,38 +544,41 @@ contains
     end subroutine test_compressed_roundtrip
 #endif
 
-    subroutine make_x_pencil(user_pencil)
+    subroutine make_x_pencil(dims, user_pencil)
     !! Creates a contiguous pencil decomposition distributed over the X direction.
+        integer(int32),       intent(in)  :: dims(:)
         type(dtfft_pencil_t), intent(out) :: user_pencil
         integer(int32) :: base, remainder, x_start, x_count
 
-        if ( comm_size > DIMS_3D(1) ) return
-        base = DIMS_3D(1) / comm_size
-        remainder = mod(DIMS_3D(1), comm_size)
+        if ( comm_size > dims(1) ) return
+        base = dims(1) / comm_size
+        remainder = mod(dims(1), comm_size)
         x_count = base + merge(1, 0, comm_rank < remainder)
         x_start = comm_rank * base + min(comm_rank, remainder)
-        user_pencil = dtfft_pencil_t([x_start, 0_int32, 0_int32], [x_count, DIMS_3D(2), DIMS_3D(3)])
+        user_pencil = dtfft_pencil_t([x_start, 0_int32, 0_int32], [x_count, dims(2), dims(3)])
     end subroutine make_x_pencil
 
-    subroutine make_z_pencil(user_pencil)
+    subroutine make_z_pencil(dims, user_pencil)
     !! Creates a contiguous pencil decomposition distributed over the Z direction.
+        integer(int32),       intent(in)  :: dims(:)
         type(dtfft_pencil_t), intent(out) :: user_pencil
         integer(int32) :: base, remainder, z_start, z_count
 
-        if ( comm_size > DIMS_3D(3) ) return
-        base = DIMS_3D(3) / comm_size
-        remainder = mod(DIMS_3D(3), comm_size)
+        if ( comm_size > dims(3) ) return
+        base = dims(3) / comm_size
+        remainder = mod(dims(3), comm_size)
         z_count = base + merge(1, 0, comm_rank < remainder)
         z_start = comm_rank * base + min(comm_rank, remainder)
-        user_pencil = dtfft_pencil_t([0_int32, 0_int32, z_start], [DIMS_3D(1), DIMS_3D(2), z_count])
+        user_pencil = dtfft_pencil_t([0_int32, 0_int32, z_start], [dims(1), dims(2), z_count])
     end subroutine make_z_pencil
 
 !------------------------------------------------------------------------------------------------
 ! `read_plan_kind`
 !------------------------------------------------------------------------------------------------
-    subroutine test_plan_kind_probe()
+    subroutine test_plan_kind_probe(dims)
     !! The plan kind must be readable before any plan object exists. That is what lets the C
     !! wrapper allocate the right concrete class before loading into it.
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: c2c
         type(dtfft_plan_r2r_t)  :: r2r
         type(plan_kind_t) :: plan_kind
@@ -528,11 +586,11 @@ contains
         class(dtfft_plan_t), allocatable :: plan
 
         kinds = [DTFFT_DCT_2, DTFFT_DCT_3, DTFFT_DCT_2]
-        call c2c%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
+        call c2c%create(dims, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call c2c%save("test_save_load_kind_c2c.dtfft", ierr)
         call c2c%destroy(ierr)
 
-        call r2r%create(DIMS_3D, kinds=kinds, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
+        call r2r%create(dims, kinds=kinds, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call r2r%save("test_save_load_kind_r2r.dtfft", ierr)
         call r2r%destroy(ierr)
 
@@ -594,17 +652,18 @@ contains
         call delete_file(filename)
     end subroutine test_corrupted_file
 
-    subroutine test_format_version_gate()
+    subroutine test_format_version_gate(dims)
     !! Compatibility is decided by the layout version in the file, not by the library version.
     !!
     !! Only two things are refused: a layout newer than this library understands, and one old
     !! enough to have been dropped. Anything in between must stay readable, which is the whole
     !! point of stamping the file with a format version.
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: plan, reloaded
         character(len=*), parameter :: filename = "test_save_load_version.dtfft"
         integer(int8), parameter :: VERSION_OFFSET = 19_int8   !! 16 bytes of magic + 2 of endian marker
 
-        call plan%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
+        call plan%create(dims, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call plan%save(filename, ierr)
         call test%check("version gate: save", ierr, DTFFT_SUCCESS)
         call plan%destroy(ierr)
@@ -642,14 +701,15 @@ contains
         call MPI_Barrier(MPI_COMM_WORLD, ierr)
     end subroutine patch_byte
 
-    subroutine test_kind_mismatch()
+    subroutine test_kind_mismatch(dims)
     !! Loading a C2C file into an R2R variable would otherwise silently produce a plan
     !! that transforms the wrong thing
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: c2c
         type(dtfft_plan_r2r_t)  :: r2r
         character(len=*), parameter :: filename = "test_save_load_mismatch.dtfft"
 
-        call c2c%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
+        call c2c%create(dims, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call c2c%save(filename, ierr)
         call c2c%destroy(ierr)
 
@@ -660,16 +720,17 @@ contains
         call delete_file(filename)
     end subroutine test_kind_mismatch
 
-    subroutine test_comm_size_mismatch()
+    subroutine test_comm_size_mismatch(dims)
     !! The file holds one record per rank and the process count is part of the plan
     !! identity, so replaying it on a different number of ranks must be refused
+        integer(int32),  intent(in) :: dims(:)
         type(dtfft_plan_c2c_t)  :: plan
         character(len=*), parameter :: filename = "test_save_load_nproc.dtfft"
         TYPE_MPI_COMM :: single_comm
 
         if ( comm_size == 1 ) return
 
-        call plan%create(DIMS_3D, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
+        call plan%create(dims, effort=DTFFT_ESTIMATE, executor=DTFFT_EXECUTOR_NONE, error_code=ierr)
         call plan%save(filename, ierr)
         call plan%destroy(ierr)
 
