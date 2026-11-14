@@ -229,6 +229,7 @@ endif()
 set(NCCL_FOUND  FALSE)
 set(USE_NCCL    OFF)
 set(USE_NVSHMEM OFF)
+set(DTFFT_NCCL_FROM_NVHPC OFF)
 
 if ( NOT DTFFT_WITH_CUDA )
   set(DTFFT_WITH_MOCK_ENABLED OFF)
@@ -279,6 +280,7 @@ if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
         if(NVHPC_FOUND AND TARGET NVHPC::NCCL)
           message(STATUS "Using NCCL from NVHPC SDK")
           set(NCCL_FOUND TRUE)
+          set(DTFFT_NCCL_FROM_NVHPC ON)
           get_target_property(NCCL_INCLUDE_DIRS NVHPC::NCCL INTERFACE_INCLUDE_DIRECTORIES)
           get_target_property(NCCL_LIBRARIES    NVHPC::NCCL INTERFACE_LINK_LIBRARIES)
         else()
@@ -292,6 +294,12 @@ if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
   endif()
 
   if(NCCL_FOUND)
+    if(DTFFT_NCCL_FROM_NVHPC AND NOT TARGET NCCL::NCCL)
+      add_library(NCCL::NCCL INTERFACE IMPORTED)
+      set_property(TARGET NCCL::NCCL PROPERTY
+        INTERFACE_LINK_LIBRARIES NVHPC::NCCL)
+    endif()
+
     include(CheckNCCLFeatures)
     check_nccl_features("${NCCL_INCLUDE_DIRS}" "${NCCL_LIBRARIES}"
                         "${CUDAToolkit_INCLUDE_DIRS}" "${CUDAToolkit_LIBRARY_DIR}")
@@ -303,7 +311,10 @@ if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
     if(NCCL_HAVE_COMMREGISTER)
       target_compile_definitions(dtfft PRIVATE $<$<COMPILE_LANGUAGE:Fortran>:NCCL_HAVE_COMMREGISTER>)
     endif()
-    target_link_libraries(dtfft PRIVATE ${NCCL_LIBRARIES})
+    target_link_libraries(dtfft PRIVATE NCCL::NCCL)
+    if(DTFFT_BUILD_SHARED)
+      target_link_libraries(dtfft INTERFACE "$<LINK_ONLY:NCCL::NCCL>")
+    endif()
   endif()
 
   # --- NVSHMEM / cuFFTMp ------------------------------------------------------
@@ -598,6 +609,8 @@ configure_package_config_file(
 install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfig.cmake"
   "${CMAKE_CURRENT_BINARY_DIR}/dtfftConfigVersion.cmake"
+  "${PROJECT_SOURCE_DIR}/cmake/FindFFTW.cmake"
+  "${PROJECT_SOURCE_DIR}/cmake/FindNCCL.cmake"
   DESTINATION "${DTFFT_INSTALL_CMAKEDIR}"
 )
 

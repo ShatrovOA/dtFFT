@@ -212,14 +212,39 @@ The ``dtfft`` target automatically sets include directories and links required l
 
    cmake -S . -B build -Ddtfft_DIR=/path/to/install/lib[64]/cmake/dtfft ..
 
-The installation also provides the following CMake variables for conditional compilation:
+After ``find_package(dtfft)``, the package exposes the following Boolean
+variables. They describe features enabled in the installed build; use them to
+conditionally configure your project, for example:
 
-- ``DTFFT_WITH_CUDA``: Indicates CUDA support
-- ``DTFFT_WITH_C_CXX_API``: Indicates C/C++ API availability
-- ``DTFFT_WITH_MPI_MODULE``: Indicates use of the ``mpi`` module
-- ``DTFFT_WITH_NCCL``: Indicates NCCL support
-- ``DTFFT_WITH_NVSHMEM``: Indicates NVSHMEM support
-- ``DTFFT_WITH_OPENMP``: Indicates OpenMP support
+.. code-block:: cmake
+
+   if(DTFFT_WITH_CUDA)
+     # Configure CUDA-specific code
+   endif()
+
+- ``DTFFT_WITH_CUDA``: CUDA support is enabled.
+- ``DTFFT_WITH_FFTW``: The FFTW3 executor is enabled.
+- ``DTFFT_WITH_FFTW_THREADS``: The FFTW threads library was selected instead
+  of FFTW's OpenMP library. This is relevant when both FFTW and OpenMP are
+  enabled.
+- ``DTFFT_WITH_MKL``: The MKL DFTI executor is enabled.
+- ``DTFFT_WITH_SZ3``: SZ3 compression support is enabled.
+- ``DTFFT_WITH_SZP``: SZp compression support is enabled.
+- ``DTFFT_WITH_ZFP``: ZFP compression support is enabled.
+- ``DTFFT_WITH_CUSZP``: cuSZp compression support is enabled.
+- ``DTFFT_WITH_BITCOMP``: nvCOMP/Bitcomp compression support is enabled.
+- ``DTFFT_WITH_MOCK_ENABLED``: CUDA-related operations use mock implementations
+  for CPU-only testing.
+- ``DTFFT_WITH_C_CXX_API``: The C and C++ APIs are available.
+- ``DTFFT_WITH_MPI_MODULE``: The Fortran ``mpi`` module is used instead of
+  ``mpi_f08``.
+- ``DTFFT_WITH_NCCL``: NCCL support is enabled.
+- ``DTFFT_WITH_NVSHMEM``: NVSHMEM support is enabled.
+- ``DTFFT_WITH_OPENMP``: OpenMP support is enabled.
+- ``DTFFT_WITH_PROFILER``: Profiler support is enabled.
+- ``DTFFT_NCCL_FROM_NVHPC``: NCCL was provided by the NVHPC SDK. This is an
+  informational package variable; projects normally only need
+  ``DTFFT_WITH_NCCL``.
 
 .. _python_install_link:
 
