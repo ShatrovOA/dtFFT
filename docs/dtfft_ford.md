@@ -54,5 +54,5 @@ coloured_edges: true
 sort: permission
 search: false
 
-<img src="./images/pencils.png" alt="pencils" width="850"/>
+<img src="./media/pencils.png" alt="pencils" width="850"/>
 
