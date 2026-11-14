@@ -23,13 +23,17 @@ dtFFT aims to optimize following cycles of transformations (forward and backward
 ```math
 \dfrac{X}{P_0} \times \dfrac{Y}{P_1} \to X \times \dfrac{Y}{P_0P_1} \to  Y \times \dfrac{X}{P_0P_1} \to \dfrac{Y}{P_1} \times \dfrac{X}{P_0}
 ```
+
 for 2D case, and
+
 ```math
 \dfrac{X}{P_0} \times \dfrac{Y}{P_1} \times \dfrac{Z}{P_2} \to X \times \dfrac{Y}{Q_1} \times \dfrac{Z}{Q_2} \to Y \times \dfrac{Z}{Q_2} \times \dfrac{X}{Q_1} \to Z \times \dfrac{X}{Q_1} \times \dfrac{Y}{Q_2} \to \dfrac{Z}{P_2} \times \dfrac{X}{Q_1} \times \dfrac{Y}{Q_2'}
 ```
+
 for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being the fastest varying index and $P_0, P_1, P_2, Q_1, Q_2, Q_2'$ are the number of processes in the appropriate direction.
 
 ## Features
+
 - **Transform Types**: R2C, C2C, and R2R transforms
 - **Precision**: Single and double precision support
 - **Interfaces**: Fortran, C, C++ and Python APIs
@@ -44,17 +48,25 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being t
   - [VkFFT](https://github.com/DTolm/VkFFT)
 - **CUDA Backends**: MPI, NCCL, cuFFTMp for data exchange
 - **Highly customizable**: Lots of options and runtime autotuning
-- **Runtime compression**: Some backends support buffer compression before sending it to another process
+- **Runtime compression**: Some backends support buffer compression before sending it to another process. Following compression libraries are supported:
+  - [ZFP](https://zfp.readthedocs.io/en/release1.0.1/index.html)
+  - [SZ3](https://github.com/szcompressor/SZ3)
+  - [SZp](https://github.com/szcompressor/SZp)
+  - [cuSZp](https://github.com/szcompressor/cuSZp)
+  - [bitcomp](https://docs.nvidia.com/cuda/nvcomp/bitcomp.html)
 
 ## Limitations
+
 - Memory is assumed to be contiguous. Ghost boundaries are not allowed.
 - Maximum number of elements per process/GPU cannot exceed $2^{31} - 1$ - max value of int32
 
 ## Requirements
+
 - Fortran/C/C++ compilers (GCC, Intel and NVHPC-SDK are tested)
 - MPI (OpenMPI, MPICH and Intel MPI are tested)
 
 ## Installation
+
 1. Clone the repository: `git clone https://github.com/ShatrovOA/dtFFT.git`
 2. Configure with CMake: `mkdir build && cd build && cmake ..`
 3. Build: `make`
@@ -63,6 +75,7 @@ for 3D case. Where $X, Y, Z$ are the spatial dimensions of the data, $X$ being t
 For detailed instructions, see the [Building the Library](https://dtfft.readthedocs.io/latest/build.html).
 
 ## Quick Start
+
 ```fortran
 use dtfft
 use mpi
@@ -92,9 +105,11 @@ call plan%mem_free(fourier_buffer)
 ! Destroy plan
 call plan%destroy()
 ```
-**More examples** can be found in the `tests` folder of the repository.
+
+**More examples** can be found in the `examples` folder of the repository.
 
 ## Documentation
+
 The documentation consists of two parts:
 
 **User Documentation**:
@@ -104,21 +119,26 @@ Available at [dtFFT User Documentation](https://dtfft.readthedocs.io/latest/inde
 Available at [dtFFT Internal Documentation](https://shatrovoa.github.io/dtFFT/index.html), this section describes the internal structure of the library, including call graphs and detailed implementation insights. It is generated using [FORD](https://forddocs.readthedocs.io/en/latest/index.html).
 
 ## API Reference
+
 - [C API](https://dtfft.readthedocs.io/latest/api_c.html)
 - [C++ API](https://dtfft.readthedocs.io/latest/api_cxx.html)
 - [Fortran API](https://dtfft.readthedocs.io/latest/api_fortran.html)
 - [Python API](https://dtfft.readthedocs.io/latest/api_python.html)
 
 ## Roadmap
+
 The following is an ambitious list of features to implement. The items are in no particular order.
 
 - nvSHMEM-based backends
 - HIP platform
-- Ghost boundaries and support for halo exchange
 - long double/quad precision
+- mixed plan types, e.g. c2c in X direction, r2r in both Y and Z
+- fully hybrid execution on both cpu and gpu simultaneously
 
 ## Contributing
+
 We welcome contributions! Report issues or suggest improvements via the [issue tracker](https://github.com/ShatrovOA/dtFFT/issues). For code contributions, please follow standard GitHub workflows (fork, branch, PR).
 
 ## Licensing
+
 Licensed under GPL v3. See [LICENSE](LICENSE) for details.

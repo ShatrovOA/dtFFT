@@ -1,0 +1,10 @@
+dtfft_append_supported_fortran_flags(CMAKE_Fortran_FLAGS
+  -std=f2018
+  -ffree-line-length-none
+  -Wall
+  -Wextra
+)
+dtfft_append_supported_fortran_flags(CMAKE_Fortran_FLAGS_DEBUG
+  -fcheck=bounds
+  -fbacktrace
+)

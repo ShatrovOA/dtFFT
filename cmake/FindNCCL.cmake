@@ -15,19 +15,24 @@
 # install NCCL in the same location as the CUDA toolkit.
 # See https://github.com/caffe2/caffe2/issues/1601
 
-set(NCCL_INCLUDE_DIR $ENV{NCCL_INCLUDE_DIR} CACHE PATH "Folder contains NVIDIA NCCL headers")
-set(NCCL_LIB_DIR $ENV{NCCL_LIB_DIR} CACHE PATH "Folder contains NVIDIA NCCL libraries")
+set(NCCL_ROOT "$ENV{NCCL_ROOT}" CACHE PATH "Root directory of NVIDIA NCCL")
+set(NCCL_INCLUDE_DIR "$ENV{NCCL_INCLUDE_DIR}" CACHE PATH "Folder contains NVIDIA NCCL headers")
+set(NCCL_LIB_DIR "$ENV{NCCL_LIB_DIR}" CACHE PATH "Folder contains NVIDIA NCCL libraries")
 set(NCCL_VERSION $ENV{NCCL_VERSION} CACHE STRING "Version of NCCL to build with")
 
-if ($ENV{NCCL_ROOT_DIR})
+if(DEFINED ENV{NCCL_ROOT_DIR} AND NOT "$ENV{NCCL_ROOT_DIR}" STREQUAL "")
   message(WARNING "NCCL_ROOT_DIR is deprecated. Please set NCCL_ROOT instead.")
+  if(NOT NCCL_ROOT)
+    set(NCCL_ROOT "$ENV{NCCL_ROOT_DIR}")
+  endif()
 endif()
-list(APPEND NCCL_ROOT $ENV{NCCL_ROOT_DIR} ${CUDA_TOOLKIT_ROOT_DIR})
-list(APPEND CMAKE_PREFIX_PATH ${NCCL_ROOT})
 
 find_path(NCCL_INCLUDE_DIRS
   NAMES nccl.h
-  HINTS ${NCCL_INCLUDE_DIR})
+  HINTS ${NCCL_INCLUDE_DIR} ${NCCL_ROOT} ${CUDA_TOOLKIT_ROOT_DIR}
+  PATH_SUFFIXES include)
+
+set(_NCCL_SAVED_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
 if (USE_STATIC_NCCL)
   message(STATUS "USE_STATIC_NCCL is set. Linking with static NCCL library.")
@@ -44,12 +49,23 @@ endif()
 
 find_library(NCCL_LIBRARIES
   NAMES ${NCCL_LIBNAME}
-  HINTS ${NCCL_LIB_DIR})
+  HINTS ${NCCL_LIB_DIR} ${NCCL_ROOT} ${CUDA_TOOLKIT_ROOT_DIR}
+  PATH_SUFFIXES lib lib64 "lib/${CMAKE_LIBRARY_ARCHITECTURE}")
+
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${_NCCL_SAVED_LIBRARY_SUFFIXES})
+unset(_NCCL_SAVED_LIBRARY_SUFFIXES)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(NCCL DEFAULT_MSG NCCL_INCLUDE_DIRS NCCL_LIBRARIES)
 
 if (NCCL_FOUND)
   message(STATUS "Found NCCL (include: ${NCCL_INCLUDE_DIRS}, library: ${NCCL_LIBRARIES})")
+  if(NOT TARGET NCCL::NCCL)
+    add_library(NCCL::NCCL UNKNOWN IMPORTED)
+    set_target_properties(NCCL::NCCL PROPERTIES
+      IMPORTED_LOCATION "${NCCL_LIBRARIES}"
+      INTERFACE_INCLUDE_DIRECTORIES "${NCCL_INCLUDE_DIRS}"
+    )
+  endif()
   mark_as_advanced(NCCL_ROOT_DIR NCCL_INCLUDE_DIRS NCCL_LIBRARIES)
 endif()

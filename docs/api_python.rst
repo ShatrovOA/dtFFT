@@ -61,6 +61,11 @@ Functions
 .. autofunction:: is_nccl_enabled
 .. autofunction:: is_nvshmem_enabled
 .. autofunction:: is_compression_enabled
+.. autofunction:: is_sz3_enabled
+.. autofunction:: is_szp_enabled
+.. autofunction:: is_zfp_enabled
+.. autofunction:: is_cuszp_enabled
+.. autofunction:: is_bitcomp_enabled
 
 Core Classes
 ============

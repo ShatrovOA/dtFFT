@@ -234,7 +234,21 @@ enum class Error {
     /** Invalid compression library */
     COMPRESSION_INVALID_LIBRARY = DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY,
     /** Compressed backends are not used for this plan */
-    COMPRESSION_NOT_USED = DTFFT_ERROR_COMPRESSION_NOT_USED
+    COMPRESSION_NOT_USED = DTFFT_ERROR_COMPRESSION_NOT_USED,
+    /** Host support is not available for selected compressor */
+    COMPRESSION_HOST_NOT_SUPPORTED = DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED,
+    /** Plan file cannot be opened */
+    FILE_NOT_FOUND = DTFFT_ERROR_FILE_NOT_FOUND,
+    /** Plan file is not a valid dtFFT plan file or is corrupted */
+    FILE_INVALID = DTFFT_ERROR_FILE_INVALID,
+    /** Plan file layout is not one this version of dtFFT can read */
+    FILE_VERSION_MISMATCH = DTFFT_ERROR_FILE_VERSION_MISMATCH,
+    /** Plan stored in file does not match current run */
+    FILE_PLAN_MISMATCH = DTFFT_ERROR_FILE_PLAN_MISMATCH,
+    /** Failed to write plan to file */
+    FILE_WRITE_FAILED = DTFFT_ERROR_FILE_WRITE_FAILED,
+    /** Plan file contains a backend that is not supported by this build */
+    FILE_BACKEND_NOT_SUPPORTED = DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED
 };
 
 /** @brief Returns the string description of an error code
@@ -451,8 +465,7 @@ enum class Backend {
     MPI_P2P_FUSED = DTFFT_BACKEND_MPI_P2P_FUSED,
 
     /** MPI RMA pipelined algorithm with overlapping packing,
-     * exchange and unpacking with scheduled communication
-    */
+     * exchange and unpacking with scheduled communication */
     MPI_RMA_FUSED = DTFFT_BACKEND_MPI_RMA_FUSED,
 
     /** Extension of Backend.MPI_P2P_FUSED
@@ -487,7 +500,7 @@ enum class Backend {
      *
      * @note Can only be used when effort >= Effort.DTFFT_PATIENT.
      * @note Currently only available for HOST execution platform
-    */
+     */
     ADAPTIVE = DTFFT_BACKEND_ADAPTIVE,
 
     /** Backend is not defined. This value is used when no backend is selected, for example when executing on a single process.
@@ -530,18 +543,58 @@ enum class Platform {
 enum class CompressionMode {
     /** Lossless compression mode */
     LOSSLESS = DTFFT_COMPRESSION_MODE_LOSSLESS,
-    /** Fixed rate compression mode */
+    /** Fixed rate compression mode. This mode is unique for ZFP compression library. */
     FIXED_RATE = DTFFT_COMPRESSION_MODE_FIXED_RATE,
-    /** Fixed precision compression mode */
+    /** Fixed precision compression mode. This mode targets relative error. */
     FIXED_PRECISION = DTFFT_COMPRESSION_MODE_FIXED_PRECISION,
-    /** Fixed accuracy compression mode */
+    /** Fixed accuracy compression mode. This mode targets absolute error. */
     FIXED_ACCURACY = DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
 };
 
 /** Enum that specifies compression library */
 enum class CompressionLib {
-    /** ZFP compression library */
-    ZFP = DTFFT_COMPRESSION_LIB_ZFP
+    /** ZFP compression library.
+     * Supported modes:
+     *  Host: all modes
+     *  CUDA: only: CompressionMode::FIXED_RATE
+    */
+    ZFP = DTFFT_COMPRESSION_LIB_ZFP,
+    /** SZ3 host compression library. 
+     * Supported modes:
+     *  Host:
+     *      - CompressionMode::LOSSLESS
+     *      - CompressionMode::FIXED_PRECISION
+     *      - CompressionMode::FIXED_ACCURACY
+     * CUDA: not supported
+    */
+    SZ3 = DTFFT_COMPRESSION_LIB_SZ3,
+    /** SZp host compression library.
+     * Supported modes:
+     *  Host:
+     *      - CompressionMode::FIXED_PRECISION
+     *      - CompressionMode::FIXED_ACCURACY
+     * CUDA: not supported
+     */
+    SZP = DTFFT_COMPRESSION_LIB_SZP,
+    /** cuSZ GPU compression library */
+    // CUSZ = DTFFT_COMPRESSION_LIB_CUSZ,
+    /** cuSZp GPU compression library.
+     * Supported modes:
+     *  CUDA: only CompressionMode::FIXED_ACCURACY
+     *  Host: not supported
+     */
+    CUSZP = DTFFT_COMPRESSION_LIB_CUSZP,
+    /** bitcomp compression library.
+     * Supported modes:
+     *  Host:
+     *      - CompressionMode::LOSSLESS
+     *      - CompressionMode::FIXED_PRECISION
+     *      - CompressionMode::FIXED_ACCURACY
+     *  CUDA:
+     *      - CompressionMode::LOSSLESS
+     *      - CompressionMode::FIXED_ACCURACY
+     */
+    BITCOMP = DTFFT_COMPRESSION_LIB_BITCOMP
 };
 
 /** Struct that specifies compression configuration */
@@ -562,23 +615,31 @@ struct CompressionConfig {
 
     /** Constructor with parameters */
     CompressionConfig(CompressionLib lib, CompressionMode mode, double rate = -1.0, int32_t precision = -1, double tolerance = -1.0)
-        : compression_lib(lib), compression_mode(mode), rate(rate), precision(precision), tolerance(tolerance) {}
+        : compression_lib(lib)
+        , compression_mode(mode)
+        , rate(rate)
+        , precision(precision)
+        , tolerance(tolerance)
+    {
+    }
 
     /** Fixed rate or fixed accuracy compression constructor */
-    CompressionConfig(CompressionMode mode, double value) {
+    CompressionConfig(CompressionMode mode, double value)
+    {
         compression_mode = mode;
         if (mode == CompressionMode::FIXED_RATE) {
             rate = value;
-        } else if (mode == CompressionMode::FIXED_ACCURACY) {
-            tolerance = value;
         } else {
-            // Invalid mode for double parameter
-            throw std::invalid_argument("Invalid CompressionMode");
+            tolerance = value;
         }
     }
 
     /** Fixed precision compression constructor */
-    CompressionConfig(int32_t precision) : compression_mode(dtfft::CompressionMode::FIXED_PRECISION), precision(precision) {}
+    CompressionConfig(int32_t precision)
+        : compression_mode(dtfft::CompressionMode::FIXED_PRECISION)
+        , precision(precision)
+    {
+    }
 };
 #endif
 
@@ -701,7 +762,10 @@ enum class AccessMode {
     WRITE = DTFFT_ACCESS_MODE_WRITE,
 
     /** Read-aligned access (contiguous read, scattered write). */
-    READ = DTFFT_ACCESS_MODE_READ
+    READ = DTFFT_ACCESS_MODE_READ,
+
+    /** Cache oblivious approach */
+    CACHE_OBLIVIOUS = DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS
 };
 
 /** Class to set additional configuration parameters to dtFFT
@@ -996,7 +1060,7 @@ public:
      * @details Default is TransposeMode::PACK.
      *
      * For Effort::EXHAUSTIVE effort level, dtFFT will always choose the best transpose mode based on internal autotuning.
-     * 
+     *
      * @note This option only takes effect if platform == Platform::HOST
      */
     Config&
@@ -1021,6 +1085,38 @@ public:
     set_access_mode(AccessMode access_mode) noexcept
     {
         config.access_mode = static_cast<dtfft_access_mode_t>(access_mode);
+        return *this;
+    }
+
+    /**
+     * @brief Specifies the tile edge length, in array elements, for blocked host kernels when autotuning is disabled.
+     *
+     * @details This is the number of elements along each dimension of a tile, not the
+     * total number of elements in the tile. For example, a value of 16 gives tiles
+     * of up to 16x16 elements for a 2D array or 16x16x16 for a 3D array.
+     * Default is 0, which disables blocking.
+     *
+     * Possible values are: 0, 4, 8, 16, 32 or 64
+     */
+    Config&
+    set_block_size(int32_t block_size) noexcept
+    {
+        config.block_size = block_size;
+        return *this;
+    }
+
+    /**
+     * @brief Recursion threshold for cache-oblivious host kernels.
+     *
+     * @details The kernel stops subdividing a block when it contains no more than
+     * this many elements and processes it directly. Default is 1024.
+     *
+     * The value must be non-negative.
+     */
+    Config&
+    set_co_threshold(int32_t co_threshold) noexcept
+    {
+        config.co_threshold = co_threshold;
         return *this;
     }
 
@@ -1078,6 +1174,7 @@ public:
  */
 Error set_config(const Config& config) noexcept;
 
+
 /** Abstract plan for all dtFFT plans.
  * @details This class does not have any constructors. To create a plan user
  * should use one of the inherited classes.
@@ -1085,9 +1182,10 @@ Error set_config(const Config& config) noexcept;
 class Plan {
 protected:
     /** Underlying C structure */
-    dtfft_plan_t _plan;
+    dtfft_plan_t _plan = nullptr;
 
 public:
+    Plan() = default;
     /** @brief Checks if plan is using Z-slab optimization.
      * If `true` then flags Transpose::X_TO_Z and Transpose::Z_TO_X will be valid
      * to pass to Plan::transpose method.
@@ -1469,7 +1567,7 @@ public:
      *
      * @return Error::SUCCESS on success or error code on failure.
      */
-    Error reshape(void* in, void* out, Reshape reshape_type, void* aux=nullptr) const noexcept;
+    Error reshape(void* in, void* out, Reshape reshape_type, void* aux = nullptr) const noexcept;
 
     /** @brief Starts an asynchronous reshape operation from bricks to pencils
      * and vice versa
@@ -1945,6 +2043,21 @@ public:
     Platform get_platform() const;
 #endif
 
+    /** @brief Creates a plan from a file. The file must have been created by a previous call to Plan::save.
+     *
+     * @param[in]   filename                Name of the file containing the plan
+     * @param[in]   comm                    MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+     */
+    explicit
+    Plan(const std::string& filename, MPI_Comm comm = MPI_COMM_WORLD);
+
+    /** @brief Saves the plan to a file. The file can be used to create a new plan by calling Plan::Plan(filename).
+     *
+     * @param[in]   filename                Name of the file to save the plan
+     * @return Error::SUCCESS on success or error code on failure.
+     */
+    Error save(const std::string& filename) const;
+
     /** @return Underlying C structure */
     dtfft_plan_t c_struct() const { return _plan; }
 
@@ -1958,6 +2071,15 @@ inline Plan::~Plan() noexcept { destroy(); }
 /** Complex-to-Complex Plan */
 class PlanC2C final : public Plan {
 public:
+    /**
+     * @brief This constructor creates a plan from a file. The file must have been created by a previous call to Plan::save.
+     *
+     * @param[in]   filename                Name of the file containing the plan
+     * @param[in]   comm                    MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+     */
+    explicit PlanC2C(const std::string& filename, MPI_Comm comm = MPI_COMM_WORLD)
+        : Plan(filename, comm) { };
+
     /** @brief Complex-to-Complex Plan constructor.
      *
      * @param[in]    dims                   Vector with global dimensions in
@@ -2040,6 +2162,15 @@ public:
 /** Real-to-Complex Plan */
 class PlanR2C final : public Plan {
 public:
+    /**
+     * @brief This constructor creates a plan from a file. The file must have been created by a previous call to Plan::save.
+     *
+     * @param[in]   filename                Name of the file containing the plan
+     * @param[in]   comm                    MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+     */
+    explicit PlanR2C(const std::string& filename, MPI_Comm comm = MPI_COMM_WORLD)
+        : Plan(filename, comm) { };
+
     /** @brief Real-to-Complex Plan constructor.
      *
      * @param[in]    dims                   Vector with global dimensions in
@@ -2128,6 +2259,15 @@ public:
 /** Real-to-Real Plan */
 class PlanR2R final : public Plan {
 public:
+    /**
+     * @brief This constructor creates a plan from a file. The file must have been created by a previous call to Plan::save.
+     *
+     * @param[in]   filename                Name of the file containing the plan
+     * @param[in]   comm                    MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+     */
+    explicit PlanR2R(const std::string& filename, MPI_Comm comm = MPI_COMM_WORLD)
+        : Plan(filename, comm) { };
+
     /** @brief Real-to-Real Plan constructor.
      *
      * @param[in]    dims                   Vector with global dimensions in
@@ -2233,6 +2373,40 @@ public:
         Effort effort = Effort::ESTIMATE,
         Executor executor = Executor::NONE);
 };
+
+// class PlanMixed final : public Plan {
+// public:
+
+//     /**
+//      * @brief This constructor creates a plan from a file. The file must have been created by a previous call to Plan::save.
+//      *
+//      * @param[in]   filename                Name of the file containing the plan
+//      * @param[in]   comm                    MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+//      */
+//     explicit PlanMixed(const std::string& filename, MPI_Comm comm = MPI_COMM_WORLD)
+//         : Plan(filename, comm) { };
+
+//     /** @brief Mixed Plan constructor.
+//      * @param[in]    dims                   Vector with global dimensions in
+//      *                                      reversed order. `dims.size()` must be 2 or 3
+//      * @param[in]    kinds                  FFT kinds for each dimension in reversed order.
+//      * @param[in]    r2r_kinds              Real FFT kinds in reversed order.
+//      *                                      Cannot be empty vector.
+//      * @param[in]    comm                   MPI communicator: `MPI_COMM_WORLD` or
+//      *                                      Cartesian communicator
+//      * @param[in]    precision              Precision of transform.
+//      * @param[in]    effort                 Effort level for the plan creation
+//      * @param[in]    executor               Type of external FFT executor.
+//      * @throws Exception In case error occurs during plan creation
+//      */
+//     explicit PlanMixed(const std::vector<int32_t>& dims,
+//         const std::vector<int32_t>& kinds,
+//         const std::vector<R2RKind>& r2r_kinds,
+//         Executor executor,
+//         MPI_Comm comm = MPI_COMM_WORLD,
+//         Precision precision = Precision::DOUBLE,
+//         Effort effort = Effort::ESTIMATE);
+//     };
 } // namespace dtfft
 
 #endif // DTFFT_HPP

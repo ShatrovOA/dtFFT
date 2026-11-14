@@ -93,3 +93,19 @@ Classes
 
 .. doxygenclass:: dtfft::PlanR2R
   :members:
+
+Saving and loading plans
+========================
+
+``Plan::save`` writes the results of autotuning to a file, and the from-file constructors of
+:cpp:class:`dtfft::PlanC2C`, :cpp:class:`dtfft::PlanR2C` and :cpp:class:`dtfft::PlanR2R`
+rebuild the very same plan from it without measuring anything.
+
+The C++ plan classes are thin wrappers around an opaque handle and carry no state of their
+own, so any of them can load any plan file: the plan that gets built is the one the file
+describes, whichever wrapper was used to open it.
+
+The file records the number of MPI processes and refuses to load on a different one. It does
+**not** record how ranks were placed across nodes and devices: keeping that identical between
+runs is the caller's responsibility. A plan replayed onto a different placement stays correct,
+but the choices in it were measured for a layout that no longer holds.

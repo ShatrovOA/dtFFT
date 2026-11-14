@@ -211,7 +211,21 @@ typedef enum {
     /** Invalid compression library */
     DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY = CONF_DTFFT_ERROR_COMPRESSION_INVALID_LIBRARY,
     /** Compressed backends are not used for this plan */
-    DTFFT_ERROR_COMPRESSION_NOT_USED = CONF_DTFFT_ERROR_COMPRESSION_NOT_USED
+    DTFFT_ERROR_COMPRESSION_NOT_USED = CONF_DTFFT_ERROR_COMPRESSION_NOT_USED,
+    /** Host support is not available for selected compressor */
+    DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED = CONF_DTFFT_ERROR_COMPRESSION_HOST_NOT_SUPPORTED,
+    /** Plan file cannot be opened */
+    DTFFT_ERROR_FILE_NOT_FOUND = CONF_DTFFT_ERROR_FILE_NOT_FOUND,
+    /** Plan file is not a valid dtFFT plan file or is corrupted */
+    DTFFT_ERROR_FILE_INVALID = CONF_DTFFT_ERROR_FILE_INVALID,
+    /** Plan file layout is not one this version of dtFFT can read */
+    DTFFT_ERROR_FILE_VERSION_MISMATCH = CONF_DTFFT_ERROR_FILE_VERSION_MISMATCH,
+    /** Plan stored in file does not match current run */
+    DTFFT_ERROR_FILE_PLAN_MISMATCH = CONF_DTFFT_ERROR_FILE_PLAN_MISMATCH,
+    /** Failed to write plan to file */
+    DTFFT_ERROR_FILE_WRITE_FAILED = CONF_DTFFT_ERROR_FILE_WRITE_FAILED,
+    /** Plan file contains a backend that is not supported by this build */
+    DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED = CONF_DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED
 } dtfft_error_t;
 
 /** This enum lists valid `execute_type` parameters that can be passed to `::dtfft_execute`. */
@@ -514,6 +528,111 @@ dtfft_create_plan_r2c_pencil(
     dtfft_executor_t executor,
     dtfft_plan_t* plan);
 
+
+/** @brief FFT kind enumeration.
+ *
+ * This enum lists valid `kinds` values that can be passed while creating mixed FFT plan.
+ */
+// typedef enum {
+//     /** Complex-to-Complex FFT */
+//     DTFFT_C2C = 1,
+//     /** Real-to-Complex FFT */
+//     DTFFT_R2C = 2,
+//     /** Real-to-Real FFT */
+//     DTFFT_R2R = 3
+// } dtfft_fft_kind_t;
+
+// /**
+//  * @brief Mixed Plan constructor.
+//  *
+//  * This function allows creating a mixed FFT plan where each dimension can have a different FFT kind (C2C, R2C, or R2R).
+//  * There are several restrictions when creating mixed plans:
+//  *  1) R2C cannot be used after any of C2C FFT. For example, a 3D plan with kinds = {DTFFT_C2C, DTFFT_R2C, DTFFT_R2R} is invalid.
+//  *      However, a plan with kinds = {DTFFT_R2C, DTFFT_C2C, DTFFT_R2R} is valid.
+//  *  2) Two or more R2C FFTs are not allowed in the same plan. For example, a 3D plan with kinds = {DTFFT_R2C, DTFFT_R2C, DTFFT_R2R} is invalid.
+//  *
+//  * @param[in]      ndims                  Number of dimensions: 2 or 3
+//  * @param[in]      dims                   Array of size `ndims` containing global dimensions in reverse order
+//  * @param[in]      kinds                  Array of size `ndims` containing FFT kinds for each dimension
+//  * @param[in]      r2r_kinds              Array of size `ndims` containing R2R FFT kinds for each dimension. If `kinds[i]` != `::DTFFT_R2R`, then `r2r_kinds[i]` is ignored.
+//  * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+//  * @param[in]      precision              Precision of the transform
+//  * @param[in]      effort                 Effort level for the plan creation
+//  * @param[in]      executor               Executor to be used for the plan
+//  * @param[out]     plan                   Plan handle ready to be executed
+//  *
+//  * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
+//  */
+// dtfft_error_t
+// dtfft_create_plan_mixed(
+//     int8_t ndims,
+//     const int32_t* dims,
+//     const dtfft_fft_kind_t* kinds,
+//     const dtfft_r2r_kind_t* r2r_kinds,
+//     MPI_Comm comm,
+//     dtfft_precision_t precision,
+//     dtfft_effort_t effort,
+//     dtfft_executor_t executor,
+//     dtfft_plan_t* plan);
+
+// /** @brief Mixed Plan constructor for pencil-based plans.
+//  *
+//  * This function allows creating a mixed FFT plan where each dimension can have a different FFT kind (C2C, R2C, or R2R).
+//  * There are several restrictions when creating mixed plans:
+//  *  1) R2C cannot be used after any of C2C FFT. For example, a 3D plan with kinds = {DTFFT_C2C, DTFFT_R2C, DTFFT_R2R} is invalid.
+//  *      However, a plans with kinds = {DTFFT_R2C, DTFFT_C2C, DTFFT_R2R}, {DTFFT_R2C, DTFFT_R2R, DTFFT_C2C} are valid.
+//  *  2) Two or more R2C FFTs are not allowed in the same plan. For example, a 3D plan with kinds = {DTFFT_R2C, DTFFT_R2C, DTFFT_R2R} is invalid.
+//  *
+//  * @param[in]      pencil                 Pencil handle
+//  * @param[in]      kinds                  Array of size `ndims` containing FFT kinds for each dimension
+//  * @param[in]      r2r_kinds              Array of size `ndims` containing R2R FFT kinds for each dimension. If `kinds[i]` != `::DTFFT_R2R`, then `r2r_kinds[i]` is ignored.
+//  * @param[in]      comm                   MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+//  * @param[in]      precision              Precision of the transform
+//  * @param[in]      effort                 Effort level for the plan creation
+//  * @param[in]      executor               Executor to be used for the plan
+//  * @param[out]     plan                   Plan handle ready to be executed
+//  *
+//  * @return `::DTFFT_SUCCESS` if plan was created, error code otherwise
+//  */
+// dtfft_error_t
+// dtfft_create_plan_mixed_pencil(
+//     const dtfft_pencil_t* pencil,
+//     const dtfft_fft_kind_t* kinds,
+//     const dtfft_r2r_kind_t* r2r_kinds,
+//     MPI_Comm comm,
+//     dtfft_precision_t precision,
+//     dtfft_effort_t effort,
+//     dtfft_executor_t executor,
+//     dtfft_plan_t* plan);
+
+/**
+ * @brief Saves a plan to a file.
+ *
+ * @param[in]       plan            Plan handle to be saved
+ * @param[in]       filename        Name of the file to save the plan
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_save_plan(
+    dtfft_plan_t plan,
+    const char* filename);
+
+/**
+ * @brief Loads a plan from a file.
+ *
+ * @param[in]       filename        Name of the file containing the plan
+ * @param[in]       comm            MPI communicator: `MPI_COMM_WORLD` or Cartesian communicator
+ * @param[out]      plan            Plan handle ready to be executed
+ *
+ * @return `::DTFFT_SUCCESS` on success or error code on failure.
+ */
+dtfft_error_t
+dtfft_load_plan(
+    const char* filename,
+    MPI_Comm comm,
+    dtfft_plan_t* plan);
+
 /** @brief Checks if plan is using Z-slab optimization.
  * If `true` then flags `::DTFFT_TRANSPOSE_X_TO_Z` and `::DTFFT_TRANSPOSE_Z_TO_X` will be valid to pass to `::dtfft_transpose`.
  *
@@ -585,7 +704,7 @@ typedef void* dtfft_request_t;
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  *
- * @note Both `in` and `out` buffers must not be changed or freed until call to `::dtfft_transpose_end`.
+ * @note Both `in`, `out` and `aux` buffers must not be changed or freed until call to `::dtfft_transpose_end`.
  */
 dtfft_error_t
 dtfft_transpose_start(dtfft_plan_t plan, void* in, void* out, dtfft_transpose_t transpose_type, void* aux, dtfft_request_t* request);
@@ -629,7 +748,7 @@ dtfft_reshape(dtfft_plan_t plan, void* in, void* out, dtfft_reshape_t reshape_ty
  *
  * @return `::DTFFT_SUCCESS` on success or error code on failure.
  *
- * @note Both `in` and `out` buffers must not be changed or freed until call to `::dtfft_reshape_end`.
+ * @note Both `in`, `out` and `aux` buffers must not be changed or freed until call to `::dtfft_reshape_end`.
  */
 dtfft_error_t
 dtfft_reshape_start(dtfft_plan_t plan, void* in, void* out, dtfft_reshape_t reshape_type, void* aux, dtfft_request_t* request);
@@ -952,7 +1071,7 @@ typedef enum {
 
     /** MPI RMA pipelined algorithm with overlapping packing,
      * exchange and unpacking with scheduled communication
-    */
+     */
     DTFFT_BACKEND_MPI_RMA_FUSED = CONF_DTFFT_BACKEND_MPI_RMA_FUSED,
 
     /** Extension of Backend.MPI_P2P_FUSED
@@ -986,7 +1105,7 @@ typedef enum {
      *
      * @note Can only be used when effort >= `::DTFFT_PATIENT`.
      * @note Currently only available for HOST execution platform
-    */
+     */
     DTFFT_BACKEND_ADAPTIVE = CONF_DTFFT_BACKEND_ADAPTIVE,
 
     /** Backend is not defined. This value is used when no backend is selected, for example when executing on a single process.
@@ -998,7 +1117,7 @@ typedef enum {
 
 /** This enum specifies at which stage the local transposition is performed during global exchange.
  * It affects only Generic backends that perform explicit packing/unpacking.
-*/
+ */
 typedef enum {
     /** Perform transposition during the packing stage (Sender side). */
     DTFFT_TRANSPOSE_MODE_PACK = CONF_DTFFT_TRANSPOSE_MODE_PACK,
@@ -1015,7 +1134,10 @@ typedef enum {
     DTFFT_ACCESS_MODE_WRITE = CONF_DTFFT_ACCESS_MODE_WRITE,
 
     /** Optimize for read access (Aligned reading) */
-    DTFFT_ACCESS_MODE_READ = CONF_DTFFT_ACCESS_MODE_READ
+    DTFFT_ACCESS_MODE_READ = CONF_DTFFT_ACCESS_MODE_READ,
+
+    /** Cache oblivious approach */
+    DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS = CONF_DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS
 } dtfft_access_mode_t;
 
 #ifdef DTFFT_WITH_COMPRESSION
@@ -1024,20 +1146,65 @@ typedef enum {
     /** Lossless compression mode */
     DTFFT_COMPRESSION_MODE_LOSSLESS = CONF_DTFFT_COMPRESSION_MODE_LOSSLESS,
 
-    /** Fixed rate compression mode */
+    /** Fixed rate compression mode. This mode is unique for ZFP compression library. */
     DTFFT_COMPRESSION_MODE_FIXED_RATE = CONF_DTFFT_COMPRESSION_MODE_FIXED_RATE,
 
-    /** Fixed precision compression mode */
+    /** Fixed precision compression mode. This mode targets relative error. */
     DTFFT_COMPRESSION_MODE_FIXED_PRECISION = CONF_DTFFT_COMPRESSION_MODE_FIXED_PRECISION,
 
-    /** Fixed accuracy compression mode */
+    /** Fixed accuracy compression mode. This mode targets absolute error. */
     DTFFT_COMPRESSION_MODE_FIXED_ACCURACY = CONF_DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
 } dtfft_compression_mode_t;
 
 /** This enum lists valid compression library parameters. */
 typedef enum {
-    /** ZFP compression library */
-    DTFFT_COMPRESSION_LIB_ZFP = CONF_DTFFT_COMPRESSION_LIB_ZFP
+    /** ZFP compression library.
+     * Supported modes:
+     *  Host: all modes
+     *  CUDA: only: `::DTFFT_COMPRESSION_MODE_FIXED_RATE`
+    */
+    DTFFT_COMPRESSION_LIB_ZFP = CONF_DTFFT_COMPRESSION_LIB_ZFP,
+
+    /** SZ3 host compression library. 
+     * Supported modes:
+     *  Host:
+     *      - `::DTFFT_COMPRESSION_MODE_LOSSLESS`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     * CUDA: not supported
+    */
+    DTFFT_COMPRESSION_LIB_SZ3 = CONF_DTFFT_COMPRESSION_LIB_SZ3,
+
+    /** SZp host compression library.
+     * Supported modes:
+     *  Host:
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     * CUDA: not supported
+     */
+    DTFFT_COMPRESSION_LIB_SZP = CONF_DTFFT_COMPRESSION_LIB_SZP,
+
+    /** cuSZ GPU compression library */
+    // DTFFT_COMPRESSION_LIB_CUSZ = CONF_DTFFT_COMPRESSION_LIB_CUSZ,
+
+    /** cuSZp GPU compression library.
+     * Supported modes:
+     *  CUDA: only `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     *  Host: not supported
+     */
+    DTFFT_COMPRESSION_LIB_CUSZP = CONF_DTFFT_COMPRESSION_LIB_CUSZP,
+
+    /** bitcomp compression library.
+     * Supported modes:
+     *  Host:
+     *      - `::DTFFT_COMPRESSION_MODE_LOSSLESS`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     *  CUDA:
+     *      - `::DTFFT_COMPRESSION_MODE_LOSSLESS`
+     *      - `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+     */
+    DTFFT_COMPRESSION_LIB_BITCOMP = CONF_DTFFT_COMPRESSION_LIB_BITCOMP
 } dtfft_compression_lib_t;
 
 /** Struct that specifies compression configuration */
@@ -1051,10 +1218,17 @@ typedef struct {
     /** Rate for `::DTFFT_COMPRESSION_MODE_FIXED_RATE` */
     double rate;
 
-    /** Precision for `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION` */
+    /** Precision for `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION`.
+     * This option should be used with `::DTFFT_COMPRESSION_LIB_ZFP`.
+     */
     int32_t precision;
 
-    /** Tolerance for `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY` */
+    /** Tolerance for `::DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`.
+     * This option is also tolerance for `::DTFFT_COMPRESSION_MODE_FIXED_PRECISION` when using 
+     *  - `::DTFFT_COMPRESSION_LIB_SZ3`
+     *  - `::DTFFT_COMPRESSION_LIB_SZP`
+     *  - `::DTFFT_COMPRESSION_LIB_BITCOMP`
+     */
     double tolerance;
 } dtfft_compression_config_t;
 #endif
@@ -1151,7 +1325,7 @@ dtfft_get_backend_string(dtfft_backend_t backend);
  * @return `::DTFFT_SUCCESS`
  */
 dtfft_error_t
-dtfft_get_backend_pipelined(const dtfft_backend_t backend, bool *is_pipe);
+dtfft_get_backend_pipelined(const dtfft_backend_t backend, bool* is_pipe);
 
 /** Struct that can be used to set additional configuration parameters to dtFFT
  * @see dtfft_create_config, dtfft_set_config
@@ -1350,9 +1524,9 @@ typedef struct
      * @details Default is `::DTFFT_TRANSPOSE_MODE_PACK`.
      *
      * For `::DTFFT_EXHAUSTIVE` effort level, dtFFT will always choose the best transpose mode based on internal autotuning.
-     * 
+     *
      * @note This option only takes effect when platform is `::DTFFT_PLATFORM_HOST`
-    */
+     */
     dtfft_transpose_mode_t transpose_mode;
 
     /**
@@ -1360,10 +1534,32 @@ typedef struct
      *
      * @details Default is `::DTFFT_ACCESS_MODE_WRITE`.
      *
-     * This option allows user to force specific access mode (`::DTFFT_ACCESS_MODE_WRITE` or `::DTFFT_ACCESS_MODE_READ`) when autotuning is disabled.
+     * This option allows user to force specific access mode (`::DTFFT_ACCESS_MODE_WRITE`, `::DTFFT_ACCESS_MODE_READ` or `::DTFFT_ACCESS_MODE_CACHE_OBLIVIOUS`) when autotuning is disabled.
      * When autotuning is enabled (e.g. `effort` is `::DTFFT_EXHAUSTIVE`), this option is ignored and best access mode is selected automatically.
      */
     dtfft_access_mode_t access_mode;
+
+    /**
+     * @brief Specifies the tile edge length, in array elements, for blocked host kernels when autotuning is disabled.
+     *
+     * @details This is the number of elements along each dimension of a tile, not the
+     * total number of elements in the tile. For example, a value of 16 gives tiles
+     * of up to 16x16 elements for a 2D array or 16x16x16 for a 3D array.
+     * Default is 0, which disables blocking.
+     *
+     * Possible values are: 0, 4, 8, 16, 32 or 64
+     */
+    int32_t block_size;
+
+    /**
+     * @brief Recursion threshold for cache-oblivious host kernels.
+     *
+     * @details The kernel stops subdividing a block when it contains no more than
+     * this many elements and processes it directly. Default is 1024.
+     *
+     * The value must be non-negative.
+     */
+    int32_t co_threshold;
 
 #ifdef DTFFT_WITH_COMPRESSION
     /**

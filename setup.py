@@ -35,12 +35,11 @@ cupy_package = os.environ.get("CUPY_PACKAGE", "").strip() or "cupy"
 # Examples: dtfft, dtfft-fftw, dtfft-cuda11x, dtfft-cuda12x
 package_name = os.environ.get("DTFFT_PACKAGE_NAME", "dtfft").strip()
 
-is_cuda_build = "cuda" in features
-
+is_cuda_build = any(f in features for f in ["cuda", "cusz", "cuszp", "bitcomp"])
 # Also detect CUDA intent from CMAKE_ARGS (e.g. when building from sdist via
 # CMAKE_ARGS="-DDTFFT_WITH_CUDA=ON ..." pip install dtfft)
 _cmake_args_env = os.environ.get("CMAKE_ARGS", "")
-_CUDA_CMAKE_FLAGS = {"DTFFT_WITH_CUDA", "DTFFT_WITH_CUFFT", "DTFFT_WITH_VKFFT"}
+_CUDA_CMAKE_FLAGS = {"DTFFT_WITH_CUDA", "DTFFT_WITH_CUFFT", "DTFFT_WITH_VKFFT", "DTFFT_WITH_CUSZ", "DTFFT_WITH_CUSZP", "DTFFT_WITH_BITCOMP"}
 if not is_cuda_build:
     import re as _re
     for _flag in _CUDA_CMAKE_FLAGS:
@@ -63,12 +62,18 @@ options_map = {
     "fftw": "DTFFT_WITH_FFTW",
     "cuda": "DTFFT_WITH_CUDA",
     "cufft": "DTFFT_WITH_CUFFT",
+    "cusz": "DTFFT_WITH_CUSZ",
+    "cuszp": "DTFFT_WITH_CUSZP",
+    "bitcomp": "DTFFT_WITH_BITCOMP",
     "tests": "DTFFT_BUILD_TESTS",
 }
 
 for feature, cmake_opt in options_map.items():
     if feature in features:
         cmake_args.append(f"-D{cmake_opt}=ON")
+
+if ("cusz" in features or "cuszp" in features) and "cuda" not in features:
+    cmake_args.append("-DDTFFT_WITH_CUDA=ON")
 
 if "tests" in features:
     cmake_args.append("-DCMAKE_BUILD_TYPE=Debug")
@@ -78,7 +83,7 @@ else:
 
 def _build_readme(pkg_name: str, feats: set) -> str:
     """Render the Python README template for a specific package variant."""
-    template = (Path(__file__).parent / "src" / "interfaces" / "python" / "README.md").read_text()
+    template = (Path(__file__).parent / "src" / "api" / "python" / "README.md").read_text()
 
     _VARIANT_META = {
         "dtfft": (
@@ -152,7 +157,7 @@ def _build_readme(pkg_name: str, feats: set) -> str:
 
 
 if os.environ.get("DTFFT_SDIST", "").strip():
-    long_description = (Path(__file__).parent / "src" / "interfaces" / "python" / "README_sdist.md").read_text()
+    long_description = (Path(__file__).parent / "src" / "api" / "python" / "README_sdist.md").read_text()
 else:
     long_description = _build_readme(package_name, features)
 
@@ -173,8 +178,8 @@ setup(
     license="GPL-3.0",
     keywords=["fft", "mpi", "hpc", "parallel", "cuda", "distributed"],
     packages=["dtfft"],
-    package_dir={"dtfft": "src/interfaces/python"},
-    cmake_install_dir="src/interfaces/python",
+    package_dir={"dtfft": "src/api/python"},
+    cmake_install_dir="src/api/python",
     python_requires=">=3.9",
     install_requires=[
         "numpy",
