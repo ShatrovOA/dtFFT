@@ -1,0 +1,2708 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="DataTyped Fast Fourier Transform">
+    <meta name="author" content="Oleg Shatrov" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>test_r2r_fft_roundtrip &ndash; dtFFT</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">dtFFT </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>test_r2r_fft_roundtrip
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for procedures.">30 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/test_plan_save_load.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/test_plan_save_load.f90.html'>test_plan_save_load.F90</a></li>
+                <li class="breadcrumb-item"><a href='../program/test_plan_save_load.html'>test_plan_save_load</a></li>
+            <li class="breadcrumb-item active" aria-current="page">test_r2r_fft_roundtrip</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2> subroutine test_r2r_fft_roundtrip(dims)  
+</h2>
+    
+
+    <p>R2R kinds must survive save/load when an FFT executor is active.</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dims~407"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dims</strong>(:)</td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~test_r2r_fft_roundtrip~~CallsGraph Pages: 1 -->
+<svg id="proctest_r2r_fft_roundtripCallsGraph" width="641pt" height="665pt"
+ viewBox="0.00 0.00 641.00 664.93" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph" class="graph" transform="scale(0.25 0.25) rotate(0) translate(4 2636.02)">
+<title>proc~~test_r2r_fft_roundtrip~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-2636.02 2541,-2636.02 2541,4 -4,4"/>
+<!-- proc~test_r2r_fft_roundtrip -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node1" class="node">
+<title>proc~test_r2r_fft_roundtrip</title>
+<polygon fill="none" stroke="black" points="124,-779 0,-779 0,-755 124,-755 124,-779"/>
+<text text-anchor="middle" x="62" y="-764.6" font-family="Helvetica,sans-Serif" font-size="10.50">test_r2r_fft_roundtrip</text>
+</g>
+<!-- none~check~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node2" class="node">
+<title>none~check~2</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node2"><a xlink:href="../type/test_suite_t.html#boundprocedure-check~2" xlink:title="test_suite_t%check">
+<polygon fill="#a7506f" stroke="#a7506f" points="486,-609 373,-609 373,-585 486,-585 486,-609"/>
+<text text-anchor="middle" x="429.5" y="-594.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_suite_t%check</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;none~check~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge1" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;none~check~2</title>
+<path fill="none" stroke="#ff0000" d="M73.73,-754.81C90.45,-736.53 124.5,-702 160,-682 224.5,-645.66 306.63,-622.57 362.97,-609.77"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="363.83,-613.17 372.83,-607.58 362.3,-606.34 363.83,-613.17"/>
+</g>
+<!-- none~create~13 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node3" class="node">
+<title>none~create~13</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node3"><a xlink:href="../type/dtfft_plan_r2r_t.html#boundprocedure-create~13" xlink:title="dtfft_plan_r2r_t%create">
+<polygon fill="#a7506f" stroke="#a7506f" points="296,-1430 160,-1430 160,-1406 296,-1406 296,-1430"/>
+<text text-anchor="middle" x="228" y="-1415.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_r2r_t%create</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;none~create~13 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge2" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;none~create~13</title>
+<path fill="none" stroke="#ff0000" d="M66.06,-779.14C85.82,-857.57 195.44,-1292.74 221.46,-1396.01"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="218.13,-1397.1 223.96,-1405.95 224.91,-1395.39 218.13,-1397.1"/>
+</g>
+<!-- proc~all_ok -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node4" class="node">
+<title>proc~all_ok</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node4"><a xlink:href="../proc/all_ok.html" xlink:title="all_ok">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="255,-515 201,-515 201,-491 255,-491 255,-515"/>
+<text text-anchor="middle" x="228" y="-500.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">all_ok</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;proc~all_ok -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge3" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;proc~all_ok</title>
+<path fill="none" stroke="#ff0000" d="M70.49,-754.67C86.7,-728.03 126.3,-663.09 160,-609 178.55,-579.22 200.3,-544.93 213.86,-523.61"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="216.89,-525.36 219.31,-515.05 210.99,-521.6 216.89,-525.36"/>
+</g>
+<!-- proc~check_resave_identical -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node5" class="node">
+<title>proc~check_resave_identical</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node5"><a xlink:href="../proc/check_resave_identical.html" xlink:title="check_resave_identical">
+<polygon fill="#d9534f" stroke="#d9534f" points="296,-715 160,-715 160,-691 296,-691 296,-715"/>
+<text text-anchor="middle" x="228" y="-700.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">check_resave_identical</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;proc~check_resave_identical -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge4" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;proc~check_resave_identical</title>
+<path fill="none" stroke="#ff0000" d="M93.85,-754.96C120.11,-744.71 158.02,-729.92 186.68,-718.74"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="187.97,-721.99 196.01,-715.09 185.42,-715.47 187.97,-721.99"/>
+</g>
+<!-- proc~delete_file -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node6" class="node">
+<title>proc~delete_file</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node6"><a xlink:href="../proc/delete_file.html" xlink:title="delete_file">
+<polygon fill="#d9534f" stroke="#d9534f" points="463.5,-798 395.5,-798 395.5,-774 463.5,-774 463.5,-798"/>
+<text text-anchor="middle" x="429.5" y="-783.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">delete_file</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;proc~delete_file -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge5" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;proc~delete_file</title>
+<path fill="none" stroke="#ff0000" d="M124.18,-770.18C197.91,-774.01 319.95,-780.36 384.82,-783.73"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="384.93,-787.24 395.1,-784.26 385.3,-780.25 384.93,-787.24"/>
+</g>
+<!-- proc~destroy~12 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node7" class="node">
+<title>proc~destroy~12</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node7"><a xlink:href="../proc/destroy~12.html" xlink:title="dtfft_plan_t%destroy">
+<polygon fill="#d9534f" stroke="#d9534f" points="942.5,-2390 821.5,-2390 821.5,-2366 942.5,-2366 942.5,-2390"/>
+<text text-anchor="middle" x="882" y="-2375.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%destroy</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;proc~destroy~12 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge6" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;proc~destroy~12</title>
+<path fill="none" stroke="#ff0000" d="M63.3,-779.09C66.84,-921.24 101.93,-2270.59 160,-2329 343.87,-2513.95 704.52,-2430.85 833.63,-2393.07"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="835.01,-2396.31 843.6,-2390.1 833.02,-2389.6 835.01,-2396.31"/>
+</g>
+<!-- proc~get_conf_platform -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node8" class="node">
+<title>proc~get_conf_platform</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node8"><a xlink:href="../proc/get_conf_platform.html" xlink:title="get_conf_platform">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1848.5,-1608 1739.5,-1608 1739.5,-1584 1848.5,-1584 1848.5,-1608"/>
+<text text-anchor="middle" x="1794" y="-1593.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_platform</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;proc~get_conf_platform -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge7" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;proc~get_conf_platform</title>
+<path fill="none" stroke="#ff0000" d="M111.13,-779.1C126.65,-782.69 143.98,-786.36 160,-789 235.83,-801.52 255.49,-799.68 332,-807 434.58,-816.81 460.05,-822.55 563,-827 653.58,-830.91 676.49,-832.29 767,-827 869.75,-820.99 894.31,-807.01 997,-800 1110.98,-792.22 1139.76,-796.11 1254,-795 1350.88,-794.06 1381.77,-759.71 1472,-795 1472.75,-795.29 1641.64,-951.28 1642,-952 1720.48,-1111.33 1631.7,-1178.53 1678,-1350 1701.83,-1438.25 1755.53,-1533.94 1780.19,-1575.17"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1777.23,-1577.04 1785.39,-1583.79 1783.22,-1573.42 1777.23,-1577.04"/>
+</g>
+<!-- proc~get_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node9" class="node">
+<title>proc~get_executor</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node9"><a xlink:href="../proc/get_executor.html" xlink:title="dtfft_plan_t%get_executor">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1183,-2328 1032,-2328 1032,-2304 1183,-2304 1183,-2328"/>
+<text text-anchor="middle" x="1107.5" y="-2313.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%get_executor</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;proc~get_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge8" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;proc~get_executor</title>
+<path fill="none" stroke="#ff0000" d="M63.14,-779.01C65.16,-923.1 93.34,-2315 428.5,-2315 428.5,-2315 428.5,-2315 666,-2315 789.71,-2315 932.97,-2315.4 1021.67,-2315.69"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1021.66,-2319.19 1031.68,-2315.73 1021.69,-2312.19 1021.66,-2319.19"/>
+</g>
+<!-- proc~load~7 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node10" class="node">
+<title>proc~load~7</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node10"><a xlink:href="../proc/load~7.html" xlink:title="dtfft_plan_t%load">
+<polygon fill="#d9534f" stroke="#d9534f" points="1160,-454 1055,-454 1055,-430 1160,-430 1160,-454"/>
+<text text-anchor="middle" x="1107.5" y="-439.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%load</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;proc~load~7 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge9" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;proc~load~7</title>
+<path fill="none" stroke="#ff0000" d="M62.99,-754.85C63.69,-710.34 72.51,-554.99 160,-482 252.64,-404.71 307.85,-442 428.5,-442 428.5,-442 428.5,-442 666,-442 801.22,-442 959.79,-442 1044.94,-442"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="1044.96,-445.5 1054.96,-442 1044.96,-438.5 1044.96,-445.5"/>
+</g>
+<!-- proc~report~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node11" class="node">
+<title>proc~report~2</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node11"><a xlink:href="../proc/report~2.html" xlink:title="report">
+<polygon fill="#d9534f" stroke="#d9534f" points="456.5,-756 402.5,-756 402.5,-732 456.5,-732 456.5,-756"/>
+<text text-anchor="middle" x="429.5" y="-741.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">report</text>
+</a>
+</g>
+</g>
+<!-- proc~test_r2r_fft_roundtrip&#45;&gt;proc~report~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge10" class="edge">
+<title>proc~test_r2r_fft_roundtrip&#45;&gt;proc~report~2</title>
+<path fill="none" stroke="#ff0000" d="M124.18,-763.15C200.83,-758.33 329.7,-750.22 392.25,-746.28"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="392.66,-749.76 402.42,-745.64 392.22,-742.78 392.66,-749.76"/>
+</g>
+<!-- proc~check_integer -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node22" class="node">
+<title>proc~check_integer</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node22"><a xlink:href="../proc/check_integer.html" xlink:title="test_suite_t%check_integer">
+<polygon fill="#d9534f" stroke="#d9534f" points="960.5,-634 803.5,-634 803.5,-610 960.5,-610 960.5,-634"/>
+<text text-anchor="middle" x="882" y="-619.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_suite_t%check_integer</text>
+</a>
+</g>
+</g>
+<!-- none~check~2&#45;&gt;proc~check_integer -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge11" class="edge">
+<title>none~check~2&#45;&gt;proc~check_integer</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M484.38,-584.96C551.3,-571.95 668.65,-555.52 767,-575 796.4,-580.82 827.74,-594.33 850.1,-605.38"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="848.6,-608.55 859.1,-609.94 851.76,-602.3 848.6,-608.55"/>
+</g>
+<!-- proc~check_logical -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node23" class="node">
+<title>proc~check_logical</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node23"><a xlink:href="../proc/check_logical.html" xlink:title="test_suite_t%check_logical">
+<polygon fill="#d9534f" stroke="#d9534f" points="959,-512 805,-512 805,-488 959,-488 959,-512"/>
+<text text-anchor="middle" x="882" y="-497.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_suite_t%check_logical</text>
+</a>
+</g>
+</g>
+<!-- none~check~2&#45;&gt;proc~check_logical -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge12" class="edge">
+<title>none~check~2&#45;&gt;proc~check_logical</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M474.82,-584.97C500.49,-578.17 533.47,-569.71 563,-563 645.18,-544.33 740.02,-525.95 804.59,-513.9"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="805.5,-517.29 814.69,-512.02 804.22,-510.41 805.5,-517.29"/>
+</g>
+<!-- proc~create_r2r -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node24" class="node">
+<title>proc~create_r2r</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node24"><a xlink:href="../proc/create_r2r.html" xlink:title="dtfft_plan_r2r_t%create_r2r">
+<polygon fill="#d9534f" stroke="#d9534f" points="508,-1430 351,-1430 351,-1406 508,-1406 508,-1430"/>
+<text text-anchor="middle" x="429.5" y="-1415.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_r2r_t%create_r2r</text>
+</a>
+</g>
+</g>
+<!-- none~create~13&#45;&gt;proc~create_r2r -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge13" class="edge">
+<title>none~create~13&#45;&gt;proc~create_r2r</title>
+<path fill="none" stroke="#ff9900" stroke-dasharray="5,2" d="M296.26,-1418C310.51,-1418 325.75,-1418 340.63,-1418"/>
+<polygon fill="#ff9900" stroke="#ff9900" points="340.86,-1421.5 350.86,-1418 340.86,-1414.5 340.86,-1421.5"/>
+</g>
+<!-- proc~create_r2r_pencil -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node25" class="node">
+<title>proc~create_r2r_pencil</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node25"><a xlink:href="../proc/create_r2r_pencil.html" xlink:title="dtfft_plan_r2r_t%create_r2r_pencil">
+<polygon fill="#d9534f" stroke="#d9534f" points="527,-1888 332,-1888 332,-1864 527,-1864 527,-1888"/>
+<text text-anchor="middle" x="429.5" y="-1873.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_r2r_t%create_r2r_pencil</text>
+</a>
+</g>
+</g>
+<!-- none~create~13&#45;&gt;proc~create_r2r_pencil -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge14" class="edge">
+<title>none~create~13&#45;&gt;proc~create_r2r_pencil</title>
+<path fill="none" stroke="#ff9900" stroke-dasharray="5,2" d="M234.34,-1430.25C261.44,-1492.47 383.92,-1773.65 419.05,-1854.31"/>
+<polygon fill="#ff9900" stroke="#ff9900" points="416.04,-1856.15 423.24,-1863.92 422.46,-1853.36 416.04,-1856.15"/>
+</g>
+<!-- mpi_allreduce -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node16" class="node">
+<title>mpi_allreduce</title>
+<polygon fill="#777777" stroke="#777777" points="1151.5,-634 1063.5,-634 1063.5,-610 1151.5,-610 1151.5,-634"/>
+<text text-anchor="middle" x="1107.5" y="-619.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_allreduce</text>
+</g>
+<!-- proc~all_ok&#45;&gt;mpi_allreduce -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge15" class="edge">
+<title>proc~all_ok&#45;&gt;mpi_allreduce</title>
+<path fill="none" stroke="#cbff00" d="M255.11,-505.34C333.06,-512.46 570.91,-535.05 767,-563 868.82,-577.51 987,-599.14 1053.65,-611.78"/>
+<polygon fill="#cbff00" stroke="#cbff00" points="1053.01,-615.23 1063.49,-613.66 1054.32,-608.35 1053.01,-615.23"/>
+</g>
+<!-- proc~check_resave_identical&#45;&gt;none~check~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge17" class="edge">
+<title>proc~check_resave_identical&#45;&gt;none~check~2</title>
+<path fill="none" stroke="#33ff00" d="M246.77,-690.85C266.93,-677.33 301.05,-655.24 332,-639 350.02,-629.54 370.63,-620.37 388.16,-613.01"/>
+<polygon fill="#33ff00" stroke="#33ff00" points="389.64,-616.19 397.54,-609.13 386.96,-609.72 389.64,-616.19"/>
+</g>
+<!-- proc~check_resave_identical&#45;&gt;proc~delete_file -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge18" class="edge">
+<title>proc~check_resave_identical&#45;&gt;proc~delete_file</title>
+<path fill="none" stroke="#33ff00" d="M245.24,-715.1C264.83,-729.13 299.22,-751.98 332,-765 348.76,-771.66 368.03,-776.39 384.93,-779.65"/>
+<polygon fill="#33ff00" stroke="#33ff00" points="384.64,-783.16 395.1,-781.5 385.89,-776.27 384.64,-783.16"/>
+</g>
+<!-- proc~check_resave_identical&#45;&gt;proc~report~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge20" class="edge">
+<title>proc~check_resave_identical&#45;&gt;proc~report~2</title>
+<path fill="none" stroke="#33ff00" d="M287.51,-715.02C321.4,-721.99 363.01,-730.54 392.21,-736.54"/>
+<polygon fill="#33ff00" stroke="#33ff00" points="391.87,-740.04 402.37,-738.63 393.27,-733.19 391.87,-740.04"/>
+</g>
+<!-- interface~to_str -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node14" class="node">
+<title>interface~to_str</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node14"><a xlink:href="../interface/to_str.html" xlink:title="to_str">
+<polygon fill="#a7506f" stroke="#a7506f" points="456.5,-714 402.5,-714 402.5,-690 456.5,-690 456.5,-714"/>
+<text text-anchor="middle" x="429.5" y="-699.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">to_str</text>
+</a>
+</g>
+</g>
+<!-- proc~check_resave_identical&#45;&gt;interface~to_str -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge16" class="edge">
+<title>proc~check_resave_identical&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#33ff00" d="M296.26,-702.66C328.42,-702.5 365.63,-702.32 392.37,-702.18"/>
+<polygon fill="#33ff00" stroke="#33ff00" points="392.45,-705.68 402.43,-702.13 392.42,-698.68 392.45,-705.68"/>
+</g>
+<!-- proc~read_whole_file -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node34" class="node">
+<title>proc~read_whole_file</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node34"><a xlink:href="../proc/read_whole_file.html" xlink:title="read_whole_file">
+<polygon fill="#d9534f" stroke="#d9534f" points="477,-672 382,-672 382,-648 477,-648 477,-672"/>
+<text text-anchor="middle" x="429.5" y="-657.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">read_whole_file</text>
+</a>
+</g>
+</g>
+<!-- proc~check_resave_identical&#45;&gt;proc~read_whole_file -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge19" class="edge">
+<title>proc~check_resave_identical&#45;&gt;proc~read_whole_file</title>
+<path fill="none" stroke="#33ff00" d="M284.84,-690.96C312.04,-685.1 344.69,-678.06 371.99,-672.18"/>
+<polygon fill="#33ff00" stroke="#33ff00" points="372.74,-675.6 381.78,-670.07 371.27,-668.76 372.74,-675.6"/>
+</g>
+<!-- mpi_barrier -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node17" class="node">
+<title>mpi_barrier</title>
+<polygon fill="#777777" stroke="#777777" points="702.5,-818 627.5,-818 627.5,-794 702.5,-794 702.5,-818"/>
+<text text-anchor="middle" x="665" y="-803.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_barrier</text>
+</g>
+<!-- proc~delete_file&#45;&gt;mpi_barrier -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge21" class="edge">
+<title>proc~delete_file&#45;&gt;mpi_barrier</title>
+<path fill="none" stroke="#00ff66" d="M463.95,-788.87C504.08,-792.3 571.6,-798.09 616.97,-801.97"/>
+<polygon fill="#00ff66" stroke="#00ff66" points="616.88,-805.48 627.14,-802.84 617.48,-798.5 616.88,-805.48"/>
+</g>
+<!-- destroy -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node13" class="node">
+<title>destroy</title>
+<polygon fill="#777777" stroke="#777777" points="1821,-1728 1767,-1728 1767,-1704 1821,-1704 1821,-1728"/>
+<text text-anchor="middle" x="1794" y="-1713.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy</text>
+</g>
+<!-- proc~destroy~12&#45;&gt;destroy -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge22" class="edge">
+<title>proc~destroy~12&#45;&gt;destroy</title>
+<path fill="none" stroke="#00ffff" d="M916.36,-2390.09C1013.09,-2422.86 1297.92,-2502.73 1472,-2377 1502.63,-2354.88 1487.85,-2331.95 1508,-2300 1558.03,-2220.68 1595.71,-2218.56 1642,-2137 1652.52,-2118.46 1756.11,-1821.92 1785.35,-1737.98"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1788.7,-1739.01 1788.68,-1728.42 1782.09,-1736.71 1788.7,-1739.01"/>
+</g>
+<!-- mpi_comm_free -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node18" class="node">
+<title>mpi_comm_free</title>
+<polygon fill="#777777" stroke="#777777" points="1156.5,-2168 1058.5,-2168 1058.5,-2144 1156.5,-2144 1156.5,-2168"/>
+<text text-anchor="middle" x="1107.5" y="-2153.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_free</text>
+</g>
+<!-- proc~destroy~12&#45;&gt;mpi_comm_free -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge23" class="edge">
+<title>proc~destroy~12&#45;&gt;mpi_comm_free</title>
+<path fill="none" stroke="#00ffff" d="M888.9,-2365.93C903.64,-2336.79 944.64,-2261.61 997,-2215 1017.23,-2196.99 1043.93,-2182.46 1065.89,-2172.33"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1067.6,-2175.4 1075.3,-2168.13 1064.74,-2169.01 1067.6,-2175.4"/>
+</g>
+<!-- mpi_finalized -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node20" class="node">
+<title>mpi_finalized</title>
+<polygon fill="#777777" stroke="#777777" points="2528,-2037 2445,-2037 2445,-2013 2528,-2013 2528,-2037"/>
+<text text-anchor="middle" x="2486.5" y="-2022.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalized</text>
+</g>
+<!-- proc~destroy~12&#45;&gt;mpi_finalized -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge24" class="edge">
+<title>proc~destroy~12&#45;&gt;mpi_finalized</title>
+<path fill="none" stroke="#00ffff" d="M888.47,-2390.3C902.25,-2419.86 941.3,-2495.34 997,-2535 1133.74,-2632.35 1194.15,-2632 1362,-2632 1362,-2632 1362,-2632 2179,-2632 2446.38,-2632 2480.55,-2156.9 2484.88,-2047.35"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="2488.38,-2047.24 2485.24,-2037.13 2481.39,-2047 2488.38,-2047.24"/>
+</g>
+<!-- proc~destroy_stream -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node26" class="node">
+<title>proc~destroy_stream</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node26"><a xlink:href="../proc/destroy_stream.html" xlink:title="destroy_stream">
+<polygon fill="#d9534f" stroke="#d9534f" points="1154.5,-2370 1060.5,-2370 1060.5,-2346 1154.5,-2346 1154.5,-2370"/>
+<text text-anchor="middle" x="1107.5" y="-2355.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy_stream</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy~12&#45;&gt;proc~destroy_stream -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge25" class="edge">
+<title>proc~destroy~12&#45;&gt;proc~destroy_stream</title>
+<path fill="none" stroke="#00ffff" d="M942.6,-2372.67C975.86,-2369.69 1017.05,-2366 1049.83,-2363.07"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1050.5,-2366.53 1060.15,-2362.15 1049.88,-2359.55 1050.5,-2366.53"/>
+</g>
+<!-- proc~dtfft_get_error_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node28" class="node">
+<title>proc~dtfft_get_error_string</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node28"><a xlink:href="../proc/dtfft_get_error_string.html" xlink:title="dtfft_get_error_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1425,-2288 1301,-2288 1301,-2264 1425,-2264 1425,-2288"/>
+<text text-anchor="middle" x="1363" y="-2273.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_error_string</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy~12&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge26" class="edge">
+<title>proc~destroy~12&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#00ffff" d="M928.75,-2390C995.86,-2405.07 1123.27,-2423.89 1218,-2379 1240.83,-2368.18 1234.55,-2351.13 1254,-2335 1275.06,-2317.53 1302.07,-2302.78 1323.81,-2292.39"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1325.49,-2295.47 1333.08,-2288.07 1322.54,-2289.12 1325.49,-2295.47"/>
+</g>
+<!-- proc~mem_free_ptr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node31" class="node">
+<title>proc~mem_free_ptr</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node31"><a xlink:href="../proc/mem_free_ptr.html" xlink:title="dtfft_plan_t%mem_free_ptr">
+<polygon fill="#d9534f" stroke="#d9534f" points="1185.5,-2526 1029.5,-2526 1029.5,-2502 1185.5,-2502 1185.5,-2526"/>
+<text text-anchor="middle" x="1107.5" y="-2511.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%mem_free_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy~12&#45;&gt;proc~mem_free_ptr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge27" class="edge">
+<title>proc~destroy~12&#45;&gt;proc~mem_free_ptr</title>
+<path fill="none" stroke="#00ffff" d="M891.85,-2390.08C909.28,-2412.95 950.43,-2462.54 997,-2488 1004.87,-2492.3 1013.44,-2495.9 1022.2,-2498.9"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1021.17,-2502.25 1031.76,-2501.93 1023.28,-2495.57 1021.17,-2502.25"/>
+</g>
+<!-- proc~pop_nvtx_domain_range -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node32" class="node">
+<title>proc~pop_nvtx_domain_range</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node32"><a xlink:href="../proc/pop_nvtx_domain_range.html" xlink:title="pop_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="1179,-2248 1036,-2248 1036,-2224 1179,-2224 1179,-2248"/>
+<text text-anchor="middle" x="1107.5" y="-2233.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pop_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy~12&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge28" class="edge">
+<title>proc~destroy~12&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#00ffff" d="M898.39,-2365.76C919.87,-2348.92 960.33,-2318.08 997,-2295 1021.63,-2279.5 1050.67,-2263.97 1072.65,-2252.74"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1074.27,-2255.84 1081.61,-2248.2 1071.1,-2249.6 1074.27,-2255.84"/>
+</g>
+<!-- proc~push_nvtx_domain_range -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node33" class="node">
+<title>proc~push_nvtx_domain_range</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node33"><a xlink:href="../proc/push_nvtx_domain_range.html" xlink:title="push_nvtx_domain_range">
+<polygon fill="#d9534f" stroke="#d9534f" points="1181.5,-1028 1033.5,-1028 1033.5,-1004 1181.5,-1004 1181.5,-1028"/>
+<text text-anchor="middle" x="1107.5" y="-1013.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">push_nvtx_domain_range</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy~12&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge29" class="edge">
+<title>proc~destroy~12&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#00ffff" d="M884.36,-2365.85C892.19,-2295.73 932.23,-1935.53 961,-1641 978.44,-1462.47 948.66,-1411.74 997,-1239 1019.07,-1160.12 1068.66,-1075.55 1092.79,-1037.14"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1095.93,-1038.72 1098.34,-1028.41 1090.02,-1034.97 1095.93,-1038.72"/>
+</g>
+<!-- proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node35" class="node">
+<title>proc~write_message</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node35"><a xlink:href="../proc/write_message.html" xlink:title="write_message">
+<polygon fill="#d9534f" stroke="#d9534f" points="2382.5,-1430 2290.5,-1430 2290.5,-1406 2382.5,-1406 2382.5,-1430"/>
+<text text-anchor="middle" x="2336.5" y="-1415.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">write_message</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy~12&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge30" class="edge">
+<title>proc~destroy~12&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00ffff" d="M898.05,-2390.25C918.82,-2406.28 958.13,-2433.56 997,-2444 1091.86,-2469.48 1119.85,-2447.86 1218,-2444 1331.15,-2439.55 1361.91,-2450.5 1472,-2424 1676.95,-2374.67 1716.96,-2326.7 1910,-2242 1987.57,-2207.96 2025.26,-2223.99 2083,-2162 2113.78,-2128.96 2086.27,-2098.11 2119,-2067 2158.93,-2029.04 2201.11,-2070.8 2237,-2029 2315.35,-1937.76 2331.99,-1538.83 2334.94,-1440.14"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="2338.44,-1440.2 2335.22,-1430.11 2331.44,-1440 2338.44,-1440.2"/>
+</g>
+<!-- proc~get_executor&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge31" class="edge">
+<title>proc~get_executor&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#3200ff" d="M1183.19,-2304.22C1217.07,-2298.87 1256.96,-2292.57 1290.46,-2287.29"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="1291.3,-2290.7 1300.63,-2285.68 1290.21,-2283.78 1291.3,-2290.7"/>
+</g>
+<!-- proc~get_executor&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge32" class="edge">
+<title>proc~get_executor&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#3200ff" d="M1183.02,-2315.99C1256.76,-2315.06 1372.68,-2311.16 1472,-2297 1669.98,-2268.78 1721.21,-2259.95 1910,-2194 1926.7,-2188.16 1929.83,-2184.18 1946,-2177 2006.28,-2150.25 2035.81,-2166.07 2083,-2120 2111.19,-2092.48 2090.7,-2066.41 2119,-2039 2159.67,-1999.61 2201.52,-2035.12 2237,-1991 2307.36,-1903.51 2329.82,-1535.39 2334.49,-1440.43"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="2338,-1440.39 2334.98,-1430.24 2331.01,-1440.06 2338,-1440.39"/>
+</g>
+<!-- create -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node12" class="node">
+<title>create</title>
+<polygon fill="#777777" stroke="#777777" points="1390,-828 1336,-828 1336,-804 1390,-804 1390,-828"/>
+<text text-anchor="middle" x="1363" y="-813.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create</text>
+</g>
+<!-- proc~load~7&#45;&gt;create -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge33" class="edge">
+<title>proc~load~7&#45;&gt;create</title>
+<path fill="none" stroke="#cc00ff" d="M1117.07,-454.33C1135.6,-481.01 1180.71,-546.1 1218,-601 1266.17,-671.92 1322.54,-756.57 1348.12,-795.08"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1345.49,-797.45 1353.94,-803.84 1351.32,-793.57 1345.49,-797.45"/>
+</g>
+<!-- make_public -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node15" class="node">
+<title>make_public</title>
+<polygon fill="#777777" stroke="#777777" points="1403,-376 1323,-376 1323,-352 1403,-352 1403,-376"/>
+<text text-anchor="middle" x="1363" y="-361.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">make_public</text>
+</g>
+<!-- proc~load~7&#45;&gt;make_public -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge34" class="edge">
+<title>proc~load~7&#45;&gt;make_public</title>
+<path fill="none" stroke="#cc00ff" d="M1139.12,-429.98C1168.35,-418.76 1213.77,-401.99 1254,-390 1273.19,-384.28 1294.58,-378.92 1313.23,-374.57"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1314.03,-377.98 1322.99,-372.33 1312.46,-371.16 1314.03,-377.98"/>
+</g>
+<!-- mpi_comm_size -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node19" class="node">
+<title>mpi_comm_size</title>
+<polygon fill="#777777" stroke="#777777" points="2226.5,-656 2129.5,-656 2129.5,-632 2226.5,-632 2226.5,-656"/>
+<text text-anchor="middle" x="2178" y="-641.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_size</text>
+</g>
+<!-- proc~load~7&#45;&gt;mpi_comm_size -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge35" class="edge">
+<title>proc~load~7&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#cc00ff" d="M1118.77,-454.14C1148.93,-489.65 1236.29,-591.43 1254,-600 1382.38,-662.13 1431.38,-624 1574,-624 1574,-624 1574,-624 1795,-624 1910.12,-624 2044.49,-633.17 2119.25,-639.09"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="2119.15,-642.59 2129.4,-639.9 2119.71,-635.62 2119.15,-642.59"/>
+</g>
+<!-- none~load~5 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node21" class="node">
+<title>none~load~5</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node21"><a xlink:href="../type/serializer.html#boundprocedure-load~5" xlink:title="serializer%load">
+<polygon fill="#a7506f" stroke="#a7506f" points="1622,-411 1528,-411 1528,-387 1622,-387 1622,-411"/>
+<text text-anchor="middle" x="1575" y="-396.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load</text>
+</a>
+</g>
+</g>
+<!-- proc~load~7&#45;&gt;none~load~5 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge36" class="edge">
+<title>proc~load~7&#45;&gt;none~load~5</title>
+<path fill="none" stroke="#cc00ff" d="M1160.15,-440.51C1230.79,-438.04 1361.4,-431.9 1472,-418 1486.96,-416.12 1503.04,-413.44 1517.9,-410.68"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1518.8,-414.07 1527.97,-408.77 1517.5,-407.2 1518.8,-414.07"/>
+</g>
+<!-- proc~destroy~22 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node27" class="node">
+<title>proc~destroy~22</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node27"><a xlink:href="../proc/destroy~22.html" xlink:title="serializer%destroy">
+<polygon fill="#d9534f" stroke="#d9534f" points="1630,-205 1520,-205 1520,-181 1630,-181 1630,-205"/>
+<text text-anchor="middle" x="1575" y="-190.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%destroy</text>
+</a>
+</g>
+</g>
+<!-- proc~load~7&#45;&gt;proc~destroy~22 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge37" class="edge">
+<title>proc~load~7&#45;&gt;proc~destroy~22</title>
+<path fill="none" stroke="#cc00ff" d="M1160.32,-433.28C1188.09,-428.65 1222.9,-422.92 1254,-418 1350.79,-402.69 1392.04,-441.65 1472,-385 1531.09,-343.14 1558.9,-256.18 1569.13,-215.24"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1572.55,-215.97 1571.46,-205.43 1565.74,-214.35 1572.55,-215.97"/>
+</g>
+<!-- proc~load~7&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge38" class="edge">
+<title>proc~load~7&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#cc00ff" d="M1120.77,-454.19C1144.89,-479.11 1197.91,-538.81 1218,-601 1246.25,-688.46 1194.77,-2184.72 1254,-2255 1263.4,-2266.16 1276.81,-2272.52 1290.99,-2275.97"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1290.4,-2279.42 1300.89,-2277.91 1291.75,-2272.55 1290.4,-2279.42"/>
+</g>
+<!-- proc~get_open -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node29" class="node">
+<title>proc~get_open</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node29"><a xlink:href="../proc/get_open.html" xlink:title="serializer%get_open">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1423.5,-216 1302.5,-216 1302.5,-192 1423.5,-192 1423.5,-216"/>
+<text text-anchor="middle" x="1363" y="-201.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%get_open</text>
+</a>
+</g>
+</g>
+<!-- proc~load~7&#45;&gt;proc~get_open -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge39" class="edge">
+<title>proc~load~7&#45;&gt;proc~get_open</title>
+<path fill="none" stroke="#cc00ff" d="M1112.72,-429.95C1126.46,-392.64 1173.7,-278.31 1254,-225 1265.46,-217.39 1279.02,-212.4 1292.59,-209.16"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1293.38,-212.57 1302.45,-207.09 1291.94,-205.72 1293.38,-212.57"/>
+</g>
+<!-- proc~load_file -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node30" class="node">
+<title>proc~load_file</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node30"><a xlink:href="../proc/load_file.html" xlink:title="load_file">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1392,-258 1334,-258 1334,-234 1392,-234 1392,-258"/>
+<text text-anchor="middle" x="1363" y="-243.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">load_file</text>
+</a>
+</g>
+</g>
+<!-- proc~load~7&#45;&gt;proc~load_file -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge40" class="edge">
+<title>proc~load~7&#45;&gt;proc~load_file</title>
+<path fill="none" stroke="#cc00ff" d="M1124.36,-429.74C1167.5,-396.39 1287.15,-303.87 1338.31,-264.32"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1340.7,-266.89 1346.47,-258.01 1336.42,-261.35 1340.7,-266.89"/>
+</g>
+<!-- proc~load~7&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge41" class="edge">
+<title>proc~load~7&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#cc00ff" d="M1130.51,-454.03C1195.97,-488.64 1395.93,-586 1574,-586 1574,-586 1574,-586 2015.5,-586 2115.31,-586 2170.15,-548.89 2237,-623 2279.8,-670.45 2262.24,-1134.01 2273,-1197 2285.73,-1271.53 2313.89,-1356.9 2327.64,-1396.16"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="2324.4,-1397.49 2331.03,-1405.75 2331,-1395.16 2324.4,-1397.49"/>
+</g>
+<!-- proc~double_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node50" class="node">
+<title>proc~double_to_string</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node50"><a xlink:href="../proc/double_to_string.html" xlink:title="double_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="715,-734 615,-734 615,-710 715,-710 715,-734"/>
+<text text-anchor="middle" x="665" y="-719.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">double_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~double_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge42" class="edge">
+<title>interface~to_str&#45;&gt;proc~double_to_string</title>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M456.83,-704.26C492.39,-707.3 556.78,-712.82 604.37,-716.89"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="604.29,-720.4 614.55,-717.76 604.89,-713.42 604.29,-720.4"/>
+</g>
+<!-- proc~float_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node51" class="node">
+<title>proc~float_to_string</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node51"><a xlink:href="../proc/float_to_string.html" xlink:title="float_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="709,-692 621,-692 621,-668 709,-668 709,-692"/>
+<text text-anchor="middle" x="665" y="-677.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">float_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~float_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge43" class="edge">
+<title>interface~to_str&#45;&gt;proc~float_to_string</title>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M456.83,-699.52C493.94,-696.02 562.47,-689.57 610.51,-685.04"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="611.11,-688.5 620.74,-684.08 610.45,-681.53 611.11,-688.5"/>
+</g>
+<!-- proc~int32_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node52" class="node">
+<title>proc~int32_to_string</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node52"><a xlink:href="../proc/int32_to_string.html" xlink:title="int32_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="710.5,-650 619.5,-650 619.5,-626 710.5,-626 710.5,-650"/>
+<text text-anchor="middle" x="665" y="-635.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int32_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int32_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge44" class="edge">
+<title>interface~to_str&#45;&gt;proc~int32_to_string</title>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M456.59,-698.74C476.42,-695.69 504.08,-690.19 527,-681 544.4,-674.02 545.56,-665.9 563,-659 577.62,-653.22 594.08,-648.93 609.41,-645.79"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="610.13,-649.22 619.29,-643.9 608.81,-642.35 610.13,-649.22"/>
+</g>
+<!-- proc~int64_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node53" class="node">
+<title>proc~int64_to_string</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node53"><a xlink:href="../proc/int64_to_string.html" xlink:title="int64_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="710.5,-608 619.5,-608 619.5,-584 710.5,-584 710.5,-608"/>
+<text text-anchor="middle" x="665" y="-593.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int64_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int64_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge45" class="edge">
+<title>interface~to_str&#45;&gt;proc~int64_to_string</title>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M456.64,-701.99C477.53,-700.74 506.59,-696.08 527,-681 553.25,-661.61 536.66,-636.27 563,-617 576.41,-607.19 593.36,-601.73 609.52,-598.76"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="610.1,-602.21 619.45,-597.21 609.03,-595.3 610.1,-602.21"/>
+</g>
+<!-- proc~int8_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node54" class="node">
+<title>proc~int8_to_string</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node54"><a xlink:href="../proc/int8_to_string.html" xlink:title="int8_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="707,-776 623,-776 623,-752 707,-752 707,-776"/>
+<text text-anchor="middle" x="665" y="-761.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int8_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int8_to_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge46" class="edge">
+<title>interface~to_str&#45;&gt;proc~int8_to_string</title>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M456.9,-705.6C476.64,-708.81 504.06,-714.35 527,-723 544.13,-729.46 545.84,-736.62 563,-743 578.85,-748.89 596.74,-753.3 613.02,-756.51"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="612.44,-759.96 622.91,-758.35 613.72,-753.08 612.44,-759.96"/>
+</g>
+<!-- proc~load_char -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node56" class="node">
+<title>proc~load_char</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node56"><a xlink:href="../proc/load_char.html" xlink:title="serializer%load_char">
+<polygon fill="#d9534f" stroke="#d9534f" points="1856,-432 1732,-432 1732,-408 1856,-408 1856,-432"/>
+<text text-anchor="middle" x="1794" y="-417.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_char</text>
+</a>
+</g>
+</g>
+<!-- none~load~5&#45;&gt;proc~load_char -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge47" class="edge">
+<title>none~load~5&#45;&gt;proc~load_char</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M1622.02,-403.45C1651,-406.26 1688.99,-409.93 1721.8,-413.11"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1721.51,-416.6 1731.8,-414.08 1722.19,-409.63 1721.51,-416.6"/>
+</g>
+<!-- proc~load_double -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node57" class="node">
+<title>proc~load_double</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node57"><a xlink:href="../proc/load_double.html" xlink:title="serializer%load_double">
+<polygon fill="#d9534f" stroke="#d9534f" points="1862,-558 1726,-558 1726,-534 1862,-534 1862,-558"/>
+<text text-anchor="middle" x="1794" y="-543.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_double</text>
+</a>
+</g>
+</g>
+<!-- none~load~5&#45;&gt;proc~load_double -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge48" class="edge">
+<title>none~load~5&#45;&gt;proc~load_double</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M1585.1,-411.37C1600.25,-436.05 1633.46,-489.58 1678,-516 1690.62,-523.49 1705.29,-528.42 1719.84,-531.85"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1719.36,-535.32 1729.87,-533.99 1720.82,-528.48 1719.36,-535.32"/>
+</g>
+<!-- proc~load_i16 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node58" class="node">
+<title>proc~load_i16</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node58"><a xlink:href="../proc/load_i16.html" xlink:title="serializer%load_i16">
+<polygon fill="#d9534f" stroke="#d9534f" points="1852,-390 1736,-390 1736,-366 1852,-366 1852,-390"/>
+<text text-anchor="middle" x="1794" y="-375.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_i16</text>
+</a>
+</g>
+</g>
+<!-- none~load~5&#45;&gt;proc~load_i16 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge49" class="edge">
+<title>none~load~5&#45;&gt;proc~load_i16</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M1622.02,-394.55C1652.12,-391.63 1691.96,-387.78 1725.61,-384.52"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1726.22,-387.98 1735.84,-383.53 1725.54,-381.01 1726.22,-387.98"/>
+</g>
+<!-- proc~load_i32 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node59" class="node">
+<title>proc~load_i32</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node59"><a xlink:href="../proc/load_i32.html" xlink:title="serializer%load_i32">
+<polygon fill="#d9534f" stroke="#d9534f" points="1852,-306 1736,-306 1736,-282 1852,-282 1852,-306"/>
+<text text-anchor="middle" x="1794" y="-291.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_i32</text>
+</a>
+</g>
+</g>
+<!-- none~load~5&#45;&gt;proc~load_i32 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge50" class="edge">
+<title>none~load~5&#45;&gt;proc~load_i32</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M1586.86,-386.72C1604.16,-368.01 1639.92,-332.68 1678,-315 1692.86,-308.1 1709.79,-303.46 1726,-300.35"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1726.73,-303.77 1735.98,-298.6 1725.52,-296.88 1726.73,-303.77"/>
+</g>
+<!-- proc~load_i32_arr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node60" class="node">
+<title>proc~load_i32_arr</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node60"><a xlink:href="../proc/load_i32_arr.html" xlink:title="serializer%load_i32_arr">
+<polygon fill="#d9534f" stroke="#d9534f" points="1862.5,-264 1725.5,-264 1725.5,-240 1862.5,-240 1862.5,-264"/>
+<text text-anchor="middle" x="1794" y="-249.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_i32_arr</text>
+</a>
+</g>
+</g>
+<!-- none~load~5&#45;&gt;proc~load_i32_arr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge51" class="edge">
+<title>none~load~5&#45;&gt;proc~load_i32_arr</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M1581.95,-386.91C1595.27,-361.26 1630.07,-301.43 1678,-273 1689.34,-266.27 1702.32,-261.61 1715.39,-258.39"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1716.36,-261.77 1725.37,-256.21 1714.86,-254.93 1716.36,-261.77"/>
+</g>
+<!-- proc~load_i64 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node61" class="node">
+<title>proc~load_i64</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node61"><a xlink:href="../proc/load_i64.html" xlink:title="serializer%load_i64">
+<polygon fill="#d9534f" stroke="#d9534f" points="1852,-516 1736,-516 1736,-492 1852,-492 1852,-516"/>
+<text text-anchor="middle" x="1794" y="-501.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_i64</text>
+</a>
+</g>
+</g>
+<!-- none~load~5&#45;&gt;proc~load_i64 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge52" class="edge">
+<title>none~load~5&#45;&gt;proc~load_i64</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M1586.86,-411.28C1604.16,-429.99 1639.92,-465.32 1678,-483 1692.86,-489.9 1709.79,-494.54 1726,-497.65"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1725.52,-501.12 1735.98,-499.4 1726.73,-494.23 1725.52,-501.12"/>
+</g>
+<!-- proc~load_i8 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node62" class="node">
+<title>proc~load_i8</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node62"><a xlink:href="../proc/load_i8.html" xlink:title="serializer%load_i8">
+<polygon fill="#d9534f" stroke="#d9534f" points="1848.5,-474 1739.5,-474 1739.5,-450 1848.5,-450 1848.5,-474"/>
+<text text-anchor="middle" x="1794" y="-459.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_i8</text>
+</a>
+</g>
+</g>
+<!-- none~load~5&#45;&gt;proc~load_i8 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge53" class="edge">
+<title>none~load~5&#45;&gt;proc~load_i8</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M1601.04,-411.04C1621.37,-420.4 1650.99,-433.07 1678,-441 1694.37,-445.81 1712.39,-449.72 1729.2,-452.81"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1729.04,-456.34 1739.5,-454.63 1730.26,-449.44 1729.04,-456.34"/>
+</g>
+<!-- proc~load_logical -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node63" class="node">
+<title>proc~load_logical</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node63"><a xlink:href="../proc/load_logical.html" xlink:title="serializer%load_logical">
+<polygon fill="#d9534f" stroke="#d9534f" points="1861.5,-348 1726.5,-348 1726.5,-324 1861.5,-324 1861.5,-348"/>
+<text text-anchor="middle" x="1794" y="-333.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_logical</text>
+</a>
+</g>
+</g>
+<!-- none~load~5&#45;&gt;proc~load_logical -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge54" class="edge">
+<title>none~load~5&#45;&gt;proc~load_logical</title>
+<path fill="none" stroke="#00ff3f" stroke-dasharray="5,2" d="M1588.57,-386.99C1607.52,-374.72 1644.74,-357.77 1678,-348 1690.34,-344.38 1703.61,-341.26 1716.6,-338.76"/>
+<polygon fill="#00ff3f" stroke="#00ff3f" points="1717.25,-342.2 1726.46,-336.97 1716,-335.31 1717.25,-342.2"/>
+</g>
+<!-- proc~check_integer&#45;&gt;mpi_allreduce -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge55" class="edge">
+<title>proc~check_integer&#45;&gt;mpi_allreduce</title>
+<path fill="none" stroke="#00ff7f" d="M960.54,-622C991.06,-622 1025.35,-622 1053.02,-622"/>
+<polygon fill="#00ff7f" stroke="#00ff7f" points="1053.28,-625.5 1063.28,-622 1053.28,-618.5 1053.28,-625.5"/>
+</g>
+<!-- proc~check_integer&#45;&gt;mpi_comm_size -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge56" class="edge">
+<title>proc~check_integer&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#00ff7f" d="M940.19,-634.04C958.28,-637.44 978.41,-640.81 997,-643 1158.33,-661.98 1199.56,-662 1362,-662 1362,-662 1362,-662 1795,-662 1910.09,-662 2044.47,-653.75 2119.24,-648.42"/>
+<polygon fill="#00ff7f" stroke="#00ff7f" points="2119.67,-651.9 2129.39,-647.69 2119.17,-644.91 2119.67,-651.9"/>
+</g>
+<!-- proc~check_logical&#45;&gt;mpi_allreduce -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge57" class="edge">
+<title>proc~check_logical&#45;&gt;mpi_allreduce</title>
+<path fill="none" stroke="#00ffbf" d="M937.51,-512.07C945.98,-515.6 954.17,-520.15 961,-526 987.56,-548.77 969.46,-574.43 997,-596 1012.98,-608.52 1034.02,-615.16 1053.39,-618.63"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="1052.91,-622.1 1063.33,-620.17 1053.98,-615.18 1052.91,-622.1"/>
+</g>
+<!-- mpi_comm_rank -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node43" class="node">
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="2537,-750 2436,-750 2436,-726 2537,-726 2537,-750"/>
+<text text-anchor="middle" x="2486.5" y="-735.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
+</g>
+<!-- proc~check_logical&#45;&gt;mpi_comm_rank -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge58" class="edge">
+<title>proc~check_logical&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#00ffbf" d="M952.06,-512.03C1022.21,-526.22 1132.39,-554.02 1218,-601 1236.51,-611.16 1235.01,-622.77 1254,-632 1473.57,-738.75 1548.86,-738 1793,-738 1793,-738 1793,-738 2179,-738 2264.64,-738 2363.74,-738 2425.53,-738"/>
+<polygon fill="#00ffbf" stroke="#00ffbf" points="2425.86,-741.5 2435.86,-738 2425.86,-734.5 2425.86,-741.5"/>
+</g>
+<!-- proc~create_r2r&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge60" class="edge">
+<title>proc~create_r2r&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#00ffff" d="M508.27,-1411.28C687.47,-1397.65 1121.45,-1375.89 1218,-1475 1278.54,-1537.14 1197.29,-2189.34 1254,-2255 1263.49,-2265.98 1276.85,-2272.29 1290.96,-2275.74"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1290.32,-2279.18 1300.81,-2277.7 1291.68,-2272.32 1290.32,-2279.18"/>
+</g>
+<!-- proc~create_r2r&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge61" class="edge">
+<title>proc~create_r2r&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00ffff" d="M437.05,-1405.77C476.99,-1332.51 696.17,-950.14 997,-800 1313.59,-641.99 1439.17,-814 1793,-814 1793,-814 1793,-814 2015.5,-814 2150.02,-814 2297.25,-1287.71 2329.18,-1396.09"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="2325.89,-1397.32 2332.05,-1405.93 2332.61,-1395.35 2325.89,-1397.32"/>
+</g>
+<!-- proc~create_r2r_internal -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node47" class="node">
+<title>proc~create_r2r_internal</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node47"><a xlink:href="../proc/create_r2r_internal.html" xlink:title="dtfft_plan_r2r_t%create_r2r_internal">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="767,-1568 563,-1568 563,-1544 767,-1544 767,-1568"/>
+<text text-anchor="middle" x="665" y="-1553.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_r2r_t%create_r2r_internal</text>
+</a>
+</g>
+</g>
+<!-- proc~create_r2r&#45;&gt;proc~create_r2r_internal -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge59" class="edge">
+<title>proc~create_r2r&#45;&gt;proc~create_r2r_internal</title>
+<path fill="none" stroke="#00ffff" d="M450.81,-1430.01C492.3,-1454.52 586.89,-1510.43 634.89,-1538.8"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="633.18,-1541.85 643.57,-1543.92 636.74,-1535.82 633.18,-1541.85"/>
+</g>
+<!-- proc~create_r2r_pencil&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge63" class="edge">
+<title>proc~create_r2r_pencil&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#00bfff" d="M431.08,-1888C434.17,-1937.4 453.04,-2126.32 563,-2210 676.01,-2296 1116.53,-2286.83 1290.63,-2279.57"/>
+<polygon fill="#00bfff" stroke="#00bfff" points="1290.87,-2283.07 1300.71,-2279.14 1290.57,-2276.07 1290.87,-2283.07"/>
+</g>
+<!-- proc~create_r2r_pencil&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge64" class="edge">
+<title>proc~create_r2r_pencil&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#00bfff" d="M445.98,-1888C509.51,-1936.41 758.17,-2117.49 997,-2177 1089.9,-2200.15 1767.31,-2195.69 1910,-2146 1928.64,-2139.51 1928.1,-2128.31 1946,-2120 2002.91,-2093.6 2036.08,-2127.65 2083,-2086 2116.77,-2056.03 2097.28,-2030.58 2119,-1991 2161.16,-1914.16 2199.89,-1912.4 2237,-1833 2302.67,-1692.51 2326.81,-1504.15 2333.43,-1440.26"/>
+<polygon fill="#00bfff" stroke="#00bfff" points="2336.93,-1440.43 2334.43,-1430.14 2329.96,-1439.74 2336.93,-1440.43"/>
+</g>
+<!-- proc~create_r2r_pencil&#45;&gt;proc~create_r2r_internal -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge62" class="edge">
+<title>proc~create_r2r_pencil&#45;&gt;proc~create_r2r_internal</title>
+<path fill="none" stroke="#00bfff" d="M439.37,-1863.85C474.55,-1815.63 604.52,-1637.51 648.98,-1576.59"/>
+<polygon fill="#00bfff" stroke="#00bfff" points="652.06,-1578.31 655.12,-1568.17 646.4,-1574.18 652.06,-1578.31"/>
+</g>
+<!-- fname -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node36" class="node">
+<title>fname</title>
+<polygon fill="#777777" stroke="#777777" points="1390,-2044 1336,-2044 1336,-2020 1390,-2020 1390,-2044"/>
+<text text-anchor="middle" x="1363" y="-2029.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fname</text>
+</g>
+<!-- proc~destroy_stream&#45;&gt;fname -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge65" class="edge">
+<title>proc~destroy_stream&#45;&gt;fname</title>
+<path fill="none" stroke="#007fff" d="M1154.64,-2360.87C1176.84,-2359.66 1202.04,-2354.01 1218,-2337 1305.07,-2244.23 1167.05,-2145.88 1254,-2053 1271.97,-2033.81 1301.83,-2029.18 1325.61,-2029.01"/>
+<polygon fill="#007fff" stroke="#007fff" points="1325.64,-2032.51 1335.7,-2029.19 1325.77,-2025.51 1325.64,-2032.51"/>
+</g>
+<!-- interface~cudastreamdestroy -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node37" class="node">
+<title>interface~cudastreamdestroy</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node37"><a xlink:href="../interface/cudastreamdestroy.html" xlink:title="cudaStreamDestroy">
+<polygon fill="#a7506f" stroke="#a7506f" points="1422,-2368 1304,-2368 1304,-2344 1422,-2344 1422,-2368"/>
+<text text-anchor="middle" x="1363" y="-2353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamDestroy</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy_stream&#45;&gt;interface~cudastreamdestroy -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge66" class="edge">
+<title>proc~destroy_stream&#45;&gt;interface~cudastreamdestroy</title>
+<path fill="none" stroke="#007fff" d="M1154.7,-2357.64C1193.52,-2357.33 1249.55,-2356.89 1293.58,-2356.54"/>
+<polygon fill="#007fff" stroke="#007fff" points="1293.66,-2360.04 1303.63,-2356.46 1293.6,-2353.04 1293.66,-2360.04"/>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node42" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="2370,-2179 2303,-2179 2303,-2155 2370,-2155 2370,-2179"/>
+<text text-anchor="middle" x="2336.5" y="-2164.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~destroy_stream&#45;&gt;mpi_abort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge67" class="edge">
+<title>proc~destroy_stream&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#007fff" d="M1154.6,-2364.87C1183.17,-2368.91 1220.65,-2373.84 1254,-2377 1395.84,-2390.45 1431.53,-2396 1574,-2396 1574,-2396 1574,-2396 2015.5,-2396 2157.87,-2396 2280.51,-2244.24 2321.19,-2187.81"/>
+<polygon fill="#007fff" stroke="#007fff" points="2324.28,-2189.49 2327.21,-2179.31 2318.57,-2185.45 2324.28,-2189.49"/>
+</g>
+<!-- proc~cudageterrorstring -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node49" class="node">
+<title>proc~cudageterrorstring</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node49"><a xlink:href="../proc/cudageterrorstring.html" xlink:title="cudaGetErrorString">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1420.5,-2086 1305.5,-2086 1305.5,-2062 1420.5,-2062 1420.5,-2086"/>
+<text text-anchor="middle" x="1363" y="-2071.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy_stream&#45;&gt;proc~cudageterrorstring -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge68" class="edge">
+<title>proc~destroy_stream&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#007fff" d="M1154.76,-2360.71C1176.86,-2359.43 1201.92,-2353.76 1218,-2337 1293.27,-2258.52 1178.83,-2173.58 1254,-2095 1264.83,-2083.68 1279.81,-2077.45 1295.17,-2074.23"/>
+<polygon fill="#007fff" stroke="#007fff" points="1296,-2077.64 1305.27,-2072.51 1294.83,-2070.73 1296,-2077.64"/>
+</g>
+<!-- proc~destroy~22&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge72" class="edge">
+<title>proc~destroy~22&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#003fff" d="M1630.01,-187.53C1773.08,-174.39 2156.41,-148.22 2237,-236 2273.13,-275.35 2264.67,-1144.23 2273,-1197 2284.79,-1271.68 2313.4,-1356.98 2327.45,-1396.19"/>
+<polygon fill="#003fff" stroke="#003fff" points="2324.22,-1397.56 2330.92,-1405.77 2330.8,-1395.18 2324.22,-1397.56"/>
+</g>
+<!-- proc~destroy~22&#45;&gt;mpi_abort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge69" class="edge">
+<title>proc~destroy~22&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#003fff" d="M1630.25,-194.94C1696.95,-198.28 1813.22,-207.26 1910,-231 2061.27,-268.1 2146.74,-230.07 2237,-357 2271.85,-406.02 2269.43,-1378.96 2273,-1439 2289.59,-1717.7 2323.85,-2055.27 2333.13,-2144.49"/>
+<polygon fill="#003fff" stroke="#003fff" points="2329.67,-2144.97 2334.19,-2154.55 2336.63,-2144.25 2329.67,-2144.97"/>
+</g>
+<!-- proc~destroy~22&#45;&gt;mpi_comm_rank -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge70" class="edge">
+<title>proc~destroy~22&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#003fff" d="M1623.76,-180.98C1640.79,-177.02 1660.17,-172.9 1678,-170 1825.93,-145.92 1863.63,-136 2013.5,-136 2013.5,-136 2013.5,-136 2179,-136 2444.62,-136 2480.15,-607.19 2484.81,-715.84"/>
+<polygon fill="#003fff" stroke="#003fff" points="2481.32,-716.12 2485.2,-725.97 2488.31,-715.85 2481.32,-716.12"/>
+</g>
+<!-- mpi_file_close -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node44" class="node">
+<title>mpi_file_close</title>
+<polygon fill="#777777" stroke="#777777" points="1838,-108 1750,-108 1750,-84 1838,-84 1838,-108"/>
+<text text-anchor="middle" x="1794" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_file_close</text>
+</g>
+<!-- proc~destroy~22&#45;&gt;mpi_file_close -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge71" class="edge">
+<title>proc~destroy~22&#45;&gt;mpi_file_close</title>
+<path fill="none" stroke="#003fff" d="M1589.8,-180.75C1608.47,-164.82 1643.45,-137.23 1678,-122 1697.47,-113.42 1720.08,-107.52 1740.08,-103.54"/>
+<polygon fill="#003fff" stroke="#003fff" points="1740.79,-106.97 1749.97,-101.68 1739.49,-100.09 1740.79,-106.97"/>
+</g>
+<!-- proc~load_file&#45;&gt;none~load~5 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge73" class="edge">
+<title>proc~load_file&#45;&gt;none~load~5</title>
+<path fill="none" stroke="#7f00ff" d="M1380.48,-258.01C1417.11,-284.7 1505.51,-349.1 1548.99,-380.78"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1547.16,-383.78 1557.31,-386.84 1551.29,-378.12 1547.16,-383.78"/>
+</g>
+<!-- proc~load_file&#45;&gt;proc~destroy~22 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge75" class="edge">
+<title>proc~load_file&#45;&gt;proc~destroy~22</title>
+<path fill="none" stroke="#7f00ff" d="M1392.16,-241.41C1414.07,-237.63 1445.15,-231.8 1472,-225 1490.98,-220.19 1511.63,-213.92 1529.36,-208.2"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1530.45,-211.52 1538.87,-205.09 1528.28,-204.87 1530.45,-211.52"/>
+</g>
+<!-- proc~create~24 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node48" class="node">
+<title>proc~create~24</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node48"><a xlink:href="../proc/create~24.html" xlink:title="serializer%create">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1627.5,-108 1522.5,-108 1522.5,-84 1627.5,-84 1627.5,-108"/>
+<text text-anchor="middle" x="1575" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%create</text>
+</a>
+</g>
+</g>
+<!-- proc~load_file&#45;&gt;proc~create~24 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge74" class="edge">
+<title>proc~load_file&#45;&gt;proc~create~24</title>
+<path fill="none" stroke="#7f00ff" d="M1392.38,-246.27C1415.55,-245.21 1448.24,-240.67 1472,-225 1495.77,-209.32 1490.63,-194.57 1508,-172 1523.2,-152.25 1541.94,-130.92 1555.57,-115.9"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1558.39,-118 1562.55,-108.26 1553.22,-113.28 1558.39,-118"/>
+</g>
+<!-- proc~is_valid_plan_kind -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node55" class="node">
+<title>proc~is_valid_plan_kind</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node55"><a xlink:href="../proc/is_valid_plan_kind.html" xlink:title="is_valid_plan_kind">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1629,-66 1521,-66 1521,-42 1629,-42 1629,-66"/>
+<text text-anchor="middle" x="1575" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_plan_kind</text>
+</a>
+</g>
+</g>
+<!-- proc~load_file&#45;&gt;proc~is_valid_plan_kind -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge76" class="edge">
+<title>proc~load_file&#45;&gt;proc~is_valid_plan_kind</title>
+<path fill="none" stroke="#7f00ff" d="M1392.13,-248.35C1416.44,-248.76 1450.89,-245.21 1472,-225 1521.52,-177.59 1461.31,-125.2 1508,-75 1509.38,-73.51 1510.87,-72.13 1512.44,-70.85"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1514.53,-73.66 1520.91,-65.21 1510.65,-67.84 1514.53,-73.66"/>
+</g>
+<!-- proc~mem_free_ptr&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge79" class="edge">
+<title>proc~mem_free_ptr&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#bf00ff" d="M1125.22,-2501.78C1148.48,-2484.1 1190.79,-2449.39 1218,-2412 1240.23,-2381.45 1228.14,-2362.54 1254,-2335 1271.77,-2316.08 1297.01,-2301.82 1318.62,-2292.07"/>
+<polygon fill="#bf00ff" stroke="#bf00ff" points="1320.15,-2295.22 1327.93,-2288.04 1317.37,-2288.8 1320.15,-2295.22"/>
+</g>
+<!-- proc~mem_free_ptr&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge80" class="edge">
+<title>proc~mem_free_ptr&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#bf00ff" d="M1185.51,-2513.57C1404.25,-2507.52 2027.01,-2455.64 2237,-2067 2297.71,-1954.65 2327.61,-1541.62 2334.12,-1440.47"/>
+<polygon fill="#bf00ff" stroke="#bf00ff" points="2337.63,-1440.4 2334.77,-1430.2 2330.65,-1439.96 2337.63,-1440.4"/>
+</g>
+<!-- interface~mem_free_host -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node38" class="node">
+<title>interface~mem_free_host</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node38"><a xlink:href="../interface/mem_free_host.html" xlink:title="mem_free_host">
+<polygon fill="#a7506f" stroke="#a7506f" points="1410,-2604 1316,-2604 1316,-2580 1410,-2580 1410,-2604"/>
+<text text-anchor="middle" x="1363" y="-2589.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mem_free_host</text>
+</a>
+</g>
+</g>
+<!-- proc~mem_free_ptr&#45;&gt;interface~mem_free_host -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge77" class="edge">
+<title>proc~mem_free_ptr&#45;&gt;interface~mem_free_host</title>
+<path fill="none" stroke="#bf00ff" d="M1135.08,-2526.1C1163.87,-2538.81 1211.4,-2558.63 1254,-2571 1270.56,-2575.81 1288.87,-2579.84 1305.63,-2583.04"/>
+<polygon fill="#bf00ff" stroke="#bf00ff" points="1305.37,-2586.55 1315.84,-2584.92 1306.64,-2579.67 1305.37,-2586.55"/>
+</g>
+<!-- mem_free -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node41" class="node">
+<title>mem_free</title>
+<polygon fill="#777777" stroke="#777777" points="1396.5,-2562 1329.5,-2562 1329.5,-2538 1396.5,-2538 1396.5,-2562"/>
+<text text-anchor="middle" x="1363" y="-2547.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mem_free</text>
+</g>
+<!-- proc~mem_free_ptr&#45;&gt;mem_free -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge78" class="edge">
+<title>proc~mem_free_ptr&#45;&gt;mem_free</title>
+<path fill="none" stroke="#bf00ff" d="M1185.59,-2524.95C1229.34,-2531.16 1282.47,-2538.71 1318.92,-2543.88"/>
+<polygon fill="#bf00ff" stroke="#bf00ff" points="1318.8,-2547.4 1329.2,-2545.34 1319.79,-2540.47 1318.8,-2547.4"/>
+</g>
+<!-- interface~nvtxdomainrangepop_c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node39" class="node">
+<title>interface~nvtxdomainrangepop_c</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node39"><a xlink:href="../interface/nvtxdomainrangepop_c.html" xlink:title="nvtxDomainRangePop_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1434,-2246 1292,-2246 1292,-2222 1434,-2222 1434,-2246"/>
+<text text-anchor="middle" x="1363" y="-2231.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePop_c</text>
+</a>
+</g>
+</g>
+<!-- proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge81" class="edge">
+<title>proc~pop_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepop_c</title>
+<path fill="none" stroke="#ff00ff" d="M1179.11,-2235.44C1210.98,-2235.19 1248.77,-2234.89 1281.71,-2234.63"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="1281.79,-2238.13 1291.76,-2234.55 1281.74,-2231.13 1281.79,-2238.13"/>
+</g>
+<!-- interface~nvtxdomainrangepushex_c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node40" class="node">
+<title>interface~nvtxdomainrangepushex_c</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node40"><a xlink:href="../interface/nvtxdomainrangepushex_c.html" xlink:title="nvtxDomainRangePushEx_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1443,-946 1283,-946 1283,-922 1443,-922 1443,-946"/>
+<text text-anchor="middle" x="1363" y="-931.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainRangePushEx_c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge82" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;interface~nvtxdomainrangepushex_c</title>
+<path fill="none" stroke="#ff00bf" d="M1132.9,-1003.94C1161.36,-990.32 1210.1,-968.32 1254,-955 1262.08,-952.55 1270.59,-950.32 1279.14,-948.31"/>
+<polygon fill="#ff00bf" stroke="#ff00bf" points="1280.19,-951.66 1289.17,-946.04 1278.65,-944.83 1280.19,-951.66"/>
+</g>
+<!-- proc~astring_f2c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node45" class="node">
+<title>proc~astring_f2c</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node45"><a xlink:href="../proc/astring_f2c.html" xlink:title="astring_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="1610.5,-1027 1539.5,-1027 1539.5,-1003 1610.5,-1003 1610.5,-1027"/>
+<text text-anchor="middle" x="1575" y="-1012.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">astring_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge83" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#ff00bf" d="M1181.75,-1015.84C1279.27,-1015.63 1448.78,-1015.27 1529.2,-1015.1"/>
+<polygon fill="#ff00bf" stroke="#ff00bf" points="1529.48,-1018.6 1539.48,-1015.07 1529.47,-1011.6 1529.48,-1018.6"/>
+</g>
+<!-- proc~create_nvtx_domain -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node46" class="node">
+<title>proc~create_nvtx_domain</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node46"><a xlink:href="../proc/create_nvtx_domain.html" xlink:title="create_nvtx_domain">
+<polygon fill="#d9534f" stroke="#d9534f" points="1423,-988 1303,-988 1303,-964 1423,-964 1423,-988"/>
+<text text-anchor="middle" x="1363" y="-973.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvtx_domain</text>
+</a>
+</g>
+</g>
+<!-- proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge84" class="edge">
+<title>proc~push_nvtx_domain_range&#45;&gt;proc~create_nvtx_domain</title>
+<path fill="none" stroke="#ff00bf" d="M1181.82,-1004.43C1216.83,-998.91 1258.48,-992.33 1292.92,-986.9"/>
+<polygon fill="#ff00bf" stroke="#ff00bf" points="1293.56,-990.34 1302.89,-985.33 1292.47,-983.43 1293.56,-990.34"/>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_finalized -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge86" class="edge">
+<title>proc~write_message&#45;&gt;mpi_finalized</title>
+<path fill="none" stroke="#ff003f" d="M2340.46,-1430.13C2358.72,-1505.01 2456.15,-1904.64 2480.16,-2003.08"/>
+<polygon fill="#ff003f" stroke="#ff003f" points="2476.77,-2003.96 2482.54,-2012.85 2483.57,-2002.3 2476.77,-2003.96"/>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_comm_rank -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge85" class="edge">
+<title>proc~write_message&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#ff003f" d="M2341.43,-1405.64C2351.94,-1372.26 2381.19,-1277.37 2400,-1197 2438.94,-1030.62 2471.72,-827.01 2482.09,-760.31"/>
+<polygon fill="#ff003f" stroke="#ff003f" points="2485.59,-760.56 2483.66,-750.14 2478.67,-759.49 2485.59,-760.56"/>
+</g>
+<!-- proc~string_f2c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node73" class="node">
+<title>proc~string_f2c</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node73"><a xlink:href="../proc/string_f2c.html" xlink:title="string_f2c">
+<polygon fill="#d9534f" stroke="#d9534f" points="1826,-1027 1762,-1027 1762,-1003 1826,-1003 1826,-1027"/>
+<text text-anchor="middle" x="1794" y="-1012.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_f2c</text>
+</a>
+</g>
+</g>
+<!-- proc~astring_f2c&#45;&gt;proc~string_f2c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge87" class="edge">
+<title>proc~astring_f2c&#45;&gt;proc~string_f2c</title>
+<path fill="none" stroke="#12ff00" d="M1610.86,-1015C1649.22,-1015 1710.82,-1015 1751.6,-1015"/>
+<polygon fill="#12ff00" stroke="#12ff00" points="1751.74,-1018.5 1761.74,-1015 1751.74,-1011.5 1751.74,-1018.5"/>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;proc~astring_f2c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge89" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;proc~astring_f2c</title>
+<path fill="none" stroke="#00ff24" d="M1423.06,-986.97C1456.73,-993.22 1498.27,-1000.94 1529.24,-1006.69"/>
+<polygon fill="#00ff24" stroke="#00ff24" points="1528.84,-1010.17 1539.31,-1008.56 1530.12,-1003.29 1528.84,-1010.17"/>
+</g>
+<!-- interface~nvtxdomaincreate_c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node66" class="node">
+<title>interface~nvtxdomaincreate_c</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node66"><a xlink:href="../interface/nvtxdomaincreate_c.html" xlink:title="nvtxDomainCreate_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1637,-985 1513,-985 1513,-961 1637,-961 1637,-985"/>
+<text text-anchor="middle" x="1575" y="-970.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvtxDomainCreate_c</text>
+</a>
+</g>
+</g>
+<!-- proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge88" class="edge">
+<title>proc~create_nvtx_domain&#45;&gt;interface~nvtxdomaincreate_c</title>
+<path fill="none" stroke="#00ff24" d="M1423.06,-975.16C1447.8,-974.8 1476.77,-974.39 1502.69,-974.02"/>
+<polygon fill="#00ff24" stroke="#00ff24" points="1502.88,-977.52 1512.83,-973.87 1502.78,-970.52 1502.88,-977.52"/>
+</g>
+<!-- proc~create_r2r_internal&#45;&gt;create -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge90" class="edge">
+<title>proc~create_r2r_internal&#45;&gt;create</title>
+<path fill="none" stroke="#00ff5b" d="M667.02,-1543.78C674.45,-1463.33 727.92,-1007.57 997,-828 1049.93,-792.68 1244.28,-805.37 1325.72,-812.5"/>
+<polygon fill="#00ff5b" stroke="#00ff5b" points="1325.71,-816.01 1335.98,-813.42 1326.33,-809.04 1325.71,-816.01"/>
+</g>
+<!-- proc~create_r2r_internal&#45;&gt;proc~pop_nvtx_domain_range -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge94" class="edge">
+<title>proc~create_r2r_internal&#45;&gt;proc~pop_nvtx_domain_range</title>
+<path fill="none" stroke="#00ff5b" d="M669.55,-1568.2C690.03,-1636.77 799.19,-1978.29 997,-2177 1015.58,-2195.66 1041.31,-2209.93 1063.16,-2219.76"/>
+<polygon fill="#00ff5b" stroke="#00ff5b" points="1062,-2223.07 1072.56,-2223.83 1064.78,-2216.65 1062,-2223.07"/>
+</g>
+<!-- proc~create_r2r_internal&#45;&gt;proc~push_nvtx_domain_range -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge95" class="edge">
+<title>proc~create_r2r_internal&#45;&gt;proc~push_nvtx_domain_range</title>
+<path fill="none" stroke="#00ff5b" d="M704.3,-1543.97C731.73,-1535.42 769.57,-1523.78 803,-1514 872.96,-1493.54 912.56,-1524.47 961,-1470 1030.05,-1392.36 965.75,-1338.09 997,-1239 1021.76,-1160.51 1070.45,-1075.12 1093.64,-1036.74"/>
+<polygon fill="#00ff5b" stroke="#00ff5b" points="1096.73,-1038.38 1098.95,-1028.02 1090.76,-1034.74 1096.73,-1038.38"/>
+</g>
+<!-- fft_mapping -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node64" class="node">
+<title>fft_mapping</title>
+<polygon fill="#777777" stroke="#777777" points="920,-1589 844,-1589 844,-1565 920,-1565 920,-1589"/>
+<text text-anchor="middle" x="882" y="-1574.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fft_mapping</text>
+</g>
+<!-- proc~create_r2r_internal&#45;&gt;fft_mapping -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge91" class="edge">
+<title>proc~create_r2r_internal&#45;&gt;fft_mapping</title>
+<path fill="none" stroke="#00ff5b" d="M767.2,-1565.89C790.38,-1568.15 813.94,-1570.45 833.57,-1572.37"/>
+<polygon fill="#00ff5b" stroke="#00ff5b" points="833.45,-1575.87 843.75,-1573.36 834.14,-1568.91 833.45,-1575.87"/>
+</g>
+<!-- pencils -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node69" class="node">
+<title>pencils</title>
+<polygon fill="#777777" stroke="#777777" points="909,-1547 855,-1547 855,-1523 909,-1523 909,-1547"/>
+<text text-anchor="middle" x="882" y="-1532.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">pencils</text>
+</g>
+<!-- proc~create_r2r_internal&#45;&gt;pencils -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge92" class="edge">
+<title>proc~create_r2r_internal&#45;&gt;pencils</title>
+<path fill="none" stroke="#00ff5b" d="M767.2,-1546.11C794.97,-1543.4 823.3,-1540.64 844.74,-1538.54"/>
+<polygon fill="#00ff5b" stroke="#00ff5b" points="845.38,-1542 854.99,-1537.54 844.7,-1535.03 845.38,-1542"/>
+</g>
+<!-- proc~create_private -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node70" class="node">
+<title>proc~create_private</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node70"><a xlink:href="../proc/create_private.html" xlink:title="dtfft_plan_t%create_private">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="961,-1632 803,-1632 803,-1608 961,-1608 961,-1632"/>
+<text text-anchor="middle" x="882" y="-1617.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%create_private</text>
+</a>
+</g>
+</g>
+<!-- proc~create_r2r_internal&#45;&gt;proc~create_private -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge93" class="edge">
+<title>proc~create_r2r_internal&#45;&gt;proc~create_private</title>
+<path fill="none" stroke="#00ff5b" d="M704.61,-1568.09C732.02,-1576.61 769.71,-1588.2 803,-1598 811.05,-1600.37 819.59,-1602.83 827.94,-1605.21"/>
+<polygon fill="#00ff5b" stroke="#00ff5b" points="827.05,-1608.59 837.63,-1607.95 828.96,-1601.86 827.05,-1608.59"/>
+</g>
+<!-- proc~create~24&#45;&gt;mpi_file_close -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge96" class="edge">
+<title>proc~create~24&#45;&gt;mpi_file_close</title>
+<path fill="none" stroke="#00ff91" d="M1627.7,-96C1661.44,-96 1705.39,-96 1739.49,-96"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="1739.73,-99.5 1749.73,-96 1739.73,-92.5 1739.73,-99.5"/>
+</g>
+<!-- mpi_file_open -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node67" class="node">
+<title>mpi_file_open</title>
+<polygon fill="#777777" stroke="#777777" points="1837.5,-66 1750.5,-66 1750.5,-42 1837.5,-42 1837.5,-66"/>
+<text text-anchor="middle" x="1794" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_file_open</text>
+</g>
+<!-- proc~create~24&#45;&gt;mpi_file_open -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge97" class="edge">
+<title>proc~create~24&#45;&gt;mpi_file_open</title>
+<path fill="none" stroke="#00ff91" d="M1627.58,-85.15C1643.71,-81.81 1661.58,-78.19 1678,-75 1698.36,-71.05 1720.79,-66.9 1740.39,-63.35"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="1741.14,-66.77 1750.36,-61.55 1739.9,-59.88 1741.14,-66.77"/>
+</g>
+<!-- mpi_file_set_size -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node68" class="node">
+<title>mpi_file_set_size</title>
+<polygon fill="#777777" stroke="#777777" points="1844.5,-24 1743.5,-24 1743.5,0 1844.5,0 1844.5,-24"/>
+<text text-anchor="middle" x="1794" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_file_set_size</text>
+</g>
+<!-- proc~create~24&#45;&gt;mpi_file_set_size -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge98" class="edge">
+<title>proc~create~24&#45;&gt;mpi_file_set_size</title>
+<path fill="none" stroke="#00ff91" d="M1624.66,-83.97C1630.75,-81.48 1636.69,-78.52 1642,-75 1662.5,-61.42 1656.68,-45.25 1678,-33 1694.71,-23.4 1714.84,-18.04 1733.56,-15.08"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="1734.06,-18.55 1743.48,-13.71 1733.1,-11.61 1734.06,-18.55"/>
+</g>
+<!-- interface~cudageterrorstring_c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node65" class="node">
+<title>interface~cudageterrorstring_c</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node65"><a xlink:href="../interface/cudageterrorstring_c.html" xlink:title="cudaGetErrorString_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="1638.5,-2044 1511.5,-2044 1511.5,-2020 1638.5,-2020 1638.5,-2044"/>
+<text text-anchor="middle" x="1575" y="-2029.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString_c</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge99" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c</title>
+<path fill="none" stroke="#00ffc8" d="M1420.63,-2063.11C1437.2,-2059.89 1455.33,-2056.34 1472,-2053 1483.04,-2050.79 1494.74,-2048.41 1506.13,-2046.08"/>
+<polygon fill="#00ffc8" stroke="#00ffc8" points="1506.94,-2049.49 1516.04,-2044.05 1505.54,-2042.63 1506.94,-2049.49"/>
+</g>
+<!-- proc~string_c2f -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node72" class="node">
+<title>proc~string_c2f</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node72"><a xlink:href="../proc/string_c2f.html" xlink:title="string_c2f">
+<polygon fill="#d9534f" stroke="#d9534f" points="1607,-2086 1543,-2086 1543,-2062 1607,-2062 1607,-2086"/>
+<text text-anchor="middle" x="1575" y="-2071.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_c2f</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;proc~string_c2f -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge100" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#00ffc8" d="M1420.55,-2074C1455.81,-2074 1500.39,-2074 1532.41,-2074"/>
+<polygon fill="#00ffc8" stroke="#00ffc8" points="1532.75,-2077.5 1542.75,-2074 1532.75,-2070.5 1532.75,-2077.5"/>
+</g>
+<!-- proc~load_private~3 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node71" class="node">
+<title>proc~load_private~3</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node71"><a xlink:href="../proc/load_private~3.html" xlink:title="serializer%load_private">
+<polygon fill="#d9534f" stroke="#d9534f" points="2083,-411 1946,-411 1946,-387 2083,-387 2083,-411"/>
+<text text-anchor="middle" x="2014.5" y="-396.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">serializer%load_private</text>
+</a>
+</g>
+</g>
+<!-- proc~load_char&#45;&gt;proc~load_private~3 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge101" class="edge">
+<title>proc~load_char&#45;&gt;proc~load_private~3</title>
+<path fill="none" stroke="#4800ff" d="M1856.15,-414.12C1880.79,-411.76 1909.49,-409 1935.59,-406.49"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="1936.21,-409.94 1945.83,-405.5 1935.54,-402.98 1936.21,-409.94"/>
+</g>
+<!-- proc~load_double&#45;&gt;none~load~5 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge102" class="edge">
+<title>proc~load_double&#45;&gt;none~load~5</title>
+<path fill="none" stroke="#7f00ff" d="M1725.98,-550.61C1709.46,-547.76 1692.4,-542.54 1678,-534 1632.55,-507.04 1598.9,-451.84 1584.19,-420.78"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1587.21,-418.96 1579.94,-411.25 1580.81,-421.81 1587.21,-418.96"/>
+</g>
+<!-- proc~load_i16&#45;&gt;proc~load_private~3 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge103" class="edge">
+<title>proc~load_i16&#45;&gt;proc~load_private~3</title>
+<path fill="none" stroke="#b600ff" d="M1852.12,-383.49C1877.69,-385.95 1908.22,-388.88 1935.82,-391.53"/>
+<polygon fill="#b600ff" stroke="#b600ff" points="1935.55,-395.02 1945.84,-392.5 1936.22,-388.06 1935.55,-395.02"/>
+</g>
+<!-- proc~load_i32&#45;&gt;proc~load_private~3 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge104" class="edge">
+<title>proc~load_i32&#45;&gt;proc~load_private~3</title>
+<path fill="none" stroke="#ec00ff" d="M1852.28,-298.72C1871.27,-301.76 1892.12,-306.77 1910,-315 1943.96,-330.63 1976.28,-359.98 1995.5,-379.52"/>
+<polygon fill="#ec00ff" stroke="#ec00ff" points="1992.98,-381.95 2002.44,-386.72 1998.02,-377.09 1992.98,-381.95"/>
+</g>
+<!-- proc~load_i32_arr&#45;&gt;proc~load_private~3 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge105" class="edge">
+<title>proc~load_i32_arr&#45;&gt;proc~load_private~3</title>
+<path fill="none" stroke="#ff00da" d="M1862.58,-256.28C1878.91,-259.44 1895.74,-264.61 1910,-273 1953.4,-298.54 1986.46,-349.43 2002.6,-378.1"/>
+<polygon fill="#ff00da" stroke="#ff00da" points="1999.54,-379.81 2007.41,-386.91 2005.68,-376.45 1999.54,-379.81"/>
+</g>
+<!-- proc~load_i64&#45;&gt;proc~load_private~3 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge106" class="edge">
+<title>proc~load_i64&#45;&gt;proc~load_private~3</title>
+<path fill="none" stroke="#ff00a3" d="M1852.28,-499.28C1871.27,-496.24 1892.12,-491.23 1910,-483 1943.96,-467.37 1976.28,-438.02 1995.5,-418.48"/>
+<polygon fill="#ff00a3" stroke="#ff00a3" points="1998.02,-420.91 2002.44,-411.28 1992.98,-416.05 1998.02,-420.91"/>
+</g>
+<!-- proc~load_i8&#45;&gt;proc~load_private~3 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge107" class="edge">
+<title>proc~load_i8&#45;&gt;proc~load_private~3</title>
+<path fill="none" stroke="#ff006d" d="M1848.78,-454.52C1868.27,-451.2 1890.32,-446.73 1910,-441 1933.52,-434.16 1959.03,-423.84 1978.84,-415.15"/>
+<polygon fill="#ff006d" stroke="#ff006d" points="1980.37,-418.3 1988.07,-411.03 1977.52,-411.9 1980.37,-418.3"/>
+</g>
+<!-- proc~load_logical&#45;&gt;none~load~5 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge108" class="edge">
+<title>proc~load_logical&#45;&gt;none~load~5</title>
+<path fill="none" stroke="#ff0036" d="M1758.34,-348.04C1735.28,-352.78 1704.48,-358.22 1678,-366 1661.79,-370.76 1644.65,-377.22 1629.13,-383.29"/>
+<polygon fill="#ff0036" stroke="#ff0036" points="1627.73,-380.08 1619.71,-386.99 1630.29,-386.59 1627.73,-380.08"/>
+</g>
+<!-- proc~create_private&#45;&gt;create -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge110" class="edge">
+<title>proc~create_private&#45;&gt;create</title>
+<path fill="none" stroke="#0066ff" d="M949.81,-1607.96C954.03,-1605.24 957.84,-1601.96 961,-1598 1011.06,-1535.18 943.5,-935.92 997,-876 1018.83,-851.55 1238.07,-827.93 1325.9,-819.37"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1326.32,-822.85 1335.93,-818.4 1325.64,-815.88 1326.32,-822.85"/>
+</g>
+<!-- proc~create_private&#45;&gt;destroy -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge111" class="edge">
+<title>proc~create_private&#45;&gt;destroy</title>
+<path fill="none" stroke="#0066ff" d="M949.1,-1607.88C953.54,-1605.19 957.59,-1601.93 961,-1598 1040.3,-1506.52 905.91,-1407.75 997,-1328 1033.95,-1295.65 1181.6,-1295.04 1218,-1328 1277.93,-1382.26 1195.4,-1634.31 1254,-1690 1290.3,-1724.5 1641.99,-1719.51 1756.89,-1716.92"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1757.02,-1720.42 1766.94,-1716.69 1756.86,-1713.42 1757.02,-1720.42"/>
+</g>
+<!-- proc~create_private&#45;&gt;mpi_allreduce -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge120" class="edge">
+<title>proc~create_private&#45;&gt;mpi_allreduce</title>
+<path fill="none" stroke="#0066ff" d="M949.82,-1607.97C954.04,-1605.25 957.85,-1601.97 961,-1598 1013.6,-1531.82 975.41,-919.74 997,-838 1017.29,-761.18 1067.3,-680.07 1092.09,-642.86"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1095.12,-644.63 1097.81,-634.38 1089.32,-640.71 1095.12,-644.63"/>
+</g>
+<!-- proc~create_private&#45;&gt;mpi_comm_free -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge121" class="edge">
+<title>proc~create_private&#45;&gt;mpi_comm_free</title>
+<path fill="none" stroke="#0066ff" d="M887.05,-1632.2C899.64,-1670.5 938.58,-1791.95 961,-1895 972.23,-1946.62 961.19,-2091.16 997,-2130 1010.14,-2144.25 1029.53,-2151.36 1048.36,-2154.72"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1048.01,-2158.21 1058.42,-2156.19 1049.03,-2151.28 1048.01,-2158.21"/>
+</g>
+<!-- proc~create_private&#45;&gt;mpi_comm_size -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge123" class="edge">
+<title>proc~create_private&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#0066ff" d="M949.8,-1607.95C954.02,-1605.24 957.84,-1601.96 961,-1598 1056.02,-1479.1 895.34,-1027.29 997,-914 1068.42,-834.41 1386.36,-901.03 1472,-837 1501.61,-814.86 1478.38,-784.13 1508,-762 1715.36,-607.02 1829.82,-723 2083,-669 2096.82,-666.05 2111.65,-662.36 2125.35,-658.72"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="2126.36,-662.08 2135.1,-656.1 2124.54,-655.32 2126.36,-662.08"/>
+</g>
+<!-- proc~create_private&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge134" class="edge">
+<title>proc~create_private&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#0066ff" d="M947.34,-1607.9C952.35,-1605.22 957,-1601.96 961,-1598 1001.47,-1557.92 951.42,-1509.15 997,-1475 1075.61,-1416.1 1145.26,-1408.99 1218,-1475 1279.18,-1530.51 1198.87,-1783.48 1254,-1845 1350.98,-1953.21 1428.69,-1912 1574,-1912 1574,-1912 1574,-1912 2015.5,-1912 2136.94,-1912 2166.83,-1851.12 2237,-1752 2308.72,-1650.69 2328.75,-1497.05 2333.88,-1440.18"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="2337.37,-1440.4 2334.72,-1430.14 2330.4,-1439.82 2337.37,-1440.4"/>
+</g>
+<!-- proc~create_private&#45;&gt;fname -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge113" class="edge">
+<title>proc~create_private&#45;&gt;fname</title>
+<path fill="none" stroke="#0066ff" d="M961.25,-1613.23C1048.66,-1607.54 1182.59,-1605.02 1218,-1639 1277.12,-1695.74 1200.2,-1944.19 1254,-2006 1271.54,-2026.15 1301.71,-2032.11 1325.71,-2033.33"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1325.82,-2036.83 1335.9,-2033.59 1326,-2029.84 1325.82,-2036.83"/>
+</g>
+<!-- proc~create_private&#45;&gt;mpi_abort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge118" class="edge">
+<title>proc~create_private&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#0066ff" d="M886.69,-1632.22C898.54,-1671.71 936.26,-1799.57 961,-1907 980.29,-1990.76 935.71,-2036.74 997,-2097 1032.53,-2131.94 1169.17,-2125.08 1218,-2135 1475.25,-2187.27 1530.5,-2270 1793,-2270 1793,-2270 1793,-2270 2015.5,-2270 2126.67,-2270 2249.57,-2212.98 2305.19,-2183.79"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="2306.97,-2186.8 2314.16,-2179.02 2303.68,-2180.63 2306.97,-2186.8"/>
+</g>
+<!-- proc~create_private&#45;&gt;mpi_comm_rank -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge122" class="edge">
+<title>proc~create_private&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#0066ff" d="M949.77,-1607.92C954,-1605.22 957.82,-1601.95 961,-1598 1045.17,-1493.43 914.61,-1100.98 997,-995 1070.58,-900.34 1138.09,-943.64 1254,-913 1349.73,-887.7 1375.87,-890.74 1472,-867 1615.96,-831.45 1644.71,-776 1793,-776 1793,-776 1793,-776 2179,-776 2265.35,-776 2364.34,-760.96 2425.91,-749.81"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="2426.63,-753.23 2435.83,-747.98 2425.36,-746.35 2426.63,-753.23"/>
+</g>
+<!-- proc~create_private&#45;&gt;proc~cudageterrorstring -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge128" class="edge">
+<title>proc~create_private&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#0066ff" d="M886.47,-1632.26C905.37,-1698.97 995.08,-2015.3 997,-2017 1002.57,-2021.92 1191.37,-2049.59 1295.18,-2064.49"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1294.87,-2067.98 1305.26,-2065.94 1295.86,-2061.05 1294.87,-2067.98"/>
+</g>
+<!-- counts -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node74" class="node">
+<title>counts</title>
+<polygon fill="#777777" stroke="#777777" points="1390,-1766 1336,-1766 1336,-1742 1390,-1742 1390,-1766"/>
+<text text-anchor="middle" x="1363" y="-1751.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">counts</text>
+</g>
+<!-- proc~create_private&#45;&gt;counts -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge109" class="edge">
+<title>proc~create_private&#45;&gt;counts</title>
+<path fill="none" stroke="#0066ff" d="M949.03,-1607.82C953.48,-1605.14 957.56,-1601.91 961,-1598 1032.58,-1516.73 914.96,-1427.7 997,-1357 1034.2,-1324.94 1181.63,-1323.99 1218,-1357 1279.33,-1412.67 1199.65,-1665.49 1254,-1728 1271.53,-1748.16 1301.7,-1754.11 1325.71,-1755.34"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1325.81,-1758.84 1335.9,-1755.6 1325.99,-1751.84 1325.81,-1758.84"/>
+</g>
+<!-- fixed_dims -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node75" class="node">
+<title>fixed_dims</title>
+<polygon fill="#777777" stroke="#777777" points="1142.5,-2008 1072.5,-2008 1072.5,-1984 1142.5,-1984 1142.5,-2008"/>
+<text text-anchor="middle" x="1107.5" y="-1993.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fixed_dims</text>
+</g>
+<!-- proc~create_private&#45;&gt;fixed_dims -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge112" class="edge">
+<title>proc~create_private&#45;&gt;fixed_dims</title>
+<path fill="none" stroke="#0066ff" d="M886.1,-1632.09C901.44,-1691.5 969.56,-1950.7 997,-1975 1014.64,-1990.62 1040.26,-1996.13 1062.28,-1997.62"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1062.29,-2001.12 1072.43,-1998.05 1062.59,-1994.13 1062.29,-2001.12"/>
+</g>
+<!-- from_bricks -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node76" class="node">
+<title>from_bricks</title>
+<polygon fill="#777777" stroke="#777777" points="1144.5,-1966 1070.5,-1966 1070.5,-1942 1144.5,-1942 1144.5,-1966"/>
+<text text-anchor="middle" x="1107.5" y="-1951.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">from_bricks</text>
+</g>
+<!-- proc~create_private&#45;&gt;from_bricks -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge114" class="edge">
+<title>proc~create_private&#45;&gt;from_bricks</title>
+<path fill="none" stroke="#0066ff" d="M883.4,-1632.25C885.63,-1679.42 900.36,-1850.69 997,-1933 1014.29,-1947.72 1038.72,-1953.36 1060.13,-1955.15"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1060.16,-1958.66 1070.34,-1955.74 1060.56,-1951.67 1060.16,-1958.66"/>
+</g>
+<!-- interface~cudagetdevice -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node77" class="node">
+<title>interface~cudagetdevice</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node77"><a xlink:href="../interface/cudagetdevice.html" xlink:title="cudaGetDevice">
+<polygon fill="#a7506f" stroke="#a7506f" points="1154.5,-1924 1060.5,-1924 1060.5,-1900 1154.5,-1900 1154.5,-1924"/>
+<text text-anchor="middle" x="1107.5" y="-1909.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetDevice</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;interface~cudagetdevice -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge115" class="edge">
+<title>proc~create_private&#45;&gt;interface~cudagetdevice</title>
+<path fill="none" stroke="#0066ff" d="M884.14,-1632.1C888.87,-1675.03 910.95,-1821.26 997,-1891 1011.85,-1903.03 1031.53,-1908.91 1050.1,-1911.58"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1049.94,-1915.09 1060.27,-1912.76 1050.74,-1908.13 1049.94,-1915.09"/>
+</g>
+<!-- interface~cudagetdevicecount -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node78" class="node">
+<title>interface~cudagetdevicecount</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node78"><a xlink:href="../interface/cudagetdevicecount.html" xlink:title="cudaGetDeviceCount">
+<polygon fill="#a7506f" stroke="#a7506f" points="1170.5,-1882 1044.5,-1882 1044.5,-1858 1170.5,-1858 1170.5,-1882"/>
+<text text-anchor="middle" x="1107.5" y="-1867.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetDeviceCount</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;interface~cudagetdevicecount -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge116" class="edge">
+<title>proc~create_private&#45;&gt;interface~cudagetdevicecount</title>
+<path fill="none" stroke="#0066ff" d="M885.14,-1632.1C892.63,-1670.69 921.47,-1791.68 997,-1849 1007.92,-1857.29 1021.18,-1862.6 1034.64,-1865.94"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1033.94,-1869.37 1044.45,-1868.04 1035.41,-1862.53 1033.94,-1869.37"/>
+</g>
+<!-- local_devices -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node80" class="node">
+<title>local_devices</title>
+<polygon fill="#777777" stroke="#777777" points="1149.5,-1840 1065.5,-1840 1065.5,-1816 1149.5,-1816 1149.5,-1840"/>
+<text text-anchor="middle" x="1107.5" y="-1825.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">local_devices</text>
+</g>
+<!-- proc~create_private&#45;&gt;local_devices -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge117" class="edge">
+<title>proc~create_private&#45;&gt;local_devices</title>
+<path fill="none" stroke="#0066ff" d="M886.51,-1632.02C897.04,-1665.73 931.7,-1761.71 997,-1807 1013.93,-1818.74 1035.71,-1824.35 1055.39,-1826.9"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1055.13,-1830.39 1065.44,-1827.96 1055.87,-1823.43 1055.13,-1830.39"/>
+</g>
+<!-- mpi_allgather -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node81" class="node">
+<title>mpi_allgather</title>
+<polygon fill="#777777" stroke="#777777" points="1150.5,-1798 1064.5,-1798 1064.5,-1774 1150.5,-1774 1150.5,-1798"/>
+<text text-anchor="middle" x="1107.5" y="-1783.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_allgather</text>
+</g>
+<!-- proc~create_private&#45;&gt;mpi_allgather -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge119" class="edge">
+<title>proc~create_private&#45;&gt;mpi_allgather</title>
+<path fill="none" stroke="#0066ff" d="M888.7,-1632.14C902.71,-1660.53 941.75,-1731.36 997,-1765 1014.1,-1775.41 1035.25,-1780.84 1054.39,-1783.61"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1054.13,-1787.1 1064.48,-1784.86 1054.99,-1780.16 1054.13,-1787.1"/>
+</g>
+<!-- mpi_comm_split_type -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node82" class="node">
+<title>mpi_comm_split_type</title>
+<polygon fill="#777777" stroke="#777777" points="1171,-1756 1044,-1756 1044,-1732 1171,-1732 1171,-1756"/>
+<text text-anchor="middle" x="1107.5" y="-1741.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_split_type</text>
+</g>
+<!-- proc~create_private&#45;&gt;mpi_comm_split_type -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge124" class="edge">
+<title>proc~create_private&#45;&gt;mpi_comm_split_type</title>
+<path fill="none" stroke="#0066ff" d="M892.5,-1632.16C910.38,-1654.13 951.4,-1700.29 997,-1723 1008.35,-1728.65 1021.06,-1732.79 1033.69,-1735.81"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1033.25,-1739.3 1043.77,-1738 1034.74,-1732.46 1033.25,-1739.3"/>
+</g>
+<!-- proc~alloc_fft_plans -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node85" class="node">
+<title>proc~alloc_fft_plans</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node85"><a xlink:href="../proc/alloc_fft_plans.html" xlink:title="dtfft_plan_t%alloc_fft_plans">
+<polygon fill="#d9534f" stroke="#d9534f" points="1186,-1390 1029,-1390 1029,-1366 1186,-1366 1186,-1390"/>
+<text text-anchor="middle" x="1107.5" y="-1375.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%alloc_fft_plans</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;proc~alloc_fft_plans -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge125" class="edge">
+<title>proc~create_private&#45;&gt;proc~alloc_fft_plans</title>
+<path fill="none" stroke="#0066ff" d="M947.96,-1607.94C952.77,-1605.24 957.21,-1601.97 961,-1598 1010.09,-1546.49 954.83,-1499.31 997,-1442 1013.1,-1420.12 1039.11,-1404.46 1061.75,-1394.12"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1063.43,-1397.2 1071.2,-1390 1060.64,-1390.78 1063.43,-1397.2"/>
+</g>
+<!-- proc~check_create_args -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node86" class="node">
+<title>proc~check_create_args</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node86"><a xlink:href="../proc/check_create_args.html" xlink:title="dtfft_plan_t%check_create_args">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1198,-1272 1017,-1272 1017,-1248 1198,-1248 1198,-1272"/>
+<text text-anchor="middle" x="1107.5" y="-1257.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_plan_t%check_create_args</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;proc~check_create_args -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge126" class="edge">
+<title>proc~create_private&#45;&gt;proc~check_create_args</title>
+<path fill="none" stroke="#0066ff" d="M949.17,-1607.95C953.6,-1605.24 957.62,-1601.96 961,-1598 1051.5,-1491.72 904.3,-1390.36 997,-1286 1000.31,-1282.27 1004.05,-1279.03 1008.11,-1276.21"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1010.03,-1279.13 1016.82,-1271 1006.44,-1273.13 1010.03,-1279.13"/>
+</g>
+<!-- proc~count_unique -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node87" class="node">
+<title>proc~count_unique</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node87"><a xlink:href="../proc/count_unique.html" xlink:title="count_unique">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1150,-1714 1065,-1714 1065,-1690 1150,-1690 1150,-1714"/>
+<text text-anchor="middle" x="1107.5" y="-1699.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">count_unique</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;proc~count_unique -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge127" class="edge">
+<title>proc~create_private&#45;&gt;proc~count_unique</title>
+<path fill="none" stroke="#0066ff" d="M901.55,-1632.21C923.47,-1646.07 961.45,-1668.41 997,-1681 1015.4,-1687.52 1036.29,-1692.16 1054.86,-1695.39"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1054.47,-1698.87 1064.9,-1697.04 1055.6,-1691.96 1054.47,-1698.87"/>
+</g>
+<!-- proc~get_backend~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node88" class="node">
+<title>proc~get_backend~2</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node88"><a xlink:href="../proc/get_backend~2.html" xlink:title="abstract_reshape_plan%get_backend">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1213,-1672 1002,-1672 1002,-1648 1213,-1648 1213,-1672"/>
+<text text-anchor="middle" x="1107.5" y="-1657.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_plan%get_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;proc~get_backend~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge129" class="edge">
+<title>proc~create_private&#45;&gt;proc~get_backend~2</title>
+<path fill="none" stroke="#0066ff" d="M950.06,-1632C974.92,-1636.45 1003.31,-1641.53 1029.02,-1646.13"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1028.64,-1649.62 1039.1,-1647.94 1029.88,-1642.73 1028.64,-1649.62"/>
+</g>
+<!-- proc~get_conf_stream -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node89" class="node">
+<title>proc~get_conf_stream</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node89"><a xlink:href="../proc/get_conf_stream.html" xlink:title="get_conf_stream">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1157.5,-1592 1057.5,-1592 1057.5,-1568 1157.5,-1568 1157.5,-1592"/>
+<text text-anchor="middle" x="1107.5" y="-1577.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_stream</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;proc~get_conf_stream -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge130" class="edge">
+<title>proc~create_private&#45;&gt;proc~get_conf_stream</title>
+<path fill="none" stroke="#0066ff" d="M950.06,-1608C981.02,-1602.46 1017.46,-1595.94 1047.37,-1590.58"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1048.03,-1594.02 1057.25,-1588.81 1046.79,-1587.13 1048.03,-1594.02"/>
+</g>
+<!-- proc~get_y_slab -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node90" class="node">
+<title>proc~get_y_slab</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node90"><a xlink:href="../proc/get_y_slab.html" xlink:title="transpose_plan%get_y_slab">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1187,-1550 1028,-1550 1028,-1526 1187,-1526 1187,-1550"/>
+<text text-anchor="middle" x="1107.5" y="-1535.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan%get_y_slab</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;proc~get_y_slab -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge131" class="edge">
+<title>proc~create_private&#45;&gt;proc~get_y_slab</title>
+<path fill="none" stroke="#0066ff" d="M939.95,-1607.94C947.31,-1605.25 954.52,-1601.97 961,-1598 981.11,-1585.67 976.38,-1570.46 997,-1559 1003.51,-1555.38 1010.54,-1552.37 1017.79,-1549.88"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1019.26,-1553.08 1027.77,-1546.78 1017.19,-1546.4 1019.26,-1553.08"/>
+</g>
+<!-- proc~get_z_slab -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node91" class="node">
+<title>proc~get_z_slab</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node91"><a xlink:href="../proc/get_z_slab.html" xlink:title="transpose_plan%get_z_slab">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1186.5,-1508 1028.5,-1508 1028.5,-1484 1186.5,-1484 1186.5,-1508"/>
+<text text-anchor="middle" x="1107.5" y="-1493.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_plan%get_z_slab</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;proc~get_z_slab -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge132" class="edge">
+<title>proc~create_private&#45;&gt;proc~get_z_slab</title>
+<path fill="none" stroke="#0066ff" d="M945.64,-1607.88C951.19,-1605.21 956.43,-1601.96 961,-1598 990.78,-1572.21 966.15,-1541.5 997,-1517 1003.47,-1511.87 1010.82,-1507.86 1018.58,-1504.75"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1019.93,-1507.98 1028.22,-1501.38 1017.63,-1501.37 1019.93,-1507.98"/>
+</g>
+<!-- proc~is_aux_needed -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node92" class="node">
+<title>proc~is_aux_needed</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node92"><a xlink:href="../proc/is_aux_needed.html" xlink:title="abstract_reshape_plan%is_aux_needed">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1218,-2088 997,-2088 997,-2064 1218,-2064 1218,-2088"/>
+<text text-anchor="middle" x="1107.5" y="-2073.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_plan%is_aux_needed</text>
+</a>
+</g>
+</g>
+<!-- proc~create_private&#45;&gt;proc~is_aux_needed -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge133" class="edge">
+<title>proc~create_private&#45;&gt;proc~is_aux_needed</title>
+<path fill="none" stroke="#0066ff" d="M886.63,-1632.01C898.14,-1670.24 934.61,-1792.64 961,-1895 978.65,-1963.48 947.11,-1999.87 997,-2050 1000.31,-2053.32 1003.96,-2056.25 1007.85,-2058.83"/>
+<polygon fill="#0066ff" stroke="#0066ff" points="1006.33,-2061.99 1016.75,-2063.93 1009.82,-2055.92 1006.33,-2061.99"/>
+</g>
+<!-- proc~load_private~3&#45;&gt;mpi_comm_size -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge136" class="edge">
+<title>proc~load_private~3&#45;&gt;mpi_comm_size</title>
+<path fill="none" stroke="#3200ff" d="M2023.51,-411.15C2049.34,-450.34 2130.66,-573.7 2163.27,-623.17"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="2160.52,-625.35 2168.94,-631.78 2166.36,-621.5 2160.52,-625.35"/>
+</g>
+<!-- proc~load_private~3&#45;&gt;mpi_comm_rank -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge135" class="edge">
+<title>proc~load_private~3&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#3200ff" d="M2035.49,-386.97C2076.02,-364.27 2169.72,-320.56 2237,-357 2384.97,-437.15 2458.79,-647.87 2479.37,-716.24"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="2476.04,-717.34 2482.22,-725.95 2482.76,-715.37 2476.04,-717.34"/>
+</g>
+<!-- mpi_file_read_at -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node83" class="node">
+<title>mpi_file_read_at</title>
+<polygon fill="#777777" stroke="#777777" points="2228,-390 2128,-390 2128,-366 2228,-366 2228,-390"/>
+<text text-anchor="middle" x="2178" y="-375.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_file_read_at</text>
+</g>
+<!-- proc~load_private~3&#45;&gt;mpi_file_read_at -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge137" class="edge">
+<title>proc~load_private~3&#45;&gt;mpi_file_read_at</title>
+<path fill="none" stroke="#3200ff" d="M2083.05,-390.22C2094.57,-388.72 2106.45,-387.17 2117.73,-385.71"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="2118.43,-389.15 2127.89,-384.39 2117.53,-382.2 2118.43,-389.15"/>
+</g>
+<!-- mpi_file_read_at_all -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node84" class="node">
+<title>mpi_file_read_at_all</title>
+<polygon fill="#777777" stroke="#777777" points="2237,-432 2119,-432 2119,-408 2237,-408 2237,-432"/>
+<text text-anchor="middle" x="2178" y="-417.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_file_read_at_all</text>
+</g>
+<!-- proc~load_private~3&#45;&gt;mpi_file_read_at_all -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge138" class="edge">
+<title>proc~load_private~3&#45;&gt;mpi_file_read_at_all</title>
+<path fill="none" stroke="#3200ff" d="M2083.05,-407.78C2091.63,-408.9 2100.41,-410.04 2108.99,-411.16"/>
+<polygon fill="#3200ff" stroke="#3200ff" points="2108.58,-414.63 2118.94,-412.45 2109.48,-407.69 2108.58,-414.63"/>
+</g>
+<!-- interface~is_null_ptr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node79" class="node">
+<title>interface~is_null_ptr</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node79"><a xlink:href="../interface/is_null_ptr.html" xlink:title="is_null_ptr">
+<polygon fill="#a7506f" stroke="#a7506f" points="1827,-2077 1761,-2077 1761,-2053 1827,-2053 1827,-2077"/>
+<text text-anchor="middle" x="1794" y="-2062.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~string_c2f&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge139" class="edge">
+<title>proc~string_c2f&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#cc00ff" d="M1607.09,-2072.71C1644.8,-2071.15 1708.52,-2068.5 1750.68,-2066.76"/>
+<polygon fill="#cc00ff" stroke="#cc00ff" points="1751.06,-2070.24 1760.91,-2066.33 1750.77,-2063.25 1751.06,-2070.24"/>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge140" class="edge">
+<title>interface~is_null_ptr&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#6bff00" stroke-dasharray="5,2" d="M1760.95,-2075.14C1743.81,-2084.67 1754.83,-2095 1794,-2095 1823.38,-2095 1836.92,-2089.19 1834.63,-2082.26"/>
+<polygon fill="#6bff00" stroke="#6bff00" points="1836.73,-2079.44 1827.05,-2075.14 1831.94,-2084.54 1836.73,-2079.44"/>
+</g>
+<!-- proc~is_null_funptr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node103" class="node">
+<title>proc~is_null_funptr</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node103"><a xlink:href="../proc/is_null_funptr.html" xlink:title="is_null_funptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="2056,-2077 1973,-2077 1973,-2053 2056,-2053 2056,-2077"/>
+<text text-anchor="middle" x="2014.5" y="-2062.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_funptr</text>
+</a>
+</g>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;proc~is_null_funptr -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge141" class="edge">
+<title>interface~is_null_ptr&#45;&gt;proc~is_null_funptr</title>
+<path fill="none" stroke="#6bff00" stroke-dasharray="5,2" d="M1827.24,-2065C1862.92,-2065 1920.88,-2065 1962.68,-2065"/>
+<polygon fill="#6bff00" stroke="#6bff00" points="1962.94,-2068.5 1972.94,-2065 1962.94,-2061.5 1962.94,-2068.5"/>
+</g>
+<!-- proc~alloc_fft_plans&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge145" class="edge">
+<title>proc~alloc_fft_plans&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#0086ff" d="M1186.27,-1383.67C1198.38,-1387.88 1209.64,-1394.31 1218,-1404 1278.21,-1473.73 1187.96,-1752.76 1254,-1817 1305.06,-1866.67 1502.76,-1836 1574,-1836 1574,-1836 1574,-1836 2015.5,-1836 2217.08,-1836 2308.85,-1525.7 2330.39,-1439.81"/>
+<polygon fill="#0086ff" stroke="#0086ff" points="2333.8,-1440.6 2332.77,-1430.06 2327,-1438.94 2333.8,-1440.6"/>
+</g>
+<!-- proc~alloc_fft_plans&#45;&gt;mpi_abort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge143" class="edge">
+<title>proc~alloc_fft_plans&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#0086ff" d="M1186.03,-1383.54C1198.25,-1387.75 1209.6,-1394.22 1218,-1404 1282.06,-1478.59 1188.75,-1771.44 1254,-1845 1378.76,-1985.66 1938.91,-1893.23 2083,-2014 2116.33,-2041.94 2086.78,-2075.79 2119,-2105 2167.44,-2148.92 2244.98,-2161.91 2292.93,-2165.65"/>
+<polygon fill="#0086ff" stroke="#0086ff" points="2292.77,-2169.14 2302.98,-2166.33 2293.24,-2162.16 2292.77,-2169.14"/>
+</g>
+<!-- proc~alloc_fft_plans&#45;&gt;counts -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge142" class="edge">
+<title>proc~alloc_fft_plans&#45;&gt;counts</title>
+<path fill="none" stroke="#0086ff" d="M1186.08,-1383.84C1198.21,-1388.03 1209.52,-1394.41 1218,-1404 1313.99,-1512.53 1158.18,-1619.32 1254,-1728 1271.67,-1748.04 1301.83,-1754 1325.8,-1755.26"/>
+<polygon fill="#0086ff" stroke="#0086ff" points="1325.88,-1758.76 1335.97,-1755.54 1326.07,-1751.76 1325.88,-1758.76"/>
+</g>
+<!-- proc~allocate_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node95" class="node">
+<title>proc~allocate_executor</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node95"><a xlink:href="../proc/allocate_executor.html" xlink:title="allocate_executor">
+<polygon fill="#d9534f" stroke="#d9534f" points="1416.5,-1808 1309.5,-1808 1309.5,-1784 1416.5,-1784 1416.5,-1808"/>
+<text text-anchor="middle" x="1363" y="-1793.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">allocate_executor</text>
+</a>
+</g>
+</g>
+<!-- proc~alloc_fft_plans&#45;&gt;proc~allocate_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge144" class="edge">
+<title>proc~alloc_fft_plans&#45;&gt;proc~allocate_executor</title>
+<path fill="none" stroke="#0086ff" d="M1186.19,-1383.74C1198.31,-1387.94 1209.59,-1394.35 1218,-1404 1272.44,-1466.43 1198.29,-1713.71 1254,-1775 1265.6,-1787.76 1282.45,-1794.13 1299.4,-1797.04"/>
+<polygon fill="#0086ff" stroke="#0086ff" points="1298.98,-1800.51 1309.36,-1798.37 1299.91,-1793.57 1298.98,-1800.51"/>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~get_conf_platform -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge149" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~get_conf_platform</title>
+<path fill="none" stroke="#0035ff" d="M1198.13,-1271.05C1205.58,-1274.85 1212.39,-1279.74 1218,-1286 1304.94,-1383.08 1157.89,-1488.99 1254,-1577 1288.28,-1608.39 1593.69,-1602.52 1728.98,-1598.3"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1729.32,-1601.79 1739.2,-1597.97 1729.09,-1594.79 1729.32,-1601.79"/>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge161" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#0035ff" d="M1113.39,-1247.73C1128.2,-1212.47 1176.4,-1110.95 1254,-1073 1289.92,-1055.44 2017.61,-1025.15 2083,-1074 2127.95,-1107.58 2079,-1155.65 2119,-1195 2157.82,-1233.19 2194.75,-1193.65 2237,-1228 2291.93,-1272.66 2319.66,-1356.09 2330.25,-1395.84"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="2326.87,-1396.78 2332.73,-1405.61 2333.66,-1395.05 2326.87,-1396.78"/>
+</g>
+<!-- proc~check_create_args&#45;&gt;mpi_abort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge146" class="edge">
+<title>proc~check_create_args&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#0035ff" d="M1178.77,-1272.04C1193.8,-1277.82 1208.11,-1286.37 1218,-1299 1267.3,-1361.95 1196.28,-1601.67 1254,-1657 1306.71,-1707.52 1844.18,-1663.41 1910,-1695 2127,-1799.16 2283.17,-2068.59 2324.59,-2145.95"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="2321.5,-2147.59 2329.27,-2154.79 2327.68,-2144.32 2321.5,-2147.59"/>
+</g>
+<!-- mpi_topo_test -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node94" class="node">
+<title>mpi_topo_test</title>
+<polygon fill="#777777" stroke="#777777" points="1406.5,-1106 1319.5,-1106 1319.5,-1082 1406.5,-1082 1406.5,-1106"/>
+<text text-anchor="middle" x="1363" y="-1091.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_topo_test</text>
+</g>
+<!-- proc~check_create_args&#45;&gt;mpi_topo_test -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge147" class="edge">
+<title>proc~check_create_args&#45;&gt;mpi_topo_test</title>
+<path fill="none" stroke="#0035ff" d="M1116.7,-1247.87C1136.56,-1219.53 1190.37,-1148.77 1254,-1115 1270.87,-1106.05 1291.04,-1100.89 1309.35,-1097.92"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1309.9,-1101.37 1319.3,-1096.48 1308.91,-1094.45 1309.9,-1101.37"/>
+</g>
+<!-- proc~get_conf_backend -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node97" class="node">
+<title>proc~get_conf_backend</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node97"><a xlink:href="../proc/get_conf_backend.html" xlink:title="get_conf_backend">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1417.5,-1648 1308.5,-1648 1308.5,-1624 1417.5,-1624 1417.5,-1648"/>
+<text text-anchor="middle" x="1363" y="-1633.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_conf_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~get_conf_backend -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge148" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~get_conf_backend</title>
+<path fill="none" stroke="#0035ff" d="M1198.21,-1270.98C1205.65,-1274.79 1212.43,-1279.71 1218,-1286 1313.99,-1394.53 1158.18,-1501.32 1254,-1610 1265.25,-1622.76 1281.57,-1629.81 1298.12,-1633.58"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1297.94,-1637.1 1308.42,-1635.52 1299.24,-1630.23 1297.94,-1637.1"/>
+</g>
+<!-- proc~init_internal -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node98" class="node">
+<title>proc~init_internal</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node98"><a xlink:href="../proc/init_internal.html" xlink:title="init_internal">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1401,-1148 1325,-1148 1325,-1124 1401,-1124 1401,-1148"/>
+<text text-anchor="middle" x="1363" y="-1133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">init_internal</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~init_internal -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge150" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~init_internal</title>
+<path fill="none" stroke="#0035ff" d="M1121.36,-1247.95C1145.41,-1226.14 1199.65,-1180.24 1254,-1157 1273.06,-1148.85 1295.36,-1143.84 1314.73,-1140.77"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1315.47,-1144.2 1324.86,-1139.29 1314.46,-1137.27 1315.47,-1144.2"/>
+</g>
+<!-- proc~is_backend_nccl -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node99" class="node">
+<title>proc~is_backend_nccl</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node99"><a xlink:href="../proc/is_backend_nccl.html" xlink:title="is_backend_nccl">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1412.5,-1190 1313.5,-1190 1313.5,-1166 1412.5,-1166 1412.5,-1190"/>
+<text text-anchor="middle" x="1363" y="-1175.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nccl</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_backend_nccl -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge151" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_backend_nccl</title>
+<path fill="none" stroke="#0035ff" d="M1132.9,-1247.94C1161.36,-1234.32 1210.1,-1212.32 1254,-1199 1269.82,-1194.2 1287.28,-1190.25 1303.47,-1187.12"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1304.18,-1190.55 1313.37,-1185.27 1302.89,-1183.66 1304.18,-1190.55"/>
+</g>
+<!-- proc~is_backend_nvshmem -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node100" class="node">
+<title>proc~is_backend_nvshmem</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node100"><a xlink:href="../proc/is_backend_nvshmem.html" xlink:title="is_backend_nvshmem">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1428,-1568 1298,-1568 1298,-1544 1428,-1544 1428,-1568"/>
+<text text-anchor="middle" x="1363" y="-1553.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_backend_nvshmem</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_backend_nvshmem -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge152" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_backend_nvshmem</title>
+<path fill="none" stroke="#0035ff" d="M1198.26,-1271.3C1205.64,-1275.06 1212.4,-1279.87 1218,-1286 1293.45,-1368.53 1176.87,-1454.04 1254,-1535 1263.13,-1544.59 1275.24,-1550.52 1288.04,-1554.08"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1287.4,-1557.52 1297.93,-1556.36 1288.97,-1550.7 1287.4,-1557.52"/>
+</g>
+<!-- proc~is_cuda_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node101" class="node">
+<title>proc~is_cuda_executor</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node101"><a xlink:href="../proc/is_cuda_executor.html" xlink:title="is_cuda_executor">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1415,-1526 1311,-1526 1311,-1502 1415,-1502 1415,-1526"/>
+<text text-anchor="middle" x="1363" y="-1511.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_cuda_executor</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_cuda_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge153" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_cuda_executor</title>
+<path fill="none" stroke="#0035ff" d="M1198.07,-1271.47C1205.49,-1275.2 1212.31,-1279.95 1218,-1286 1281.99,-1354.01 1188.63,-1426.32 1254,-1493 1266.24,-1505.49 1283.53,-1511.73 1300.7,-1514.59"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1300.39,-1518.08 1310.76,-1515.91 1301.3,-1511.14 1300.39,-1518.08"/>
+</g>
+<!-- proc~is_host_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node102" class="node">
+<title>proc~is_host_executor</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node102"><a xlink:href="../proc/is_host_executor.html" xlink:title="is_host_executor">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1413,-1484 1313,-1484 1313,-1460 1413,-1460 1413,-1484"/>
+<text text-anchor="middle" x="1363" y="-1469.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_host_executor</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_host_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge154" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_host_executor</title>
+<path fill="none" stroke="#0035ff" d="M1198.07,-1271.85C1205.44,-1275.51 1212.25,-1280.14 1218,-1286 1270.59,-1339.56 1200.32,-1398.53 1254,-1451 1266.9,-1463.61 1284.99,-1469.78 1302.67,-1472.53"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1302.65,-1476.06 1313,-1473.79 1303.49,-1469.11 1302.65,-1476.06"/>
+</g>
+<!-- proc~is_valid_comm_type -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node104" class="node">
+<title>proc~is_valid_comm_type</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node104"><a xlink:href="../proc/is_valid_comm_type.html" xlink:title="is_valid_comm_type">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1422.5,-1442 1303.5,-1442 1303.5,-1418 1422.5,-1418 1422.5,-1442"/>
+<text text-anchor="middle" x="1363" y="-1427.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_comm_type</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_valid_comm_type -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge155" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_valid_comm_type</title>
+<path fill="none" stroke="#0035ff" d="M1197.12,-1272.03C1204.77,-1275.64 1211.91,-1280.21 1218,-1286 1259.3,-1325.22 1211.9,-1370.63 1254,-1409 1264.9,-1418.93 1279.04,-1424.78 1293.48,-1428.11"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1293.01,-1431.59 1303.49,-1430.03 1294.33,-1424.71 1293.01,-1431.59"/>
+</g>
+<!-- proc~is_valid_dimension -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node105" class="node">
+<title>proc~is_valid_dimension</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node105"><a xlink:href="../proc/is_valid_dimension.html" xlink:title="is_valid_dimension">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1419,-1400 1307,-1400 1307,-1376 1419,-1376 1419,-1400"/>
+<text text-anchor="middle" x="1363" y="-1385.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_dimension</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_valid_dimension -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge156" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_valid_dimension</title>
+<path fill="none" stroke="#0035ff" d="M1194.43,-1272.08C1202.95,-1275.64 1211.01,-1280.2 1218,-1286 1248.31,-1311.16 1223.18,-1342.46 1254,-1367 1266.2,-1376.71 1281.6,-1382.36 1296.91,-1385.56"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1296.48,-1389.04 1306.93,-1387.32 1297.69,-1382.14 1296.48,-1389.04"/>
+</g>
+<!-- proc~is_valid_effort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node106" class="node">
+<title>proc~is_valid_effort</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node106"><a xlink:href="../proc/is_valid_effort.html" xlink:title="is_valid_effort">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1406,-1358 1320,-1358 1320,-1334 1406,-1334 1406,-1358"/>
+<text text-anchor="middle" x="1363" y="-1343.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_effort</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_valid_effort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge157" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_valid_effort</title>
+<path fill="none" stroke="#0035ff" d="M1185.27,-1272.06C1196.68,-1275.58 1207.96,-1280.13 1218,-1286 1238.36,-1297.91 1233.4,-1313.51 1254,-1325 1270.89,-1334.42 1291.31,-1339.67 1309.84,-1342.58"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1309.51,-1346.07 1319.89,-1343.97 1310.47,-1339.14 1309.51,-1346.07"/>
+</g>
+<!-- proc~is_valid_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node107" class="node">
+<title>proc~is_valid_executor</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node107"><a xlink:href="../proc/is_valid_executor.html" xlink:title="is_valid_executor">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1414.5,-1316 1311.5,-1316 1311.5,-1292 1414.5,-1292 1414.5,-1316"/>
+<text text-anchor="middle" x="1363" y="-1301.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_executor</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_valid_executor -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge158" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_valid_executor</title>
+<path fill="none" stroke="#0035ff" d="M1177.77,-1272.02C1216.36,-1278.72 1263.97,-1286.99 1301.12,-1293.43"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1300.86,-1296.94 1311.31,-1295.2 1302.06,-1290.04 1300.86,-1296.94"/>
+</g>
+<!-- proc~is_valid_precision -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node108" class="node">
+<title>proc~is_valid_precision</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node108"><a xlink:href="../proc/is_valid_precision.html" xlink:title="is_valid_precision">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1415.5,-1274 1310.5,-1274 1310.5,-1250 1415.5,-1250 1415.5,-1274"/>
+<text text-anchor="middle" x="1363" y="-1259.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_precision</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_valid_precision -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge159" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_valid_precision</title>
+<path fill="none" stroke="#0035ff" d="M1198.23,-1260.71C1232.01,-1260.97 1269.64,-1261.27 1300.3,-1261.51"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1300.39,-1265.01 1310.42,-1261.59 1300.45,-1258.01 1300.39,-1265.01"/>
+</g>
+<!-- proc~is_valid_r2r_kind -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node109" class="node">
+<title>proc~is_valid_r2r_kind</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node109"><a xlink:href="../proc/is_valid_r2r_kind.html" xlink:title="is_valid_r2r_kind">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1413,-1232 1313,-1232 1313,-1208 1413,-1208 1413,-1232"/>
+<text text-anchor="middle" x="1363" y="-1217.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_r2r_kind</text>
+</a>
+</g>
+</g>
+<!-- proc~check_create_args&#45;&gt;proc~is_valid_r2r_kind -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge160" class="edge">
+<title>proc~check_create_args&#45;&gt;proc~is_valid_r2r_kind</title>
+<path fill="none" stroke="#0035ff" d="M1184.56,-1248C1222.39,-1242.03 1267.43,-1234.92 1302.67,-1229.36"/>
+<polygon fill="#0035ff" stroke="#0035ff" points="1303.47,-1232.78 1312.8,-1227.76 1302.38,-1225.86 1303.47,-1232.78"/>
+</g>
+<!-- proc~get_conf_stream&#45;&gt;fname -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge162" class="edge">
+<title>proc~get_conf_stream&#45;&gt;fname</title>
+<path fill="none" stroke="#bb00ff" d="M1157.61,-1579.45C1179.29,-1581.92 1203.16,-1588.87 1218,-1606 1276.43,-1673.47 1195.68,-1938.44 1254,-2006 1271.46,-2026.22 1301.64,-2032.17 1325.66,-2033.37"/>
+<polygon fill="#bb00ff" stroke="#bb00ff" points="1325.78,-2036.88 1335.86,-2033.63 1325.95,-2029.88 1325.78,-2036.88"/>
+</g>
+<!-- proc~get_conf_stream&#45;&gt;mpi_abort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge164" class="edge">
+<title>proc~get_conf_stream&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#bb00ff" d="M1157.52,-1579.02C1179.17,-1581.3 1203.05,-1588.02 1218,-1605 1272.3,-1666.67 1195.55,-1915.25 1254,-1973 1319.76,-2037.97 2012.27,-1984.47 2083,-2044 2131.17,-2084.54 2069.15,-2142.55 2119,-2181 2170.93,-2221.05 2252.37,-2200.14 2299.16,-2182.67"/>
+<polygon fill="#bb00ff" stroke="#bb00ff" points="2300.53,-2185.89 2308.59,-2179.02 2298,-2179.37 2300.53,-2185.89"/>
+</g>
+<!-- proc~get_conf_stream&#45;&gt;proc~cudageterrorstring -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge165" class="edge">
+<title>proc~get_conf_stream&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#bb00ff" d="M1151.58,-1592.07C1175.22,-1601.04 1202.75,-1615.81 1218,-1639 1268.74,-1716.16 1192.23,-1984.35 1254,-2053 1264.59,-2064.76 1279.63,-2071.11 1295.14,-2074.32"/>
+<polygon fill="#bb00ff" stroke="#bb00ff" points="1294.92,-2077.83 1305.36,-2076 1296.06,-2070.92 1294.92,-2077.83"/>
+</g>
+<!-- interface~cudastreamcreate -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node93" class="node">
+<title>interface~cudastreamcreate</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node93"><a xlink:href="../interface/cudastreamcreate.html" xlink:title="cudaStreamCreate">
+<polygon fill="#a7506f" stroke="#a7506f" points="1419,-1964 1307,-1964 1307,-1940 1419,-1940 1419,-1964"/>
+<text text-anchor="middle" x="1363" y="-1949.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamCreate</text>
+</a>
+</g>
+</g>
+<!-- proc~get_conf_stream&#45;&gt;interface~cudastreamcreate -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge163" class="edge">
+<title>proc~get_conf_stream&#45;&gt;interface~cudastreamcreate</title>
+<path fill="none" stroke="#bb00ff" d="M1157.72,-1579.63C1179.29,-1582.16 1203.04,-1589.11 1218,-1606 1312.89,-1713.14 1159.28,-1818.71 1254,-1926 1264.94,-1938.39 1280.66,-1945.4 1296.74,-1949.24"/>
+<polygon fill="#bb00ff" stroke="#bb00ff" points="1296.26,-1952.71 1306.75,-1951.24 1297.63,-1945.85 1296.26,-1952.71"/>
+</g>
+<!-- proc~get_aux_bytes~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node96" class="node">
+<title>proc~get_aux_bytes~2</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node96"><a xlink:href="../proc/get_aux_bytes~2.html" xlink:title="abstract_reshape_plan%get_aux_bytes">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1472,-2128 1254,-2128 1254,-2104 1472,-2104 1472,-2128"/>
+<text text-anchor="middle" x="1363" y="-2113.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_plan%get_aux_bytes</text>
+</a>
+</g>
+</g>
+<!-- proc~is_aux_needed&#45;&gt;proc~get_aux_bytes~2 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge166" class="edge">
+<title>proc~is_aux_needed&#45;&gt;proc~get_aux_bytes~2</title>
+<path fill="none" stroke="#ff0050" d="M1184.56,-2088C1213.25,-2092.53 1246.1,-2097.71 1275.67,-2102.38"/>
+<polygon fill="#ff0050" stroke="#ff0050" points="1275.13,-2105.84 1285.56,-2103.94 1276.23,-2098.92 1275.13,-2105.84"/>
+</g>
+<!-- proc~get_aux_bytes_generic -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node111" class="node">
+<title>proc~get_aux_bytes_generic</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node111"><a xlink:href="../proc/get_aux_bytes_generic.html" xlink:title="get_aux_bytes_generic">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1642,-2128 1508,-2128 1508,-2104 1642,-2104 1642,-2128"/>
+<text text-anchor="middle" x="1575" y="-2113.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_aux_bytes_generic</text>
+</a>
+</g>
+</g>
+<!-- proc~get_aux_bytes~2&#45;&gt;proc~get_aux_bytes_generic -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge167" class="edge">
+<title>proc~get_aux_bytes~2&#45;&gt;proc~get_aux_bytes_generic</title>
+<path fill="none" stroke="#f0ff00" d="M1472.08,-2116C1480.72,-2116 1489.34,-2116 1497.69,-2116"/>
+<polygon fill="#f0ff00" stroke="#f0ff00" points="1497.74,-2119.5 1507.74,-2116 1497.74,-2112.5 1497.74,-2119.5"/>
+</g>
+<!-- proc~get_correct_backend -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node112" class="node">
+<title>proc~get_correct_backend</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node112"><a xlink:href="../proc/get_correct_backend.html" xlink:title="get_correct_backend">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1637,-1648 1513,-1648 1513,-1624 1637,-1624 1637,-1648"/>
+<text text-anchor="middle" x="1575" y="-1633.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_correct_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~get_conf_backend&#45;&gt;proc~get_correct_backend -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge168" class="edge">
+<title>proc~get_conf_backend&#45;&gt;proc~get_correct_backend</title>
+<path fill="none" stroke="#96ff00" d="M1417.54,-1636C1443.4,-1636 1474.8,-1636 1502.67,-1636"/>
+<polygon fill="#96ff00" stroke="#96ff00" points="1502.76,-1639.5 1512.76,-1636 1502.76,-1632.5 1502.76,-1639.5"/>
+</g>
+<!-- mpi_initialized -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node110" class="node">
+<title>mpi_initialized</title>
+<polygon fill="#777777" stroke="#777777" points="1619.5,-1261 1530.5,-1261 1530.5,-1237 1619.5,-1237 1619.5,-1261"/>
+<text text-anchor="middle" x="1575" y="-1246.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_initialized</text>
+</g>
+<!-- proc~init_internal&#45;&gt;mpi_initialized -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge169" class="edge">
+<title>proc~init_internal&#45;&gt;mpi_initialized</title>
+<path fill="none" stroke="#3cff00" d="M1401.05,-1135.3C1423.58,-1136.66 1451.8,-1141.75 1472,-1157 1500.23,-1178.32 1481.05,-1205.08 1508,-1228 1511.91,-1231.32 1516.34,-1234.12 1521.03,-1236.48"/>
+<polygon fill="#3cff00" stroke="#3cff00" points="1519.69,-1239.71 1530.26,-1240.49 1522.48,-1233.29 1519.69,-1239.71"/>
+</g>
+<!-- proc~init_environment -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node113" class="node">
+<title>proc~init_environment</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node113"><a xlink:href="../proc/init_environment.html" xlink:title="init_environment">
+<polygon fill="#d9534f" stroke="#d9534f" points="1626,-1219 1524,-1219 1524,-1195 1626,-1195 1626,-1219"/>
+<text text-anchor="middle" x="1575" y="-1204.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">init_environment</text>
+</a>
+</g>
+</g>
+<!-- proc~init_internal&#45;&gt;proc~init_environment -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge170" class="edge">
+<title>proc~init_internal&#45;&gt;proc~init_environment</title>
+<path fill="none" stroke="#3cff00" d="M1401.11,-1140.74C1422.24,-1144.05 1449,-1149.28 1472,-1157 1497.5,-1165.56 1524.78,-1179.19 1544.71,-1190.06"/>
+<polygon fill="#3cff00" stroke="#3cff00" points="1543.15,-1193.2 1553.59,-1194.99 1546.54,-1187.08 1543.15,-1193.2"/>
+</g>
+<!-- proc~get_aux_bytes -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node118" class="node">
+<title>proc~get_aux_bytes</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node118"><a xlink:href="../proc/get_aux_bytes.html" xlink:title="abstract_reshape_handle%get_aux_bytes">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1910,-2137 1678,-2137 1678,-2113 1910,-2113 1910,-2137"/>
+<text text-anchor="middle" x="1794" y="-2122.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_handle%get_aux_bytes</text>
+</a>
+</g>
+</g>
+<!-- proc~get_aux_bytes_generic&#45;&gt;proc~get_aux_bytes -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge171" class="edge">
+<title>proc~get_aux_bytes_generic&#45;&gt;proc~get_aux_bytes</title>
+<path fill="none" stroke="#7fff00" d="M1642.29,-2118.75C1650.44,-2119.09 1658.97,-2119.44 1667.64,-2119.8"/>
+<polygon fill="#7fff00" stroke="#7fff00" points="1667.75,-2123.31 1677.88,-2120.23 1668.04,-2116.31 1667.75,-2123.31"/>
+</g>
+<!-- proc~get_correct_backend&#45;&gt;proc~get_conf_platform -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge172" class="edge">
+<title>proc~get_correct_backend&#45;&gt;proc~get_conf_platform</title>
+<path fill="none" stroke="#00ffff" d="M1637.02,-1624.75C1665.84,-1619.44 1700.23,-1613.1 1729.37,-1607.73"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="1730.24,-1611.13 1739.44,-1605.87 1728.97,-1604.24 1730.24,-1611.13"/>
+</g>
+<!-- proc~init_environment&#45;&gt;destroy -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge174" class="edge">
+<title>proc~init_environment&#45;&gt;destroy</title>
+<path fill="none" stroke="#7f00ff" d="M1626.18,-1215.82C1632.25,-1218.8 1637.78,-1222.75 1642,-1228 1696.42,-1295.64 1638.21,-1539.84 1678,-1617 1696.55,-1652.97 1734.25,-1681.42 1761.44,-1698.43"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1759.85,-1701.55 1770.21,-1703.75 1763.48,-1695.57 1759.85,-1701.55"/>
+</g>
+<!-- access_modes -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node114" class="node">
+<title>access_modes</title>
+<polygon fill="#777777" stroke="#777777" points="1839,-1341 1749,-1341 1749,-1317 1839,-1317 1839,-1341"/>
+<text text-anchor="middle" x="1794" y="-1326.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">access_modes</text>
+</g>
+<!-- proc~init_environment&#45;&gt;access_modes -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge173" class="edge">
+<title>proc~init_environment&#45;&gt;access_modes</title>
+<path fill="none" stroke="#7f00ff" d="M1626.04,-1217.83C1631.84,-1220.5 1637.33,-1223.84 1642,-1228 1671.11,-1253.94 1647.3,-1283.96 1678,-1308 1695.1,-1321.39 1717.99,-1327.25 1738.85,-1329.54"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1738.63,-1333.04 1748.89,-1330.4 1739.22,-1326.06 1738.63,-1333.04"/>
+</g>
+<!-- interface~get_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node115" class="node">
+<title>interface~get_env</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node115"><a xlink:href="../interface/get_env.html" xlink:title="get_env">
+<polygon fill="#a7506f" stroke="#a7506f" points="2042,-1346 1987,-1346 1987,-1322 2042,-1322 2042,-1346"/>
+<text text-anchor="middle" x="2014.5" y="-1331.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env</text>
+</a>
+</g>
+</g>
+<!-- proc~init_environment&#45;&gt;interface~get_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge175" class="edge">
+<title>proc~init_environment&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#7f00ff" d="M1626.24,-1217.77C1642.71,-1221.18 1661.11,-1224.88 1678,-1228 1780.75,-1246.98 1812.65,-1228.04 1910,-1266 1940.67,-1277.96 1971.68,-1299.94 1991.65,-1315.68"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1989.51,-1318.45 1999.5,-1321.99 1993.9,-1313 1989.51,-1318.45"/>
+</g>
+<!-- platforms -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node116" class="node">
+<title>platforms</title>
+<polygon fill="#777777" stroke="#777777" points="1826,-1299 1762,-1299 1762,-1275 1826,-1275 1826,-1299"/>
+<text text-anchor="middle" x="1794" y="-1284.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">platforms</text>
+</g>
+<!-- proc~init_environment&#45;&gt;platforms -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge176" class="edge">
+<title>proc~init_environment&#45;&gt;platforms</title>
+<path fill="none" stroke="#7f00ff" d="M1622.89,-1219.11C1629.51,-1221.62 1636.07,-1224.56 1642,-1228 1660.78,-1238.88 1658.77,-1250.94 1678,-1261 1700.8,-1272.93 1728.95,-1279.42 1751.69,-1282.93"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1751.33,-1286.41 1761.72,-1284.34 1752.3,-1279.48 1751.33,-1286.41"/>
+</g>
+<!-- proc~destroy_strings -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node117" class="node">
+<title>proc~destroy_strings</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node117"><a xlink:href="../proc/destroy_strings.html" xlink:title="destroy_strings">
+<polygon fill="#d9534f" stroke="#d9534f" points="2060.5,-1107 1968.5,-1107 1968.5,-1083 2060.5,-1083 2060.5,-1107"/>
+<text text-anchor="middle" x="2014.5" y="-1092.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">destroy_strings</text>
+</a>
+</g>
+</g>
+<!-- proc~init_environment&#45;&gt;proc~destroy_strings -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge177" class="edge">
+<title>proc~init_environment&#45;&gt;proc~destroy_strings</title>
+<path fill="none" stroke="#7f00ff" d="M1591.21,-1194.8C1610.28,-1180.2 1644.56,-1156.18 1678,-1144 1772.57,-1109.57 1890.47,-1099.27 1958.35,-1096.23"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1958.55,-1099.73 1968.4,-1095.82 1958.26,-1092.73 1958.55,-1099.73"/>
+</g>
+<!-- proc~get_backend_from_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node119" class="node">
+<title>proc~get_backend_from_env</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node119"><a xlink:href="../proc/get_backend_from_env.html" xlink:title="get_backend_from_env">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1862,-1177 1726,-1177 1726,-1153 1862,-1153 1862,-1177"/>
+<text text-anchor="middle" x="1794" y="-1162.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_backend_from_env</text>
+</a>
+</g>
+</g>
+<!-- proc~init_environment&#45;&gt;proc~get_backend_from_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge178" class="edge">
+<title>proc~init_environment&#45;&gt;proc~get_backend_from_env</title>
+<path fill="none" stroke="#7f00ff" d="M1626.02,-1196.47C1642.55,-1193.05 1661.05,-1189.29 1678,-1186 1690.18,-1183.63 1703.11,-1181.2 1715.73,-1178.87"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1716.56,-1182.27 1725.76,-1177.02 1715.29,-1175.39 1716.56,-1182.27"/>
+</g>
+<!-- transpose_modes -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node120" class="node">
+<title>transpose_modes</title>
+<polygon fill="#777777" stroke="#777777" points="1847,-1219 1741,-1219 1741,-1195 1847,-1195 1847,-1219"/>
+<text text-anchor="middle" x="1794" y="-1204.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">transpose_modes</text>
+</g>
+<!-- proc~init_environment&#45;&gt;transpose_modes -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge179" class="edge">
+<title>proc~init_environment&#45;&gt;transpose_modes</title>
+<path fill="none" stroke="#7f00ff" d="M1626.06,-1207C1657.25,-1207 1697.63,-1207 1730.86,-1207"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="1730.93,-1210.5 1740.93,-1207 1730.93,-1203.5 1730.93,-1210.5"/>
+</g>
+<!-- proc~get_env_base -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node122" class="node">
+<title>proc~get_env_base</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node122"><a xlink:href="../proc/get_env_base.html" xlink:title="get_env_base">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="2220.5,-1186 2135.5,-1186 2135.5,-1162 2220.5,-1162 2220.5,-1186"/>
+<text text-anchor="middle" x="2178" y="-1171.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_base</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_base -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge180" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_base</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M2027.64,-1321.97C2055.35,-1294.52 2123.46,-1227.04 2157.29,-1193.53"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="2160.08,-1195.69 2164.72,-1186.17 2155.15,-1190.72 2160.08,-1195.69"/>
+</g>
+<!-- proc~get_env_int32 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node123" class="node">
+<title>proc~get_env_int32</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node123"><a xlink:href="../proc/get_env_int32.html" xlink:title="get_env_int32">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="2221.5,-1430 2134.5,-1430 2134.5,-1406 2221.5,-1406 2221.5,-1430"/>
+<text text-anchor="middle" x="2178" y="-1415.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_int32</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_int32 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge181" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_int32</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M2042.34,-1344.96C2062.76,-1356.86 2091.88,-1374.99 2119,-1388 2129.54,-1393.05 2141.63,-1397.61 2152.04,-1401.88"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="2150.82,-1405.17 2161.39,-1405.89 2153.58,-1398.73 2150.82,-1405.17"/>
+</g>
+<!-- proc~get_env_int8 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node124" class="node">
+<title>proc~get_env_int8</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node124"><a xlink:href="../proc/get_env_int8.html" xlink:title="get_env_int8">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="2218,-1388 2138,-1388 2138,-1364 2218,-1364 2218,-1388"/>
+<text text-anchor="middle" x="2178" y="-1373.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_int8</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_int8 -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge182" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_int8</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M2042.17,-1335.77C2069.13,-1340.88 2110.99,-1351.58 2140.91,-1360.88"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="2139.97,-1364.26 2150.56,-1363.97 2142.11,-1357.59 2139.97,-1364.26"/>
+</g>
+<!-- proc~get_env_logical -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node125" class="node">
+<title>proc~get_env_logical</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node125"><a xlink:href="../proc/get_env_logical.html" xlink:title="get_env_logical">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="2225.5,-1346 2130.5,-1346 2130.5,-1322 2225.5,-1322 2225.5,-1346"/>
+<text text-anchor="middle" x="2178" y="-1331.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_logical</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_logical -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge183" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_logical</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M2042.17,-1328.83C2063.29,-1327.34 2093.54,-1326.91 2120.03,-1327.52"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="2120.26,-1331.03 2130.36,-1327.82 2120.46,-1324.03 2120.26,-1331.03"/>
+</g>
+<!-- proc~get_env_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node126" class="node">
+<title>proc~get_env_string</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node126"><a xlink:href="../proc/get_env_string.html" xlink:title="get_env_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="2223,-1304 2133,-1304 2133,-1280 2223,-1280 2223,-1304"/>
+<text text-anchor="middle" x="2178" y="-1289.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_env_string</text>
+</a>
+</g>
+</g>
+<!-- interface~get_env&#45;&gt;proc~get_env_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge184" class="edge">
+<title>interface~get_env&#45;&gt;proc~get_env_string</title>
+<path fill="none" stroke="#ffda00" stroke-dasharray="5,2" d="M2042.17,-1321.9C2064.11,-1314.64 2095.91,-1305.96 2123.12,-1299.61"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="2123.94,-1303.01 2132.91,-1297.38 2122.39,-1296.18 2123.94,-1303.01"/>
+</g>
+<!-- proc~destroy_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node121" class="node">
+<title>proc~destroy_string</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node121"><a xlink:href="../proc/destroy_string.html" xlink:title="string%destroy_string">
+<polygon fill="#d9534f" stroke="#d9534f" points="2400,-1146 2273,-1146 2273,-1122 2400,-1122 2400,-1146"/>
+<text text-anchor="middle" x="2336.5" y="-1131.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string%destroy_string</text>
+</a>
+</g>
+</g>
+<!-- proc~destroy_strings&#45;&gt;proc~destroy_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge185" class="edge">
+<title>proc~destroy_strings&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#00ff91" d="M2060.51,-1099.7C2105.3,-1104.46 2175.96,-1112.22 2237,-1120 2245.31,-1121.06 2254.01,-1122.22 2262.65,-1123.41"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="2262.36,-1126.9 2272.74,-1124.8 2263.32,-1119.96 2262.36,-1126.9"/>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge190" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#4800ff" d="M1862.1,-1176.2C1877.87,-1179.12 1894.57,-1182.46 1910,-1186 1926.18,-1189.72 1929.96,-1191.71 1946,-1196 2010.51,-1213.27 2182.51,-1232.4 2237,-1271 2282.69,-1303.37 2313.25,-1364.17 2327.07,-1396.5"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="2323.91,-1398.02 2330.96,-1405.93 2330.38,-1395.35 2323.91,-1398.02"/>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;interface~get_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge186" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#4800ff" d="M1862.2,-1166.36C1879.18,-1169.48 1896.42,-1175.36 1910,-1186 1940.7,-1210.04 1923.91,-1233.87 1946,-1266 1958.68,-1284.45 1976.69,-1302.29 1990.91,-1315.07"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="1988.96,-1318.01 1998.78,-1321.97 1993.57,-1312.75 1988.96,-1318.01"/>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;proc~destroy_strings -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge188" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;proc~destroy_strings</title>
+<path fill="none" stroke="#4800ff" d="M1833.9,-1152.97C1856.2,-1146.04 1884.7,-1137.12 1910,-1129 1928.84,-1122.96 1949.57,-1116.17 1967.5,-1110.27"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="1968.74,-1113.54 1977.14,-1107.08 1966.54,-1106.89 1968.74,-1113.54"/>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;proc~destroy_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge187" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#4800ff" d="M1862.25,-1159.79C1888.39,-1157.85 1918.59,-1155.7 1946,-1154 2056.27,-1147.15 2184.22,-1140.91 2262.5,-1137.28"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="2262.91,-1140.77 2272.74,-1136.81 2262.59,-1133.77 2262.91,-1140.77"/>
+</g>
+<!-- proc~is_valid_backend -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node127" class="node">
+<title>proc~is_valid_backend</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CallsGraph_node127"><a xlink:href="../proc/is_valid_backend.html" xlink:title="is_valid_backend">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="2066,-1187 1963,-1187 1963,-1163 2066,-1163 2066,-1187"/>
+<text text-anchor="middle" x="2014.5" y="-1172.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_valid_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~get_backend_from_env&#45;&gt;proc~is_valid_backend -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge189" class="edge">
+<title>proc~get_backend_from_env&#45;&gt;proc~is_valid_backend</title>
+<path fill="none" stroke="#4800ff" d="M1862.04,-1168.07C1890.98,-1169.39 1924.58,-1170.93 1952.78,-1172.22"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="1952.75,-1175.72 1962.9,-1172.68 1953.07,-1168.73 1952.75,-1175.72"/>
+</g>
+<!-- proc~get_env_base&#45;&gt;proc~destroy_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge192" class="edge">
+<title>proc~get_env_base&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#ffda00" d="M2220.53,-1163.39C2238.34,-1158.83 2259.44,-1153.44 2278.67,-1148.53"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="2279.7,-1151.87 2288.52,-1146.01 2277.97,-1145.09 2279.7,-1151.87"/>
+</g>
+<!-- mpi_bcast -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_node128" class="node">
+<title>mpi_bcast</title>
+<polygon fill="#777777" stroke="#777777" points="2370,-1188 2303,-1188 2303,-1164 2370,-1164 2370,-1188"/>
+<text text-anchor="middle" x="2336.5" y="-1173.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_bcast</text>
+</g>
+<!-- proc~get_env_base&#45;&gt;mpi_bcast -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge191" class="edge">
+<title>proc~get_env_base&#45;&gt;mpi_bcast</title>
+<path fill="none" stroke="#ffda00" d="M2220.53,-1174.53C2242.81,-1174.82 2270.22,-1175.17 2292.7,-1175.45"/>
+<polygon fill="#ffda00" stroke="#ffda00" points="2292.92,-1178.96 2302.96,-1175.58 2293.01,-1171.96 2292.92,-1178.96"/>
+</g>
+<!-- proc~get_env_int32&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge195" class="edge">
+<title>proc~get_env_int32&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#48ff00" d="M2221.76,-1418C2239.79,-1418 2261.01,-1418 2280.2,-1418"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="2280.33,-1421.5 2290.33,-1418 2280.33,-1414.5 2280.33,-1421.5"/>
+</g>
+<!-- proc~get_env_int32&#45;&gt;mpi_abort -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge194" class="edge">
+<title>proc~get_env_int32&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#48ff00" d="M2181.52,-1430.07C2199.4,-1515.65 2307.04,-2030.78 2330.84,-2144.71"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="2327.46,-2145.65 2332.93,-2154.72 2334.32,-2144.22 2327.46,-2145.65"/>
+</g>
+<!-- proc~get_env_int32&#45;&gt;interface~get_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge193" class="edge">
+<title>proc~get_env_int32&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#48ff00" d="M2134.46,-1412.64C2129.19,-1410.62 2123.92,-1408.36 2119,-1406 2087.3,-1390.8 2052.88,-1368.6 2032.8,-1352.51"/>
+<polygon fill="#48ff00" stroke="#48ff00" points="2035.02,-1349.8 2025.12,-1346.02 2030.5,-1355.15 2035.02,-1349.8"/>
+</g>
+<!-- proc~get_env_int8&#45;&gt;interface~get_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge196" class="edge">
+<title>proc~get_env_int8&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#00ff91" d="M2137.9,-1371.71C2111.71,-1366.1 2077.47,-1357.16 2051.87,-1349.2"/>
+<polygon fill="#00ff91" stroke="#00ff91" points="2052.76,-1345.82 2042.17,-1346.1 2050.63,-1352.48 2052.76,-1345.82"/>
+</g>
+<!-- proc~get_env_logical&#45;&gt;interface~get_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge197" class="edge">
+<title>proc~get_env_logical&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#0091ff" d="M2130.36,-1340.18C2105.53,-1341.06 2075.43,-1340.92 2052.28,-1339.77"/>
+<polygon fill="#0091ff" stroke="#0091ff" points="2052.36,-1336.27 2042.17,-1339.17 2051.94,-1343.25 2052.36,-1336.27"/>
+</g>
+<!-- proc~get_env_string&#45;&gt;proc~write_message -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge200" class="edge">
+<title>proc~get_env_string&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#4800ff" d="M2220.11,-1304.12C2226,-1306.64 2231.81,-1309.58 2237,-1313 2272.17,-1336.16 2303.71,-1374.31 2321.16,-1397.69"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="2318.42,-1399.86 2327.14,-1405.87 2324.07,-1395.73 2318.42,-1399.86"/>
+</g>
+<!-- proc~get_env_string&#45;&gt;interface~get_env -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge198" class="edge">
+<title>proc~get_env_string&#45;&gt;interface~get_env</title>
+<path fill="none" stroke="#4800ff" d="M2150.56,-1304.03C2123.8,-1312.89 2082.2,-1323.91 2052.24,-1330.21"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="2051.28,-1326.83 2042.17,-1332.23 2052.66,-1333.7 2051.28,-1326.83"/>
+</g>
+<!-- proc~get_env_string&#45;&gt;proc~destroy_string -->
+<g id="proc~~test_r2r_fft_roundtrip~~CallsGraph_edge199" class="edge">
+<title>proc~get_env_string&#45;&gt;proc~destroy_string</title>
+<path fill="none" stroke="#4800ff" d="M2185.9,-1279.98C2203.32,-1249.95 2249.41,-1172.82 2273,-1155 2275.04,-1153.46 2277.2,-1152.03 2279.44,-1150.7"/>
+<polygon fill="#4800ff" stroke="#4800ff" points="2281.14,-1153.76 2288.42,-1146.06 2277.92,-1147.54 2281.14,-1153.76"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panproctest_r2r_fft_roundtripCallsGraph = svgPanZoom('#proctest_r2r_fft_roundtripCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Called by</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~test_r2r_fft_roundtrip~~CalledByGraph Pages: 1 -->
+<svg id="proctest_r2r_fft_roundtripCalledByGraph" width="287pt" height="32pt"
+ viewBox="0.00 0.00 287.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~test_r2r_fft_roundtrip~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>proc~~test_r2r_fft_roundtrip~~CalledByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 283,-28 283,4 -4,4"/>
+<!-- proc~test_r2r_fft_roundtrip -->
+<g id="proc~~test_r2r_fft_roundtrip~~CalledByGraph_node1" class="node">
+<title>proc~test_r2r_fft_roundtrip</title>
+<polygon fill="none" stroke="black" points="279,-24 155,-24 155,0 279,0 279,-24"/>
+<text text-anchor="middle" x="217" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">test_r2r_fft_roundtrip</text>
+</g>
+<!-- program~test_plan_save_load -->
+<g id="proc~~test_r2r_fft_roundtrip~~CalledByGraph_node2" class="node">
+<title>program~test_plan_save_load</title>
+<g id="a_proc~~test_r2r_fft_roundtrip~~CalledByGraph_node2"><a xlink:href="../program/test_plan_save_load.html" xlink:title="test_plan_save_load">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="119,-24 0,-24 0,0 119,0 119,-24"/>
+<text text-anchor="middle" x="59.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_plan_save_load</text>
+</a>
+</g>
+</g>
+<!-- program~test_plan_save_load&#45;&gt;proc~test_r2r_fft_roundtrip -->
+<g id="proc~~test_r2r_fft_roundtrip~~CalledByGraph_edge1" class="edge">
+<title>program~test_plan_save_load&#45;&gt;proc~test_r2r_fft_roundtrip</title>
+<path fill="none" stroke="#ff0000" d="M119.29,-12C127.54,-12 136.1,-12 144.56,-12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="144.8,-15.5 154.8,-12 144.8,-8.5 144.8,-15.5"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              dtFFT
+ was developed by Oleg Shatrov<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+  </body>
+</html>

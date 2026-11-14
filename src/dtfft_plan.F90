@@ -1700,16 +1700,6 @@ contains
 
         call fh%save(FILE_MAGIC)
         plan_kind = get_plan_kind(self)
-        ! select type( self )
-        ! class is (dtfft_plan_c2c_t)
-        !     plan_kind = PLAN_C2C
-        ! class is (dtfft_plan_r2c_t)
-        !     plan_kind = PLAN_R2C
-        ! class is (dtfft_plan_r2r_t)
-        !     plan_kind = PLAN_R2R
-        ! class default
-        !     INTERNAL_ERROR("Unknown type self")
-        ! endselect
         call fh%save(plan_kind%val)
         call fh%save(ENDIAN_MARKER)
         call fh%save(FILE_FORMAT_VERSION)
@@ -1718,14 +1708,7 @@ contains
         call fh%save(self%ndims)
         call fh%save(self%dims)
         call fh%save(int(self%precision%val, int8))
-        ! call fh%save(int(self%effort%val, int8))
-        ! call fh%save(self%is_transpose_plan)
-        ! call fh%save(self%is_z_slab)
-        ! call fh%save(self%is_y_slab)
-        ! call fh%save(self%is_reshape_enabled)
-        ! if ( self%is_reshape_enabled ) then
-        ! call fh%save(self%is_final_reshape_enabled)
-        ! endif
+
         call fh%save(self%is_custom_pencil)
         if ( self%is_custom_pencil ) then
             call self%user_pencil%save(fh)
@@ -1744,9 +1727,6 @@ contains
         endif
 
         call fh%destroy()
-
-
-
 
         if ( present( error_code ) ) error_code = DTFFT_SUCCESS
     end subroutine save
