@@ -13,7 +13,7 @@ jobs:
       CC: "gcc-14"
       CXX: "g++-14"
       FC: "gfortran-14"
-      DTFFT_ENABLE_LOG: "1"
+      DTFFT_ENABLE_LOG: "0"
       DTFFT_MEASURE_WARMUP_ITERS: "CUDA"
       DTFFT_MEASURE_ITERS: "-1"
       # DTFFT_ENABLE_FOURIER_RESHAPE: "1"
@@ -52,7 +52,7 @@ jobs:
       - name: Install
         run: sudo cmake --install build
       - name: Test install
-        working-directory: ./tests/install
+        working-directory: ./src/core/tests/install
         run: |
           cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
           cmake --build build
@@ -71,7 +71,7 @@ jobs:
       CC: "gcc-12"
       CXX: "g++-12"
       FC: "gfortran-12"
-      DTFFT_ENABLE_LOG: "1"
+      DTFFT_ENABLE_LOG: "0"
     steps:
       - name: Get Requirements
         run: |
@@ -99,7 +99,7 @@ jobs:
       - name: Install
         run: sudo cmake --install build
       - name: Test install
-        working-directory: ./tests/install
+        working-directory: ./src/core/tests/install
         run: |
           cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
           cmake --build build
@@ -111,7 +111,7 @@ jobs:
       CC: "gcc-10"
       CXX: "g++-10"
       FC: "gfortran-10"
-      DTFFT_ENABLE_LOG: "1"
+      DTFFT_ENABLE_LOG: "0"
     steps:
       - name: Get Requirements
         run: |
@@ -136,7 +136,7 @@ jobs:
       - name: Install
         run: sudo cmake --install build
       - name: Test install
-        working-directory: ./tests/install
+        working-directory: ./src/core/tests/install
         run: |
           cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
           cmake --build build
@@ -149,7 +149,7 @@ jobs:
       CXX: "g++-12"
       FC: "gfortran-12"
       CUDACXX: "/usr/local/cuda/bin/nvcc"
-      DTFFT_ENABLE_LOG: "1"
+      DTFFT_ENABLE_LOG: "0"
       DTFFT_PLATFORM: "host"
     steps:
       - name: Free space
@@ -197,7 +197,7 @@ jobs:
       - name: Install
         run: sudo cmake --install build
       - name: Test install
-        working-directory: ./tests/install
+        working-directory: ./src/core/tests/install
         run: |
           cmake -B build -S . -Ddtfft_DIR=/usr/local/lib/cmake/dtfft/
           cmake --build build

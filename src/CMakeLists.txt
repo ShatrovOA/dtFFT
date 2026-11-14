@@ -1,55 +1,62 @@
 target_sources(dtfft PRIVATE
-  dtfft.F90
-  dtfft_abstract_backend.F90
-  dtfft_abstract_executor.F90
-  dtfft_abstract_kernel.F90
-  dtfft_abstract_reshape_handle.F90
-  dtfft_backend_mpi.F90
-  dtfft_config.F90
-  dtfft_errors.F90
-  dtfft_kernel_host.F90
-  dtfft_pencil.F90
-  dtfft_plan.F90
-  dtfft_parameters.F90
-  dtfft_reshape_handle_datatype.F90
-  dtfft_reshape_handle_generic.F90
-  dtfft_reshape_plan_base.F90
-  dtfft_reshape_plan.F90
-  dtfft_transpose_plan.F90
-  dtfft_utils.F90
+    dtfft.F90
 )
 
-if ( DTFFT_WITH_COMPRESSION )
-  target_sources(dtfft PRIVATE dtfft_abstract_compressor.F90)
+add_subdirectory(backend)
+add_subdirectory(compression)
+add_subdirectory(core)
+add_subdirectory(fft)
+add_subdirectory(kernel)
+add_subdirectory(reshape)
+
+if(DTFFT_BUILD_PYTHON_API OR DTFFT_BUILD_EXAMPLES)
+    if(DTFFT_BUILD_SHARED)
+        add_library(dtfft_example_utils SHARED)
+    else()
+        add_library(dtfft_example_utils STATIC)
+    endif()
+    target_sources(dtfft_example_utils PRIVATE
+        "${PROJECT_SOURCE_DIR}/examples/example_utils.F90"
+    )
+    target_include_directories(dtfft_example_utils PRIVATE
+        "${PROJECT_SOURCE_DIR}/examples/include"
+        "${PROJECT_SOURCE_DIR}/examples/c"
+    )
+    set(DTFFT_EXAMPLE_UTILS_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/example_utils_modules")
+    set_target_properties(dtfft_example_utils PROPERTIES
+        Fortran_MODULE_DIRECTORY "${DTFFT_EXAMPLE_UTILS_MODULE_DIR}"
+        POSITION_INDEPENDENT_CODE ON
+    )
+    target_include_directories(dtfft_example_utils PUBLIC
+        "$<BUILD_INTERFACE:${DTFFT_EXAMPLE_UTILS_MODULE_DIR}>"
+    )
+    target_link_libraries(dtfft_example_utils PRIVATE dtfft)
+
+    if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)
+        enable_language(CUDA)
+        target_sources(dtfft_example_utils PRIVATE
+            "${PROJECT_SOURCE_DIR}/examples/cuda_utils.cu"
+        )
+        set_target_properties(dtfft_example_utils PROPERTIES CUDA_ARCHITECTURES all)
+    endif()
+
+    if(DTFFT_RUNNING_CICD)
+        target_compile_definitions(dtfft_example_utils PRIVATE DTFFT_RUNNING_CICD)
+    endif()
+
+    if(DTFFT_BUILD_PYTHON_API AND DTFFT_BUILD_SHARED)
+        install(TARGETS dtfft_example_utils
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+        if(APPLE)
+            set_target_properties(dtfft_example_utils PROPERTIES INSTALL_RPATH "@loader_path/.")
+        else()
+            set_target_properties(dtfft_example_utils PROPERTIES INSTALL_RPATH "$ORIGIN/.")
+        endif()
+    endif()
 endif()
 
-if ( DTFFT_WITH_ZFP )
-  target_sources(dtfft PRIVATE dtfft_compressor_zfp.F90)
-endif()
-
-if (DTFFT_WITH_CUDA)
-  target_sources(dtfft PRIVATE
-    dtfft_kernel_device.F90
-    dtfft_nvrtc_block_optimizer.F90
-    dtfft_nvrtc_module_cache.F90
-    dtfft_nvrtc_module.F90)
-
-  if ( NOT DTFFT_WITH_MOCK_ENABLED )
-    target_sources(dtfft PRIVATE
-      dtfft_helpers.c)
-  endif()
-
-  if (USE_NCCL)
-    target_sources(dtfft PRIVATE dtfft_backend_nccl.F90)
-  endif()
-
-  if (USE_NVSHMEM)
-    target_sources(dtfft PRIVATE dtfft_backend_cufftmp.F90)
-  endif()
-endif()
-
-add_subdirectory(interfaces)
-
-if(DTFFT_BUILD_TESTS AND NOT DTFFT_BUILD_PYTHON_API)
-  add_subdirectory(tests)
+if(DTFFT_BUILD_C_CXX_API OR DTFFT_BUILD_PYTHON_API)
+    add_subdirectory(api)
 endif()

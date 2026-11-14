@@ -238,8 +238,35 @@ All error codes that ``dtFFT`` can return are listed below.
 
   Invalid compression tolerance
 
+.. f:variable:: DTFFT_ERROR_FILE_NOT_FOUND
+
+  Plan file cannot be opened
+
+.. f:variable:: DTFFT_ERROR_FILE_INVALID
+
+  Plan file is not a valid ``dtFFT`` plan file or is corrupted
+
+.. f:variable:: DTFFT_ERROR_FILE_VERSION_MISMATCH
+
+  Plan file layout is not one this version of ``dtFFT`` can read: either newer than this
+  library understands, or an older layout that is no longer supported
+
+.. f:variable:: DTFFT_ERROR_FILE_PLAN_MISMATCH
+
+  Plan stored in file does not match current run: different number of MPI processes,
+  different plan class, different platform, or a backend that is not available in this build
+
+.. f:variable:: DTFFT_ERROR_FILE_WRITE_FAILED
+
+  Failed to write plan to file
+
+.. f:variable:: DTFFT_ERROR_FILE_BACKEND_NOT_SUPPORTED
+
+  Plan file contains a backend that is not supported by this build
+
 Basic types
 ===========
+
 
 dtfft_execute_t
 ---------------------
@@ -642,15 +669,15 @@ _______________
 
 .. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_RATE
 
-  Fixed rate compression mode.
+  Fixed rate compression mode. This mode is unique for ZFP compression library.
 
 .. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_PRECISION
 
-  Fixed precision compression mode.
+  Fixed precision compression mode. This mode targets relative error.
 
 .. f:variable:: DTFFT_COMPRESSION_MODE_FIXED_ACCURACY
 
-  Fixed accuracy compression mode.
+  Fixed accuracy compression mode. This mode targets absolute error.
 
 ------
 
@@ -667,7 +694,53 @@ _______________
 .. f:variable:: DTFFT_COMPRESSION_LIB_ZFP
 
   ZFP compression library.
+  Supported modes:
+    Host: all modes
+    
+    CUDA: only :f:var:`DTFFT_COMPRESSION_MODE_FIXED_RATE`
 
+.. f:variable:: DTFFT_COMPRESSION_LIB_SZ3
+
+  SZ3 host compression library. 
+  Supported modes:
+    Host:
+      - :f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    CUDA: not supported
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_SZP
+
+  SZp host compression library.
+  Supported modes:
+    Host:
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    CUDA: not supported
+
+.. .. f:variable:: DTFFT_COMPRESSION_LIB_CUSZ
+
+..   cuSZ GPU compression library.
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_CUSZP
+
+  cuSZp GPU compression library. Supported modes:
+
+    CUDA: only :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    
+    Host: not supported
+
+.. f:variable:: DTFFT_COMPRESSION_LIB_BITCOMP
+
+  bitcomp compression library. Supported modes:
+
+    Host:
+      - :f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+    CUDA:
+      - :f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`
+      - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
 ------
 
 dtfft_compression_config_t
@@ -868,6 +941,19 @@ dtfft_config_t
 
     This option can also be controlled using the ``DTFFT_ACCESS_MODE`` environment variable.
 
+  :f int32 block_size:
+    Tile edge length, in array elements, for blocked host kernels when autotuning
+    is disabled. This is the number of elements along each dimension, not the
+    total number of elements in a tile.
+
+    Default is 0, which disables blocking. Valid values are 0, 4, 8, 16, 32, and 64.
+
+  :f int32 co_threshold:
+    Recursion threshold for cache-oblivious host kernels: stop subdividing a block
+    and process it directly when it contains no more than this many elements.
+
+    Default is 1024. The value must be non-negative.
+
   :f logical enable_compressed_backends:
     Should compressed backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
 
@@ -941,6 +1027,11 @@ _______________________
     Specifies at which stage the local transposition is performed during global exchange.
   :o dtfft_access_mode_t access_mode [in, optional]:
     Specifies the memory access pattern (write/read) for local transposition in Generic backends.
+  :o integer(int32) block_size [in, optional]:
+    Tile edge length, in array elements, for blocked host kernels when autotuning is disabled. Default is 0, which disables blocking. Valid values are 0, 4, 8, 16, 32, and 64.
+  :o integer(int32) co_threshold [in, optional]:
+    Recursion threshold for cache-oblivious host kernels: stop subdividing a block and process it directly when it contains no more than this many elements.
+    Default is 1024. The value must be non-negative.
   :o logical enable_compressed_backends [in, optional]:
     Should compressed backends be enabled when ``effort`` is ``DTFFT_PATIENT`` or ``DTFFT_EXHAUSTIVE``.
   :o dtfft_compression_config_t compression_config_transpose [in, optional]:
@@ -1630,6 +1721,60 @@ ______
     Optional error code returned to user
 
 ------
+
+save
+____
+
+.. f:subroutine:: save(filename[, error_code])
+
+  Saves plan to file.
+
+  A plan created with a high ``effort`` level spends most of its creation time on
+  benchmarking. Saving it lets a later run rebuild the same plan with ``load``, without
+  measuring anything.
+
+  The file records the number of MPI processes and refuses to load on a different one.
+  It does **not** record how ranks were placed across nodes and devices: keeping that
+  identical between runs is the caller's responsibility. A plan replayed onto a different
+  placement stays correct, but the choices in it were measured for a layout that no longer
+  holds, so it may no longer be the fastest one.
+
+  A file also carries the layout version of the format itself. A later ``dtFFT`` reads a
+  file written by an earlier one as long as it still understands that layout; only a file
+  newer than the reader, or one whose layout has been retired, is refused. The library
+  version and build configuration are recorded too, but for diagnostics -- what is actually
+  enforced is that every backend named in the file exists in this build, since which
+  backends are compiled in varies.
+
+  :p character(len=*) filename [in]:
+    Name of file to save the plan to
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
+load
+____
+
+.. f:subroutine:: load(filename[, comm, error_code])
+
+  Loads plan from file previously written by ``save``.
+
+  The plan is fully rebuilt: communicators, pencils, reshape handles, kernels and FFT plans
+  are all created exactly as they are for a freshly tuned plan. Nothing is benchmarked.
+
+  The variable being loaded into must be of the same concrete plan class as the one stored
+  in the file, otherwise ``DTFFT_ERROR_FILE_PLAN_MISMATCH`` is returned.
+
+  :p character(len=*) filename [in]:
+    Name of file containing the plan
+  :o TYPE_MPI_COMM comm [in, optional]:
+    MPI communicator: ``MPI_COMM_WORLD`` (default) or Cartesian communicator
+  :o integer(int32) error_code [out, optional]:
+    Optional error code returned to user
+
+------
+
 
 report_compression
 __________________

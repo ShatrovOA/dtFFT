@@ -728,19 +728,68 @@ The :f:var:`DTFFT_BACKEND_ADAPTIVE` backend can be selected when ``effort >= DTF
 Compression
 -----------
 
-dtFFT supports data compression during transposition for certain backends to reduce communication overhead. Currently, compression is implemented using the `ZFP library <https://zfp.readthedocs.io/en/release1.0.1/index.html>`_, supporting all its compression modes except expert-mode. Note that although ZFP does not natively support compression of complex numbers, dtFFT handles this by compressing the real and imaginary parts separately in two passes. When setting compression parameters, consider the data type of the complex numbers (float or double).
+dtFFT supports data compression during transposition and reshape operations for certain backends to reduce communication overhead. 
+Compression libraries are enabled at build time by their respective CMake options:
 
-When compression is enabled, dtFFT expects the compressed data size to always be smaller than the original. If this condition is not met (it can happen even if fixed-rate mode is used),  an error occurs and the program aborts.
+.. list-table::
+   :widths: 20 20 20 60
+   :header-rows: 1
+
+   * - Library
+     - Build option
+     - Platform
+     - Supported compression modes
+   * - `ZFP <https://zfp.readthedocs.io/en/release1.0.1/index.html>`_
+     - ``DTFFT_WITH_ZFP``
+     - Host and CUDA
+     - All modes except expert-mode on host. But its CUDA execution policy is limited to :f:var:`DTFFT_COMPRESSION_MODE_FIXED_RATE`.
+   * - `SZ3 <https://github.com/szcompressor/SZ3>`_
+     - ``DTFFT_WITH_SZ3``
+     - Host only
+     - :f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`
+       :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+       :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+   * - `SZp <https://github.com/szcompressor/SZp>`_
+     - ``DTFFT_WITH_SZP``
+     - Host only
+     - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`
+       :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+   * - `cuSZp <https://github.com/szcompressor/cuSZp>`_
+     - ``DTFFT_WITH_CUSZP``
+     - CUDA only
+     - :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+   * - `bitcomp <https://docs.nvidia.com/cuda/nvcomp/bitcomp.html>`_
+     - ``DTFFT_WITH_BITCOMP``
+     - Host and CUDA. However, CUDA support is required
+     - :f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`
+       :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION` -- host only
+       :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`
+
+..
+  `cuSZ <https://github.com/szcompressor/cuSZ>`_
+  ``DTFFT_WITH_CUSZ``
+  :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION` (relative error bound) and :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY` (absolute error bound). CUDA only.
+
+Bitcomp, SZ3 and SZp use the ``tolerance`` field in fixed-precision mode, treating it as a relative error bound, 
+while ZFP is the only library that uses the ``precision`` field as a number of bitplanes to keep. 
+Requesting a mode that the selected library does not support makes plan creation fail with ``DTFFT_ERROR_COMPRESSION_INVALID_MODE``.
+
+Note that none of the libraries natively support compression of complex numbers. 
+ZFP handles them by compressing the real and imaginary parts separately in two passes, while others treat complex data as a flat array of interleaved real values. 
+When setting compression parameters, consider the data type of the complex numbers (float or double).
+
+When compression is enabled, dtFFT expects the compressed data size to always be smaller than the original. 
+If this condition is not met (it can happen even if fixed-rate mode is used), an error occurs and the program aborts.
 
 Backends supporting compression can be used during autotuning, but only fixed-rate compression is allowed to ensure predictable and stable performance measurements during the tuning process.
 
 The compression configuration is specified using the :f:type:`dtfft_compression_config_t` structure, which includes the following fields:
 
-- **compression_lib**: The compression library to use (currently only :f:var:`DTFFT_COMPRESSION_LIB_ZFP` is supported).
-- **compression_mode**: The compression mode (:f:var:`DTFFT_COMPRESSION_MODE_LOSSLESS`, :f:var:`DTFFT_COMPRESSION_MODE_FIXED_RATE`, :f:var:`DTFFT_COMPRESSION_MODE_FIXED_PRECISION`, or :f:var:`DTFFT_COMPRESSION_MODE_FIXED_ACCURACY`).
+- **compression_lib**: The compression library to use
+- **compression_mode**: The compression mode
 - **rate**: Compression rate for fixed-rate mode (bits per value, higher values for less compression).
-- **precision**: Number of bits of precision for fixed-precision mode.
-- **tolerance**: Tolerance for fixed-accuracy mode.
+- **precision**: Number of bits of precision for fixed-precision mode. Used by ZFP only.
+- **tolerance**: Tolerance for fixed-accuracy mode. Also used by bitcomp, SZ3 and SZp as a relative error bound in fixed-precision mode.
 
 When compression is not intended to be used, but library is built with compression support, do not change the default values of :f:type:`dtfft_compression_config_t` structure, since it may trigger an error during checking the validity of the compression configuration.
 

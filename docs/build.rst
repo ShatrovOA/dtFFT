@@ -16,6 +16,14 @@ Since ``dtFFT`` is primarily written in Fortran, a modern Fortran compiler (2008
 - **Intel Fortran (ifort / ifx)**: Version 18 and above
 - **NVHPC Fortran (nvfortran)**: Version 24.5 and above
 
+Compiler flags are organized in ``cmake/compiler-flags`` by CMake compiler ID.
+Additional profiles are provided for LLVM Flang, Arm Flang, Cray, IBM XL,
+NAG, Fujitsu, and PGI. Since these compilers are not part of the regular test
+matrix, their optional flags are checked with CMake before being enabled.
+Other Fortran compilers use the same conservative, feature-checked fallback.
+The presence of a profile does not mean that the compiler has been tested with
+dtFFT.
+
 Currently, ``dtFFT`` can only be built using CMake (version 3.25 or higher recommended). Ensure CMake is installed and available in your PATH before proceeding.
 
 **Requirements**:
@@ -70,6 +78,10 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Builds the library’s test suite.
+   * - ``DTFFT_BUILD_EXAMPLES``
+     - ``ON`` / ``OFF``
+     - ``ON``
+     - Builds the library’s examples.
    * - ``DTFFT_ENABLE_COVERAGE``
      - ``ON`` / ``OFF``
      - ``OFF``
@@ -125,6 +137,26 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Enables ZFP support for compressed transposes. Requires the ``zfp_DIR`` variable to point to the ZFP installation path.
+   * - ``DTFFT_WITH_SZ3``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables SZ3 support for compressed transposes. Requires the ``SZ3_DIR`` variable to point to the SZ3 installation path.
+   * - ``DTFFT_WITH_SZP``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables SZp support for compressed transposes. Requires the ``SZp_DIR`` variable to point to the SZp installation path.
+   * - ``DTFFT_WITH_CUSZ``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables cuSZ support for CUDA compressed transposes. Requires ``DTFFT_WITH_CUDA=ON`` and ``CUSZ_DIR`` to point to the cuSZ CMake package.
+   * - ``DTFFT_WITH_CUSZP``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables cuSZp support for CUDA compressed transposes. Requires ``DTFFT_WITH_CUDA=ON`` and ``cuSZp_DIR`` to point to the cuSZp CMake package.
+   * - ``DTFFT_WITH_BITCOMP``
+     - ``ON`` / ``OFF``
+     - ``OFF``
+     - Enables bitcomp support for compressed transposes. Requires ``DTFFT_WITH_CUDA=ON`` and ``nvcomp_DIR`` to point to the nvcomp CMake package.
    * - ``DTFFT_WITH_MOCK_ENABLED``
      - ``ON`` / ``OFF``
      - ``OFF``
@@ -180,14 +212,39 @@ The ``dtfft`` target automatically sets include directories and links required l
 
    cmake -S . -B build -Ddtfft_DIR=/path/to/install/lib[64]/cmake/dtfft ..
 
-The installation also provides the following CMake variables for conditional compilation:
+After ``find_package(dtfft)``, the package exposes the following Boolean
+variables. They describe features enabled in the installed build; use them to
+conditionally configure your project, for example:
 
-- ``DTFFT_WITH_CUDA``: Indicates CUDA support
-- ``DTFFT_WITH_C_CXX_API``: Indicates C/C++ API availability
-- ``DTFFT_WITH_MPI_MODULE``: Indicates use of the ``mpi`` module
-- ``DTFFT_WITH_NCCL``: Indicates NCCL support
-- ``DTFFT_WITH_NVSHMEM``: Indicates NVSHMEM support
-- ``DTFFT_WITH_OPENMP``: Indicates OpenMP support
+.. code-block:: cmake
+
+   if(DTFFT_WITH_CUDA)
+     # Configure CUDA-specific code
+   endif()
+
+- ``DTFFT_WITH_CUDA``: CUDA support is enabled.
+- ``DTFFT_WITH_FFTW``: The FFTW3 executor is enabled.
+- ``DTFFT_WITH_FFTW_THREADS``: The FFTW threads library was selected instead
+  of FFTW's OpenMP library. This is relevant when both FFTW and OpenMP are
+  enabled.
+- ``DTFFT_WITH_MKL``: The MKL DFTI executor is enabled.
+- ``DTFFT_WITH_SZ3``: SZ3 compression support is enabled.
+- ``DTFFT_WITH_SZP``: SZp compression support is enabled.
+- ``DTFFT_WITH_ZFP``: ZFP compression support is enabled.
+- ``DTFFT_WITH_CUSZP``: cuSZp compression support is enabled.
+- ``DTFFT_WITH_BITCOMP``: nvCOMP/Bitcomp compression support is enabled.
+- ``DTFFT_WITH_MOCK_ENABLED``: CUDA-related operations use mock implementations
+  for CPU-only testing.
+- ``DTFFT_WITH_C_CXX_API``: The C and C++ APIs are available.
+- ``DTFFT_WITH_MPI_MODULE``: The Fortran ``mpi`` module is used instead of
+  ``mpi_f08``.
+- ``DTFFT_WITH_NCCL``: NCCL support is enabled.
+- ``DTFFT_WITH_NVSHMEM``: NVSHMEM support is enabled.
+- ``DTFFT_WITH_OPENMP``: OpenMP support is enabled.
+- ``DTFFT_WITH_PROFILER``: Profiler support is enabled.
+- ``DTFFT_NCCL_FROM_NVHPC``: NCCL was provided by the NVHPC SDK. This is an
+  informational package variable; projects normally only need
+  ``DTFFT_WITH_NCCL``.
 
 .. _python_install_link:
 

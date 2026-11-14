@@ -1,0 +1,14 @@
+dtfft_append_supported_fortran_flags(CMAKE_Fortran_FLAGS
+  -Mbackslash
+  -traceback
+  -Mcontiguous
+  -Mnodepchk
+)
+dtfft_append_supported_fortran_flags(CMAKE_Fortran_FLAGS_DEBUG
+  -Mbounds
+  -Mchkstk
+)
+dtfft_append_supported_fortran_flags(CMAKE_Fortran_FLAGS_RELEASE
+  -Ofast
+  -Mnobounds
+)
