@@ -21,7 +21,9 @@ module dtfft_abstract_compressor
 !! Abstract base class for compression implementations [[abstract_compressor]]
 use, intrinsic :: iso_c_binding
 use, intrinsic :: iso_fortran_env
+#ifdef DTFFT_WITH_CUDA
 use dtfft_interface_cuda_runtime
+#endif
 use dtfft_errors
 use dtfft_parameters
 use dtfft_serializer
