@@ -17,6 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_serializer
+!! Serializer module for saving and loading data to/from files using MPI-IO
 use, intrinsic :: iso_fortran_env
 use dtfft_errors
 use dtfft_utils
@@ -36,11 +37,12 @@ public :: serializer
       !! Number of bytes in `integer(int64)`
 
     type :: serializer
+    !! Serializer for saving and loading data to/from files using MPI-IO
     private
-        TYPE_MPI_FILE  :: fh
-        TYPE_MPI_COMM  :: comm
-        integer(MPI_OFFSET_KIND) :: pos = 0
-        logical :: is_open = .false.
+        TYPE_MPI_FILE  :: fh    !! MPI file handle
+        TYPE_MPI_COMM  :: comm  !! MPI communicator
+        integer(MPI_OFFSET_KIND) :: pos = 0 !! Current position in the file
+        logical :: is_open = .false.    !! Flag indicating if the serializer is open
     contains
     private
         procedure, pass(self),  public  :: create

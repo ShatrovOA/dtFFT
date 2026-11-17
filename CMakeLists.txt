@@ -74,6 +74,7 @@ option(DTFFT_ENABLE_PERSISTENT_COMM "Enable MPI persistent calls"               
 option(DTFFT_WITH_RMA               "Enable support of MPI RMA backends"                   OFF)
 option(DTFFT_ENABLE_INPUT_CHECK     "Enable checks for user input for all dtFFT functions" ON)
 option(DTFFT_WITH_PROFILER          "Build dtFFT with profiler support"                    OFF)
+option(DTFFT_WITH_DEVICE_AWARE_MPI  "Assume MPI supports CUDA buffers; otherwise use pinned-host staging for supported MPI backends" ON)
 
 # --- FFT libraries ------------------------------------------------------------
 option(DTFFT_WITH_FFTW              "Build dtFFT with FFTW support"                        OFF)
@@ -239,6 +240,10 @@ endif()
 if(DTFFT_WITH_MOCK_ENABLED)
   set(NCCL_FOUND TRUE)
   set(USE_NCCL   ON)
+endif()
+
+if ( DTFFT_WITH_CUDA AND NOT DTFFT_WITH_DEVICE_AWARE_MPI )
+  target_compile_definitions(dtfft PRIVATE WITHOUT_DEVICE_AWARE)
 endif()
 
 if(DTFFT_WITH_CUDA AND NOT DTFFT_WITH_MOCK_ENABLED)

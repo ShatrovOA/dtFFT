@@ -4,7 +4,7 @@
 Building the Library
 ####################
 
-This page outlines the process of building the ``dtFFT`` library using CMake, including compiler requirements, configuration options, and integration instructions for downstream projects. 
+This page outlines the process of building the ``dtFFT`` library using CMake, including compiler requirements, configuration options, and integration instructions for downstream projects.
 The library supports both host and GPU environments, leveraging modern Fortran and optional dependencies like CUDA, FFTW3, MKL, cuFFT, and VkFFT.
 
 Prerequisites
@@ -35,7 +35,7 @@ Currently, ``dtFFT`` can only be built using CMake (version 3.25 or higher recom
 
 **For CUDA support**:
 
-- **CUDA-aware MPI**: Required for GPU acceleration
+- **CUDA-aware MPI**: Used by default. Set ``DTFFT_WITH_DEVICE_AWARE_MPI=OFF`` to use pinned-host staging with the MPI backends instead.
 - **NCCL** (optional): NVIDIA Collective Communications Library (automatically linked if ``nvfortran`` is used)
 - **nvfortran** (optional): NVHPC Fortran compiler (enables additional features like NCCL and cuFFTMp)
 - **NVTX3** (optional): NVIDIA Tools Extension for profiling and debugging
@@ -43,7 +43,7 @@ Currently, ``dtFFT`` can only be built using CMake (version 3.25 or higher recom
 Configuration Options
 =====================
 
-The build process is controlled via CMake options, listed below. These options enable or disable features such as GPU support, FFT library integration, and additional utilities. 
+The build process is controlled via CMake options, listed below. These options enable or disable features such as GPU support, FFT library integration, and additional utilities.
 Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
 
 .. list-table:: CMake Configuration Options
@@ -58,6 +58,10 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Enables CUDA support. Requires ``nvcc`` in the PATH for the target CUDA version.
+   * - ``DTFFT_WITH_DEVICE_AWARE_MPI``
+     - ``ON`` / ``OFF``
+     - ``ON``
+     - When disabled in CUDA builds, stages communication through persistent pinned host buffers for the MPI backends for the exception of ``DTFFT_BACKEND_MPI_DATATYPE``. Pinned host buffer is allocated once for each transpose/reshape operation when it called for the first time.
    * - ``DTFFT_WITH_FFTW``
      - ``ON`` / ``OFF``
      - ``OFF``
@@ -103,7 +107,7 @@ Set them using ``-D<OPTION>=<VALUE>`` during CMake configuration.
      - ``ON`` / ``OFF``
      - ``OFF``
      - Enables persistent MPI communications for multiple plan executions.
-       Communications are initialized on the first call to :f:func:`execute` or :f:func:`transpose`, with pointers stored internally by MPI. 
+       Communications are initialized on the first call to :f:func:`execute` or :f:func:`transpose`, with pointers stored internally by MPI.
        Users must ensure these pointers remain valid and are not freed prematurely.
    * - ``DTFFT_WITH_PROFILER``
      - ``ON`` / ``OFF``
@@ -183,7 +187,7 @@ Building the Library
 
 Replace ``/path/to/install`` with your target installation directory.
 
-.. note:: CUDA support in ``dtFFT`` does not replace the host version but extends it. For more details, refer to the guide 
+.. note:: CUDA support in ``dtFFT`` does not replace the host version but extends it. For more details, refer to the guide
   :ref:`here<config_link>` and the environment variable :ref:`DTFFT_PLATFORM<dtfft_platform_env>`.
 
 2. **Build the Library**:

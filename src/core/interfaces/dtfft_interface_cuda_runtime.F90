@@ -35,6 +35,7 @@ public :: cudaMalloc, cudaFree, cudaMemset
 public :: cudaEventCreateWithFlags, cudaEventRecord, cudaStreamWaitEvent
 public :: cudaEventDestroy, cudaEventCreate, cudaEventSynchronize, cudaEventElapsedTime
 public :: cudaMemcpyAsync, cudaMemcpy
+public :: cudaHostAlloc, cudaFreeHost
 public :: cudaGetDevice, cudaGetDeviceCount, cudaSetDevice
 public :: cudaMemGetInfo, cudaDeviceSynchronize, cudaGetLastError
 public :: get_device_props
@@ -181,6 +182,7 @@ public :: cudaEvent
 #endif
 
     integer(c_int), parameter, public :: cudaEventDisableTiming = 2
+    integer(c_int), parameter, public :: cudaHostAllocDefault = 0
 
 public :: device_props
     type, bind(C) :: device_props
@@ -281,6 +283,30 @@ public :: device_props
             integer(c_int)     :: cudaError_t !! Returns `cudaSuccess` if memory was freed successfully,
                                                 !! or an error code if there was an issue.
         end function cudaFree
+    end interface
+
+    interface
+        function cudaHostAlloc(ptr, count, flags)                           &
+            result(cudaError_t)                                             &
+            bind(C, name="cudaHostAlloc")
+        !! Allocates page-locked host memory.
+        import
+            type(c_ptr)              :: ptr          !! Pointer to allocated host memory
+            integer(c_size_t), value :: count        !! Requested allocation size in bytes
+            integer(c_int), value    :: flags        !! Allocation flags
+            integer(c_int)           :: cudaError_t  !! CUDA error code
+        end function cudaHostAlloc
+    end interface
+
+    interface
+        function cudaFreeHost(ptr)                                          &
+            result(cudaError_t)                                             &
+            bind(C, name="cudaFreeHost")
+        !! Frees page-locked host memory.
+        import
+            type(c_ptr), value :: ptr          !! Pointer to host memory
+            integer(c_int)     :: cudaError_t  !! CUDA error code
+        end function cudaFreeHost
     end interface
 
     interface
@@ -608,9 +634,9 @@ contains
     function cudaMalloc(ptr, count) result(cudaError_t)
     !! Mock: Allocates memory on CPU using allocate
         use, intrinsic :: iso_c_binding
-        type(c_ptr)                  :: ptr
+        type(c_ptr)                   :: ptr
         integer(c_size_t), intent(in) :: count
-        integer(c_int)               :: cudaError_t
+        integer(c_int)                :: cudaError_t
 
         ptr = mem_alloc_host(count)
         if( is_null_ptr(ptr) ) then
@@ -626,12 +652,40 @@ contains
         integer(c_int)          :: cudaError_t
 
         if ( is_null_ptr(ptr) ) then
-        cudaError_t = cudaErrorInvalidValue
-        return
+            cudaError_t = cudaErrorInvalidValue
+            return
         end if
         call mem_free_host(ptr)
         cudaError_t = cudaSuccess
     end function cudaFree
+
+    function cudaHostAlloc(ptr, count, flags) result(cudaError_t)
+    !! Mock: Allocates host memory using the regular host allocator
+        type(c_ptr), intent(out) :: ptr
+        integer(c_size_t), intent(in) :: count
+        integer(c_int), intent(in) :: flags
+        integer(c_int) :: cudaError_t
+
+        ptr = mem_alloc_host(int(count, int64))
+        if (is_null_ptr(ptr)) then
+            cudaError_t = cudaErrorMemoryAllocation
+        else
+            cudaError_t = cudaSuccess
+        end if
+    end function cudaHostAlloc
+
+    function cudaFreeHost(ptr) result(cudaError_t)
+    !! Mock: Frees host memory allocated by cudaHostAlloc
+        type(c_ptr), intent(in) :: ptr
+        integer(c_int) :: cudaError_t
+
+        if (is_null_ptr(ptr)) then
+            cudaError_t = cudaErrorInvalidValue
+            return
+        end if
+        call mem_free_host(ptr)
+        cudaError_t = cudaSuccess
+    end function cudaFreeHost
 
     function cudaMemset(ptr, val, count) result(cudaError_t)
     !! Mock: Sets memory on CPU
