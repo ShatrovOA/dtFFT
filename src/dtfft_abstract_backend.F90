@@ -197,6 +197,11 @@ contains
         if (self%is_selfcopy .and. self%is_even .and. backend == DTFFT_BACKEND_MPI_A2A .and. platform == DTFFT_PLATFORM_HOST) then
             self%is_selfcopy = .false.
         endif
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        if (self%is_selfcopy .and. self%is_even .and. backend == DTFFT_BACKEND_MPI_A2A .and. platform == DTFFT_PLATFORM_CUDA) then
+            self%is_selfcopy = .false.
+        endif
+#endif
 
         self%aux_bytes = 0_int64
         if (self%is_pipelined) then

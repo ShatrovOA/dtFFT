@@ -6,6 +6,7 @@ use iso_fortran_env, only: int32, output_unit, error_unit
 use dtfft_interface_cuda_runtime
 #include "_dtfft_cuda.h"
 #endif
+use dtfft_utils
 implicit none
 private
 
@@ -15,6 +16,7 @@ public :: test_suite_t
     private
         integer(int32) :: comm_rank
         integer(int32) :: failures = 0_int32
+        type(string), allocatable :: failed_tests(:)
     contains
         procedure :: create
         procedure :: finalize
@@ -48,20 +50,26 @@ contains
             write(output_unit, '(a)') repeat("=", 30)
             flush(output_unit)
         endif
+        allocate(self%failed_tests(100))
     end subroutine create
 
     subroutine finalize(self)
         class(test_suite_t), intent(inout)  :: self
         integer(int32)    :: ierr             !! Error code
+        integer(int32) :: i
 
         if ( self%comm_rank == 0 ) then
             if ( self%failures == 0 ) then
                 write(output_unit, "(a)") "All tests PASSED"
             else
                 write(output_unit, "(i0,a)") self%failures, " test(s) FAILED"
+                do i = 1, self%failures
+                    write(output_unit, "(a)") self%failed_tests(i)%raw
+                enddo
             endif
             flush(output_unit)
         endif
+        call destroy_strings(self%failed_tests)
         if ( self%failures == 0 ) then
             call MPI_Finalize(ierr)
         else
@@ -92,6 +100,7 @@ contains
             " (first failing rank ", first_rank, ")"
             flush(output_unit)
         endif
+        self%failed_tests(self%failures) = string(name)
     end subroutine check_integer
 
     subroutine check_logical(self, name, condition)
@@ -107,6 +116,7 @@ contains
         call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
         self%failures = self%failures + 1_int32
         if ( rank == 0 ) write(output_unit, "(a, a)") "FAIL ", name
+        self%failed_tests(self%failures) = string(name)
     end subroutine check_logical
 
     subroutine assert_true(self, message, condition)
@@ -121,6 +131,7 @@ contains
         call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
         if ( rank == 0 ) write(error_unit, "(a)") "Assertion failed: "//trim(message)
         ! call MPI_Abort(MPI_COMM_WORLD, 1, ierr)
+        self%failed_tests(self%failures) = string(message)
     end subroutine assert_true
 
     subroutine assert_false(self, message, condition)

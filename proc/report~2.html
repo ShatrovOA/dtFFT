@@ -73,20 +73,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.0% of total for procedures.">16 statements</a>
+                 title=" 0.2% of total for procedures.">63 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/test_backend_compressed.F90"> Source File</a>
+              <a href="../src/dtfft_plan.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/test_backend_compressed.f90.html'>test_backend_compressed.F90</a></li>
-                <li class="breadcrumb-item"><a href='../program/test_backend_compressed.html'>test_backend_compressed</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_plan.f90.html'>dtfft_plan.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_plan.html'>dtfft_plan</a></li>
             <li class="breadcrumb-item active" aria-current="page">report</li>
           </ol>
         </nav>
@@ -132,12 +132,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2> subroutine report(b, platform, info, mode, ny_global, base_type, status, error, rate)  
+    <h2>private  subroutine report(self, error_code)  
 </h2>
     
 
-    <p>Reports result of a single case</p>
+    <p>Prints plan-related information to stdout</p>
 
+    <h3>Type Bound</h3>
+    <p><a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -152,137 +154,32 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-b~5"></span>
-              type(<a href='../type/dtfft_backend_t.html'>dtfft_backend_t</a>),
+              <span class="anchor" id="variable-self~80"></span>
+              class(<a href='../type/dtfft_plan_t.html'>dtfft_plan_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>b</strong></td>
+            <td><strong>self</strong></td>
             <td>
-                <p>Tested backend</p>
+                <p>Abstract plan</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~6"></span>
-              type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>platform</strong></td>
-            <td>
-                <p>Tested platform</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-info~4"></span>
-              type(<a href='../type/compressor_info.html'>compressor_info</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>info</strong></td>
-            <td>
-                <p>Tested compressor</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-mode~4"></span>
-              type(<a href='../type/dtfft_compression_mode_t.html'>dtfft_compression_mode_t</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>mode</strong></td>
-            <td>
-                <p>Tested compression mode</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-ny_global~3"></span>
+              <span class="anchor" id="variable-error_code~35"></span>
               integer(kind=int32),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>ny_global</strong></td>
+            <td><strong>error_code</strong></td>
             <td>
-                <p>Global number of columns</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-base_type~3"></span>
-              type(MPI_Datatype),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>base_type</strong></td>
-            <td>
-                <p>MPI data type</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-status~2"></span>
-              character(len=*),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>status</strong></td>
-            <td>
-                <p>Case status</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-error~3"></span>
-              real(kind=real64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>error</strong></td>
-            <td>
-                <p>Obtained error</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-rate~3"></span>
-              real(kind=real64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>rate</strong></td>
-            <td>
-                <p>Obtained compression rate</p>
+                <p>Optional error code returned to user</p>
             </td>
         </tr>
     </tbody>
@@ -297,209 +194,360 @@
   <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
+<!-- Generated by graphviz version 14.1.2 (0)
  -->
 <!-- Title: proc~~report~2~~CallsGraph Pages: 1 -->
-<svg id="procreport2CallsGraph" width="516pt" height="284pt"
- viewBox="0.00 0.00 516.00 284.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~report~2~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 280)">
+<svg id="procreport2CallsGraph" width="641pt" height="438pt"
+ viewBox="0.00 0.00 641.00 438.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~report~2~~CallsGraph" class="graph" transform="scale(0.797184 0.797184) rotate(0) translate(4 545.27)">
 <title>proc~~report~2~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-280 512,-280 512,4 -4,4"/>
+<polygon fill="white" stroke="none" points="-4,4 -4,-545.27 800.08,-545.27 800.08,4 -4,4"/>
 <!-- proc~report~2 -->
 <g id="proc~~report~2~~CallsGraph_node1" class="node">
 <title>proc~report~2</title>
-<polygon fill="none" stroke="black" points="54,-170 0,-170 0,-146 54,-146 54,-170"/>
-<text text-anchor="middle" x="27" y="-155.6" font-family="Helvetica,sans-Serif" font-size="10.50">report</text>
+<polygon fill="none" stroke="black" points="112.77,-255.27 0,-255.27 0,-231 112.77,-231 112.77,-255.27"/>
+<text xml:space="preserve" text-anchor="middle" x="56.38" y="-239.53" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_plan_t%report</text>
 </g>
-<!-- proc~destroy_string -->
+<!-- comm_dims -->
 <g id="proc~~report~2~~CallsGraph_node2" class="node">
-<title>proc~destroy_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node2"><a xlink:href="../proc/destroy_string.html" xlink:title="string%destroy_string">
-<polygon fill="#d9534f" stroke="#d9534f" points="364,-234 237,-234 237,-210 364,-210 364,-234"/>
-<text text-anchor="middle" x="300.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string%destroy_string</text>
-</a>
+<title>comm_dims</title>
+<polygon fill="#777777" stroke="#777777" points="301.66,-474.27 225.64,-474.27 225.64,-450 301.66,-450 301.66,-474.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-458.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">comm_dims</text>
 </g>
-</g>
-<!-- proc~report~2&#45;&gt;proc~destroy_string -->
+<!-- proc~report~2&#45;&gt;comm_dims -->
 <g id="proc~~report~2~~CallsGraph_edge1" class="edge">
-<title>proc~report~2&#45;&gt;proc~destroy_string</title>
-<path fill="none" stroke="#ff0000" d="M54.03,-164.14C96.25,-174.09 180.76,-194.01 238.71,-207.67"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="237.96,-211.09 248.49,-209.98 239.56,-204.27 237.96,-211.09"/>
-</g>
-<!-- proc~get_report_string -->
-<g id="proc~~report~2~~CallsGraph_node3" class="node">
-<title>proc~get_report_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node3"><a xlink:href="../proc/get_report_string.html" xlink:title="get_report_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="193,-150 90,-150 90,-126 193,-126 193,-150"/>
-<text text-anchor="middle" x="141.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_report_string</text>
-</a>
-</g>
-</g>
-<!-- proc~report~2&#45;&gt;proc~get_report_string -->
-<g id="proc~~report~2~~CallsGraph_edge2" class="edge">
-<title>proc~report~2&#45;&gt;proc~get_report_string</title>
-<path fill="none" stroke="#ff0000" d="M54.09,-153.36C61.91,-151.97 70.83,-150.39 79.9,-148.77"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="80.53,-152.22 89.76,-147.02 79.3,-145.32 80.53,-152.22"/>
-</g>
-<!-- proc~get_report_string&#45;&gt;proc~destroy_string -->
-<g id="proc~~report~2~~CallsGraph_edge5" class="edge">
-<title>proc~get_report_string&#45;&gt;proc~destroy_string</title>
-<path fill="none" stroke="#00ffff" d="M155.93,-150.06C172.18,-164.08 200.86,-187.08 229,-201 232.97,-202.96 237.16,-204.78 241.43,-206.46"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="240.29,-209.76 250.88,-209.9 242.68,-203.19 240.29,-209.76"/>
+<title>proc~report~2&#45;&gt;comm_dims</title>
+<path fill="none" stroke="#ff0000" d="M59.39,-255.36C65.68,-289.68 88.35,-387.62 148.77,-436.13 167,-450.77 191.91,-457.5 213.78,-460.47"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="213.39,-463.95 223.72,-461.57 214.16,-456.99 213.39,-463.95"/>
 </g>
 <!-- interface~to_str -->
-<g id="proc~~report~2~~CallsGraph_node4" class="node">
+<g id="proc~~report~2~~CallsGraph_node3" class="node">
 <title>interface~to_str</title>
-<g id="a_proc~~report~2~~CallsGraph_node4"><a xlink:href="../interface/to_str.html" xlink:title="to_str">
-<polygon fill="#a7506f" stroke="#a7506f" points="327.5,-192 273.5,-192 273.5,-168 327.5,-168 327.5,-192"/>
-<text text-anchor="middle" x="300.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">to_str</text>
+<g id="a_proc~~report~2~~CallsGraph_node3"><a xlink:href="../interface/to_str.html" xlink:title="to_str">
+<polygon fill="#a7506f" stroke="#a7506f" points="553.05,-434.27 499.05,-434.27 499.05,-410 553.05,-410 553.05,-434.27"/>
+<text xml:space="preserve" text-anchor="middle" x="526.05" y="-418.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">to_str</text>
 </a>
 </g>
 </g>
-<!-- proc~get_report_string&#45;&gt;interface~to_str -->
-<g id="proc~~report~2~~CallsGraph_edge3" class="edge">
-<title>proc~get_report_string&#45;&gt;interface~to_str</title>
-<path fill="none" stroke="#00ffff" d="M187.49,-150.04C211.53,-156.47 240.74,-164.28 263.3,-170.32"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="262.59,-173.75 273.16,-172.95 264.4,-166.99 262.59,-173.75"/>
-</g>
-<!-- proc~data_type_name -->
-<g id="proc~~report~2~~CallsGraph_node5" class="node">
-<title>proc~data_type_name</title>
-<g id="a_proc~~report~2~~CallsGraph_node5"><a xlink:href="../proc/data_type_name.html" xlink:title="data_type_name">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="351,-150 250,-150 250,-126 351,-126 351,-150"/>
-<text text-anchor="middle" x="300.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">data_type_name</text>
-</a>
-</g>
-</g>
-<!-- proc~get_report_string&#45;&gt;proc~data_type_name -->
-<g id="proc~~report~2~~CallsGraph_edge4" class="edge">
-<title>proc~get_report_string&#45;&gt;proc~data_type_name</title>
-<path fill="none" stroke="#00ffff" d="M193.04,-138C207.83,-138 224.13,-138 239.45,-138"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="239.86,-141.5 249.86,-138 239.86,-134.5 239.86,-141.5"/>
+<!-- proc~report~2&#45;&gt;interface~to_str -->
+<g id="proc~~report~2~~CallsGraph_edge2" class="edge">
+<title>proc~report~2&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#ff0000" d="M60.17,-255.57C67.91,-286.85 92.9,-368.79 148.77,-403.13 204.59,-437.45 403.53,-429.69 487.36,-424.7"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="487.36,-428.2 497.13,-424.09 486.93,-421.22 487.36,-428.2"/>
 </g>
 <!-- proc~dtfft_get_backend_string -->
-<g id="proc~~report~2~~CallsGraph_node6" class="node">
+<g id="proc~~report~2~~CallsGraph_node4" class="node">
 <title>proc~dtfft_get_backend_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node6"><a xlink:href="../proc/dtfft_get_backend_string.html" xlink:title="dtfft_get_backend_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="372,-108 229,-108 229,-84 372,-84 372,-108"/>
-<text text-anchor="middle" x="300.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_backend_string</text>
+<g id="a_proc~~report~2~~CallsGraph_node4"><a xlink:href="../proc/dtfft_get_backend_string.html" xlink:title="dtfft_get_backend_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="597.06,-354.27 455.04,-354.27 455.04,-330 597.06,-330 597.06,-354.27"/>
+<text xml:space="preserve" text-anchor="middle" x="526.05" y="-338.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_backend_string</text>
 </a>
 </g>
 </g>
-<!-- proc~get_report_string&#45;&gt;proc~dtfft_get_backend_string -->
-<g id="proc~~report~2~~CallsGraph_edge6" class="edge">
-<title>proc~get_report_string&#45;&gt;proc~dtfft_get_backend_string</title>
-<path fill="none" stroke="#00ffff" d="M187.49,-125.96C205.31,-121.2 225.96,-115.67 244.65,-110.67"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="245.75,-114 254.5,-108.04 243.94,-107.24 245.75,-114"/>
+<!-- proc~report~2&#45;&gt;proc~dtfft_get_backend_string -->
+<g id="proc~~report~2~~CallsGraph_edge3" class="edge">
+<title>proc~report~2&#45;&gt;proc~dtfft_get_backend_string</title>
+<path fill="none" stroke="#ff0000" d="M69.64,-255.65C86.02,-271.48 116.72,-298.12 148.77,-310.13 245.31,-346.34 365.24,-350.13 443.39,-347.68"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="443.23,-351.19 453.1,-347.33 442.98,-344.19 443.23,-351.19"/>
 </g>
-<!-- proc~get_compressor_string -->
+<!-- proc~dtfft_get_error_string -->
+<g id="proc~~report~2~~CallsGraph_node5" class="node">
+<title>proc~dtfft_get_error_string</title>
+<g id="a_proc~~report~2~~CallsGraph_node5"><a xlink:href="../proc/dtfft_get_error_string.html" xlink:title="dtfft_get_error_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="324.91,-234.27 202.39,-234.27 202.39,-210 324.91,-210 324.91,-234.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-218.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_error_string</text>
+</a>
+</g>
+</g>
+<!-- proc~report~2&#45;&gt;proc~dtfft_get_error_string -->
+<g id="proc~~report~2~~CallsGraph_edge4" class="edge">
+<title>proc~report~2&#45;&gt;proc~dtfft_get_error_string</title>
+<path fill="none" stroke="#ff0000" d="M113.2,-237.42C137.2,-234.97 165.53,-232.07 191.05,-229.46"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="191.07,-232.98 200.66,-228.48 190.35,-226.01 191.07,-232.98"/>
+</g>
+<!-- proc~dtfft_get_executor_string -->
+<g id="proc~~report~2~~CallsGraph_node6" class="node">
+<title>proc~dtfft_get_executor_string</title>
+<g id="a_proc~~report~2~~CallsGraph_node6"><a xlink:href="../proc/dtfft_get_executor_string.html" xlink:title="dtfft_get_executor_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="335.04,-192.27 192.27,-192.27 192.27,-168 335.04,-168 335.04,-192.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-176.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_executor_string</text>
+</a>
+</g>
+</g>
+<!-- proc~report~2&#45;&gt;proc~dtfft_get_executor_string -->
+<g id="proc~~report~2~~CallsGraph_edge5" class="edge">
+<title>proc~report~2&#45;&gt;proc~dtfft_get_executor_string</title>
+<path fill="none" stroke="#ff0000" d="M80.41,-230.6C98.52,-221.24 124.63,-208.78 148.77,-201.13 158.94,-197.92 169.79,-195.13 180.6,-192.73"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="181.27,-196.17 190.33,-190.69 179.83,-189.32 181.27,-196.17"/>
+</g>
+<!-- proc~dtfft_get_precision_string -->
 <g id="proc~~report~2~~CallsGraph_node7" class="node">
-<title>proc~get_compressor_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node7"><a xlink:href="../proc/get_compressor_string.html" xlink:title="get_compressor_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="367,-66 234,-66 234,-42 367,-42 367,-66"/>
-<text text-anchor="middle" x="300.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_compressor_string</text>
+<title>proc~dtfft_get_precision_string</title>
+<g id="a_proc~~report~2~~CallsGraph_node7"><a xlink:href="../proc/dtfft_get_precision_string.html" xlink:title="dtfft_get_precision_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="335.79,-150.27 191.52,-150.27 191.52,-126 335.79,-126 335.79,-150.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-134.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_get_precision_string</text>
 </a>
 </g>
 </g>
-<!-- proc~get_report_string&#45;&gt;proc~get_compressor_string -->
+<!-- proc~report~2&#45;&gt;proc~dtfft_get_precision_string -->
+<g id="proc~~report~2~~CallsGraph_edge6" class="edge">
+<title>proc~report~2&#45;&gt;proc~dtfft_get_precision_string</title>
+<path fill="none" stroke="#ff0000" d="M67.08,-230.53C82.29,-211.71 113.68,-176.65 148.77,-159.13 158.55,-154.25 169.32,-150.5 180.2,-147.61"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="180.72,-151.09 189.63,-145.36 179.09,-144.28 180.72,-151.09"/>
+</g>
+<!-- proc~get_backend~3 -->
+<g id="proc~~report~2~~CallsGraph_node8" class="node">
+<title>proc~get_backend~3</title>
+<g id="a_proc~~report~2~~CallsGraph_node8"><a xlink:href="../proc/get_backend~3.html" xlink:title="abstract_reshape_plan%get_backend">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="368.41,-108.27 158.89,-108.27 158.89,-84 368.41,-84 368.41,-108.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-92.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_plan%get_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~report~2&#45;&gt;proc~get_backend~3 -->
 <g id="proc~~report~2~~CallsGraph_edge7" class="edge">
-<title>proc~get_report_string&#45;&gt;proc~get_compressor_string</title>
-<path fill="none" stroke="#00ffff" d="M155.93,-125.94C172.18,-111.92 200.86,-88.92 229,-75 232.97,-73.04 237.16,-71.22 241.43,-69.54"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="242.68,-72.81 250.88,-66.1 240.29,-66.24 242.68,-72.81"/>
+<title>proc~report~2&#45;&gt;proc~get_backend~3</title>
+<path fill="none" stroke="#ff0000" d="M62.54,-230.67C73.9,-204.84 103.75,-145.54 148.77,-117.13 150.8,-115.86 152.88,-114.65 155.01,-113.52"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="156.36,-116.75 163.94,-109.34 153.4,-110.41 156.36,-116.75"/>
+</g>
+<!-- proc~get_grid -->
+<g id="proc~~report~2~~CallsGraph_node9" class="node">
+<title>proc~get_grid</title>
+<g id="a_proc~~report~2~~CallsGraph_node9"><a xlink:href="../proc/get_grid.html" xlink:title="reshape_plan%get_grid">
+<polygon fill="#d9534f" stroke="#d9534f" points="331.66,-66.27 195.64,-66.27 195.64,-42 331.66,-42 331.66,-66.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reshape_plan%get_grid</text>
+</a>
+</g>
+</g>
+<!-- proc~report~2&#45;&gt;proc~get_grid -->
+<g id="proc~~report~2~~CallsGraph_edge8" class="edge">
+<title>proc~report~2&#45;&gt;proc~get_grid</title>
+<path fill="none" stroke="#ff0000" d="M60.26,-230.55C68.22,-198.79 93.67,-115.1 148.77,-75.13 159.22,-67.56 171.59,-62.46 184.26,-59.07"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="184.98,-62.5 193.95,-56.86 183.42,-55.67 184.98,-62.5"/>
+</g>
+<!-- proc~get_grid_str -->
+<g id="proc~~report~2~~CallsGraph_node10" class="node">
+<title>proc~get_grid_str</title>
+<g id="a_proc~~report~2~~CallsGraph_node10"><a xlink:href="../proc/get_grid_str.html" xlink:title="get_grid_str">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="300.54,-394.27 226.77,-394.27 226.77,-370 300.54,-370 300.54,-394.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-378.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_grid_str</text>
+</a>
+</g>
+</g>
+<!-- proc~report~2&#45;&gt;proc~get_grid_str -->
+<g id="proc~~report~2~~CallsGraph_edge9" class="edge">
+<title>proc~report~2&#45;&gt;proc~get_grid_str</title>
+<path fill="none" stroke="#ff0000" d="M63.76,-255.62C76.49,-279.23 107.45,-330.37 148.77,-356.13 168.61,-368.51 193.67,-375.01 215.24,-378.42"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="214.59,-381.86 224.97,-379.77 215.55,-374.93 214.59,-381.86"/>
 </g>
 <!-- proc~get_platform_string -->
-<g id="proc~~report~2~~CallsGraph_node8" class="node">
+<g id="proc~~report~2~~CallsGraph_node11" class="node">
 <title>proc~get_platform_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node8"><a xlink:href="../proc/get_platform_string.html" xlink:title="get_platform_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="358.5,-24 242.5,-24 242.5,0 358.5,0 358.5,-24"/>
-<text text-anchor="middle" x="300.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_platform_string</text>
+<g id="a_proc~~report~2~~CallsGraph_node11"><a xlink:href="../proc/get_platform_string.html" xlink:title="get_platform_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="321.16,-24.27 206.14,-24.27 206.14,0 321.16,0 321.16,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_platform_string</text>
 </a>
 </g>
 </g>
-<!-- proc~get_report_string&#45;&gt;proc~get_platform_string -->
-<g id="proc~~report~2~~CallsGraph_edge8" class="edge">
-<title>proc~get_report_string&#45;&gt;proc~get_platform_string</title>
-<path fill="none" stroke="#00ffff" d="M149.13,-125.95C161.76,-104.11 191.41,-57.93 229,-33 231.58,-31.29 234.3,-29.72 237.11,-28.27"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="238.71,-31.39 246.36,-24.05 235.8,-25.02 238.71,-31.39"/>
+<!-- proc~report~2&#45;&gt;proc~get_platform_string -->
+<g id="proc~~report~2~~CallsGraph_edge10" class="edge">
+<title>proc~report~2&#45;&gt;proc~get_platform_string</title>
+<path fill="none" stroke="#ff0000" d="M58.81,-230.53C63.69,-193.63 83.24,-85.2 148.77,-33.13 161.75,-22.82 178.19,-16.97 194.51,-13.78"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="194.93,-17.26 204.25,-12.22 193.82,-10.35 194.93,-17.26"/>
+</g>
+<!-- proc~report_backends -->
+<g id="proc~~report~2~~CallsGraph_node12" class="node">
+<title>proc~report_backends</title>
+<g id="a_proc~~report~2~~CallsGraph_node12"><a xlink:href="../proc/report_backends.html" xlink:title="abstract_reshape_plan%report_backends">
+<polygon fill="#d9534f" stroke="#d9534f" points="378.54,-276.27 148.77,-276.27 148.77,-252 378.54,-252 378.54,-276.27"/>
+<text xml:space="preserve" text-anchor="middle" x="263.65" y="-260.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_plan%report_backends</text>
+</a>
+</g>
+</g>
+<!-- proc~report~2&#45;&gt;proc~report_backends -->
+<g id="proc~~report~2~~CallsGraph_edge11" class="edge">
+<title>proc~report~2&#45;&gt;proc~report_backends</title>
+<path fill="none" stroke="#ff0000" d="M113.2,-248.85C120.8,-249.62 128.82,-250.44 137.05,-251.29"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="136.58,-254.76 146.88,-252.29 137.29,-247.79 136.58,-254.76"/>
+</g>
+<!-- proc~write_message -->
+<g id="proc~~report~2~~CallsGraph_node13" class="node">
+<title>proc~write_message</title>
+<g id="a_proc~~report~2~~CallsGraph_node13"><a xlink:href="../proc/write_message.html" xlink:title="write_message">
+<polygon fill="#d9534f" stroke="#d9534f" points="571.56,-312.27 480.54,-312.27 480.54,-288 571.56,-288 571.56,-312.27"/>
+<text xml:space="preserve" text-anchor="middle" x="526.05" y="-296.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">write_message</text>
+</a>
+</g>
+</g>
+<!-- proc~report~2&#45;&gt;proc~write_message -->
+<g id="proc~~report~2~~CallsGraph_edge12" class="edge">
+<title>proc~report~2&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#ff0000" d="M78.31,-255.63C96.3,-265.66 123.3,-279.03 148.77,-285.13 259.81,-311.76 394.48,-309.04 468.85,-304.62"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="468.99,-308.12 478.75,-303.99 468.55,-301.13 468.99,-308.12"/>
 </g>
 <!-- proc~double_to_string -->
-<g id="proc~~report~2~~CallsGraph_node9" class="node">
+<g id="proc~~report~2~~CallsGraph_node17" class="node">
 <title>proc~double_to_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node9"><a xlink:href="../proc/double_to_string.html" xlink:title="double_to_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="508,-276 408,-276 408,-252 508,-252 508,-276"/>
-<text text-anchor="middle" x="458" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">double_to_string</text>
+<g id="a_proc~~report~2~~CallsGraph_node17"><a xlink:href="../proc/double_to_string.html" xlink:title="double_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="784.45,-373.27 685.18,-373.27 685.18,-349 784.45,-349 784.45,-373.27"/>
+<text xml:space="preserve" text-anchor="middle" x="734.82" y="-357.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">double_to_string</text>
 </a>
 </g>
 </g>
 <!-- interface~to_str&#45;&gt;proc~double_to_string -->
-<g id="proc~~report~2~~CallsGraph_edge9" class="edge">
+<g id="proc~~report~2~~CallsGraph_edge13" class="edge">
 <title>interface~to_str&#45;&gt;proc~double_to_string</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M327.81,-184.11C341.76,-187.18 358.72,-192.38 372,-201 392.62,-214.39 388.19,-228.45 408,-243 410.02,-244.49 412.17,-245.89 414.39,-247.22"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="412.73,-250.31 423.2,-251.95 416.04,-244.14 412.73,-250.31"/>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M553.24,-414.41C585.09,-405.01 639.66,-388.91 680.5,-376.87"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="681.3,-380.28 689.9,-374.09 679.32,-373.56 681.3,-380.28"/>
 </g>
 <!-- proc~float_to_string -->
-<g id="proc~~report~2~~CallsGraph_node10" class="node">
+<g id="proc~~report~2~~CallsGraph_node18" class="node">
 <title>proc~float_to_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node10"><a xlink:href="../proc/float_to_string.html" xlink:title="float_to_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="502,-234 414,-234 414,-210 502,-210 502,-234"/>
-<text text-anchor="middle" x="458" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">float_to_string</text>
+<g id="a_proc~~report~2~~CallsGraph_node18"><a xlink:href="../proc/float_to_string.html" xlink:title="float_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="778.08,-541.27 691.56,-541.27 691.56,-517 778.08,-517 778.08,-541.27"/>
+<text xml:space="preserve" text-anchor="middle" x="734.82" y="-525.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">float_to_string</text>
 </a>
 </g>
 </g>
 <!-- interface~to_str&#45;&gt;proc~float_to_string -->
-<g id="proc~~report~2~~CallsGraph_edge10" class="edge">
+<g id="proc~~report~2~~CallsGraph_edge14" class="edge">
 <title>interface~to_str&#45;&gt;proc~float_to_string</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M327.53,-187.03C348.38,-192.66 378.32,-200.75 404.15,-207.73"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="403.26,-211.11 413.83,-210.34 405.09,-204.35 403.26,-211.11"/>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M545.38,-434.48C572.52,-452.39 625.37,-485.86 673.56,-508.13 676.83,-509.65 680.24,-511.11 683.7,-512.52"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="682.16,-515.68 692.75,-516.01 684.68,-509.14 682.16,-515.68"/>
 </g>
 <!-- proc~int32_to_string -->
-<g id="proc~~report~2~~CallsGraph_node11" class="node">
+<g id="proc~~report~2~~CallsGraph_node20" class="node">
 <title>proc~int32_to_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node11"><a xlink:href="../proc/int32_to_string.html" xlink:title="int32_to_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="503.5,-192 412.5,-192 412.5,-168 503.5,-168 503.5,-192"/>
-<text text-anchor="middle" x="458" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int32_to_string</text>
+<g id="a_proc~~report~2~~CallsGraph_node20"><a xlink:href="../proc/int32_to_string.html" xlink:title="int32_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="779.58,-499.27 690.06,-499.27 690.06,-475 779.58,-475 779.58,-499.27"/>
+<text xml:space="preserve" text-anchor="middle" x="734.82" y="-483.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int32_to_string</text>
 </a>
 </g>
 </g>
 <!-- interface~to_str&#45;&gt;proc~int32_to_string -->
-<g id="proc~~report~2~~CallsGraph_edge11" class="edge">
+<g id="proc~~report~2~~CallsGraph_edge15" class="edge">
 <title>interface~to_str&#45;&gt;proc~int32_to_string</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M327.53,-180C347.82,-180 376.71,-180 402.05,-180"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="402.29,-183.5 412.29,-180 402.29,-176.5 402.29,-183.5"/>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M553.24,-430.37C585.69,-440.57 641.72,-458.18 682.78,-471.09"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="681.63,-474.4 692.22,-474.06 683.73,-467.72 681.63,-474.4"/>
 </g>
 <!-- proc~int64_to_string -->
-<g id="proc~~report~2~~CallsGraph_node12" class="node">
+<g id="proc~~report~2~~CallsGraph_node21" class="node">
 <title>proc~int64_to_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node12"><a xlink:href="../proc/int64_to_string.html" xlink:title="int64_to_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="503.5,-150 412.5,-150 412.5,-126 503.5,-126 503.5,-150"/>
-<text text-anchor="middle" x="458" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int64_to_string</text>
+<g id="a_proc~~report~2~~CallsGraph_node21"><a xlink:href="../proc/int64_to_string.html" xlink:title="int64_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="779.58,-457.27 690.06,-457.27 690.06,-433 779.58,-433 779.58,-457.27"/>
+<text xml:space="preserve" text-anchor="middle" x="734.82" y="-441.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int64_to_string</text>
 </a>
 </g>
 </g>
 <!-- interface~to_str&#45;&gt;proc~int64_to_string -->
-<g id="proc~~report~2~~CallsGraph_edge12" class="edge">
+<g id="proc~~report~2~~CallsGraph_edge16" class="edge">
 <title>interface~to_str&#45;&gt;proc~int64_to_string</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M327.53,-172.97C347.91,-167.47 376.96,-159.62 402.39,-152.75"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="403.55,-156.06 412.29,-150.08 401.72,-149.3 403.55,-156.06"/>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M553.24,-425.05C584.56,-428.53 637.84,-434.46 678.44,-438.97"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="677.96,-442.44 688.28,-440.07 678.73,-435.49 677.96,-442.44"/>
 </g>
 <!-- proc~int8_to_string -->
-<g id="proc~~report~2~~CallsGraph_node13" class="node">
+<g id="proc~~report~2~~CallsGraph_node22" class="node">
 <title>proc~int8_to_string</title>
-<g id="a_proc~~report~2~~CallsGraph_node13"><a xlink:href="../proc/int8_to_string.html" xlink:title="int8_to_string">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="500,-108 416,-108 416,-84 500,-84 500,-108"/>
-<text text-anchor="middle" x="458" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int8_to_string</text>
+<g id="a_proc~~report~2~~CallsGraph_node22"><a xlink:href="../proc/int8_to_string.html" xlink:title="int8_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="776.2,-415.27 693.43,-415.27 693.43,-391 776.2,-391 776.2,-415.27"/>
+<text xml:space="preserve" text-anchor="middle" x="734.82" y="-399.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int8_to_string</text>
 </a>
 </g>
 </g>
 <!-- interface~to_str&#45;&gt;proc~int8_to_string -->
-<g id="proc~~report~2~~CallsGraph_edge13" class="edge">
+<g id="proc~~report~2~~CallsGraph_edge17" class="edge">
 <title>interface~to_str&#45;&gt;proc~int8_to_string</title>
-<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M327.81,-175.89C341.76,-172.82 358.72,-167.62 372,-159 392.62,-145.61 388.19,-131.55 408,-117 410.02,-115.51 412.17,-114.11 414.39,-112.78"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="416.04,-115.86 423.2,-108.05 412.73,-109.69 416.04,-115.86"/>
+<path fill="none" stroke="#ff7f00" stroke-dasharray="5,2" d="M553.24,-419.73C585.45,-416.77 640.9,-411.67 681.87,-407.91"/>
+<polygon fill="#ff7f00" stroke="#ff7f00" points="682.14,-411.4 691.78,-407 681.5,-404.43 682.14,-411.4"/>
+</g>
+<!-- proc~get_grid_str&#45;&gt;interface~to_str -->
+<g id="proc~~report~2~~CallsGraph_edge18" class="edge">
+<title>proc~get_grid_str&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#0000ff" d="M300.86,-387.7C350.02,-395.25 437.47,-408.68 487.38,-416.35"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="486.71,-419.79 497.12,-417.85 487.77,-412.87 486.71,-419.79"/>
+</g>
+<!-- proc~report_backends&#45;&gt;proc~dtfft_get_backend_string -->
+<g id="proc~~report~2~~CallsGraph_edge20" class="edge">
+<title>proc~report_backends&#45;&gt;proc~dtfft_get_backend_string</title>
+<path fill="none" stroke="#ff00ff" d="M293.16,-276.7C322.95,-289.42 371.28,-308.9 414.54,-321.13 423.89,-323.78 433.79,-326.19 443.66,-328.36"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="442.77,-331.75 453.28,-330.39 444.22,-324.9 442.77,-331.75"/>
+</g>
+<!-- proc~report_backends&#45;&gt;proc~write_message -->
+<g id="proc~~report~2~~CallsGraph_edge22" class="edge">
+<title>proc~report_backends&#45;&gt;proc~write_message</title>
+<path fill="none" stroke="#ff00ff" d="M355.73,-276.73C393.38,-281.93 435.85,-287.8 468.83,-292.36"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="468.19,-295.81 478.58,-293.71 469.15,-288.87 468.19,-295.81"/>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~report~2~~CallsGraph_node14" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="558.81,-228.27 493.29,-228.27 493.29,-204 558.81,-204 558.81,-228.27"/>
+<text xml:space="preserve" text-anchor="middle" x="526.05" y="-212.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~report_backends&#45;&gt;mpi_abort -->
+<g id="proc~~report~2~~CallsGraph_edge19" class="edge">
+<title>proc~report_backends&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ff00ff" d="M333.07,-251.52C380.21,-242.83 441.42,-231.55 481.91,-224.09"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="482.31,-227.57 491.51,-222.32 481.04,-220.69 482.31,-227.57"/>
+</g>
+<!-- proc~get_backend~4 -->
+<g id="proc~~report~2~~CallsGraph_node19" class="node">
+<title>proc~get_backend~4</title>
+<g id="a_proc~~report~2~~CallsGraph_node19"><a xlink:href="../proc/get_backend~4.html" xlink:title="abstract_reshape_handle%get_backend">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="637.56,-270.27 414.54,-270.27 414.54,-246 637.56,-246 637.56,-270.27"/>
+<text xml:space="preserve" text-anchor="middle" x="526.05" y="-254.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">abstract_reshape_handle%get_backend</text>
+</a>
+</g>
+</g>
+<!-- proc~report_backends&#45;&gt;proc~get_backend~4 -->
+<g id="proc~~report~2~~CallsGraph_edge21" class="edge">
+<title>proc~report_backends&#45;&gt;proc~get_backend~4</title>
+<path fill="none" stroke="#ff00ff" d="M378.87,-261.5C386.86,-261.32 394.92,-261.13 402.95,-260.95"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="402.83,-264.45 412.75,-260.72 402.67,-257.45 402.83,-264.45"/>
+</g>
+<!-- mpi_comm_rank -->
+<g id="proc~~report~2~~CallsGraph_node15" class="node">
+<title>mpi_comm_rank</title>
+<polygon fill="#777777" stroke="#777777" points="784.83,-331.27 684.81,-331.27 684.81,-307 784.83,-307 784.83,-331.27"/>
+<text xml:space="preserve" text-anchor="middle" x="734.82" y="-315.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_comm_rank</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_comm_rank -->
+<g id="proc~~report~2~~CallsGraph_edge23" class="edge">
+<title>proc~write_message&#45;&gt;mpi_comm_rank</title>
+<path fill="none" stroke="#ff007f" d="M571.92,-304.26C601.56,-306.98 640.77,-310.58 673.18,-313.56"/>
+<polygon fill="#ff007f" stroke="#ff007f" points="672.55,-317.02 682.83,-314.45 673.19,-310.05 672.55,-317.02"/>
+</g>
+<!-- mpi_finalized -->
+<g id="proc~~report~2~~CallsGraph_node16" class="node">
+<title>mpi_finalized</title>
+<polygon fill="#777777" stroke="#777777" points="775.83,-289.27 693.81,-289.27 693.81,-265 775.83,-265 775.83,-289.27"/>
+<text xml:space="preserve" text-anchor="middle" x="734.82" y="-273.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_finalized</text>
+</g>
+<!-- proc~write_message&#45;&gt;mpi_finalized -->
+<g id="proc~~report~2~~CallsGraph_edge24" class="edge">
+<title>proc~write_message&#45;&gt;mpi_finalized</title>
+<path fill="none" stroke="#ff007f" d="M571.92,-295.14C604.46,-291.52 648.55,-286.62 682.5,-282.84"/>
+<polygon fill="#ff007f" stroke="#ff007f" points="682.53,-286.36 692.09,-281.78 681.76,-279.4 682.53,-286.36"/>
+</g>
+<!-- get_backend_private -->
+<g id="proc~~report~2~~CallsGraph_node23" class="node">
+<title>get_backend_private</title>
+<polygon fill="#777777" stroke="#777777" points="796.08,-247.27 673.56,-247.27 673.56,-223 796.08,-223 796.08,-247.27"/>
+<text xml:space="preserve" text-anchor="middle" x="734.82" y="-231.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_backend_private</text>
+</g>
+<!-- proc~get_backend~4&#45;&gt;get_backend_private -->
+<g id="proc~~report~2~~CallsGraph_edge25" class="edge">
+<title>proc~get_backend~4&#45;&gt;get_backend_private</title>
+<path fill="none" stroke="#00a9ff" d="M638,-245.79C646.11,-244.89 654.16,-244 661.94,-243.13"/>
+<polygon fill="#00a9ff" stroke="#00a9ff" points="662.08,-246.64 671.63,-242.05 661.31,-239.68 662.08,-246.64"/>
 </g>
 </g>
 </svg>
-</div>          <div>
+</div>                <script>
+                  var panprocreport2CallsGraph = svgPanZoom('#procreport2CallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
             <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
           </div>
           <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
@@ -514,55 +562,55 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
+<!-- Generated by graphviz version 14.1.2 (0)
  -->
 <!-- Title: Graph Key Pages: 1 -->
 <svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+ viewBox="0.00 0.00 641.00 28.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.873868 0.873868) rotate(0) translate(4 28.27)">
 <title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<polygon fill="white" stroke="none" points="-4,4 -4,-28.27 729.52,-28.27 729.52,4 -4,4"/>
 <!-- Subroutine -->
 <g id="node1" class="node">
 <title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+<polygon fill="#d9534f" stroke="#d9534f" points="69.27,-24.27 0,-24.27 0,0 69.27,0 69.27,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="34.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
 </g>
 <!-- Function -->
 <g id="node2" class="node">
 <title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="143.89,-24.27 87.38,-24.27 87.38,0 143.89,0 143.89,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="115.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
 </g>
 <!-- Interface -->
 <g id="node3" class="node">
 <title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+<polygon fill="#a7506f" stroke="#a7506f" points="221.39,-24.27 161.88,-24.27 161.88,0 221.39,0 221.39,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="191.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
 </g>
 <!-- Type Bound Procedure -->
 <g id="node4" class="node">
 <title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+<polygon fill="#a7506f" stroke="#a7506f" points="368.27,-24.27 239,-24.27 239,0 368.27,0 368.27,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="303.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
 </g>
 <!-- Unknown Procedure Type -->
 <g id="node5" class="node">
 <title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+<polygon fill="#777777" stroke="#777777" points="529.39,-24.27 385.88,-24.27 385.88,0 529.39,0 529.39,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="457.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
 </g>
 <!-- Program -->
 <g id="node6" class="node">
 <title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="603.89,-24.27 547.38,-24.27 547.38,0 603.89,0 603.89,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="575.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
 </g>
 <!-- This Page&#39;s Entity -->
 <g id="node7" class="node">
 <title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+<polygon fill="none" stroke="black" points="725.52,-24.27 621.75,-24.27 621.75,0 725.52,0 725.52,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="673.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
 </g>
 </g>
 </svg>
@@ -588,49 +636,100 @@ large graphs.</div>
   <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
+<!-- Generated by graphviz version 14.1.2 (0)
  -->
 <!-- Title: proc~~report~2~~CalledByGraph Pages: 1 -->
-<svg id="procreport2CalledByGraph" width="348pt" height="32pt"
- viewBox="0.00 0.00 348.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~report~2~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<svg id="procreport2CalledByGraph" width="520pt" height="95pt"
+ viewBox="0.00 0.00 520.00 95.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~report~2~~CalledByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 91.27)">
 <title>proc~~report~2~~CalledByGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 344,-28 344,4 -4,4"/>
+<polygon fill="white" stroke="none" points="-4,4 -4,-91.27 515.83,-91.27 515.83,4 -4,4"/>
 <!-- proc~report~2 -->
 <g id="proc~~report~2~~CalledByGraph_node1" class="node">
 <title>proc~report~2</title>
-<polygon fill="none" stroke="black" points="340,-24 286,-24 286,0 340,0 340,-24"/>
-<text text-anchor="middle" x="313" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">report</text>
+<polygon fill="none" stroke="black" points="511.83,-45.27 399.06,-45.27 399.06,-21 511.83,-21 511.83,-45.27"/>
+<text xml:space="preserve" text-anchor="middle" x="455.44" y="-29.53" font-family="Helvetica,sans-Serif" font-size="10.50">dtfft_plan_t%report</text>
 </g>
-<!-- proc~run_case -->
+<!-- proc~check_roundtrip -->
 <g id="proc~~report~2~~CalledByGraph_node2" class="node">
-<title>proc~run_case</title>
-<g id="a_proc~~report~2~~CalledByGraph_node2"><a xlink:href="../proc/run_case.html" xlink:title="run_case">
-<polygon fill="#d9534f" stroke="#d9534f" points="250,-24 189,-24 189,0 250,0 250,-24"/>
-<text text-anchor="middle" x="219.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">run_case</text>
+<title>proc~check_roundtrip</title>
+<g id="a_proc~~report~2~~CalledByGraph_node2"><a xlink:href="../proc/check_roundtrip.html" xlink:title="check_roundtrip">
+<polygon fill="#d9534f" stroke="#d9534f" points="363.06,-66.27 266.04,-66.27 266.04,-42 363.06,-42 363.06,-66.27"/>
+<text xml:space="preserve" text-anchor="middle" x="314.55" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">check_roundtrip</text>
 </a>
 </g>
 </g>
-<!-- proc~run_case&#45;&gt;proc~report~2 -->
+<!-- proc~check_roundtrip&#45;&gt;proc~report~2 -->
 <g id="proc~~report~2~~CalledByGraph_edge1" class="edge">
-<title>proc~run_case&#45;&gt;proc~report~2</title>
-<path fill="none" stroke="#ff0000" d="M250.21,-12C258.37,-12 267.31,-12 275.79,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="275.83,-15.5 285.83,-12 275.83,-8.5 275.83,-15.5"/>
+<title>proc~check_roundtrip&#45;&gt;proc~report~2</title>
+<path fill="none" stroke="#ff0000" d="M363.35,-46.91C371.23,-45.72 379.52,-44.46 387.75,-43.22"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="388.05,-46.71 397.41,-41.76 387,-39.79 388.05,-46.71"/>
 </g>
-<!-- program~test_backend_compressed -->
+<!-- proc~dtfft_report_c -->
 <g id="proc~~report~2~~CalledByGraph_node3" class="node">
-<title>program~test_backend_compressed</title>
-<g id="a_proc~~report~2~~CalledByGraph_node3"><a xlink:href="../program/test_backend_compressed.html" xlink:title="test_backend_compressed">
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="153,-24 0,-24 0,0 153,0 153,-24"/>
-<text text-anchor="middle" x="76.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_backend_compressed</text>
+<title>proc~dtfft_report_c</title>
+<g id="a_proc~~report~2~~CalledByGraph_node3"><a xlink:href="../proc/dtfft_report_c.html" xlink:title="dtfft_report_c">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="355.56,-24.27 273.54,-24.27 273.54,0 355.56,0 355.56,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="314.55" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">dtfft_report_c</text>
 </a>
 </g>
 </g>
-<!-- program~test_backend_compressed&#45;&gt;proc~run_case -->
+<!-- proc~dtfft_report_c&#45;&gt;proc~report~2 -->
 <g id="proc~~report~2~~CalledByGraph_edge2" class="edge">
-<title>program~test_backend_compressed&#45;&gt;proc~run_case</title>
-<path fill="none" stroke="#ff0000" d="M153.37,-12C162.16,-12 170.84,-12 178.86,-12"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="178.97,-15.5 188.97,-12 178.97,-8.5 178.97,-15.5"/>
+<title>proc~dtfft_report_c&#45;&gt;proc~report~2</title>
+<path fill="none" stroke="#ff0000" d="M355.72,-18.21C365.65,-19.71 376.56,-21.36 387.39,-23"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="386.7,-26.43 397.11,-24.47 387.75,-19.51 386.7,-26.43"/>
+</g>
+<!-- proc~test_partition_case -->
+<g id="proc~~report~2~~CalledByGraph_node4" class="node">
+<title>proc~test_partition_case</title>
+<g id="a_proc~~report~2~~CalledByGraph_node4"><a xlink:href="../proc/test_partition_case.html" xlink:title="test_partition_case">
+<polygon fill="#d9534f" stroke="#d9534f" points="224.04,-87.27 112.77,-87.27 112.77,-63 224.04,-63 224.04,-87.27"/>
+<text xml:space="preserve" text-anchor="middle" x="168.4" y="-71.54" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_partition_case</text>
+</a>
+</g>
+</g>
+<!-- proc~test_partition_case&#45;&gt;proc~check_roundtrip -->
+<g id="proc~~report~2~~CalledByGraph_edge3" class="edge">
+<title>proc~test_partition_case&#45;&gt;proc~check_roundtrip</title>
+<path fill="none" stroke="#ff0000" d="M224.31,-67.14C234.25,-65.69 244.66,-64.17 254.71,-62.71"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="254.97,-66.21 264.36,-61.3 253.96,-59.28 254.97,-66.21"/>
+</g>
+<!-- proc~test_zero_sized_slabs -->
+<g id="proc~~report~2~~CalledByGraph_node5" class="node">
+<title>proc~test_zero_sized_slabs</title>
+<g id="a_proc~~report~2~~CalledByGraph_node5"><a xlink:href="../proc/test_zero_sized_slabs.html" xlink:title="test_zero_sized_slabs">
+<polygon fill="#d9534f" stroke="#d9534f" points="230.04,-45.27 106.77,-45.27 106.77,-21 230.04,-21 230.04,-45.27"/>
+<text xml:space="preserve" text-anchor="middle" x="168.4" y="-29.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_zero_sized_slabs</text>
+</a>
+</g>
+</g>
+<!-- proc~test_zero_sized_slabs&#45;&gt;proc~check_roundtrip -->
+<g id="proc~~report~2~~CalledByGraph_edge4" class="edge">
+<title>proc~test_zero_sized_slabs&#45;&gt;proc~check_roundtrip</title>
+<path fill="none" stroke="#ff0000" d="M230.54,-42.04C238.47,-43.2 246.6,-44.38 254.5,-45.53"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="253.98,-48.99 264.38,-46.97 254.99,-42.07 253.98,-48.99"/>
+</g>
+<!-- program~test_r2r_2d -->
+<g id="proc~~report~2~~CalledByGraph_node6" class="node">
+<title>program~test_r2r_2d</title>
+<g id="a_proc~~report~2~~CalledByGraph_node6"><a xlink:href="../program/test_r2r_2d.html" xlink:title="test_r2r_2d">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="70.77,-66.27 0,-66.27 0,-42 70.77,-42 70.77,-66.27"/>
+<text xml:space="preserve" text-anchor="middle" x="35.38" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_r2r_2d</text>
+</a>
+</g>
+</g>
+<!-- program~test_r2r_2d&#45;&gt;proc~test_partition_case -->
+<g id="proc~~report~2~~CalledByGraph_edge5" class="edge">
+<title>program~test_r2r_2d&#45;&gt;proc~test_partition_case</title>
+<path fill="none" stroke="#ff0000" d="M71.15,-59.71C80.45,-61.2 90.82,-62.86 101.2,-64.52"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="100.52,-67.96 110.94,-66.09 101.62,-61.05 100.52,-67.96"/>
+</g>
+<!-- program~test_r2r_2d&#45;&gt;proc~test_zero_sized_slabs -->
+<g id="proc~~report~2~~CalledByGraph_edge6" class="edge">
+<title>program~test_r2r_2d&#45;&gt;proc~test_zero_sized_slabs</title>
+<path fill="none" stroke="#00ffff" d="M71.15,-48.56C78.61,-47.37 86.74,-46.06 95.03,-44.73"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="95.56,-48.19 104.88,-43.16 94.45,-41.28 95.56,-48.19"/>
 </g>
 </g>
 </svg>
@@ -649,55 +748,55 @@ large graphs.</div>
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<!-- Generated by graphviz version 2.43.0 (0)
+<!-- Generated by graphviz version 14.1.2 (0)
  -->
 <!-- Title: Graph Key Pages: 1 -->
 <svg width="641pt" height="28pt"
- viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+ viewBox="0.00 0.00 641.00 28.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.873868 0.873868) rotate(0) translate(4 28.27)">
 <title>Graph Key</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<polygon fill="white" stroke="none" points="-4,4 -4,-28.27 729.52,-28.27 729.52,4 -4,4"/>
 <!-- Subroutine -->
 <g id="node1" class="node">
 <title>Subroutine</title>
-<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
-<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+<polygon fill="#d9534f" stroke="#d9534f" points="69.27,-24.27 0,-24.27 0,0 69.27,0 69.27,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="34.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
 </g>
 <!-- Function -->
 <g id="node2" class="node">
 <title>Function</title>
-<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
-<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="143.89,-24.27 87.38,-24.27 87.38,0 143.89,0 143.89,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="115.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
 </g>
 <!-- Interface -->
 <g id="node3" class="node">
 <title>Interface</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
-<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+<polygon fill="#a7506f" stroke="#a7506f" points="221.39,-24.27 161.88,-24.27 161.88,0 221.39,0 221.39,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="191.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
 </g>
 <!-- Type Bound Procedure -->
 <g id="node4" class="node">
 <title>Type Bound Procedure</title>
-<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
-<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+<polygon fill="#a7506f" stroke="#a7506f" points="368.27,-24.27 239,-24.27 239,0 368.27,0 368.27,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="303.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
 </g>
 <!-- Unknown Procedure Type -->
 <g id="node5" class="node">
 <title>Unknown Procedure Type</title>
-<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
-<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+<polygon fill="#777777" stroke="#777777" points="529.39,-24.27 385.88,-24.27 385.88,0 529.39,0 529.39,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="457.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
 </g>
 <!-- Program -->
 <g id="node6" class="node">
 <title>Program</title>
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
-<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="603.89,-24.27 547.38,-24.27 547.38,0 603.89,0 603.89,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="575.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
 </g>
 <!-- This Page&#39;s Entity -->
 <g id="node7" class="node">
 <title>This Page&#39;s Entity</title>
-<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
-<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+<polygon fill="none" stroke="black" points="725.52,-24.27 621.75,-24.27 621.75,0 725.52,0 725.52,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="673.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
 </g>
 </g>
 </svg>

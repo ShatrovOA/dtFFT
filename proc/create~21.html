@@ -63,7 +63,7 @@
     <div class="container">
   <div class="row">
     <h1>create
-      <small>Function</small>
+      <small>Subroutine</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -73,20 +73,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.0% of total for procedures.">9 statements</a>
+                 title=" 0.1% of total for procedures.">59 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_compressor_sz3.F90"> Source File</a>
+              <a href="../src/dtfft_executor_mkl.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_compressor_sz3.f90.html'>dtfft_compressor_sz3.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_compressor_sz3.html'>dtfft_compressor_sz3</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_mkl.f90.html'>dtfft_executor_mkl.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_executor_mkl_m.html'>dtfft_executor_mkl_m</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -132,14 +132,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  function create(self, platform)  
+    <h2>private  subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)  
 </h2>
     
 
-    <p>Initializes the SZ3 compressor with given configuration</p>
+    <p>Creates FFT plan via MKL DFTI Interface</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/compressor_sz3.html'>compressor_sz3</a></p>
+    <p><a href='../type/mkl_executor.html'>mkl_executor</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -154,8 +154,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~306"></span>
-              class(<a href='../type/compressor_sz3.html'>compressor_sz3</a>),
+              <span class="anchor" id="variable-self~294"></span>
+              class(<a href='../type/mkl_executor.html'>mkl_executor</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -164,34 +164,530 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Compressor instance</p>
+                <p>MKL FFT Executor</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-platform~48"></span>
-              type(<a href='../type/dtfft_platform_t.html'>dtfft_platform_t</a>),
+              <span class="anchor" id="variable-fft_rank~18"></span>
+              type(<a href='../type/fft_rank_t.html'>fft_rank_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>platform</strong></td>
+            <td><strong>fft_rank</strong></td>
             <td>
-                <p>Target platform (CPU or CUDA)</p>
+                <p>Rank of fft: 1 or 2</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_type~7"></span>
+              type(<a href='../type/fft_type_t.html'>fft_type_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_type</strong></td>
+            <td>
+                <p>Type of fft: r2r, r2c, c2c</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-precision~26"></span>
+              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>precision</strong></td>
+            <td>
+                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idist~20"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>idist</strong></td>
+            <td>
+                <p>Distance between the first element of two consecutive signals in a batch of the input data.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-odist~20"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>odist</strong></td>
+            <td>
+                <p>Distance between the first element of two consecutive signals in a batch of the output data.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-how_many~12"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>how_many</strong></td>
+            <td>
+                <p>Number of transforms to create</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_sizes~7"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_sizes</strong>(:)</td>
+            <td>
+                <p>Dimensions of transform</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-inembed~18"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the input data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-onembed~18"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>onembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the output data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~118"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Error code to be returned to user</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r2r_kinds~8"></span>
+              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>r2r_kinds</strong>(:)</td>
+            <td>
+                <p>Kinds of r2r transform</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-create~25"></span>
-          integer(kind=int32)
-        </small>
-      </h3>
-      
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.1.2 (0)
+ -->
+<!-- Title: proc~~create~21~~CallsGraph Pages: 1 -->
+<svg id="proccreate21CallsGraph" width="641pt" height="253pt"
+ viewBox="0.00 0.00 641.00 253.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~create~21~~CallsGraph" class="graph" transform="scale(0.827503 0.827503) rotate(0) translate(4 301.27)">
+<title>proc~~create~21~~CallsGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-301.27 770.62,-301.27 770.62,4 -4,4"/>
+<!-- proc~create~21 -->
+<g id="proc~~create~21~~CallsGraph_node1" class="node">
+<title>proc~create~21</title>
+<polygon fill="none" stroke="black" points="126.27,-192.27 0,-192.27 0,-168 126.27,-168 126.27,-192.27"/>
+<text xml:space="preserve" text-anchor="middle" x="63.13" y="-176.53" font-family="Helvetica,sans-Serif" font-size="10.50">mkl_executor%create</text>
+</g>
+<!-- proc~make_plan -->
+<g id="proc~~create~21~~CallsGraph_node2" class="node">
+<title>proc~make_plan</title>
+<g id="a_proc~~create~21~~CallsGraph_node2"><a xlink:href="../proc/make_plan.html" xlink:title="make_plan">
+<polygon fill="#d9534f" stroke="#d9534f" points="232.29,-192.27 162.27,-192.27 162.27,-168 232.29,-168 232.29,-192.27"/>
+<text xml:space="preserve" text-anchor="middle" x="197.28" y="-176.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">make_plan</text>
+</a>
+</g>
+</g>
+<!-- proc~create~21&#45;&gt;proc~make_plan -->
+<g id="proc~~create~21~~CallsGraph_edge1" class="edge">
+<title>proc~create~21&#45;&gt;proc~make_plan</title>
+<path fill="none" stroke="#ff0000" d="M126.72,-180.13C134.79,-180.13 142.92,-180.13 150.64,-180.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="150.46,-183.64 160.46,-180.14 150.46,-176.64 150.46,-183.64"/>
+</g>
+<!-- interface~mkl_dfti_commit_desc -->
+<g id="proc~~create~21~~CallsGraph_node3" class="node">
+<title>interface~mkl_dfti_commit_desc</title>
+<g id="a_proc~~create~21~~CallsGraph_node3"><a xlink:href="../interface/mkl_dfti_commit_desc.html" xlink:title="mkl_dfti_commit_desc">
+<polygon fill="#a7506f" stroke="#a7506f" points="397.56,-297.27 268.29,-297.27 268.29,-273 397.56,-273 397.56,-297.27"/>
+<text xml:space="preserve" text-anchor="middle" x="332.92" y="-281.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mkl_dfti_commit_desc</text>
+</a>
+</g>
+</g>
+<!-- proc~make_plan&#45;&gt;interface~mkl_dfti_commit_desc -->
+<g id="proc~~create~21~~CallsGraph_edge2" class="edge">
+<title>proc~make_plan&#45;&gt;interface~mkl_dfti_commit_desc</title>
+<path fill="none" stroke="#ff0000" d="M205.47,-192.56C216.65,-210.82 239.88,-244.81 268.29,-264.13 270.09,-265.36 271.97,-266.52 273.91,-267.62"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="272.09,-270.62 282.61,-271.91 275.19,-264.35 272.09,-270.62"/>
+</g>
+<!-- interface~mkl_dfti_create_desc -->
+<g id="proc~~create~21~~CallsGraph_node4" class="node">
+<title>interface~mkl_dfti_create_desc</title>
+<g id="a_proc~~create~21~~CallsGraph_node4"><a xlink:href="../interface/mkl_dfti_create_desc.html" xlink:title="mkl_dfti_create_desc">
+<polygon fill="#a7506f" stroke="#a7506f" points="394.18,-255.27 271.66,-255.27 271.66,-231 394.18,-231 394.18,-255.27"/>
+<text xml:space="preserve" text-anchor="middle" x="332.92" y="-239.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mkl_dfti_create_desc</text>
+</a>
+</g>
+</g>
+<!-- proc~make_plan&#45;&gt;interface~mkl_dfti_create_desc -->
+<g id="proc~~create~21~~CallsGraph_edge3" class="edge">
+<title>proc~make_plan&#45;&gt;interface~mkl_dfti_create_desc</title>
+<path fill="none" stroke="#ff0000" d="M216.68,-192.72C230.45,-201.75 249.99,-213.75 268.29,-222.13 271.62,-223.66 275.1,-225.13 278.63,-226.53"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="277.31,-229.77 287.9,-230 279.76,-223.22 277.31,-229.77"/>
+</g>
+<!-- interface~mkl_dfti_set_value -->
+<g id="proc~~create~21~~CallsGraph_node5" class="node">
+<title>interface~mkl_dfti_set_value</title>
+<g id="a_proc~~create~21~~CallsGraph_node5"><a xlink:href="../interface/mkl_dfti_set_value.html" xlink:title="mkl_dfti_set_value">
+<polygon fill="#a7506f" stroke="#a7506f" points="387.43,-213.27 278.41,-213.27 278.41,-189 387.43,-189 387.43,-213.27"/>
+<text xml:space="preserve" text-anchor="middle" x="332.92" y="-197.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mkl_dfti_set_value</text>
+</a>
+</g>
+</g>
+<!-- proc~make_plan&#45;&gt;interface~mkl_dfti_set_value -->
+<g id="proc~~create~21~~CallsGraph_edge4" class="edge">
+<title>proc~make_plan&#45;&gt;interface~mkl_dfti_set_value</title>
+<path fill="none" stroke="#ff0000" d="M232.7,-185.54C243.19,-187.19 255.09,-189.06 266.91,-190.92"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="266.25,-194.36 276.67,-192.45 267.34,-187.44 266.25,-194.36"/>
+</g>
+<!-- interface~to_str -->
+<g id="proc~~create~21~~CallsGraph_node6" class="node">
+<title>interface~to_str</title>
+<g id="a_proc~~create~21~~CallsGraph_node6"><a xlink:href="../interface/to_str.html" xlink:title="to_str">
+<polygon fill="#a7506f" stroke="#a7506f" points="359.92,-171.27 305.92,-171.27 305.92,-147 359.92,-147 359.92,-171.27"/>
+<text xml:space="preserve" text-anchor="middle" x="332.92" y="-155.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">to_str</text>
+</a>
+</g>
+</g>
+<!-- proc~make_plan&#45;&gt;interface~to_str -->
+<g id="proc~~create~21~~CallsGraph_edge5" class="edge">
+<title>proc~make_plan&#45;&gt;interface~to_str</title>
+<path fill="none" stroke="#ff0000" d="M232.7,-174.73C251.62,-171.75 275.11,-168.06 294.48,-165.02"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="294.81,-168.51 304.15,-163.5 293.73,-161.59 294.81,-168.51"/>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~create~21~~CallsGraph_node7" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="365.68,-129.27 300.16,-129.27 300.16,-105 365.68,-105 365.68,-129.27"/>
+<text xml:space="preserve" text-anchor="middle" x="332.92" y="-113.54" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~make_plan&#45;&gt;mpi_abort -->
+<g id="proc~~create~21~~CallsGraph_edge6" class="edge">
+<title>proc~make_plan&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ff0000" d="M216.68,-167.55C230.45,-158.52 249.99,-146.52 268.29,-138.13 274.81,-135.15 281.89,-132.38 288.87,-129.9"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="289.89,-133.25 298.24,-126.73 287.64,-126.62 289.89,-133.25"/>
+</g>
+<!-- proc~dftierrormessage -->
+<g id="proc~~create~21~~CallsGraph_node8" class="node">
+<title>proc~dftierrormessage</title>
+<g id="a_proc~~create~21~~CallsGraph_node8"><a xlink:href="../proc/dftierrormessage.html" xlink:title="DftiErrorMessage">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="384.43,-66.27 281.41,-66.27 281.41,-42 384.43,-42 384.43,-66.27"/>
+<text xml:space="preserve" text-anchor="middle" x="332.92" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">DftiErrorMessage</text>
+</a>
+</g>
+</g>
+<!-- proc~make_plan&#45;&gt;proc~dftierrormessage -->
+<g id="proc~~create~21~~CallsGraph_edge7" class="edge">
+<title>proc~make_plan&#45;&gt;proc~dftierrormessage</title>
+<path fill="none" stroke="#ff0000" d="M206.8,-167.77C219.09,-150.47 243.1,-118.66 268.29,-96.14 277.86,-87.58 289.31,-79.47 299.85,-72.71"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="301.65,-75.71 308.29,-67.46 297.95,-69.77 301.65,-75.71"/>
+</g>
+<!-- proc~double_to_string -->
+<g id="proc~~create~21~~CallsGraph_node10" class="node">
+<title>proc~double_to_string</title>
+<g id="a_proc~~create~21~~CallsGraph_node10"><a xlink:href="../proc/double_to_string.html" xlink:title="double_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="540.33,-276.27 441.06,-276.27 441.06,-252 540.33,-252 540.33,-276.27"/>
+<text xml:space="preserve" text-anchor="middle" x="490.69" y="-260.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">double_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~double_to_string -->
+<g id="proc~~create~21~~CallsGraph_edge8" class="edge">
+<title>interface~to_str&#45;&gt;proc~double_to_string</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M360.2,-163.29C372.58,-166.31 386.93,-171.45 397.56,-180.13 422.53,-200.54 408.99,-222.24 433.56,-243.13 434.65,-244.06 435.79,-244.95 436.96,-245.81"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="434.9,-248.65 445.27,-250.84 438.53,-242.66 434.9,-248.65"/>
+</g>
+<!-- proc~float_to_string -->
+<g id="proc~~create~21~~CallsGraph_node11" class="node">
+<title>proc~float_to_string</title>
+<g id="a_proc~~create~21~~CallsGraph_node11"><a xlink:href="../proc/float_to_string.html" xlink:title="float_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="533.95,-234.27 447.43,-234.27 447.43,-210 533.95,-210 533.95,-234.27"/>
+<text xml:space="preserve" text-anchor="middle" x="490.69" y="-218.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">float_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~float_to_string -->
+<g id="proc~~create~21~~CallsGraph_edge9" class="edge">
+<title>interface~to_str&#45;&gt;proc~float_to_string</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M360.4,-166.51C372.02,-170.09 385.68,-174.78 397.56,-180.13 414.45,-187.75 416.83,-193.19 433.56,-201.13 436.61,-202.58 439.79,-204 443.02,-205.37"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="441.4,-208.49 451.98,-209.01 444.03,-202.01 441.4,-208.49"/>
+</g>
+<!-- proc~int32_to_string -->
+<g id="proc~~create~21~~CallsGraph_node12" class="node">
+<title>proc~int32_to_string</title>
+<g id="a_proc~~create~21~~CallsGraph_node12"><a xlink:href="../proc/int32_to_string.html" xlink:title="int32_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="535.45,-192.27 445.93,-192.27 445.93,-168 535.45,-168 535.45,-192.27"/>
+<text xml:space="preserve" text-anchor="middle" x="490.69" y="-176.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int32_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int32_to_string -->
+<g id="proc~~create~21~~CallsGraph_edge10" class="edge">
+<title>interface~to_str&#45;&gt;proc~int32_to_string</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M360.35,-162.7C380.6,-165.43 409.24,-169.29 434.43,-172.69"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="433.84,-176.14 444.22,-174 434.78,-169.2 433.84,-176.14"/>
+</g>
+<!-- proc~int64_to_string -->
+<g id="proc~~create~21~~CallsGraph_node13" class="node">
+<title>proc~int64_to_string</title>
+<g id="a_proc~~create~21~~CallsGraph_node13"><a xlink:href="../proc/int64_to_string.html" xlink:title="int64_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="535.45,-150.27 445.93,-150.27 445.93,-126 535.45,-126 535.45,-150.27"/>
+<text xml:space="preserve" text-anchor="middle" x="490.69" y="-134.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int64_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int64_to_string -->
+<g id="proc~~create~21~~CallsGraph_edge11" class="edge">
+<title>interface~to_str&#45;&gt;proc~int64_to_string</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M360.35,-155.57C380.6,-152.84 409.24,-148.98 434.43,-145.58"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="434.78,-149.07 444.22,-144.27 433.84,-142.13 434.78,-149.07"/>
+</g>
+<!-- proc~int8_to_string -->
+<g id="proc~~create~21~~CallsGraph_node14" class="node">
+<title>proc~int8_to_string</title>
+<g id="a_proc~~create~21~~CallsGraph_node14"><a xlink:href="../proc/int8_to_string.html" xlink:title="int8_to_string">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="532.08,-108.27 449.31,-108.27 449.31,-84 532.08,-84 532.08,-108.27"/>
+<text xml:space="preserve" text-anchor="middle" x="490.69" y="-92.54" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int8_to_string</text>
+</a>
+</g>
+</g>
+<!-- interface~to_str&#45;&gt;proc~int8_to_string -->
+<g id="proc~~create~21~~CallsGraph_edge12" class="edge">
+<title>interface~to_str&#45;&gt;proc~int8_to_string</title>
+<path fill="none" stroke="#00ffff" stroke-dasharray="5,2" d="M360.4,-151.76C372.02,-148.18 385.68,-143.49 397.56,-138.13 414.45,-130.52 416.83,-125.08 433.56,-117.14 436.61,-115.69 439.79,-114.27 443.02,-112.9"/>
+<polygon fill="#00ffff" stroke="#00ffff" points="444.03,-116.26 451.98,-109.26 441.4,-109.78 444.03,-116.26"/>
+</g>
+<!-- interface~dftierrormessage_c -->
+<g id="proc~~create~21~~CallsGraph_node9" class="node">
+<title>interface~dftierrormessage_c</title>
+<g id="a_proc~~create~21~~CallsGraph_node9"><a xlink:href="../interface/dftierrormessage_c.html" xlink:title="DftiErrorMessage_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="547.83,-66.27 433.56,-66.27 433.56,-42 547.83,-42 547.83,-66.27"/>
+<text xml:space="preserve" text-anchor="middle" x="490.69" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">DftiErrorMessage_c</text>
+</a>
+</g>
+</g>
+<!-- proc~dftierrormessage&#45;&gt;interface~dftierrormessage_c -->
+<g id="proc~~create~21~~CallsGraph_edge13" class="edge">
+<title>proc~dftierrormessage&#45;&gt;interface~dftierrormessage_c</title>
+<path fill="none" stroke="#ff00ff" d="M384.93,-54.13C396.75,-54.13 409.51,-54.13 421.93,-54.13"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="421.68,-57.64 431.68,-54.14 421.68,-50.64 421.68,-57.64"/>
+</g>
+<!-- proc~string_c2f -->
+<g id="proc~~create~21~~CallsGraph_node15" class="node">
+<title>proc~string_c2f</title>
+<g id="a_proc~~create~21~~CallsGraph_node15"><a xlink:href="../proc/string_c2f.html" xlink:title="string_c2f">
+<polygon fill="#d9534f" stroke="#d9534f" points="522.33,-24.27 459.06,-24.27 459.06,0 522.33,0 522.33,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="490.69" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_c2f</text>
+</a>
+</g>
+</g>
+<!-- proc~dftierrormessage&#45;&gt;proc~string_c2f -->
+<g id="proc~~create~21~~CallsGraph_edge14" class="edge">
+<title>proc~dftierrormessage&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#ff00ff" d="M380.66,-41.53C401.98,-35.78 427.04,-29.03 447.75,-23.45"/>
+<polygon fill="#ff00ff" stroke="#ff00ff" points="448.55,-26.85 457.29,-20.87 446.73,-20.1 448.55,-26.85"/>
+</g>
+<!-- interface~is_null_ptr -->
+<g id="proc~~create~21~~CallsGraph_node16" class="node">
+<title>interface~is_null_ptr</title>
+<g id="a_proc~~create~21~~CallsGraph_node16"><a xlink:href="../interface/is_null_ptr.html" xlink:title="is_null_ptr">
+<polygon fill="#a7506f" stroke="#a7506f" points="648.6,-24.27 583.83,-24.27 583.83,0 648.6,0 648.6,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="616.21" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~string_c2f&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~create~21~~CallsGraph_edge15" class="edge">
+<title>proc~string_c2f&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#ff00da" d="M522.55,-12.13C537.5,-12.13 555.7,-12.13 572.01,-12.13"/>
+<polygon fill="#ff00da" stroke="#ff00da" points="571.95,-15.64 581.95,-12.14 571.95,-8.64 571.95,-15.64"/>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~create~21~~CallsGraph_edge16" class="edge">
+<title>interface~is_null_ptr&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M597.91,-24.52C591.95,-33.41 598.05,-42.27 616.21,-42.27 626.15,-42.27 632.47,-39.62 635.19,-35.76"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="638.7,-35.8 634.61,-26.03 631.71,-36.22 638.7,-35.8"/>
+</g>
+<!-- proc~is_null_funptr -->
+<g id="proc~~create~21~~CallsGraph_node17" class="node">
+<title>proc~is_null_funptr</title>
+<g id="a_proc~~create~21~~CallsGraph_node17"><a xlink:href="../proc/is_null_funptr.html" xlink:title="is_null_funptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="766.62,-24.27 684.6,-24.27 684.6,0 766.62,0 766.62,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="725.61" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_funptr</text>
+</a>
+</g>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;proc~is_null_funptr -->
+<g id="proc~~create~21~~CallsGraph_edge17" class="edge">
+<title>interface~is_null_ptr&#45;&gt;proc~is_null_funptr</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M648.86,-12.13C656.43,-12.13 664.7,-12.13 672.92,-12.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="672.9,-15.64 682.9,-12.14 672.9,-8.64 672.9,-15.64"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panproccreate21CallsGraph = svgPanZoom('#proccreate21CallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.1.2 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 28.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.873868 0.873868) rotate(0) translate(4 28.27)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-28.27 729.52,-28.27 729.52,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="69.27,-24.27 0,-24.27 0,0 69.27,0 69.27,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="34.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="143.89,-24.27 87.38,-24.27 87.38,0 143.89,0 143.89,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="115.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="221.39,-24.27 161.88,-24.27 161.88,0 221.39,0 221.39,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="191.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="368.27,-24.27 239,-24.27 239,0 368.27,0 368.27,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="303.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="529.39,-24.27 385.88,-24.27 385.88,0 529.39,0 529.39,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="457.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="603.89,-24.27 547.38,-24.27 547.38,0 603.89,0 603.89,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="575.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="725.52,-24.27 621.75,-24.27 621.75,0 725.52,0 725.52,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="673.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <br>
 
 

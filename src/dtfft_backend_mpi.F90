@@ -58,19 +58,31 @@ public :: backend_mpi
         TYPE_MPI_WIN                :: win                  !! MPI Window for RMA backend
         logical                     :: is_request_created   !! Request created flag. Used for persistent functions
         integer(int32), allocatable :: schedule(:)          !! Communication schedule for all-to-all
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        logical                     :: staging_allocated = .false.  !! If staging buffers are allocated
+        type(c_ptr)                 :: host_send = c_null_ptr       !! Host send buffer for staging
+        type(c_ptr)                 :: host_recv = c_null_ptr       !! Host recv buffer for staging
+        type(c_ptr)                 :: staging_output = c_null_ptr  !! Device output buffer
+        integer(int64)              :: staging_bytes = 0_int64      !! Size of staging buffers in bytes
+        type(dtfft_stream_t)        :: staging_stream               !! Stream for staging operations
+#endif
+
     contains
         procedure :: create_private => create_mpi   !! Creates MPI backend
         procedure :: execute_private => execute_mpi !! Executes MPI backend
         procedure :: destroy_private => destroy_mpi !! Destroys MPI backend
         procedure :: execute_end => execute_end_mpi !! Finalizes async transpose
         procedure :: get_async_active               !! Overrides abstract method and returns if async transpose is active
-        procedure :: execute_p2p
-        procedure :: execute_a2a
-        procedure :: execute_p2p_scheduled
-        procedure :: compute_alltoall_schedule
-        procedure :: execute_fused
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        procedure :: memcpy_h2d     !! Copies data from host to device
+#endif
+        procedure :: execute_p2p        !! Executes point-to-point communication
+        procedure :: execute_a2a        !! Executes all-to-all communication
+        procedure :: execute_p2p_scheduled  !! Executes scheduled point-to-point communication
+        procedure :: compute_alltoall_schedule  !! Computes the communication schedule for all-to-all
+        procedure :: execute_fused  !! Executes fused communication
 #ifdef DTFFT_WITH_RMA
-        procedure :: execute_rma
+        procedure :: execute_rma    !! Executes RMA communication
 #endif
     end type backend_mpi
 
@@ -120,33 +132,6 @@ contains
         self%n_requests = 0
     end subroutine destroy_helper
 
-!     ! MPICH 5.0.2 with ASan overruns MPI_STATUSES_IGNORE through the legacy binding.
-!     subroutine waitall_requests(count, requests, mpi_ierr)
-!         integer(int32), intent(in) :: count
-!         TYPE_MPI_REQUEST, intent(inout) :: requests(:)
-!         integer(int32), intent(out) :: mpi_ierr
-! #ifdef DTFFT_USE_MPI
-!         integer :: statuses(MPI_STATUS_SIZE, count)
-!         call MPI_Waitall(count, requests, statuses, mpi_ierr)
-! #else
-!         call MPI_Waitall(count, requests, MPI_STATUSES_IGNORE, mpi_ierr)
-! #endif
-
-!     end subroutine waitall_requests
-
-!     subroutine waitsome_requests(incount, requests, outcount, indices, mpi_ierr)
-!         integer(int32), intent(in) :: incount
-!         TYPE_MPI_REQUEST, intent(inout) :: requests(:)
-!         integer(int32), intent(out) :: outcount, indices(:), mpi_ierr
-! #ifdef DTFFT_USE_MPI
-!         integer :: statuses(MPI_STATUS_SIZE, incount)
-!         call MPI_Waitsome(incount, requests, outcount, indices, statuses, mpi_ierr)
-! #else
-!         call MPI_Waitsome(incount, requests, outcount, indices, MPI_STATUSES_IGNORE, mpi_ierr)
-! #endif
-
-!     end subroutine waitsome_requests
-
     subroutine create_mpi(self, helper, base_storage)
     !! Creates MPI backend
         class(backend_mpi),     intent(inout) :: self           !! MPI Backend
@@ -190,6 +175,13 @@ contains
 #endif
         self%is_request_created = .false.
         self%is_active = .false.
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        self%host_send = c_null_ptr
+        self%host_recv = c_null_ptr
+        self%staging_output = c_null_ptr
+        self%staging_bytes = max(self%buffer_size, 1_int64) * FLOAT_STORAGE_SIZE
+        self%staging_allocated = .false.
+#endif
     end subroutine create_mpi
 
     subroutine destroy_mpi(self)
@@ -205,6 +197,16 @@ contains
             if (self%win /= MPI_WIN_NULL) &
                 call MPI_Win_free(self%win, mpi_ierr)
         end if
+#endif
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        if ( self%staging_allocated ) then
+            CUDA_CALL(cudaFreeHost(self%host_send))
+            CUDA_CALL(cudaFreeHost(self%host_recv))
+        end if
+        self%host_send = c_null_ptr
+        self%host_recv = c_null_ptr
+        self%staging_output = c_null_ptr
+        self%staging_bytes = 0_int64
 #endif
         self%is_request_created = .false.
         self%is_active = .false.
@@ -224,22 +226,47 @@ contains
         type(dtfft_stream_t),               intent(in)      :: stream     !! Main execution CUDA stream
         real(real32),   target, contiguous, intent(inout)   :: aux(:)     !! Aux pointer
         integer(int32),                     intent(out)     :: error_code !! Error code
+        real(real32), pointer, contiguous :: mpi_in(:), mpi_out(:), mpi_aux(:)
         integer(int32), allocatable :: indices(:)
         integer(int32)              :: total_completed, n_completed      !! Request counter
         integer(int32)              :: need_completed
         integer(int32)              :: i                    !! Loop index
+        integer(int32) :: source
 
         error_code = DTFFT_SUCCESS
+        mpi_in => in
+        mpi_out => out
+        mpi_aux => aux
         if (self%is_active) then
             error_code = DTFFT_ERROR_TRANSPOSE_ACTIVE
             return
         end if
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        if ( .not. self%staging_allocated .and. self%platform == DTFFT_PLATFORM_CUDA ) then
+            CUDA_CALL(cudaHostAlloc(self%host_send, int(self%staging_bytes, c_size_t), cudaHostAllocDefault))
+            CUDA_CALL(cudaHostAlloc(self%host_recv, int(self%staging_bytes, c_size_t), cudaHostAllocDefault))
+            self%staging_allocated = .true.
+        endif
+#endif
         if ( self%is_fused ) then
             call self%execute_fused(in, out, stream, aux)
             return
         endif
 #ifdef DTFFT_WITH_CUDA
-        if (self%platform == DTFFT_PLATFORM_CUDA) then
+        if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+# ifdef WITHOUT_DEVICE_AWARE
+            CUDA_CALL(cudaMemcpyAsync(self%host_send, c_loc(in), int(self%staging_bytes, c_size_t), cudaMemcpyDeviceToHost, stream))
+            self%staging_stream = stream
+
+            call c_f_pointer(self%host_send, mpi_in, [size(in)])
+            if ( self%is_pipelined ) then
+                call c_f_pointer(self%host_recv, mpi_aux, [size(aux)])
+                self%staging_output = c_loc(aux)
+            else
+                call c_f_pointer(self%host_recv, mpi_out, [size(out)])
+                self%staging_output = c_loc(out)
+            endif
+# endif
             ! Need to sync stream since there is no way pass current stream to MPI
             CUDA_CALL(cudaStreamSynchronize(stream))
         end if
@@ -248,35 +275,40 @@ contains
         if ( .not. self%is_pipelined ) then
             select case (self%backend%val)
             case (DTFFT_BACKEND_MPI_P2P%val)
-                call self%execute_p2p(in, out)
+                call self%execute_p2p(mpi_in, mpi_out)
             case (DTFFT_BACKEND_MPI_A2A%val)
-                call self%execute_a2a(in, out)
+                call self%execute_a2a(mpi_in, mpi_out)
             case (DTFFT_BACKEND_MPI_P2P_SCHEDULED%val)
-                call self%execute_p2p_scheduled(in, out)
+                call self%execute_p2p_scheduled(mpi_in, mpi_out)
 #ifdef DTFFT_WITH_RMA
             case (DTFFT_BACKEND_MPI_RMA%val)
-                call self%execute_rma(in, out)
+                call self%execute_rma(mpi_in, mpi_out)
 #endif
             end select
             if ( self%platform == DTFFT_PLATFORM_HOST .and. self%backend /= DTFFT_BACKEND_MPI_P2P_SCHEDULED ) then
                 call self%execute_self_copy(in, out, stream)
             endif
-            self%is_active = .true.
-            if ( self%backend == DTFFT_BACKEND_MPI_P2P_SCHEDULED ) self%is_active = .false.
+            self%is_active = self%backend /= DTFFT_BACKEND_MPI_P2P_SCHEDULED
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+            if ( self%backend == DTFFT_BACKEND_MPI_P2P_SCHEDULED .and. self%platform == DTFFT_PLATFORM_CUDA ) then
+                call self%memcpy_h2d(stream)
+                self%staging_output = c_null_ptr
+            end if
+#endif
             return
         endif
 
         if (self%backend == DTFFT_BACKEND_MPI_P2P_PIPELINED) then
-            call self%execute_p2p(in, aux)
+            call self%execute_p2p(mpi_in, mpi_aux)
 #ifdef DTFFT_WITH_RMA
         else
-            call self%execute_rma(in, aux)
+            call self%execute_rma(mpi_in, mpi_aux)
 #endif
         end if
 
         if ( self%platform == DTFFT_PLATFORM_HOST ) then
-            call self%execute_self_copy(in, aux, stream)
-            call self%unpack_kernel%execute(c_loc(aux), c_loc(out), stream, self%comm_rank + 1)
+            call self%execute_self_copy(mpi_in, mpi_aux, stream)
+            call self%unpack_kernel%execute(c_loc(mpi_aux), c_loc(mpi_out), stream, self%comm_rank + 1)
         endif
 
         allocate (indices(self%recv%n_requests))
@@ -288,11 +320,17 @@ contains
             if (n_completed == MPI_UNDEFINED .or. need_completed == 0) exit
 
             do i = 1, n_completed
+                source = indices(i)
 #ifdef MPICH_FIX_REQUIRED
-                call self%unpack_kernel%execute(c_loc(aux), c_loc(out), stream, self%recv%process_map(indices(i) + 1) + 1)
-#else
-                call self%unpack_kernel%execute(c_loc(aux), c_loc(out), stream, self%recv%process_map(indices(i)) + 1)
+                source = source + 1
 #endif
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+                if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+                    call self%memcpy_h2d(self%copy_stream, self%recv%process_map(source))
+                    call self%wait(stream)
+                endif
+#endif
+                call self%unpack_kernel%execute(c_loc(aux), c_loc(out), stream, self%recv%process_map(source) + 1)
             end do
             total_completed = total_completed + n_completed
             if (total_completed == need_completed) exit
@@ -326,8 +364,55 @@ contains
         if (self%is_rma) then
             call MPI_Win_fence(MPI_MODE_NOSUCCEED, self%win, error_code)
         end if
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+            call self%memcpy_h2d(self%staging_stream)
+            self%staging_output = c_null_ptr
+        endif
+#endif
         self%is_active = .false.
     end subroutine execute_end_mpi
+
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+    subroutine memcpy_h2d(self, stream, source_rank)
+    !! Copies received data from the pinned host buffer to the CUDA output buffer.
+        class(backend_mpi),       intent(inout) :: self
+        type(dtfft_stream_t),     intent(in)    :: stream
+        integer(int32), optional, intent(in)    :: source_rank
+        integer(int32) :: i, source_rank_
+
+        OPTVAL(source_rank_, VARIABLE_NOT_SET, source_rank)
+
+        if ( self%backend == DTFFT_BACKEND_MPI_A2A .and. self%is_even) then
+            CUDA_CALL(cudaMemcpyAsync(self%staging_output, self%host_recv, int(self%staging_bytes, c_size_t), cudaMemcpyHostToDevice, stream))
+            return
+        endif
+
+        if ( source_rank_ == VARIABLE_NOT_SET ) then
+            do i = 0, self%comm_size - 1
+                if (self%recv%counts(i) == 0) cycle
+                call launch_memcpy(i)
+            end do
+            return
+        endif
+        if (self%recv%counts(source_rank_) == 0) return
+        call launch_memcpy(source_rank_)
+    contains
+
+        subroutine launch_memcpy(source)
+            integer(int32), intent(in) :: source
+            integer(int64) :: displacement, count_bytes
+            type(c_ptr) :: dst, src
+
+            displacement = int(self%recv%displs(source), int64)
+            if (self%backend /= DTFFT_BACKEND_MPI_A2A) displacement = displacement - 1_int64
+            count_bytes = int(self%recv%counts(source), int64) * FLOAT_STORAGE_SIZE
+            dst = ptr_offset(self%staging_output, displacement * FLOAT_STORAGE_SIZE)
+            src = ptr_offset(self%host_recv, displacement * FLOAT_STORAGE_SIZE)
+            CUDA_CALL(cudaMemcpyAsync(dst, src, int(count_bytes, c_size_t), cudaMemcpyHostToDevice, stream))
+        end subroutine launch_memcpy
+    end subroutine memcpy_h2d
+#endif
 
     subroutine execute_p2p(self, in, out)
     !! Executes Point-to-Point MPI backend
@@ -425,10 +510,15 @@ contains
         real(real32),       intent(in)    :: in(:)  !! Data to be sent
         real(real32),       intent(inout) :: out(:) !! Data to be received
         integer(int32) :: mpi_ierr
+        logical :: use_alltoall
 
         associate( recv => self%recv, send => self%send )
 
-        if ( self%is_even .and. self%platform /= DTFFT_PLATFORM_CUDA ) then
+        use_alltoall = self%is_even .and. self%platform /= DTFFT_PLATFORM_CUDA
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        if (self%platform == DTFFT_PLATFORM_CUDA) use_alltoall = self%is_even
+#endif
+        if ( use_alltoall ) then
 #if defined(ENABLE_PERSISTENT_COLLECTIVES)
             if ( .not. self%is_request_created ) then
                 call MPI_Alltoall_init(in, send%counts(0), MPI_REAL, out, recv%counts(0), MPI_REAL, self%comm, MPI_INFO_NULL, send%requests(1), mpi_ierr)
@@ -496,17 +586,22 @@ contains
         real(real32), target,   contiguous, intent(inout)   :: out(:)     !! Recv pointer
         type(dtfft_stream_t),               intent(in)      :: stream     !! Main execution CUDA stream
         real(real32), target,   contiguous, intent(inout)   :: aux(:)     !! Aux pointer
-        integer(int64) :: aux_size, send_comp_bytes, recv_comp_bytes
+        integer(int64) :: aux_size, send_comp_bytes, recv_comp_bytes, copy_bytes
         real(real32), pointer, contiguous :: aux2(:)
         integer(int32) :: i, k, tgt, mpi_ierr, comm_rank
         integer(int32) :: send_request_counter, recv_request_counter
         integer(int32), allocatable :: indices(:)
         integer(int32)              :: total_completed, n_completed      !! Request counter
         real(real32), pointer, contiguous :: send_buffer(:), recv_buffer(:)
+        real(real32), pointer, contiguous :: mpi_send_buffer(:), mpi_recv_buffer(:)
         integer(int64), allocatable :: comp_sizes(:)
         integer(int32) :: source_rank, send_count, recv_count
         integer(int32) :: active_recvs
-        logical :: use_persistent_p2p
+        logical :: use_persistent_p2p, sync
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        integer(int64) :: send_displacement, recv_displacement
+        type(c_ptr) :: source_ptr, staging_ptr
+#endif
 
         call MPI_Comm_rank(MPI_COMM_WORLD, comm_rank, mpi_ierr)
 
@@ -514,6 +609,7 @@ contains
         call c_f_pointer(ptr_offset(c_loc(aux), aux_size * FLOAT_STORAGE_SIZE), aux2, [aux_size])
 
         allocate( comp_sizes(0:self%comm_size - 1) )
+        comp_sizes(:) = 0_int64
 
         if ( self%pack_kernel%is_dummy_kernel ) then
             send_buffer => in
@@ -544,6 +640,16 @@ contains
             send_buffer => aux
             recv_buffer => aux2
         endif
+        mpi_send_buffer => send_buffer
+        mpi_recv_buffer => recv_buffer
+        sync = .true.
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+        if (self%platform == DTFFT_PLATFORM_CUDA) then
+            call c_f_pointer(self%host_send, mpi_send_buffer, [self%buffer_size])
+            call c_f_pointer(self%host_recv, mpi_recv_buffer, [self%buffer_size])
+        endif
+        sync = .false.
+#endif
 
         recv_request_counter = 0
         send_request_counter = 0
@@ -562,7 +668,7 @@ contains
 #ifdef DTFFT_WITH_RMA
             if ( self%is_rma ) then
                 if ( .not. self%is_request_created ) then
-                    call MPI_Win_create(send_buffer, int( size(in) * FLOAT_STORAGE_SIZE, MPI_ADDRESS_KIND ), int(1, int32), MPI_INFO_NULL, self%comm, self%win, mpi_ierr)
+                    call MPI_Win_create(mpi_send_buffer, int( size(in) * FLOAT_STORAGE_SIZE, MPI_ADDRESS_KIND ), int(1, int32), MPI_INFO_NULL, self%comm, self%win, mpi_ierr)
                     self%is_request_created = .true.
                 endif
                 call MPI_Win_fence(MPI_MODE_NOPRECEDE, self%win, mpi_ierr)
@@ -575,8 +681,18 @@ contains
                     call self%pack_kernel%execute(c_loc(in), c_loc(send_buffer), stream, tgt + 1, skip_compression=.true.)
                     cycle
                 endif
-                call self%pack_kernel%execute(c_loc(in), c_loc(send_buffer), stream, tgt + 1, aux=c_loc(out), csize=send_comp_bytes, sync=.true.)
+                call self%pack_kernel%execute(c_loc(in), c_loc(send_buffer), stream, tgt + 1, aux=c_loc(out), csize=send_comp_bytes, sync=sync)
                 if ( self%pack_kernel%is_dummy .or. self%pack_kernel%is_dummy_kernel ) send_comp_bytes = send%counts(tgt) * FLOAT_STORAGE_SIZE
+
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+                if ( self%platform == DTFFT_PLATFORM_CUDA ) then
+                    send_displacement = int(self%send_displs(tgt), int64) - 1_int64
+                    source_ptr = ptr_offset(c_loc(send_buffer), send_displacement * FLOAT_STORAGE_SIZE)
+                    staging_ptr = ptr_offset(self%host_send, send_displacement * FLOAT_STORAGE_SIZE)
+                    CUDA_CALL(cudaMemcpyAsync(staging_ptr, source_ptr, int(send_comp_bytes, c_size_t), cudaMemcpyDeviceToHost, stream))
+                    CUDA_CALL(cudaStreamSynchronize(stream))
+                endif
+#endif
 
                 ! This is synchronization point between two processes
                 ! `recv_comp_bytes` might be known if compression is not used, however
@@ -594,34 +710,33 @@ contains
                         recv_request_counter = recv_request_counter + 1
                         recv%process_map(recv_request_counter) = tgt
                         ! call MPI_Win_lock(MPI_LOCK_EXCLUSIVE, tgt, 0, self%win, mpi_ierr)
-                        call MPI_Rget(recv_buffer(recv%displs(tgt)), recv_count, MPI_REAL, tgt, int(send%displs(tgt) * FLOAT_STORAGE_SIZE, MPI_ADDRESS_KIND), recv_count, MPI_REAL, self%win, recv%requests(recv_request_counter), mpi_ierr)
+                        call MPI_Rget(mpi_recv_buffer(recv%displs(tgt)), recv_count, MPI_REAL, tgt, int(send%displs(tgt) * FLOAT_STORAGE_SIZE, MPI_ADDRESS_KIND), recv_count, MPI_REAL, self%win, recv%requests(recv_request_counter), mpi_ierr)
                         ! call MPI_Win_unlock(tgt, self%win, mpi_ierr)
                     end if
 #endif
                 else    ! P2P
-                    if (recv%counts(tgt) > 0) then
+                    if (recv_count > 0) then
                         active_recvs = active_recvs + 1
                         recv_request_counter = recv_request_counter + 1
                         recv%process_map(recv_request_counter) = tgt
                         if (use_persistent_p2p) then
                             if (recv%requests(recv_request_counter) == MPI_REQUEST_NULL) then
-                                call MPI_Recv_init(recv_buffer(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, recv%requests(recv_request_counter), mpi_ierr)
+                                call MPI_Recv_init(mpi_recv_buffer(recv%displs(tgt)), recv_count, MPI_REAL, tgt, 0, self%comm, recv%requests(recv_request_counter), mpi_ierr)
                             end if
                             call MPI_Start(recv%requests(recv_request_counter), mpi_ierr)
                         else
-                            ! Do not care if actual message size is less then recv%counts(tgt)
-                            call MPI_Irecv(recv_buffer(recv%displs(tgt)), recv%counts(tgt), MPI_REAL, tgt, 0, self%comm, recv%requests(recv_request_counter), mpi_ierr)
+                            call MPI_Irecv(mpi_recv_buffer(recv%displs(tgt)), recv_count, MPI_REAL, tgt, 0, self%comm, recv%requests(recv_request_counter), mpi_ierr)
                         end if
                     end if
                     if ( send_count > 0 ) then
                         send_request_counter = send_request_counter + 1
                         if (use_persistent_p2p) then
                             if (send%requests(send_request_counter) == MPI_REQUEST_NULL) then
-                                call MPI_Send_init(send_buffer(send%displs(tgt)), send_count, MPI_REAL, tgt, 0, self%comm, send%requests(send_request_counter), mpi_ierr)
+                                call MPI_Send_init(mpi_send_buffer(send%displs(tgt)), send_count, MPI_REAL, tgt, 0, self%comm, send%requests(send_request_counter), mpi_ierr)
                             end if
                             call MPI_Start(send%requests(send_request_counter), mpi_ierr)
                         else
-                            call MPI_Isend(send_buffer(send%displs(tgt)), send_count, MPI_REAL, tgt, 0, self%comm, send%requests(send_request_counter), mpi_ierr)
+                            call MPI_Isend(mpi_send_buffer(send%displs(tgt)), send_count, MPI_REAL, tgt, 0, self%comm, send%requests(send_request_counter), mpi_ierr)
                         end if
                     endif
                 endif
@@ -650,7 +765,17 @@ contains
 #else
                         source_rank = recv%process_map(indices(k))
 #endif
-                        call self%unpack_kernel%execute(c_loc(recv_buffer), c_loc(out), stream, source_rank + 1, aux=c_loc(in), csize=comp_sizes(source_rank))
+                        copy_bytes = comp_sizes(source_rank)
+#if defined(DTFFT_WITH_CUDA) && defined(WITHOUT_DEVICE_AWARE)
+                        if (self%platform == DTFFT_PLATFORM_CUDA .and. copy_bytes > 0) then
+                            recv_displacement = int(recv%displs(source_rank) - 1, int64)
+                            source_ptr = ptr_offset(self%host_recv, recv_displacement * FLOAT_STORAGE_SIZE)
+                            staging_ptr = ptr_offset(c_loc(recv_buffer), recv_displacement * FLOAT_STORAGE_SIZE)
+                            CUDA_CALL(cudaMemcpyAsync(staging_ptr, source_ptr, int(copy_bytes, c_size_t), cudaMemcpyHostToDevice, self%copy_stream))
+                            call self%wait(stream)
+                        endif
+#endif
+                        call self%unpack_kernel%execute(c_loc(recv_buffer), c_loc(out), stream, source_rank + 1, aux=c_loc(in), csize=copy_bytes)
                         active_recvs = active_recvs - 1
                     end do
                 end if
