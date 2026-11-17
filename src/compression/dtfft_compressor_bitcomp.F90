@@ -35,17 +35,14 @@ public :: compressor_bitcomp
     type, extends(abstract_compressor) :: compressor_bitcomp
     !! bitcomp-based compressor implementation
     private
-        ! type(dtfft_compression_mode_t) :: mode
-        ! real(real64) :: tolerance
     contains
         procedure   :: create_private => create         !! Initializes the SZ3 compressor with given configuration
         procedure   :: compress_private => compress     !! Compresses the input data using SZ3
         procedure   :: decompress_private => decompress !! Decompresses the input data using SZ3
         procedure   :: destroy                          !! Cleans up the compressor resources
-        procedure   :: sync
-        procedure   :: pre_sync
-        procedure   :: post_sync
-        procedure, nopass   :: get_supported_modes
+        procedure   :: pre_sync                         !! No-op for bitcomp
+        procedure   :: post_sync                        !! No-op for bitcomp
+        procedure, nopass   :: get_supported_modes      !! Returns supported compression modes
     end type compressor_bitcomp
 
 contains
@@ -98,19 +95,18 @@ contains
     end subroutine destroy
 
     subroutine pre_sync(self, stream)
-        class(compressor_bitcomp),  intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)     :: stream
+    !! Makes internal compressor stream wait for the given stream.
+    !! This is a no-op for bitcomp
+        class(compressor_bitcomp),  intent(inout)  :: self              !! Compressor instance
+        type(dtfft_stream_t),       intent(in)     :: stream            !! Stream handle
     end subroutine pre_sync
 
     subroutine post_sync(self, stream)
-        class(compressor_bitcomp),  intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)  :: stream
+    !! Makes the given stream wait for the internal compressor stream.
+    !! This is a no-op for bitcomp
+        class(compressor_bitcomp),  intent(inout)  :: self              !! Compressor instance
+        type(dtfft_stream_t),       intent(in)     :: stream            !! Stream handle
     end subroutine post_sync
-
-    subroutine sync(self, stream)
-        class(compressor_bitcomp),  intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)  :: stream
-    end subroutine sync
 
     pure subroutine get_supported_modes(host_modes, cuda_modes, use_tolerance)
     !! Returns supported compression modes

@@ -35,16 +35,14 @@ public :: compressor_cuszp
     type, extends(abstract_compressor) :: compressor_cuszp
     !! cuSZp-based CUDA compressor implementation
     private
-        ! real(real32)      :: tolerance  !! Compression tolerance for cuSZp
     contains
-        procedure   :: create_private => create
-        procedure   :: compress_private => compress
-        procedure   :: decompress_private => decompress
-        procedure   :: destroy
-        procedure   :: sync
-        procedure   :: pre_sync
-        procedure   :: post_sync
-        procedure, nopass   :: get_supported_modes
+        procedure   :: create_private => create         !! Initializes the cuSZp compressor with given configuration
+        procedure   :: compress_private => compress     !! Compresses the input data using cuSZp
+        procedure   :: decompress_private => decompress !! Decompresses the input data using cuSZp
+        procedure   :: destroy                          !! Cleans up the compressor resources
+        procedure   :: pre_sync                         !! No-op for cuSZp
+        procedure   :: post_sync                        !! No-op for cuSZp
+        procedure, nopass   :: get_supported_modes      !! Returns supported compression modes
     end type compressor_cuszp
 
 contains
@@ -55,7 +53,6 @@ contains
         type(dtfft_platform_t),             intent(in)    :: platform   !! Platform type (should be CUDA for cuSZp)
 
         create = DTFFT_SUCCESS
-        ! self%tolerance = real(config%tolerance, real32)
     end function create
 
     integer(int64) function compress(self, dims, in, out, stream)
@@ -105,12 +102,6 @@ contains
         class(compressor_cuszp), intent(inout) :: self      !! cuSZp compressor instance
         type(dtfft_stream_t),    intent(in)    :: stream    !! CUDA stream for synchronization
     end subroutine post_sync
-
-    subroutine sync(self, stream)
-    !! Synchronize the CUDA stream for cuSZp compressor, but required for interface compliance
-        class(compressor_cuszp), intent(inout) :: self      !! cuSZp compressor instance
-        type(dtfft_stream_t),    intent(in)    :: stream    !! CUDA stream for synchronization
-    end subroutine sync
 
     pure subroutine get_supported_modes(host_modes, cuda_modes, use_tolerance)
     !! Returns supported compression modes

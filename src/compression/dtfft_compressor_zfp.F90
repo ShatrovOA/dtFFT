@@ -41,28 +41,28 @@ public :: compressor_zfp
     type, extends(abstract_compressor) :: compressor_zfp
     !! ZFP-based compressor implementation
     private
-        logical                         :: is_fixed_rate
+        logical                         :: is_fixed_rate    !! Flag indicating if the compressor is in fixed rate mode
         integer(int64)                  :: imag_offset  !! Byte offset for imaginary part in complex data
-        ! type(dtfft_compression_config_t):: config       !! Compression configuration parameters
         type(zfp_exec_policy)           :: policy       !! ZFP execution policy (serial or CUDA)
         type(zfp_type)                  :: scalar_type  !! ZFP scalar type (float or double)
 #ifdef DTFFT_WITH_CUDA
-        type(cudaEvent)                 :: event
+        type(cudaEvent)                 :: event        !! CUDA event for stream synchronization
 #endif
     contains
         procedure           :: create_private => create         !! Initializes the ZFP compressor with given configuration
         procedure           :: compress_private => compress     !! Compresses the input data using ZFP
         procedure           :: decompress_private => decompress !! Decompresses the input data using ZFP
         procedure           :: destroy                          !! Cleans up the compressor resources
-        procedure           :: sync
-        procedure           :: pre_sync
-        procedure           :: post_sync
+        procedure           :: sync                             !! Synchronizes internal compressor stream
+        procedure           :: pre_sync                         !! Makes internal compressor stream wait for the given stream
+        procedure           :: post_sync                        !! Makes the given stream wait for the internal compressor stream
         procedure           :: init                             !! Initializes ZFP stream and field for compression/decompression
-        procedure, nopass   :: get_supported_modes
+        procedure, nopass   :: get_supported_modes              !! Returns supported compression modes
     end type compressor_zfp
 
 #ifdef DTFFT_WITH_OPENMP
     logical, save :: OMP_WARNING_ISSUED = .false.
+    !! ZFP does not support OpenMP decompression. All decompressions will be performed in a serial manner.
 #endif
 
 contains
@@ -212,7 +212,7 @@ contains
         type(c_ptr),                intent(in)      :: in               !! Pointer to compressed data
         type(c_ptr),                intent(in)      :: out              !! Pointer to output buffer
         type(dtfft_stream_t),       intent(in)      :: stream           !! Stream handle
-        integer(int64),             intent(in)      :: compressed_size
+        integer(int64),             intent(in)      :: compressed_size  !! Compressed buffer size
         type(zfp_field) :: field
         type(zfp_stream) :: zfp
         type(bitstream) :: bs
@@ -252,8 +252,9 @@ contains
     end subroutine destroy
 
     subroutine pre_sync(self, stream)
-        class(compressor_zfp),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)     :: stream
+    !! Makes internal compressor stream wait for the given stream.
+        class(compressor_zfp),      intent(inout)  :: self                  !! Compressor instance
+        type(dtfft_stream_t),       intent(in)     :: stream                !! Stream handle
         if ( self%policy%val /= zfp_exec_cuda%val ) return
 #ifdef DTFFT_WITH_CUDA
         CUDA_CALL( cudaEventRecord(self%event, stream) )
@@ -263,8 +264,9 @@ contains
     end subroutine pre_sync
 
     subroutine post_sync(self, stream)
-        class(compressor_zfp),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)  :: stream
+    !! Makes the given stream wait for the internal compressor stream.
+        class(compressor_zfp),      intent(inout)  :: self                  !! Compressor instance
+        type(dtfft_stream_t),       intent(in)  :: stream                   !! Stream handle
 
         if ( self%policy%val /= zfp_exec_cuda%val ) return
 #ifdef DTFFT_WITH_CUDA
@@ -275,8 +277,9 @@ contains
     end subroutine post_sync
 
     subroutine sync(self, stream)
-        class(compressor_zfp),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)  :: stream
+    !! Synchronizes the internal compressor stream.
+        class(compressor_zfp),      intent(inout)  :: self                  !! Compressor instance
+        type(dtfft_stream_t),       intent(in)  :: stream                   !! Stream handle
         if ( self%policy%val /= zfp_exec_cuda%val ) return
 #ifdef DTFFT_WITH_CUDA
         CUDA_CALL( cudaStreamSynchronize(NULL_STREAM) )
