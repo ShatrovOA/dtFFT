@@ -21,10 +21,12 @@ module dtfft_abstract_compressor
 !! Abstract base class for compression implementations [[abstract_compressor]]
 use, intrinsic :: iso_c_binding
 use, intrinsic :: iso_fortran_env
+use dtfft_interface_cuda_runtime
 use dtfft_errors
 use dtfft_parameters
 use dtfft_serializer
 use dtfft_utils
+#include "_dtfft_cuda.h"
 #include "_dtfft_mpi.h"
 #include "_dtfft_private.h"
 #include "_dtfft_profile.h"
@@ -52,48 +54,6 @@ public :: dtfft_compression_mode_t
     type(dtfft_compression_mode_t), parameter,  public :: DTFFT_COMPRESSION_MODE_FIXED_ACCURACY = dtfft_compression_mode_t(CONF_DTFFT_COMPRESSION_MODE_FIXED_ACCURACY)
     !! Fixed accuracy compression mode
 
-public :: dtfft_compression_lib_t
-    type, bind(C) :: dtfft_compression_lib_t
-    !! Type that specifies compression library
-        integer(c_int32_t) :: val !! Internal value
-    end type dtfft_compression_lib_t
-
-    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_NONE = dtfft_compression_lib_t(VARIABLE_NOT_SET)
-
-    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_ZFP = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_ZFP)
-    !! ZFP compression library
-    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_SZ3 = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_SZ3)
-    !! SZ3 compression library
-    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_SZP = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_SZP)
-    !! SZp compression library
-    ! type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_CUSZ = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_CUSZ)
-    ! !! cuSZ GPU compression library
-    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_CUSZP = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_CUSZP)
-    !! cuSZp GPU compression library
-    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_BITCOMP = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_BITCOMP)
-
-    type(dtfft_compression_lib_t),  parameter,  public :: VALID_COMPRESSION_LIBS(*) = [ DTFFT_COMPRESSION_LIB_NONE      &
-#ifdef DTFFT_WITH_ZFP
-                                                                                        , DTFFT_COMPRESSION_LIB_ZFP     &
-#endif
-#ifdef DTFFT_WITH_SZ3
-                                                                                        , DTFFT_COMPRESSION_LIB_SZ3     &
-#endif
-#ifdef DTFFT_WITH_SZP
-                                                                                        , DTFFT_COMPRESSION_LIB_SZP     &
-#endif
-! #ifdef DTFFT_WITH_CUSZ
-!                                                                                         , DTFFT_COMPRESSION_LIB_CUSZ    &
-! #endif
-#ifdef DTFFT_WITH_CUSZP
-                                                                                        , DTFFT_COMPRESSION_LIB_CUSZP   &
-#endif
-#ifdef DTFFT_WITH_BITCOMP
-                                                                                        , DTFFT_COMPRESSION_LIB_BITCOMP &
-#endif
-                                                                                        ]
-    !! List of valid compression libraries
-
     type(dtfft_compression_mode_t), parameter,  public :: VALID_COMPRESSION_MODES(*) = [    DTFFT_COMPRESSION_MODE_LOSSLESS,        &
                                                                                             DTFFT_COMPRESSION_MODE_FIXED_RATE,      &
                                                                                             DTFFT_COMPRESSION_MODE_FIXED_PRECISION, &
@@ -103,31 +63,33 @@ public :: dtfft_compression_lib_t
 
     type, abstract :: abstract_compressor
     !! Abstract base class for compression implementations
-        logical         :: is_complex        !! Indicates if the data type is complex
-        integer(int8)   :: ndims             !! Number of dimensions
-        integer(int64)  :: storage_size      !! Size of storage per element
-        integer(int64)  :: true_storage_size !! Size of storage per element
-        real(real64)    :: compressed_rate   !! Accumulated compression rate
-        integer(int64)  :: execution_count   !! Number of compression executions
-        integer(int32)  :: dims_permutation  !! Dimension permutation flag
-        type(dtfft_compression_mode_t) :: compression_mode !! Compression mode
-        real(real64) :: rate_or_tolerance !! Compression rate (for fixed rate mode) or tolerance (for fixed accuracy mode or fixed precision mode)
-        integer(int32) :: precision !! Precision (for fixed precision mode)
+        logical         :: is_complex                       !! Indicates if the data type is complex
+        integer(int8)   :: ndims                            !! Number of dimensions
+        integer(int64)  :: storage_size                     !! Size of storage per element
+        integer(int64)  :: true_storage_size                !! Size of storage per element
+        real(real64)    :: compressed_rate                  !! Accumulated compression rate
+        integer(int64)  :: execution_count                  !! Number of compression executions
+        integer(int32)  :: dims_permutation                 !! Dimension permutation flag
+        type(dtfft_compression_mode_t) :: compression_mode  !! Compression mode
+        real(real64) :: rate_or_tolerance                   !! Compression rate (for fixed rate mode) or tolerance (for fixed accuracy mode or fixed precision mode)
+        integer(int32) :: precision                         !! Precision (for fixed precision mode)
+        type(dtfft_platform_t) :: platform                  !! Target platform
     contains
-        procedure,  non_overridable,    public,                 pass(self)  :: create             !! Initializes the compressor with given parameters
-        procedure,  non_overridable,    public,                 pass(self)  :: compress           !! Compresses the input data and returns the compressed size
-        procedure,  non_overridable,    public,                 pass(self)  :: decompress         !! Decompresses the input data into the output buffer
-        procedure,  non_overridable,    public,                 pass(self)  :: get_average_rate   !! Returns the average compression rate over all executions
-        procedure,  non_overridable,    public,                 pass(self)  :: check_tolerance
-        procedure,  non_overridable,    public,                 pass(self)  :: get_n_elements
-        procedure(sync_interface),                  deferred,   pass(self)  :: pre_sync           !!
-        procedure(sync_interface),                  deferred,   pass(self)  :: post_sync
-        procedure(sync_interface),                  deferred,   pass(self)  :: sync
-        procedure(create_private_interface),        deferred,   pass(self)  :: create_private    !! Creates the compressor implementation
-        procedure(compress_private_interface),      deferred,   pass(self)  :: compress_private  !! Performs compression using the implementation
-        procedure(decompress_private_interface),    deferred,   pass(self)  :: decompress_private !! Performs decompression using the implementation
-        procedure(destroy_interface),               deferred,   pass(self)  :: destroy           !! Destroys the compressor implementation
-        procedure(get_supported_modes_interface),   deferred,   nopass      :: get_supported_modes
+        procedure,  non_overridable,    public,                 pass(self)  :: create               !! Initializes the compressor with given parameters
+        procedure,  non_overridable,    public,                 pass(self)  :: compress             !! Compresses the input data and returns the compressed size
+        procedure,  non_overridable,    public,                 pass(self)  :: decompress           !! Decompresses the input data into the output buffer
+        procedure,  non_overridable,    public,                 pass(self)  :: get_average_rate     !! Returns the average compression rate over all executions
+        procedure,  non_overridable,    public,                 pass(self)  :: check_tolerance      !! Checks if the tolerance is valid for the given compression mode
+        procedure,  non_overridable,    public,                 pass(self)  :: get_n_elements       !! Returns number of `real` elements. Means that for complex data, the number of `real` elements is twice the number of complex elements.
+        procedure,                      public,                 pass(self)  :: sync                 !! Synchronizes the compressor with the given stream.
+        procedure(sync_interface),                  deferred,   pass(self)  :: pre_sync             !! Makes internal compressor stream wait for the given stream. This is used for compressors that do not support passing custom stream to the compress/decompress functions.
+        procedure(sync_interface),                  deferred,   pass(self)  :: post_sync            !! Makes the given stream wait for the internal compressor stream. This is used for compressors that do not support passing custom stream to the compress/decompress functions.
+        procedure(create_private_interface),        deferred,   pass(self)  :: create_private       !! Creates the compressor implementation
+        procedure(compress_private_interface),      deferred,   pass(self)  :: compress_private     !! Performs compression using the implementation
+        procedure(decompress_private_interface),    deferred,   pass(self)  :: decompress_private   !! Performs decompression using the implementation
+        procedure(destroy_interface),               deferred,   pass(self)  :: destroy              !! Destroys the compressor implementation
+        procedure(get_supported_modes_interface),   deferred,   nopass      :: get_supported_modes  !! Returns supported compression modes for host and CUDA platforms, 
+                                                                                                    !! and whether `tolerance` parameter should be used in `DTFFT_COMPRESSION_MODE_FIXED_PRECISION` mode instead of `precision`
     end type abstract_compressor
 
     abstract interface
@@ -139,7 +101,7 @@ public :: dtfft_compression_lib_t
         end function create_private_interface
 
         integer(int64) function compress_private_interface(self, dims, in, out, stream)
-        !! Performs compression using the implementation
+        !! Performs buffer compression using the implementation and returns the compressed size
         import
             class(abstract_compressor), intent(inout)   :: self     !! Compressor instance
             integer(int32),             intent(in)      :: dims(:)  !! Array dimensions
@@ -156,19 +118,19 @@ public :: dtfft_compression_lib_t
             type(c_ptr),                intent(in)      :: in               !! Pointer to compressed data
             type(c_ptr),                intent(in)      :: out              !! Pointer to uncompressed buffer
             type(dtfft_stream_t),       intent(in)      :: stream           !! Stream handle
-            integer(int64),             intent(in)      :: compressed_size
+            integer(int64),             intent(in)      :: compressed_size  !! Size of compressed data
         end subroutine decompress_private_interface
 
         subroutine destroy_interface(self)
         !! Destroys the compressor implementation
         import
-            class(abstract_compressor), intent(inout)   :: self !! Compressor instance
+            class(abstract_compressor), intent(inout)   :: self         !! Compressor instance
         end subroutine destroy_interface
 
         subroutine sync_interface(self, stream)
         import
-            class(abstract_compressor), intent(inout)   :: self                 !! Compressor instance
-            type(dtfft_stream_t),       intent(in)      :: stream
+            class(abstract_compressor), intent(inout)   :: self         !! Compressor instance
+            type(dtfft_stream_t),       intent(in)      :: stream       !! Stream handle
         end subroutine sync_interface
 
         pure subroutine get_supported_modes_interface(host_modes, cuda_modes, use_tolerance)
@@ -219,6 +181,7 @@ contains
         self%rate_or_tolerance = rate_or_tolerance
         self%precision = precision
         self%dims_permutation = dims_permutation
+        self%platform = platform
 #ifdef DTFFT_DEBUG
         if ( .not. any(GET_MPI_VALUE(base_type) == [GET_MPI_VALUE(MPI_COMPLEX), GET_MPI_VALUE(MPI_DOUBLE_COMPLEX), GET_MPI_VALUE(MPI_REAL), GET_MPI_VALUE(MPI_REAL8)]) ) then
             INTERNAL_ERROR("abstract_compressor.create: invalid base_type")
@@ -392,14 +355,26 @@ contains
     end function get_average_rate
 
     pure function get_n_elements(self, dims) result(n_elements)
-    !! Returns number of `real` elements
-        class(abstract_compressor), intent(in)  :: self !! Compressor instance
-        integer(int32),             intent(in)  :: dims(:)
+    !! Returns number of `real` elements.
+    !! Means that for complex data, the number of `real` elements is twice the number of complex elements.
+        class(abstract_compressor), intent(in)  :: self     !! Compressor instance
+        integer(int32),             intent(in)  :: dims(:)  !! Array dimensions
         integer(int64)                          :: n_elements
 
         n_elements = 1_int64 * product(dims)
         if ( self%is_complex ) n_elements = n_elements * 2
     end function get_n_elements
+
+    subroutine sync(self, stream)
+    !! Synchronizes the compressor with the given stream. For host compressors, this is a no-op.
+        class(abstract_compressor), intent(inout)   :: self     !! Compressor instance
+        type(dtfft_stream_t),       intent(in)      :: stream   !! Stream handle
+
+        if ( self%platform == DTFFT_PLATFORM_HOST ) return
+#ifdef DTFFT_WITH_CUDA
+        CUDA_CALL( cudaStreamSynchronize(stream) )
+#endif
+    end subroutine sync
 
 MAKE_EQ_FUN(dtfft_compression_mode_t, compression_mode_eq)
 MAKE_NE_FUN(dtfft_compression_mode_t, compression_mode_ne)

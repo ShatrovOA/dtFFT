@@ -37,17 +37,14 @@ public :: compressor_szp
     !! SZp-based compressor implementation
     private
         integer(int32)                  :: block_size
-        ! type(dtfft_compression_mode_t)  :: mode         !! Compression mode
-        ! real(real64)                    :: tolerance    !! Absolute or relative error bound, based on `mode`
     contains
         procedure   :: create_private => create         !! Initializes the SZp compressor with given configuration
         procedure   :: compress_private => compress     !! Compresses the input data using SZp
         procedure   :: decompress_private => decompress !! Decompresses the input data using SZp
         procedure   :: destroy                          !! Cleans up the compressor resources
-        procedure   :: sync
-        procedure   :: pre_sync
-        procedure   :: post_sync
-        procedure, nopass   :: get_supported_modes
+        procedure   :: pre_sync                         !! No-op for SZp
+        procedure   :: post_sync                        !! No-op for SZp
+        procedure, nopass   :: get_supported_modes      !! Returns supported compression modes
     end type compressor_szp
 
 contains
@@ -62,8 +59,6 @@ contains
             create = DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED
             return
         endif
-        ! self%mode = config%compression_mode
-        ! self%tolerance = config%tolerance
         self%block_size = 64
         if ( self%storage_size == FLOAT_STORAGE_SIZE ) self%block_size = 128
     end function create
@@ -101,23 +96,22 @@ contains
 
     subroutine destroy(self)
     !! Cleans up the compressor resources
-        class(compressor_szp),      intent(inout)   :: self             !! Compressor instance
+        class(compressor_szp),      intent(inout)   :: self                 !! Compressor instance
     end subroutine destroy
 
     subroutine pre_sync(self, stream)
-        class(compressor_szp),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)     :: stream
+    !! Makes internal compressor stream wait for the given stream.
+    !! This is a no-op for SZp
+        class(compressor_szp),      intent(inout)  :: self                  !! Compressor instance
+        type(dtfft_stream_t),       intent(in)     :: stream                !! Stream handle
     end subroutine pre_sync
 
     subroutine post_sync(self, stream)
-        class(compressor_szp),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)  :: stream
+    !! Makes the given stream wait for the internal compressor stream.
+    !! This is a no-op for SZp
+        class(compressor_szp),      intent(inout)  :: self                  !! Compressor instance
+        type(dtfft_stream_t),       intent(in)  :: stream                   !! Stream handle
     end subroutine post_sync
-
-    subroutine sync(self, stream)
-        class(compressor_szp),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)  :: stream
-    end subroutine sync
 
     pure subroutine get_supported_modes(host_modes, cuda_modes, use_tolerance)
     !! Returns supported compression modes

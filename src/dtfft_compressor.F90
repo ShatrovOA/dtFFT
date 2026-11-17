@@ -18,6 +18,7 @@
 !------------------------------------------------------------------------------------------------
 #include "dtfft_config.h"
 module dtfft_compressor
+!! Compressor module that provides a unified interface for different compression libraries
 use, intrinsic :: iso_c_binding
 use, intrinsic :: iso_fortran_env
 use dtfft_errors
@@ -51,6 +52,48 @@ public :: create_compressor
 public :: get_compressor_string
 public :: save_compression_config, load_compression_config
 public :: check_compression_config
+public :: dtfft_compression_lib_t
+
+    type, bind(C) :: dtfft_compression_lib_t
+    !! Type that specifies compression library
+        integer(c_int32_t) :: val !! Internal value
+    end type dtfft_compression_lib_t
+
+    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_NONE = dtfft_compression_lib_t(VARIABLE_NOT_SET)
+
+    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_ZFP = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_ZFP)
+    !! ZFP compression library
+    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_SZ3 = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_SZ3)
+    !! SZ3 compression library
+    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_SZP = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_SZP)
+    !! SZp compression library
+    ! type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_CUSZ = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_CUSZ)
+    ! !! cuSZ GPU compression library
+    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_CUSZP = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_CUSZP)
+    !! cuSZp GPU compression library
+    type(dtfft_compression_lib_t),  parameter,  public :: DTFFT_COMPRESSION_LIB_BITCOMP = dtfft_compression_lib_t(CONF_DTFFT_COMPRESSION_LIB_BITCOMP)
+
+    type(dtfft_compression_lib_t),  parameter,  public :: VALID_COMPRESSION_LIBS(*) = [ DTFFT_COMPRESSION_LIB_NONE      &
+#ifdef DTFFT_WITH_ZFP
+                                                                                        , DTFFT_COMPRESSION_LIB_ZFP     &
+#endif
+#ifdef DTFFT_WITH_SZ3
+                                                                                        , DTFFT_COMPRESSION_LIB_SZ3     &
+#endif
+#ifdef DTFFT_WITH_SZP
+                                                                                        , DTFFT_COMPRESSION_LIB_SZP     &
+#endif
+! #ifdef DTFFT_WITH_CUSZ
+!                                                                                         , DTFFT_COMPRESSION_LIB_CUSZ    &
+! #endif
+#ifdef DTFFT_WITH_CUSZP
+                                                                                        , DTFFT_COMPRESSION_LIB_CUSZP   &
+#endif
+#ifdef DTFFT_WITH_BITCOMP
+                                                                                        , DTFFT_COMPRESSION_LIB_BITCOMP &
+#endif
+                                                                                        ]
+    !! List of valid compression libraries
 
 public :: dtfft_compression_config_t
     type, bind(C) :: dtfft_compression_config_t
@@ -107,7 +150,8 @@ contains
     end function create_compression_config_t
 
     type(string) function get_compressor_string(compressor)
-        type(dtfft_compression_lib_t), intent(in) :: compressor
+    !! Returns a string representation of the given compression library
+        type(dtfft_compression_lib_t), intent(in) :: compressor !! Compression library to get string representation for
 
         select case (compressor%val)
         case (DTFFT_COMPRESSION_LIB_SZ3%val)
@@ -194,8 +238,9 @@ contains
     end function create_compressor
 
     subroutine save_compression_config(config, fh)
+    !! Saves the given compression configuration to a file handle
         type(dtfft_compression_config_t),   intent(in)    :: config !! Compression configuration to save
-        type(serializer),                   intent(inout) :: fh
+        type(serializer),                   intent(inout) :: fh     !! Serializer handle for saving the configuration
 
         call fh%save(int(config%compression_lib%val, int16))
         call fh%save(int(config%compression_mode%val, int8))
@@ -205,7 +250,8 @@ contains
     end subroutine save_compression_config
 
     type(dtfft_compression_config_t) function load_compression_config(fh) result(config)
-        type(serializer),                   intent(inout) :: fh
+    !! Loads a compression configuration from a file handle
+        type(serializer),                   intent(inout) :: fh !! Serializer handle for loading the configuration
         integer(int16) :: t1
         integer(int8) :: t2
 
@@ -219,7 +265,7 @@ contains
     pure function check_compression_config(config) result(error_code)
     !! Checks if the given compression configuration is valid
         type(dtfft_compression_config_t), intent(in)    :: config !! Compression configuration to check
-        integer(int32)                                  :: error_code
+        integer(int32)                                  :: error_code   !! Error code
 
         error_code = DTFFT_SUCCESS
         if ( .not. is_valid_compression_lib(config%compression_lib) ) then

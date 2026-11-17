@@ -17,6 +17,7 @@
 ! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 !------------------------------------------------------------------------------------------------
 module dtfft_interface_bitcomp
+!! Fortran interface to bitcomp compression library
 use, intrinsic :: iso_c_binding
 use dtfft_abstract_compressor
 use dtfft_parameters
@@ -25,24 +26,26 @@ private
 public :: bitcompCompress, bitcompDecompress
 
 interface
-    function bitcompCompress(in, out, n, mode, storage_size, delta, stream) result(s) bind(C, name="_dtfft_compress_bitcomp")
+    function bitcompCompress(in, out, n, mode, storage_size, delta, stream) result(compressed_size) bind(C, name="_dtfft_compress_bitcomp")
+    !! Compresses the input data using bitcomp compression library
     import
-        type(c_ptr),    value :: in
-        type(c_ptr),    value :: out
-        integer(c_size_t), value :: n
-        type(dtfft_compression_mode_t), value :: mode
-        integer(c_size_t),  value :: storage_size
-        real(c_double), value :: delta
-        type(dtfft_stream_t), value :: stream
-        integer(c_size_t) :: s
+        type(c_ptr),    value :: in     !! Pointer to the original data
+        type(c_ptr),    value :: out    !! Pointer to the compressed data
+        integer(c_size_t), value :: n   !! Number of scalars in the input data
+        type(dtfft_compression_mode_t), value :: mode   !! Compression mode
+        integer(c_size_t),  value :: storage_size   !! Size of single input scalar in bytes
+        real(c_double), value :: delta  !! Error bound for compression
+        type(dtfft_stream_t), value :: stream   !! Stream handle
+        integer(c_size_t) :: compressed_size  !! Size of the compressed data in bytes
     end function bitcompCompress
 
-    function bitcompDecompress(in, out, stream) result(u) bind(C, name="_dtfft_decompress_bitcomp")
+    function bitcompDecompress(in, out, stream) result(decompressed_size) bind(C, name="_dtfft_decompress_bitcomp")
+    !! Decompresses the input data using bitcomp compression library
     import
-        type(c_ptr),    value :: in
-        type(c_ptr),    value :: out
-        type(dtfft_stream_t), value :: stream
-        integer(c_size_t) :: u
+        type(c_ptr),    value :: in !! Pointer to the compressed data
+        type(c_ptr),    value :: out    !! Pointer to the decompressed data
+        type(dtfft_stream_t), value :: stream   !! Stream handle
+        integer(c_size_t) :: decompressed_size  !! Size of the decompressed data in bytes
     end function bitcompDecompress
 end interface
 

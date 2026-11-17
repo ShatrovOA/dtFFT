@@ -44,11 +44,10 @@ public :: compressor_sz3
         procedure   :: compress_private => compress     !! Compresses the input data using SZ3
         procedure   :: decompress_private => decompress !! Decompresses the input data using SZ3
         procedure   :: destroy                          !! Cleans up the compressor resources
-        procedure   :: sync
-        procedure   :: pre_sync
-        procedure   :: post_sync
-        procedure,  pass(self) :: get_config
-        procedure, nopass   :: get_supported_modes
+        procedure   :: pre_sync                         !! No-op for SZ3
+        procedure   :: post_sync                        !! No-op for SZ3
+        procedure,  pass(self) :: get_config            !! Returns a pointer to the SZ3 configuration for the given dimensions
+        procedure, nopass   :: get_supported_modes      !! Returns supported compression modes
     end type compressor_sz3
 
 contains
@@ -59,13 +58,16 @@ contains
         type(dtfft_platform_t),             intent(in)      :: platform     !! Target platform (CPU or CUDA)
 
         create = DTFFT_SUCCESS
-        ! self%mode = config%compression_mode
-        ! self%tolerance = config%tolerance
+        if ( platform == DTFFT_PLATFORM_CUDA ) then
+            create = DTFFT_ERROR_COMPRESSION_CUDA_NOT_SUPPORTED
+            return
+        endif
     end function create
 
     function get_config(self, dims) result(config)
+    !! Returns a pointer to the SZ3 configuration for the given dimensions
         class(compressor_sz3),  intent(in)  :: self         !! Compressor instance
-        integer(int32),         intent(in)  :: dims(:)  !! Array dimensions
+        integer(int32),         intent(in)  :: dims(:)      !! Array dimensions
         type(c_ptr)                         :: config
         integer(c_int32_t) :: x, y, z
         integer(c_int32_t) :: ierr
@@ -125,23 +127,22 @@ contains
 
     subroutine destroy(self)
     !! Cleans up the compressor resources
-        class(compressor_sz3),      intent(inout)   :: self             !! Compressor instance
+        class(compressor_sz3),      intent(inout)   :: self                 !! Compressor instance
     end subroutine destroy
 
     subroutine pre_sync(self, stream)
-        class(compressor_sz3),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)     :: stream
+    !! Makes internal compressor stream wait for the given stream.
+    !! This is a no-op for SZ3
+        class(compressor_sz3),      intent(inout)  :: self                  !! Compressor instance
+        type(dtfft_stream_t),       intent(in)     :: stream                !! Stream handle
     end subroutine pre_sync
 
     subroutine post_sync(self, stream)
-        class(compressor_sz3),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)  :: stream
+    !! Makes the given stream wait for the internal compressor stream.
+    !! This is a no-op for SZ3
+        class(compressor_sz3),      intent(inout)  :: self                  !! Compressor instance
+        type(dtfft_stream_t),       intent(in)  :: stream                   !! Stream handle
     end subroutine post_sync
-
-    subroutine sync(self, stream)
-        class(compressor_sz3),      intent(inout)  :: self                 !! Compressor instance
-        type(dtfft_stream_t),       intent(in)  :: stream
-    end subroutine sync
 
     pure subroutine get_supported_modes(host_modes, cuda_modes, use_tolerance)
     !! Returns supported compression modes
