@@ -170,9 +170,9 @@ contains
                 logical :: need_inverse
 
                 allocate( inverse_kinds(fft_rnk), knds(fft_rnk), iknds(fft_rnk) )
-                knds(:) = int(r2r_kinds(:)%val, C_FFTW_R2R_KIND)
-                inverse_kinds(:) = get_inverse_kind(r2r_kinds)
-                need_inverse = .not. all( inverse_kinds == r2r_kinds )
+                knds(:) = int(r2r_kinds(:fft_rnk)%val, C_FFTW_R2R_KIND)
+                inverse_kinds(:) = get_inverse_kind(r2r_kinds(:fft_rnk))
+                need_inverse = .not. all( inverse_kinds == r2r_kinds(:fft_rnk) )
                 iknds(:) = int(inverse_kinds(:)%val, C_FFTW_R2R_KIND)
 
                 if ( precision == DTFFT_SINGLE ) then
@@ -193,6 +193,8 @@ contains
                     self%plan_backward = self%plan_forward
                     self%is_inverse_copied = .true.
                 endif
+
+                deallocate( inverse_kinds, knds, iknds )
             endblock
         endselect
 
