@@ -73,20 +73,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.0% of total for procedures.">7 statements</a>
+                 title=" 0.2% of total for procedures.">92 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_rtc_module_cache.F90"> Source File</a>
+              <a href="../src/dtfft_executor_fftw.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_rtc_module_cache.f90.html'>dtfft_rtc_module_cache.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_rtc_module_cache.html'>dtfft_rtc_module_cache</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_fftw.f90.html'>dtfft_executor_fftw.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></li>
             <li class="breadcrumb-item active" aria-current="page">create</li>
           </ol>
         </nav>
@@ -132,14 +132,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine create(self)  
+    <h2>private  subroutine create(self, fft_rank, fft_type, precision, idist, odist, how_many, fft_sizes, inembed, onembed, error_code, r2r_kinds)  
 </h2>
     
 
-    <p>Creates cache</p>
+    <p>Creates FFT plan via FFTW3 Interface</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/nvrtc_module_cache.html'>nvrtc_module_cache</a></p>
+    <p><a href='../type/fftw_executor.html'>fftw_executor</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -154,8 +154,8 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~144"></span>
-              class(<a href='../type/nvrtc_module_cache.html'>nvrtc_module_cache</a>),
+              <span class="anchor" id="variable-self~33"></span>
+              class(<a href='../type/fftw_executor.html'>fftw_executor</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -164,7 +164,172 @@
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>Cache instance</p>
+                <p>FFTW FFT Executor</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_rank~3"></span>
+              type(<a href='../type/fft_rank_t.html'>fft_rank_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_rank</strong></td>
+            <td>
+                <p>Rank of fft: 1 or 2</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_type~2"></span>
+              type(<a href='../type/fft_type_t.html'>fft_type_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_type</strong></td>
+            <td>
+                <p>Type of fft: r2r, r2c, c2c</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-precision~3"></span>
+              type(<a href='../type/dtfft_precision_t.html'>dtfft_precision_t</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>precision</strong></td>
+            <td>
+                <p>Precision of fft: DTFFT_SINGLE or DTFFT_DOUBLE</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idist~12"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>idist</strong></td>
+            <td>
+                <p>Distance between the first element of two consecutive signals in a batch of the input data.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-odist~12"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>odist</strong></td>
+            <td>
+                <p>Distance between the first element of two consecutive signals in a batch of the output data.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-how_many~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>how_many</strong></td>
+            <td>
+                <p>Number of transforms to create</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fft_sizes~3"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fft_sizes</strong>(:)</td>
+            <td>
+                <p>Dimensions of transform</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-inembed~10"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the input data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-onembed~10"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>onembed</strong>(:)</td>
+            <td>
+                <p>Storage dimensions of the output data in memory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-error_code~7"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>error_code</strong></td>
+            <td>
+                <p>Error code to be returned to user</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r2r_kinds~2"></span>
+              type(<a href='../type/dtfft_r2r_kind_t.html'>dtfft_r2r_kind_t</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>r2r_kinds</strong>(:)</td>
+            <td>
+                <p>Kinds of r2r transform</p>
             </td>
         </tr>
     </tbody>
@@ -173,7 +338,7 @@
     <br>
     <div class="card">
       <div class="card-header">
-  <h3 class="card-title">Called by</h3>
+  <h3 class="card-title">Calls</h3>
       </div>
       <div class="card-body">
   <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -181,139 +346,249 @@
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generated by graphviz version 14.1.2 (0)
  -->
-<!-- Title: proc~~create~5~~CalledByGraph Pages: 1 -->
-<svg id="proccreate5CalledByGraph" width="641pt" height="63pt"
- viewBox="0.00 0.00 641.00 63.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~create~5~~CalledByGraph" class="graph" transform="scale(0.662108 0.662108) rotate(0) translate(4 91.27)">
-<title>proc~~create~5~~CalledByGraph</title>
-<polygon fill="white" stroke="none" points="-4,4 -4,-91.27 964.12,-91.27 964.12,4 -4,4"/>
+<!-- Title: proc~~create~5~~CallsGraph Pages: 1 -->
+<svg id="proccreate5CallsGraph" width="430pt" height="578pt"
+ viewBox="0.00 0.00 430.00 578.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~create~5~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 574.27)">
+<title>proc~~create~5~~CallsGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-574.27 425.56,-574.27 425.56,4 -4,4"/>
 <!-- proc~create~5 -->
-<g id="proc~~create~5~~CalledByGraph_node1" class="node">
+<g id="proc~~create~5~~CallsGraph_node1" class="node">
 <title>proc~create~5</title>
-<polygon fill="none" stroke="black" points="960.12,-45.27 794.85,-45.27 794.85,-21 960.12,-21 960.12,-45.27"/>
-<text xml:space="preserve" text-anchor="middle" x="877.48" y="-29.53" font-family="Helvetica,sans-Serif" font-size="10.50">nvrtc_module_cache%create</text>
+<polygon fill="none" stroke="black" points="126.27,-297.27 0,-297.27 0,-273 126.27,-273 126.27,-297.27"/>
+<text xml:space="preserve" text-anchor="middle" x="63.13" y="-281.53" font-family="Helvetica,sans-Serif" font-size="10.50">fftw_executor%create</text>
 </g>
-<!-- proc~add -->
-<g id="proc~~create~5~~CalledByGraph_node2" class="node">
-<title>proc~add</title>
-<g id="a_proc~~create~5~~CalledByGraph_node2"><a xlink:href="../proc/add.html" xlink:title="nvrtc_module_cache%add">
-<polygon fill="#d9534f" stroke="#d9534f" points="758.85,-45.27 607.08,-45.27 607.08,-21 758.85,-21 758.85,-45.27"/>
-<text xml:space="preserve" text-anchor="middle" x="682.96" y="-29.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">nvrtc_module_cache%add</text>
+<!-- iknds -->
+<g id="proc~~create~5~~CallsGraph_node2" class="node">
+<title>iknds</title>
+<polygon fill="#777777" stroke="#777777" points="264.78,-570.27 210.78,-570.27 210.78,-546 264.78,-546 264.78,-570.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-554.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iknds</text>
+</g>
+<!-- proc~create~5&#45;&gt;iknds -->
+<g id="proc~~create~5~~CallsGraph_edge1" class="edge">
+<title>proc~create~5&#45;&gt;iknds</title>
+<path fill="none" stroke="#ff0000" d="M65.16,-297.52C69.2,-338.27 87.7,-469.45 162.27,-537.13 172.43,-546.36 186.34,-551.56 199.39,-554.49"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="198.56,-557.9 209.03,-556.25 199.82,-551.01 198.56,-557.9"/>
+</g>
+<!-- interface~fftw_plan_many_dft -->
+<g id="proc~~create~5~~CallsGraph_node3" class="node">
+<title>interface~fftw_plan_many_dft</title>
+<g id="a_proc~~create~5~~CallsGraph_node3"><a xlink:href="../interface/fftw_plan_many_dft.html" xlink:title="fftw_plan_many_dft">
+<polygon fill="#a7506f" stroke="#a7506f" points="294.92,-528.27 180.65,-528.27 180.65,-504 294.92,-504 294.92,-528.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-512.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_plan_many_dft</text>
 </a>
 </g>
 </g>
-<!-- proc~add&#45;&gt;proc~create~5 -->
-<g id="proc~~create~5~~CalledByGraph_edge1" class="edge">
-<title>proc~add&#45;&gt;proc~create~5</title>
-<path fill="none" stroke="#ff0000" d="M759.23,-33.13C767.11,-33.13 775.19,-33.13 783.25,-33.13"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="783.08,-36.64 793.08,-33.14 783.08,-29.64 783.08,-36.64"/>
+<!-- proc~create~5&#45;&gt;interface~fftw_plan_many_dft -->
+<g id="proc~~create~5~~CallsGraph_edge2" class="edge">
+<title>proc~create~5&#45;&gt;interface~fftw_plan_many_dft</title>
+<path fill="none" stroke="#ff0000" d="M66.26,-297.74C73.09,-334.16 97.86,-440.42 162.27,-495.13 164.77,-497.26 167.46,-499.16 170.3,-500.88"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="168.54,-503.91 179.04,-505.32 171.71,-497.67 168.54,-503.91"/>
 </g>
-<!-- proc~create_nvrtc_module -->
-<g id="proc~~create~5~~CalledByGraph_node3" class="node">
-<title>proc~create_nvrtc_module</title>
-<g id="a_proc~~create~5~~CalledByGraph_node3"><a xlink:href="../proc/create_nvrtc_module.html" xlink:title="create_nvrtc_module">
-<polygon fill="#d9534f" stroke="#d9534f" points="571.08,-45.27 447.81,-45.27 447.81,-21 571.08,-21 571.08,-45.27"/>
-<text xml:space="preserve" text-anchor="middle" x="509.44" y="-29.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">create_nvrtc_module</text>
+<!-- interface~fftw_plan_many_dft_c2r -->
+<g id="proc~~create~5~~CallsGraph_node4" class="node">
+<title>interface~fftw_plan_many_dft_c2r</title>
+<g id="a_proc~~create~5~~CallsGraph_node4"><a xlink:href="../interface/fftw_plan_many_dft_c2r.html" xlink:title="fftw_plan_many_dft_c2r">
+<polygon fill="#a7506f" stroke="#a7506f" points="306.17,-486.27 169.39,-486.27 169.39,-462 306.17,-462 306.17,-486.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-470.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_plan_many_dft_c2r</text>
 </a>
 </g>
 </g>
-<!-- proc~create_nvrtc_module&#45;&gt;proc~add -->
-<g id="proc~~create~5~~CalledByGraph_edge2" class="edge">
-<title>proc~create_nvrtc_module&#45;&gt;proc~add</title>
-<path fill="none" stroke="#ff0000" d="M571.4,-33.13C579.19,-33.13 587.27,-33.13 595.37,-33.13"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="595.28,-36.64 605.28,-33.14 595.28,-29.64 595.28,-36.64"/>
+<!-- proc~create~5&#45;&gt;interface~fftw_plan_many_dft_c2r -->
+<g id="proc~~create~5~~CallsGraph_edge3" class="edge">
+<title>proc~create~5&#45;&gt;interface~fftw_plan_many_dft_c2r</title>
+<path fill="none" stroke="#ff0000" d="M67.75,-297.44C77.52,-328.52 107.5,-410.77 162.27,-453.13 163.6,-454.16 164.98,-455.14 166.39,-456.07"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="164.48,-459.01 174.92,-460.8 167.87,-452.89 164.48,-459.01"/>
 </g>
-<!-- proc~prepare_candidates -->
-<g id="proc~~create~5~~CalledByGraph_node4" class="node">
-<title>proc~prepare_candidates</title>
-<g id="a_proc~~create~5~~CalledByGraph_node4"><a xlink:href="../proc/prepare_candidates.html" xlink:title="prepare_candidates">
-<polygon fill="#d9534f" stroke="#d9534f" points="403.18,-66.27 286.66,-66.27 286.66,-42 403.18,-42 403.18,-66.27"/>
-<text xml:space="preserve" text-anchor="middle" x="344.92" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">prepare_candidates</text>
+<!-- interface~fftw_plan_many_dft_r2c -->
+<g id="proc~~create~5~~CallsGraph_node5" class="node">
+<title>interface~fftw_plan_many_dft_r2c</title>
+<g id="a_proc~~create~5~~CallsGraph_node5"><a xlink:href="../interface/fftw_plan_many_dft_r2c.html" xlink:title="fftw_plan_many_dft_r2c">
+<polygon fill="#a7506f" stroke="#a7506f" points="306.17,-444.27 169.39,-444.27 169.39,-420 306.17,-420 306.17,-444.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-428.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_plan_many_dft_r2c</text>
 </a>
 </g>
 </g>
-<!-- proc~prepare_candidates&#45;&gt;proc~create_nvrtc_module -->
-<g id="proc~~create~5~~CalledByGraph_edge3" class="edge">
-<title>proc~prepare_candidates&#45;&gt;proc~create_nvrtc_module</title>
-<path fill="none" stroke="#ff0000" d="M403.68,-46.67C414.24,-45.31 425.39,-43.87 436.31,-42.46"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="436.6,-45.95 446.07,-41.19 435.71,-39 436.6,-45.95"/>
+<!-- proc~create~5&#45;&gt;interface~fftw_plan_many_dft_r2c -->
+<g id="proc~~create~5~~CallsGraph_edge4" class="edge">
+<title>proc~create~5&#45;&gt;interface~fftw_plan_many_dft_r2c</title>
+<path fill="none" stroke="#ff0000" d="M70.35,-297.66C83.6,-323.06 117.17,-380.81 162.27,-411.13 164.11,-412.37 166.02,-413.54 167.99,-414.63"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="166.32,-417.72 176.85,-418.91 169.37,-411.41 166.32,-417.72"/>
 </g>
-<!-- program~test_rtc_module_cache -->
-<g id="proc~~create~5~~CalledByGraph_node5" class="node">
-<title>program~test_rtc_module_cache</title>
-<g id="a_proc~~create~5~~CalledByGraph_node5"><a xlink:href="../program/test_rtc_module_cache.html" xlink:title="test_rtc_module_cache">
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="411.81,-24.27 278.04,-24.27 278.04,0 411.81,0 411.81,-24.27"/>
-<text xml:space="preserve" text-anchor="middle" x="344.92" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_rtc_module_cache</text>
+<!-- interface~fftw_plan_many_r2r -->
+<g id="proc~~create~5~~CallsGraph_node6" class="node">
+<title>interface~fftw_plan_many_r2r</title>
+<g id="a_proc~~create~5~~CallsGraph_node6"><a xlink:href="../interface/fftw_plan_many_r2r.html" xlink:title="fftw_plan_many_r2r">
+<polygon fill="#a7506f" stroke="#a7506f" points="295.67,-402.27 179.9,-402.27 179.9,-378 295.67,-378 295.67,-402.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-386.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_plan_many_r2r</text>
 </a>
 </g>
 </g>
-<!-- program~test_rtc_module_cache&#45;&gt;proc~create_nvrtc_module -->
-<g id="proc~~create~5~~CalledByGraph_edge4" class="edge">
-<title>program~test_rtc_module_cache&#45;&gt;proc~create_nvrtc_module</title>
-<path fill="none" stroke="#ff0000" d="M412.03,-20.68C419.97,-21.7 428.12,-22.76 436.14,-23.79"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="435.51,-27.24 445.88,-25.05 436.41,-20.3 435.51,-27.24"/>
+<!-- proc~create~5&#45;&gt;interface~fftw_plan_many_r2r -->
+<g id="proc~~create~5~~CallsGraph_edge5" class="edge">
+<title>proc~create~5&#45;&gt;interface~fftw_plan_many_r2r</title>
+<path fill="none" stroke="#ff0000" d="M75.25,-297.61C92.24,-315.92 126.48,-349.98 162.27,-369.13 165.1,-370.65 168.06,-372.07 171.08,-373.39"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="169.59,-376.56 180.18,-376.97 172.16,-370.05 169.59,-376.56"/>
 </g>
-<!-- proc~build_kernel -->
-<g id="proc~~create~5~~CalledByGraph_node6" class="node">
-<title>proc~build_kernel</title>
-<g id="a_proc~~create~5~~CalledByGraph_node6"><a xlink:href="../proc/build_kernel.html" xlink:title="build_kernel">
-<polygon fill="#d9534f" stroke="#d9534f" points="242.04,-87.27 165.27,-87.27 165.27,-63 242.04,-63 242.04,-87.27"/>
-<text xml:space="preserve" text-anchor="middle" x="203.65" y="-71.54" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">build_kernel</text>
+<!-- interface~fftwf_plan_many_dft -->
+<g id="proc~~create~5~~CallsGraph_node7" class="node">
+<title>interface~fftwf_plan_many_dft</title>
+<g id="a_proc~~create~5~~CallsGraph_node7"><a xlink:href="../interface/fftwf_plan_many_dft.html" xlink:title="fftwf_plan_many_dft">
+<polygon fill="#a7506f" stroke="#a7506f" points="296.79,-360.27 178.77,-360.27 178.77,-336 296.79,-336 296.79,-360.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-344.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftwf_plan_many_dft</text>
 </a>
 </g>
 </g>
-<!-- proc~build_kernel&#45;&gt;proc~prepare_candidates -->
-<g id="proc~~create~5~~CalledByGraph_edge5" class="edge">
-<title>proc~build_kernel&#45;&gt;proc~prepare_candidates</title>
-<path fill="none" stroke="#ff0000" d="M242.34,-69.45C252.49,-67.92 263.8,-66.22 275.08,-64.52"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="275.44,-68 284.81,-63.05 274.4,-61.08 275.44,-68"/>
+<!-- proc~create~5&#45;&gt;interface~fftwf_plan_many_dft -->
+<g id="proc~~create~5~~CallsGraph_edge6" class="edge">
+<title>proc~create~5&#45;&gt;interface~fftwf_plan_many_dft</title>
+<path fill="none" stroke="#ff0000" d="M90.84,-297.68C110.36,-306.57 137.63,-318.43 162.27,-327.13 167.31,-328.92 172.58,-330.65 177.9,-332.31"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="176.76,-335.62 187.34,-335.16 178.78,-328.92 176.76,-335.62"/>
 </g>
-<!-- proc~get_kernel -->
-<g id="proc~~create~5~~CalledByGraph_node7" class="node">
-<title>proc~get_kernel</title>
-<g id="a_proc~~create~5~~CalledByGraph_node7"><a xlink:href="../proc/get_kernel.html" xlink:title="get_kernel">
-<polygon fill="#d9534f" stroke="#d9534f" points="237.54,-45.27 169.77,-45.27 169.77,-21 237.54,-21 237.54,-45.27"/>
-<text xml:space="preserve" text-anchor="middle" x="203.65" y="-29.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_kernel</text>
+<!-- interface~fftwf_plan_many_dft_c2r -->
+<g id="proc~~create~5~~CallsGraph_node8" class="node">
+<title>interface~fftwf_plan_many_dft_c2r</title>
+<g id="a_proc~~create~5~~CallsGraph_node8"><a xlink:href="../interface/fftwf_plan_many_dft_c2r.html" xlink:title="fftwf_plan_many_dft_c2r">
+<polygon fill="#a7506f" stroke="#a7506f" points="308.04,-318.27 167.52,-318.27 167.52,-294 308.04,-294 308.04,-318.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-302.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftwf_plan_many_dft_c2r</text>
 </a>
 </g>
 </g>
-<!-- proc~get_kernel&#45;&gt;proc~prepare_candidates -->
-<g id="proc~~create~5~~CalledByGraph_edge6" class="edge">
-<title>proc~get_kernel&#45;&gt;proc~prepare_candidates</title>
-<path fill="none" stroke="#ff0000" d="M238.01,-38.17C249.22,-39.85 262.16,-41.81 275.06,-43.75"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="274.45,-47.2 284.86,-45.23 275.49,-40.28 274.45,-47.2"/>
+<!-- proc~create~5&#45;&gt;interface~fftwf_plan_many_dft_c2r -->
+<g id="proc~~create~5~~CallsGraph_edge7" class="edge">
+<title>proc~create~5&#45;&gt;interface~fftwf_plan_many_dft_c2r</title>
+<path fill="none" stroke="#ff0000" d="M126.46,-292.72C136.08,-293.89 146.12,-295.11 156.07,-296.32"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="155.38,-299.76 165.72,-297.49 156.22,-292.81 155.38,-299.76"/>
 </g>
-<!-- proc~create~22 -->
-<g id="proc~~create~5~~CalledByGraph_node8" class="node">
-<title>proc~create~22</title>
-<g id="a_proc~~create~5~~CalledByGraph_node8"><a xlink:href="../proc/create~22.html" xlink:title="kernel_device%create">
-<polygon fill="#d9534f" stroke="#d9534f" points="129.27,-66.27 0,-66.27 0,-42 129.27,-42 129.27,-66.27"/>
-<text xml:space="preserve" text-anchor="middle" x="64.63" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kernel_device%create</text>
+<!-- interface~fftwf_plan_many_dft_r2c -->
+<g id="proc~~create~5~~CallsGraph_node9" class="node">
+<title>interface~fftwf_plan_many_dft_r2c</title>
+<g id="a_proc~~create~5~~CallsGraph_node9"><a xlink:href="../interface/fftwf_plan_many_dft_r2c.html" xlink:title="fftwf_plan_many_dft_r2c">
+<polygon fill="#a7506f" stroke="#a7506f" points="308.04,-276.27 167.52,-276.27 167.52,-252 308.04,-252 308.04,-276.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-260.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftwf_plan_many_dft_r2c</text>
 </a>
 </g>
 </g>
-<!-- proc~create~22&#45;&gt;proc~build_kernel -->
-<g id="proc~~create~5~~CalledByGraph_edge7" class="edge">
-<title>proc~create~22&#45;&gt;proc~build_kernel</title>
-<path fill="none" stroke="#ff0000" d="M129.73,-63.96C137.87,-65.21 146.1,-66.47 153.95,-67.67"/>
-<polygon fill="#ff0000" stroke="#ff0000" points="153.21,-71.1 163.62,-69.15 154.27,-64.18 153.21,-71.1"/>
+<!-- proc~create~5&#45;&gt;interface~fftwf_plan_many_dft_r2c -->
+<g id="proc~~create~5~~CallsGraph_edge8" class="edge">
+<title>proc~create~5&#45;&gt;interface~fftwf_plan_many_dft_r2c</title>
+<path fill="none" stroke="#ff0000" d="M126.46,-277.55C136.08,-276.38 146.12,-275.16 156.07,-273.95"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="156.22,-277.46 165.72,-272.78 155.38,-270.51 156.22,-277.46"/>
 </g>
-<!-- proc~create~22&#45;&gt;proc~get_kernel -->
-<g id="proc~~create~5~~CalledByGraph_edge8" class="edge">
-<title>proc~create~22&#45;&gt;proc~get_kernel</title>
-<path fill="none" stroke="#00ffff" d="M129.73,-44.31C139.43,-42.83 149.24,-41.32 158.4,-39.92"/>
-<polygon fill="#00ffff" stroke="#00ffff" points="158.72,-43.41 168.08,-38.43 157.66,-36.49 158.72,-43.41"/>
+<!-- interface~fftwf_plan_many_r2r -->
+<g id="proc~~create~5~~CallsGraph_node10" class="node">
+<title>interface~fftwf_plan_many_r2r</title>
+<g id="a_proc~~create~5~~CallsGraph_node10"><a xlink:href="../interface/fftwf_plan_many_r2r.html" xlink:title="fftwf_plan_many_r2r">
+<polygon fill="#a7506f" stroke="#a7506f" points="297.54,-234.27 178.02,-234.27 178.02,-210 297.54,-210 297.54,-234.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-218.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftwf_plan_many_r2r</text>
+</a>
+</g>
+</g>
+<!-- proc~create~5&#45;&gt;interface~fftwf_plan_many_r2r -->
+<g id="proc~~create~5~~CallsGraph_edge9" class="edge">
+<title>proc~create~5&#45;&gt;interface~fftwf_plan_many_r2r</title>
+<path fill="none" stroke="#ff0000" d="M90.84,-272.59C110.36,-263.7 137.63,-251.84 162.27,-243.13 167.31,-241.35 172.58,-239.62 177.9,-237.96"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="178.78,-241.35 187.34,-235.11 176.76,-234.65 178.78,-241.35"/>
+</g>
+<!-- inverse_kinds -->
+<g id="proc~~create~5~~CallsGraph_node11" class="node">
+<title>inverse_kinds</title>
+<polygon fill="#777777" stroke="#777777" points="279.54,-192.27 196.02,-192.27 196.02,-168 279.54,-168 279.54,-192.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-176.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">inverse_kinds</text>
+</g>
+<!-- proc~create~5&#45;&gt;inverse_kinds -->
+<g id="proc~~create~5~~CallsGraph_edge10" class="edge">
+<title>proc~create~5&#45;&gt;inverse_kinds</title>
+<path fill="none" stroke="#ff0000" d="M75.25,-272.66C92.24,-254.35 126.48,-220.29 162.27,-201.13 169.28,-197.39 177.02,-194.25 184.79,-191.64"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="185.73,-195.01 194.27,-188.74 183.68,-188.32 185.73,-195.01"/>
+</g>
+<!-- knds -->
+<g id="proc~~create~5~~CallsGraph_node12" class="node">
+<title>knds</title>
+<polygon fill="#777777" stroke="#777777" points="264.78,-150.27 210.78,-150.27 210.78,-126 264.78,-126 264.78,-150.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-134.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">knds</text>
+</g>
+<!-- proc~create~5&#45;&gt;knds -->
+<g id="proc~~create~5~~CallsGraph_edge11" class="edge">
+<title>proc~create~5&#45;&gt;knds</title>
+<path fill="none" stroke="#ff0000" d="M70.35,-272.61C83.6,-247.21 117.17,-189.46 162.27,-159.13 173.29,-151.73 186.89,-146.91 199.45,-143.79"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="200.08,-147.23 209.11,-141.69 198.59,-140.39 200.08,-147.23"/>
+</g>
+<!-- proc~get_inverse_kind -->
+<g id="proc~~create~5~~CallsGraph_node13" class="node">
+<title>proc~get_inverse_kind</title>
+<g id="a_proc~~create~5~~CallsGraph_node13"><a xlink:href="../proc/get_inverse_kind.html" xlink:title="get_inverse_kind">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="288.17,-108.27 187.4,-108.27 187.4,-84 288.17,-84 288.17,-108.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-92.54" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_inverse_kind</text>
+</a>
+</g>
+</g>
+<!-- proc~create~5&#45;&gt;proc~get_inverse_kind -->
+<g id="proc~~create~5~~CallsGraph_edge12" class="edge">
+<title>proc~create~5&#45;&gt;proc~get_inverse_kind</title>
+<path fill="none" stroke="#ff0000" d="M67.75,-272.83C77.52,-241.75 107.5,-159.5 162.27,-117.14 166.56,-113.81 171.35,-111.02 176.38,-108.67"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="177.56,-111.96 185.54,-104.99 174.95,-105.47 177.56,-111.96"/>
+</g>
+<!-- proc~mem_alloc~2 -->
+<g id="proc~~create~5~~CallsGraph_node14" class="node">
+<title>proc~mem_alloc~2</title>
+<g id="a_proc~~create~5~~CallsGraph_node14"><a xlink:href="../proc/mem_alloc~2.html" xlink:title="fftw_executor%mem_alloc">
+<polygon fill="#d9534f" stroke="#d9534f" points="313.29,-66.27 162.27,-66.27 162.27,-42 313.29,-42 313.29,-66.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_executor%mem_alloc</text>
+</a>
+</g>
+</g>
+<!-- proc~create~5&#45;&gt;proc~mem_alloc~2 -->
+<g id="proc~~create~5~~CallsGraph_edge13" class="edge">
+<title>proc~create~5&#45;&gt;proc~mem_alloc~2</title>
+<path fill="none" stroke="#ff0000" d="M66.26,-272.53C73.09,-236.11 97.86,-129.85 162.27,-75.14 163.36,-74.21 164.5,-73.32 165.66,-72.47"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="167.15,-75.66 173.88,-67.48 163.52,-69.68 167.15,-75.66"/>
+</g>
+<!-- proc~mem_free~2 -->
+<g id="proc~~create~5~~CallsGraph_node15" class="node">
+<title>proc~mem_free~2</title>
+<g id="a_proc~~create~5~~CallsGraph_node15"><a xlink:href="../proc/mem_free~2.html" xlink:title="fftw_executor%mem_free">
+<polygon fill="#d9534f" stroke="#d9534f" points="311.04,-24.27 164.52,-24.27 164.52,0 311.04,0 311.04,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="237.78" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_executor%mem_free</text>
+</a>
+</g>
+</g>
+<!-- proc~create~5&#45;&gt;proc~mem_free~2 -->
+<g id="proc~~create~5~~CallsGraph_edge14" class="edge">
+<title>proc~create~5&#45;&gt;proc~mem_free~2</title>
+<path fill="none" stroke="#ff0000" d="M65.16,-272.75C69.2,-232 87.7,-100.82 162.27,-33.13 163.19,-32.3 164.14,-31.5 165.12,-30.73"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="166.81,-33.8 173.3,-25.43 163.01,-27.93 166.81,-33.8"/>
+</g>
+<!-- fftw_malloc -->
+<g id="proc~~create~5~~CallsGraph_node17" class="node">
+<title>fftw_malloc</title>
+<polygon fill="#777777" stroke="#777777" points="421.56,-66.27 349.29,-66.27 349.29,-42 421.56,-42 421.56,-66.27"/>
+<text xml:space="preserve" text-anchor="middle" x="385.43" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_malloc</text>
+</g>
+<!-- proc~mem_alloc~2&#45;&gt;fftw_malloc -->
+<g id="proc~~create~5~~CallsGraph_edge15" class="edge">
+<title>proc~mem_alloc~2&#45;&gt;fftw_malloc</title>
+<path fill="none" stroke="#ff00da" d="M313.74,-54.13C321.79,-54.13 329.8,-54.13 337.39,-54.13"/>
+<polygon fill="#ff00da" stroke="#ff00da" points="337.39,-57.64 347.39,-54.14 337.39,-50.64 337.39,-57.64"/>
+</g>
+<!-- fftw_free -->
+<g id="proc~~create~5~~CallsGraph_node16" class="node">
+<title>fftw_free</title>
+<polygon fill="#777777" stroke="#777777" points="414.06,-24.27 356.79,-24.27 356.79,0 414.06,0 414.06,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="385.43" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fftw_free</text>
+</g>
+<!-- proc~mem_free~2&#45;&gt;fftw_free -->
+<g id="proc~~create~5~~CallsGraph_edge16" class="edge">
+<title>proc~mem_free~2&#45;&gt;fftw_free</title>
+<path fill="none" stroke="#ff006d" d="M311.18,-12.13C322.9,-12.13 334.64,-12.13 345.17,-12.13"/>
+<polygon fill="#ff006d" stroke="#ff006d" points="344.98,-15.64 354.98,-12.14 344.98,-8.64 344.98,-15.64"/>
 </g>
 </g>
 </svg>
-</div>                <script>
-                  var panproccreate5CalledByGraph = svgPanZoom('#proccreate5CalledByGraph',
-                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
-                  );
-                </script>          <div>
-            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CalledByGraph-help-text">Help</a>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
           </div>
-          <div class="modal fade" id="CalledByGraph-help-text" tabindex="-1" role="dialog">
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
               <div class="modal-content">
                 <div class="modal-header">

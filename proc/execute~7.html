@@ -73,20 +73,20 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.0% of total for procedures.">15 statements</a>
+                 title=" 0.6% of total for procedures.">224 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dtfft_executor_fftw.F90"> Source File</a>
+              <a href="../src/dtfft_kernel_device.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_executor_fftw.f90.html'>dtfft_executor_fftw.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/dtfft_executor_fftw_m.html'>dtfft_executor_fftw_m</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/dtfft_kernel_device.f90.html'>dtfft_kernel_device.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/dtfft_kernel_device.html'>dtfft_kernel_device</a></li>
             <li class="breadcrumb-item active" aria-current="page">execute</li>
           </ol>
         </nav>
@@ -132,14 +132,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine execute(self, a, b, sign)  
+    <h2>private  subroutine execute(self, in, out, stream, sync, neighbor)  
 </h2>
     
 
-    <p>Executes FFTW3 plan</p>
+    <p>Executes kernel on stream</p>
 
     <h3>Type Bound</h3>
-    <p><a href='../type/fftw_executor.html'>fftw_executor</a></p>
+    <p><a href='../type/kernel_device.html'>kernel_device</a></p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -154,22 +154,22 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-self~179"></span>
-              class(<a href='../type/fftw_executor.html'>fftw_executor</a>),
+              <span class="anchor" id="variable-self~117"></span>
+              class(<a href='../type/kernel_device.html'>kernel_device</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>self</strong></td>
             <td>
-                <p>FFTW FFT Executor</p>
+                <p>Device kernel class</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-a~3"></span>
+              <span class="anchor" id="variable-in~362"></span>
               type(c_ptr),
             </td>
 <td>intent(in)</td>
@@ -177,14 +177,14 @@
               
             </td>
             <td>::</td>
-            <td><strong>a</strong></td>
+            <td><strong>in</strong></td>
             <td>
-                <p>Source pointer</p>
+                <p>Source buffer, can be device or host pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-b~5"></span>
+              <span class="anchor" id="variable-out~362"></span>
               type(c_ptr),
             </td>
 <td>intent(in)</td>
@@ -192,29 +192,394 @@
               
             </td>
             <td>::</td>
-            <td><strong>b</strong></td>
+            <td><strong>out</strong></td>
             <td>
-                <p>Target pointer</p>
+                <p>Target buffer, can be device or host pointer</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-sign~7"></span>
-              integer(kind=int8),
+              <span class="anchor" id="variable-stream~49"></span>
+              type(<a href='../type/dtfft_stream_t.html'>dtfft_stream_t</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>sign</strong></td>
+            <td><strong>stream</strong></td>
             <td>
-                <p>Sign of transform</p>
+                <p>Stream to execute on</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-sync~4"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>sync</strong></td>
+            <td>
+                <p>Sync stream after kernel execution, unused here</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-neighbor~102"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>neighbor</strong></td>
+            <td>
+                <p>Source rank for pipelined unpacking</p>
             </td>
         </tr>
     </tbody>
   </table>
 
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.1.2 (0)
+ -->
+<!-- Title: proc~~execute~7~~CallsGraph Pages: 1 -->
+<svg id="procexecute7CallsGraph" width="641pt" height="329pt"
+ viewBox="0.00 0.00 641.00 329.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~execute~7~~CallsGraph" class="graph" transform="scale(0.894502 0.894502) rotate(0) translate(4 364.27)">
+<title>proc~~execute~7~~CallsGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-364.27 712.6,-364.27 712.6,4 -4,4"/>
+<!-- proc~execute~7 -->
+<g id="proc~~execute~7~~CallsGraph_node1" class="node">
+<title>proc~execute~7</title>
+<polygon fill="none" stroke="black" points="137.52,-192.27 0,-192.27 0,-168 137.52,-168 137.52,-192.27"/>
+<text xml:space="preserve" text-anchor="middle" x="68.76" y="-176.53" font-family="Helvetica,sans-Serif" font-size="10.50">kernel_device%execute</text>
+</g>
+<!-- fname -->
+<g id="proc~~execute~7~~CallsGraph_node2" class="node">
+<title>fname</title>
+<polygon fill="#777777" stroke="#777777" points="277.9,-360.27 223.9,-360.27 223.9,-336 277.9,-336 277.9,-360.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-344.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fname</text>
+</g>
+<!-- proc~execute~7&#45;&gt;fname -->
+<g id="proc~~execute~7~~CallsGraph_edge1" class="edge">
+<title>proc~execute~7&#45;&gt;fname</title>
+<path fill="none" stroke="#ff0000" d="M74.95,-192.58C87.48,-221.01 122.14,-291.05 173.52,-327.13 184.92,-335.14 199.27,-340.1 212.43,-343.17"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="211.62,-346.58 222.12,-345.11 213,-339.71 211.62,-346.58"/>
+</g>
+<!-- interface~cudamemcpyasync -->
+<g id="proc~~execute~7~~CallsGraph_node3" class="node">
+<title>interface~cudamemcpyasync</title>
+<g id="a_proc~~execute~7~~CallsGraph_node3"><a xlink:href="../interface/cudamemcpyasync.html" xlink:title="cudaMemcpyAsync">
+<polygon fill="#a7506f" stroke="#a7506f" points="308.04,-318.27 193.77,-318.27 193.77,-294 308.04,-294 308.04,-318.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-302.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaMemcpyAsync</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~7&#45;&gt;interface~cudamemcpyasync -->
+<g id="proc~~execute~7~~CallsGraph_edge2" class="edge">
+<title>proc~execute~7&#45;&gt;interface~cudamemcpyasync</title>
+<path fill="none" stroke="#ff0000" d="M78.52,-192.57C94.7,-214.61 131.5,-260.53 173.52,-285.13 176.51,-286.89 179.65,-288.5 182.88,-289.97"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="181.47,-293.18 192.05,-293.7 184.1,-286.69 181.47,-293.18"/>
+</g>
+<!-- interface~cudastreamsynchronize -->
+<g id="proc~~execute~7~~CallsGraph_node4" class="node">
+<title>interface~cudastreamsynchronize</title>
+<g id="a_proc~~execute~7~~CallsGraph_node4"><a xlink:href="../interface/cudastreamsynchronize.html" xlink:title="cudaStreamSynchronize">
+<polygon fill="#a7506f" stroke="#a7506f" points="321.16,-276.27 180.64,-276.27 180.64,-252 321.16,-252 321.16,-276.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-260.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaStreamSynchronize</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~7&#45;&gt;interface~cudastreamsynchronize -->
+<g id="proc~~execute~7~~CallsGraph_edge3" class="edge">
+<title>proc~execute~7&#45;&gt;interface~cudastreamsynchronize</title>
+<path fill="none" stroke="#ff0000" d="M86.94,-192.63C106.89,-206.64 141.2,-229.2 173.52,-243.13 177.53,-244.86 181.71,-246.48 185.97,-248"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="184.62,-251.24 195.22,-251.07 186.83,-244.6 184.62,-251.24"/>
+</g>
+<!-- mpi_abort -->
+<g id="proc~~execute~7~~CallsGraph_node5" class="node">
+<title>mpi_abort</title>
+<polygon fill="#777777" stroke="#777777" points="283.66,-234.27 218.14,-234.27 218.14,-210 283.66,-210 283.66,-234.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-218.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpi_abort</text>
+</g>
+<!-- proc~execute~7&#45;&gt;mpi_abort -->
+<g id="proc~~execute~7~~CallsGraph_edge4" class="edge">
+<title>proc~execute~7&#45;&gt;mpi_abort</title>
+<path fill="none" stroke="#ff0000" d="M123.81,-192.74C150.41,-198.94 182.03,-206.31 206.96,-212.12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="205.89,-215.47 216.42,-214.33 207.48,-208.65 205.89,-215.47"/>
+</g>
+<!-- proc~cudageterrorstring -->
+<g id="proc~~execute~7~~CallsGraph_node6" class="node">
+<title>proc~cudageterrorstring</title>
+<g id="a_proc~~execute~7~~CallsGraph_node6"><a xlink:href="../proc/cudageterrorstring.html" xlink:title="cudaGetErrorString">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="308.04,-192.27 193.77,-192.27 193.77,-168 308.04,-168 308.04,-192.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-176.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~7&#45;&gt;proc~cudageterrorstring -->
+<g id="proc~~execute~7~~CallsGraph_edge5" class="edge">
+<title>proc~execute~7&#45;&gt;proc~cudageterrorstring</title>
+<path fill="none" stroke="#ff0000" d="M137.87,-180.13C152.33,-180.13 167.6,-180.13 182.06,-180.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="181.93,-183.64 191.93,-180.14 181.93,-176.64 181.93,-183.64"/>
+</g>
+<!-- proc~culaunchkernel -->
+<g id="proc~~execute~7~~CallsGraph_node7" class="node">
+<title>proc~culaunchkernel</title>
+<g id="a_proc~~execute~7~~CallsGraph_node7"><a xlink:href="../proc/culaunchkernel.html" xlink:title="cuLaunchKernel">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="299.41,-150.27 202.39,-150.27 202.39,-126 299.41,-126 299.41,-150.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-134.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cuLaunchKernel</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~7&#45;&gt;proc~culaunchkernel -->
+<g id="proc~~execute~7~~CallsGraph_edge6" class="edge">
+<title>proc~execute~7&#45;&gt;proc~culaunchkernel</title>
+<path fill="none" stroke="#ff0000" d="M123.81,-167.53C144.99,-162.6 169.35,-156.92 190.98,-151.87"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="191.6,-155.32 200.54,-149.64 190.01,-148.51 191.6,-155.32"/>
+</g>
+<!-- proc~get_kernel_args -->
+<g id="proc~~execute~7~~CallsGraph_node8" class="node">
+<title>proc~get_kernel_args</title>
+<g id="a_proc~~execute~7~~CallsGraph_node8"><a xlink:href="../proc/get_kernel_args.html" xlink:title="get_kernel_args">
+<polygon fill="#d9534f" stroke="#d9534f" points="299.04,-108.27 202.77,-108.27 202.77,-84 299.04,-84 299.04,-108.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-92.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_kernel_args</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~7&#45;&gt;proc~get_kernel_args -->
+<g id="proc~~execute~7~~CallsGraph_edge7" class="edge">
+<title>proc~execute~7&#45;&gt;proc~get_kernel_args</title>
+<path fill="none" stroke="#ff0000" d="M86.94,-167.64C106.89,-153.63 141.2,-131.07 173.52,-117.13 179.2,-114.69 185.25,-112.45 191.35,-110.42"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="192.38,-113.77 200.9,-107.46 190.31,-107.08 192.38,-113.77"/>
+</g>
+<!-- proc~get_kernel_launch_params -->
+<g id="proc~~execute~7~~CallsGraph_node9" class="node">
+<title>proc~get_kernel_launch_params</title>
+<g id="a_proc~~execute~7~~CallsGraph_node9"><a xlink:href="../proc/get_kernel_launch_params.html" xlink:title="get_kernel_launch_params">
+<polygon fill="#d9534f" stroke="#d9534f" points="328.29,-66.27 173.52,-66.27 173.52,-42 328.29,-42 328.29,-66.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-50.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_kernel_launch_params</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~7&#45;&gt;proc~get_kernel_launch_params -->
+<g id="proc~~execute~7~~CallsGraph_edge8" class="edge">
+<title>proc~execute~7&#45;&gt;proc~get_kernel_launch_params</title>
+<path fill="none" stroke="#ff0000" d="M78.52,-167.7C94.7,-145.66 131.5,-99.74 173.52,-75.13 175.96,-73.71 178.5,-72.37 181.11,-71.12"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="182.22,-74.46 190.06,-67.33 179.49,-68.01 182.22,-74.46"/>
+</g>
+<!-- proc~ptr_offset -->
+<g id="proc~~execute~7~~CallsGraph_node10" class="node">
+<title>proc~ptr_offset</title>
+<g id="a_proc~~execute~7~~CallsGraph_node10"><a xlink:href="../proc/ptr_offset.html" xlink:title="ptr_offset">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="281.79,-24.27 220.02,-24.27 220.02,0 281.79,0 281.79,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="250.9" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ptr_offset</text>
+</a>
+</g>
+</g>
+<!-- proc~execute~7&#45;&gt;proc~ptr_offset -->
+<g id="proc~~execute~7~~CallsGraph_edge9" class="edge">
+<title>proc~execute~7&#45;&gt;proc~ptr_offset</title>
+<path fill="none" stroke="#ff0000" d="M74.95,-167.69C87.48,-139.26 122.14,-69.22 173.52,-33.13 183.76,-25.95 196.36,-21.22 208.35,-18.1"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="209.1,-21.52 218.1,-15.92 207.57,-14.69 209.1,-21.52"/>
+</g>
+<!-- interface~cudageterrorstring_c -->
+<g id="proc~~execute~7~~CallsGraph_node11" class="node">
+<title>interface~cudageterrorstring_c</title>
+<g id="a_proc~~execute~7~~CallsGraph_node11"><a xlink:href="../interface/cudageterrorstring_c.html" xlink:title="cudaGetErrorString_c">
+<polygon fill="#a7506f" stroke="#a7506f" points="489.81,-223.27 364.29,-223.27 364.29,-199 489.81,-199 489.81,-223.27"/>
+<text xml:space="preserve" text-anchor="middle" x="427.05" y="-207.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cudaGetErrorString_c</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c -->
+<g id="proc~~execute~7~~CallsGraph_edge10" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;interface~cudageterrorstring_c</title>
+<path fill="none" stroke="#00ffa9" d="M308.44,-190.2C322.61,-192.72 338.01,-195.46 352.86,-198.11"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="352.13,-201.53 362.59,-199.84 353.36,-194.64 352.13,-201.53"/>
+</g>
+<!-- proc~string_c2f -->
+<g id="proc~~execute~7~~CallsGraph_node14" class="node">
+<title>proc~string_c2f</title>
+<g id="a_proc~~execute~7~~CallsGraph_node14"><a xlink:href="../proc/string_c2f.html" xlink:title="string_c2f">
+<polygon fill="#d9534f" stroke="#d9534f" points="458.68,-181.27 395.41,-181.27 395.41,-157 458.68,-157 458.68,-181.27"/>
+<text xml:space="preserve" text-anchor="middle" x="427.05" y="-165.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">string_c2f</text>
+</a>
+</g>
+</g>
+<!-- proc~cudageterrorstring&#45;&gt;proc~string_c2f -->
+<g id="proc~~execute~7~~CallsGraph_edge11" class="edge">
+<title>proc~cudageterrorstring&#45;&gt;proc~string_c2f</title>
+<path fill="none" stroke="#00ffa9" d="M308.44,-176.56C332.97,-175.01 361.2,-173.23 383.85,-171.8"/>
+<polygon fill="#00ffa9" stroke="#00ffa9" points="383.87,-175.31 393.63,-171.18 383.43,-168.32 383.87,-175.31"/>
+</g>
+<!-- proc~is_pack_kernel -->
+<g id="proc~~execute~7~~CallsGraph_node12" class="node">
+<title>proc~is_pack_kernel</title>
+<g id="a_proc~~execute~7~~CallsGraph_node12"><a xlink:href="../proc/is_pack_kernel.html" xlink:title="is_pack_kernel">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="471.81,-129.27 382.29,-129.27 382.29,-105 471.81,-105 471.81,-129.27"/>
+<text xml:space="preserve" text-anchor="middle" x="427.05" y="-113.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_pack_kernel</text>
+</a>
+</g>
+</g>
+<!-- proc~get_kernel_args&#45;&gt;proc~is_pack_kernel -->
+<g id="proc~~execute~7~~CallsGraph_edge12" class="edge">
+<title>proc~get_kernel_args&#45;&gt;proc~is_pack_kernel</title>
+<path fill="none" stroke="#0000ff" d="M299.49,-101.87C321.46,-104.52 347.68,-107.68 370.55,-110.44"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="369.96,-113.9 380.31,-111.62 370.8,-106.95 369.96,-113.9"/>
+</g>
+<!-- proc~is_unpack_kernel -->
+<g id="proc~~execute~7~~CallsGraph_node13" class="node">
+<title>proc~is_unpack_kernel</title>
+<g id="a_proc~~execute~7~~CallsGraph_node13"><a xlink:href="../proc/is_unpack_kernel.html" xlink:title="is_unpack_kernel">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="478.56,-87.27 375.54,-87.27 375.54,-63 478.56,-63 478.56,-87.27"/>
+<text xml:space="preserve" text-anchor="middle" x="427.05" y="-71.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_unpack_kernel</text>
+</a>
+</g>
+</g>
+<!-- proc~get_kernel_args&#45;&gt;proc~is_unpack_kernel -->
+<g id="proc~~execute~7~~CallsGraph_edge13" class="edge">
+<title>proc~get_kernel_args&#45;&gt;proc~is_unpack_kernel</title>
+<path fill="none" stroke="#0000ff" d="M299.49,-90.4C319.38,-88 342.76,-85.18 363.97,-82.62"/>
+<polygon fill="#0000ff" stroke="#0000ff" points="364.16,-86.12 373.67,-81.45 363.32,-79.17 364.16,-86.12"/>
+</g>
+<!-- interface~is_null_ptr -->
+<g id="proc~~execute~7~~CallsGraph_node15" class="node">
+<title>interface~is_null_ptr</title>
+<g id="a_proc~~execute~7~~CallsGraph_node15"><a xlink:href="../interface/is_null_ptr.html" xlink:title="is_null_ptr">
+<polygon fill="#a7506f" stroke="#a7506f" points="590.58,-181.27 525.81,-181.27 525.81,-157 590.58,-157 590.58,-181.27"/>
+<text xml:space="preserve" text-anchor="middle" x="558.19" y="-165.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_ptr</text>
+</a>
+</g>
+</g>
+<!-- proc~string_c2f&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~execute~7~~CallsGraph_edge14" class="edge">
+<title>proc~string_c2f&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#7f00ff" d="M458.98,-169.13C475.51,-169.13 496.12,-169.13 514.18,-169.13"/>
+<polygon fill="#7f00ff" stroke="#7f00ff" points="514.1,-172.64 524.1,-169.14 514.1,-165.64 514.1,-172.64"/>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;interface~is_null_ptr -->
+<g id="proc~~execute~7~~CallsGraph_edge15" class="edge">
+<title>interface~is_null_ptr&#45;&gt;interface~is_null_ptr</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M539.89,-181.52C533.93,-190.41 540.03,-199.27 558.19,-199.27 568.13,-199.27 574.45,-196.62 577.17,-192.76"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="580.68,-192.8 576.59,-183.03 573.69,-193.22 580.68,-192.8"/>
+</g>
+<!-- proc~is_null_funptr -->
+<g id="proc~~execute~7~~CallsGraph_node16" class="node">
+<title>proc~is_null_funptr</title>
+<g id="a_proc~~execute~7~~CallsGraph_node16"><a xlink:href="../proc/is_null_funptr.html" xlink:title="is_null_funptr">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="708.6,-181.27 626.58,-181.27 626.58,-157 708.6,-157 708.6,-181.27"/>
+<text xml:space="preserve" text-anchor="middle" x="667.59" y="-165.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">is_null_funptr</text>
+</a>
+</g>
+</g>
+<!-- interface~is_null_ptr&#45;&gt;proc~is_null_funptr -->
+<g id="proc~~execute~7~~CallsGraph_edge16" class="edge">
+<title>interface~is_null_ptr&#45;&gt;proc~is_null_funptr</title>
+<path fill="none" stroke="#ff0000" stroke-dasharray="5,2" d="M590.84,-169.13C598.41,-169.13 606.68,-169.13 614.9,-169.13"/>
+<polygon fill="#ff0000" stroke="#ff0000" points="614.88,-172.64 624.88,-169.14 614.88,-165.64 614.88,-172.64"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocexecute7CallsGraph = svgPanZoom('#procexecute7CallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.1.2 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 28.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.873868 0.873868) rotate(0) translate(4 28.27)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-28.27 729.52,-28.27 729.52,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="69.27,-24.27 0,-24.27 0,0 69.27,0 69.27,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="34.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="143.89,-24.27 87.38,-24.27 87.38,0 143.89,0 143.89,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="115.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="221.39,-24.27 161.88,-24.27 161.88,0 221.39,0 221.39,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="191.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="368.27,-24.27 239,-24.27 239,0 368.27,0 368.27,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="303.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="529.39,-24.27 385.88,-24.27 385.88,0 529.39,0 529.39,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="457.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="603.89,-24.27 547.38,-24.27 547.38,0 603.89,0 603.89,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="575.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="725.52,-24.27 621.75,-24.27 621.75,0 725.52,0 725.52,-24.27"/>
+<text xml:space="preserve" text-anchor="middle" x="673.63" y="-8.53" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ Where possible, edges connecting nodes are
+given different colours to make them easier to distinguish in
+large graphs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <br>
 
 

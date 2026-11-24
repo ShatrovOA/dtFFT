@@ -34,20 +34,6 @@ implicit none
 private
 public :: fftw_executor
 
-    type, extends(abstract_executor) :: fftw_executor
-    !! FFTW3 FFT Executor
-    private
-        procedure(apply_interface), nopass, pointer :: apply => NULL()          !! Pointer to FFTW3 function that executes FFT plan
-        procedure(free_interface),  nopass, pointer :: free => NULL()           !! Pointer to FFTW3 function that destroys FFT plan
-        procedure(apply_interface), nopass, pointer :: apply_inverse => NULL()  !! Pointer to FFTW3 function that executes inverse FFT plan
-                                                                                !! Used in R2C only
-    contains
-        procedure :: create_private => create       !! Creates FFT plan via FFTW3 Interface
-        procedure :: execute_private => execute     !! Executes FFTW3 plan
-        procedure :: destroy_private => destroy     !! Destroys FFTW3 plan
-        procedure, nopass :: mem_alloc              !! Allocates FFTW3 memory
-        procedure, nopass :: mem_free               !! Frees FFTW3 aligned memory
-    end type fftw_executor
 
     abstract interface
         subroutine apply_interface(plan, in, out) bind(C)
@@ -62,24 +48,20 @@ public :: fftw_executor
         end subroutine free_interface
     end interface
 
-    abstract interface
-        type(c_ptr) function create_c2c_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,sign,flags) bind(C)
-        !! Creates C2C FFTW3 Plan
-#include "fftw_args_create.i90"
-            integer(C_INT), value :: sign
-        end function create_c2c_plan
-
-        type(c_ptr) function create_r2c_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,flags) bind(C)
-        !! Creates R2C FFTW3 Plan
-#include "fftw_args_create.i90"
-        end function create_r2c_plan
-
-        type(c_ptr) function create_r2r_plan(rank,n,howmany,in,inembed,istride,idist,out,onembed,ostride,odist,kinds,flags) bind(C)
-        !! Creates R2R FFTW3 Plan
-#include "fftw_args_create.i90"
-            integer(C_FFTW_R2R_KIND), intent(in) :: kinds(*)
-        end function create_r2r_plan
-    end interface
+    type, extends(abstract_executor) :: fftw_executor
+    !! FFTW3 FFT Executor
+    private
+        procedure(apply_interface), nopass, pointer :: apply => NULL()          !! Pointer to FFTW3 function that executes FFT plan
+        procedure(free_interface),  nopass, pointer :: free => NULL()           !! Pointer to FFTW3 function that destroys FFT plan
+        procedure(apply_interface), nopass, pointer :: apply_inverse => NULL()  !! Pointer to FFTW3 function that executes inverse FFT plan
+                                                                                !! Used in R2C only
+    contains
+        procedure :: create_private => create       !! Creates FFT plan via FFTW3 Interface
+        procedure :: execute_private => execute     !! Executes FFTW3 plan
+        procedure :: destroy_private => destroy     !! Destroys FFTW3 plan
+        procedure, nopass :: mem_alloc              !! Allocates FFTW3 memory
+        procedure, nopass :: mem_free               !! Frees FFTW3 aligned memory
+    end type fftw_executor
 
 #ifdef DTFFT_WITH_OPENMP
     logical, save :: CREATED_WITH_THREADS = .false.
@@ -105,6 +87,7 @@ contains
         type(dtfft_r2r_kind_t), optional, intent(in)    :: r2r_kinds(:)   !! Kinds of r2r transform
         integer(int32)  :: n_elements     !! Number of elements in `buf`
         type(c_ptr)     :: ptr            !! C pointer to `buf`
+        integer(c_int) :: fft_rnk
 
 #ifdef DTFFT_WITH_OPENMP
         if ( .not. CREATED_WITH_THREADS ) then
@@ -147,79 +130,69 @@ contains
             self%free => fftw_destroy_plan
         endif
 
+        fft_rnk = int(fft_rank%val, c_int)
+
         select case (fft_type%val)
         case (FFT_C2C%val)
-            block
-                procedure(create_c2c_plan), pointer  :: constructor
-
-                if ( precision == DTFFT_SINGLE ) then
-                    constructor => fftwf_plan_many_dft
-                    self%apply => fftwf_execute_dft
-                else
-                    constructor => fftw_plan_many_dft
-                    self%apply => fftw_execute_dft
-                endif
-                self%apply_inverse => NULL()
-                self%plan_forward = constructor(int(fft_rank%val, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(FFT_FORWARD, int32), FFTW3_FLAGS)
-                self%plan_backward = constructor(int(fft_rank%val, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(FFT_BACKWARD, int32), FFTW3_FLAGS)
-
-                nullify(constructor)
-            endblock
+            if ( precision == DTFFT_SINGLE ) then
+                self%plan_forward = fftwf_plan_many_dft(fft_rnk, fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(FFT_FORWARD, int32), FFTW3_FLAGS)
+                self%plan_backward = fftwf_plan_many_dft(fft_rnk, fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(FFT_BACKWARD, int32), FFTW3_FLAGS)
+                self%apply => fftwf_execute_dft
+            else
+                self%plan_forward = fftw_plan_many_dft(fft_rnk, fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(FFT_FORWARD, int32), FFTW3_FLAGS)
+                self%plan_backward = fftw_plan_many_dft(fft_rnk, fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, int(FFT_BACKWARD, int32), FFTW3_FLAGS)
+                self%apply => fftw_execute_dft
+            endif
+            self%apply_inverse => NULL()
         case (FFT_R2C%val)
             block
-                procedure(create_r2c_plan), pointer  :: constructor, constructor_inverse
                 type(c_ptr) :: r_ptr
 
+                call self%mem_alloc(FLOAT_STORAGE_SIZE * n_elements / 2, r_ptr)
                 if ( precision == DTFFT_SINGLE ) then
-                    constructor => fftwf_plan_many_dft_r2c
+                    self%plan_forward = fftwf_plan_many_dft_r2c(fft_rnk, fft_sizes, how_many, r_ptr, inembed, 1, idist, ptr, onembed, 1, odist, FFTW3_FLAGS)
+                    self%plan_backward = fftwf_plan_many_dft_c2r(fft_rnk, fft_sizes, how_many, ptr, onembed, 1, odist, r_ptr, inembed, 1, idist, FFTW3_FLAGS)
                     self%apply => fftwf_execute_dft_r2c
-                    constructor_inverse => fftwf_plan_many_dft_c2r
                     self%apply_inverse => fftwf_execute_dft_c2r
                 else
-                    constructor => fftw_plan_many_dft_r2c
+                    self%plan_forward = fftw_plan_many_dft_r2c(fft_rnk, fft_sizes, how_many, r_ptr, inembed, 1, idist, ptr, onembed, 1, odist, FFTW3_FLAGS)
+                    self%plan_backward = fftw_plan_many_dft_c2r(fft_rnk, fft_sizes, how_many, ptr, onembed, 1, odist, r_ptr, inembed, 1, idist, FFTW3_FLAGS)
                     self%apply => fftw_execute_dft_r2c
-                    constructor_inverse => fftw_plan_many_dft_c2r
                     self%apply_inverse => fftw_execute_dft_c2r
                 endif
-                call self%mem_alloc(FLOAT_STORAGE_SIZE * n_elements / 2, r_ptr)
-                self%plan_forward = constructor(int(fft_rank%val, int32), fft_sizes, how_many, r_ptr, inembed, 1, idist, ptr, onembed, 1, odist, FFTW3_FLAGS)
-                self%plan_backward = constructor_inverse(int(fft_rank%val, int32), fft_sizes, how_many, ptr, onembed, 1, odist, r_ptr, inembed, 1, idist, FFTW3_FLAGS)
 
                 call self%mem_free(r_ptr)
-
-                nullify( constructor, constructor_inverse )
             endblock
         case (FFT_R2R%val)
             block
-                procedure(create_r2r_plan), pointer :: constructor
                 type(dtfft_r2r_kind_t),   allocatable :: inverse_kinds(:)
-                integer(C_FFTW_R2R_KIND), allocatable :: knds(:)
+                integer(C_FFTW_R2R_KIND), allocatable :: knds(:), iknds(:)
+                logical :: need_inverse
+
+                allocate( inverse_kinds(fft_rnk), knds(fft_rnk), iknds(fft_rnk) )
+                knds(:) = int(r2r_kinds(:)%val, C_FFTW_R2R_KIND)
+                inverse_kinds(:) = get_inverse_kind(r2r_kinds)
+                need_inverse = .not. all( inverse_kinds == r2r_kinds )
+                iknds(:) = int(inverse_kinds(:)%val, C_FFTW_R2R_KIND)
 
                 if ( precision == DTFFT_SINGLE ) then
-                    constructor => fftwf_plan_many_r2r
+                    self%plan_forward = fftwf_plan_many_r2r(fft_rnk, fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, knds, FFTW3_FLAGS)
+                    if ( need_inverse ) then
+                        self%plan_backward = fftwf_plan_many_r2r(fft_rnk, fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, iknds, FFTW3_FLAGS)
+                    endif
                     self%apply => fftwf_execute_r2r
                 else
-                    constructor => fftw_plan_many_r2r
+                    self%plan_forward = fftw_plan_many_r2r(fft_rnk, fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, knds, FFTW3_FLAGS)
+                    if ( need_inverse ) then
+                        self%plan_backward = fftw_plan_many_r2r(fft_rnk, fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, iknds, FFTW3_FLAGS)
+                    endif
                     self%apply => fftw_execute_r2r
                 endif
                 self%apply_inverse => NULL()
-
-                allocate( knds(size(r2r_kinds)) )
-                knds(:) = int(r2r_kinds(:)%val, C_FFTW_R2R_KIND)
-
-                self%plan_forward = constructor(int(fft_rank%val, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, knds, FFTW3_FLAGS)
-
-                allocate( inverse_kinds( size(r2r_kinds) ) )
-                inverse_kinds(:) = get_inverse_kind(r2r_kinds)
-                if ( all( inverse_kinds == r2r_kinds ) ) then
+                if ( .not. need_inverse ) then
                     self%plan_backward = self%plan_forward
                     self%is_inverse_copied = .true.
-                else
-                    knds(:) = int(inverse_kinds(:)%val, C_FFTW_R2R_KIND)
-                    self%plan_backward = constructor(int(fft_rank%val, int32), fft_sizes, how_many, ptr, inembed, 1, idist, ptr, onembed, 1, odist, knds, FFTW3_FLAGS)
                 endif
-                deallocate( inverse_kinds, knds )
-                nullify(constructor)
             endblock
         endselect
 
